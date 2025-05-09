@@ -67,7 +67,9 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         else:
             return 1.0
 
-    def distances(self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]) -> List[float]:
+    def distances(
+        self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]
+    ) -> List[float]:
         """
         Calculate distances from a single element to a list of elements.
 
@@ -108,7 +110,9 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         """
         return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(self, x: Union[Any], y: Union[Any], z: Union[Any]) -> bool:
+    def check_triangle_inequality(
+        self, x: Union[Any], y: Union[Any], z: Union[Any]
+    ) -> bool:
         """
         Verify the triangle inequality property of the pseudometric.
 

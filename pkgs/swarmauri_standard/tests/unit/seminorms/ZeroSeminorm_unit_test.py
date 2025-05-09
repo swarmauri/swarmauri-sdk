@@ -4,10 +4,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.unit
 class TestZeroSeminorm:
     """Unit tests for ZeroSeminorm class."""
-    
+
     @pytest.fixture
     def zero_seminorm_instance(self):
         """Fixture to provide a ZeroSeminorm instance for testing."""

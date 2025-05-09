@@ -18,6 +18,7 @@ class JaccardIndexSimilarity(SimilarityBase):
     Attributes:
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
     def __init__(self) -> None:
@@ -27,14 +28,14 @@ class JaccardIndexSimilarity(SimilarityBase):
         super().__init__()
 
     def similarity(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        y: Union[Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        y: Union[Tuple, frozenset, set, List],
     ) -> float:
         """
         Computes the Jaccard Index similarity between two sets.
 
-        The Jaccard Index is calculated as the size of the intersection of x and y 
+        The Jaccard Index is calculated as the size of the intersection of x and y
         divided by the size of the union of x and y.
 
         Args:
@@ -47,8 +48,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         Raises:
             ValueError: If either x or y is not a set-like collection.
         """
-        if not isinstance(x, (set, frozenset, tuple, list)) or \
-           not isinstance(y, (set, frozenset, tuple, list)):
+        if not isinstance(x, (set, frozenset, tuple, list)) or not isinstance(
+            y, (set, frozenset, tuple, list)
+        ):
             raise ValueError("Inputs must be set-like collections.")
 
         x_set = set(x) if not isinstance(x, (set, frozenset)) else x
@@ -60,15 +62,17 @@ class JaccardIndexSimilarity(SimilarityBase):
         if len(union) == 0:
             logger.debug("Both sets are empty, returning maximum similarity of 1.0")
             return 1.0
-            
+
         jaccard_index = len(intersection) / len(union)
         logger.debug(f"Jaccard Index similarity calculated as {jaccard_index}")
         return jaccard_index
 
     def similarities(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        ys: Union[List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        ys: Union[
+            List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List
+        ],
     ) -> Union[float, List[float]]:
         """
         Computes similarities between a reference set and multiple other sets.
@@ -86,9 +90,9 @@ class JaccardIndexSimilarity(SimilarityBase):
             return self.similarity(x, ys)
 
     def dissimilarity(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        y: Union[Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        y: Union[Tuple, frozenset, set, List],
     ) -> float:
         """
         Computes the dissimilarity as 1 minus the similarity.
@@ -103,9 +107,11 @@ class JaccardIndexSimilarity(SimilarityBase):
         return 1.0 - self.similarity(x, y)
 
     def dissimilarities(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        ys: Union[List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        ys: Union[
+            List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List
+        ],
     ) -> Union[float, List[float]]:
         """
         Computes dissimilarities between a reference set and multiple other sets.
@@ -123,9 +129,9 @@ class JaccardIndexSimilarity(SimilarityBase):
             return 1.0 - self.similarity(x, ys)
 
     def check_boundedness(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        y: Union[Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        y: Union[Tuple, frozenset, set, List],
     ) -> bool:
         """
         Checks if the similarity measure is bounded.
@@ -141,10 +147,7 @@ class JaccardIndexSimilarity(SimilarityBase):
         """
         return True
 
-    def check_reflexivity(
-        self, 
-        x: Union[Tuple, frozenset, set, List]
-    ) -> bool:
+    def check_reflexivity(self, x: Union[Tuple, frozenset, set, List]) -> bool:
         """
         Checks if the similarity measure is reflexive.
 
@@ -159,9 +162,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         return self.similarity(x, x) == 1.0
 
     def check_symmetry(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        y: Union[Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        y: Union[Tuple, frozenset, set, List],
     ) -> bool:
         """
         Checks if the similarity measure is symmetric.
@@ -178,9 +181,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         return self.similarity(x, y) == self.similarity(y, x)
 
     def check_identity(
-        self, 
-        x: Union[Tuple, frozenset, set, List], 
-        y: Union[Tuple, frozenset, set, List]
+        self,
+        x: Union[Tuple, frozenset, set, List],
+        y: Union[Tuple, frozenset, set, List],
     ) -> bool:
         """
         Checks if the similarity measure satisfies identity.

@@ -20,6 +20,7 @@ class LInfNorm(NormBase):
         resource: Type of resource this component represents
         type: Type identifier for this norm class
     """
+
     type: Literal["LInfNorm"] = "LInfNorm"
     resource: Optional[str] = ResourceTypes.NORM.value
 
@@ -74,7 +75,9 @@ class LInfNorm(NormBase):
         assert norm >= 0, "LInfNorm does not satisfy non-negativity"
         logger.info("LInfNorm non-negativity check passed")
 
-    def check_triangle_inequality(self, x: Union[Sequence, Callable], y: Union[Sequence, Callable]) -> None:
+    def check_triangle_inequality(
+        self, x: Union[Sequence, Callable], y: Union[Sequence, Callable]
+    ) -> None:
         """
         Verify the triangle inequality property of the L-Infinity norm.
 
@@ -89,12 +92,18 @@ class LInfNorm(NormBase):
         """
         norm_x = self.compute(x)
         norm_y = self.compute(y)
-        norm_xy = self.compute([x[i] + y[i] for i in range(len(x))] if isinstance(x, Sequence) else None)
-        
-        assert norm_xy <= norm_x + norm_y, "LInfNorm does not satisfy triangle inequality"
+        norm_xy = self.compute(
+            [x[i] + y[i] for i in range(len(x))] if isinstance(x, Sequence) else None
+        )
+
+        assert norm_xy <= norm_x + norm_y, (
+            "LInfNorm does not satisfy triangle inequality"
+        )
         logger.info("LInfNorm triangle inequality check passed")
 
-    def check_absolute_homogeneity(self, x: Union[Sequence, Callable], alpha: float) -> None:
+    def check_absolute_homogeneity(
+        self, x: Union[Sequence, Callable], alpha: float
+    ) -> None:
         """
         Verify the absolute homogeneity property of the L-Infinity norm.
 
@@ -110,8 +119,10 @@ class LInfNorm(NormBase):
         norm_x = self.compute(x)
         scaled_x = [alpha * val for val in x] if isinstance(x, Sequence) else None
         norm_scaled = self.compute(scaled_x)
-        
-        assert np.isclose(norm_scaled, abs(alpha) * norm_x), "LInfNorm does not satisfy absolute homogeneity"
+
+        assert np.isclose(norm_scaled, abs(alpha) * norm_x), (
+            "LInfNorm does not satisfy absolute homogeneity"
+        )
         logger.info("LInfNorm absolute homogeneity check passed")
 
     def check_definiteness(self, x: Union[Sequence, Callable]) -> None:
@@ -131,10 +142,12 @@ class LInfNorm(NormBase):
             is_zero = all(val == 0 for val in x)
         else:
             is_zero = x == 0
-        
+
         if is_zero and norm != 0:
             raise AssertionError("LInfNorm does not satisfy definiteness: ||0|| != 0")
         if not is_zero and norm == 0:
-            raise AssertionError("LInfNorm does not satisfy definiteness: x != 0 but ||x|| = 0")
-        
+            raise AssertionError(
+                "LInfNorm does not satisfy definiteness: x != 0 but ||x|| = 0"
+            )
+
         logger.info("LInfNorm definiteness check passed")

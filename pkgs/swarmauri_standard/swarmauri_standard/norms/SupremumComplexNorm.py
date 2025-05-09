@@ -22,6 +22,7 @@ class SupremumComplexNorm(NormBase):
     Attributes:
         resource: Type of resource this component represents
     """
+
     resource: Optional[str] = "norm"
     type: Type[str] = "SupremumComplexNorm"
 
@@ -47,7 +48,7 @@ class SupremumComplexNorm(NormBase):
             TypeError: If the input cannot be processed.
         """
         logger.debug("Computing supremum norm")
-        
+
         try:
             if callable(x):
                 # Assuming interval [a, b] is [-1, 1] if not specified
@@ -58,23 +59,25 @@ class SupremumComplexNorm(NormBase):
                 x_values = np.linspace(a, b, samples)
                 y_values = np.abs(x_eval(x_values))
                 return np.max(y_values)
-            
+
             elif isinstance(x, (Sequence, np.ndarray)):
                 return np.max(np.abs(x))
-            
+
             elif isinstance(x, (str, bytes)):
                 # Handle string or bytes input if necessary
                 # For example, treat as sequence of characters
                 return np.max(np.abs([ord(c) for c in x]))
-            
+
             else:
                 raise ValueError(f"Unsupported input type: {type(x).__name__}")
-                
+
         except Exception as e:
             logger.error(f"Error computing supremum norm: {str(e)}")
             raise TypeError("Failed to compute norm due to invalid input type") from e
 
-    def check_non_negativity(self, x: Union[Callable, Sequence, str, bytes, np.ndarray]) -> None:
+    def check_non_negativity(
+        self, x: Union[Callable, Sequence, str, bytes, np.ndarray]
+    ) -> None:
         """Verify the non-negativity property of the norm.
 
         Args:
@@ -87,8 +90,11 @@ class SupremumComplexNorm(NormBase):
         norm_value = self.compute(x)
         assert norm_value >= 0, "Norm value is negative"
 
-    def check_triangle_inequality(self, x: Union[Callable, Sequence, str, bytes, np.ndarray],
-                                    y: Union[Callable, Sequence, str, bytes, np.ndarray]) -> None:
+    def check_triangle_inequality(
+        self,
+        x: Union[Callable, Sequence, str, bytes, np.ndarray],
+        y: Union[Callable, Sequence, str, bytes, np.ndarray],
+    ) -> None:
         """Verify the triangle inequality property of the norm.
 
         Args:
@@ -104,8 +110,9 @@ class SupremumComplexNorm(NormBase):
         norm_xy = self.compute(x + y)
         assert norm_xy <= norm_x + norm_y, "Triangle inequality violated"
 
-    def check_absolute_homogeneity(self, x: Union[Callable, Sequence, str, bytes, np.ndarray],
-                                    alpha: float) -> None:
+    def check_absolute_homogeneity(
+        self, x: Union[Callable, Sequence, str, bytes, np.ndarray], alpha: float
+    ) -> None:
         """Verify the absolute homogeneity property of the norm.
 
         Args:
@@ -119,10 +126,13 @@ class SupremumComplexNorm(NormBase):
         norm_x = self.compute(x)
         scaled_x = alpha * x
         norm_scaled_x = self.compute(scaled_x)
-        assert np.isclose(norm_scaled_x, abs(alpha) * norm_x, rtol=1e-9), \
+        assert np.isclose(norm_scaled_x, abs(alpha) * norm_x, rtol=1e-9), (
             "Absolute homogeneity property not satisfied"
+        )
 
-    def check_definiteness(self, x: Union[Callable, Sequence, str, bytes, np.ndarray]) -> None:
+    def check_definiteness(
+        self, x: Union[Callable, Sequence, str, bytes, np.ndarray]
+    ) -> None:
         """Verify the definiteness property of the norm.
 
         Args:

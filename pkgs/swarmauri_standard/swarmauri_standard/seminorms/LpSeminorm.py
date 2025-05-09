@@ -26,6 +26,7 @@ class LpSeminorm(SeminormBase):
         p (float): The parameter controlling the norm's sensitivity to
             large values. Must be in the range (0, ∞).
     """
+
     type: Literal["LpSeminorm"] = "LpSeminorm"
 
     def __init__(self, p: float = 2.0) -> None:
@@ -44,10 +45,7 @@ class LpSeminorm(SeminormBase):
             raise ValueError("p must be in the range (0, ∞)")
         self.p = p
 
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable]
-    ) -> float:
+    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
         Compute the Lp seminorm of the given input.
 
@@ -62,11 +60,13 @@ class LpSeminorm(SeminormBase):
             TypeError: If the input type is not supported.
         """
         logger.debug("Computing Lp seminorm")
-        
+
         # Convert input to a vector if it's a sequence
-        if isinstance(input, Sequence) and not isinstance(input, (IVector, IMatrix, str, Callable)):
+        if isinstance(input, Sequence) and not isinstance(
+            input, (IVector, IMatrix, str, Callable)
+        ):
             input = IVector(input)
-            
+
         # Handle different input types
         if isinstance(input, IVector):
             vector = input
@@ -76,15 +76,15 @@ class LpSeminorm(SeminormBase):
             elements = vector.get_rows()
         else:
             raise TypeError("Unsupported input type for LpSeminorm.compute")
-        
+
         # Compute the Lp seminorm
-        sum_power = sum(abs(e)**self.p for e in elements)
+        sum_power = sum(abs(e) ** self.p for e in elements)
         return sum_power ** (1.0 / self.p)
 
     def check_triangle_inequality(
         self,
         a: Union[IVector, IMatrix, Sequence, str, Callable],
-        b: Union[IVector, IMatrix, Sequence, str, Callable]
+        b: Union[IVector, IMatrix, Sequence, str, Callable],
     ) -> bool:
         """
         Check if the triangle inequality holds for the given inputs.
@@ -101,17 +101,15 @@ class LpSeminorm(SeminormBase):
             bool: True if the triangle inequality holds, False otherwise.
         """
         logger.debug("Checking triangle inequality for LpSeminorm")
-        
+
         seminorm_a = self.compute(a)
         seminorm_b = self.compute(b)
         seminorm_sum = self.compute(a + b)
-        
+
         return seminorm_sum <= (seminorm_a + seminorm_b)
 
     def check_scalar_homogeneity(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable],
-        scalar: float
+        self, input: Union[IVector, IMatrix, Sequence, str, Callable], scalar: float
     ) -> bool:
         """
         Check if the seminorm satisfies scalar homogeneity.
@@ -127,9 +125,9 @@ class LpSeminorm(SeminormBase):
             bool: True if scalar homogeneity holds, False otherwise.
         """
         logger.debug("Checking scalar homogeneity for LpSeminorm")
-        
+
         scaled_input = scalar * input
         seminorm_scaled = self.compute(scaled_input)
         seminorm_original = self.compute(input)
-        
+
         return seminorm_scaled == abs(scalar) * seminorm_original

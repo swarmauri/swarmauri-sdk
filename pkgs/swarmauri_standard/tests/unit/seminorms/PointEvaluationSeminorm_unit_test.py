@@ -1,8 +1,11 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
+from swarmauri_standard.swarmauri_standard.seminorms.PointEvaluationSeminorm import (
+    PointEvaluationSeminorm,
+)
 from typing import Union, Sequence, Callable
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+
 
 @pytest.mark.unit
 class TestPointEvaluationSeminorm:
@@ -12,7 +15,7 @@ class TestPointEvaluationSeminorm:
         """Test the initialization of PointEvaluationSeminorm with and without point."""
         pes = PointEvaluationSeminorm()
         assert pes.point == 0.0
-        
+
         custom_point = 5.0
         pes_custom = PointEvaluationSeminorm(point=custom_point)
         assert pes_custom.point == custom_point
@@ -50,8 +53,10 @@ class TestPointEvaluationSeminorm:
 
     def test_compute_callable(self):
         """Test compute method with callable input."""
+
         def func(x):
             return x * 2
+
         point = 5.0
         pes = PointEvaluationSeminorm(point=point)
         result = pes.compute(func)

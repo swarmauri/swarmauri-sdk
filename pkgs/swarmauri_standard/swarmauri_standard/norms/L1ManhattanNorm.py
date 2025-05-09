@@ -18,6 +18,7 @@ class L1ManhattanNorm(NormBase):
         type: Type identifier for this norm class
         resource: Type of resource this component represents
     """
+
     type: str = "L1ManhattanNorm"
     resource: str = "norm"
 
@@ -44,7 +45,7 @@ class L1ManhattanNorm(NormBase):
             ValueError: If the input cannot be converted to a valid vector
         """
         logger.debug("Computing L1 norm")
-        
+
         try:
             # Convert input to a list of float values
             if isinstance(x, str):
@@ -53,15 +54,17 @@ class L1ManhattanNorm(NormBase):
                 vector = x()
             else:
                 vector = list(x)
-            
+
             # Compute L1 norm as sum of absolute values
             norm = sum(abs(component) for component in vector)
             logger.debug(f"L1 norm computed: {norm}")
             return norm
-            
+
         except TypeError as e:
             logger.error(f"TypeError in L1 computation: {str(e)}")
-            raise TypeError(f"Unsupported type for L1 norm computation: {type(x)}") from e
+            raise TypeError(
+                f"Unsupported type for L1 norm computation: {type(x)}"
+            ) from e
         except Exception as e:
             logger.error(f"Error in L1 computation: {str(e)}")
             raise ValueError(f"Invalid input for L1 norm computation") from e
@@ -79,13 +82,14 @@ class L1ManhattanNorm(NormBase):
             AssertionError: If non-negativity property is not satisfied
         """
         logger.debug("Checking non-negativity property")
-        
+
         norm = self.compute(x)
         assert norm >= 0, "Non-negativity violation: Norm is negative"
         logger.debug("Non-negativity property verified")
 
-    def check_triangle_inequality(self, x: Union[Sequence, str, Callable], 
-                                    y: Union[Sequence, str, Callable]) -> None:
+    def check_triangle_inequality(
+        self, x: Union[Sequence, str, Callable], y: Union[Sequence, str, Callable]
+    ) -> None:
         """
         Verify the triangle inequality property of the L1 norm.
 
@@ -99,16 +103,21 @@ class L1ManhattanNorm(NormBase):
             AssertionError: If triangle inequality property is not satisfied
         """
         logger.debug("Checking triangle inequality property")
-        
+
         norm_x = self.compute(x)
         norm_y = self.compute(y)
-        sum_xy = [x_i + y_i for x_i, y_i in zip(self._convert_to_vector(x), self._convert_to_vector(y))]
+        sum_xy = [
+            x_i + y_i
+            for x_i, y_i in zip(self._convert_to_vector(x), self._convert_to_vector(y))
+        ]
         norm_sum = self.compute(sum_xy)
-        
+
         assert norm_sum <= norm_x + norm_y, "Triangle inequality violation"
         logger.debug("Triangle inequality property verified")
 
-    def check_absolute_homogeneity(self, x: Union[Sequence, str, Callable], alpha: float) -> None:
+    def check_absolute_homogeneity(
+        self, x: Union[Sequence, str, Callable], alpha: float
+    ) -> None:
         """
         Verify the absolute homogeneity property of the L1 norm.
 
@@ -122,12 +131,14 @@ class L1ManhattanNorm(NormBase):
             AssertionError: If absolute homogeneity property is not satisfied
         """
         logger.debug("Checking absolute homogeneity property")
-        
+
         scaled_vector = [alpha * component for component in self._convert_to_vector(x)]
         norm_scaled = self.compute(scaled_vector)
         norm_original = self.compute(x)
-        
-        assert norm_scaled == abs(alpha) * norm_original, "Absolute homogeneity violation"
+
+        assert norm_scaled == abs(alpha) * norm_original, (
+            "Absolute homogeneity violation"
+        )
         logger.debug("Absolute homogeneity property verified")
 
     def check_definiteness(self, x: Union[Sequence, str, Callable]) -> None:
@@ -143,15 +154,17 @@ class L1ManhattanNorm(NormBase):
             AssertionError: If definiteness property is not satisfied
         """
         logger.debug("Checking definiteness property")
-        
+
         vector = self._convert_to_vector(x)
         norm = self.compute(vector)
-        
+
         if norm == 0:
-            assert all(component == 0 for component in vector), "Definiteness violation: Non-zero vector with zero norm"
+            assert all(component == 0 for component in vector), (
+                "Definiteness violation: Non-zero vector with zero norm"
+            )
         else:
             assert norm != 0, "Definiteness violation: Zero vector has non-zero norm"
-            
+
         logger.debug("Definiteness property verified")
 
     def _convert_to_vector(self, x: Union[Sequence, str, Callable]) -> list:

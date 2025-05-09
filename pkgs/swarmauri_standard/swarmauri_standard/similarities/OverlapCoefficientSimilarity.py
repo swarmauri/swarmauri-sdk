@@ -6,6 +6,7 @@ from sets import Set
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_model()
 class OverlapCoefficientSimilarity(SimilarityBase):
     """
@@ -20,6 +21,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
     Attributes:
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     type: Literal["OverlapCoefficientSimilarity"] = "OverlapCoefficientSimilarity"
     resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
 
@@ -29,9 +31,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         self._logger = logging.getLogger(__name__)
 
     def similarity(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        y: Union[Set, List, Tuple, str]
+        self, x: Union[Set, List, Tuple, str], y: Union[Set, List, Tuple, str]
     ) -> float:
         """
         Calculate the similarity between two sets using the Overlap Coefficient.
@@ -49,7 +49,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             ValueError: If either x or y is empty after conversion to set.
         """
         if not x or not y:
-            raise ValueError("Both sets must be non-empty for Overlap Coefficient calculation")
+            raise ValueError(
+                "Both sets must be non-empty for Overlap Coefficient calculation"
+            )
 
         # Convert inputs to sets if they aren't already
         if not isinstance(x, Set):
@@ -69,9 +71,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return similarity
 
     def similarities(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        ys: Union[List[Union[Set, List, Tuple, str]], Union[Set, List, Tuple, str]]
+        self,
+        x: Union[Set, List, Tuple, str],
+        ys: Union[List[Union[Set, List, Tuple, str]], Union[Set, List, Tuple, str]],
     ) -> Union[float, List[float]]:
         """
         Calculate similarities between a reference set and multiple other sets.
@@ -92,9 +94,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return similarities
 
     def dissimilarity(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        y: Union[Set, List, Tuple, str]
+        self, x: Union[Set, List, Tuple, str], y: Union[Set, List, Tuple, str]
     ) -> float:
         """
         Calculate the dissimilarity between two sets using the Overlap Coefficient.
@@ -111,9 +111,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return 1.0 - self.similarity(x, y)
 
     def dissimilarities(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        ys: Union[List[Union[Set, List, Tuple, str]], Union[Set, List, Tuple, str]]
+        self,
+        x: Union[Set, List, Tuple, str],
+        ys: Union[List[Union[Set, List, Tuple, str]], Union[Set, List, Tuple, str]],
     ) -> Union[float, List[float]]:
         """
         Calculate dissimilarities between a reference set and multiple other sets.
@@ -134,9 +134,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return dissimilarities
 
     def check_boundedness(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        y: Union[Set, List, Tuple, str]
+        self, x: Union[Set, List, Tuple, str], y: Union[Set, List, Tuple, str]
     ) -> bool:
         """
         Check if the Overlap Coefficient similarity measure is bounded.
@@ -152,10 +150,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         """
         return True
 
-    def check_reflexivity(
-        self, 
-        x: Union[Set, List, Tuple, str]
-    ) -> bool:
+    def check_reflexivity(self, x: Union[Set, List, Tuple, str]) -> bool:
         """
         Check if the Overlap Coefficient similarity measure is reflexive.
 
@@ -170,9 +165,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        y: Union[Set, List, Tuple, str]
+        self, x: Union[Set, List, Tuple, str], y: Union[Set, List, Tuple, str]
     ) -> bool:
         """
         Check if the Overlap Coefficient similarity measure is symmetric.
@@ -189,9 +182,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[Set, List, Tuple, str], 
-        y: Union[Set, List, Tuple, str]
+        self, x: Union[Set, List, Tuple, str], y: Union[Set, List, Tuple, str]
     ) -> bool:
         """
         Check if the Overlap Coefficient similarity measure satisfies identity.

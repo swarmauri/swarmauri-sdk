@@ -1,11 +1,14 @@
 import pytest
 import logging
-from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import OverlapCoefficientSimilarity
+from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import (
+    OverlapCoefficientSimilarity,
+)
+
 
 @pytest.mark.unit
 class TestOverlapCoefficientSimilarity:
     """Unit tests for the OverlapCoefficientSimilarity class."""
-    
+
     @pytest.fixture
     def overlap_coefficient(self):
         """Fixture to create an instance of OverlapCoefficientSimilarity."""
@@ -15,7 +18,7 @@ class TestOverlapCoefficientSimilarity:
     def test_initialization(self, overlap_coefficient, caplog):
         """Test that the OverlapCoefficientSimilarity instance is initialized correctly."""
         assert isinstance(overlap_coefficient, OverlapCoefficientSimilarity)
-        assert hasattr(overlap_coefficient, '_logger')
+        assert hasattr(overlap_coefficient, "_logger")
         assert isinstance(overlap_coefficient._logger, logging.Logger)
         with caplog.at_level(logging.DEBUG):
             overlap_coefficient.similarity({"a", "b"}, {"a", "b", "c"})
@@ -27,9 +30,13 @@ class TestOverlapCoefficientSimilarity:
         # Test with strings
         assert overlap_coefficient.similarity("test", "test") == 1.0
         # Test with lists
-        assert overlap_coefficient.similarity(["a", "b"], ["a", "b", "c"]) == 2/2 == 1.0
+        assert (
+            overlap_coefficient.similarity(["a", "b"], ["a", "b", "c"]) == 2 / 2 == 1.0
+        )
         # Test with sets
-        assert overlap_coefficient.similarity({"a", "b", "c"}, {"a", "b"}) == 2/2 == 1.0
+        assert (
+            overlap_coefficient.similarity({"a", "b", "c"}, {"a", "b"}) == 2 / 2 == 1.0
+        )
         # Test with empty set
         with pytest.raises(ValueError):
             overlap_coefficient.similarity("", "test")
@@ -45,7 +52,9 @@ class TestOverlapCoefficientSimilarity:
     def test_similarities_multiple(self, overlap_coefficient):
         """Test the similarities method with multiple inputs."""
         single_similarity = overlap_coefficient.similarity({"a"}, {"a"})
-        multiple_similarity = overlap_coefficient.similarities({"a"}, [{"a"}, {"a", "b"}])
+        multiple_similarity = overlap_coefficient.similarities(
+            {"a"}, [{"a"}, {"a", "b"}]
+        )
         assert isinstance(multiple_similarity, list)
         assert single_similarity in multiple_similarity
 
@@ -90,12 +99,12 @@ class TestOverlapCoefficientSimilarity:
         """Test similarity calculation with different input types."""
         test_cases = [
             ({"a"}, {"a"}, 1.0),
-            ({"a", "b"}, {"a", "b", "c"}, 2/2),
-            (["a", "b"], ["a", "b", "c"], 2/2),
+            ({"a", "b"}, {"a", "b", "c"}, 2 / 2),
+            (["a", "b"], ["a", "b", "c"], 2 / 2),
             ("a", "a", 1.0),
             ("a", "b", 0.0),
-            ({"a", "b", "c"}, {"a", "b", "d"}, 2/3),
+            ({"a", "b", "c"}, {"a", "b", "d"}, 2 / 3),
         ]
-        
+
         for x, y, expected in test_cases:
             assert overlap_coefficient.similarity(x, y) == expected

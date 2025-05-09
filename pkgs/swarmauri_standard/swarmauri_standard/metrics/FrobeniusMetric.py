@@ -11,9 +11,9 @@ class FrobeniusMetric(MetricBase):
     """
     Concrete implementation of the MetricBase class for computing the Frobenius metric.
 
-    The Frobenius metric calculates the distance between two matrices as the square root 
-    of the sum of the squares of their element-wise differences. This implementation 
-    provides the core functionality for computing the metric while adhering to the 
+    The Frobenius metric calculates the distance between two matrices as the square root
+    of the sum of the squares of their element-wise differences. This implementation
+    provides the core functionality for computing the metric while adhering to the
     metric axioms.
 
     Inherits From:
@@ -23,24 +23,23 @@ class FrobeniusMetric(MetricBase):
         type: Type identifier for the metric implementation
         resource: Type of resource this component represents
     """
+
     type: Literal["FrobeniusMetric"] = "FrobeniusMetric"
     resource: Optional[str] = "metric"
 
     def distance(
-        self, 
-        x: Union[List, str, Callable], 
-        y: Union[List, str, Callable]
+        self, x: Union[List, str, Callable], y: Union[List, str, Callable]
     ) -> float:
         """
         Compute the Frobenius distance between two matrices.
 
-        The Frobenius distance is calculated as the square root of the sum 
+        The Frobenius distance is calculated as the square root of the sum
         of the squares of the differences between corresponding matrix elements.
 
         Args:
-            x: The first matrix. Can be a list of lists, a string representation, 
+            x: The first matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            y: The second matrix. Can be a list of lists, a string representation, 
+            y: The second matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
 
         Returns:
@@ -52,12 +51,18 @@ class FrobeniusMetric(MetricBase):
         try:
             # Convert input to matrices if they are strings or callables
             if isinstance(x, str):
-                x = [list(map(float, row.strip().split())) for row in x.strip().splitlines()]
+                x = [
+                    list(map(float, row.strip().split()))
+                    for row in x.strip().splitlines()
+                ]
             elif callable(x):
                 x = x()
-            
+
             if isinstance(y, str):
-                y = [list(map(float, row.strip().split())) for row in y.strip().splitlines()]
+                y = [
+                    list(map(float, row.strip().split()))
+                    for row in y.strip().splitlines()
+                ]
             elif callable(y):
                 y = y()
 
@@ -70,27 +75,25 @@ class FrobeniusMetric(MetricBase):
             for i in range(len(x)):
                 for j in range(len(x[0])):
                     diff = x[i][j] - y[i][j]
-                    sum_squares += diff ** 2
+                    sum_squares += diff**2
 
             # Compute and return the square root of the sum of squares
-            return sum_squares ** 0.5
+            return sum_squares**0.5
 
         except Exception as e:
             logger.error(f"Failed to compute Frobenius distance: {str(e)}")
             raise ValueError("Invalid input for Frobenius distance computation")
 
     def distances(
-        self, 
-        x: Union[List, str, Callable], 
-        ys: List[Union[List, str, Callable]]
+        self, x: Union[List, str, Callable], ys: List[Union[List, str, Callable]]
     ) -> List[float]:
         """
         Compute distances from a single matrix to multiple matrices.
 
         Args:
-            x: The reference matrix. Can be a list of lists, a string representation, 
+            x: The reference matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            ys: List of matrices to compute distances to. Each can be a list of lists, 
+            ys: List of matrices to compute distances to. Each can be a list of lists,
                 a string representation, or a callable that produces a matrix.
 
         Returns:
@@ -102,14 +105,20 @@ class FrobeniusMetric(MetricBase):
         try:
             # Convert x to matrix if needed
             if isinstance(x, str):
-                x = [list(map(float, row.strip().split())) for row in x.strip().splitlines()]
+                x = [
+                    list(map(float, row.strip().split()))
+                    for row in x.strip().splitlines()
+                ]
             elif callable(x):
                 x = x()
 
             distances = []
             for y in ys:
                 if isinstance(y, str):
-                    y = [list(map(float, row.strip().split())) for row in y.strip().splitlines()]
+                    y = [
+                        list(map(float, row.strip().split()))
+                        for row in y.strip().splitlines()
+                    ]
                 elif callable(y):
                     y = y()
 
@@ -120,8 +129,8 @@ class FrobeniusMetric(MetricBase):
                 for i in range(len(x)):
                     for j in range(len(x[0])):
                         diff = x[i][j] - y[i][j]
-                        sum_squares += diff ** 2
-                distances.append(sum_squares ** 0.5)
+                        sum_squares += diff**2
+                distances.append(sum_squares**0.5)
 
             return distances
 
@@ -130,17 +139,15 @@ class FrobeniusMetric(MetricBase):
             raise ValueError("Failed to compute Frobenius distances")
 
     def check_non_negativity(
-        self, 
-        x: Union[List, str, Callable], 
-        y: Union[List, str, Callable]
+        self, x: Union[List, str, Callable], y: Union[List, str, Callable]
     ) -> Literal[True]:
         """
         Verify the non-negativity property: d(x, y) ≥ 0.
 
         Args:
-            x: The first matrix. Can be a list of lists, a string representation, 
+            x: The first matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            y: The second matrix. Can be a list of lists, a string representation, 
+            y: The second matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
 
         Returns:
@@ -155,17 +162,15 @@ class FrobeniusMetric(MetricBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[List, str, Callable], 
-        y: Union[List, str, Callable]
+        self, x: Union[List, str, Callable], y: Union[List, str, Callable]
     ) -> Literal[True]:
         """
         Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
 
         Args:
-            x: The first matrix. Can be a list of lists, a string representation, 
+            x: The first matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            y: The second matrix. Can be a list of lists, a string representation, 
+            y: The second matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
 
         Returns:
@@ -176,23 +181,25 @@ class FrobeniusMetric(MetricBase):
         """
         distance = self.distance(x, y)
         if distance != 0:
-            logger.error("Identity property violated: d(x, y) != 0 for identical matrices")
-        assert distance == 0, "Identity property violated: d(x, y) != 0 for identical matrices"
+            logger.error(
+                "Identity property violated: d(x, y) != 0 for identical matrices"
+            )
+        assert distance == 0, (
+            "Identity property violated: d(x, y) != 0 for identical matrices"
+        )
         logger.info("Identity property verified for Frobenius metric")
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[List, str, Callable], 
-        y: Union[List, str, Callable]
+        self, x: Union[List, str, Callable], y: Union[List, str, Callable]
     ) -> Literal[True]:
         """
         Verify the symmetry property: d(x, y) = d(y, x).
 
         Args:
-            x: The first matrix. Can be a list of lists, a string representation, 
+            x: The first matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            y: The second matrix. Can be a list of lists, a string representation, 
+            y: The second matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
 
         Returns:
@@ -203,25 +210,27 @@ class FrobeniusMetric(MetricBase):
         """
         distance_xy = self.distance(x, y)
         distance_yx = self.distance(y, x)
-        assert abs(distance_xy - distance_yx) < 1e-9, "Symmetry property violated: d(x, y) != d(y, x)"
+        assert abs(distance_xy - distance_yx) < 1e-9, (
+            "Symmetry property violated: d(x, y) != d(y, x)"
+        )
         logger.info("Symmetry property verified for Frobenius metric")
         return True
 
     def check_triangle_inequality(
-        self, 
-        x: Union[List, str, Callable], 
-        y: Union[List, str, Callable], 
-        z: Union[List, str, Callable]
+        self,
+        x: Union[List, str, Callable],
+        y: Union[List, str, Callable],
+        z: Union[List, str, Callable],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
 
         Args:
-            x: The first matrix. Can be a list of lists, a string representation, 
+            x: The first matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            y: The second matrix. Can be a list of lists, a string representation, 
+            y: The second matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
-            z: The third matrix. Can be a list of lists, a string representation, 
+            z: The third matrix. Can be a list of lists, a string representation,
                 or a callable that produces a matrix.
 
         Returns:

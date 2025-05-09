@@ -18,13 +18,14 @@ class BrayCurtisSimilarity(SimilarityBase):
     Attributes:
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     type: Literal["BrayCurtisSimilarity"] = "BrayCurtisSimilarity"
     resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
     def similarity(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        y: Union[Tuple[float, ...], List[float], str, Callable]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        y: Union[Tuple[float, ...], List[float], str, Callable],
     ) -> float:
         """
         Calculate the Bray-Curtis similarity between two vectors.
@@ -65,10 +66,12 @@ class BrayCurtisSimilarity(SimilarityBase):
         return similarity
 
     def similarities(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        ys: Union[List[Union[Tuple[float, ...], List[float], str, Callable]], 
-            Union[Tuple[float, ...], List[float], str, Callable]]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        ys: Union[
+            List[Union[Tuple[float, ...], List[float], str, Callable]],
+            Union[Tuple[float, ...], List[float], str, Callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculate Bray-Curtis similarities between a reference vector and multiple vectors.
@@ -86,9 +89,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         return [self.similarity(x, y) for y in ys]
 
     def dissimilarity(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        y: Union[Tuple[float, ...], List[float], str, Callable]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        y: Union[Tuple[float, ...], List[float], str, Callable],
     ) -> float:
         """
         Calculate the Bray-Curtis dissimilarity between two vectors.
@@ -105,9 +108,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         return 1 - self.similarity(x, y)
 
     def check_boundedness(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        y: Union[Tuple[float, ...], List[float], str, Callable]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        y: Union[Tuple[float, ...], List[float], str, Callable],
     ) -> bool:
         """
         Check if the Bray-Curtis similarity measure is bounded.
@@ -124,8 +127,7 @@ class BrayCurtisSimilarity(SimilarityBase):
         return True
 
     def check_reflexivity(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable]
+        self, x: Union[Tuple[float, ...], List[float], str, Callable]
     ) -> bool:
         """
         Check if the Bray-Curtis similarity measure is reflexive.
@@ -141,9 +143,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        y: Union[Tuple[float, ...], List[float], str, Callable]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        y: Union[Tuple[float, ...], List[float], str, Callable],
     ) -> bool:
         """
         Check if the Bray-Curtis similarity measure is symmetric.
@@ -160,9 +162,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[Tuple[float, ...], List[float], str, Callable], 
-        y: Union[Tuple[float, ...], List[float], str, Callable]
+        self,
+        x: Union[Tuple[float, ...], List[float], str, Callable],
+        y: Union[Tuple[float, ...], List[float], str, Callable],
     ) -> bool:
         """
         Check if the Bray-Curtis similarity measure satisfies identity.

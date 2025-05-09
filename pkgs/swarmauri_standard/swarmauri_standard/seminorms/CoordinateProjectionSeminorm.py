@@ -21,6 +21,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
     Attributes:
         _projection_indices: A tuple of indices to project onto.
     """
+
     type: Literal["CoordinateProjectionSeminorm"] = "CoordinateProjectionSeminorm"
 
     def __init__(self, projection_indices: Sequence[int]):
@@ -32,12 +33,12 @@ class CoordinateProjectionSeminorm(SeminormBase):
         """
         super().__init__()
         self._projection_indices = tuple(projection_indices)
-        logger.debug("Initialized CoordinateProjectionSeminorm with projection indices: %s", self._projection_indices)
+        logger.debug(
+            "Initialized CoordinateProjectionSeminorm with projection indices: %s",
+            self._projection_indices,
+        )
 
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable]
-    ) -> float:
+    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
         Compute the seminorm of the given input by projecting onto the specified coordinates.
 
@@ -80,9 +81,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         return sum(x**2 for x in vector) ** 0.5
 
     def check_triangle_inequality(
-        self,
-        a: Union[IVector, IMatrix, Sequence],
-        b: Union[IVector, IMatrix, Sequence]
+        self, a: Union[IVector, IMatrix, Sequence], b: Union[IVector, IMatrix, Sequence]
     ) -> bool:
         """
         Check if the triangle inequality holds for the projected inputs.
@@ -103,9 +102,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         return seminorm_a_plus_b <= seminorm_a + seminorm_b
 
     def check_scalar_homogeneity(
-        self,
-        input: Union[IVector, IMatrix, Sequence],
-        scalar: float
+        self, input: Union[IVector, IMatrix, Sequence], scalar: float
     ) -> bool:
         """
         Check if the seminorm satisfies scalar homogeneity for the projected input.

@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.unit
 def test_l2_seminorm_init():
     """
@@ -13,6 +14,7 @@ def test_l2_seminorm_init():
     assert seminorm.p == 2.0
     assert seminorm.type == "LpSeminorm"
 
+
 @pytest.mark.unit
 def test_l1_seminorm_init():
     """
@@ -21,6 +23,7 @@ def test_l1_seminorm_init():
     seminorm = LpSeminorm(p=1.0)
     assert seminorm.p == 1.0
     assert seminorm.type == "LpSeminorm"
+
 
 @pytest.mark.unit
 def test_invalid_p_init():
@@ -34,6 +37,7 @@ def test_invalid_p_init():
     with pytest.raises(ValueError):
         LpSeminorm(p=-5.0)
 
+
 @pytest.mark.unit
 def test_compute_seminorm_vector():
     """
@@ -44,6 +48,7 @@ def test_compute_seminorm_vector():
     result = seminorm.compute(vector)
     expected = (1**2 + 2**2 + 3**2) ** 0.5
     assert result == expected
+
 
 @pytest.mark.unit
 def test_compute_seminorm_matrix():
@@ -56,6 +61,7 @@ def test_compute_seminorm_matrix():
     expected = ((1**2 + 2**2) ** 0.5 + (3**2 + 4**2) ** 0.5) ** 0.5
     assert result == expected
 
+
 @pytest.mark.unit
 def test_compute_seminorm_empty():
     """
@@ -65,6 +71,7 @@ def test_compute_seminorm_empty():
     result = seminorm.compute([])
     assert result == 0.0
 
+
 @pytest.mark.unit
 def test_triangle_inequality():
     """
@@ -73,12 +80,13 @@ def test_triangle_inequality():
     seminorm = LpSeminorm(p=2.0)
     vector_a = [1.0, 0.0]
     vector_b = [0.0, 1.0]
-    
+
     seminorm_a = seminorm.compute(vector_a)
     seminorm_b = seminorm.compute(vector_b)
     seminorm_sum = seminorm.compute([1.0, 1.0])
-    
+
     assert seminorm_sum <= (seminorm_a + seminorm_b)
+
 
 @pytest.mark.unit
 def test_scalar_homogeneity():
@@ -88,12 +96,13 @@ def test_scalar_homogeneity():
     seminorm = LpSeminorm(p=2.0)
     vector = [2.0, 4.0]
     scalar = 0.5
-    
+
     scaled_vector = [1.0, 2.0]
     seminorm_scaled = seminorm.compute(scaled_vector)
     seminorm_original = seminorm.compute(vector)
-    
+
     assert seminorm_scaled == scalar * seminorm_original
+
 
 @pytest.mark.unit
 def test_compute_seminorm_callable():
@@ -101,13 +110,14 @@ def test_compute_seminorm_callable():
     Test compute method with callable input.
     """
     seminorm = LpSeminorm(p=2.0)
-    
+
     def callable_input():
         return [1.0, 2.0, 3.0]
-    
+
     result = seminorm.compute(callable_input)
     expected = (1**2 + 2**2 + 3**2) ** 0.5
     assert result == expected
+
 
 @pytest.mark.unit
 def test_compute_seminorm_string():

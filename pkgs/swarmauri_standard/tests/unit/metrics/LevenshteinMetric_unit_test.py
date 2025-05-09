@@ -1,12 +1,15 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.metrics.LevenshteinMetric import LevenshteinMetric
+from swarmauri_standard.swarmauri_standard.metrics.LevenshteinMetric import (
+    LevenshteinMetric,
+)
 from typing import Union, List, Literal
+
 
 @pytest.mark.unit
 class TestLevenshteinMetric:
     """
     Unit tests for the LevenshteinMetric class.
-    
+
     This test suite validates the functionality of the LevenshteinMetric class,
     ensuring accurate distance calculations and adherence to metric properties.
     """
@@ -60,7 +63,7 @@ class TestLevenshteinMetric:
         distances = [
             metric.distance("a", "a"),
             metric.distance("a", "b"),
-            metric.distance("abc", "def")
+            metric.distance("abc", "def"),
         ]
         assert all(d >= 0 for d in distances)
 

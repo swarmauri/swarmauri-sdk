@@ -21,6 +21,7 @@ class GeneralLpNorm(NormBase):
         p (float): The parameter of the Lp norm, must be > 1 and finite
         type (Literal["GeneralLpNorm"]): Type identifier for the component
     """
+
     type: Literal["GeneralLpNorm"] = "GeneralLpNorm"
 
     def __init__(self, p: float):
@@ -33,7 +34,7 @@ class GeneralLpNorm(NormBase):
         Raises:
             ValueError: If p is not greater than 1 or is not finite
         """
-        if not (isinstance(p, float) and p > 1 and p != float('inf')):
+        if not (isinstance(p, float) and p > 1 and p != float("inf")):
             raise ValueError("p must be a finite float greater than 1")
 
         self.p = p
@@ -66,7 +67,7 @@ class GeneralLpNorm(NormBase):
             if isinstance(x[0], Sequence):  # Matrix case
                 return max(self.compute(row) for row in x)
             else:  # Vector case
-                return (sum(abs(xi)**self.p for xi in x)) ** (1.0 / self.p)
+                return (sum(abs(xi) ** self.p for xi in x)) ** (1.0 / self.p)
         elif isinstance(x, (Callable, str)):
             # For callables or strings, try to compute the norm
             # This is a simplified approach - actual implementation
@@ -101,8 +102,9 @@ class GeneralLpNorm(NormBase):
             logger.error("Non-negativity violation: Norm is negative")
             raise AssertionError("Norm cannot be negative")
 
-    def check_triangle_inequality(self, x: Union[Sequence, Callable, str],
-                                    y: Union[Sequence, Callable, str]) -> None:
+    def check_triangle_inequality(
+        self, x: Union[Sequence, Callable, str], y: Union[Sequence, Callable, str]
+    ) -> None:
         """
         Verify the triangle inequality property of the norm.
 
@@ -117,15 +119,18 @@ class GeneralLpNorm(NormBase):
         """
         norm_x = self.compute(x)
         norm_y = self.compute(y)
-        combined = [xi + yi for xi, yi in zip(x, y)] if isinstance(x, Sequence) else x + y
+        combined = (
+            [xi + yi for xi, yi in zip(x, y)] if isinstance(x, Sequence) else x + y
+        )
         norm_combined = self.compute(combined)
 
         if norm_combined > norm_x + norm_y:
             logger.error("Triangle inequality violation")
             raise AssertionError("Triangle inequality not satisfied")
 
-    def check_absolute_homogeneity(self, x: Union[Sequence, Callable, str],
-                                    alpha: float) -> None:
+    def check_absolute_homogeneity(
+        self, x: Union[Sequence, Callable, str], alpha: float
+    ) -> None:
         """
         Verify the absolute homogeneity property of the norm.
 
@@ -166,5 +171,7 @@ class GeneralLpNorm(NormBase):
                 raise AssertionError("Non-zero vector has zero norm")
         else:
             if isinstance(x, Sequence) and all(xi == 0 for xi in x):
-                logger.error("Definiteness violation: Zero vector does not have zero norm")
+                logger.error(
+                    "Definiteness violation: Zero vector does not have zero norm"
+                )
                 raise AssertionError("Zero vector does not have zero norm")

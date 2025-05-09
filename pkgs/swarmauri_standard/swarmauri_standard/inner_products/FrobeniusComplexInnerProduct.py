@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 from swarmauri_base.ComponentBase import ComponentBase
 from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
+
 @ComponentBase.register_type(InnerProductBase, "FrobeniusComplexInnerProduct")
 class FrobeniusComplexInnerProduct(InnerProductBase):
     """
@@ -31,7 +32,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
 
-    def compute(self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]) -> Union[float, complex]:
+    def compute(
+        self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]
+    ) -> Union[float, complex]:
         """
         Computes the Frobenius inner product between two complex matrices.
 
@@ -50,24 +53,26 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             ValueError: If the input matrices are not compatible for the inner product computation.
         """
         logger.debug("Computing Frobenius inner product for complex matrices")
-        
+
         # Ensure inputs are numpy arrays
         if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
             raise ValueError("Inputs must be numpy arrays")
-            
+
         # Compute the conjugate transpose of matrix a
         a_conj_transpose = a.conj().T
-        
+
         # Compute the product of a_conj_transpose and b
         product_matrix = a_conj_transpose @ b
-        
+
         # Compute the trace of the product matrix
         trace = np.trace(product_matrix)
-        
+
         logger.debug(f"Frobenius inner product result: {trace}")
         return trace
 
-    def check_conjugate_symmetry(self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]) -> bool:
+    def check_conjugate_symmetry(
+        self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]
+    ) -> bool:
         """
         Checks if the inner product satisfies conjugate symmetry.
 
@@ -82,18 +87,23 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             bool: True if conjugate symmetry holds, False otherwise.
         """
         logger.debug("Checking conjugate symmetry")
-        
+
         # Compute <a, b>
         inner_product_ab = self.compute(a, b)
-        
+
         # Compute <b, a> and take its conjugate
         inner_product_ba = self.compute(b, a)
         inner_product_ba_conj = np.conj(inner_product_ba)
-        
+
         # Check if <a, b> equals the conjugate of <b, a>
         return np.isclose(inner_product_ab, inner_product_ba_conj)
 
-    def check_linearity_first_argument(self, a: Union[np.ndarray, object], b: Union[np.ndarray, object], c: Union[np.ndarray, object]) -> bool:
+    def check_linearity_first_argument(
+        self,
+        a: Union[np.ndarray, object],
+        b: Union[np.ndarray, object],
+        c: Union[np.ndarray, object],
+    ) -> bool:
         """
         Checks if the inner product is linear in the first argument.
 
@@ -109,20 +119,21 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             bool: True if linearity in the first argument holds, False otherwise.
         """
         logger.debug("Checking linearity in the first argument")
-        
+
         # Test additivity: <a + c, b> = <a, b> + <c, b>
         additivity_result = self.compute(a + c, b)
         expected_additivity = self.compute(a, b) + self.compute(c, b)
-        
+
         # Test homogeneity: <k*a, b> = k*<a, b> for some scalar k
         # Choose k = 2.0 for testing
         k = 2.0
         homogeneity_result = self.compute(k * a, b)
         expected_homogeneity = k * self.compute(a, b)
-        
+
         # Check both conditions
-        return (np.isclose(additivity_result, expected_additivity) and
-                np.isclose(homogeneity_result, expected_homogeneity))
+        return np.isclose(additivity_result, expected_additivity) and np.isclose(
+            homogeneity_result, expected_homogeneity
+        )
 
     def check_positivity(self, a: Union[np.ndarray, object]) -> bool:
         """
@@ -138,10 +149,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             bool: True if positivity holds, False otherwise.
         """
         logger.debug("Checking positivity")
-        
+
         # Compute <a, a>
         inner_product_aa = self.compute(a, a)
-        
+
         # Check if the result is positive (and not zero for non-zero a)
         if np.allclose(a, np.zeros_like(a)):
             return inner_product_aa == 0

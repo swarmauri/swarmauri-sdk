@@ -21,9 +21,10 @@ class ProjectionPseudometricR2(PseudometricBase):
     Attributes:
         axis: The coordinate axis to use for projection. Can be either 'x' or 'y'.
     """
+
     type: Literal["ProjectionPseudometricR2"] = "ProjectionPseudometricR2"
-    
-    def __init__(self, axis: str = 'x'):
+
+    def __init__(self, axis: str = "x"):
         """
         Initialize the ProjectionPseudometricR2 instance.
 
@@ -35,12 +36,16 @@ class ProjectionPseudometricR2(PseudometricBase):
             ValueError: If the axis is not 'x' or 'y'.
         """
         super().__init__()
-        if axis not in ('x', 'y'):
+        if axis not in ("x", "y"):
             raise ValueError("Axis must be either 'x' or 'y'")
         self.axis = axis
         logger.debug("Initialized ProjectionPseudometricR2 with axis=%s", axis)
 
-    def distance(self, x: Union[Tuple[float, float], List[float]], y: Union[Tuple[float, float], List[float]]) -> float:
+    def distance(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y: Union[Tuple[float, float], List[float]],
+    ) -> float:
         """
         Calculate the distance between two points in ℝ² by projecting onto the specified axis.
 
@@ -55,16 +60,23 @@ class ProjectionPseudometricR2(PseudometricBase):
             ValueError: If either point is not a 2D vector
         """
         logger.debug("Calculating distance between %s and %s", x, y)
-        
+
         if len(x) != 2 or len(y) != 2:
             raise ValueError("Both points must be 2D vectors")
-            
-        if self.axis == 'x':
+
+        if self.axis == "x":
             return abs(x[0] - y[0])
         else:
             return abs(x[1] - y[1])
 
-    def distances(self, x: Union[Tuple[float, float], List[float]], y_list: Union[List[Union[Tuple[float, float], List[float]]], Tuple[Union[Tuple[float, float], List[float]]]]) -> List[float]:
+    def distances(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y_list: Union[
+            List[Union[Tuple[float, float], List[float]]],
+            Tuple[Union[Tuple[float, float], List[float]]],
+        ],
+    ) -> List[float]:
         """
         Calculate distances from a single point to a list of points.
 
@@ -79,19 +91,23 @@ class ProjectionPseudometricR2(PseudometricBase):
             ValueError: If any point is not a 2D vector
         """
         logger.debug("Calculating distances from %s to multiple points", x)
-        
+
         if len(x) != 2:
             raise ValueError("Reference point must be a 2D vector")
-            
+
         distances = []
         for y in y_list:
             if len(y) != 2:
                 raise ValueError("All points must be 2D vectors")
             distances.append(self.distance(x, y))
-            
+
         return distances
 
-    def check_non_negativity(self, x: Union[Tuple[float, float], List[float]], y: Union[Tuple[float, float], List[float]]) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y: Union[Tuple[float, float], List[float]],
+    ) -> bool:
         """
         Check if the distance satisfies non-negativity.
 
@@ -105,7 +121,11 @@ class ProjectionPseudometricR2(PseudometricBase):
         logger.debug("Checking non-negativity")
         return True  # Absolute difference is always non-negative
 
-    def check_symmetry(self, x: Union[Tuple[float, float], List[float]], y: Union[Tuple[float, float], List[float]]) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y: Union[Tuple[float, float], List[float]],
+    ) -> bool:
         """
         Check if the distance satisfies symmetry.
 
@@ -119,7 +139,12 @@ class ProjectionPseudometricR2(PseudometricBase):
         logger.debug("Checking symmetry")
         return True  # Absolute difference is symmetric
 
-    def check_triangle_inequality(self, x: Union[Tuple[float, float], List[float]], y: Union[Tuple[float, float], List[float]], z: Union[Tuple[float, float], List[float]]) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y: Union[Tuple[float, float], List[float]],
+        z: Union[Tuple[float, float], List[float]],
+    ) -> bool:
         """
         Check if the distance satisfies triangle inequality.
 
@@ -132,16 +157,20 @@ class ProjectionPseudometricR2(PseudometricBase):
             bool: True if triangle inequality holds, False otherwise
         """
         logger.debug("Checking triangle inequality")
-        
+
         # Calculate distances
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
         d_xz = self.distance(x, z)
-        
+
         # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
         return d_xz <= d_xy + d_yz
 
-    def check_weak_identity(self, x: Union[Tuple[float, float], List[float]], y: Union[Tuple[float, float], List[float]]) -> bool:
+    def check_weak_identity(
+        self,
+        x: Union[Tuple[float, float], List[float]],
+        y: Union[Tuple[float, float], List[float]],
+    ) -> bool:
         """
         Check if the distance satisfies weak identity of indiscernibles.
 
@@ -153,7 +182,7 @@ class ProjectionPseudometricR2(PseudometricBase):
             bool: True if distance is zero only for indistinguishable points, False otherwise
         """
         logger.debug("Checking weak identity")
-        
+
         # In this pseudometric, different points can have zero distance if they share the same coordinate
         # Thus, weak identity is not satisfied
         return False

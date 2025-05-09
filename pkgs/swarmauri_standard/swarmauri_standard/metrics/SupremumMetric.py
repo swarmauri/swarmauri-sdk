@@ -7,13 +7,14 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(MetricBase, "SupremumMetric")
 class SupremumMetric(MetricBase):
     """
     Concrete implementation of the MetricBase class for computing the supremum metric.
 
-    The supremum metric (L∞ metric) measures the maximum absolute difference between 
-    corresponding components of two vectors. This implementation handles both vector 
+    The supremum metric (L∞ metric) measures the maximum absolute difference between
+    corresponding components of two vectors. This implementation handles both vector
     and callable inputs, evaluating callables at a specified number of points.
 
     Inherits From:
@@ -23,6 +24,7 @@ class SupremumMetric(MetricBase):
     Attributes:
         resource: Type of resource this component represents
     """
+
     resource: Optional[str] = Field(default="metric")
 
     def __init__(self):
@@ -31,9 +33,9 @@ class SupremumMetric(MetricBase):
         logger.debug("Initialized SupremumMetric")
 
     def distance(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        y: Union[Callable, Sequence, np.ndarray, str, bytes],
     ) -> float:
         """
         Compute the supremum distance between two points.
@@ -66,7 +68,9 @@ class SupremumMetric(MetricBase):
                 differences = np.abs(x_values - y_values)
                 return np.max(differences)
 
-            elif isinstance(x, (Sequence, np.ndarray)) and isinstance(y, (Sequence, np.ndarray)):
+            elif isinstance(x, (Sequence, np.ndarray)) and isinstance(
+                y, (Sequence, np.ndarray)
+            ):
                 # Compute element-wise differences for arrays
                 x_array = np.asarray(x)
                 y_array = np.asarray(y)
@@ -81,23 +85,27 @@ class SupremumMetric(MetricBase):
                 return np.max(differences)
 
             else:
-                raise ValueError(f"Incompatible input types: {type(x).__name__} and {type(y).__name__}")
+                raise ValueError(
+                    f"Incompatible input types: {type(x).__name__} and {type(y).__name__}"
+                )
 
         except Exception as e:
             logger.error(f"Error computing supremum distance: {str(e)}")
-            raise TypeError("Failed to compute distance due to invalid input types") from e
+            raise TypeError(
+                "Failed to compute distance due to invalid input types"
+            ) from e
 
     def distances(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        ys: List[Union[Callable, Sequence, np.ndarray, str, bytes]]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        ys: List[Union[Callable, Sequence, np.ndarray, str, bytes]],
     ) -> List[float]:
         """
         Compute distances from a single point x to multiple points ys.
 
         Args:
             x: The reference point. Can be a vector, array, callable, string, or bytes.
-            ys: List of points to compute distances to. Each can be a vector, array, 
+            ys: List of points to compute distances to. Each can be a vector, array,
                 callable, string, or bytes.
 
         Returns:
@@ -108,16 +116,16 @@ class SupremumMetric(MetricBase):
             TypeError: If input types are not supported
         """
         logger.debug("Computing multiple supremum distances")
-        
+
         distances = []
         for y in ys:
             distances.append(self.distance(x, y))
         return distances
 
     def check_non_negativity(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        y: Union[Callable, Sequence, np.ndarray, str, bytes],
     ) -> Literal[True]:
         """
         Verify the non-negativity property: distance(x, y) ≥ 0.
@@ -138,9 +146,9 @@ class SupremumMetric(MetricBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        y: Union[Callable, Sequence, np.ndarray, str, bytes],
     ) -> Literal[True]:
         """
         Verify the identity of indiscernibles property: distance(x, y) = 0 if and only if x = y.
@@ -165,9 +173,9 @@ class SupremumMetric(MetricBase):
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        y: Union[Callable, Sequence, np.ndarray, str, bytes],
     ) -> Literal[True]:
         """
         Verify the symmetry property: distance(x, y) = distance(y, x).
@@ -185,14 +193,16 @@ class SupremumMetric(MetricBase):
         logger.debug("Checking symmetry property")
         distance_xy = self.distance(x, y)
         distance_yx = self.distance(y, x)
-        assert np.isclose(distance_xy, distance_yx), "Symmetry violation: distance(x, y) != distance(y, x)"
+        assert np.isclose(distance_xy, distance_yx), (
+            "Symmetry violation: distance(x, y) != distance(y, x)"
+        )
         return True
 
     def check_triangle_inequality(
-        self, 
-        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        y: Union[Callable, Sequence, np.ndarray, str, bytes], 
-        z: Union[Callable, Sequence, np.ndarray, str, bytes]
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str, bytes],
+        y: Union[Callable, Sequence, np.ndarray, str, bytes],
+        z: Union[Callable, Sequence, np.ndarray, str, bytes],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: distance(x, z) ≤ distance(x, y) + distance(y, z).
@@ -212,5 +222,7 @@ class SupremumMetric(MetricBase):
         distance_xz = self.distance(x, z)
         distance_xy = self.distance(x, y)
         distance_yz = self.distance(y, z)
-        assert distance_xz <= (distance_xy + distance_yz), "Triangle inequality violation"
+        assert distance_xz <= (distance_xy + distance_yz), (
+            "Triangle inequality violation"
+        )
         return True

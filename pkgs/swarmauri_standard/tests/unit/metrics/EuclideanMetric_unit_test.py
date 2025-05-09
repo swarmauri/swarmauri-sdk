@@ -1,17 +1,22 @@
 import pytest
 import logging
-from swarmauri_standard.swarmauri_standard.metrics.EuclideanMetric import EuclideanMetric
+from swarmauri_standard.swarmauri_standard.metrics.EuclideanMetric import (
+    EuclideanMetric,
+)
+
 
 @pytest.fixture
 def euclidean_metric():
     """Fixture to provide a EuclideanMetric instance for testing."""
     return EuclideanMetric()
 
+
 @pytest.mark.unit
 def test_euclidean_metric_initialization(euclidean_metric):
     """Test the initialization of the EuclideanMetric class."""
     assert euclidean_metric.type == "EuclideanMetric"
     assert euclidean_metric.resource == "metric"
+
 
 @pytest.mark.unit
 def test_distance_valid_vectors(euclidean_metric):
@@ -22,6 +27,7 @@ def test_distance_valid_vectors(euclidean_metric):
     assert isinstance(distance, float)
     assert distance >= 0.0
 
+
 @pytest.mark.unit
 def test_distance_different_lengths(euclidean_metric):
     """Test the distance method with vectors of different lengths."""
@@ -30,6 +36,7 @@ def test_distance_different_lengths(euclidean_metric):
     with pytest.raises(ValueError):
         euclidean_metric.distance(x, y)
 
+
 @pytest.mark.unit
 def test_distance_empty_vectors(euclidean_metric):
     """Test the distance method with empty vectors."""
@@ -37,6 +44,7 @@ def test_distance_empty_vectors(euclidean_metric):
     y = []
     distance = euclidean_metric.distance(x, y)
     assert distance == 0.0
+
 
 @pytest.mark.unit
 def test_distances_multiple_vectors(euclidean_metric):
@@ -47,6 +55,7 @@ def test_distances_multiple_vectors(euclidean_metric):
     assert len(distances) == 2
     assert all(isinstance(d, float) for d in distances)
 
+
 @pytest.mark.unit
 def test_check_non_negativity(euclidean_metric):
     """Test the non-negativity property check."""
@@ -54,6 +63,7 @@ def test_check_non_negativity(euclidean_metric):
     y = [3.0, 4.0]
     result = euclidean_metric.check_non_negativity(x, y)
     assert result is True
+
 
 @pytest.mark.unit
 def test_check_identity(euclidean_metric):
@@ -63,6 +73,7 @@ def test_check_identity(euclidean_metric):
     result = euclidean_metric.check_identity(x, y)
     assert result is True
 
+
 @pytest.mark.unit
 def test_check_symmetry(euclidean_metric):
     """Test the symmetry property check."""
@@ -70,6 +81,7 @@ def test_check_symmetry(euclidean_metric):
     y = [3.0, 4.0]
     result = euclidean_metric.check_symmetry(x, y)
     assert result is True
+
 
 @pytest.mark.unit
 def test_check_triangle_inequality(euclidean_metric):
@@ -80,6 +92,7 @@ def test_check_triangle_inequality(euclidean_metric):
     result = euclidean_metric.check_triangle_inequality(x, y, z)
     assert result is True
 
+
 @pytest.mark.unit
 def test_distance_same_vectors(euclidean_metric):
     """Test the distance method with identical vectors."""
@@ -87,6 +100,7 @@ def test_distance_same_vectors(euclidean_metric):
     y = [1.0, 2.0, 3.0]
     distance = euclidean_metric.distance(x, y)
     assert distance == 0.0
+
 
 @pytest.mark.unit
 def test_distance_zero_vectors(euclidean_metric):

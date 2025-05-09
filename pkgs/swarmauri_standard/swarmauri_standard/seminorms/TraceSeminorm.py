@@ -16,24 +16,21 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SeminormBase, "TraceSeminorm")
 class TraceSeminorm(SeminormBase):
     """Concrete implementation of SeminormBase for computing trace seminorm.
-    
+
     This class provides the implementation for computing the trace seminorm of
     matrices. The trace seminorm is defined as the sum of the absolute values
     of the eigenvalues (trace). This implementation works with matrices that
     may not be positive-definite and handles various input types.
     """
-    
+
     type: Literal["TraceSeminorm"] = "TraceSeminorm"
-    
+
     def __init__(self) -> None:
         """Initialize the TraceSeminorm instance."""
         super().__init__()
         logger.debug("TraceSeminorm instance initialized")
-    
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable]
-    ) -> float:
+
+    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """Compute the trace seminorm of the given input.
 
         Args:
@@ -53,7 +50,7 @@ class TraceSeminorm(SeminormBase):
             RuntimeError: If trace computation fails
         """
         logger.debug("Computing trace seminorm")
-        
+
         try:
             if isinstance(input, IMatrix):
                 # For matrices, compute trace
@@ -70,11 +67,11 @@ class TraceSeminorm(SeminormBase):
                 return self._compute_matrix_trace(matrix)
             else:
                 raise TypeError(f"Unsupported input type: {type(input)}")
-                
+
         except Exception as e:
             logger.error(f"Failed to compute trace seminorm: {str(e)}")
             raise RuntimeError(f"Trace computation failed: {str(e)}")
-    
+
     def _compute_matrix_trace(self, matrix: IMatrix) -> float:
         """Helper method to compute trace for matrix input."""
         logger.debug("Computing matrix trace")
@@ -88,7 +85,7 @@ class TraceSeminorm(SeminormBase):
         except Exception as e:
             logger.error(f"Failed to compute matrix trace: {str(e)}")
             raise
-    
+
     def _convert_to_matrix(self, input: Union[str, Callable]) -> IMatrix:
         """Helper method to convert input to matrix if possible."""
         logger.debug("Converting input to matrix")
@@ -110,17 +107,17 @@ class TraceSeminorm(SeminormBase):
         except Exception as e:
             logger.error(f"Failed to convert input to matrix: {str(e)}")
             raise
-    
+
     def _vector_to_matrix(self, value: int) -> IMatrix:
         """Helper method to convert single value to matrix."""
         logger.debug("Converting single value to matrix")
         # Create a 1x1 matrix with the value
         return np.array([[value]], dtype=float)
-    
+
     def check_triangle_inequality(
         self,
         a: Union[IVector, IMatrix, Sequence, str, Callable],
-        b: Union[IVector, IMatrix, Sequence, str, Callable]
+        b: Union[IVector, IMatrix, Sequence, str, Callable],
     ) -> bool:
         """Check if the triangle inequality holds for the given inputs.
 
@@ -141,11 +138,11 @@ class TraceSeminorm(SeminormBase):
         except Exception as e:
             logger.error(f"Failed to check triangle inequality: {str(e)}")
             return False
-    
+
     def _add_inputs(
         self,
         a: Union[IVector, IMatrix, Sequence, str, Callable],
-        b: Union[IVector, IMatrix, Sequence, str, Callable]
+        b: Union[IVector, IMatrix, Sequence, str, Callable],
     ) -> Union[IVector, IMatrix, Sequence]:
         """Helper method to add two inputs element-wise."""
         logger.debug("Adding inputs")
@@ -159,11 +156,9 @@ class TraceSeminorm(SeminormBase):
         except Exception as e:
             logger.error(f"Failed to add inputs: {str(e)}")
             raise
-    
+
     def check_scalar_homogeneity(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable],
-        scalar: float
+        self, input: Union[IVector, IMatrix, Sequence, str, Callable], scalar: float
     ) -> bool:
         """Check if the seminorm satisfies scalar homogeneity.
 
@@ -183,11 +178,9 @@ class TraceSeminorm(SeminormBase):
         except Exception as e:
             logger.error(f"Failed to check scalar homogeneity: {str(e)}")
             return False
-    
+
     def _scale_input(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable],
-        scalar: float
+        self, input: Union[IVector, IMatrix, Sequence, str, Callable], scalar: float
     ) -> Union[IVector, IMatrix, Sequence]:
         """Helper method to scale the input by a scalar."""
         logger.debug("Scaling input")

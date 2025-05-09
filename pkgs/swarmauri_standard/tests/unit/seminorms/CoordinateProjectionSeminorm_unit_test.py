@@ -1,12 +1,15 @@
 import pytest
 from typing import Union, Sequence, Tuple, Optional
-from swarmauri_standard.swarmauri_standard.seminorms.CoordinateProjectionSeminorm import CoordinateProjectionSeminorm
+from swarmauri_standard.swarmauri_standard.seminorms.CoordinateProjectionSeminorm import (
+    CoordinateProjectionSeminorm,
+)
 import logging
+
 
 @pytest.mark.unit
 class TestCoordinateProjectionSeminorm:
     """Unit tests for the CoordinateProjectionSeminorm class."""
-    
+
     @pytest.fixture
     def default_instance(self) -> CoordinateProjectionSeminorm:
         """Fixture providing a default instance of CoordinateProjectionSeminorm."""
@@ -58,11 +61,9 @@ class TestCoordinateProjectionSeminorm:
             default_instance.compute(object())
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("projection_indices,expected_norm", [
-        ([0], 1.0),
-        ([1], 2.0),
-        ([2], 3.0)
-    ])
+    @pytest.mark.parametrize(
+        "projection_indices,expected_norm", [([0], 1.0), ([1], 2.0), ([2], 3.0)]
+    )
     def test_projection_indices(self, projection_indices, expected_norm) -> None:
         """Test the projection indices functionality."""
         instance = CoordinateProjectionSeminorm(projection_indices)
@@ -91,6 +92,7 @@ class TestCoordinateProjectionSeminorm:
         """Test the projection_indices property."""
         assert isinstance(default_instance.projection_indices, tuple)
         assert len(default_instance.projection_indices) > 0
+
 
 @pytest.mark.unit
 def test_logging():

@@ -20,13 +20,14 @@ class CosineSimilarity(SimilarityBase):
     Attributes:
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     type: str = "CosineSimilarity"
     resource: Optional[str] = SimilarityBase.ResourceTypes.SIMILARITY
 
     def similarity(
         self,
         x: Union[np.ndarray, Tuple, str, Callable],
-        y: Union[np.ndarray, Tuple, str, Callable]
+        y: Union[np.ndarray, Tuple, str, Callable],
     ) -> float:
         """
         Calculate cosine similarity between two vectors.
@@ -72,8 +73,8 @@ class CosineSimilarity(SimilarityBase):
         x: Union[np.ndarray, Tuple, str, Callable],
         ys: Union[
             List[Union[np.ndarray, Tuple, str, Callable]],
-            Union[np.ndarray, Tuple, str, Callable]
-        ]
+            Union[np.ndarray, Tuple, str, Callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculate cosine similarities between a vector and multiple vectors.
@@ -93,7 +94,7 @@ class CosineSimilarity(SimilarityBase):
     def dissimilarity(
         self,
         x: Union[np.ndarray, Tuple, str, Callable],
-        y: Union[np.ndarray, Tuple, str, Callable]
+        y: Union[np.ndarray, Tuple, str, Callable],
     ) -> float:
         """
         Calculate cosine dissimilarity between two vectors.
@@ -112,8 +113,8 @@ class CosineSimilarity(SimilarityBase):
         x: Union[np.ndarray, Tuple, str, Callable],
         ys: Union[
             List[Union[np.ndarray, Tuple, str, Callable]],
-            Union[np.ndarray, Tuple, str, Callable]
-        ]
+            Union[np.ndarray, Tuple, str, Callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculate cosine dissimilarities between a vector and multiple vectors.
@@ -133,7 +134,7 @@ class CosineSimilarity(SimilarityBase):
     def check_boundedness(
         self,
         x: Union[np.ndarray, Tuple, str, Callable],
-        y: Union[np.ndarray, Tuple, str, Callable]
+        y: Union[np.ndarray, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is bounded.
@@ -147,10 +148,7 @@ class CosineSimilarity(SimilarityBase):
         """
         return True
 
-    def check_reflexivity(
-        self,
-        x: Union[np.ndarray, Tuple, str, Callable]
-    ) -> bool:
+    def check_reflexivity(self, x: Union[np.ndarray, Tuple, str, Callable]) -> bool:
         """
         Check if the similarity measure is reflexive.
 
@@ -165,7 +163,7 @@ class CosineSimilarity(SimilarityBase):
     def check_symmetry(
         self,
         x: Union[np.ndarray, Tuple, str, Callable],
-        y: Union[np.ndarray, Tuple, str, Callable]
+        y: Union[np.ndarray, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is symmetric.
@@ -182,7 +180,7 @@ class CosineSimilarity(SimilarityBase):
     def check_identity(
         self,
         x: Union[np.ndarray, Tuple, str, Callable],
-        y: Union[np.ndarray, Tuple, str, Callable]
+        y: Union[np.ndarray, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure satisfies identity.
