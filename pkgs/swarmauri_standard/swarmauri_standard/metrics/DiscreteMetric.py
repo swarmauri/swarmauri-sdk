@@ -1,9 +1,11 @@
-from typing import Union, List, Optional
-from abc import ABC
+from typing import Callable, Sequence, Union, List, Optional
 import logging
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricViolationError
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 

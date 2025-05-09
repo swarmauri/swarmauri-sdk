@@ -1,4 +1,4 @@
-from importlib.resources import files, as_file
+from importlib.resources import files
 from lark import Lark
 import jaml 
 

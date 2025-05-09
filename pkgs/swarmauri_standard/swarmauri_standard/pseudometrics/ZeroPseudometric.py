@@ -1,9 +1,9 @@
-from typing import Union, List, Literal, Optional
-from abc import ABC
+from typing import Callable, Union, List, Literal
 import logging
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 

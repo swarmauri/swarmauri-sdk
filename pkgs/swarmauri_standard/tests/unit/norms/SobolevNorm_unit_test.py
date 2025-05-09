@@ -1,6 +1,12 @@
-import pytest
 import logging
+
+import numpy as np
+import pytest
+
 from swarmauri_standard.norms.SobolevNorm import SobolevNorm
+
+# Define logger at the top of the file
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.unit
@@ -22,7 +28,6 @@ class TestSobolevNorm:
 
     def test_compute_method_with_function(self, sobolev_norm):
         """Test the compute method with a function input."""
-        import numpy as np
 
         # Define a test function and its derivatives
         def f(x):
@@ -34,7 +39,10 @@ class TestSobolevNorm:
 
         # Compute L2 norm of function and its first derivative
         l2_func = np.linalg.norm([f(x) for x in np.linspace(-1, 1, 100)])
-        f_derivative = lambda x: 2 * x
+
+        def f_derivative(x):
+            return 2 * x
+
         l2_derivative = np.linalg.norm(
             [f_derivative(x) for x in np.linspace(-1, 1, 100)]
         )
@@ -46,8 +54,6 @@ class TestSobolevNorm:
 
     def test_compute_method_with_list(self, sobolev_norm):
         """Test the compute method with a list input."""
-        import numpy as np
-
         # Define a test list
         x = [1.0, 1.0, 1.0]
 
@@ -62,7 +68,6 @@ class TestSobolevNorm:
 
     def test_compute_method_with_higher_order(self, sobolev_norm):
         """Test the compute method with higher order derivatives."""
-        import numpy as np
 
         # Define a test function with known derivatives
         def f(x):
@@ -74,9 +79,15 @@ class TestSobolevNorm:
 
         # Compute L2 norms of function and its derivatives
         l2_func = np.linalg.norm([f(x) for x in np.linspace(-1, 1, 100)])
-        f_first = lambda x: 3 * x**2
+
+        def f_first(x):
+            return 3 * x**2
+
         l2_first = np.linalg.norm([f_first(x) for x in np.linspace(-1, 1, 100)])
-        f_second = lambda x: 6 * x
+
+        def f_second(x):
+            return 6 * x
+
         l2_second = np.linalg.norm([f_second(x) for x in np.linspace(-1, 1, 100)])
 
         expected_norm = (l2_func**2 + l2_first**2 + l2_second**2) ** 0.5
@@ -88,6 +99,3 @@ class TestSobolevNorm:
         """Test that invalid input raises an appropriate error."""
         with pytest.raises(TypeError):
             sobolev_norm.compute("invalid_input")
-
-
-logger = logging.getLogger(__name__)

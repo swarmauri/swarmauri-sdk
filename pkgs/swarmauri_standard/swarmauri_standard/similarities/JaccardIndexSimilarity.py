@@ -1,5 +1,4 @@
-from typing import Union, Sequence, Optional, Literal
-from abc import ABC
+from typing import Union, Sequence, Literal
 import logging
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 from swarmauri_base.ComponentBase import ComponentBase

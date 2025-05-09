@@ -1,7 +1,7 @@
-from typing import Union, List, Optional, Tuple, Literal
+from typing import Union, List, Tuple, Literal
 import logging
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 

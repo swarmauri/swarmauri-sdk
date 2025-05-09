@@ -5,7 +5,6 @@ from jaml import (
     round_trip_loads
 )
 
-from jaml import parser
 
 @pytest.mark.spec
 @pytest.mark.mep0012

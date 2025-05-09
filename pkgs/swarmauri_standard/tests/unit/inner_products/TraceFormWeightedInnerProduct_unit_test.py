@@ -1,6 +1,8 @@
-import pytest
-import numpy as np
 import logging
+
+import numpy as np
+import pytest
+
 from swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import (
     TraceFormWeightedInnerProduct,
 )
@@ -59,8 +61,12 @@ class TestTraceFormWeightedInnerProduct:
         assert isinstance(result, float)
 
         # Test with callable matrices
-        a_callable = lambda: np.array([[1, 2], [3, 4]])
-        b_callable = lambda: np.array([[5, 6], [7, 8]])
+        def a_callable():
+            return np.array([[1, 2], [3, 4]])
+
+        def b_callable():
+            return np.array([[5, 6], [7, 8]])
+
         result_callable = instance.compute(a_callable, b_callable)
         assert isinstance(result_callable, float)
 

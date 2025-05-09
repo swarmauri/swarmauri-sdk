@@ -1,4 +1,3 @@
-import pytest
 from jaml import round_trip_loads, round_trip_dumps, loads
 
 MULTILINE_ARRAY_JML = '''

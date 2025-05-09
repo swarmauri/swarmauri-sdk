@@ -1,14 +1,10 @@
 import pytest
-from pprint import pprint
 
 from jaml import (
     loads,
-    dumps,
-    round_trip_loads,
-    round_trip_dumps,
-    render,
 )
-# Optional: If you want to specifically test error states in the parser, 
+
+# Optional: If you want to specifically test error states in the parser,
 # you can import JMLParser from jaml.parser for advanced scenarios.
 
 
@@ -64,6 +60,7 @@ def test_trailing_punctuation_allowed():
     source = "some: int = 1"
     _ = loads(source)
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_single_quote_string():
@@ -72,6 +69,7 @@ def test_single_quote_string():
     # Expect that the value has been unquoted correctly.
     assert data["single"] == "'Hello, World!'"
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_double_quote_string():
@@ -79,6 +77,7 @@ def test_double_quote_string():
     data = loads(source)
     # Expect that the value has been unquoted correctly.
     assert data["single"] == '"Hello, World!"'
+
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -90,6 +89,7 @@ def test_triple_single_quote_string():
     expected = "'''\"\"\"One\nTwo\nThree\"\"\"'''"
     assert data["triple_single"] == expected
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_triple_double_quote_string():
@@ -98,6 +98,7 @@ def test_triple_double_quote_string():
     data = loads(source)
     expected = '"""Line1\nLine2\nLine3"""'
     assert data["triple_double"] == expected
+
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -108,6 +109,7 @@ def test_single_backtick_string():
     expected = "`C:/Users/Name`"
     assert data["single_backtick"] == expected
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_triple_backtick_string():
@@ -117,19 +119,22 @@ def test_triple_backtick_string():
     expected = "```C:/Users/Name```"
     assert data["triple_backtick"] == expected
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
-@pytest.mark.xfail(reason="Debating whether or not to allow non-bracket arithmetic operations.")
+@pytest.mark.xfail(
+    reason="Debating whether or not to allow non-bracket arithmetic operations."
+)
 def test_arithmetic_operators():
     """
     Tests arithmetic operators: +, -, *, /, %, **
-    Currently just ensures that we parse them without error 
+    Currently just ensures that we parse them without error
     and that the OPERATOR tokens appear in your grammar (if needed).
     """
     source = "value = 2 + 3 * 4 - 5 / 1 % 2 ** 3"
     _ = loads(source)
 
-## this test case should be moved to another MEP spec test
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 # @pytest.mark.xfail(reason="Spec not fully implemented – pipeline operator not fully enforced")
@@ -141,10 +146,10 @@ def test_pipeline_operator():
     """
     source = "result = <{ data | transform | filter }>"
     with pytest.raises(SyntaxError, match="Unexpected character"):
-        # If your grammar doesn't allow '|', we might fail. 
+        # If your grammar doesn't allow '|', we might fail.
         _ = loads(source)
 
-## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_conditional_ternary_operator():
@@ -155,7 +160,7 @@ def test_conditional_ternary_operator():
     source = 'status = <( "Active" if "Active" else "Inactive" )>'
     _ = loads(source)
 
-## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_membership_operators():
@@ -173,10 +178,10 @@ def test_merge_operator():
     """
     Verifies reservation of '<<' to merge tables or inline tables.
     """
-    source = '''
+    source = """
 [settings]
 merged_config = default << user_override
-'''
+"""
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
@@ -216,6 +221,7 @@ def test_reserved_function_as_var():
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_identifier_assigned_identifier():
@@ -223,9 +229,10 @@ def test_identifier_assigned_identifier():
     Verifies that an identifier cannot be assigned to an identifier.
     Should raise an error.
     """
-    source = 'identifier = another_identifier'
+    source = "identifier = another_identifier"
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
+
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -237,15 +244,16 @@ def test_underscored_identifier():
     source = 'identifier_1 = "test"'
     _ = loads(source)
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_unmatched_brackets():
     """
     Expect a syntax error when bracket pairs are mismatched or incomplete.
-    In this minimal grammar, the naive parser might not check bracket matching. 
+    In this minimal grammar, the naive parser might not check bracket matching.
     If so, we expect an error.
     """
-    source = '[config'
+    source = "[config"
     with pytest.raises(SyntaxError, match="Unexpected end of input"):
         _ = loads(source)
 
@@ -260,6 +268,7 @@ def test_invalid_mismatched_quotes():
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_invalid_enclosed_special_character_identifier():
@@ -270,6 +279,7 @@ def test_invalid_enclosed_special_character_identifier():
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_invalid_prefix_special_character_identifier():
@@ -279,7 +289,8 @@ def test_invalid_prefix_special_character_identifier():
     source = '!mykey = "strange_value"'
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
-        
+
+
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_invalid_special_character_identifier():

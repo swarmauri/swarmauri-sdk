@@ -1,6 +1,8 @@
-from typing import Union, List, Optional, Callable
+from typing import Literal, Union, List, Callable
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.metrics.IMetric import MetricViolationError
 from swarmauri_standard.norms.SobolevNorm import SobolevNorm
 
 logger = logging.getLogger(__name__)

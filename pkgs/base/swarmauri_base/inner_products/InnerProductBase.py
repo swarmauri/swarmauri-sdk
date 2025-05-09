@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
-from typing import Union
-import numpy as np
 import logging
+from abc import ABC, abstractmethod
+from typing import Callable, Union
 
+import numpy as np
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 from swarmauri_core.vectors.IVector import IVector
 
@@ -19,7 +19,11 @@ class InnerProductBase(ABC, IInnerProduct):
     """
 
     @abstractmethod
-    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the inner product between two vectors, matrices, or callables.
 
@@ -40,7 +44,11 @@ class InnerProductBase(ABC, IInnerProduct):
         logger.error("compute() method not implemented in subclass")
         raise NotImplementedError("Subclasses must implement the compute() method")
 
-    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_conjugate_symmetry(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the conjugate symmetry property of the inner product implementation.
 
@@ -55,7 +63,12 @@ class InnerProductBase(ABC, IInnerProduct):
         """
         super().check_conjugate_symmetry(a, b)
 
-    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_linearity_first_argument(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+        c: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the linearity property in the first argument of the inner product implementation.
 

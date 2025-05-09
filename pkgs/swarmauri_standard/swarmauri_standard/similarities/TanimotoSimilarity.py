@@ -1,5 +1,6 @@
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
-from typing import Union, Sequence, Optional, Literal
+from typing import Union, Sequence, Literal
 import logging
 import numpy as np
 

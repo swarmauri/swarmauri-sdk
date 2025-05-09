@@ -1,4 +1,4 @@
-from typing import Union, Sequence, Optional, Literal
+from typing import Union, Sequence, Literal
 import numpy as np
 import logging
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase

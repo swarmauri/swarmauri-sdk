@@ -1,4 +1,3 @@
-import pytest
 from jaml import render  # Adjust the import if your module path differs.
 
 def test_concat_single_global_variable():

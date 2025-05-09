@@ -3,7 +3,7 @@ import ssl
 import urllib.request
 import urllib.error
 import socket
-from typing import Optional, Union, Dict, Any, Literal, List
+from typing import Optional, Union, Dict, Any, Literal
 from urllib.parse import urlencode
 
 from swarmauri_base import FullUnion

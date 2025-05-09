@@ -1,8 +1,9 @@
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.seminorms import SeminormBase
-from typing import Union, List, Tuple, Callable, Optional
+from typing import Union, List, Tuple, Callable
 import logging
-from swarmauri_core.vectors import IVector
-from swarmauri_core.matrices import IMatrix
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,7 @@ class TraceSeminorm(SeminormBase):
         """
         Returns a string representation of the trace seminorm instance.
         """
-        return f"TraceSeminorm()"
+        return "TraceSeminorm()"
 
     def __repr__(self) -> str:
         """

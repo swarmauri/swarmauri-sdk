@@ -1,7 +1,7 @@
-from typing import Union, Optional, List, Tuple
+from typing import Callable, Union, List, Tuple
 import logging
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.seminorms.ISeminorm import ISeminorm
+from swarmauri_base.seminorms.SeminormBase import SeminormBase
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 

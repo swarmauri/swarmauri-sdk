@@ -1,5 +1,6 @@
-from typing import Union, Optional, Literal
+from typing import Callable, Union
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_base.seminorms.SeminormBase import SeminormBase
