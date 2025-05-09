@@ -140,7 +140,7 @@ class ISeminorm(ABC):
         Returns:
             str: String representation
         """
-        return f"ISeminorm()"
+        return "ISeminorm()"
 
     def __repr__(self) -> str:
         """

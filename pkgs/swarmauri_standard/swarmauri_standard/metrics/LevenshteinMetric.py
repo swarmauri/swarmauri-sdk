@@ -1,5 +1,4 @@
-from typing import Union, List, Literal
-from abc import ABC, abstractmethod
+from typing import Sequence, Union, List, Literal
 import logging
 from swarmauri_standard.metrics.MetricBase import MetricBase
 from swarmauri_base.ComponentBase import ComponentBase

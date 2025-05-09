@@ -63,10 +63,10 @@ class L2EuclideanNorm(NormBase):
         """
         Returns a string representation of the L2EuclideanNorm instance.
         """
-        return f"L2EuclideanNorm()"
+        return "L2EuclideanNorm()"
 
     def __repr__(self) -> str:
         """
         Returns a string representation of the L2EuclideanNorm instance.
         """
-        return f"L2EuclideanNorm()"
+        return "L2EuclideanNorm()"

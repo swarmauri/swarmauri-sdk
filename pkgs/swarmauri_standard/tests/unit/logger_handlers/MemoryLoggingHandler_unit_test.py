@@ -1,7 +1,6 @@
 import pytest
 import logging
 from unittest.mock import MagicMock, patch
-from typing import Any
 
 from swarmauri_standard.logger_handlers.MemoryLoggingHandler import MemoryLoggingHandler
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase

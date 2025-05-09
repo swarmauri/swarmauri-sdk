@@ -1,6 +1,6 @@
 from collections.abc import MutableMapping
 from copy import deepcopy
-from typing import Any, Dict, IO, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from ._fstring import _evaluate_f_string
 import logging
@@ -367,7 +367,6 @@ class Config(MutableMapping):
 
         # ③ collapse all AST nodes into plain Python values
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
-            from ._ast_nodes import BaseNode
 
             if isinstance(value, BaseNode):
                 value.resolve(self._data, scope)

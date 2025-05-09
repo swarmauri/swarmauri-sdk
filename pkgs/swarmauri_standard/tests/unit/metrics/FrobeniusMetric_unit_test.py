@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from swarmauri_standard.metrics.FrobeniusMetric import FrobeniusMetric
-import logging
 
 
 @pytest.mark.unit

@@ -1,13 +1,9 @@
 import pytest
-from copy import deepcopy
 
-from jaml import (
-    loads,
-    round_trip_loads
-)
+from jaml import round_trip_loads
 
 # The input JML content (as a multi-line string)
-JML_INPUT = r'''
+JML_INPUT = r"""
 rootDir = "src"
 packages = ${packages}
 
@@ -15,7 +11,7 @@ packages = ${packages}
   for package in @{packages} if package.active
   for module in @{package.modules} if module.enabled]
 name = "example.py"
-'''
+"""
 
 # The base external context used during rendering.
 BASE_CONTEXT = {
@@ -43,7 +39,7 @@ BASE_CONTEXT = {
     ],
 }
 
-expected_result = r'''
+expected_result = r"""
 rootDir = "src"
 packages = {
     "name": "auth",
@@ -71,9 +67,12 @@ name = "example.py"
 [file.auth.signup.source]
 name = "example.py"
 
-'''   
+"""
 
-@pytest.mark.xfail(reason="This case is invalid. The expression output is an array. Should we allow conditional table headers to be used in table headers or only table array headers?")
+
+@pytest.mark.xfail(
+    reason="This case is invalid. The expression output is an array. Should we allow conditional table headers to be used in table headers or only table array headers?"
+)
 @pytest.mark.spec
 @pytest.mark.mep0028d
 def test_section_headers_with_clauses():
@@ -81,26 +80,24 @@ def test_section_headers_with_clauses():
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
-    print('\n\n[TEST DEBUG]:')
-    print(data,'\n\n')
+    print("\n\n[TEST DEBUG]:")
+    print(data, "\n\n")
     assert data["rootDir"] == "src"
 
-    data["rootDir"] = 'new_src'
+    data["rootDir"] = "new_src"
     resolved_config = data.resolve()
-    assert resolved_config["rootDir"] == 'new_src'
+    assert resolved_config["rootDir"] == "new_src"
 
     # out = data.dumps()
     # rendered_data = data.render(out, context=BASE_CONTEXT)
     rendered_data = data.render(context=BASE_CONTEXT)
-    print('\n\n\n\n[RENDERED DATA]:')
+    print("\n\n\n\n[RENDERED DATA]:")
     print(rendered_data)
     assert rendered_data["rootDir"] == "new_src"
     assert "file.auth.login.source" in rendered_data
 
-
     final_out = data.dumps()
-    print('\n\n\n\n[FINAL_OUT]:')
+    print("\n\n\n\n[FINAL_OUT]:")
     print(final_out)
     assert "[file.auth.signup.source]" in final_out
     assert "new_src/auth" in final_out
-

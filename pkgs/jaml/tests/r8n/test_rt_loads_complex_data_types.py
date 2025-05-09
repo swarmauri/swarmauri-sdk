@@ -1,5 +1,4 @@
 import pytest
-import math
 from jaml import round_trip_loads, loads
 
 @pytest.mark.unit

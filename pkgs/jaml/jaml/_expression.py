@@ -8,13 +8,11 @@ Folded‑expression evaluation for the *resolve* phase.
 
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, List, Optional
 
 from lark import Token, Tree
 
 from ._eval import safe_eval
-from ._substitute import _substitute_vars  # still used for edge cases
 
 
 # ───────────────────────────── token classes ──────────────────────────────
@@ -113,8 +111,6 @@ def evaluate_expression_tree(
 ) -> Any:
     """Resolve a `<( … )>` expression, substituting @{…} and %{…} immediately.
     Leaves ${…} intact and wraps in an f-string if any remain."""
-    import re
-    from ._eval import safe_eval
     from lark import Token
     from ._ast_nodes import (
         BaseNode, HspacesNode, InlineWhitespaceNode, WhitespaceNode,

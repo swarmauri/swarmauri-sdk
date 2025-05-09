@@ -1,3 +1,4 @@
+from typing import Literal, Optional, Sequence, Union
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 import numpy as np

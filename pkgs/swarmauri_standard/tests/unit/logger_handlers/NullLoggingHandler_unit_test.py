@@ -1,6 +1,6 @@
 import pytest
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from swarmauri_standard.logger_handlers.NullLoggingHandler import NullLoggingHandler
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 

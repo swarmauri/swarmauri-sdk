@@ -1,7 +1,7 @@
-from typing import Union, List, Sequence, float
+from typing import Literal, Union, List, float
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_core.metrics.IMetric import IMetric
 
 logger = logging.getLogger(__name__)
 

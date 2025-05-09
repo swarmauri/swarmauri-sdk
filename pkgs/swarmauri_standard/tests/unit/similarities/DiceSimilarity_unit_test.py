@@ -1,10 +1,24 @@
-import pytest
-from swarmauri_standard.similarities.DiceSimilarity import DiceSimilarity
-from typing import Union, Sequence, Tuple
 import logging
-from unittest.mock import patch
+from typing import Callable, Sequence
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from swarmauri_standard.similarities.DiceSimilarity import DiceSimilarity
 
 logger = logging.getLogger(__name__)
+
+
+def patch_logger(func):
+    """Decorator to patch the logger for testing"""
+
+    @patch(
+        "swarmauri_standard.similarities.DiceSimilarity.logger", new_callable=MagicMock
+    )
+    def wrapper(self, mock_logger, *args, **kwargs):
+        return func(self, mock_logger, *args, **kwargs)
+
+    return wrapper
 
 
 @pytest.mark.unit

@@ -1,5 +1,4 @@
 import pytest
-import logging
 from unittest.mock import patch
 from swarmauri_standard.similarities.TriangleCosineSimilarity import (
     TriangleCosineSimilarity,

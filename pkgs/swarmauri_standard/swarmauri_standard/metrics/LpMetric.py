@@ -1,8 +1,9 @@
-from typing import Union, List, Sequence, Optional, Literal
+from typing import TypeVar, Union, List, Sequence, Literal
 import logging
 import math
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.metrics.IMetric import MetricViolationError
 from swarmauri_standard.norms.GeneralLpNorm import GeneralLpNorm
 
 T = TypeVar("T", Sequence[float], Union[float, Sequence[float]])
@@ -140,10 +141,10 @@ class LpMetric(MetricBase):
         distance = self.distance(x, y)
         if distance == 0:
             if x != y:
-                raise MetricViolationError(f"Identity violation: d(x,y)=0 but x≠y")
+                raise MetricViolationError("Identity violation: d(x,y)=0 but x≠y")
         else:
             if x == y:
-                raise MetricViolationError(f"Identity violation: d(x,y)≠0 but x=y")
+                raise MetricViolationError("Identity violation: d(x,y)≠0 but x=y")
 
     def check_symmetry(
         self, x: Union[Sequence[float], float], y: Union[Sequence[float], float]

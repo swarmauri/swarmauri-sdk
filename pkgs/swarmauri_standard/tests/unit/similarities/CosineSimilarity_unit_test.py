@@ -1,5 +1,4 @@
 import pytest
-import logging
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 
 

@@ -2,7 +2,7 @@ import pytest
 import os
 import logging
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from typing import Dict, Any
 
 from swarmauri_standard.logger_handlers.FileLoggingHandler import FileLoggingHandler
@@ -105,7 +105,7 @@ def test_directory_creation():
         assert not os.path.exists(log_dir)
 
         # Creating the handler should create the directory
-        handler = FileLoggingHandler(filepath=log_file)
+        FileLoggingHandler(filepath=log_file)
 
         # Directory should now exist
         assert os.path.exists(log_dir)

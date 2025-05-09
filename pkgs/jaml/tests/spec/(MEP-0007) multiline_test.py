@@ -3,7 +3,6 @@ import pytest
 
 # Adjust these imports to match your actual API or modules
 from jaml import (
-    loads,
     round_trip_loads,
 )
 

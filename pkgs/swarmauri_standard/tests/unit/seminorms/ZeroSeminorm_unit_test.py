@@ -1,5 +1,4 @@
 import pytest
-from typing import Union
 from swarmauri_standard.seminorms.ZeroSeminorm import ZeroSeminorm
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix

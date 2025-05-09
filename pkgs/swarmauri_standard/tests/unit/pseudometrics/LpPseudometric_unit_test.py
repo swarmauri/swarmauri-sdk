@@ -1,7 +1,7 @@
 import pytest
 from swarmauri_standard.pseudometrics.LpPseudometric import LpPseudometric
-from swarmauri_core.vectors.Vector import Vector as IVector
-from swarmauri_core.matrices.Matrix import Matrix as IMatrix
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,10 @@
+from typing import Callable, List, Union
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_base.ComponentBase import ComponentBase
 import logging
+
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +77,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Returns:
             bool: True if symmetry holds, False otherwise
         """
-        logger.debug(f"Checking symmetry for equivalence relation")
+        logger.debug("Checking symmetry for equivalence relation")
         return True
 
     def check_non_negativity(
@@ -93,7 +97,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Returns:
             bool: True if non-negativity holds
         """
-        logger.debug(f"Checking non-negativity for equivalence relation")
+        logger.debug("Checking non-negativity for equivalence relation")
         return True
 
     def check_triangle_inequality(
@@ -117,7 +121,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Returns:
             bool: True if triangle inequality holds
         """
-        logger.debug(f"Checking triangle inequality for equivalence relation")
+        logger.debug("Checking triangle inequality for equivalence relation")
         return True
 
     def check_weak_identity(
@@ -137,5 +141,5 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Returns:
             bool: True if weak identity holds
         """
-        logger.debug(f"Checking weak identity for equivalence relation")
+        logger.debug("Checking weak identity for equivalence relation")
         return True

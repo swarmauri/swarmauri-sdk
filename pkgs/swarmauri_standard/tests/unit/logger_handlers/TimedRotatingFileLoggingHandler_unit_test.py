@@ -1,7 +1,6 @@
 import os
 import pytest
 import tempfile
-import time
 import logging
 from datetime import datetime
 from unittest.mock import MagicMock, patch

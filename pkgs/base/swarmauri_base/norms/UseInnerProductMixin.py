@@ -1,6 +1,7 @@
 from typing import Union, Optional
 import numpy as np
 import logging
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct

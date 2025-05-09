@@ -1,7 +1,7 @@
 import logging
 import socket
 from logging.handlers import SysLogHandler
-from typing import Optional, Union, Literal, Dict, Any, Tuple
+from typing import Optional, Union, Literal, Dict, Tuple
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase

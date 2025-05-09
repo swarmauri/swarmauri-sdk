@@ -1,6 +1,7 @@
-from typing import Union, Literal
+from typing import Callable, Union, Literal
 import numpy as np
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
 logger = logging.getLogger(__name__)
