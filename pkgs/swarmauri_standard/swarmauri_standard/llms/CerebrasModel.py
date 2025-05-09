@@ -281,4 +281,39 @@ class CerebrasModel(LLMBase):
     async def abatch(
         self,
         conversations: List[Conversation],
-        temperature: float =
+        temperature: float = 0.0,
+        max_completion_tokens: int = -1,
+        top_p: float = 1.0,
+        seed: int = 0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+        max_concurrent: int = 5,
+    ) -> List[Conversation]:
+        """
+        Processes a batch of conversations concurrently.
+        """
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conv(conv: Conversation) -> Conversation:
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    temperature=temperature,
+                    max_completion_tokens=max_completion_tokens,
+                    top_p=top_p,
+                    seed=seed,
+                    enable_json=enable_json,
+                    stop=stop,
+                )
+
+        tasks = [process_conv(conv) for conv in conversations]
+        return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Retrieves the list of available models from the Cerebras API.
+        """
+        response = self._client.get("https://api.cerebras.ai/v1/models")
+        response.raise_for_status()
+        data = response.json()
+        return [model["id"] for model in data.get("data", [])]
