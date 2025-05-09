@@ -3,9 +3,9 @@ import numpy as np
 from swarmauri_standard.metrics.FrobeniusMetric import FrobeniusMetric
 import logging
 
+
 @pytest.mark.unit
 class TestFrobeniusMetric:
-
     """Unit tests for the FrobeniusMetric class."""
 
     def test_distance(self):
@@ -14,7 +14,7 @@ class TestFrobeniusMetric:
         x = np.array([[1, 2], [3, 4]])
         y = np.array([[1, 2], [3, 4]])
         assert FrobeniusMetric().distance(x, y) == 0.0
-        
+
         x = np.array([[1, 2], [3, 4]])
         y = np.array([[1, 2], [3, 5]])
         assert FrobeniusMetric().distance(x, y) == 1.0
@@ -32,14 +32,8 @@ class TestFrobeniusMetric:
 
     def test_distances(self):
         """Test the distances method with multiple inputs."""
-        x_list = [
-            np.array([[1, 2], [3, 4]]),
-            np.array([[5, 6], [7, 8]])
-        ]
-        y_list = [
-            np.array([[1, 2], [3, 4]]),
-            np.array([[5, 6], [7, 8]])
-        ]
+        x_list = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
+        y_list = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
         result = FrobeniusMetric().distances(x_list, y_list)
         assert len(result) == 2
         assert all(isinstance(item, float) for sublist in result for item in sublist)

@@ -4,7 +4,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
 
 # Define a TypeVar to represent supported input types
-T = TypeVar('T', Sequence[float], Union[callable, str])
+T = TypeVar("T", Sequence[float], Union[callable, str])
+
 
 @ComponentBase.register_type(NormBase, "LInfNorm")
 class LInfNorm(NormBase):
@@ -17,10 +18,11 @@ class LInfNorm(NormBase):
 
     Attributes:
         resource: Type of resource this class represents.
-        
+
     Methods:
         compute: Computes the L-infinity norm of the given input.
     """
+
     resource: str = "LInfNorm"
 
     def __init__(self) -> None:
@@ -48,7 +50,7 @@ class LInfNorm(NormBase):
             ValueError: If the input type is not supported.
         """
         self.logger.debug(f"Computing L-infinity norm for input type {type(x)}")
-        
+
         if isinstance(x, Sequence):
             # For sequences, compute the maximum absolute value
             return max(abs(value) for value in x)
@@ -99,7 +101,11 @@ class LInfNorm(NormBase):
         self.logger.debug("Checking triangle inequality property")
         norm_x = self.compute(x)
         norm_y = self.compute(y)
-        norm_xy = self.compute(x + y) if isinstance(x, Sequence) and isinstance(y, Sequence) else 0.0
+        norm_xy = (
+            self.compute(x + y)
+            if isinstance(x, Sequence) and isinstance(y, Sequence)
+            else 0.0
+        )
         return norm_xy <= norm_x + norm_y
 
     def check_absolute_homogeneity(self, x: T, alpha: float) -> bool:
@@ -115,7 +121,9 @@ class LInfNorm(NormBase):
         """
         self.logger.debug(f"Checking absolute homogeneity with alpha {alpha}")
         norm_x = self.compute(x)
-        norm_alpha_x = self.compute([alpha * val for val in x]) if isinstance(x, Sequence) else 0.0
+        norm_alpha_x = (
+            self.compute([alpha * val for val in x]) if isinstance(x, Sequence) else 0.0
+        )
         return norm_alpha_x == abs(alpha) * norm_x
 
     def check_definiteness(self, x: T) -> bool:
@@ -135,5 +143,6 @@ class LInfNorm(NormBase):
         if norm == 0:
             return x == 0
         return True
+
 
 logger = logging.getLogger(__name__)

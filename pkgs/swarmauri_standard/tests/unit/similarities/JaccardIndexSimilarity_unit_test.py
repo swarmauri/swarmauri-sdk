@@ -1,5 +1,8 @@
 import pytest
-from swarmauri_standard.similarities.JaccardIndexSimilarity import JaccardIndexSimilarity
+from swarmauri_standard.similarities.JaccardIndexSimilarity import (
+    JaccardIndexSimilarity,
+)
+
 
 @pytest.mark.unit
 class TestJaccardIndexSimilarity:
@@ -32,32 +35,32 @@ class TestJaccardIndexSimilarity:
         x = {1, 2, 3}
         y = {2, 3, 4}
         similarity = fixture_jaccard_index_similarity.similarity(x, y)
-        assert similarity == 2/5  # Intersection size 2, union size 5
+        assert similarity == 2 / 5  # Intersection size 2, union size 5
 
     def test_similarity_lists(self, fixture_jaccard_index_similarity):
         """Test similarity calculation with lists."""
         x = [1, 2, 3]
         y = [2, 3, 4]
         similarity = fixture_jaccard_index_similarity.similarity(x, y)
-        assert similarity == 2/5
+        assert similarity == 2 / 5
 
     def test_similarity_tuples(self, fixture_jaccard_index_similarity):
         """Test similarity calculation with tuples."""
         x = (1, 2, 3)
         y = (2, 3, 4)
         similarity = fixture_jaccard_index_similarity.similarity(x, y)
-        assert similarity == 2/5
+        assert similarity == 2 / 5
 
     def test_similarity_invalid_inputs(self, fixture_jaccard_index_similarity):
         """Test similarity with invalid input types."""
         with pytest.raises(ValueError):
-            fixture_jaccard_index_similarity.similarity(123, [1,2,3])
+            fixture_jaccard_index_similarity.similarity(123, [1, 2, 3])
 
     def test_similarities_multiple_pairs(self, fixture_jaccard_index_similarity):
         """Test multiple similarities calculation."""
         xs = [{1, 2}, {3, 4}]
         ys = [{2, 3}, {4, 5}]
-        expected = [2/4, 2/4]  # Each pair has intersection size 1, union size 3
+        expected = [2 / 4, 2 / 4]  # Each pair has intersection size 1, union size 3
         similarities = fixture_jaccard_index_similarity.similarities(xs, ys)
         assert similarities == pytest.approx(expected)
 
@@ -65,7 +68,7 @@ class TestJaccardIndexSimilarity:
         """Test dissimilarity calculation."""
         x = {1, 2, 3}
         y = {2, 3, 4}
-        similarity = 2/5
+        similarity = 2 / 5
         dissimilarity = fixture_jaccard_index_similarity.dissimilarity(x, y)
         assert dissimilarity == 1.0 - similarity
 
@@ -73,7 +76,7 @@ class TestJaccardIndexSimilarity:
         """Test multiple dissimilarities calculation."""
         xs = [{1, 2}, {3, 4}]
         ys = [{2, 3}, {4, 5}]
-        expected = [1.0 - (1/3), 1.0 - (1/3)]
+        expected = [1.0 - (1 / 3), 1.0 - (1 / 3)]
         dissimilarities = fixture_jaccard_index_similarity.dissimilarities(xs, ys)
         assert dissimilarities == pytest.approx(expected)
 

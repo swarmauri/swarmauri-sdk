@@ -28,6 +28,7 @@ class SupremumMetric(MetricBase):
         check_symmetry: Verifies the symmetry axiom
         check_triangle_inequality: Verifies the triangle inequality axiom
     """
+
     type: str = "SupremumMetric"
     resource: str = "metric"
 
@@ -38,8 +39,11 @@ class SupremumMetric(MetricBase):
         super().__init__()
         self.logger = logging.getLogger(__name__)
 
-    def distance(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                 y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> float:
         """
         Computes the distance between two points x and y using the L∞ metric.
 
@@ -57,22 +61,25 @@ class SupremumMetric(MetricBase):
             ValueError: If the input vectors have different lengths
         """
         self.logger.debug(f"Calculating distance between {x} and {y}")
-        
+
         # Convert inputs to sequences if necessary
         if not isinstance(x, Sequence):
             x = list(x)
         if not isinstance(y, Sequence):
             y = list(y)
-            
+
         if len(x) != len(y):
             raise ValueError("Input vectors must have the same length")
-            
+
         max_diff = max(abs(x_i - y_i) for x_i, y_i in zip(x, y))
         self.logger.debug(f"Computed distance: {max_diff}")
         return max_diff
 
-    def distances(self, xs: List[Union[IVector, IMatrix, Sequence, str, Callable]], 
-                  ys: List[Union[IVector, IMatrix, Sequence, str, Callable]]) -> List[List[float]]:
+    def distances(
+        self,
+        xs: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+        ys: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+    ) -> List[List[float]]:
         """
         Computes pairwise distances between two lists of points.
 
@@ -83,20 +90,25 @@ class SupremumMetric(MetricBase):
         Returns:
             List[List[float]]: Matrix of pairwise distances between points in xs and ys
         """
-        self.logger.debug(f"Calculating pairwise distances between {len(xs)} points and {len(ys)} points")
-        
+        self.logger.debug(
+            f"Calculating pairwise distances between {len(xs)} points and {len(ys)} points"
+        )
+
         distance_matrix = []
         for x in xs:
             row = []
             for y in ys:
                 row.append(self.distance(x, y))
             distance_matrix.append(row)
-            
+
         self.logger.debug(f"Computed pairwise distances: {distance_matrix}")
         return distance_matrix
 
-    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                            y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
         Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -112,8 +124,11 @@ class SupremumMetric(MetricBase):
         if distance < 0:
             raise ValueError("Distance cannot be negative")
 
-    def check_identity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                      y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_identity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
         Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
@@ -132,8 +147,11 @@ class SupremumMetric(MetricBase):
             if self.distance(x, y) == 0:
                 raise ValueError("Identity axiom violated: x != y but distance == 0")
 
-    def check_symmetry(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                     y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
         Verifies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -148,9 +166,12 @@ class SupremumMetric(MetricBase):
         if self.distance(x, y) != self.distance(y, x):
             raise ValueError("Symmetry axiom violated: d(x,y) != d(y,x)")
 
-    def check_triangle_inequality(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                                 y: Union[IVector, IMatrix, Sequence, str, Callable], 
-                                 z: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+        z: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
         Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 

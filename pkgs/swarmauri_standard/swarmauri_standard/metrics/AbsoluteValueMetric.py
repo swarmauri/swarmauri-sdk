@@ -30,6 +30,7 @@ class AbsoluteValueMetric(MetricBase):
         check_symmetry: Verifies the symmetry axiom.
         check_triangle_inequality: Verifies the triangle inequality axiom.
     """
+
     type: Literal["AbsoluteValueMetric"] = "AbsoluteValueMetric"
 
     def distance(self, x: Union[float, int], y: Union[float, int]) -> float:
@@ -47,14 +48,16 @@ class AbsoluteValueMetric(MetricBase):
             TypeError: If inputs are not numeric scalars
         """
         logger.debug(f"Calculating absolute difference between {x} and {y}")
-        
+
         # Ensure inputs are numeric
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             raise TypeError("Inputs must be numeric scalars")
-            
+
         return float(abs(x - y))
 
-    def distances(self, xs: List[Union[float, int]], ys: List[Union[float, int]]) -> List[List[float]]:
+    def distances(
+        self, xs: List[Union[float, int]], ys: List[Union[float, int]]
+    ) -> List[List[float]]:
         """
         Computes pairwise absolute differences between two lists of scalars.
 
@@ -68,8 +71,10 @@ class AbsoluteValueMetric(MetricBase):
         Raises:
             TypeError: If any input is not a numeric scalar
         """
-        logger.debug(f"Calculating pairwise distances between {len(xs)} and {len(ys)} elements")
-        
+        logger.debug(
+            f"Calculating pairwise distances between {len(xs)} and {len(ys)} elements"
+        )
+
         # Validate input types
         for x in xs:
             if not isinstance(x, (int, float)):
@@ -77,7 +82,7 @@ class AbsoluteValueMetric(MetricBase):
         for y in ys:
             if not isinstance(y, (int, float)):
                 raise TypeError("All elements in ys must be numeric scalars")
-                
+
         # Compute pairwise distances
         return [[float(abs(x - y)) for y in ys] for x in xs]
 
@@ -95,7 +100,9 @@ class AbsoluteValueMetric(MetricBase):
         logger.debug("Checking non-negativity axiom")
         distance = self.distance(x, y)
         if distance < 0:
-            raise ValueError(f"Non-negativity violated: distance({x}, {y}) = {distance}")
+            raise ValueError(
+                f"Non-negativity violated: distance({x}, {y}) = {distance}"
+            )
 
     def check_identity(self, x: Union[float, int], y: Union[float, int]) -> None:
         """
@@ -111,9 +118,13 @@ class AbsoluteValueMetric(MetricBase):
         logger.debug("Checking identity of indiscernibles axiom")
         distance = self.distance(x, y)
         if x == y and distance != 0:
-            raise ValueError(f"Identity axiom violated: x == y but distance = {distance}")
+            raise ValueError(
+                f"Identity axiom violated: x == y but distance = {distance}"
+            )
         if x != y and distance == 0:
-            raise ValueError(f"Identity axiom violated: x != y but distance = {distance}")
+            raise ValueError(
+                f"Identity axiom violated: x != y but distance = {distance}"
+            )
 
     def check_symmetry(self, x: Union[float, int], y: Union[float, int]) -> None:
         """
@@ -130,9 +141,13 @@ class AbsoluteValueMetric(MetricBase):
         d_xy = self.distance(x, y)
         d_yx = self.distance(y, x)
         if d_xy != d_yx:
-            raise ValueError(f"Symmetry axiom violated: d({x}, {y}) = {d_xy} ≠ {d_yx} = d({y}, {x})")
+            raise ValueError(
+                f"Symmetry axiom violated: d({x}, {y}) = {d_xy} ≠ {d_yx} = d({y}, {x})"
+            )
 
-    def check_triangle_inequality(self, x: Union[float, int], y: Union[float, int], z: Union[float, int]) -> None:
+    def check_triangle_inequality(
+        self, x: Union[float, int], y: Union[float, int], z: Union[float, int]
+    ) -> None:
         """
         Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 
@@ -148,6 +163,6 @@ class AbsoluteValueMetric(MetricBase):
         d_xz = self.distance(x, z)
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
-        
+
         if d_xz > d_xy + d_yz:
             raise ValueError(f"Triangle inequality violated: {d_xz} > {d_xy} + {d_yz}")

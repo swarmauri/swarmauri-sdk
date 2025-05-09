@@ -2,6 +2,7 @@ import pytest
 from swarmauri_standard.metrics.HammingMetric import HammingMetric
 import logging
 
+
 @pytest.mark.unit
 class TestHammingMetric:
     """Unit test class for HammingMetric class"""
@@ -21,7 +22,7 @@ class TestHammingMetric:
             ("1010", "1111", 3),  # Three bits difference
             ("1010", "0000", 4),  # All bits different
             ("ABCD", "ABCE", 1),  # String with character difference
-            ("1010", "10", 0)     # Different lengths
+            ("1010", "10", 0),  # Different lengths
         ]
 
     @pytest.mark.unit
@@ -47,11 +48,7 @@ class TestHammingMetric:
 
         # Test with mixed points
         points = ["1010", "1110", "1000"]
-        expected = [
-            [0, 1, 2],
-            [1, 0, 1],
-            [2, 1, 0]
-        ]
+        expected = [[0, 1, 2], [1, 0, 1], [2, 1, 0]]
         assert hamming_metric.distances(points, points) == expected
 
     @pytest.mark.unit
@@ -100,16 +97,18 @@ class TestHammingMetric:
         # Set up logging
         logger = logging.getLogger("swarmauri_standard.metrics.HammingMetric")
         logger.setLevel(logging.DEBUG)
-        
+
         # Test if debug message is logged when distance is called
         with pytest.raises(AssertionError):
             # Using list to capture log messages
             messages = []
+
             def log_debug(msg):
                 messages.append(msg)
+
             original_debug = logger.debug
             logger.debug = log_debug
-            
+
             try:
                 hamming_metric.distance("1010", "1010")
                 assert "Calculating Hamming distance" in messages

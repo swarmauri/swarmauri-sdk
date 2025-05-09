@@ -7,6 +7,7 @@ from swarmauri_core.matrices.IMatrix import IMatrix
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(PseudometricBase, "ProjectionPseudometricR2")
 class ProjectionPseudometricR2(PseudometricBase):
     """
@@ -24,6 +25,7 @@ class ProjectionPseudometricR2(PseudometricBase):
         projection_axis: Literal["x", "y"] - The coordinate axis to use for projection
         resource: str - Resource type identifier
     """
+
     projection_axis: Literal["x", "y"]
     resource: str = ResourceTypes.PSEUDOMETRIC.value
 
@@ -38,12 +40,14 @@ class ProjectionPseudometricR2(PseudometricBase):
         if projection_axis not in ("x", "y"):
             raise ValueError("projection_axis must be either 'x' or 'y'")
         self.projection_axis = projection_axis
-        logger.debug(f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}")
+        logger.debug(
+            f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}"
+        )
 
     def distance(
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
     ) -> float:
         """
         Computes the pseudometric distance between two points in ℝ² by projecting onto the specified axis.
@@ -59,17 +63,17 @@ class ProjectionPseudometricR2(PseudometricBase):
             ValueError: If input points are not 2D vectors
         """
         logger.debug(f"Computing distance between {x} and {y}")
-        
+
         # Extract coordinates based on projection axis
         x_coord = self._get_projection(x)
         y_coord = self._get_projection(y)
-        
+
         return abs(x_coord - y_coord)
 
     def distances(
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        y_list: List[Union[IVector, IMatrix, List[float], Tuple[float, ...]]]
+        y_list: List[Union[IVector, IMatrix, List[float], Tuple[float, ...]]],
     ) -> List[float]:
         """
         Computes distances from a single point to multiple points in ℝ².
@@ -87,7 +91,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def check_non_negativity(
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
     ) -> bool:
         """
         Verifies the non-negativity property: d(x,y) ≥ 0.
@@ -105,7 +109,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def check_symmetry(
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
     ) -> bool:
         """
         Verifies the symmetry property: d(x,y) = d(y,x).
@@ -124,7 +128,7 @@ class ProjectionPseudometricR2(PseudometricBase):
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
         y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        z: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        z: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
     ) -> bool:
         """
         Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
@@ -143,7 +147,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def check_weak_identity(
         self,
         x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
     ) -> bool:
         """
         Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
@@ -160,8 +164,7 @@ class ProjectionPseudometricR2(PseudometricBase):
         return True
 
     def _get_projection(
-        self,
-        point: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+        self, point: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> float:
         """
         Helper method to get the projected coordinate of a point based on the projection axis.
@@ -190,7 +193,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def __str__(self) -> str:
         """
         Returns a string representation of the ProjectionPseudometricR2 instance.
-        
+
         Returns:
             str: String representation
         """
@@ -199,7 +202,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def __repr__(self) -> str:
         """
         Returns the official string representation of the ProjectionPseudometricR2 instance.
-        
+
         Returns:
             str: Official string representation
         """

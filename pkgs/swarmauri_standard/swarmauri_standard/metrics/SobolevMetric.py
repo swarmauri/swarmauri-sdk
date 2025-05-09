@@ -27,6 +27,7 @@ class SobolevMetric(MetricBase):
         check_symmetry: Verifies the symmetry axiom of the metric.
         check_triangle_inequality: Verifies the triangle inequality axiom of the metric.
     """
+
     type: Literal["SobolevMetric"] = "SobolevMetric"
     order: int
 
@@ -41,7 +42,9 @@ class SobolevMetric(MetricBase):
         super().__init__(**kwargs)
         self.order = order
 
-    def distance(self, x: Union[Callable, list, float], y: Union[Callable, list, float]) -> float:
+    def distance(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> float:
         """
         Computes the distance between two functions using the Sobolev norm.
 
@@ -58,21 +61,26 @@ class SobolevMetric(MetricBase):
             MetricViolationError: If any metric axiom is violated.
         """
         logger.debug(f"Calculating Sobolev distance between {x} and {y}")
-        
+
         # Compute the difference between the two functions
         if callable(x) and callable(y):
+
             def difference_func(*args):
                 return x(*args) - y(*args)
         else:
             difference_func = x - y
-        
+
         # Compute the Sobolev norm of the difference
         sobolev_norm = SobolevNorm(order=self.order)
         distance = sobolev_norm.compute(difference_func)
-        
+
         return distance
 
-    def distances(self, xs: List[Union[Callable, list, float]], ys: List[Union[Callable, list, float]]) -> List[List[float]]:
+    def distances(
+        self,
+        xs: List[Union[Callable, list, float]],
+        ys: List[Union[Callable, list, float]],
+    ) -> List[List[float]]:
         """
         Computes pairwise distances between two lists of functions.
 
@@ -83,11 +91,15 @@ class SobolevMetric(MetricBase):
         Returns:
             List[List[float]]: Matrix of pairwise distances between points in xs and ys.
         """
-        logger.debug(f"Calculating pairwise Sobolev distances between {len(xs)} points and {len(ys)} points")
-        
+        logger.debug(
+            f"Calculating pairwise Sobolev distances between {len(xs)} points and {len(ys)} points"
+        )
+
         return [[self.distance(x, y) for y in ys] for x in xs]
 
-    def check_non_negativity(self, x: Union[Callable, list, float], y: Union[Callable, list, float]) -> None:
+    def check_non_negativity(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
         """
         Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -103,7 +115,9 @@ class SobolevMetric(MetricBase):
         if distance < 0:
             raise MetricViolationError("Non-negativity axiom violated: d(x,y) < 0")
 
-    def check_identity(self, x: Union[Callable, list, float], y: Union[Callable, list, float]) -> None:
+    def check_identity(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
         """
         Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
@@ -121,7 +135,9 @@ class SobolevMetric(MetricBase):
         if x != y and distance == 0:
             raise MetricViolationError("Identity axiom violated: x ≠ y but d(x,y) = 0")
 
-    def check_symmetry(self, x: Union[Callable, list, float], y: Union[Callable, list, float]) -> None:
+    def check_symmetry(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
         """
         Verifies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -138,7 +154,12 @@ class SobolevMetric(MetricBase):
         if distance_xy != distance_yx:
             raise MetricViolationError("Symmetry axiom violated: d(x,y) ≠ d(y,x)")
 
-    def check_triangle_inequality(self, x: Union[Callable, list, float], y: Union[Callable, list, float], z: Union[Callable, list, float]) -> None:
+    def check_triangle_inequality(
+        self,
+        x: Union[Callable, list, float],
+        y: Union[Callable, list, float],
+        z: Union[Callable, list, float],
+    ) -> None:
         """
         Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 
@@ -154,6 +175,8 @@ class SobolevMetric(MetricBase):
         distance_xz = self.distance(x, z)
         distance_xy = self.distance(x, y)
         distance_yz = self.distance(y, z)
-        
+
         if distance_xz > distance_xy + distance_yz:
-            raise MetricViolationError("Triangle inequality violated: d(x,z) > d(x,y) + d(y,z)")
+            raise MetricViolationError(
+                "Triangle inequality violated: d(x,z) > d(x,y) + d(y,z)"
+            )

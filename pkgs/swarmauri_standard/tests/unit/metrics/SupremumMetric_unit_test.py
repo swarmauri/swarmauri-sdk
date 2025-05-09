@@ -2,10 +2,12 @@ import pytest
 from swarmauri_standard.metrics.SupremumMetric import SupremumMetric
 import logging
 
+
 @pytest.fixture
 def supremum_metric():
     """Fixture to provide a SupremumMetric instance for testing."""
     return SupremumMetric()
+
 
 @pytest.mark.unit
 def test_supremum_metric_class_attributes(supremum_metric):
@@ -13,11 +15,13 @@ def test_supremum_metric_class_attributes(supremum_metric):
     assert SupremumMetric.type == "SupremumMetric"
     assert SupremumMetric.resource == "metric"
 
+
 @pytest.mark.unit
 def test_supremum_metric_initialization(supremum_metric):
     """Test that the SupremumMetric instance initializes correctly."""
     assert supremum_metric.logger is not None
     assert isinstance(supremum_metric.logger, logging.Logger)
+
 
 @pytest.mark.unit
 def test_supremum_metric_distance(supremum_metric):
@@ -39,16 +43,19 @@ def test_supremum_metric_distance(supremum_metric):
     y = "test_string"
     supremum_metric.distance(x, y)
 
+
 @pytest.mark.unit
 def test_supremum_metric_distances(supremum_metric):
     """Test the distances method with multiple points."""
     xs = [[1, 2], [3, 4]]
     ys = [[5, 6], [7, 8]]
     expected_distances = [
-        [max(abs(1-5), abs(2-6)), max(abs(1-7), abs(2-8))],
-        [max(abs(3-5), abs(4-6)), max(abs(3-7), abs(4-8))]]
+        [max(abs(1 - 5), abs(2 - 6)), max(abs(1 - 7), abs(2 - 8))],
+        [max(abs(3 - 5), abs(4 - 6)), max(abs(3 - 7), abs(4 - 8))],
+    ]
     result = supremum_metric.distances(xs, ys)
     assert result == expected_distances
+
 
 @pytest.mark.unit
 def test_supremum_metric_check_non_negativity(supremum_metric):
@@ -61,6 +68,7 @@ def test_supremum_metric_check_non_negativity(supremum_metric):
     y = [4, 5, 6]
     supremum_metric.check_non_negativity(x, y)
 
+
 @pytest.mark.unit
 def test_supremum_metric_check_identity(supremum_metric):
     """Test the identity check."""
@@ -72,12 +80,14 @@ def test_supremum_metric_check_identity(supremum_metric):
     y = [4, 5, 6]
     supremum_metric.check_identity(x, y)
 
+
 @pytest.mark.unit
 def test_supremum_metric_check_symmetry(supremum_metric):
     """Test the symmetry check."""
     x = [1, 2, 3]
     y = [4, 5, 6]
     supremum_metric.check_symmetry(x, y)
+
 
 @pytest.mark.unit
 def test_supremum_metric_check_triangle_inequality(supremum_metric):
@@ -87,17 +97,19 @@ def test_supremum_metric_check_triangle_inequality(supremum_metric):
     z = [7, 8, 9]
     supremum_metric.check_triangle_inequality(x, y, z)
 
+
 @pytest.mark.unit
 def test_supremum_metric_distance_parameterized(supremum_metric):
     """Test distance method with different input types."""
     test_cases = [
         ([[1, 2], [3, 4]], 2.0),
         ((1, 2), (3, 4), 2.0),
-        ([1, 2, 3], [4, 5, 6], 3.0)
+        ([1, 2, 3], [4, 5, 6], 3.0),
     ]
-    
+
     for x, y, expected in test_cases:
         assert supremum_metric.distance(x, y) == expected
+
 
 @pytest.mark.unit
 def test_supremum_metric_distance_edge_cases(supremum_metric):

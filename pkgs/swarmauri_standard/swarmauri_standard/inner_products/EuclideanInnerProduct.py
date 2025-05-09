@@ -26,8 +26,11 @@ class EuclideanInnerProduct(InnerProductBase):
         super().__init__()
         self.type = "EuclideanInnerProduct"
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], 
-                      b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the Euclidean inner product (dot product) between two vectors.
 
@@ -53,29 +56,29 @@ class EuclideanInnerProduct(InnerProductBase):
                 a = a()
             if callable(b):
                 b = b()
-            
+
             if isinstance(a, IVector):
                 a = a.to_numpy()
             if isinstance(b, IVector):
                 b = b.to_numpy()
-            
+
             # Ensure inputs are numpy arrays
             if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
                 raise TypeError("Inputs must be convertible to numpy arrays")
-            
+
             # Verify that the arrays contain real numbers
-            if a.dtype.kind not in ('f', 'i') or b.dtype.kind not in ('f', 'i'):
+            if a.dtype.kind not in ("f", "i") or b.dtype.kind not in ("f", "i"):
                 raise ValueError("Input vectors must contain real numbers")
-            
+
             # Compute the dot product
             result = np.dot(a, b)
-            
+
             # Ensure the result is a scalar
             if np.isscalar(result):
                 return float(result)
             else:
                 raise ValueError("Result of the inner product is not a scalar")
-            
+
         except ValueError as ve:
             logger.error(f"Value error in Euclidean inner product computation: {ve}")
             raise
@@ -83,5 +86,7 @@ class EuclideanInnerProduct(InnerProductBase):
             logger.error(f"Type error in Euclidean inner product computation: {te}")
             raise
         except Exception as e:
-            logger.error(f"Unexpected error in Euclidean inner product computation: {e}")
+            logger.error(
+                f"Unexpected error in Euclidean inner product computation: {e}"
+            )
             raise

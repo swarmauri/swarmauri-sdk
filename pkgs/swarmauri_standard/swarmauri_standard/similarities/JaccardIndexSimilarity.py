@@ -60,7 +60,9 @@ class JaccardIndexSimilarity(SimilarityBase):
 
         return len(intersection) / len(union)
 
-    def similarities(self, xs: Union[set, Sequence], ys: Union[set, Sequence]) -> Sequence[float]:
+    def similarities(
+        self, xs: Union[set, Sequence], ys: Union[set, Sequence]
+    ) -> Sequence[float]:
         """
         Calculates Jaccard Index similarities for multiple pairs of sets.
 
@@ -99,7 +101,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         similarity = self.similarity(x, y)
         return 1.0 - similarity
 
-    def dissimilarities(self, xs: Union[set, Sequence], ys: Union[set, Sequence]) -> Sequence[float]:
+    def dissimilarities(
+        self, xs: Union[set, Sequence], ys: Union[set, Sequence]
+    ) -> Sequence[float]:
         """
         Calculates Jaccard Index dissimilarities for multiple pairs of sets.
 

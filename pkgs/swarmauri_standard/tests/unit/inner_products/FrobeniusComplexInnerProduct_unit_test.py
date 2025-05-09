@@ -2,9 +2,12 @@ import pytest
 import numpy as np
 import logging
 
-from swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import FrobeniusComplexInnerProduct
+from swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import (
+    FrobeniusComplexInnerProduct,
+)
 
 logger = logging.getLogger(__name__)
+
 
 @pytest.mark.unit
 class TestFrobeniusComplexInnerProduct:
@@ -89,10 +92,10 @@ class TestFrobeniusComplexInnerProduct:
 
         assert np.isclose(result, expected_result, rtol=1e-4)
 
-    @pytest.mark.parametrize("matrix_type", ['complex', 'real'])
+    @pytest.mark.parametrize("matrix_type", ["complex", "real"])
     def test_compute_different_types(self, matrix_type):
         """Test compute method with different matrix types."""
-        if matrix_type == 'complex':
+        if matrix_type == "complex":
             a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
             b = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
         else:
@@ -108,12 +111,14 @@ class TestFrobeniusComplexInnerProduct:
 
         assert np.isclose(result, expected_result, rtol=1e-4)
 
+
 def _generate_random_matrices():
     """Fixture to generate random matrices for testing."""
     matrix_size = (2, 2)
     a = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
     b = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
     return a, b
+
 
 @pytest.mark.unit
 def test_compute_with_fixture(_generate_random_matrices):

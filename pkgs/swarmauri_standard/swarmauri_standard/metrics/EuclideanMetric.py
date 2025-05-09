@@ -28,6 +28,7 @@ class EuclideanMetric(MetricBase):
         check_symmetry: Verifies the symmetry axiom.
         check_triangle_inequality: Verifies the triangle inequality axiom.
     """
+
     type: str = "EuclideanMetric"
 
     def __init__(self):
@@ -36,7 +37,9 @@ class EuclideanMetric(MetricBase):
         """
         self.norm = L2EuclideanNorm()
 
-    def distance(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> float:
+    def distance(
+        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
+    ) -> float:
         """
         Computes the Euclidean (L2) distance between two vectors.
 
@@ -58,11 +61,15 @@ class EuclideanMetric(MetricBase):
 
         # Compute the difference vector
         difference = [x[i] - y[i] for i in range(len(x))]
-        
+
         # Compute the L2 norm of the difference vector
         return self.norm.compute(difference)
 
-    def distances(self, xs: List[Union[Sequence[float], Callable]], ys: List[Union[Sequence[float], Callable]]) -> List[List[float]]:
+    def distances(
+        self,
+        xs: List[Union[Sequence[float], Callable]],
+        ys: List[Union[Sequence[float], Callable]],
+    ) -> List[List[float]]:
         """
         Computes pairwise Euclidean distances between two lists of vectors.
 
@@ -76,7 +83,9 @@ class EuclideanMetric(MetricBase):
         Raises:
             ValueError: If any pair of vectors have different dimensions
         """
-        logger.debug(f"Calculating pairwise distances between {len(xs)} vectors and {len(ys)} vectors")
+        logger.debug(
+            f"Calculating pairwise distances between {len(xs)} vectors and {len(ys)} vectors"
+        )
 
         distances = []
         for x in xs:
@@ -88,7 +97,9 @@ class EuclideanMetric(MetricBase):
             distances.append(row)
         return distances
 
-    def check_non_negativity(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
+    def check_non_negativity(
+        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
+    ) -> None:
         """
         Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -104,7 +115,9 @@ class EuclideanMetric(MetricBase):
         if distance < 0:
             raise ValueError(f"Non-negativity violation: distance was {distance}")
 
-    def check_identity(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
+    def check_identity(
+        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
+    ) -> None:
         """
         Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
@@ -124,7 +137,9 @@ class EuclideanMetric(MetricBase):
             if x == y:
                 raise ValueError("Identity violation: d(x,y) ≠ 0 but x = y")
 
-    def check_symmetry(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
+    def check_symmetry(
+        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
+    ) -> None:
         """
         Verifies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -141,7 +156,12 @@ class EuclideanMetric(MetricBase):
         if d_xy != d_yx:
             raise ValueError(f"Symmetry violation: d(x,y) = {d_xy}, d(y,x) = {d_yx}")
 
-    def check_triangle_inequality(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable], z: Union[Sequence[float], Callable]) -> None:
+    def check_triangle_inequality(
+        self,
+        x: Union[Sequence[float], Callable],
+        y: Union[Sequence[float], Callable],
+        z: Union[Sequence[float], Callable],
+    ) -> None:
         """
         Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 

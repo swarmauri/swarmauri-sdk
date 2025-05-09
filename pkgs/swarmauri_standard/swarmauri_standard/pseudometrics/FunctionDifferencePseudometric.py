@@ -25,7 +25,13 @@ class FunctionDifferencePseudometric(PseudometricBase):
     type: Literal["FunctionDifferencePseudometric"] = "FunctionDifferencePseudometric"
     resource: Optional[str] = ResourceTypes.PSEUDOMETRIC.value
 
-    def __init__(self, f: Callable = None, g: Callable = None, evaluation_points: List[float] = None, num_samples: int = 1000):
+    def __init__(
+        self,
+        f: Callable = None,
+        g: Callable = None,
+        evaluation_points: List[float] = None,
+        num_samples: int = 1000,
+    ):
         """
         Initializes the FunctionDifferencePseudometric instance.
 
@@ -43,9 +49,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
         logger.debug("Initialized FunctionDifferencePseudometric")
 
     def distance(
-        self,
-        x: Union[Callable, List[Callable]],
-        y: Union[Callable, List[Callable]]
+        self, x: Union[Callable, List[Callable]], y: Union[Callable, List[Callable]]
     ) -> float:
         """
         Computes the distance between two functions based on their output differences.
@@ -70,6 +74,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
         if self.evaluation_points is None:
             # Generate random evaluation points in [0,1)
             import random
+
             self.evaluation_points = [random.random() for _ in range(self.num_samples)]
 
         total_diff = 0.0
@@ -77,7 +82,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
             # Compute function outputs
             x_out = x(point)
             y_out = y(point)
-            
+
             # Calculate absolute difference
             total_diff += abs(x_out - y_out)
 
@@ -85,9 +90,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
         return total_diff / len(self.evaluation_points)
 
     def check_symmetry(
-        self,
-        x: Union[Callable, List[Callable]],
-        y: Union[Callable, List[Callable]]
+        self, x: Union[Callable, List[Callable]], y: Union[Callable, List[Callable]]
     ) -> bool:
         """
         Verifies the symmetry property: d(x,y) = d(y,x).
@@ -103,9 +106,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
         return True
 
     def check_non_negativity(
-        self,
-        x: Union[Callable, List[Callable]],
-        y: Union[Callable, List[Callable]]
+        self, x: Union[Callable, List[Callable]], y: Union[Callable, List[Callable]]
     ) -> bool:
         """
         Verifies the non-negativity property: d(x,y) ≥ 0.
@@ -124,7 +125,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
         self,
         x: Union[Callable, List[Callable]],
         y: Union[Callable, List[Callable]],
-        z: Union[Callable, List[Callable]]
+        z: Union[Callable, List[Callable]],
     ) -> bool:
         """
         Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
@@ -137,13 +138,13 @@ class FunctionDifferencePseudometric(PseudometricBase):
         Returns:
             bool: True if triangle inequality holds, False otherwise
         """
-        logger.debug("Checking triangle inequality for function difference pseudometric")
+        logger.debug(
+            "Checking triangle inequality for function difference pseudometric"
+        )
         return False  # Triangle inequality does not generally hold for function differences
 
     def check_weak_identity(
-        self,
-        x: Union[Callable, List[Callable]],
-        y: Union[Callable, List[Callable]]
+        self, x: Union[Callable, List[Callable]], y: Union[Callable, List[Callable]]
     ) -> bool:
         """
         Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.

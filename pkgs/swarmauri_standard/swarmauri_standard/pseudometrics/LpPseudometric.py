@@ -35,14 +35,14 @@ class LpPseudometric(PseudometricBase):
         check_triangle_inequality: Verifies the triangle inequality property
         check_weak_identity: Verifies the weak identity property
     """
-    
+
     type: Literal["LpPseudometric"] = "LpPseudometric"
-    
+
     def __init__(
         self,
         p: float,
         domain: Optional[Union[str, List[str], Tuple[str]]] = None,
-        coordinates: Optional[Union[str, List[str], Tuple[str]]] = None
+        coordinates: Optional[Union[str, List[str], Tuple[str]]] = None,
     ):
         """
         Initializes the LpPseudometric instance with the given parameters.
@@ -56,21 +56,21 @@ class LpPseudometric(PseudometricBase):
             ValueError: If p is not in the range [1, ∞]
         """
         super().__init__()
-        if not (1 <= p <= float('inf')):
+        if not (1 <= p <= float("inf")):
             raise ValueError("p must be in the range [1, ∞]")
-        
+
         self.p = p
         self.domain = domain if domain is not None else None
-        self.coordinates = (
-            set(coordinates) if coordinates is not None else set()
+        self.coordinates = set(coordinates) if coordinates is not None else set()
+
+        logger.debug(
+            f"Initialized LpPseudometric with p={p}, domain={domain}, coordinates={coordinates}"
         )
-        
-        logger.debug(f"Initialized LpPseudometric with p={p}, domain={domain}, coordinates={coordinates}")
-    
+
     def distance(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> float:
         """
         Computes the Lp pseudometric distance between two elements.
@@ -87,33 +87,33 @@ class LpPseudometric(PseudometricBase):
             ValueError: If the input cannot be processed
         """
         logger.debug(f"Computing Lp distance between {x} and {y}")
-        
+
         try:
             # Handle vector inputs
             if self._is_vector(x) and self._is_vector(y):
                 return self._compute_vector_distance(x, y)
-            
+
             # Handle matrix inputs
             if self._is_matrix(x) and self._is_matrix(y):
                 return self._compute_matrix_distance(x, y)
-            
+
             # Handle callable inputs
             if self._is_callable(x) and self._is_callable(y):
                 return self._compute_callable_distance(x, y)
-            
+
             # Handle scalar/list inputs
             x_val = self._convert_to_scalar(x)
             y_val = self._convert_to_scalar(y)
             return self._compute_scalar_distance(x_val, y_val)
-            
+
         except Exception as e:
             logger.error(f"Error computing distance: {str(e)}")
             raise e
-    
+
     def distances(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]],
     ) -> List[float]:
         """
         Computes distances from a single element to multiple elements.
@@ -127,11 +127,11 @@ class LpPseudometric(PseudometricBase):
         """
         logger.debug(f"Computing distances from {x} to {y_list}")
         return [self.distance(x, y) for y in y_list]
-    
+
     def check_non_negativity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the non-negativity property: d(x,y) ≥ 0.
@@ -145,11 +145,11 @@ class LpPseudometric(PseudometricBase):
         """
         logger.debug(f"Checking non-negativity for {x} and {y}")
         return self.distance(x, y) >= 0
-    
+
     def check_symmetry(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the symmetry property: d(x,y) = d(y,x).
@@ -163,12 +163,12 @@ class LpPseudometric(PseudometricBase):
         """
         logger.debug(f"Checking symmetry for {x} and {y}")
         return self.distance(x, y) == self.distance(y, x)
-    
+
     def check_triangle_inequality(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
         y: Union[IVector, IMatrix, List[float], str, Callable],
-        z: Union[IVector, IMatrix, List[float], str, Callable]
+        z: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
@@ -183,11 +183,11 @@ class LpPseudometric(PseudometricBase):
         """
         logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
         return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
-    
+
     def check_weak_identity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
@@ -201,12 +201,8 @@ class LpPseudometric(PseudometricBase):
         """
         logger.debug(f"Checking weak identity for {x} and {y}")
         return True
-    
-    def _compute_vector_distance(
-        self,
-        x: IVector,
-        y: IVector
-    ) -> float:
+
+    def _compute_vector_distance(self, x: IVector, y: IVector) -> float:
         """
         Computes the Lp distance between two vector elements.
 
@@ -219,12 +215,8 @@ class LpPseudometric(PseudometricBase):
         """
         elements = self._get_elements_from_vectors(x, y)
         return self._compute_lp_sum(elements)
-    
-    def _compute_matrix_distance(
-        self,
-        x: IMatrix,
-        y: IMatrix
-    ) -> float:
+
+    def _compute_matrix_distance(self, x: IMatrix, y: IMatrix) -> float:
         """
         Computes the Lp distance between two matrix elements.
 
@@ -237,12 +229,8 @@ class LpPseudometric(PseudometricBase):
         """
         elements = self._get_elements_from_matrices(x, y)
         return self._compute_lp_sum(elements)
-    
-    def _compute_callable_distance(
-        self,
-        x: Callable,
-        y: Callable
-    ) -> float:
+
+    def _compute_callable_distance(self, x: Callable, y: Callable) -> float:
         """
         Computes the Lp distance between two callable elements.
 
@@ -257,11 +245,9 @@ class LpPseudometric(PseudometricBase):
         # In a real implementation, you would need to define how to handle callables
         logger.warning("Callable input type is not fully implemented")
         return 0.0
-    
+
     def _compute_scalar_distance(
-        self,
-        x: Union[float, List[float]],
-        y: Union[float, List[float]]
+        self, x: Union[float, List[float]], y: Union[float, List[float]]
     ) -> float:
         """
         Computes the Lp distance between two scalar elements.
@@ -275,12 +261,8 @@ class LpPseudometric(PseudometricBase):
         """
         elements = self._get_elements_from_scalars(x, y)
         return self._compute_lp_sum(elements)
-    
-    def _get_elements_from_vectors(
-        self,
-        x: IVector,
-        y: IVector
-    ) -> List[float]:
+
+    def _get_elements_from_vectors(self, x: IVector, y: IVector) -> List[float]:
         """
         Extracts elements from vector inputs.
 
@@ -294,12 +276,8 @@ class LpPseudometric(PseudometricBase):
         x_elements = x.get_elements()
         y_elements = y.get_elements()
         return [abs(x_elements[i] - y_elements[i]) for i in range(len(x_elements))]
-    
-    def _get_elements_from_matrices(
-        self,
-        x: IMatrix,
-        y: IMatrix
-    ) -> List[float]:
+
+    def _get_elements_from_matrices(self, x: IMatrix, y: IMatrix) -> List[float]:
         """
         Extracts elements from matrix inputs.
 
@@ -313,11 +291,9 @@ class LpPseudometric(PseudometricBase):
         x_flattened = x.flatten()
         y_flattened = y.flatten()
         return [abs(x_flattened[i] - y_flattened[i]) for i in range(len(x_flattened))]
-    
+
     def _get_elements_from_scalars(
-        self,
-        x: Union[float, List[float]],
-        y: Union[float, List[float]]
+        self, x: Union[float, List[float]], y: Union[float, List[float]]
     ) -> List[float]:
         """
         Extracts elements from scalar inputs.
@@ -334,11 +310,8 @@ class LpPseudometric(PseudometricBase):
         if isinstance(y, float):
             y = [y]
         return [abs(x[i] - y[i]) for i in range(len(x))]
-    
-    def _compute_lp_sum(
-        self,
-        elements: List[float]
-    ) -> float:
+
+    def _compute_lp_sum(self, elements: List[float]) -> float:
         """
         Computes the Lp sum for the given elements.
 
@@ -350,13 +323,13 @@ class LpPseudometric(PseudometricBase):
         """
         if not elements:
             return 0.0
-            
-        sum_powers = sum(e ** self.p for e in elements)
+
+        sum_powers = sum(e**self.p for e in elements)
         if sum_powers == 0:
             return 0.0
-            
+
         return sum_powers ** (1.0 / self.p)
-    
+
     def _is_vector(self, obj: Any) -> bool:
         """
         Checks if the object is an instance of IVector.
@@ -368,7 +341,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if the object is an IVector, False otherwise
         """
         return isinstance(obj, IVector)
-    
+
     def _is_matrix(self, obj: Any) -> bool:
         """
         Checks if the object is an instance of IMatrix.
@@ -380,7 +353,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if the object is an IMatrix, False otherwise
         """
         return isinstance(obj, IMatrix)
-    
+
     def _is_callable(self, obj: Any) -> bool:
         """
         Checks if the object is callable.
@@ -392,7 +365,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if the object is callable, False otherwise
         """
         return callable(obj)
-    
+
     def _convert_to_scalar(self, obj: Any) -> Union[float, List[float]]:
         """
         Converts the input to a scalar or list of scalars.

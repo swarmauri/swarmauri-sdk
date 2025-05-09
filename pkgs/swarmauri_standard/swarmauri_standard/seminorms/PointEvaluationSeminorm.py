@@ -31,7 +31,9 @@ class PointEvaluationSeminorm(SeminormBase):
         self.resource = ResourceTypes.SEMINORM.value
         logger.debug("Initialized PointEvaluationSeminorm")
 
-    def compute(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> float:
+    def compute(
+        self, input: Union[IVector, IMatrix, str, Callable, list, tuple]
+    ) -> float:
         """
         Computes the seminorm value by evaluating the input at the fixed point.
 
@@ -68,8 +70,11 @@ class PointEvaluationSeminorm(SeminormBase):
 
         return float(result)
 
-    def check_triangle_inequality(self, a: Union[IVector, IMatrix, str, Callable, list, tuple],
-                                  b: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, IMatrix, str, Callable, list, tuple],
+        b: Union[IVector, IMatrix, str, Callable, list, tuple],
+    ) -> bool:
         """
         Verifies the triangle inequality property: |a + b| <= |a| + |b| at the fixed point.
 
@@ -90,8 +95,11 @@ class PointEvaluationSeminorm(SeminormBase):
         logger.debug(f"Triangle inequality holds: {triangle_inequality_holds}")
         return triangle_inequality_holds
 
-    def check_scalar_homogeneity(self, a: Union[IVector, IMatrix, str, Callable, list, tuple],
-                               scalar: Union[int, float]) -> bool:
+    def check_scalar_homogeneity(
+        self,
+        a: Union[IVector, IMatrix, str, Callable, list, tuple],
+        scalar: Union[int, float],
+    ) -> bool:
         """
         Verifies the scalar homogeneity property: |s * a| = |s| * |a| at the fixed point.
 
@@ -113,7 +121,9 @@ class PointEvaluationSeminorm(SeminormBase):
         logger.debug(f"Scalar homogeneity holds: {scalar_homogeneity_holds}")
         return scalar_homogeneity_holds
 
-    def _is_callable(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
+    def _is_callable(
+        self, input: Union[IVector, IMatrix, str, Callable, list, tuple]
+    ) -> bool:
         """
         Helper method to check if input is a callable function.
 

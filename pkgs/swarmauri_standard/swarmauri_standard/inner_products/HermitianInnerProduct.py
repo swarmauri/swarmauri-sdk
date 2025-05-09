@@ -23,6 +23,7 @@ class HermitianInnerProduct(InnerProductBase):
     Properties:
         type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
     """
+
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
 
     def __init__(self) -> None:
@@ -32,7 +33,11 @@ class HermitianInnerProduct(InnerProductBase):
         super().__init__()
         logger.debug("HermitianInnerProduct instance initialized")
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the Hermitian inner product of two complex vectors.
 
@@ -59,7 +64,9 @@ class HermitianInnerProduct(InnerProductBase):
 
         # Ensure inputs are complex vectors
         if not (isinstance(a, (np.ndarray)) and isinstance(b, (np.ndarray))):
-            raise ValueError("Inputs must be complex vectors or callable producing complex vectors")
+            raise ValueError(
+                "Inputs must be complex vectors or callable producing complex vectors"
+            )
         if a.dtype != np.complex_ or b.dtype != np.complex_:
             raise ValueError("Inputs must be complex vectors")
 
@@ -73,7 +80,11 @@ class HermitianInnerProduct(InnerProductBase):
         logger.debug(f"Inner product result: {result}")
         return result
 
-    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_conjugate_symmetry(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the conjugate symmetry property of the inner product.
 
@@ -90,7 +101,12 @@ class HermitianInnerProduct(InnerProductBase):
         logger.debug("Checking conjugate symmetry")
         super().check_conjugate_symmetry(a, b)
 
-    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_linearity_first_argument(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+        c: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the linearity property in the first argument.
 
