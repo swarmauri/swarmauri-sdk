@@ -1,72 +1,153 @@
-from typing import TypeVar, Union, Sequence, Callable, Literal
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
+from typing import Iterable, TypeVar, Optional
+from pydantic import Field
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[Sequence, str, Callable])
+# Define type variables for input types
+InputTypes = TypeVar('InputTypes', Iterable, str, bytes, memoryview, Callable)
+DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
 
-@ComponentBase.register_type(PseudometricBase, "ZeroPseudometric")
+@ComponentBase.register_model()
 class ZeroPseudometric(PseudometricBase):
     """
-    A trivial pseudometric that assigns zero distance between all pairs of points.
+    A trivial pseudometric implementation that assigns zero distance between all points.
 
-    This implementation satisfies all pseudometric axioms trivially by always
-    returning a distance of 0.0, regardless of the input. It provides a valid
-    mathematical structure but does not distinguish between different points.
-
-    Inherits:
-        PseudometricBase: Base class for pseudometric implementations
-        ComponentBase: Base class for components in the system
+    This class implements a degenerate pseudometric space where every pair of
+    points has zero distance between them. It satisfies all the pseudometric
+    properties but does not provide any meaningful distance measurement.
 
     Attributes:
-        type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
-            The type identifier for this pseudometric implementation
-        resource: Literal["PSEUDOMETRIC"] = ResourceTypes.PSEUDOMETRIC.value
-            The resource type identifier for this component
+        resource: str = ResourceTypes.PSEUDOMETRIC.value
+            The resource type identifier for this component.
     """
-    type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
-    resource: Literal["PSEUDOMETRIC"] = ResourceTypes.PSEUDOMETRIC.value
-
-    def __init__(self):
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-
-    def distance(self, x: Union[T, Callable], y: Union[T, Callable]) -> float:
+    resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
+    
+    def distance(self, x: InputTypes, y: InputTypes) -> float:
         """
-        Computes the pseudometric distance between two elements.
+        Compute the distance between two points x and y.
 
-        Since this is a trivial pseudometric, the distance between any two
-        points is always 0.0 regardless of their actual values.
+        Since this is a trivial pseudometric, the distance will always be 0
+        regardless of the input values.
 
         Args:
-            x: Union[T, Callable]
-                The first element to compute distance between
-            y: Union[T, Callable]
-                The second element to compute distance between
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
 
         Returns:
-            float: The computed pseudometric distance, which is always 0.0
+            float:
+                The computed distance, which will always be 0.0
         """
-        logger.debug("Computing ZeroPseudometric distance")
+        logger.debug("Computing zero distance between inputs of types {} and {}".format(type(x), type(y)))
         return 0.0
 
-    def distances(self, xs: Sequence[Union[T, Callable]], ys: Sequence[Union[T, Callable]]) -> list[float]:
+    def distances(self, x: InputTypes, ys: Optional[Iterable[InputTypes]] = None) -> Iterable[float]:
         """
-        Computes pairwise pseudometric distances between two sequences of elements.
+        Compute distances from point x to multiple points ys.
 
-        Since this is a trivial pseudometric, all distances in the resulting
-        list will be 0.0 regardless of the input sequences.
+        Since this is a trivial pseudometric, all distances will be 0
+        regardless of the input values.
 
         Args:
-            xs: Sequence[Union[T, Callable]]
-                The first sequence of elements
-            ys: Sequence[Union[T, Callable]]
-                The second sequence of elements
+            x: InputTypes
+                The reference point
+            ys: Optional[Iterable[InputTypes]]
+                The collection of points to compute distances to.
+                If None, returns a single zero distance for x itself.
 
         Returns:
-            list[float]: A list of computed pseudometric distances, all 0.0
+            Iterable[float]:
+                An iterable containing zero distances for each point in ys
         """
-        logger.debug(f"Computing ZeroPseudometric distances for {len(xs)} elements")
-        return [0.0] * len(xs)
+        logger.debug("Computing zero distances for input of type {}".format(type(x)))
+        if ys is None:
+            return [0.0]
+        return [0.0 for _ in ys]
+
+    def check_non_negativity(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies non-negativity.
+
+        For this trivial pseudometric, the distance is always zero, which
+        satisfies the non-negativity property.
+
+        Args:
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+
+        Returns:
+            bool:
+                True, since distance(x, y) is always non-negative
+        """
+        logger.debug("Checking non-negativity constraint")
+        return True
+
+    def check_symmetry(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies symmetry.
+
+        For this trivial pseudometric, distance(x, y) will always equal
+        distance(y, x) since both are zero.
+
+        Args:
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+
+        Returns:
+            bool:
+                True, since distance(x, y) == distance(y, x)
+        """
+        logger.debug("Checking symmetry constraint")
+        return True
+
+    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
+        """
+        Check if the distance satisfies the triangle inequality.
+
+        For this trivial pseudometric, the inequality distance(x, z) <= distance(x, y) + distance(y, z)
+        holds true because all terms are zero.
+
+        Args:
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+            z: InputTypes
+                The third point
+
+        Returns:
+            bool:
+                True, since 0 <= 0 + 0 is always true
+        """
+        logger.debug("Checking triangle inequality constraint")
+        return True
+
+    def check_weak_identity(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies weak identity of indiscernibles.
+
+        For this trivial pseudometric, if x and y are the same point,
+        the distance will be zero. However, different points may also have
+        zero distance, so this pseudometric does not satisfy strong identity.
+
+        Args:
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+
+        Returns:
+            bool:
+                True if x == y implies distance(x, y) == 0, False otherwise
+        """
+        logger.debug("Checking weak identity constraint")
+        return x == y

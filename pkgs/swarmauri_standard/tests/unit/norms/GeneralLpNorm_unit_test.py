@@ -1,151 +1,76 @@
 import pytest
+from swarmauri_standard.norms.GeneralLpNorm import GeneralLpNorm
+import numpy as np
 import logging
-from unittest.mock import MagicMock
-from swarmauri_standard.swarmauri_standard.norms import GeneralLpNorm
 
 @pytest.mark.unit
 class TestGeneralLpNorm:
-    """Unit tests for GeneralLpNorm class implementation."""
+    """Unit tests for GeneralLpNorm class."""
     
-    @pytest.mark.parametrize("p,expected_type", [
-        (2, GeneralLpNorm),
-        (1.5, GeneralLpNorm)
-    ])
-    def test_init(self, p, expected_type):
-        """Test initialization of GeneralLpNorm with valid p values."""
-        norm = GeneralLpNorm(p=p)
-        assert isinstance(norm, expected_type)
-        assert norm.p == p
-        assert norm.type == "GeneralLpNorm"
-        assert norm.resource == "Norm"
-
-    @pytest.mark.parametrize("p", [
-        (1),
-        (0),
-        (float('inf')),
-        (float('-inf')),
-        (nan())
-    ])
-    def test_init_invalid_p(self, p):
-        """Test initialization with invalid p values raises ValueError."""
+    @pytest.fixture
+    def general_lpnorm(self):
+        """Fixture to provide a GeneralLpNorm instance with default p=2.0."""
+        return GeneralLpNorm(p=2.0)
+    
+    def test_resource(self, general_lpnorm):
+        """Test resource type."""
+        assert general_lpnorm.resource == "Norm"
+    
+    def test_type(self, general_lpnorm):
+        """Test type attribute."""
+        assert general_lpnorm.type == "GeneralLpNorm"
+    
+    def test_serialization(self, general_lpnorm):
+        """Test model serialization and validation."""
+        model_json = general_lpnorm.model_dump_json()
+        assert GeneralLpNorm.model_validate_json(model_json) == model_json
+    
+    @pytest.mark.parametrize("p", [0.5, -1.0, 1.0])
+    def test_invalid_p_values(self, p):
+        """Test if invalid p values raise ValueError."""
         with pytest.raises(ValueError):
             GeneralLpNorm(p=p)
-
-    @pytest.mark.parametrize("input_type,input_value,expected_result", [
-        (list, [1, 2, 3], ((1**2 + 2**2 + 3**2)**0.5)),
-        (IVector, MagicMock(spec=IVector), None),  # Mocking IVector
-        (IMatrix, MagicMock(spec=IMatrix), None),  # Mocking IMatrix
-        (str, "test", ((84 + 101 + 115 + 116)**0.5)),
-        (Callable, lambda: 5, 5)
+    
+    @pytest.mark.parametrize("x,expected_output", [
+        ([1, 2, 3], 3.7417),
+        (np.array([4, 5, 6]), 8.246)
     ])
-    def test_compute(self, input_type, input_value, expected_result):
-        """Test compute method with various input types."""
-        norm = GeneralLpNorm()
-        if input_type in [IVector, IMatrix]:
-            # Handle mocking of vector/matrix
-            input_value = MagicMock(spec=input_type)
-            input_value.__iter__.return_value = iter([1, 2, 3])
-        result = norm.compute(input_value)
-        
-        if input_type == Callable:
-            assert result == input_value()
-        elif input_type == str:
-            # Compute expected manually
-            expected = norm._compute_string_norm(input_value)
-            assert result == expected
-        elif input_type in [IVector, IMatrix, list]:
-            if expected_result is not None:
-                assert result == pytest.approx(expected_result)
-        else:
-            assert result is not None
-
-    @pytest.mark.parametrize("x,y,expected_non_neg", [
-        ([1, 2, 3], None, True),
-        ([-1, -2, -3], None, True),
-        ([], None, True),
-        (None, None, False)
-    ])
-    def test_check_non_negativity(self, x, y, expected_non_neg):
+    def test_compute(self, x, expected_output):
+        """Test compute method with different inputs."""
+        generallpnorm = GeneralLpNorm(p=2.0)
+        result = generallpnorm.compute(x)
+        assert isinstance(result, float)
+        assert round(result, 4) == round(expected_output, 4)
+    
+    def test_compute_edge_case(self):
+        """Test compute with all zeros."""
+        generallpnorm = GeneralLpNorm(p=2.0)
+        result = generallpnorm.compute([0, 0, 0])
+        assert result == 0.0
+    
+    def test_check_non_negativity(self, general_lpnorm):
         """Test non-negativity check."""
-        norm = GeneralLpNorm()
-        if x is not None:
-            norm.compute(x)
-            norm.check_non_negativity(x)
-        else:
-            with pytest.raises(AssertionError):
-                norm.check_non_negativity(x)
-
-    @pytest.mark.parametrize("x,y,expected_inequality_holds", [
-        ([1, 2], [3, 4], True),
-        ([-1, -2], [3, 4], True),
-        ([5, 0], [0, 5], True),
-        ([1, 1], [1, 1], True)
-    ])
-    def test_check_triangle_inequality(self, x, y, expected_inequality_holds):
+        # Test with positive values
+        is_non_negative = general_lpnorm.check_non_negativity([1, 2, 3])
+        assert is_non_negative is True
+        
+        # Test with zeros
+        is_non_negative = general_lpnorm.check_non_negativity([0, 0, 0])
+        assert is_non_negative is True
+    
+    def test_check_triangle_inequality(self, general_lpnorm):
         """Test triangle inequality check."""
-        norm = GeneralLpNorm()
-        if expected_inequality_holds:
-            norm.check_triangle_inequality(x, y)
-        else:
-            with pytest.raises(AssertionError):
-                norm.check_triangle_inequality(x, y)
-
-    @pytest.mark.parametrize("x,a,expected_homogeneity", [
-        ([1, 2, 3], 2, True),
-        ([-1, -2, -3], -1, True),
-        ([0, 0, 0], 5, True),
-        ([1, 1], 0, True)
-    ])
-    def test_check_absolute_homogeneity(self, x, a, expected_homogeneity):
+        x = [1, 2, 3]
+        y = [4, 5, 6]
+        is_triangle_valid = general_lpnorm.check_triangle_inequality(x, y)
+        assert is_triangle_valid is True
+    
+    def test_check_absolute_homogeneity(self, general_lpnorm):
         """Test absolute homogeneity check."""
-        norm = GeneralLpNorm()
-        if expected_homogeneity:
-            norm.check_absolute_homogeneity(x, a)
-        else:
-            with pytest.raises(AssertionError):
-                norm.check_absolute_homogeneity(x, a)
+        x = [1, 2, 3]
+        scalar = 2.0
+        is_homogeneous = general_lpnorm.check_absolute_homogeneity(x, scalar)
+        assert is_homogeneous is True
 
-    @pytest.mark.parametrize("x,expected_definite", [
-        ([1, 2, 3], True),
-        ([0, 0, 0], True),
-        (None, False)
-    ])
-    def test_check_definiteness(self, x, expected_definite):
-        """Test definiteness check."""
-        norm = GeneralLpNorm()
-        if x is not None:
-            norm.check_definiteness(x)
-        else:
-            with pytest.raises(AssertionError):
-                norm.check_definiteness(x)
-
-    def test_serialization(self):
-        """Test serialization and deserialization."""
-        norm = GeneralLpNorm()
-        dumped = norm.model_dump_json()
-        assert norm.model_validate_json(dumped) == norm.id
-
-    def test_string_representation(self):
-        """Test string and representation methods."""
-        norm = GeneralLpNorm(p=2)
-        assert str(norm) == f"GeneralLpNorm(p={norm.p})"
-        assert repr(norm) == f"GeneralLpNorm(p={norm.p})"
-
-    @pytest.mark.parametrize("input_type,input_value", [
-        ("", 0),
-        ("abc", ((97 + 98 + 99) ** 0.5)),
-        (lambda: 5, 5)
-    ])
-    def test_edge_cases(self, input_type, input_value):
-        """Test edge cases for compute method."""
-        norm = GeneralLpNorm()
-        if input_type == str:
-            result = norm.compute(input_value)
-            expected = norm._compute_string_norm(input_value)
-            assert result == expected
-        elif input_type == Callable:
-            result = norm.compute(input_value)
-            assert result == input_value()
-        else:
-            result = norm.compute(input_value)
-            assert result == 0
+# Initialize logger
+logger = logging.getLogger(__name__)

@@ -1,197 +1,190 @@
 import logging
+from typing import TypeVar, Union, Sequence, Optional, Tuple, Any
 import numpy as np
-from typing import Union, Sequence, Optional, Any
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
-from base.swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_base.metrics.MetricBase import MetricBase
 
-logger = logging.getLogger(__name__)
+T = TypeVar('T', Union['IVector', 'IMatrix', Sequence, Tuple, np.ndarray, Any])
 
 @ComponentBase.register_type(MetricBase, "SupremumMetric")
 class SupremumMetric(MetricBase):
     """
-    Provides a concrete implementation of the L∞ metric (supremum metric) for 
-    vector spaces. The L∞ metric defines the distance between two vectors as 
-    the maximum absolute difference between their corresponding components.
+    Provides a concrete implementation of the L∞ metric, which measures the maximum
+    deviation between corresponding components of two vectors.
 
-    This class implements the MetricBase interface and provides functionality 
-    for computing distances between vectors in a bounded space.
+    Inherits From:
+        MetricBase: Base class providing common interfaces for metric computations.
+        ComponentBase: Base class for all components in the system.
+
+    Implements:
+        - distance(): Computes the L∞ distance between two points
+        - distances(): Computes distances between a point and multiple points
+        - Various metric axiom verification methods
+
+    Attributes:
+        type: Literal["SupremumMetric"] = "SupremumMetric"
+            Type identifier for the metric class
     """
-    
+    type: Literal["SupremumMetric"] = "SupremumMetric"
+    resource: Optional[str] = Field(default="Metric")
+
     def __init__(self):
         """
         Initializes the SupremumMetric instance.
+
+        Sets up logging and initializes the base class.
         """
         super().__init__()
-        self.resource = "metric"
-        logger.debug("Initialized SupremumMetric")
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("SupremumMetric instance initialized")
 
-    def distance(self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]) -> float:
+    def distance(self, x: T, y: T) -> float:
         """
-        Computes the L∞ distance between two vectors x and y.
-        
-        The L∞ distance is defined as the maximum absolute difference 
-        between corresponding components of the vectors.
+        Computes the L∞ distance between two points.
+
+        The L∞ distance is defined as the maximum absolute difference between
+        corresponding components of the two points.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The first vector
-            y: Union[Sequence, np.ndarray]
-                The second vector
+            x: T
+                The first point to compare
+            y: T
+                The second point to compare
 
         Returns:
-            float: The computed L∞ distance between x and y
+            float:
+                The computed L∞ distance between x and y
 
         Raises:
-            ValueError: If the input vectors are not of the same length
+            ValueError:
+                If the input shapes are incompatible
+            TypeError:
+                If the input types are not supported
         """
-        logger.debug(f"Computing distance between vectors {x} and {y}")
+        self.logger.debug("Computing L∞ distance between points")
         
         try:
-            # Convert input to numpy arrays if they are not already
-            x_array = np.asarray(x)
-            y_array = np.asarray(y)
-
-            # Check if inputs are vectors (1D arrays)
-            if x_array.ndim != 1 or y_array.ndim != 1:
-                raise ValueError("Inputs must be 1D vectors")
-
-            # Check if vectors have the same length
-            if len(x_array) != len(y_array):
-                raise ValueError("Vectors must be of the same length")
-
+            # Convert inputs to numpy arrays if they're not already
+            x_arr = np.asarray(x)
+            y_arr = np.asarray(y)
+            
+            # Ensure same shape
+            if x_arr.shape != y_arr.shape:
+                raise ValueError("Input shapes must match for distance computation")
+                
             # Compute element-wise absolute differences
-            differences = np.abs(x_array - y_array)
+            differences = np.abs(x_arr - y_arr)
             
             # Return the maximum difference
-            return float(np.max(differences))
+            return float(np.amax(differences))
             
         except Exception as e:
-            logger.error(f"Error computing distance: {str(e)}")
-            raise ValueError("Failed to compute distance between vectors")
+            self.logger.error(f"Error computing distance: {str(e)}")
+            raise e
 
-    def distances(self, x: Union[Sequence, np.ndarray], 
-                  ys: Union[Sequence[Union[Sequence, np.ndarray]], None] = None) -> Union[float, Sequence[float]]:
+    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
         """
-        Computes the L∞ distances from vector x to one or more vectors ys.
+        Computes the L∞ distances from a reference point to one or more points.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The reference vector
-            ys: Union[Sequence[Union[Sequence, np.ndarray]], None]
-                Optional sequence of vectors to compute distances to
+            x: T
+                The reference point
+            y_list: Union[T, Sequence[T]]
+                Either a single point or a sequence of points
 
         Returns:
-            Union[float, Sequence[float]]: Either a single distance or sequence of distances
+            Union[float, Sequence[float]]:
+                - If y_list is a single point: Returns the distance as a float
+                - If y_list is a sequence: Returns a sequence of distances
 
         Raises:
-            ValueError: If input vectors are invalid or of differing lengths
+            ValueError:
+                If input types are incompatible
+            TypeError:
+                If input types are not supported
         """
-        logger.debug(f"Computing distances from vector {x} to {ys}")
+        self.logger.debug("Computing L∞ distances to reference point")
         
-        try:
-            if ys is None:
-                return self.distance(x, x)
-            
-            return [self.distance(x, y) for y in ys]
-            
-        except Exception as e:
-            logger.error(f"Error computing distances: {str(e)}")
-            raise ValueError("Failed to compute distances")
+        if isinstance(y_list, Sequence):
+            try:
+                return [self.distance(x, y) for y in y_list]
+            except Exception as e:
+                self.logger.error(f"Error computing distances: {str(e)}")
+                raise e
+        else:
+            return self.distance(x, y_list)
 
-    def check_non_negativity(self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]) -> bool:
+    def check_non_negativity(self, x: T, y: T) -> bool:
         """
-        Checks if the non-negativity property holds: d(x, y) ≥ 0.
+        Verifies the non-negativity axiom for the L∞ metric.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The first vector
-            y: Union[Sequence, np.ndarray]
-                The second vector
+            x: T
+                The first point
+            y: T
+                The second point
 
         Returns:
-            bool: True if the distance is non-negative, False otherwise
+            bool:
+                True if the non-negativity condition holds, False otherwise
         """
-        logger.debug(f"Checking non-negativity for vectors {x} and {y}")
-        
-        try:
-            distance = self.distance(x, y)
-            return distance >= 0
-            
-        except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
-            return False
+        self.logger.debug("Checking non-negativity axiom")
+        distance = self.distance(x, y)
+        return distance >= 0.0
 
-    def check_identity(self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]) -> bool:
+    def check_identity(self, x: T, y: T) -> bool:
         """
-        Checks the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
+        Verifies the identity of indiscernibles axiom for the L∞ metric.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The first vector
-            y: Union[Sequence, np.ndarray]
-                The second vector
+            x: T
+                The first point
+            y: T
+                The second point
 
         Returns:
-            bool: True if d(x, y) = 0 implies x = y and vice versa, False otherwise
+            bool:
+                True if x and y are identical according to the metric, False otherwise
         """
-        logger.debug(f"Checking identity for vectors {x} and {y}")
-        
-        try:
-            return self.distance(x, y) == 0
-            
-        except Exception as e:
-            logger.error(f"Error checking identity: {str(e)}")
-            return False
+        self.logger.debug("Checking identity of indiscernibles axiom")
+        return self.distance(x, y) == 0.0
 
-    def check_symmetry(self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]) -> bool:
+    def check_symmetry(self, x: T, y: T) -> bool:
         """
-        Checks the symmetry property: d(x, y) = d(y, x).
+        Verifies the symmetry axiom for the L∞ metric.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The first vector
-            y: Union[Sequence, np.ndarray]
-                The second vector
+            x: T
+                The first point
+            y: T
+                The second point
 
         Returns:
-            bool: True if d(x, y) = d(y, x), False otherwise
+            bool:
+                True if the symmetry condition holds, False otherwise
         """
-        logger.debug(f"Checking symmetry for vectors {x} and {y}")
-        
-        try:
-            d_xy = self.distance(x, y)
-            d_yx = self.distance(y, x)
-            return d_xy == d_yx
-            
-        except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
-            return False
+        self.logger.debug("Checking symmetry axiom")
+        return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(self, x: Union[Sequence, np.ndarray], 
-                                 y: Union[Sequence, np.ndarray], 
-                                 z: Union[Sequence, np.ndarray]) -> bool:
+    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
         """
-        Checks the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
+        Verifies the triangle inequality axiom for the L∞ metric.
 
         Args:
-            x: Union[Sequence, np.ndarray]
-                The first vector
-            y: Union[Sequence, np.ndarray]
-                The intermediate vector
-            z: Union[Sequence, np.ndarray]
-                The third vector
+            x: T
+                The first point
+            y: T
+                The second point
+            z: T
+                The third point
 
         Returns:
-            bool: True if d(x, z) ≤ d(x, y) + d(y, z), False otherwise
+            bool:
+                True if the triangle inequality condition holds, False otherwise
         """
-        logger.debug(f"Checking triangle inequality for vectors {x}, {y}, {z}")
-        
-        try:
-            d_xz = self.distance(x, z)
-            d_xy = self.distance(x, y)
-            d_yz = self.distance(y, z)
-            return d_xz <= d_xy + d_yz
-            
-        except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
-            return False
+        self.logger.debug("Checking triangle inequality axiom")
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+        return d_xz <= d_xy + d_yz

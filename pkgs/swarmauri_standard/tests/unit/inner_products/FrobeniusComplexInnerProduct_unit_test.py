@@ -1,98 +1,69 @@
-"""Unit tests for FrobeniusComplexInnerProduct module."""
 import pytest
 import numpy as np
-import logging
+from swarmauri_standard.swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import FrobeniusComplexInnerProduct
 
-from swarmauri_standard.swarmauri_standard.inner_products import FrobeniusComplexInnerProduct
-
-# Set up logging configuration
-logging.basicConfig(level=logging.DEBUG)
+@pytest.fixture
+def frobenius_complex_inner_product():
+    """Fixture to provide an instance of FrobeniusComplexInnerProduct."""
+    return FrobeniusComplexInnerProduct()
 
 @pytest.mark.unit
-class TestFrobeniusComplexInnerProduct:
-    """Unit tests for FrobeniusComplexInnerProduct class."""
+def test_resource():
+    """Test that the resource attribute is correctly set."""
+    assert FrobeniusComplexInnerProduct.resource == "Inner_product"
+
+@pytest.mark.unit
+def test_type():
+    """Test that the type attribute is correctly set."""
+    assert FrobeniusComplexInnerProduct.type == "FrobeniusComplexInnerProduct"
+
+@pytest.mark.unit
+def test_compute(frobenius_complex_inner_product):
+    """Test the compute method with valid complex matrices."""
+    # Generate random complex matrices
+    x = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    y = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
     
-    @pytest.fixture
-    def random_complex_matrix(self) -> np.ndarray:
-        """Fixture providing a random complex matrix."""
-        rng = np.random.default_rng()
-        shape = (3, 3)
-        matrix = rng.random(shape, dtype=np.complex64)
-        return matrix
+    # Compute inner product
+    result = frobenius_complex_inner_product.compute(x, y)
     
-    @pytest.fixture
-    def two_random_complex_matrices(self) -> tuple[np.ndarray, np.ndarray]:
-        """Fixture providing two random complex matrices."""
-        rng = np.random.default_rng()
-        shape = (3, 3)
-        matrix_a = rng.random(shape, dtype=np.complex64)
-        matrix_b = rng.random(shape, dtype=np.complex64)
-        return matrix_a, matrix_b
+    # Assert result is a float
+    assert isinstance(result, float)
     
-    @pytest.fixture
-    def zero_complex_matrix(self) -> np.ndarray:
-        """Fixture providing a zero complex matrix."""
-        shape = (3, 3)
-        return np.zeros(shape, dtype=np.complex64)
+    # Test invalid input
+    with pytest.raises(ValueError):
+        frobenius_complex_inner_product.compute("invalid", y)
+
+@pytest.mark.unit
+def test_check_conjugate_symmetry(frobenius_complex_inner_product):
+    """Test the check_conjugate_symmetry method."""
+    # Generate random complex matrices
+    x = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    y = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
     
-    @pytest.fixture
-    def scalar(self) -> complex:
-        """Fixture providing a random complex scalar."""
-        rng = np.random.default_rng()
-        return rng.random(1, dtype=np.complex64).item()
+    # Check symmetry
+    assert frobenius_complex_inner_product.check_conjugate_symmetry(x, y)
+
+@pytest.mark.unit
+def test_check_linearity_first_argument(frobenius_complex_inner_product):
+    """Test the check_linearity_first_argument method."""
+    # Generate random complex matrices and scalars
+    x = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    y = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    z = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    a = np.random.rand()
+    b = np.random.rand()
     
-    def test_compute(self, random_complex_matrix, two_random_complex_matrices):
-        """Test the compute method."""
-        # Test with a single matrix
-        a = random_complex_matrix
-        fip = FrobeniusComplexInnerProduct()
-        result = fip.compute(a, a)
-        assert isinstance(result, float)
-        
-        # Test with two different matrices
-        a, b = two_random_complex_matrices
-        result_ab = fip.compute(a, b)
-        result_ba = fip.compute(b, a)
-        assert np.isclose(result_ab, result_ba.conjugate())
+    # Check linearity
+    assert frobenius_complex_inner_product.check_linearity_first_argument(x, y, z, a, b)
+
+@pytest.mark.unit
+def test_check_positivity(frobenius_complex_inner_product):
+    """Test the check_positivity method."""
+    # Test with non-zero matrix
+    x = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
+    assert frobenius_complex_inner_product.check_positivity(x)
     
-    def test_check_conjugate_symmetry(self, two_random_complex_matrices):
-        """Test the conjugate symmetry check."""
-        a, b = two_random_complex_matrices
-        fip = FrobeniusComplexInnerProduct()
-        is_symmetric = fip.check_conjugate_symmetry(a, b)
-        assert is_symmetric
-    
-    def test_check_linearity(self, two_random_complex_matrices, scalar):
-        """Test the linearity check."""
-        a, b = two_random_complex_matrices
-        c = scalar
-        fip = FrobeniusComplexInnerProduct()
-        is_linear = fip.check_linearity(a, b, c)
-        assert is_linear
-    
-    def test_check_positivity(self, random_complex_matrix, zero_complex_matrix):
-        """Test the positivity check."""
-        fip = FrobeniusComplexInnerProduct()
-        
-        # Test with non-zero matrix
-        a = random_complex_matrix
-        is_positive = fip.check_positivity(a)
-        assert is_positive
-        
-        # Test with zero matrix
-        a = zero_complex_matrix
-        is_positive = fip.check_positivity(a)
-        assert not is_positive
-    
-    def test_invalid_input(self):
-        """Test invalid input handling."""
-        fip = FrobeniusComplexInnerProduct()
-        with pytest.raises(ValueError):
-            fip.compute("invalid", np.zeros((3,3), dtype=np.complex64))
-    
-    def test_serialization(self):
-        """Test model serialization and validation."""
-        fip = FrobeniusComplexInnerProduct()
-        dumped = fip.model_dump_json()
-        validated = FrobeniusComplexInnerProduct.model_validate_json(dumped)
-        assert fip.id == validated.id
+    # Test with zero matrix
+    x = np.zeros((3, 3), dtype=np.complex64)
+    assert not frobenius_complex_inner_product.check_positivity(x)

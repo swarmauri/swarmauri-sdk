@@ -1,73 +1,108 @@
 import pytest
-from swarmauri_standard.pseudometrics import ZeroPseudometric
-import logging
+from swarmauri_standard.swarmauri_standard.pseudometrics import ZeroPseudometric
+
+@pytest.fixture
+def zero_pseudometric():
+    """
+    Fixture to provide a ZeroPseudometric instance for testing.
+    """
+    return ZeroPseudometric()
 
 @pytest.mark.unit
-def test_type():
-    """Test that the type attribute is correctly set."""
-    assert ZeroPseudometric.type == "ZeroPseudometric"
+def test_distance(zero_pseudometric):
+    """
+    Test the distance method of ZeroPseudometric.
+    """
+    # Test with different input types
+    params = [
+        ("test1", "test2"),
+        (b"bytes1", b"bytes2"),
+        (1, 2),
+        ("test", 1),
+        (None, None)
+    ]
+    
+    for x, y in params:
+        assert zero_pseudometric.distance(x, y) == 0.0
 
 @pytest.mark.unit
-def test_resource():
-    """Test that the resource attribute is correctly set."""
-    assert ZeroPseudometric.resource == "PSEUDOMETRIC"
+def test_distances(zero_pseudometric):
+    """
+    Test the distances method of ZeroPseudometric.
+    """
+    # Test with multiple inputs
+    x = "test"
+    ys = ["test1", "test2", "test3"]
+    results = zero_pseudometric.distances(x, ys)
+    assert all(r == 0.0 for r in results)
+    
+    # Test with None for ys
+    results = zero_pseudometric.distances(x)
+    assert results[0] == 0.0
 
 @pytest.mark.unit
-def test_distance():
-    """Test the distance method with various inputs."""
-    pseudometric = ZeroPseudometric()
+def test_check_non_negativity(zero_pseudometric):
+    """
+    Test the check_non_negativity method of ZeroPseudometric.
+    """
+    params = [
+        ("test1", "test2"),
+        (b"bytes1", b"bytes2"),
+        (1, 2),
+        ("test", 1),
+        (None, None)
+    ]
     
-    # Test with strings
-    assert pseudometric.distance("test1", "test2") == 0.0
-    
-    # Test with numbers
-    assert pseudometric.distance(123, 456) == 0.0
-    
-    # Test with None
-    assert pseudometric.distance(None, None) == 0.0
-    
-    # Test with mixed types
-    assert pseudometric.distance("test", 123) == 0.0
+    for x, y in params:
+        assert zero_pseudometric.check_non_negativity(x, y) is True
 
 @pytest.mark.unit
-def test_distances():
-    """Test the distances method with various input sequences."""
-    pseudometric = ZeroPseudometric()
+def test_check_symmetry(zero_pseudometric):
+    """
+    Test the check_symmetry method of ZeroPseudometric.
+    """
+    params = [
+        ("test1", "test2"),
+        (b"bytes1", b"bytes2"),
+        (1, 2),
+        ("test", 1),
+        (None, None)
+    ]
     
-    # Test with empty sequences
-    assert pseudometric.distances([], []) == []
-    
-    # Test with sequences of different lengths
-    assert len(pseudometric.distances([1, 2, 3], ["a", "b"])) == 2
-    
-    # Test with sequences of same length
-    result = pseudometric.distances([1, 2, 3], [4, 5, 6])
-    assert len(result) == 3
-    assert all(x == 0.0 for x in result)
+    for x, y in params:
+        assert zero_pseudometric.check_symmetry(x, y) is True
 
 @pytest.mark.unit
-def test_logging(caplog):
-    """Test that logging messages are correctly generated."""
-    pseudometric = ZeroPseudometric()
+def test_check_triangle_inequality(zero_pseudometric):
+    """
+    Test the check_triangle_inequality method of ZeroPseudometric.
+    """
+    params = [
+        ("test1", "test2", "test3"),
+        (b"bytes1", b"bytes2", b"bytes3"),
+        (1, 2, 3),
+        ("test", 1, 2),
+        (None, None, None)
+    ]
     
-    # Test distance method logging
-    with caplog.at_level(logging.DEBUG):
-        pseudometric.distance("test1", "test2")
-        assert "Computing ZeroPseudometric distance" in caplog.text
-    
-    # Test distances method logging
-    with caplog.at_level(logging.DEBUG):
-        pseudometric.distances([1, 2], [3, 4])
-        assert "Computing ZeroPseudometric distances" in caplog.text
+    for x, y, z in params:
+        assert zero_pseudometric.check_triangle_inequality(x, y, z) is True
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x,y,expected", [
-    ("test1", "test2", 0.0),
-    (123, 456, 0.0),
-    (None, None, 0.0),
-    ("test", 123, 0.0),
-])
-def test_distance_parameterized(x, y, expected):
-    """Parameterized test for the distance method."""
-    pseudometric = ZeroPseudometric()
-    assert pseudometric.distance(x, y) == expected
+def test_check_weak_identity(zero_pseudometric):
+    """
+    Test the check_weak_identity method of ZeroPseudometric.
+    """
+    # Test when x == y
+    x = y = "test"
+    assert zero_pseudometric.check_weak_identity(x, y) is True
+    
+    # Test when x != y
+    x = "test1"
+    y = "test2"
+    assert zero_pseudometric.check_weak_identity(x, y) is False
+    
+    # Test with different types
+    x = "test"
+    y = 1
+    assert zero_pseudometric.check_weak_identity(x, y) is False

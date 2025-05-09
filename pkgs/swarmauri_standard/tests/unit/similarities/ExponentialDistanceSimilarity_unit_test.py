@@ -1,144 +1,116 @@
 import pytest
-from typing import Union, Any
+from swarmauri_standard.swarmauri_standard.ExponentialDistanceSimilarity import ExponentialDistanceSimilarity
+import math
 import logging
-from swarmauri_standard.swarmauri_standard.similarities.ExponentialDistanceSimilarity import ExponentialDistanceSimilarity
 
 @pytest.mark.unit
-def test_resource():
-    """Test the resource attribute of ExponentialDistanceSimilarity."""
-    assert ExponentialDistanceSimilarity.resource == "Similarity"
-
-@pytest.mark.unit
-def test_type():
-    """Test the type attribute of ExponentialDistanceSimilarity."""
-    assert ExponentialDistanceSimilarity.type == "ExponentialDistanceSimilarity"
-
-@pytest.mark.unit
-def test_constructor():
-    """Test the constructor of ExponentialDistanceSimilarity."""
-    decay_coefficient = 2.0
-    exponential_dist = ExponentialDistanceSimilarity(decay_coefficient)
-    assert exponential_dist.decay_coefficient == decay_coefficient
-
-@pytest.mark.unit
-def test_similarity():
-    """Test the similarity method of ExponentialDistanceSimilarity."""
-    # Test with None values
-    exponential_dist = ExponentialDistanceSimilarity()
-    assert exponential_dist.similarity(None, None) == 0.0
+class TestExponentialDistanceSimilarity:
+    """Unit tests for ExponentialDistanceSimilarity class."""
     
-    # Test with identical values
-    a = "test_string"
-    assert exponential_dist.similarity(a, a) == 1.0
+    @pytest.fixture
+    def exponential_distance_similarity(self):
+        """Fixture providing a default ExponentialDistanceSimilarity instance."""
+        def distance_func(x: float, y: float) -> float:
+            return abs(x - y)
+        return ExponentialDistanceSimilarity(distance_func)
     
-    # Test with different values
-    b = "different_string"
-    similarity = exponential_dist.similarity(a, b)
-    assert similarity < 1.0
-
-@pytest.mark.unit
-def test_similarities():
-    """Test the similarities method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b_list = ["test_string", "different_string", None]
+    def test_constructor(self):
+        """Test that the constructor initializes the object correctly."""
+        def distance_func(x: float, y: float) -> float:
+            return abs(x - y)
+        eds = ExponentialDistanceSimilarity(distance_func)
+        
+        # Test if the distance function was set correctly
+        assert eds.distance_function is not None
+        # Test if the logger was initialized
+        assert eds.logger is not None
     
-    similarities = exponential_dist.similarities(a, b_list)
-    assert len(similarities) == 3
-    assert similarities[0] == 1.0
-    assert similarities[1] < 1.0
-    assert similarities[2] == 0.0
-
-@pytest.mark.unit
-def test_dissimilarity():
-    """Test the dissimilarity method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b = "different_string"
+    def test_similarity(self, exponential_distance_similarity):
+        """Test the similarity calculation."""
+        # Test with identical inputs
+        similarity = exponential_distance_similarity.similarity(5, 5)
+        assert similarity == 1.0
+        
+        # Test with different inputs
+        similarity = exponential_distance_similarity.similarity(5, 10)
+        assert similarity == math.exp(-5)
+        
+        # Test with negative inputs
+        similarity = exponential_distance_similarity.similarity(-5, 5)
+        assert similarity == math.exp(-10)
+        
+        # Test with non-integer inputs
+        similarity = exponential_distance_similarity.similarity(5.5, 6.5)
+        assert similarity == math.exp(-1.0)
+        
+    def test_similarities(self, exponential_distance_similarity):
+        """Test the similarities method with multiple pairs."""
+        pairs = [(1, 2), (3, 4), (5, 5)]
+        results = exponential_distance_similarity.similarities(pairs)
+        
+        # Verify the results match expected values
+        expected = [math.exp(-1), math.exp(-1), 1.0]
+        assert results == expected
     
-    dissimilarity = exponential_dist.dissimilarity(a, b)
-    assert dissimilarity == 1.0 - exponential_dist.similarity(a, b)
-
-@pytest.mark.unit
-def test_dissimilarities():
-    """Test the dissimilarities method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b_list = ["test_string", "different_string", None]
+    def test_dissimilarity(self, exponential_distance_similarity):
+        """Test the dissimilarity calculation."""
+        # Test with identical inputs
+        dissimilarity = exponential_distance_similarity.dissimilarity(5, 5)
+        assert dissimilarity == 0.0
+        
+        # Test with different inputs
+        dissimilarity = exponential_distance_similarity.dissimilarity(5, 10)
+        assert dissimilarity == 1.0 - math.exp(-5)
+        
+        # Test with negative inputs
+        dissimilarity = exponential_distance_similarity.dissimilarity(-5, 5)
+        assert dissimilarity == 1.0 - math.exp(-10)
+        
+        # Test with non-integer inputs
+        dissimilarity = exponential_distance_similarity.dissimilarity(5.5, 6.5)
+        assert dissimilarity == 1.0 - math.exp(-1.0)
     
-    dissimilarities = exponential_dist.dissimilarities(a, b_list)
-    assert len(dissimilarities) == 3
-    assert dissimilarities[0] == 0.0
-    assert dissimilarities[1] > 0.0
-    assert dissimilarities[2] == 1.0
-
-@pytest.mark.unit
-def test_check_boundedness():
-    """Test the check_boundedness method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b = "different_string"
-    assert exponential_dist.check_boundedness(a, b) is True
-
-@pytest.mark.unit
-def test_check_reflexivity():
-    """Test the check_reflexivity method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    assert exponential_dist.check_reflexivity(a) is True
-
-@pytest.mark.unit
-def test_check_symmetry():
-    """Test the check_symmetry method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b = "different_string"
-    assert exponential_dist.check_symmetry(a, b) is True
-
-@pytest.mark.unit
-def test_check_identity():
-    """Test the check_identity method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    a = "test_string"
-    b = "test_string"
-    assert exponential_dist.check_identity(a, b) is True
-    b = "different_string"
-    assert exponential_dist.check_identity(a, b) is False
-
-@pytest.mark.unit
-def test_serialization():
-    """Test the serialization methods of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
-    model_json = exponential_dist.model_dump_json()
-    assert ExponentialDistanceSimilarity.model_validate_json(exponential_dist, model_json) == exponential_dist.id
-
-@pytest.mark.unit
-def test_edge_cases():
-    """Test edge cases for ExponentialDistanceSimilarity."""
-    # Test with decay_coefficient = 0.0
-    exponential_dist = ExponentialDistanceSimilarity(decay_coefficient=0.0)
-    a = "test_string"
-    b = "different_string"
-    assert exponential_dist.similarity(a, b) == 1.0
-
-@pytest.mark.unit
-def testalculate_distance():
-    """Test the _calculate_distance method of ExponentialDistanceSimilarity."""
-    exponential_dist = ExponentialDistanceSimilarity()
+    def test_dissimilarities(self, exponential_distance_similarity):
+        """Test the dissimilarities method with multiple pairs."""
+        pairs = [(1, 2), (3, 4), (5, 5)]
+        results = exponential_distance_similarity.dissimilarities(pairs)
+        
+        # Verify the results match expected values
+        expected = [1.0 - math.exp(-1), 1.0 - math.exp(-1), 0.0]
+        assert results == expected
     
-    # Mock the _calculate_distance method
-    def mock_distance(a: Union[Any, None], b: Union[Any, None]) -> float:
-        if a is None or b is None:
-            return 0.0
-        if a == b:
-            return 0.0
-        return 1.0
+    def test_model_serialization(self, exponential_distance_similarity):
+        """Test that model serialization works correctly."""
+        # Dump the model to JSON
+        model_json = exponential_distance_similarity.model_dump_json()
+        # Validate the JSON
+        assert exponential_distance_similarity.model_validate_json(model_json)
     
-    exponential_dist._calculate_distance = mock_distance
+    def test_logging(self, exponential_distance_similarity, caplog):
+        """Test that logging messages are generated correctly."""
+        # Test similarity calculation
+        exponential_distance_similarity.similarity(5, 10)
+        # Verify debug message was logged
+        assert "Calculating similarity between 5 and 10" in caplog.text
+        assert "Similarity: " in caplog.text
+        
+        # Test dissimilarity calculation
+        exponential_distance_similarity.dissimilarity(5, 10)
+        # Verify debug message was logged
+        assert "Calculating dissimilarity between 5 and 10" in caplog.text
+        assert "Dissimilarity: " in caplog.text
     
-    a = "test_string"
-    b = "test_string"
-    assert exponential_dist.similarity(a, b) == 1.0
-    
-    b = "different_string"
-    assert exponential_dist.similarity(a, b) == exp(-exponential_dist.decay_coefficient * 1.0)
+    def test_error_handling(self):
+        """Test that invalid inputs raise appropriate errors."""
+        # Test None distance function
+        with pytest.raises(ValueError):
+            ExponentialDistanceSimilarity(None)
+        
+        # Test non-callable distance function
+        with pytest.raises(TypeError):
+            ExponentialDistanceSimilarity("not a function")
+        
+        # Test invalid input types
+        eds = ExponentialDistanceSimilarity(lambda x, y: abs(x - y))
+        with pytest.raises(TypeError):
+            eds.similarity("string", 5)

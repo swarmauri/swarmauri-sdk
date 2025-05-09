@@ -1,215 +1,353 @@
-<think>
-Okay, so I need to create a file called TensorBase.py in the specified directory. The goal is to provide a concrete implementation of the base class for the base/swarmauri_base package. Let me see what the requirements are.
-
-First, the TensorBase class should inherit from ITensor and ComponentBase. ITensor is an abstract class with several abstract methods that need to be implemented. But wait, the requirements say to provide a base implementation of all abstract methods without implementing the logic. Instead, each method should raise a NotImplementedError with an appropriate message. So, this is like a placeholder implementation, not the final one.
-
-I also need to include logging using the logging module. The code should follow PEP 8 style guidelines and include proper docstrings for all modules, classes, and methods. The docstrings should be in the sphinx style, which means they should have section headers like Args, Returns, and Notes.
-
-Looking at the dependencies, ITensor.py defines the interface with properties like shape and dtype, and methods like reshape, transpose, broadcast, etc. Each of these methods in ITensor raises NotImplementedError, so in TensorBase, I need to provide concrete implementations that just raise these errors.
-
-Wait, no. Since TensorBase is a concrete class, but it's meant to be a base class itself, perhaps it's acting as an intermediate step. So, each method in TensorBase will just raise NotImplementedError, indicating that subclasses must implement them.
-
-So, the structure of TensorBase.py will start with importing necessary modules. I'll need to import ITensor from the core package, ComponentBase from the base package, and logging.
-
-Then, I'll define the TensorBase class, which inherits from ITensor and ComponentBase. I'll include a class-level docstring explaining that this is a base implementation, and that all methods should be implemented by subclasses.
-
-Next, I'll go through each method in ITensor and implement them in TensorBase, but each will just raise NotImplementedError with a message indicating that the method must be implemented.
-
-For properties like shape and dtype, since they are read-only and depend on the underlying data structure, I'll raise NotImplementedError in their getters. Wait, but in Python, properties can't be abstract in the same way as methods. Hmm, maybe I should override them and raise the error when accessed.
-
-Wait, in ITensor, shape and dtype are properties with abstract methods. So in TensorBase, I should override these properties and have their getters raise NotImplementedError. But how? Because in ITensor, the properties are defined without any implementation, expecting subclasses to provide them.
-
-So, in TensorBase, I'll define the shape and dtype properties, but their getters will raise NotImplementedError. That way, when a subclass doesn't implement them, accessing these properties will raise an error.
-
-Alternatively, perhaps I should just let the subclass handle it, but since TensorBase is a base class, it's better to enforce that subclasses implement these properties. So, in TensorBase, I'll define the properties and have their getters raise errors.
-
-Wait, but in Python, you can't have abstract properties unless you use the abc module. So, perhaps I should use the @abstractmethod decorator for the property getters. But I think that's possible.
-
-Wait, looking back, ITensor defines shape and dtype as properties with @property decorators, and in their getters, they raise NotImplementedError. So, in TensorBase, I should override these properties and also raise NotImplementedError in their getters. That way, any subclass of TensorBase will have to implement these properties.
-
-But wait, if TensorBase is a concrete class, but it's not providing any implementation, then it's more of an abstract class. But the user said it's a concrete implementation, so perhaps I'm misunderstanding. Maybe TensorBase is intended to be an abstract base class, but the user wants it to be a concrete class that just doesn't implement the methods, forcing subclasses to do so.
-
-Wait, the requirements say: "Provide a base implementation of all abstractmethods of ITensor, Do not Implement the logic. Raise NotImplementedError for all abstract methods with appropriate message."
-
-So, TensorBase is a concrete class that inherits from ITensor, but doesn't implement any of the abstract methods. Instead, each abstract method in ITensor is overridden in TensorBase to raise NotImplementedError. This way, TensorBase itself is not abstract and can be instantiated, but any method call will raise an error, prompting the user to create subclasses that implement the methods.
-
-Wait, but if TensorBase doesn't implement the methods, then it's not a concrete class. So perhaps the user meant that TensorBase is an intermediate abstract class, but the problem says it's a concrete implementation. Hmm, maybe I'm overcomplicating.
-
-Looking back, the example output provided by the user shows that TensorBase is a concrete class, as it's registered as a model. So, perhaps the idea is that TensorBase provides a basic structure, but leaves all the methods to be implemented by subclasses. So, in TensorBase, each method is implemented to raise NotImplementedError, indicating that subclasses must provide the actual logic.
-
-So, for each method in ITensor, I'll define them in TensorBase, but each will raise NotImplementedError with a message like "reshape method must be implemented".
-
-Now, for the imports, I'll need to import ITensor, ComponentBase, and logging. Also, I'll need to import ABC and abstractmethod from abc if needed, but since ITensor already inherits from ABC, maybe it's not necessary.
-
-I'll structure the code as follows:
-
-- Start with the imports.
-- Define the TensorBase class, inheriting from ITensor and ComponentBase.
-- Add a class docstring explaining it's a base implementation.
-- For each method in ITensor, implement it in TensorBase, but raise NotImplementedError.
-- For properties like shape and dtype, override them and raise NotImplementedError in their getters.
-
-Wait, but in ITensor, shape and dtype are properties with abstract getters. So in TensorBase, I need to override these properties and have their getters raise NotImplementedError.
-
-So, in code:
-
-@property
-def shape(self) -> Tuple[int, ...]:
-    raise NotImplementedError("shape property must be implemented in subclass")
-
-Similarly for dtype.
-
-Now, I'll go through each method in ITensor and implement them in TensorBase with the same approach.
-
-For example, the reshape method:
-
-def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
-    raise NotImplementedError("reshape method must be implemented")
-
-Same for transpose, broadcast, etc.
-
-I also need to ensure that all methods have proper docstrings, following sphinx style. So each method will have a docstring with Args, Returns, and Notes sections.
-
-Wait, looking at the ITensor.py example, the methods have docstrings, so in TensorBase, I should replicate those docstrings but add a note that this method must be implemented by the subclass.
-
-So, for each method, the docstring will be the same as in ITensor, but with an additional note.
-
-Wait, no, because the user's example shows that the methods in TensorBase have their own docstrings, but perhaps it's better to keep the same docstrings as in ITensor, since they are part of the interface.
-
-Alternatively, the docstrings can be copied from ITensor to maintain consistency.
-
-So, I'll copy the docstrings from ITensor's methods into TensorBase's methods, adding a note that says the method must be implemented.
-
-Wait, but the user's example shows that the methods in TensorBase have their own docstrings, which are placeholders. So perhaps it's better to write the docstrings as per the method's functionality, but include a note that subclasses must implement it.
-
-Alternatively, since the methods are not implemented, the docstrings can remain as they are, but the implementation will raise the error.
-
-I think the key is to provide the same docstrings as in ITensor, so that the interface remains consistent.
-
-Now, for the __getitem__ and __setitem__ methods, I'll need to handle various types of indices and values, but in TensorBase, these will just raise NotImplementedError.
-
-I'll also need to implement the special methods like __add__, __sub__, etc., each raising NotImplementedError.
-
-For the string representation methods __str__ and __repr__, ITensor already provides an implementation for __repr__, so in TensorBase, I can inherit that or override it. But since ITensor's __repr__ is already implemented, perhaps TensorBase doesn't need to override it. Wait, looking at ITensor's __repr__:
-
-def __repr__(self) -> str:
-    return f"<{self.__class__.__name__} shape={self.shape} dtype={self.dtype}>"
-
-But in TensorBase, since shape and dtype are not implemented, accessing them will raise errors. So, if __repr__ is called on a TensorBase instance, it will try to access shape and dtype, which are not implemented, leading to an error. Therefore, perhaps TensorBase should override __repr__ to avoid that.
-
-Alternatively, since TensorBase is a base class, it's expected that subclasses will implement shape and dtype, so when __repr__ is called on a subclass instance, it will work. But for TensorBase itself, it's a concrete class, so perhaps it's better to override __repr__ to avoid errors.
-
-Hmm, this is getting complicated. Maybe in TensorBase, I should override __repr__ to provide a default string without relying on shape and dtype, or perhaps just let it raise an error if someone tries to create an instance of TensorBase directly.
-
-But according to the problem statement, TensorBase is a concrete class, so perhaps it's intended to be instantiated. Therefore, the __repr__ method should not rely on shape and dtype, which are not implemented. So, in TensorBase, I'll override __repr__ to return a string that doesn't depend on shape and dtype.
-
-Alternatively, perhaps the __repr__ from ITensor is sufficient, but since shape and dtype are not implemented, it's better to override it in TensorBase.
-
-So, in TensorBase, I'll define __repr__ as:
-
-def __repr__(self) -> str:
-    return f"<{self.__class__.__name__} (unimplemented base class)>"
-
-Or something similar, indicating that it's the base class and not implemented.
-
-But looking back at the example output provided by the user, the __repr__ is not overridden, so perhaps it's better to leave it as is. But then, when creating an instance of TensorBase, accessing shape or dtype will raise errors, which might cause __repr__ to crash. So, perhaps it's better to override __repr__ in TensorBase.
-
-Alternatively, perhaps the user expects that TensorBase will not be instantiated directly, but only subclasses will be used. So, the __repr__ can remain as is, but when a subclass implements shape and dtype, it will work correctly.
-
-But since the problem says that TensorBase is a concrete implementation, perhaps it's better to make it as robust as possible.
-
-In any case, perhaps it's better to proceed with implementing each method as per the requirements, even if some methods might cause errors when called.
-
-Now, putting it all together, the code will start with the necessary imports, then define the TensorBase class with all the methods overridden to raise NotImplementedError.
-
-I'll also include the logging module and add a logger to the class, as per the style guide.
-
-So, the code will look something like:
-
-from typing import Tuple, Union, List, Any
-from abc import abstractmethod
+from typing import Any, Tuple, TypeVar, Union, Optional, Iterator, overload
 import logging
-from swarmauri_core.tensors.ITensor import ITensor
-from swarmauri_base.ComponentBase import ComponentBase
+from abc import ABC, abstractmethod
 
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.tensors.ITensor import ITensor
+
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', int, float, bool, slice, Tuple[Union[int, slice], ...], ellipsis)
+S = TypeVar('S', int, float, bool, str)
+D = TypeVar('D', Any)
+Shape = Tuple[int, ...]
 
 @ComponentBase.register_model()
 class TensorBase(ITensor, ComponentBase):
     """
-    Base implementation of the ITensor interface.
+    A base implementation of the ITensor interface. This class provides a foundation 
+    for tensor operations including basic structure and logging functionality. 
+    All specific tensor operations must be implemented in subclasses.
 
-    This class provides a basic structure for implementing tensor operations.
-    All methods are left as abstract and must be implemented by subclasses.
+    Inherits:
+        ITensor: The interface defining tensor operations.
+        ComponentBase: Base class for components in the SwarmaUri framework.
     """
+    
+    def __init__(self, shape: Shape, dtype: type) -> None:
+        """
+        Initialize the tensor with the specified shape and data type.
 
-    def __init__(self):
-        super().__init__()
-        self._logger = logging.getLogger(__name__)
+        Args:
+            shape: Shape
+                The dimensions of the tensor
+            dtype: type
+                The data type of the elements
+        """
+        super().__init__(shape, dtype)
+        self._shape = shape
+        self._dtype = dtype
+        logger.debug(f"TensorBase initialized with shape {shape} and dtype {dtype}")
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> Shape:
         """
-        Gets the shape of the tensor as a tuple of integers.
+        Get the shape of the tensor.
 
         Returns:
-            Tuple[int, ...]: The dimensions of the tensor.
-
-        Raises:
-            NotImplementedError: This method must be implemented by the subclass.
+            Shape: The dimensions of the tensor
         """
-        raise NotImplementedError("shape property must be implemented")
+        return self._shape
 
     @property
     def dtype(self) -> type:
         """
-        Gets the data type of the elements in the tensor.
+        Get the data type of the elements in the tensor.
 
         Returns:
-            type: The data type of the tensor elements.
-
-        Raises:
-            NotImplementedError: This method must be implemented by the subclass.
+            type: The data type of the elements
         """
-        raise NotImplementedError("dtype property must be implemented")
+        return self._dtype
 
-    def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+    @property
+    def ndim(self) -> int:
         """
-        Reshapes the tensor to the specified shape.
+        Get the number of dimensions in the tensor.
+
+        Returns:
+            int: The number of dimensions
+        """
+        return len(self.shape)
+
+    @property
+    def size(self) -> int:
+        """
+        Get the total number of elements in the tensor.
+
+        Returns:
+            int: The total number of elements
+        """
+        return 1
+        # TODO: Implement proper size calculation based on shape
+        # from functools import reduce
+        # import operator
+        # return reduce(operator.mul, self.shape, 1)
+
+    @abstractmethod
+    def __getitem__(self, index: T) -> Union['ITensor', Any, Any, S]:
+        """
+        Get a slice, element, or view of the tensor.
 
         Args:
-            new_shape: Tuple[int, ...]
-                The new dimensions for the tensor.
+            index: T
+                The index or slice to retrieve
 
         Returns:
-            ITensor: The reshaped tensor.
+            Union['ITensor', Any, Any, S]: 
+                - If index is a tuple of slices: Returns a sub-tensor
+                - If index is an integer: Returns the specified element
+                - If index is a slice: Returns a slice of the tensor
 
         Raises:
-            NotImplementedError: This method must be implemented by the subclass.
+            IndexError: If the index is out of bounds
+            TypeError: If the index type is not supported
         """
-        raise NotImplementedError("reshape method must be implemented")
+        logger.debug("Getting item from tensor")
+        raise NotImplementedError("Method __getitem__ must be implemented in a subclass")
 
-    # ... and so on for each method ...
-
-    def __repr__(self) -> str:
+    @abstractmethod
+    def __setitem__(self, index: T, value: Union['ITensor', Any, Any, S]) -> None:
         """
-        Returns the official string representation of the tensor.
+        Set an element, slice, or view of the tensor.
+
+        Args:
+            index: T
+                The index or slice to set
+            value: Union['ITensor', Any, Any, S]
+                The value to set
+
+        Raises:
+            IndexError: If the index is out of bounds
+            TypeError: If the value type is not compatible
+        """
+        logger.debug("Setting item in tensor")
+        raise NotImplementedError("Method __setitem__ must be implemented in a subclass")
+
+    @abstractmethod
+    def reshape(self, new_shape: Shape) -> 'ITensor':
+        """
+        Reshape the tensor to the specified dimensions.
+
+        Args:
+            new_shape: Shape
+                The new dimensions for the tensor
 
         Returns:
-            str: The official string representation.
+            ITensor: The reshaped tensor
+
+        Raises:
+            ValueError: If the new shape is incompatible with the data
         """
-        return f"<{self.__class__.__name__} (Base Tensor Implementation)>"
+        logger.debug(f"Reshaping tensor to {new_shape}")
+        raise NotImplementedError("Method reshape must be implemented in a subclass")
 
-Wait, but in the ITensor, __repr__ is already implemented, so perhaps I should not override it. But in TensorBase, since shape and dtype are not implemented, calling the parent's __repr__ would cause errors. So, perhaps it's better to override __repr__ in TensorBase to avoid that.
+    @abstractmethod
+    def transpose(self, axes: Optional[Tuple[int, ...]] = None) -> 'ITensor':
+        """
+        Transpose the tensor along the specified axes.
 
-Alternatively, perhaps the user expects that TensorBase will not be used directly, so the __repr__ can remain as is, but that might lead to errors if someone tries to print an instance of TensorBase.
+        Args:
+            axes: Optional[Tuple[int, ...]]
+                The permutation of axes. If None, reverses the order of the axes.
 
-Hmm, perhaps it's better to override __repr__ in TensorBase to return a string that doesn't depend on shape and dtype.
+        Returns:
+            ITensor: The transposed tensor
+        """
+        logger.debug(f"Transposing tensor with axes {axes}")
+        raise NotImplementedError("Method transpose must be implemented in a subclass")
 
-So, in the code, I'll include the __repr__ method as shown above.
+    @abstractmethod
+    def broadcast(self, new_shape: Shape) -> 'ITensor':
+        """
+        Broadcast the tensor to the specified shape.
 
-Now, for each method in ITensor, I'll implement them in TensorBase, each raising NotImplementedError with an appropriate message.
+        Args:
+            new_shape: Shape
+                The new shape to broadcast to
 
-I'll also ensure that all methods have proper sphinx-style docstrings, including Args, Returns, and Notes sections where applicable.
+        Returns:
+            ITensor: The broadcasted tensor
 
-For example, the __getitem__ method will have a docstring explaining the parameters and return types, and a note that subclasses must
+        Raises:
+            ValueError: If broadcasting is not possible
+        """
+        logger.debug(f"Broadcasting tensor to {new_shape}")
+        raise NotImplementedError("Method broadcast must be implemented in a subclass")
+
+    @abstractmethod
+    def get_vector(self, index: int) -> Any:
+        """
+        Get a vector from the tensor at the specified index.
+
+        Args:
+            index: int
+                The index of the vector to retrieve
+
+        Returns:
+            Any: The specified vector
+
+        Raises:
+            IndexError: If the index is out of bounds
+        """
+        logger.debug(f"Getting vector at index {index}")
+        raise NotImplementedError("Method get_vector must be implemented in a subclass")
+
+    @abstractmethod
+    def get_matrix(self, index: int) -> Any:
+        """
+        Get a matrix from the tensor at the specified index.
+
+        Args:
+            index: int
+                The index of the matrix to retrieve
+
+        Returns:
+            Any: The specified matrix
+
+        Raises:
+            IndexError: If the index is out of bounds
+        """
+        logger.debug(f"Getting matrix at index {index}")
+        raise NotImplementedError("Method get_matrix must be implemented in a subclass")
+
+    @abstractmethod
+    def tolist(self) -> list:
+        """
+        Convert the tensor to a nested list structure.
+
+        Returns:
+            list: A nested list representation of the tensor
+        """
+        logger.debug("Converting tensor to list")
+        raise NotImplementedError("Method tolist must be implemented in a subclass")
+
+    @abstractmethod
+    def __add__(self, other: 'ITensor') -> 'ITensor':
+        """
+        Element-wise addition of two tensors.
+
+        Args:
+            other: 'ITensor'
+                The tensor to add
+
+        Returns:
+            'ITensor': The result of the addition
+
+        Raises:
+            ValueError: If the tensors have different shapes
+        """
+        logger.debug("Adding tensors")
+        raise NotImplementedError("Method __add__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __sub__(self, other: 'ITensor') -> 'ITensor':
+        """
+        Element-wise subtraction of two tensors.
+
+        Args:
+            other: 'ITensor'
+                The tensor to subtract
+
+        Returns:
+            'ITensor': The result of the subtraction
+
+        Raises:
+            ValueError: If the tensors have different shapes
+        """
+        logger.debug("Subtracting tensors")
+        raise NotImplementedError("Method __sub__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __mul__(self, other: Union['ITensor', S]) -> 'ITensor':
+        """
+        Element-wise multiplication or tensor product.
+
+        Args:
+            other: Union['ITensor', S]
+                - If ITensor: Performs element-wise multiplication
+                - If scalar: Performs scalar multiplication
+
+        Returns:
+            'ITensor': The result of the multiplication
+
+        Raises:
+            ValueError: If the shapes are incompatible for multiplication
+            TypeError: If the multiplication type is not supported
+        """
+        logger.debug(f"Multiplying tensor with {other}")
+        raise NotImplementedError("Method __mul__ must be implemented in a subclass")
+
+    @overload
+    def __mul__(self, other: 'ITensor') -> 'ITensor':
+        ...
+
+    @overload
+    def __mul__(self, other: S) -> 'ITensor':
+        ...
+
+    @abstractmethod
+    def __rmul__(self, other: S) -> 'ITensor':
+        """
+        Element-wise multiplication by a scalar (reverse operation).
+
+        Args:
+            other: S
+                The scalar to multiply by
+
+        Returns:
+            'ITensor': The result of the multiplication
+        """
+        logger.debug(f"Multiplying tensor by scalar {other}")
+        raise NotImplementedError("Method __rmul__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """
+        Get a string representation of the tensor.
+
+        Returns:
+            str: A string representation of the tensor
+        """
+        logger.debug("Getting string representation of tensor")
+        raise NotImplementedError("Method __str__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        """
+        Get an official string representation of the tensor.
+
+        Returns:
+            str: An official string representation of the tensor
+        """
+        logger.debug("Getting official string representation of tensor")
+        raise NotImplementedError("Method __repr__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __iter__(self) -> Iterator['ITensor']:
+        """
+        Create an iterator over the tensor elements.
+
+        Returns:
+            Iterator['ITensor']: An iterator over the tensor elements
+        """
+        logger.debug("Creating iterator for tensor")
+        raise NotImplementedError("Method __iter__ must be implemented in a subclass")
+
+    @abstractmethod
+    def __bool__(self) -> bool:
+        """
+        Determine if the tensor is non-zero.
+
+        Returns:
+            bool: True if the tensor is non-zero, False otherwise
+        """
+        logger.debug("Checking if tensor is non-zero")
+        raise NotImplementedError("Method __bool__ must be implemented in a subclass")
+
+    @classmethod
+    def __subclasshook__(cls, subclass: type) -> bool:
+        """
+        Allow registration of additional subclasses without explicit registration.
+        """
+        return hasattr(subclass, '__getitem__') and hasattr(subclass, '__setitem__')

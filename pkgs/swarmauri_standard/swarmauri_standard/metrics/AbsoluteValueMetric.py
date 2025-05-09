@@ -1,128 +1,153 @@
+from typing import Union, TypeVar, Optional
 import logging
-from typing import Union, Any
-from abc import ABC
-from swarmauri_base.metrics import MetricBase
-from swarmauri_core.metrics import IMetric
+from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.metrics.IMetric import IMetric
 
-logger = logging.getLogger(__name__)
-
+T = TypeVar('T', int, float)
 
 @ComponentBase.register_type(MetricBase, "AbsoluteValueMetric")
 class AbsoluteValueMetric(MetricBase):
     """
-    Provides a concrete implementation of the MetricBase class for absolute value distance metric.
-    
-    This class implements the distance, distances, and various property checking methods
-    required for a valid metric space. The distance is computed as the absolute difference
-    between two scalar values.
+    Provides a concrete implementation of the MetricBase class for computing
+    the absolute difference between real numbers.
+
+    Inherits From:
+        MetricBase: The base class providing template logic for metric spaces.
+        ComponentBase: Base class for all components in the system.
+        IMetric: Interface for metric spaces.
+
+    Provides:
+        Implementation of the L1 metric (absolute value) for real numbers.
+        Includes methods for computing distances and verifying metric axioms.
     """
-    
-    type: str = "AbsoluteValueMetric"
-    
+    type: Literal["AbsoluteValueMetric"] = "AbsoluteValueMetric"
+    resource: Optional[str] = Field(default="METRIC")
+
     def __init__(self):
         """
-        Initializes the AbsoluteValueMetric instance.
+        Initialize the AbsoluteValueMetric instance.
+
+        Sets up logging and initializes the base class.
         """
         super().__init__()
-        self._type = self.type
-        
-    def distance(self, x: Union[float, int], y: Union[float, int]) -> float:
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("AbsoluteValueMetric instance initialized")
+
+    def distance(self, x: T, y: T) -> float:
         """
-        Computes the absolute distance between two scalar values.
-        
+        Compute the absolute difference between two real numbers.
+
         Args:
-            x: Union[float, int]
-                The first scalar value
-            y: Union[float, int]
-                The second scalar value
-                
+            x: T
+                The first real number
+            y: T
+                The second real number
+
         Returns:
-            float: The absolute difference between x and y
+            float:
+                The absolute difference between x and y
+
+        Raises:
+            ValueError:
+                If either x or y is not a real number
         """
-        logger.debug("Computing absolute distance between %s and %s", x, y)
+        self.logger.debug("Computing absolute difference between %s and %s", x, y)
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            raise ValueError("Inputs must be real numbers")
         return abs(x - y)
-    
-    def distances(self, x: Union[float, int], ys: Union[Sequence[Union[float, int]], None] = None) -> Union[float, Sequence[float]]:
+
+    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
         """
-        Computes the absolute distances from a reference point to one or more points.
-        
+        Compute the absolute differences between a reference point and one or more points.
+
         Args:
-            x: Union[float, int]
+            x: T
                 The reference point
-            ys: Union[Sequence[Union[float, int]], None]
-                Optional sequence of points to compute distances to
-                
+            y_list: Union[T, Sequence[T]]
+                Either a single point or a sequence of points
+
         Returns:
-            Union[float, Sequence[float]]: Either a single distance or sequence of distances
+            Union[float, Sequence[float]]:
+                - If y_list is a single point: Returns the distance as a float
+                - If y_list is a sequence: Returns a sequence of distances
+
+        Raises:
+            ValueError:
+                If any input is not a real number
         """
-        logger.debug("Computing absolute distances from %s to %s", x, ys)
-        if ys is None:
-            return self.distance(x, ys)
-        return [self.distance(x, y) for y in ys]
-    
-    def check_non_negativity(self, x: Union[float, int], y: Union[float, int]) -> bool:
+        self.logger.debug("Computing distances from %s to %s", x, y_list)
+        if isinstance(y_list, Sequence):
+            return [abs(x - y) for y in y_list]
+        return abs(x - y_list)
+
+    def check_non_negativity(self, x: T, y: T) -> bool:
         """
-        Checks if the non-negativity property holds: d(x, y) ≥ 0.
-        
+        Verify the non-negativity axiom: d(x, y) ≥ 0.
+
         Args:
-            x: Union[float, int]
+            x: T
                 The first point
-            y: Union[float, int]
+            y: T
                 The second point
-                
+
         Returns:
-            bool: True if d(x, y) ≥ 0, False otherwise
+            bool:
+                True if the non-negativity condition holds, False otherwise
         """
-        logger.debug("Checking non-negativity for points %s and %s", x, y)
-        distance = self.distance(x, y)
-        return distance >= 0
-    
-    def check_identity(self, x: Union[float, int], y: Union[float, int]) -> bool:
+        self.logger.debug("Checking non-negativity for points %s and %s", x, y)
+        return self.distance(x, y) >= 0
+
+    def check_identity(self, x: T, y: T) -> bool:
         """
-        Checks the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
-        
+        Verify the identity of indiscernibles axiom: d(x, y) = 0 if and only if x = y.
+
         Args:
-            x: Union[float, int]
+            x: T
                 The first point
-            y: Union[float, int]
+            y: T
                 The second point
-                
+
         Returns:
-            bool: True if d(x, y) = 0 implies x = y and vice versa, False otherwise
+            bool:
+                True if the identity condition holds, False otherwise
         """
-        logger.debug("Checking identity for points %s and %s", x, y)
-        return x == y if self.distance(x, y) == 0 else False
-    
-    def check_symmetry(self, x: Union[float, int], y: Union[float, int]) -> bool:
+        self.logger.debug("Checking identity for points %s and %s", x, y)
+        return self.distance(x, y) == 0 if x == y else (x == y if self.distance(x, y) == 0)
+
+    def check_symmetry(self, x: T, y: T) -> bool:
         """
-        Checks the symmetry property: d(x, y) = d(y, x).
-        
+        Verify the symmetry axiom: d(x, y) = d(y, x).
+
         Args:
-            x: Union[float, int]
+            x: T
                 The first point
-            y: Union[float, int]
+            y: T
                 The second point
-                
+
         Returns:
-            bool: True if d(x, y) = d(y, x), False otherwise
+            bool:
+                True if the symmetry condition holds, False otherwise
         """
-        logger.debug("Checking symmetry for points %s and %s", x, y)
+        self.logger.debug("Checking symmetry for points %s and %s", x, y)
         return self.distance(x, y) == self.distance(y, x)
-    
-    def check_triangle_inequality(self, x: Union[float, int], y: Union[float, int], z: Union[float, int]) -> bool:
+
+    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
         """
-        Checks the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
-        
+        Verify the triangle inequality axiom: d(x, z) ≤ d(x, y) + d(y, z).
+
         Args:
-            x: Union[float, int]
+            x: T
                 The first point
-            y: Union[float, int]
-                The intermediate point
-            z: Union[float, int]
+            y: T
+                The second point
+            z: T
                 The third point
-                
+
         Returns:
-            bool: True if d(x, z) ≤ d(x, y) + d(y, z), False otherwise
+            bool:
+                True if the triangle inequality condition holds, False otherwise
         """
-        logger.debug("Checking triangle inequality for points %s, %s, and %s", x, y, z)
+        self.logger.debug("Checking triangle inequality for points %s, %s, %s", x, y, z)
         return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)

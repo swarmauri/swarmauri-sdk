@@ -1,84 +1,200 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.pseudometrics.EquivalenceRelationPseudometric import EquivalenceRelationPseudometric
+from swarmauri_standard.swarmauri_standard.pseudometrics import EquivalenceRelationPseudometric
 import logging
 
 logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
 class TestEquivalenceRelationPseudometric:
-    """Unit test class for EquivalenceRelationPseudometric class."""
+    """Unit tests for the EquivalenceRelationPseudometric class."""
     
-    def test_resource(self):
-        """Test the resource property."""
-        assert EquivalenceRelationPseudometric.resource == "Pseudometric"
+    @pytest.fixture
+    def equivalence_relation_pseudometric(self):
+        """Fixture to create an instance of EquivalenceRelationPseudometric."""
+        return EquivalenceRelationPseudometric()
+    
+    @pytest.mark.unit
+    def test_distance(self, equivalence_relation_pseudometric):
+        """
+        Test the distance calculation between two points.
         
-    def test_type(self):
-        """Test the type property."""
-        assert EquivalenceRelationPseudometric.type == "EquivalenceRelationPseudometric"
+        Verifies that the distance returns 0.0 for equivalent points and 1.0 otherwise.
+        """
+        # Test with equivalent points
+        x = object()
+        y = x
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
         
-    def test_serialization(self):
-        """Test serialization and deserialization."""
-        er_pseudo = EquivalenceRelationPseudometric()
-        assert er_pseudo.model_dump_json() is not None
-        assert EquivalenceRelationPseudometric.model_validate_json(er_pseudo.model_dump_json()) == er_pseudo.id
+        # Test with non-equivalent points
+        x = object()
+        y = object()
+        assert equivalence_relation_pseudometric.distance(x, y) == 1.0
         
-    def test_distance(self):
-        """Test the distance method with various inputs."""
-        er_pseudo = EquivalenceRelationPseudometric()
+        # Test with non-hashable types
+        x = [1, 2]
+        y = [1, 2]
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
         
-        # Test with equivalent elements
-        assert er_pseudo.distance("test", "test") == 0.0
-        assert er_pseudo.distance(1, 1) == 0.0
-        assert er_pseudo.distance([1, 2], [1, 2]) == 0.0
+        x = (1, 2)
+        y = (1, 2)
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
         
-        # Test with non-equivalent elements
-        assert er_pseudo.distance("test", "different") == 1.0
-        assert er_pseudo.distance(1, 2) == 1.0
-        assert er_pseudo.distance([1, 2], [2, 3]) == 1.0
+        x = "test"
+        y = "test"
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
         
-    def test_distances(self):
-        """Test the distances method with sequences."""
-        er_pseudo = EquivalenceRelationPseudometric()
+        x = 5
+        y = 5
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
         
-        xs = ["a", "b", 1, [1, 2]]
-        ys = ["a", "b", 2, [1, 3]]
+        x = None
+        y = None
+        assert equivalence_relation_pseudometric.distance(x, y) == 0.0
+    
+    @pytest.mark.unit
+    def test_are_equivalent(self, equivalence_relation_pseudometric):
+        """
+        Test the are_equivalent method.
         
-        distances = er_pseudo.distances(xs, ys)
-        assert len(distances) == 4
-        assert distances == [0.0, 0.0, 1.0, 1.0]
+        Verifies that equivalent points return True and non-equivalent return False.
+        """
+        # Test with equivalent objects
+        x = object()
+        y = x
+        assert equivalence_relation_pseudometric.are_equivalent(x, y) is True
         
-    def test_equivalence_function(self):
-        """Test the equivalence function behavior."""
-        er_pseudo = EquivalenceRelationPseudometric()
+        # Test with non-equivalent objects
+        x = object()
+        y = object()
+        assert equivalence_relation_pseudometric.are_equivalent(x, y) is False
         
-        # Test default equivalence function
-        assert er_pseudo.equivalence_function("a", "a")
-        assert not er_pseudo.equivalence_function("a", "b")
+        # Test with different types
+        x = 5
+        y = "5"
+        assert equivalence_relation_pseudometric.are_equivalent(x, y) is False
         
-        # Test custom equivalence function
-        def custom_eq(x, y):
-            return x == y.upper()
-            
-        er_custom = EquivalenceRelationPseudometric(equivalence_function=custom_eq)
-        assert er_custom.equivalence_function("a", "A")
-        assert not er_custom.equivalence_function("a", "B")
+        # Test with None values
+        x = None
+        y = None
+        assert equivalence_relation_pseudometric.are_equivalent(x, y) is True
         
-    def test_default_equivalence(self):
-        """Test the default equivalence function."""
-        er_pseudo = EquivalenceRelationPseudometric()
-        assert er_pseudo._default_equivalence("test", "test")
-        assert not er_pseudo._default_equivalence("test", "different")
-        assert er_pseudo._default_equivalence(1, 1)
-        assert not er_pseudo._default_equivalence(1, 2)
-        assert er_pseudo._default_equivalence([1, 2], [1, 2])
-        assert not er_pseudo._default_equivalence([1, 2], [2, 3])
+        x = None
+        y = object()
+        assert equivalence_relation_pseudometric.are_equivalent(x, y) is False
+    
+    @pytest.mark.unit
+    def test_check_non_negativity(self, equivalence_relation_pseudometric):
+        """
+        Test non-negativity check.
         
-    def test_logging(self):
-        """Test logging functionality."""
-        er_pseudo = EquivalenceRelationPseudometric()
-        assert er_pseudo.logger is not None
-        er_pseudo.logger.debug("Test debug message")
-        er_pseudo.logger.info("Test info message")
-        er_pseudo.logger.warning("Test warning message")
-        er_pseudo.logger.error("Test error message")
-        er_pseudo.logger.critical("Test critical message")
+        Verifies that the distance is always non-negative.
+        """
+        x = object()
+        y = object()
+        distance = equivalence_relation_pseudometric.distance(x, y)
+        assert equivalence_relation_pseudometric.check_non_negativity(x, y) is True
+        
+        x = 5
+        y = 5
+        distance = equivalence_relation_pseudometric.distance(x, y)
+        assert equivalence_relation_pseudometric.check_non_negativity(x, y) is True
+        
+        x = [1, 2]
+        y = [1, 2]
+        distance = equivalence_relation_pseudometric.distance(x, y)
+        assert equivalence_relation_pseudometric.check_non_negativity(x, y) is True
+        
+        x = (1, 2)
+        y = (1, 2)
+        distance = equivalence_relation_pseudometric.distance(x, y)
+        assert equivalence_relation_pseudometric.check_non_negativity(x, y) is True
+    
+    @pytest.mark.unit
+    def test_check_symmetry(self, equivalence_relation_pseudometric):
+        """
+        Test symmetry check.
+        
+        Verifies that distance(x, y) == distance(y, x).
+        """
+        x = object()
+        y = object()
+        assert equivalence_relation_pseudometric.check_symmetry(x, y) is True
+        
+        x = 5
+        y = 5
+        assert equivalence_relation_pseudometric.check_symmetry(x, y) is True
+        
+        x = [1, 2]
+        y = [1, 2]
+        assert equivalence_relation_pseudometric.check_symmetry(x, y) is True
+        
+        x = (1, 2)
+        y = (1, 2)
+        assert equivalence_relation_pseudometric.check_symmetry(x, y) is True
+        
+        x = "test"
+        y = "test"
+        assert equivalence_relation_pseudometric.check_symmetry(x, y) is True
+    
+    @pytest.mark.unit
+    def test_check_triangle_inequality(self, equivalence_relation_pseudometric):
+        """
+        Test triangle inequality check.
+        
+        Verifies that distance(x, z) <= distance(x, y) + distance(y, z).
+        """
+        x = object()
+        y = x
+        z = object()
+        assert equivalence_relation_pseudometric.check_triangle_inequality(x, y, z) is True
+        
+        x = object()
+        y = object()
+        z = object()
+        assert equivalence_relation_pseudometric.check_triangle_inequality(x, y, z) is True
+        
+        x = 5
+        y = 5
+        z = 5
+        assert equivalence_relation_pseudometric.check_triangle_inequality(x, y, z) is True
+        
+        x = [1, 2]
+        y = [1, 2]
+        z = [1, 2]
+        assert equivalence_relation_pseudometric.check_triangle_inequality(x, y, z) is True
+        
+        x = (1, 2)
+        y = (1, 2)
+        z = (1, 2)
+        assert equivalence_relation_pseudometric.check_triangle_inequality(x, y, z) is True
+    
+    @pytest.mark.unit
+    def test_check_weak_identity(self, equivalence_relation_pseudometric):
+        """
+        Test weak identity of indiscernibles check.
+        
+        Verifies that x == y implies distance(x, y) == 0.
+        """
+        x = object()
+        y = x
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is True
+        
+        x = object()
+        y = object()
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is False
+        
+        x = 5
+        y = 5
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is True
+        
+        x = [1, 2]
+        y = [1, 2]
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is True
+        
+        x = (1, 2)
+        y = (1, 2)
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is True
+        
+        x = "test"
+        y = "test"
+        assert equivalence_relation_pseudometric.check_weak_identity(x, y) is True

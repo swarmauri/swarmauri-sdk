@@ -1,142 +1,152 @@
+from typing import TypeVar, Union, Optional, Literal
 import logging
-from abc import ABC
-from typing import Union, TypeVar
 import numpy as np
-
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
+from swarmauri_core.seminorms.ISeminorm import ISeminorm
 
-T = TypeVar('T', np.ndarray, Union[np.ndarray, np.generic], str)
-
+# Configure logging
 logger = logging.getLogger(__name__)
 
+T = TypeVar('T', Union[np.ndarray, np.matrix, str, callable])
 
-@ComponentBase.register_type(SeminormBase, "TraceSeminorm")
+@ComponentBase.register_model()
 class TraceSeminorm(SeminormBase):
     """
-    A class that implements the trace seminorm functionality.
+    A concrete implementation of SeminormBase for computing the trace seminorm.
 
-    This class provides the implementation for computing the trace seminorm of a matrix.
-    The trace seminorm is defined as the absolute value of the trace of the matrix.
-    The trace is the sum of the diagonal elements of the matrix. This implementation does not
-    guarantee positive-definiteness of the matrix.
-
-    Inherits from:
-        SeminormBase: The base class for all seminorm implementations.
+    This class implements the trace seminorm computation for matrices. The trace
+    seminorm is computed as the absolute value of the trace of the matrix. The
+    trace is the sum of the diagonal elements of the matrix. This implementation
+    does not guarantee positive-definiteness.
 
     Attributes:
-        type: The type identifier for this seminorm implementation.
-        resource: The resource type identifier for seminorm components.
+        resource: Optional[str] = ResourceTypes.SEMINORM.value
+            The resource type identifier for this component.
     """
-    type: str = "TraceSeminorm"
-    resource: str = "SEMINORM"
-
+    resource: str = ComponentBase.ResourceTypes.SEMINORM.value
+    
     def __init__(self):
         """
-        Initializes the TraceSeminorm class.
-        
-        Initializes the base class and sets up the logging.
+        Initialize the TraceSeminorm instance.
         """
         super().__init__()
-        logger.debug("TraceSeminorm class initialized")
-
+        self._name = "TraceSeminorm"
+        
     def compute(self, input: T) -> float:
         """
-        Computes the trace seminorm of the input matrix.
+        Compute the trace seminorm of the given input.
+
+        The input can be a matrix or a callable that returns a matrix when called.
+        The trace seminorm is computed as the absolute value of the trace of the matrix.
 
         Args:
             input: T
-                The input matrix for which to compute the trace seminorm.
-                Must support the trace operation (e.g., numpy.ndarray).
+                The input to compute the seminorm on. This can be a matrix or a callable.
 
         Returns:
             float:
-                The computed trace seminorm value, which is the absolute value
-                of the trace of the input matrix.
+                The computed trace seminorm value.
 
         Raises:
             ValueError:
-                If the input does not support the trace operation.
-            NotImplementedError:
-                If the input type is not supported.
+                If the input is neither a matrix nor a callable that returns a matrix.
         """
         logger.debug("Computing trace seminorm")
         
-        try:
-            if isinstance(input, np.ndarray):
-                trace = np.trace(input)
-            elif hasattr(input, 'trace'):
-                trace = input.trace()
-            else:
-                raise ValueError("Input must support trace operation")
+        # Check if the input is a callable
+        if callable(input):
+            matrix = input()
+        else:
+            matrix = input
             
-            return abs(float(trace))
+        # Verify that the input is a matrix
+        if not isinstance(matrix, (np.ndarray, np.matrix)):
+            raise ValueError("Input must be a matrix or a callable that returns a matrix")
             
-        except Exception as e:
-            logger.error(f"Error computing trace seminorm: {str(e)}")
-            raise ValueError("Failed to compute trace seminorm") from e
+        # Compute the trace
+        trace = np.trace(matrix)
+        
+        # The trace seminorm is the absolute value of the trace
+        seminorm_value = abs(trace)
+        
+        logger.debug(f"Computed trace seminorm: {seminorm_value}")
+        return seminorm_value
 
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """
-        Checks if the triangle inequality holds for the trace seminorm.
+        Check if the triangle inequality holds for the given inputs.
 
-        The triangle inequality states that:
-        ||a + b|| <= ||a|| + ||b||
-
-        For trace seminorm, this becomes:
-        |trace(a + b)| <= |trace(a)| + |trace(b)|
+        The triangle inequality states that for any two matrices a and b:
+        trace_seminorm(a + b) <= trace_seminorm(a) + trace_seminorm(b)
 
         Args:
             a: T
-                The first matrix
+                The first matrix or callable that returns a matrix.
             b: T
-                The second matrix
+                The second matrix or callable that returns a matrix.
 
         Returns:
             bool:
-                True if the triangle inequality holds, False otherwise
+                True if the triangle inequality holds, False otherwise.
         """
         logger.debug("Checking triangle inequality")
         
-        try:
-            norm_a = self.compute(a)
-            norm_b = self.compute(b)
-            norm_a_plus_b = self.compute(a + b)
+        # Compute seminorms
+        seminorm_a = self.compute(a)
+        seminorm_b = self.compute(b)
+        
+        # Compute a + b if they are matrices
+        if not callable(a) and not callable(b):
+            a_matrix = a
+            b_matrix = b
+            a_plus_b = a_matrix + b_matrix
+        else:
+            # If either is callable, we need to get their matrix forms
+            a_matrix = a() if callable(a) else a
+            b_matrix = b() if callable(b) else b
+            a_plus_b = a_matrix + b_matrix
             
-            return norm_a_plus_b <= norm_a + norm_b
-            
-        except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
-            return False
+        seminorm_a_plus_b = self.compute(a_plus_b)
+        
+        # Check inequality
+        holds = seminorm_a_plus_b <= (seminorm_a + seminorm_b)
+        
+        logger.debug(f"Triangle inequality holds: {holds}")
+        return holds
 
     def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds for the trace seminorm.
+        Check if scalar homogeneity holds for the given input and scalar.
 
-        The scalar homogeneity property states that:
-        ||s * a|| = |s| * ||a||
-
-        For trace seminorm, this becomes:
-        |trace(s * a)| = |s| * |trace(a)|
+        Scalar homogeneity states that for any matrix a and scalar c >= 0:
+        trace_seminorm(c * a) = c * trace_seminorm(a)
 
         Args:
             a: T
-                The input matrix
+                The input to check.
             scalar: float
-                The scalar to test homogeneity with
+                The scalar to check against.
 
         Returns:
             bool:
-                True if scalar homogeneity holds, False otherwise
+                True if scalar homogeneity holds, False otherwise.
         """
         logger.debug("Checking scalar homogeneity")
         
-        try:
-            norm_a = self.compute(a)
-            norm_scaled_a = self.compute(scalar * a)
-            
-            return norm_scaled_a == abs(scalar) * norm_a
-            
-        except Exception as e:
-            logger.error(f"Error checking scalar homogeneity: {str(e)}")
-            return False
+        # Compute original seminorm
+        original_seminorm = self.compute(a)
+        
+        # Compute scaled matrix
+        if callable(a):
+            scaled_matrix = scalar * a()
+        else:
+            scaled_matrix = scalar * a
+        
+        # Compute seminorm of scaled matrix
+        scaled_seminorm = self.compute(scaled_matrix)
+        
+        # Check homogeneity
+        homogeneous = np.isclose(scaled_seminorm, scalar * original_seminorm)
+        
+        logger.debug(f"Scalar homogeneity holds: {homogeneous}")
+        return homogeneous

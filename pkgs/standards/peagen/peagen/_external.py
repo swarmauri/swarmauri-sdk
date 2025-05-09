@@ -81,7 +81,7 @@ def call_external_agent(
     provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
     api_key = os.getenv(f"{provider.upper()}_API_KEY") or agent_env.get("api_key")
     model_name = agent_env.get("model_name")
-    max_tokens = int(agent_env.get("max_tokens", 3000))
+    max_tokens = int(agent_env.get("max_tokens", 8192))
 
     # Initialize the generic LLM manager
     llm_manager = GenericLLM()

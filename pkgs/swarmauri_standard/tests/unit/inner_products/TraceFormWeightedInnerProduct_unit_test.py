@@ -1,73 +1,97 @@
-"""Unit tests for TraceFormWeightedInnerProduct module."""
 import pytest
 import numpy as np
+from swarmauri_standard.swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import TraceFormWeightedInnerProduct
 import logging
 
-from swarmauri_standard.swarmauri_standard.inner_products import TraceFormWeightedInnerProduct
+@pytest.fixture
+def weight_matrix():
+    """Fixture providing a default weight matrix for testing"""
+    return np.identity(2)
 
 @pytest.mark.unit
-class TestTraceFormWeightedInnerProduct:
-    """Unit tests for the TraceFormWeightedInnerProduct class."""
+def test_compute(weight_matrix):
+    """Test the compute method of TraceFormWeightedInnerProduct"""
+    # Create test vectors
+    x = np.array([1, 2], dtype=np.float64)
+    y = np.array([3, 4], dtype=np.float64)
+    
+    # Initialize the inner product instance
+    inner_product = TraceFormWeightedInnerProduct(weight_matrix)
+    
+    # Compute the inner product
+    result = inner_product.compute(x, y)
+    
+    # Expected result with identity matrix
+    expected = np.trace(np.dot(x.reshape(2,1).T, np.dot(weight_matrix, y.reshape(2,1))))
+    
+    # Assert the computed result matches expected
+    assert np.isclose(result, expected)
 
-    @pytest.fixture
-    def weight_matrix(self) -> np.ndarray:
-        """Fixture providing a 2x2 identity matrix as weight matrix."""
-        return np.identity(2)
+@pytest.mark.unit
+def test_conjugate_symmetry(weight_matrix):
+    """Test conjugate symmetry property"""
+    x = np.array([1, 2], dtype=np.complex128)
+    y = np.array([3, 4], dtype=np.complex128)
+    
+    inner_product = TraceFormWeightedInnerProduct(weight_matrix)
+    
+    # Compute both inner products
+    xy = inner_product.compute(x, y)
+    yx = inner_product.compute(y, x)
+    
+    # Check conjugate symmetry
+    assert np.isclose(xy, yx.conjugate())
 
-    @pytest.fixture
-    def trace_form(self, weight_matrix) -> TraceFormWeightedInnerProduct:
-        """Fixture providing an instance of TraceFormWeightedInnerProduct."""
-        return TraceFormWeightedInnerProduct(weight_matrix)
+@pytest.mark.unit
+def test_linearity(weight_matrix):
+    """Test linearity in the first argument"""
+    x = np.array([1, 2], dtype=np.float64)
+    y = np.array([3, 4], dtype=np.float64)
+    z = np.array([5, 6], dtype=np.float64)
+    a = 2.0
+    b = 3.0
+    
+    inner_product = TraceFormWeightedInnerProduct(weight_matrix)
+    
+    # Compute <ax + by, z>
+    ax = a * x
+    by = b * y
+    lhs = inner_product.compute(ax + by, z)
+    
+    # Compute a<x, z> + b<y, z>
+    rhs = a * inner_product.compute(x, z) + b * inner_product.compute(y, z)
+    
+    assert np.isclose(lhs, rhs)
 
-    def test_compute(self, trace_form) -> None:
-        """Test the compute method with example matrices."""
-        a = np.array([[1, 2], [3, 4]])
-        b = np.array([[5, 6], [7, 8]])
-        result = trace_form.compute(a, b)
-        
-        # Expected result with identity weight matrix
-        expected = np.trace(np.matmul(a, b))
-        assert result == expected
+@pytest.mark.unit
+def test_positivity(weight_matrix):
+    """Test positivity of the inner product"""
+    x = np.array([1, 1], dtype=np.float64)
+    
+    inner_product = TraceFormWeightedInnerProduct(weight_matrix)
+    
+    value = inner_product.compute(x, x)
+    
+    assert value > 0
 
-    def test_compute_non_square(self, trace_form) -> None:
-        """Test compute method with non-square matrices."""
-        a = np.array([[1, 2, 3]])
-        b = np.array([[4], [5], [6]])
-        with pytest.raises(ValueError):
-            trace_form.compute(a, b)
+@pytest.mark.unit
+def test_incompatible_dimensions():
+    """Test incompatible vector dimensions"""
+    weight_matrix = np.array([[1, 2], [3, 4]])
+    x = np.array([1, 2, 3], dtype=np.float64)
+    y = np.array([4, 5, 6], dtype=np.float64)
+    
+    inner_product = TraceFormWeightedInnerProduct(weight_matrix)
+    
+    with pytest.raises(ValueError):
+        inner_product.compute(x, y)
 
-    def test_check_conjugate_symmetry(self, trace_form) -> None:
-        """Test the conjugate symmetry check."""
-        a = np.array([[1, 2], [3, 4]])
-        b = np.array([[5, 6], [7, 8]])
-        
-        inner_ab = trace_form.compute(a, b)
-        inner_ba = trace_form.compute(b, a)
-        
-        assert np.isclose(inner_ab, inner_ba)
+@pytest.mark.unit
+def test_resource():
+    """Test the resource property"""
+    assert TraceFormWeightedInnerProduct.resource == "Inner_product"
 
-    def test_check_positivity(self, trace_form) -> None:
-        """Test the positivity check."""
-        # Positive definite matrix
-        a = np.array([[2, 1], [1, 2]])
-        result = trace_form.check_positivity(a)
-        assert result
-
-        # Non-positive definite matrix
-        b = np.array([[1, 2], [3, 4]])
-        result = trace_form.check_positivity(b)
-        assert not result
-
-    def test_init(self) -> None:
-        """Test initialization with valid weight matrix."""
-        weight = np.array([[1, 0], [0, 1]])
-        instance = TraceFormWeightedInnerProduct(weight)
-        assert isinstance(instance.weight_matrix, np.ndarray)
-
-    def test_resource(self) -> None:
-        """Test the resource class property."""
-        assert TraceFormWeightedInnerProduct.resource == "Inner_product"
-
-    def test_type(self) -> None:
-        """Test the type class property."""
-        assert TraceFormWeightedInnerProduct.type == "TraceFormWeightedInnerProduct"
+@pytest.mark.unit
+def test_type():
+    """Test the type property"""
+    assert TraceFormWeightedInnerProduct.type == "TraceFormWeightedInnerProduct"

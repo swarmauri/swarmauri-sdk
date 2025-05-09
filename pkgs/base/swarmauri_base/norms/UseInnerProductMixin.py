@@ -1,106 +1,102 @@
+from typing import Type, Optional
+from abc import ABC
 import logging
-from typing import Optional
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
-from swarmauri_core.norms.IInnerProduct import IInnerProduct
 
-logger = logging.getLogger("UseInnerProductMixin")
+logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_model()
 class UseInnerProductMixin(IUseInnerProduct, ComponentBase):
-    """
-    Base mixin class for components that utilize inner product geometry.
+    """Mixin class providing base implementation for components using inner product geometry.
 
-    This class provides a base implementation for components that require an inner product
-    structure. It includes basic setup for maintaining an inner product reference and
-    provides abstract method stubs that should be implemented by concrete subclasses.
+    This class serves as a foundation for components that require inner product operations.
+    It provides a reference to an inner product implementation and defines abstract methods
+    that must be implemented by concrete subclasses.
 
-    Attributes:
-        inner_product: Reference to an IInnerProduct instance
-        resource: Optional resource identifier
+    Args:
+        inner_product: Implementation of IInnerProduct to be used for operations
     """
-    
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
-    
-    def __init__(self, inner_product: IInnerProduct = None):
-        """
-        Initialize the UseInnerProductMixin instance.
+    resource: Optional[str] = ResourceTypes.NORM.value
+
+    def __init__(self, inner_product: Type[IInnerProduct]):
+        """Initialize the mixin with an inner product implementation.
 
         Args:
-            inner_product: Optional IInnerProduct instance to be used internally
+            inner_product: A class implementing IInnerProduct interface
+
+        Raises:
+            NotImplementedError: If any abstract method is called before being implemented
         """
         super().__init__()
-        if inner_product is not None:
-            if not isinstance(inner_product, IInnerProduct):
-                raise TypeError("inner_product must be an instance of IInnerProduct")
-            self.inner_product = inner_product
-        else:
-            self.inner_product = None
-    
-    def check_angle_between_vectors(self, a: object, b: object) -> float:
-        """
-        Calculate and return the angle between two vectors using the inner product.
+        self.inner_product = inner_product()
+        logger.info("Initialized UseInnerProductMixin with inner product: %s", self.inner_product.__class__.__name__)
+
+    def check_angle_between_vectors(self, x: IInnerProduct, y: IInnerProduct) -> float:
+        """Compute the angle between two vectors using the inner product.
 
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
 
         Returns:
-            The angle in radians between the two vectors.
+            Angle in radians between the two vectors
 
         Raises:
-            NotImplementedError: Always raised as this is an abstract method
+            NotImplementedError: This method must be implemented by subclass
         """
-        logger.debug("check_angle_between_vectors called")
-        raise NotImplementedError("Method check_angle_between_vectors must be implemented in subclass")
+        logger.info("Attempting to compute angle between vectors")
+        raise NotImplementedError("Method must be implemented by subclass")
 
-    def check_verify_orthogonality(self, a: object, b: object) -> bool:
-        """
-        Check if two vectors are orthogonal using the inner product.
+    def check_verify_orthogonality(self, x: IInnerProduct, y: IInnerProduct) -> bool:
+        """Verify if two vectors are orthogonal using the inner product.
 
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
 
         Returns:
-            True if the vectors are orthogonal, False otherwise.
+            True if vectors are orthogonal, False otherwise
 
         Raises:
-            NotImplementedError: Always raised as this is an abstract method
+            NotImplementedError: This method must be implemented by subclass
         """
-        logger.debug("check_verify_orthogonality called")
-        raise NotImplementedError("Method check_verify_orthogonality must be implemented in subclass")
+        logger.info("Attempting to verify orthogonality between vectors")
+        raise NotImplementedError("Method must be implemented by subclass")
 
-    def check_xy_project(self, vector: object, basis: object) -> object:
-        """
-        Project a vector onto a specified basis using the inner product.
+    def check_xy_project(self, x: IInnerProduct, y: IInnerProduct) -> IInnerProduct:
+        """Project vector x onto vector y using the inner product.
 
         Args:
-            vector: Vector to be projected
-            basis: Basis vectors for projection
+            x: Vector to project
+            y: Vector onto which to project
 
         Returns:
-            Projected vector onto the specified basis.
+            Projection of x onto y
 
         Raises:
-            NotImplementedError: Always raised as this is an abstract method
+            NotImplementedError: This method must be implemented by subclass
         """
-        logger.debug("check_xy_project called")
-        raise NotImplementedError("Method check_xy_project must be implemented in subclass")
+        logger.info("Attempting to project vector x onto vector y")
+        raise NotImplementedError("Method must be implemented by subclass")
 
-    def check_verify_parallelogram_law(self, a: object, b: object) -> bool:
-        """
-        Verify the parallelogram law using the inner product.
+    def check_verify_parallelogram_law(self, x: IInnerProduct, y: IInnerProduct) -> bool:
+        """Verify the parallelogram law using the inner product.
+
+        The parallelogram law states that:
+        ||x + y||² + ||x - y||² = 2||x||² + 2||y||²
 
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
 
         Returns:
-            True if the parallelogram law holds, False otherwise.
+            True if the parallelogram law holds, False otherwise
 
         Raises:
-            NotImplementedError: Always raised as this is an abstract method
+            NotImplementedError: This method must be implemented by subclass
         """
-        logger.debug("check_verify_parallelogram_law called")
-        raise NotImplementedError("Method check_verify_parallelogram_law must be implemented in subclass")
+        logger.info("Attempting to verify parallelogram law")
+        raise NotImplementedError("Method must be implemented by subclass")

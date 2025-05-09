@@ -1,186 +1,113 @@
-"""Unit tests for the SobolevH1InnerProduct class in the swarmauri_standard package."""
 import pytest
-from swarmauri_standard.swarmauri_standard.inner_products import SobolevH1InnerProduct
+from swarmauri_standard.swarmauri_standard.inner_products.SobolevH1InnerProduct import SobolevH1InnerProduct
 import logging
 
-# Set up logger
 logger = logging.getLogger(__name__)
 
-@pytest.fixture
-def sobolev_h1_inner_product():
-    """Fixture providing a SobolevH1InnerProduct instance for testing."""
-    return SobolevH1InnerProduct()
-
 @pytest.mark.unit
-def test_class_attributes(sobolev_h1_inner_product):
-    """Test the class attributes."""
-    assert sobolev_h1_inner_product.resource == "Inner_product"
-    assert sobolev_h1_inner_product.type == "SobolevH1InnerProduct"
+class TestSobolevH1InnerProduct:
+    """Unit test class for SobolevH1InnerProduct implementation.
+    
+    This class provides unit tests for the SobolevH1InnerProduct class, 
+    verifying its functionality and mathematical properties.
+    """
+    
+    @pytest.fixture
+    def sobolev_inner_product(self):
+        """Fixture providing an instance of SobolevH1InnerProduct."""
+        return SobolevH1InnerProduct()
 
-@pytest.mark.unit
-def test_compute(sobolev_h1_inner_product):
-    """Test the compute method with various function types."""
-    # Test with linear functions
-    class FunctionA:
-        def derivative(self):
-            return 1.0  # Constant derivative
+    @pytest.fixture
+    def mock_zero_vector(self):
+        """Fixture providing a mock zero vector for testing."""
+        class ZeroVector:
+            def function_value(self):
+                return 0.0
+            def first_derivative(self):
+                return 0.0
+            def inner_product(self, other):
+                return 0.0
+        return ZeroVector()
 
-        def inner_product(self, other):
-            return 2.0  # Mock L2 inner product
+    @pytest.fixture
+    def mock_constant_vector(self):
+        """Fixture providing a mock constant vector for testing."""
+        class ConstantVector:
+            def function_value(self):
+                return 1.0
+            def first_derivative(self):
+                return 0.0
+            def inner_product(self, other):
+                # Simple L2 inner product implementation
+                return self.function_value() * other.function_value()
+        return ConstantVector()
 
-    class FunctionB:
-        def derivative(self):
-            return 1.0
+    @pytest.fixture
+    def mock_linear_vector(self):
+        """Fixture providing a mock linear vector for testing."""
+        class LinearVector:
+            def function_value(self):
+                return 2.0
+            def first_derivative(self):
+                return 2.0
+            def inner_product(self, other):
+                # Simple L2 inner product implementation
+                return self.function_value() * other.function_value()
+        return LinearVector()
 
-        def inner_product(self, other):
-            return 2.0
+    def test_resource(self, sobolev_inner_product):
+        """Test that the resource attribute is correctly set."""
+        assert sobolev_inner_product.resource == "Inner_product"
 
-    a = FunctionA()
-    b = FunctionB()
+    def test_type(self, sobolev_inner_product):
+        """Test that the type attribute is correctly set."""
+        assert sobolev_inner_product.type == "SobolevH1InnerProduct"
 
-    result = sobolev_h1_inner_product.compute(a, b)
-    assert result == 4.0  # 2.0 (functions) + 2.0 (derivatives)
+    def test_compute_zero_vectors(self, sobolev_inner_product, mock_zero_vector):
+        """Test compute method with zero vectors."""
+        x = mock_zero_vector
+        y = mock_zero_vector
+        result = sobolev_inner_product.compute(x, y)
+        assert result == 0.0
 
-    # Test with quadratic functions
-    class FunctionC:
-        def derivative(self):
-            return 2.0  # Derivative of 2x
+    def test_compute_constant_functions(self, sobolev_inner_product, mock_constant_vector):
+        """Test compute method with constant functions."""
+        x = mock_constant_vector
+        y = mock_constant_vector
+        result = sobolev_inner_product.compute(x, y)
+        assert result == 1.0  # Only function value contributes since derivative is zero
 
-        def inner_product(self, other):
-            return 4.0  # Mock L2 inner product
+    def test_compute_linear_functions(self, sobolev_inner_product, mock_linear_vector):
+        """Test compute method with linear functions."""
+        x = mock_linear_vector
+        y = mock_linear_vector
+        result = sobolev_inner_product.compute(x, y)
+        assert result != 0.0  # Both function and derivative contribute
 
-    class FunctionD:
-        def derivative(self):
-            return 2.0
+    def test_conjugate_symmetry(self, sobolev_inner_product, mock_linear_vector, mock_constant_vector):
+        """Test conjugate symmetry property."""
+        x = mock_linear_vector
+        y = mock_constant_vector
+        inner_xy = sobolev_inner_product.compute(x, y)
+        inner_yx = sobolev_inner_product.compute(y, x)
+        assert inner_xy == inner_yx
 
-        def inner_product(self, other):
-            return 4.0
+    def test_linearity(self, sobolev_inner_product, mock_linear_vector, mock_constant_vector):
+        """Test linearity property in the first argument."""
+        x = mock_linear_vector
+        y = mock_constant_vector
+        z = mock_linear_vector
+        
+        a = 2.0
+        b = 3.0
+        
+        lhs = sobolev_inner_product.compute(a * x + b * y, z)
+        rhs = a * sobolev_inner_product.compute(x, z) + b * sobolev_inner_product.compute(y, z)
+        
+        assert lhs == rhs
 
-    c = FunctionC()
-    d = FunctionD()
-
-    result = sobolev_h1_inner_product.compute(c, d)
-    assert result == 8.0  # 4.0 (functions) + 4.0 (derivatives)
-
-@pytest.mark.unit
-def test_compute_edge_cases(sobolev_h1_inner_product):
-    """Test compute method with edge cases."""
-    # Test with zero function
-    class ZeroFunction:
-        def derivative(self):
-            return 0.0
-
-        def inner_product(self, other):
-            return 0.0
-
-    zero = ZeroFunction()
-    result = sobolev_h1_inner_product.compute(zero, zero)
-    assert result == 0.0
-
-    # Test with orthogonal functions
-    class FunctionE:
-        def derivative(self):
-            return 0.0
-
-        def inner_product(self, other):
-            return 0.0
-
-    class FunctionF:
-        def derivative(self):
-            return 0.0
-
-        def inner_product(self, other):
-            return 0.0
-
-    e = FunctionE()
-    f = FunctionF()
-
-    result = sobolev_h1_inner_product.compute(e, f)
-    assert result == 0.0
-
-@pytest.mark.unit
-def test_check_conjugate_symmetry(sobolev_h1_inner_product):
-    """Test the conjugate symmetry property."""
-    # Using real-valued functions
-    class FunctionG:
-        def derivative(self):
-            return 1.0
-
-        def inner_product(self, other):
-            return 1.0
-
-    class FunctionH:
-        def derivative(self):
-            return 1.0
-
-        def inner_product(self, other):
-            return 1.0
-
-    g = FunctionG()
-    h = FunctionH()
-
-    ab = sobolev_h1_inner_product.compute(g, h)
-    ba = sobolev_h1_inner_product.compute(h, g)
-    assert abs(ab - ba) < 1e-10
-
-@pytest.mark.unit
-@pytest.mark.parametrize("scalar,c,expected_result", [
-    (2.0, FunctionG(), 2.0),
-    (0.5, FunctionG(), 0.5)
-])
-def test_check_linearity(sobolev_h1_inner_product, scalar, c, expected_result):
-    """Test the linearity property using different scalars."""
-    # Using parametrized scalar values
-    class FunctionI:
-        def __init__(self, scalar):
-            self.scalar = scalar
-
-        def derivative(self):
-            return scalar
-
-        def inner_product(self, other):
-            return scalar
-
-    a = FunctionI(1.0)
-    b = FunctionI(1.0)
-    c = FunctionI(1.0)
-
-    ab = sobolev_h1_inner_product.compute(a, b)
-    result = sobolev_h1_inner_product.check_linearity(a, b, c)
-    assert result
-
-@pytest.mark.unit
-def test_check_positivity(sobolev_h1_inner_product):
-    """Test the positivity property."""
-    class PositiveFunction:
-        def derivative(self):
-            return 1.0
-
-        def inner_product(self, other):
-            return 1.0
-
-    positive_func = PositiveFunction()
-    result = sobolev_h1_inner_product.check_positivity(positive_func)
-    assert result
-
-    # Test with zero function
-    class ZeroFunction:
-        def derivative(self):
-            return 0.0
-
-        def inner_product(self, other):
-            return 0.0
-
-    zero_func = ZeroFunction()
-    result = sobolev_h1_inner_product.check_positivity(zero_func)
-    assert not result
-
-@pytest.mark.unit
-def test_compute_raises_value_error(sobolev_h1_inner_product):
-    """Test that compute raises ValueError for invalid functions."""
-    class InvalidFunction:
-        pass
-
-    invalid = InvalidFunction()
-    with pytest.raises(ValueError):
-        sobolev_h1_inner_product.compute(invalid, invalid)
+    def test_positivity(self, sobolev_inner_product, mock_linear_vector):
+        """Test positivity property."""
+        x = mock_linear_vector
+        inner = sobolev_inner_product.compute(x, x)
+        assert inner > 0.0

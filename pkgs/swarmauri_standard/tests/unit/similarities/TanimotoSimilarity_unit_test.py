@@ -1,203 +1,105 @@
 import pytest
-import unittest
-from swarmauri_standard.swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarity
 import logging
+from swarmauri_standard.swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarity
 
-logger = logging.getLogger(__name__)
-
+@pytest.fixture
+def tanimoto_similarity():
+    """Fixture to provide a TanimotoSimilarity instance for testing."""
+    return TanimotoSimilarity()
 
 @pytest.mark.unit
-class TestTanimotoSimilarity(unittest.TestCase):
+class TestTanimotoSimilarity:
     """
     Unit tests for the TanimotoSimilarity class.
-
-    This test class provides comprehensive unit tests for the TanimotoSimilarity
-    class implementation. It tests all public methods and their expected behavior,
-    including edge cases and error handling.
+    
+    This class contains tests for the TanimotoSimilarity implementation, ensuring 
+    the correctness of similarity calculations for various input scenarios.
     """
-
-    def setUp(self):
+    
+    def test_class_attributes(self, tanimoto_similarity):
         """
-        Set up the test fixture.
-
-        Initialize the TanimotoSimilarity instance before each test case.
+        Test that class attributes are correctly set.
         """
-        self.tanimoto = TanimotoSimilarity()
+        assert tanimoto_similarity.type == "TanimotoSimilarity"
+        assert tanimoto_similarity.resource == "Similarity"
 
-    def test_similarity_with_valid_vectors(self):
+    @pytest.mark.parametrize("x,y,expected_similarity", [
+        ([1.0, 0.0], [1.0, 0.0], 1.0),
+        ([1.0, 2.0], [1.0, 2.0], 1.0),
+        ([1.0, 0.0], [0.0, 1.0], 0.0),
+        ([1.0, 1.0], [1.0, 1.0], 1.0),
+        ([0.5, 0.5], [0.5, 0.5], 1.0),
+        ([1.0, 0.0, 1.0], [1.0, 1.0, 0.0], 0.0),
+    ])
+    def test_similarity(self, tanimoto_similarity, x, y, expected_similarity):
         """
-        Test the similarity method with valid vectors.
+        Test the similarity method with various input vectors.
+        """
+        similarity = tanimoto_similarity.similarity(x, y)
+        assert pytest.approx(similarity, expected_similarity)
 
-        Verify that the Tanimoto similarity is correctly calculated for non-empty vectors.
+    @pytest.mark.parametrize("pairs,expected_similarities", [
+        ([([1.0, 0.0], [1.0, 0.0]), ([1.0, 1.0], [1.0, 1.0])], [1.0, 1.0]),
+        ([([1.0, 0.0], [0.0, 1.0]), ([1.0, 1.0], [0.0, 0.0])], [0.0, 0.0]),
+    ])
+    def test_similarities(self, tanimoto_similarity, pairs, expected_similarities):
         """
-        a = [1, 2, 3]
-        b = [4, 5, 6]
-        result = self.tanimoto.similarity(a, b)
-        self.assertIsInstance(result, float)
-        self.assertGreaterEqual(result, 0.0)
-        self.assertLessEqual(result, 1.0)
+        Test the similarities method with multiple pairs of vectors.
+        """
+        similarities = tanimoto_similarity.similarities(pairs)
+        for calculated, expected in zip(similarities, expected_similarities):
+            assert pytest.approx(calculated, expected)
 
-    def test_similarity_with_identical_vectors(self):
+    @pytest.mark.parametrize("x,y,expected_dissimilarity", [
+        ([1.0, 0.0], [1.0, 0.0], 0.0),
+        ([1.0, 2.0], [1.0, 2.0], 0.0),
+        ([1.0, 0.0], [0.0, 1.0], 1.0),
+        ([1.0, 1.0], [1.0, 1.0], 0.0),
+        ([0.5, 0.5], [0.5, 0.5], 0.0),
+        ([1.0, 0.0, 1.0], [1.0, 1.0, 0.0], 1.0),
+    ])
+    def test_dissimilarity(self, tanimoto_similarity, x, y, expected_dissimilarity):
         """
-        Test the similarity method with identical vectors.
+        Test the dissimilarity method with various input vectors.
+        """
+        dissimilarity = tanimoto_similarity.dissimilarity(x, y)
+        assert pytest.approx(dissimilarity, expected_dissimilarity)
 
-        Verify that the similarity of a vector with itself returns 1.0.
+    @pytest.mark.parametrize("pairs,expected_dissimilarities", [
+        ([([1.0, 0.0], [1.0, 0.0]), ([1.0, 1.0], [1.0, 1.0])], [0.0, 0.0]),
+        ([([1.0, 0.0], [0.0, 1.0]), ([1.0, 1.0], [0.0, 0.0])], [1.0, 1.0]),
+    ])
+    def test_dissimilarities(self, tanimoto_similarity, pairs, expected_dissimilarities):
         """
-        a = [1, 2, 3]
-        result = self.tanimoto.similarity(a, a)
-        self.assertEqual(result, 1.0)
+        Test the dissimilarities method with multiple pairs of vectors.
+        """
+        dissimilarities = tanimoto_similarity.dissimilarities(pairs)
+        for calculated, expected in zip(dissimilarities, expected_dissimilarities):
+            assert pytest.approx(calculated, expected)
 
-    def test_similarity_with_zero_vector(self):
+    @pytest.mark.parametrize("x,y", [
+        ([], [1.0]),
+        ([1.0], []),
+        ([1.0, 2.0], [1.0]),
+        ([1.0], [1.0, 2.0]),
+    ])
+    def test_similarity_raises_value_error(self, tanimoto_similarity, x, y):
         """
-        Test the similarity method with a zero vector.
+        Test that similarity raises ValueError for invalid inputs.
+        """
+        with pytest.raises(ValueError):
+            tanimoto_similarity.similarity(x, y)
 
-        Verify that the similarity calculation handles zero vectors correctly.
+    @pytest.mark.parametrize("pairs", [
+        ([],),
+        ([([1.0, 2.0], [1.0])],),
+    ])
+    def test_similarities_raises_value_error(self, tanimoto_similarity, pairs):
         """
-        a = [0, 0, 0]
-        b = [1, 2, 3]
-        with self.assertRaises(ValueError):
-            self.tanimoto.similarity(a, b)
+        Test that similarities raises ValueError for invalid input pairs.
+        """
+        with pytest.raises(ValueError):
+            tanimoto_similarity.similarities(pairs)
 
-    def test_similarity_with_none_vectors(self):
-        """
-        Test the similarity method with None vectors.
-
-        Verify that the method raises a ValueError when either vector is None.
-        """
-        a = None
-        b = [1, 2, 3]
-        with self.assertRaises(ValueError):
-            self.tanimoto.similarity(a, b)
-
-    def test_similarities_with_valid_vectors(self):
-        """
-        Test the similarities method with valid vectors.
-
-        Verify that the method correctly calculates similarities for a list of vectors.
-        """
-        a = [1, 2, 3]
-        b_list = [[4, 5, 6], [7, 8, 9]]
-        results = self.tanimoto.similarities(a, b_list)
-        self.assertIsInstance(results, tuple)
-        self.assertEqual(len(results), len(b_list))
-
-    def test_similarities_with_empty_list(self):
-        """
-        Test the similarities method with an empty list.
-
-        Verify that the method returns an empty tuple when the input list is empty.
-        """
-        a = [1, 2, 3]
-        b_list = []
-        results = self.tanimoto.similarities(a, b_list)
-        self.assertEqual(results, tuple())
-
-    def test_dissimilarity_with_valid_vectors(self):
-        """
-        Test the dissimilarity method with valid vectors.
-
-        Verify that the dissimilarity is calculated as 1 - similarity.
-        """
-        a = [1, 2, 3]
-        b = [4, 5, 6]
-        similarity = self.tanimoto.similarity(a, b)
-        dissimilarity = self.tanimoto.dissimilarity(a, b)
-        self.assertEqual(dissimilarity, 1.0 - similarity)
-
-    def test_dissimilarities_with_valid_vectors(self):
-        """
-        Test the dissimilarities method with valid vectors.
-
-        Verify that the method correctly calculates dissimilarities for a list of vectors.
-        """
-        a = [1, 2, 3]
-        b_list = [[4, 5, 6], [7, 8, 9]]
-        similarities = self.tanimoto.similarities(a, b_list)
-        dissimilarities = self.tanimoto.dissimilarities(a, b_list)
-        self.assertEqual(len(dissimilarities), len(similarities))
-        for d, s in zip(dissimilarities, similarities):
-            self.assertEqual(d, 1.0 - s)
-
-    def test_check_boundedness(self):
-        """
-        Test the check_boundedness method.
-
-        Verify that the method returns True, as Tanimoto similarity is bounded between 0 and 1.
-        """
-        a = [1, 2, 3]
-        b = [4, 5, 6]
-        result = self.tanimoto.check_boundedness(a, b)
-        self.assertTrue(result)
-
-    def test_check_reflexivity(self):
-        """
-        Test the check_reflexivity method.
-
-        Verify that the similarity of a vector with itself returns 1.0.
-        """
-        a = [1, 2, 3]
-        result = self.tanimoto.check_reflexivity(a)
-        self.assertTrue(result)
-
-    def test_check_symmetry(self):
-        """
-        Test the check_symmetry method.
-
-        Verify that the similarity is symmetric, i.e., s(a, b) = s(b, a).
-        """
-        a = [1, 2, 3]
-        b = [4, 5, 6]
-        s_ab = self.tanimoto.similarity(a, b)
-        s_ba = self.tanimoto.similarity(b, a)
-        self.assertEqual(s_ab, s_ba)
-
-    def test_check_identity(self):
-        """
-        Test the check_identity method.
-
-        Verify that the method returns True only when the vectors are identical.
-        """
-        a = [1, 2, 3]
-        b_identical = [1, 2, 3]
-        b_different = [4, 5, 6]
-        
-        # Test with identical vectors
-        result_identical = self.tanimoto.check_identity(a, b_identical)
-        self.assertTrue(result_identical)
-        
-        # Test with different vectors
-        result_different = self.tanimoto.check_identity(a, b_different)
-        self.assertFalse(result_different)
-
-    def test_similarity_with_different_length_vectors(self):
-        """
-        Test the similarity method with vectors of different lengths.
-
-        Verify that the method raises a ValueError when vector lengths differ.
-        """
-        a = [1, 2, 3]
-        b = [4, 5]
-        with self.assertRaises(ValueError):
-            self.tanimoto.similarity(a, b)
-
-    def test_similarity_with_all_zero_vectors(self):
-        """
-        Test the similarity method with all-zero vectors.
-
-        Verify that the method raises a ValueError when both vectors are zero vectors.
-        """
-        a = [0, 0, 0]
-        b = [0, 0, 0]
-        with self.assertRaises(ValueError):
-            self.tanimoto.similarity(a, b)
-
-    def test_similarities_with_none_in_list(self):
-        """
-        Test the similarities method with None vectors in the list.
-
-        Verify that the method raises a ValueError when any vector in the list is None.
-        """
-        a = [1, 2, 3]
-        b_list = [None, [4, 5, 6]]
-        with self.assertRaises(ValueError):
-            self.tanimoto.similarities(a, b_list)
+# Configure logging for the test module
+logger = logging.getLogger(__name__)

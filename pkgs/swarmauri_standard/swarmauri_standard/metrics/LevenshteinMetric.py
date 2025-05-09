@@ -1,148 +1,115 @@
-from typing import Union, Sequence, Optional
-from swarmauri_base.metrics import MetricBase
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase
+from typing import Union, Sequence, TypeVar
 import logging
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+T = TypeVar('T', str, Sequence[str])
 
 @ComponentBase.register_type(MetricBase, "LevenshteinMetric")
 class LevenshteinMetric(MetricBase):
     """
     Provides a concrete implementation of the Levenshtein distance metric.
-    
-    The Levenshtein distance is a measure of the minimum number of single-character edits (insertions, deletions or substitutions) required to change one string into the other. This is useful in applications such as spell checkers, speech recognition systems, and molecular biology.
+
+    The Levenshtein distance is a measure of the minimum number of single-character edits (insertions, deletions or substitutions) required to change one string into the other.
+
+    Inherits From:
+        MetricBase: Base class for metrics, providing foundational functionality.
+
+    Provides:
+        - Implementation of the Levenshtein distance algorithm
+        - Compliance with the four main metric axioms
+        - Logging functionality
+        - Type hints and docstrings
+        - PEP 8 and PEP 484 compliance
     """
-    type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
     
     def __init__(self):
         """
-        Initializes the LevenshteinMetric class.
+        Initialize the LevenshteinMetric instance.
+        
+        Initializes the base class and sets up logging.
         """
         super().__init__()
-        self.resource = "LevenshteinMetric"
-        
-    def distance(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> float:
+        logger.debug("LevenshteinMetric instance initialized")
+
+    def distance(self, x: str, y: str) -> float:
         """
-        Computes the Levenshtein distance between two strings.
-        
+        Compute the Levenshtein distance between two strings.
+
         Args:
-            x: Union[str, Sequence]
-                The first string
-            y: Union[str, Sequence]
-                The second string
-                
+            x: str
+                The first string to compare
+            y: str
+                The second string to compare
+
         Returns:
-            float: The Levenshtein distance between x and y
+            float:
+                The computed Levenshtein distance between x and y
+
+        Raises:
+            ValueError:
+                If inputs are not strings
         """
-        # Ensure inputs are strings
         if not isinstance(x, str) or not isinstance(y, str):
-            raise TypeError("Both inputs must be strings")
-            
+            raise ValueError("Inputs must be strings")
+
         # Handle edge cases
+        if x == y:
+            return 0.0
         if len(x) == 0:
-            return len(y)
+            return float(len(y))
         if len(y) == 0:
-            return len(x)
-            
+            return float(len(x))
+
         # Initialize the matrix
         m, n = len(x), len(y)
         dp = [[0] * (n + 1) for _ in range(m + 1)]
-        
-        # Fill the first row and column
+
+        # Initialize the first row and column
         for i in range(m + 1):
             dp[i][0] = i
         for j in range(n + 1):
             dp[0][j] = j
-            
-        # Fill the rest of the matrix
+
+        # Fill in the rest of the matrix
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 cost = 0 if x[i-1] == y[j-1] else 1
-                dp[i][j] = min(
-                    dp[i-1][j] + 1,      # Deletion
-                    dp[i][j-1] + 1,      # Insertion
-                    dp[i-1][j-1] + cost  # Substitution
-                )
-                
-        return dp[m][n]
-    
-    def distances(self, x: Union[str, Sequence], ys: Optional[Sequence[str]] = None) -> Union[float, Sequence[float]]:
+                dp[i][j] = min(dp[i-1][j] + 1,   # Deletion
+                              dp[i][j-1] + 1,   # Insertion
+                              dp[i-1][j-1] + cost)  # Substitution or no cost
+
+        # The bottom-right cell contains the result
+        return float(dp[m][n])
+
+    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
         """
-        Computes the Levenshtein distances from a reference string x to one or more strings y.
-        
+        Compute the Levenshtein distance(s) between a string and one or more strings.
+
         Args:
-            x: Union[str, Sequence]
+            x: T
                 The reference string
-            ys: Optional[Sequence[str]]
-                Optional sequence of strings to compute distances to
-                
+            y_list: Union[T, Sequence[T]]
+                Either a single string or a sequence of strings
+
         Returns:
-            Union[float, Sequence[float]]: Either a single distance or sequence of distances
+            Union[float, Sequence[float]]:
+                - If y_list is a single string: Returns the distance as a float
+                - If y_list is a sequence: Returns a sequence of distances
+
+        Raises:
+            ValueError:
+                If inputs are not strings
         """
-        if ys is None:
-            return self.distance(x, ys)
+        if not isinstance(x, str):
+            raise ValueError("Reference input must be a string")
+            
+        if isinstance(y_list, str):
+            return self.distance(x, y_list)
+        elif isinstance(y_list, Sequence):
+            return [self.distance(x, y) for y in y_list]
         else:
-            return [self.distance(x, y) for y in ys]
-    
-    def check_non_negativity(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> bool:
-        """
-        Checks if the non-negativity property holds: d(x, y) ≥ 0.
-        
-        Args:
-            x: Union[str, Sequence]
-                The first string
-            y: Union[str, Sequence]
-                The second string
-                
-        Returns:
-            bool: True if d(x, y) ≥ 0, False otherwise
-        """
-        distance = self.distance(x, y)
-        return distance >= 0
-        
-    def check_identity(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> bool:
-        """
-        Checks the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
-        
-        Args:
-            x: Union[str, Sequence]
-                The first string
-            y: Union[str, Sequence]
-                The second string
-                
-        Returns:
-            bool: True if d(x, y) = 0 implies x = y and vice versa, False otherwise
-        """
-        return self.distance(x, y) == 0 if x == y else True
-        
-    def check_symmetry(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> bool:
-        """
-        Checks the symmetry property: d(x, y) = d(y, x).
-        
-        Args:
-            x: Union[str, Sequence]
-                The first string
-            y: Union[str, Sequence]
-                The second string
-                
-        Returns:
-            bool: True if d(x, y) = d(y, x), False otherwise
-        """
-        return self.distance(x, y) == self.distance(y, x)
-        
-    def check_triangle_inequality(self, x: Union[str, Sequence], y: Union[str, Sequence], z: Union[str, Sequence]) -> bool:
-        """
-        Checks the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
-        
-        Args:
-            x: Union[str, Sequence]
-                The first string
-            y: Union[str, Sequence]
-                The second string
-            z: Union[str, Sequence]
-                The third string
-                
-        Returns:
-            bool: True if d(x, z) ≤ d(x, y) + d(y, z), False otherwise
-        """
-        return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
+            raise ValueError("y_list must be a string or sequence of strings")

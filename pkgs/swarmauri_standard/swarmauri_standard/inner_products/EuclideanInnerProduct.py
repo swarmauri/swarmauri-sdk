@@ -1,158 +1,102 @@
-"""Module implementing the Euclidean inner product for swarmauri_standard package."""
-
 from typing import Literal
-import numpy as np
+from swarmauri_base.ComponentBase import ComponentBase
+from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 import logging
-from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
-# Set up logger
 logger = logging.getLogger(__name__)
 
 @ComponentBase.register_type(InnerProductBase, "EuclideanInnerProduct")
 class EuclideanInnerProduct(InnerProductBase):
-    """Concrete implementation of the InnerProductBase for Euclidean inner product.
-    
-    This class provides the standard Euclidean inner product implementation for real-valued vectors.
-    It inherits from the InnerProductBase class and implements all required methods.
-    
-    Attributes:
-        type: Literal["EuclideanInnerProduct"] = "EuclideanInnerProduct"
-            Type identifier for the inner product implementation.
-    """
     type: Literal["EuclideanInnerProduct"] = "EuclideanInnerProduct"
-
-    def __init__(self):
-        """Initializes the EuclideanInnerProduct instance."""
-        super().__init__()
-        self.type = "EuclideanInnerProduct"
-
-    def compute(self, a: object, b: object) -> float:
-        """Computes the Euclidean inner product of two real vectors.
+    """Concrete implementation of InnerProductBase for Euclidean inner product computation.
+    
+    Provides functionality to compute the standard L2 inner product (dot product) 
+    for real-valued vectors. Inherits from InnerProductBase and implements all 
+    required methods for computing and verifying properties of the inner product.
+    """
+    
+    def compute(self, x: "IVector", y: "IVector") -> float:
+        """Compute the Euclidean inner product (dot product) of two vectors.
         
         Args:
-            a: First real vector (list, numpy.ndarray, or similar iterable)
-            b: Second real vector (list, numpy.ndarray, or similar iterable)
+            x: First real-valued vector
+            y: Second real-valued vector
             
         Returns:
-            float: Result of the Euclidean inner product computation.
+            Scalar value representing the dot product of x and y.
             
         Raises:
-            ValueError: If input vectors are not of compatible dimensions
+            ValueError: If vectors are not of the same dimension
         """
-        logger.debug("Computing Euclidean inner product of vectors")
+        logger.debug("Computing Euclidean inner product")
+        if len(x) != len(y):
+            raise ValueError("Vectors must be of the same dimension for inner product computation")
         
-        try:
-            a_np = np.asarray(a)
-            b_np = np.asarray(b)
-            
-            if a_np.ndim != 1 or b_np.ndim != 1:
-                raise ValueError("Input vectors must be 1-dimensional")
-                
-            if len(a_np) != len(b_np):
-                raise ValueError("Input vectors must be of the same length")
-                
-            result = np.dot(a_np, b_np)
-            logger.debug(f"Computation result: {result}")
-            return result
-            
-        except ValueError as ve:
-            logger.error(f"ValueError in compute method: {ve}")
-            raise ve
-        except Exception as e:
-            logger.error(f"Unexpected error in compute method: {e}")
-            raise e
-
-    def check_conjugate_symmetry(self, a: object, b: object) -> bool:
-        """Checks if the inner product is conjugate symmetric (<a, b> = <b, a>*).
+        # Compute element-wise multiplication and sum
+        return sum(x_i * y_i for x_i, y_i in zip(x, y))
+    
+    def check_conjugate_symmetry(self, x: "IVector", y: "IVector") -> bool:
+        """Verify conjugate symmetry property for the inner product.
+        
+        For real-valued vectors, this checks if <x, y> == <y, x>.
         
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
             
         Returns:
-            bool: True if the inner product is conjugate symmetric, False otherwise
+            True if conjugate symmetry holds, False otherwise
         """
         logger.debug("Checking conjugate symmetry")
+        inner_xy = self.compute(x, y)
+        inner_yx = self.compute(y, x)
+        return inner_xy == inner_yx
+    
+    def check_linearity_first_argument(self, 
+                                      x: "IVector", 
+                                      y: "IVector", 
+                                      z: "IVector",
+                                      a: float = 1.0, 
+                                      b: float = 1.0) -> bool:
+        """Verify linearity in the first argument of the inner product.
         
-        try:
-            inner_product_ab = self.compute(a, b)
-            inner_product_ba = self.compute(b, a)
-            
-            # Since we're dealing with real vectors, the conjugate symmetry
-            # reduces to standard symmetry
-            return np.isclose(inner_product_ab, inner_product_ba)
-            
-        except Exception as e:
-            logger.error(f"Error in check_conjugate_symmetry: {e}")
-            return False
-
-    def check_linearity(self, a: object, b: object, c: object) -> bool:
-        """Checks if the inner product is linear in the first argument.
-        
-        Verifies that <a + c, b> = <a, b> + <c, b> for some vector c.
+        Checks if <(a*x + b*y), z> equals a*<x, z> + b*<y, z>.
         
         Args:
-            a: First vector
-            b: Second vector
-            c: Third vector (to be added to a)
+            x: First vector
+            y: Second vector
+            z: Third vector
+            a: Coefficient for x
+            b: Coefficient for y
             
         Returns:
-            bool: True if the inner product is linear, False otherwise
+            True if linearity holds, False otherwise
         """
-        logger.debug("Checking linearity of inner product")
+        logger.debug("Checking linearity in first argument")
         
-        try:
-            # Compute individual inner products
-            inner_product_ab = self.compute(a, b)
-            inner_product_cb = self.compute(c, b)
-            
-            # Compute inner product of (a + c) and b
-            a_plus_c = np.asarray(a) + np.asarray(c)
-            inner_product_ab_c = self.compute(a_plus_c, b)
-            
-            # Check if <a+c, b> equals <a,b> + <c,b>
-            return np.isclose(inner_product_ab_c, inner_product_ab + inner_product_cb)
-            
-        except Exception as e:
-            logger.error(f"Error in check_linearity: {e}")
-            return False
-
-    def check_positivity(self, a: object) -> bool:
-        """Checks if the inner product is positive definite.
+        # Compute left-hand side: <a*x + b*y, z>
+        ax_by = [a * x_i + b * y_i for x_i, y_i in zip(x, y)]
+        lhs = self.compute(ax_by, z)
         
-        Verifies that <a, a> > 0 for any non-zero vector a.
+        # Compute right-hand side: a*<x, z> + b*<y, z>
+        rhs = a * self.compute(x, z) + b * self.compute(y, z)
+        
+        return lhs == rhs
+    
+    def check_positivity(self, x: "IVector") -> bool:
+        """Verify positive definiteness of the inner product.
+        
+        Checks if the inner product of x with itself is positive for any non-zero vector x.
         
         Args:
-            a: Vector to check
+            x: Vector to check
             
         Returns:
-            bool: True if the inner product is positive definite, False otherwise
+            True if positive definiteness holds, False otherwise
         """
-        logger.debug("Checking positivity of inner product")
-        
-        try:
-            a_np = np.asarray(a)
-            if a_np.size == 0:
-                logger.warning("Empty vector provided for positivity check")
-                return False
-                
-            inner_product_aa = self.compute(a, a)
-            
-            if inner_product_aa <= 0:
-                logger.warning("Inner product result was not positive")
-                return False
-                
-            # Check if the vector is the zero vector
-            if np.allclose(a_np, np.zeros_like(a_np)):
-                logger.warning("Zero vector provided for positivity check")
-                return False
-                
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error in check_positivity: {e}")
+        logger.debug("Checking positivity")
+        if len(x) == 0:
             return False
-
-    def __repr__(self) -> str:
-        """Returns a string representation of the object."""
-        return f"EuclideanInnerProduct(type={self.type})"
+            
+        inner_xx = self.compute(x, x)
+        return inner_xx > 0

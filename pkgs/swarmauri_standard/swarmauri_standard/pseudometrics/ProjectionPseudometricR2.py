@@ -1,96 +1,186 @@
-from typing import Union, Sequence, List, Any
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.pseudometrics import PseudometricBase
+from typing import Iterable, TypeVar, Optional, Union
+from pydantic import Field
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+# Define type variables for input types
+InputTypes = TypeVar('InputTypes', list, tuple, Iterable)
+DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
+
+@ComponentBase.register_type(PseudometricBase, "ProjectionPseudometricR2")
 class ProjectionPseudometricR2(PseudometricBase):
     """
-    A pseudometric that projects 2D vectors onto a specified axis (x or y) and measures the distance based on the projection.
-
-    This class implements a pseudometric by projecting 2D points onto either the x or y axis and then computing the distance between these projections. The projection axis can be specified during initialization.
-
-    Inherits:
-        PseudometricBase: Base class for pseudometrics
+    A concrete implementation of the PseudometricBase class that measures pseudometric
+    via projection in ℝ². This class projects 2D vectors onto a specified coordinate
+    axis (either x or y) and computes distances based on these projections.
 
     Attributes:
-        projection_axis: str
-            Specifies which coordinate to use for projection. Can be 'x' or 'y'
+        axis: str
+            The coordinate axis to use for projection. Can be either 'x' or 'y'.
+            Defaults to 'x'.
+        resource: str
+            The resource type identifier for this component.
     """
-    resource: str = ResourceTypes.PSEUDOMETRIC.value
+    resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
+    axis: str = Field(default="x")
 
-    def __init__(self, projection_axis: str = 'x'):
+    def __init__(self, axis: str = "x"):
         """
-        Initializes the ProjectionPseudometricR2 with the specified projection axis.
+        Initialize the ProjectionPseudometricR2 instance.
 
         Args:
-            projection_axis: str
-                The axis to project onto ('x' or 'y'). Defaults to 'x'
+            axis: str
+                The coordinate axis to use for projection. Must be either 'x' or 'y'.
+                Defaults to 'x'.
 
         Raises:
-            ValueError: If projection_axis is not 'x' or 'y'
+            ValueError:
+                If the specified axis is neither 'x' nor 'y'.
         """
         super().__init__()
-        if projection_axis not in ['x', 'y']:
-            raise ValueError("projection_axis must be either 'x' or 'y'")
+        if axis not in ('x', 'y'):
+            raise ValueError("Axis must be either 'x' or 'y'")
+        self.axis = axis
+        logger.debug(f"Initialized ProjectionPseudometricR2 with axis={self.axis}")
 
-        self.projection_axis = projection_axis
-        logger.debug(f"Initialized ProjectionPseudometricR2 with projection_axis: {self.projection_axis}")
-
-    def distance(self, x: Union[Sequence, Any], y: Union[Sequence, Any]) -> float:
+    def distance(self, x: InputTypes, y: InputTypes) -> float:
         """
-        Computes the pseudometric distance between two 2D points based on the projected coordinate.
+        Compute the distance between two points x and y based on their projection.
 
         Args:
-            x: Union[Sequence, Any]
-                The first 2D point or vector
-            y: Union[Sequence, Any]
-                The second 2D point or vector
+            x: InputTypes
+                The first point. Must be a 2D vector or point.
+            y: InputTypes
+                The second point. Must be a 2D vector or point.
 
         Returns:
-            float: The absolute difference between the projected coordinates
+            float:
+                The distance between the projections of x and y.
 
         Raises:
-            ValueError: If inputs are not valid 2D points
+            ValueError:
+                If the input points are not 2D or not iterable.
         """
         try:
-            x_coord = x[0] if self.projection_axis == 'x' else x[1]
-            y_coord = y[0] if self.projection_axis == 'x' else y[1]
-        except (TypeError, IndexError):
-            logger.error("Invalid input: inputs must be 2D points")
-            raise ValueError("Inputs must be 2D points")
+            # Extract the appropriate coordinate based on the axis
+            x_coord = x[0] if self.axis == 'x' else x[1]
+            y_coord = y[0] if self.axis == 'x' else y[1]
+            
+            # Compute the absolute difference
+            return abs(x_coord - y_coord)
+            
+        except (TypeError, IndexError) as e:
+            logger.error("Invalid input types for distance calculation: %s", str(e))
+            raise ValueError("Inputs must be 2D points or vectors")
 
-        return abs(float(x_coord) - float(y_coord))
-
-    def distances(self, xs: Sequence[Union[Sequence, Any]], ys: Sequence[Union[Sequence, Any]]) -> List[float]:
+    def distances(self, x: InputTypes, ys: Iterable[InputTypes]) -> Iterable[float]:
         """
-        Computes pairwise pseudometric distances between two sequences of 2D points.
+        Compute distances from point x to multiple points ys.
 
         Args:
-            xs: Sequence[Union[Sequence, Any]]
-                The first sequence of 2D points
-            ys: Sequence[Union[Sequence, Any]]
-                The second sequence of 2D points
+            x: InputTypes
+                The reference point. Must be a 2D vector or point.
+            ys: Iterable[InputTypes]
+                An iterable of points to compute distances to.
 
         Returns:
-            List[float]: A list of pairwise distances
+            Iterable[float]:
+                An iterable of distances from x to each point in ys.
         """
-        return [self.distance(x, y) for x, y in zip(xs, ys)]
+        try:
+            # Extract the appropriate coordinate for x
+            x_coord = x[0] if self.axis == 'x' else x[1]
+            
+            # Compute distances for each point in ys
+            return (abs(x_coord - (y[0] if self.axis == 'x' else y[1])) for y in ys)
+            
+        except (TypeError, IndexError) as e:
+            logger.error("Invalid input types for distances calculation: %s", str(e))
+            raise ValueError("Inputs must be 2D points or vectors")
 
-# Example usage
-if __name__ == "__main__":
-    # Example 1: Using default x-axis projection
-    pm = ProjectionPseudometricR2()
-    dist = pm.distance((1, 2), (3, 4))
-    print(f"Distance on x-axis: {dist}")
+    def check_non_negativity(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies non-negativity.
 
-    # Example 2: Using y-axis projection
-    pm_y = ProjectionPseudometricR2(projection_axis='y')
-    dist_y = pm_y.distance((1, 2), (3, 4))
-    print(f"Distance on y-axis: {dist_y}")
+        Args:
+            x: InputTypes
+                The first point.
+            y: InputTypes
+                The second point.
 
-    # Example 3: Batch distance calculation
-    points = [(1, 2), (3, 4), (5, 6)]
-    distances = pm(distances=points, points=points)
-    print(f"Pairwise distances: {distances}")
+        Returns:
+            bool:
+                True if distance(x, y) >= 0, False otherwise.
+        """
+        return True  # Absolute value is always non-negative
+
+    def check_symmetry(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies symmetry.
+
+        Args:
+            x: InputTypes
+                The first point.
+            y: InputTypes
+                The second point.
+
+        Returns:
+            bool:
+                True if distance(x, y) == distance(y, x), False otherwise.
+        """
+        return True  # Absolute value difference is symmetric
+
+    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
+        """
+        Check if the distance satisfies the triangle inequality.
+
+        Args:
+            x: InputTypes
+                The first point.
+            y: InputTypes
+                The second point.
+            z: InputTypes
+                The third point.
+
+        Returns:
+            bool:
+                True if distance(x, z) <= distance(x, y) + distance(y, z), False otherwise.
+        """
+        try:
+            d_xz = self.distance(x, z)
+            d_xy = self.distance(x, y)
+            d_yz = self.distance(y, z)
+            return d_xz <= d_xy + d_yz
+            
+        except Exception as e:
+            logger.error("Error during triangle inequality check: %s", str(e))
+            return False
+
+    def check_weak_identity(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies weak identity of indiscernibles.
+
+        Args:
+            x: InputTypes
+                The first point.
+            y: InputTypes
+                The second point.
+
+        Returns:
+            bool:
+                True if x == y implies distance(x, y) == 0, False otherwise.
+        """
+        try:
+            # Extract coordinates
+            x_coord = x[0] if self.axis == 'x' else x[1]
+            y_coord = y[0] if self.axis == 'x' else y[1]
+            
+            return x_coord == y_coord
+            
+        except (TypeError, IndexError) as e:
+            logger.error("Error during weak identity check: %s", str(e))
+            return False

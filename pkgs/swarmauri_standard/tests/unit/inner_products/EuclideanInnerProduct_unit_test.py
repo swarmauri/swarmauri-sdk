@@ -1,122 +1,93 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.inner_products.EuclideanInnerProduct import EuclideanInnerProduct
-import numpy as np
 import logging
+from swarmauri_standard.swarmauri_standard.inner_products.EuclideanInnerProduct import EuclideanInnerProduct
 
-@pytest.fixture
-def euclidean_inner_product():
-    """Fixture providing an instance of EuclideanInnerProduct"""
-    return EuclideanInnerProduct()
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_resource(euclidean_inner_product):
-    """Test that the resource attribute is correctly set"""
-    assert euclidean_inner_product.resource == "Inner_product"
+def test_compute():
+    """Test the compute method of the EuclideanInnerProduct class."""
+    # Setup
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    
+    # Expected result
+    expected_result = 1*4 + 2*5 + 3*6
+    
+    # Execution
+    result = euclidean_inner_product.compute(x, y)
+    
+    # Assertion
+    assert result == expected_result
+    logger.debug("Test compute method passed")
 
 @pytest.mark.unit
-def test_type(euclidean_inner_product):
-    """Test that the type attribute is correctly set"""
-    assert euclidean_inner_product.type == "EuclideanInnerProduct"
-
-@pytest.mark.unit
-def test_compute(euclidean_inner_product):
-    """Test the compute method with various input vectors"""
-    a = [1, 2, 3]
-    b = [4, 5, 6]
-    expected_result = 1*4 + 2*5 + 3*6  # 4 + 10 + 18 = 32
-    assert euclidean_inner_product.compute(a, b) == expected_result
-
-@pytest.mark.unit
-def test_compute_numpy_arrays(euclidean_inner_product):
-    """Test the compute method with numpy arrays"""
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5, 6])
-    expected_result = 32
-    assert euclidean_inner_product.compute(a, b) == expected_result
-
-@pytest.mark.unit
-def test_compute_invalid_vectors(euclidean_inner_product):
-    """Test the compute method with invalid vectors"""
-    a = [1, 2]
-    b = [3, 4, 5]
+def test_compute_different_dimensions():
+    """Test compute method with vectors of different dimensions."""
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [1, 2]
+    y = [3, 4, 5]
+    
     with pytest.raises(ValueError):
-        euclidean_inner_product.compute(a, b)
+        euclidean_inner_product.compute(x, y)
+    logger.debug("Test compute with different dimensions passed")
 
 @pytest.mark.unit
-def test_compute_multidimensional(euclidean_inner_product):
-    """Test the compute method with multidimensional arrays"""
-    a = np.array([[1], [2]])
-    b = np.array([[3], [4]])
-    with pytest.raises(ValueError):
-        euclidean_inner_product.compute(a, b)
-
-@pytest.mark.unit
-def test_check_conjugate_symmetry(euclidean_inner_product):
-    """Test the conjugate symmetry check"""
-    a = [1, 2, 3]
-    b = [4, 5, 6]
-    assert euclidean_inner_product.check_conjugate_symmetry(a, b) is True
-
-@pytest.mark.unit
-def test_check_linearity(euclidean_inner_product):
-    """Test the linearity check"""
-    a = [1, 2]
-    b = [3, 4]
-    c = [5, 6]
+def test_check_conjugate_symmetry():
+    """Test the conjugate symmetry check method."""
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [1, 2]
+    y = [3, 4]
     
-    # Compute <a + c, b>
-    a_plus_c = np.array(a) + np.array(c)
-    result = euclidean_inner_product.compute(a_plus_c, b)
+    # Compute inner product both ways
+    inner_xy = euclidean_inner_product.compute(x, y)
+    inner_yx = euclidean_inner_product.compute(y, x)
     
-    # Compute <a, b> + <c, b>
-    ab = euclidean_inner_product.compute(a, b)
-    cb = euclidean_inner_product.compute(c, b)
-    expected = ab + cb
+    # Check symmetry
+    assert inner_xy == inner_yx
+    logger.debug("Test conjugate symmetry passed")
+
+@pytest.mark.unit
+def test_check_linearity_first_argument():
+    """Test linearity in the first argument."""
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [1, 2]
+    y = [3, 4]
+    z = [5, 6]
+    a = 2.0
+    b = 3.0
     
-    assert np.isclose(result, expected)
+    # Compute LHS: <a*x + b*y, z>
+    ax_plus_by = [a*x[0] + b*y[0], a*x[1] + b*y[1]]
+    lhs = euclidean_inner_product.compute(ax_plus_by, z)
+    
+    # Compute RHS: a*<x, z> + b*<y, z>
+    inner_xz = euclidean_inner_product.compute(x, z)
+    inner_yz = euclidean_inner_product.compute(y, z)
+    rhs = a * inner_xz + b * inner_yz
+    
+    assert lhs == rhs
+    logger.debug("Test linearity in first argument passed")
 
 @pytest.mark.unit
-def test_check_positivity(euclidean_inner_product):
-    """Test the positivity check"""
-    a = [1, 2, 3]
-    assert euclidean_inner_product.check_positivity(a) is True
+def test_check_positivity():
+    """Test the positivity property."""
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [1, 2]
+    
+    # Compute inner product with itself
+    inner_xx = euclidean_inner_product.compute(x, x)
+    
+    assert inner_xx > 0
+    logger.debug("Test positivity passed")
 
 @pytest.mark.unit
-def test_check_positivity_zero_vector(euclidean_inner_product):
-    """Test the positivity check with zero vector"""
-    a = [0, 0, 0]
-    assert euclidean_inner_product.check_positivity(a) is False
-
-@pytest.mark.unit
-def test_compute_with_negative_values(euclidean_inner_product):
-    """Test compute method with negative values"""
-    a = [1, -2, 3]
-    b = [-4, 5, -6]
-    expected_result = (1*(-4)) + ((-2)*5) + (3*(-6))  # -4 -10 -18 = -32
-    assert euclidean_inner_product.compute(a, b) == expected_result
-
-@pytest.mark.unit
-def test_compute_with_floats(euclidean_inner_product):
-    """Test compute method with floating point numbers"""
-    a = [1.5, 2.5, 3.5]
-    b = [4.5, 5.5, 6.5]
-    expected_result = (1.5*4.5) + (2.5*5.5) + (3.5*6.5)
-    assert euclidean_inner_product.compute(a, b) == expected_result
-
-@pytest.mark.unit
-def test_compute_with_large_numbers(euclidean_inner_product):
-    """Test compute method with large numbers"""
-    a = [1000, 2000, 3000]
-    b = [4000, 5000, 6000]
-    expected_result = 1000*4000 + 2000*5000 + 3000*6000
-    assert euclidean_inner_product.compute(a, b) == expected_result
-
-@pytest.mark.unit
-def test_serialization(euclidean_inner_product):
-    """Test serialization/deserialization"""
-    obj = euclidean_inner_product
-    # Assuming model_dump_json and model_validate_json are implemented
-    # This is just a placeholder test
-    obj_dump = obj.model_dump_json()
-    obj_validate = obj.model_validate_json(obj_dump)
-    assert obj.id == obj_validate.id
+def test_check_positivity_zero_vector():
+    """Test positivity with a zero vector."""
+    euclidean_inner_product = EuclideanInnerProduct()
+    x = [0, 0]
+    
+    inner_xx = euclidean_inner_product.compute(x, x)
+    assert inner_xx == 0
+    logger.debug("Test positivity with zero vector passed")

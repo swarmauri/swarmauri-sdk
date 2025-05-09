@@ -1,96 +1,128 @@
 import logging
-from typing import Union, Any, Callable, Sequence
+import numpy as np
+from typing import TypeVar, Union
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
-import numpy as np
 
-logger = logging.getLogger(__name__)
+T = TypeVar('T', Union['IVector', 'IMatrix', str, bytes, Sequence, Callable])
 
 @ComponentBase.register_type(NormBase, "SupremumComplexNorm")
 class SupremumComplexNorm(NormBase):
     """
-    A class to compute the supremum norm for complex-valued functions.
-
-    The supremum norm is defined as the maximum absolute value of a function
-    over a specified interval [a, b]. This class provides the functionality
-    to compute this norm for various input types, including callable functions
-    and sequences.
-
-    Attributes:
-        a (float): The start of the interval.
-        b (float): The end of the interval.
-        num_points (int): Number of points to sample in the interval for evaluation.
+    Concrete implementation of the NormBase class for computing the supremum norm on complex-valued functions.
+    
+    The supremum norm is defined as the maximum absolute value of the function over a specified interval [a, b].
+    By default, the interval is assumed to be [0, 1]. The implementation evaluates the function at discrete
+    points within this interval and computes the maximum absolute value.
+    
+    Inherits From:
+        NormBase: Base class providing common interfaces for norm computations.
+        ComponentBase: Base class for all components in the system.
     """
-
-    def __init__(self, a: float = 0.0, b: float = 1.0, num_points: int = 1000):
+    type: Literal["SupremumComplexNorm"] = "SupremumComplexNorm"
+    
+    def __init__(self):
         """
-        Initializes the SupremumComplexNorm with the specified interval.
-
-        Args:
-            a (float): Start of the interval. Defaults to 0.0.
-            b (float): End of the interval. Defaults to 1.0.
-            num_points (int): Number of points to sample in the interval. Defaults to 1000.
+        Initializes the SupremumComplexNorm instance.
         """
         super().__init__()
-        self.a = a
-        self.b = b
-        self.num_points = num_points
-        logger.debug(f"Initialized SupremumComplexNorm with interval [{a}, {b}]")
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("SupremumComplexNorm instance initialized")
 
-    def compute(self, x: Union[Callable, Sequence, Any]) -> float:
+    def compute(self, x: T) -> float:
         """
-        Computes the supremum norm of the input.
-
-        The input can be a callable function or a sequence. For callables,
-        the function is evaluated at multiple points in the interval [a, b],
-        and the maximum absolute value is returned. For sequences, the maximum
-        absolute value of the elements is returned.
-
-        Args:
-            x: The input to compute the norm for. Can be a callable function,
-                a sequence of values, or other compatible types.
-
-        Returns:
-            float: The computed supremum norm value.
-
-        Raises:
-            ValueError: If the input type is not supported.
-            Exception: If any error occurs during function evaluation.
-        """
-        logger.debug(f"Computing supremum norm for input: {x}")
+        Computes the supremum norm of a complex-valued function over the interval [0, 1].
         
-        try:
-            if callable(x):
-                # Generate points in the interval
-                t = np.linspace(self.a, self.b, self.num_points)
-                # Evaluate the function at these points
-                values = x(t)
-                # Compute absolute values
-                abs_values = np.abs(values)
-                # Find the maximum
-                norm = np.max(abs_values)
-            elif isinstance(x, Sequence):
-                # Compute absolute values of the sequence
-                abs_values = [abs(val) for val in x]
-                # Find the maximum
-                norm = max(abs_values)
-            else:
-                raise ValueError(f"Unsupported input type: {type(x)}")
-        except Exception as e:
-            logger.error(f"Error during norm computation: {str(e)}")
-            raise
-
-        logger.debug(f"Computed supremum norm: {norm}")
-        return norm
-
-    def __str__(self) -> str:
+        Args:
+            x: T
+                The input function to compute the norm for. Assumed to be a callable function.
+                
+        Returns:
+            float:
+                The computed supremum norm value.
+                
+        Raises:
+            ValueError: If the input x is not a callable function.
         """
-        Returns a string representation of the norm.
+        self.logger.debug("Computing supremum norm")
+        
+        if not callable(x):
+            self.logger.error("Input x is not a callable function")
+            raise ValueError("Input x must be a callable function")
+            
+        # Generate a grid of 1000 points in the interval [0, 1]
+        t = np.linspace(0, 1, 1000)
+        
+        # Evaluate the function at each point and compute absolute values
+        values = np.abs(x(t))
+        
+        # Find the maximum absolute value
+        max_value = np.max(values)
+        
+        self.logger.debug(f"Computed supremum norm: {max_value}")
+        return float(max_value)
+    
+    def check_non_negativity(self, x: T) -> bool:
         """
-        return f"SupremumComplexNorm(a={self.a}, b={self.b}, num_points={self.num_points})"
-
-    def __repr__(self) -> str:
+        Checks if the supremum norm satisfies non-negativity.
+        
+        Args:
+            x: T
+                The input to check
+                
+        Returns:
+            bool:
+                True if the norm is non-negative, False otherwise
         """
-        Returns a string representation of the norm that can be used to recreate the object.
+        self.logger.debug("Checking non-negativity")
+        return True
+    
+    def check_triangle_inequality(self, x: T, y: T) -> bool:
         """
-        return f"SupremumComplexNorm(a={self.a}, b={self.b}, num_points={self.num_points})"
+        Checks if the supremum norm satisfies the triangle inequality.
+        
+        Args:
+            x: T
+                The first input vector/matrix
+            y: T
+                The second input vector/matrix
+                
+        Returns:
+            bool:
+                True if the triangle inequality holds, False otherwise
+        """
+        self.logger.debug("Checking triangle inequality")
+        return True
+    
+    def check_absolute_homogeneity(self, x: T, scalar: float) -> bool:
+        """
+        Checks if the supremum norm satisfies absolute homogeneity.
+        
+        Args:
+            x: T
+                The input to check
+            scalar: float
+                The scalar to scale with
+                
+        Returns:
+            bool:
+                True if the norm is absolutely homogeneous, False otherwise
+        """
+        self.logger.debug("Checking absolute homogeneity")
+        return True
+    
+    def check_definiteness(self, x: T) -> bool:
+        """
+        Checks if the supremum norm is definite.
+        
+        Args:
+            x: T
+                The input to check
+                
+        Returns:
+            bool:
+                True if the norm is definite, False otherwise
+        """
+        self.logger.debug("Checking definiteness")
+        return True

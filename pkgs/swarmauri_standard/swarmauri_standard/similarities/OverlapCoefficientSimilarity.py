@@ -1,257 +1,123 @@
-from typing import Union, Sequence, Tuple, Any, Optional
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from typing import Any, Sequence, Tuple, TypeVar, Union, Set
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 import logging
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+InputType = TypeVar('InputType', str, bytes, Any)
+OutputType = TypeVar('OutputType', float)
 
 @ComponentBase.register_type(SimilarityBase, "OverlapCoefficientSimilarity")
 class OverlapCoefficientSimilarity(SimilarityBase):
     """
-    Implementation of the Overlap Coefficient similarity measure.
+    Concrete implementation of the SimilarityBase class for calculating the overlap coefficient similarity.
 
-    The Overlap Coefficient measures the overlap between two sets by dividing the
-    size of their intersection by the size of the smaller set. It is sensitive
-    to complete inclusion of one set within another.
-
-    Inherits From:
-        SimilarityBase: Base class for similarity measures
+    The overlap coefficient measures the overlap between two sets by dividing the size of their intersection
+    by the size of the smaller set. This implementation handles various input types and ensures proper bounds checking.
 
     Attributes:
-        resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
-            Specifies the resource type for this component
+        type: Literal["OverlapCoefficientSimilarity"]
+            Type identifier for the similarity measure
     """
-    resource: Optional[str] = "similarity"
+    type: Literal["OverlapCoefficientSimilarity"] = "OverlapCoefficientSimilarity"
+    resource: str = ResourceTypes.SIMILARITY.value
 
     def __init__(self):
         """
-        Initializes the OverlapCoefficientSimilarity instance.
+        Initialize the OverlapCoefficientSimilarity instance.
         """
         super().__init__()
+        logger.debug("Initialized OverlapCoefficientSimilarity instance")
 
-    def similarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def similarity(self, x: InputType, y: InputType) -> float:
         """
-        Calculates the overlap coefficient similarity between two sets.
+        Calculate the overlap coefficient similarity between two sets.
 
-        The overlap coefficient is defined as the size of the intersection
-        of the two sets divided by the size of the smaller set.
+        The overlap coefficient is defined as the ratio of the size of the intersection
+        of the two sets to the size of the smaller set.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first set to compare
-            b: Union[Any, None]
+            y: InputType
                 The second set to compare
 
         Returns:
             float:
-                The overlap coefficient similarity score
+                The overlap coefficient similarity between x and y, ranging between 0 and 1.
 
         Raises:
             ValueError:
-                If either set is None or not iterable
+                If either input is not a finite, non-empty set
         """
-        try:
-            if a is None or b is None:
-                logger.error("Invalid input: Both sets must be non-null")
-                raise ValueError("Both sets must be non-null")
+        if not isinstance(x, Set) or not isinstance(y, Set):
+            logger.error("Inputs must be sets")
+            raise ValueError("Inputs must be sets")
 
-            if not isinstance(a, (set, frozenset)) or not isinstance(b, (set, frozenset)):
-                logger.error("Invalid input: Inputs must be sets")
-                raise ValueError("Inputs must be sets")
+        if not x or not y:
+            logger.error("Inputs must be non-empty sets")
+            raise ValueError("Inputs must be non-empty sets")
 
-            intersection = a & b
-            size_a = len(a)
-            size_b = len(b)
+        intersection = x & y
+        smaller_set_size = min(len(x), len(y))
 
-            if size_a == 0 or size_b == 0:
-                return 0.0
+        if smaller_set_size == 0:
+            logger.warning("Both sets are empty - returning 0.0")
+            return 0.0
 
-            smaller_size = min(size_a, size_b)
-            overlap = len(intersection) / smaller_size
+        overlap = len(intersection) / smaller_set_size
+        logger.debug(f"Calculated overlap coefficient similarity: {overlap}")
+        return overlap
 
-            return overlap
-
-        except Exception as e:
-            logger.error(f"Error calculating overlap coefficient: {str(e)}")
-            raise
-
-    def similarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
         """
-        Calculates overlap coefficient similarity scores for one set against a list of sets.
+        Calculate overlap coefficient similarities for multiple pairs of sets.
 
         Args:
-            a: Union[Any, None]
-                The set to compare against multiple sets
-            b_list: Sequence[Union[Any, None]]
-                The list of sets to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of set pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of overlap coefficient similarity scores
-
-        Raises:
-            ValueError:
-                If input a is None or the list contains None values
+            Sequence[float]:
+                A sequence of overlap coefficient similarities corresponding to each pair
         """
-        try:
-            if a is None or any(b is None for b in b_list):
-                logger.error("Invalid input: All sets must be non-null")
-                raise ValueError("All sets must be non-null")
+        logger.debug("Calculating similarities for multiple pairs")
+        return [self.similarity(x, y) for x, y in pairs]
 
-            return tuple(self.similarity(a, b) for b in b_list)
-
-        except Exception as e:
-            logger.error(f"Error calculating overlap coefficients: {str(e)}")
-            raise
-
-    def dissimilarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def dissimilarity(self, x: InputType, y: InputType) -> float:
         """
-        Calculates the dissimilarity score based on the overlap coefficient.
+        Calculate the dissimilarity based on the overlap coefficient.
 
-        The dissimilarity is defined as 1 minus the overlap coefficient.
+        The dissimilarity is defined as 1 minus the similarity value.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first set to compare
-            b: Union[Any, None]
+            y: InputType
                 The second set to compare
 
         Returns:
             float:
-                The dissimilarity score
+                The dissimilarity between x and y, ranging between 0 and 1.
         """
-        try:
-            similarity = self.similarity(a, b)
-            return 1.0 - similarity
+        similarity = self.similarity(x, y)
+        dissimilarity = 1.0 - similarity
+        logger.debug(f"Calculated dissimilarity: {dissimilarity}")
+        return dissimilarity
 
-        except Exception as e:
-            logger.error(f"Error calculating dissimilarity: {str(e)}")
-            raise
-
-    def dissimilarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
         """
-        Calculates dissimilarity scores for one set against a list of sets.
+        Calculate dissimilarities for multiple pairs of sets.
 
         Args:
-            a: Union[Any, None]
-                The set to compare against multiple sets
-            b_list: Sequence[Union[Any, None]]
-                The list of sets to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of set pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of dissimilarity scores
+            Sequence[float]:
+                A sequence of dissimilarity scores corresponding to each pair
         """
-        try:
-            similarities = self.similarities(a, b_list)
-            return tuple(1.0 - s for s in similarities)
-
-        except Exception as e:
-            logger.error(f"Error calculating dissimilarities: {str(e)}")
-            raise
-
-    def check_boundedness(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        The overlap coefficient is always bounded between 0 and 1.
-
-        Args:
-            a: Union[Any, None]
-                The first set to compare
-            b: Union[Any, None]
-                The second set to compare
-
-        Returns:
-            bool:
-            True if the measure is bounded, False otherwise
-        """
-        return True
-
-    def check_reflexivity(
-            self, 
-            a: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is reflexive.
-
-        For the overlap coefficient, s(x, x) = 1 since the intersection
-        of a set with itself is the set itself, and the smaller set size is
-        the same as the set size.
-
-        Args:
-            a: Union[Any, None]
-                The set to check reflexivity for
-
-        Returns:
-            bool:
-            True if the measure is reflexive, False otherwise
-        """
-        return True
-
-    def check_symmetry(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-
-        The overlap coefficient is symmetric since the intersection
-        of a and b is the same as the intersection of b and a.
-
-        Args:
-            a: Union[Any, None]
-                The first set to compare
-            b: Union[Any, None]
-                The second set to compare
-
-        Returns:
-            bool:
-            True if the measure is symmetric, False otherwise
-        """
-        return True
-
-    def check_identity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure satisfies identity.
-
-        For the overlap coefficient, s(x, y) = 1 if and only if x and y are identical
-        sets.
-
-        Args:
-            a: Union[Any, None]
-                The first set to compare
-            b: Union[Any, None]
-                The second set to compare
-
-        Returns:
-            bool:
-            True if the measure satisfies identity, False otherwise
-        """
-        return a == b
+        logger.debug("Calculating dissimilarities for multiple pairs")
+        return [self.dissimilarity(x, y) for x, y in pairs]

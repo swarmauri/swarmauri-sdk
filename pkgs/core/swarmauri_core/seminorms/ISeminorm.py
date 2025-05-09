@@ -1,133 +1,79 @@
-```python
-import logging
 from abc import ABC, abstractmethod
-from typing import TypeVar, Union, Callable, Sequence
+from typing import TypeVar, Union
+import logging
+
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', IVector, IMatrix, Sequence, str, Callable)
+T = TypeVar('T', IVector, IMatrix, str, callable, Sequence[float], Sequence[Sequence[float]])
 
 class ISeminorm(ABC):
     """
-    Interface for seminorm structures. This interface defines the basic properties
-    and operations for seminorms, which relax the norm's definiteness property.
-    Implementations must provide functionality for computing seminorms and
-    verifying key properties like triangle inequality and scalar homogeneity.
+    Interface for seminorm structures. This class defines the core functionality 
+    required for seminorm operations. A seminorm is a function that satisfies 
+    the triangle inequality and positive scalability but does not necessarily 
+    satisfy the condition that only the zero vector has a norm of zero.
+
+    This interface provides a foundation for working with seminorms while 
+    remaining agnostic to the underlying implementation.
     """
-    
+
     @abstractmethod
     def compute(self, input: T) -> float:
         """
-        Computes the seminorm value for the given input.
-        
+        Compute the seminorm of the given input.
+
         Args:
             input: T
-                The input to compute the seminorm for. Can be a vector, matrix,
+                The input to compute the seminorm on. This can be a vector, matrix, 
                 sequence, string, or callable.
-                
+
         Returns:
-            float: The computed seminorm value
+            float: 
+                The computed seminorm value.
+
+        Raises:
+            TypeError: If the input type is not supported.
         """
-        raise NotImplementedError("compute method must be implemented")
-    
+        pass
+
     @abstractmethod
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """
-        Checks if the triangle inequality holds for the given inputs.
-        
+        Check if the triangle inequality holds for the given inputs.
+
+        The triangle inequality states that for any two vectors a and b:
+        seminorm(a + b) <= seminorm(a) + seminorm(b)
+
         Args:
             a: T
-                The first input
+                The first input.
             b: T
-                The second input
-                
+                The second input.
+
         Returns:
-            bool: True if the triangle inequality holds, False otherwise
+            bool: True if the triangle inequality holds, False otherwise.
         """
-        raise NotImplementedError("check_triangle_inequality method must be implemented")
-    
+        pass
+
     @abstractmethod
     def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds for the given input and scalar.
-        
+        Check if scalar homogeneity holds for the given input and scalar.
+
+        Scalar homogeneity states that for any vector a and scalar c >= 0:
+        seminorm(c * a) = c * seminorm(a)
+
         Args:
             a: T
-                The input to check
+                The input to check.
             scalar: float
-                The scalar to test homogeneity with
-                
-        Returns:
-            bool: True if scalar homogeneity holds, False otherwise
-        """
-        raise NotImplementedError("check_scalar_homogeneity method must be implemented")
-```
+                The scalar to check against.
 
-```python
-import logging
-from abc import ABC, abstractmethod
-from typing import TypeVar, Union, Callable, Sequence
-from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
-
-logger = logging.getLogger(__name__)
-
-T = TypeVar('T', IVector, IMatrix, Sequence, str, Callable)
-
-class ISeminorm(ABC):
-    """
-    Interface for seminorm structures. This interface defines the basic properties
-    and operations for seminorms, which relax the norm's definiteness property.
-    Implementations must provide functionality for computing seminorms and
-    verifying key properties like triangle inequality and scalar homogeneity.
-    """
-    
-    @abstractmethod
-    def compute(self, input: T) -> float:
-        """
-        Computes the seminorm value for the given input.
-        
-        Args:
-            input: T
-                The input to compute the seminorm for. Can be a vector, matrix,
-                sequence, string, or callable.
-                
         Returns:
-            float: The computed seminorm value
+            bool: True if scalar homogeneity holds, False otherwise.
         """
-        raise NotImplementedError("compute method must be implemented")
-    
-    @abstractmethod
-    def check_triangle_inequality(self, a: T, b: T) -> bool:
-        """
-        Checks if the triangle inequality holds for the given inputs.
-        
-        Args:
-            a: T
-                The first input
-            b: T
-                The second input
-                
-        Returns:
-            bool: True if the triangle inequality holds, False otherwise
-        """
-        raise NotImplementedError("check_triangle_inequality method must be implemented")
-    
-    @abstractmethod
-    def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
-        """
-        Checks if the scalar homogeneity property holds for the given input and scalar.
-        
-        Args:
-            a: T
-                The input to check
-            scalar: float
-                The scalar to test homogeneity with
-                
-        Returns:
-            bool: True if scalar homogeneity holds, False otherwise
-        """
-        raise NotImplementedError("check_scalar_homogeneity method must be implemented")
-```
+        pass

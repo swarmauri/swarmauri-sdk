@@ -1,149 +1,175 @@
+from typing import TypeVar, Union, Sequence, Optional, Literal
 import logging
 import numpy as np
-from typing import TypeVar, Union, Sequence, Callable
-from abc import abstractmethod
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.seminorms.ISeminorm import ISeminorm
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Sequence, Union[Sequence, Callable], str, Callable)
+T = TypeVar('T', Union[Sequence[float], Sequence[Sequence[float]], str, callable])
 
-@ComponentBase.register_type(SeminormBase, "LpSeminorm")
+@ComponentBase.register_model()
 class LpSeminorm(SeminormBase):
     """
-    A concrete implementation of a non-point-separating Lp seminorm.
+    A non-point-separating Lp seminorm implementation.
 
-    This class provides the implementation for computing the Lp seminorm,
-    which is a non-point-separating variant of the standard Lp norm.
-    The seminorm is defined as the sum of the absolute values of the input
-    elements raised to the power of p, then taking the p-th root of the sum.
-
-    Inherits From:
-        SeminormBase: The base class for all seminorm implementations.
+    This class provides a concrete implementation of the Lp seminorm that does not
+    necessarily distinguish all vectors. It implements the core functionality for
+    computing the seminorm, checking the triangle inequality, and verifying scalar
+    homogeneity.
 
     Attributes:
         p: float
-            The parameter of the Lp seminorm, must be in (0, ∞).
+            The order of the Lp seminorm. Must satisfy p > 0.
+        resource: str = ResourceTypes.SEMINORM.value
+            The resource type identifier for this component.
+        axis: Optional[int] = None
+            The axis along which to compute the seminorm for array-like inputs.
+            If None, the input is flattened before computation.
     """
-    resource: str = ResourceTypes.SEMINORM.value
-    """
-    The resource type identifier for seminorm components.
-    """
-    
-    def __init__(self, p: float):
+    resource: str = ComponentBase.ResourceTypes.SEMINORM.value
+    type: Literal["LpSeminorm"] = "LpSeminorm"
+
+    def __init__(self, p: float, axis: Optional[int] = None):
         """
-        Initializes the LpSeminorm instance with the given parameter p.
+        Initialize the LpSeminorm instance.
 
         Args:
             p: float
-                The parameter for the Lp seminorm. Must be in (0, ∞).
+                The order of the Lp seminorm. Must satisfy p > 0.
+            axis: Optional[int] = None
+                The axis along which to compute the seminorm for array-like inputs.
+                If None, the input is flattened before computation.
 
         Raises:
-            ValueError: If p is not in (0, ∞).
+            ValueError:
+                If p is not greater than 0.
         """
         super().__init__()
         if p <= 0:
-            logger.error("Invalid value for p. p must be in (0, ∞).")
-            raise ValueError("p must be in (0, ∞)")
-        self.p: float = p
+            raise ValueError("p must be greater than 0")
+        self.p = p
+        self.axis = axis
 
     def compute(self, input: T) -> float:
         """
-        Computes the Lp seminorm value for the given input.
+        Compute the Lp seminorm of the given input.
 
         Args:
             input: T
-                The input to compute the seminorm for. Can be a vector, matrix,
-                sequence, string, or callable. For this implementation, the input
-                should be a sequence of numbers.
+                The input to compute the seminorm on. This can be a vector, matrix,
+                string, or callable.
 
         Returns:
-            float: The computed seminorm value.
+            float:
+                The computed Lp seminorm value.
 
         Raises:
-            NotImplementedError: If the input type is not supported.
+            ValueError:
+                If the input cannot be processed.
         """
-        logger.info("Computing Lp seminorm for input of type %s", type(input).__name__)
+        logger.debug("Computing Lp seminorm for input of type %s", type(input))
         
         try:
-            # Convert input to numpy array for easier manipulation
-            arr = np.asarray(input)
+            if isinstance(input, (str, callable)):
+                # Handle string or callable input
+                input = np.asarray(input)
             
-            # Compute absolute values of elements
-            abs_values = np.abs(arr)
+            input_array = np.asarray(input)
             
-            # Raise to the power of p
-            powered = np.power(abs_values, self.p)
+            if input_array.ndim == 0:
+                # Handle scalar input
+                return 0.0
             
-            # Sum the powered values
-            sum_powered = np.sum(powered)
-            
-            # Take the p-th root
-            result = np.power(sum_powered, 1.0 / self.p)
-            
-            logger.info("Computed Lp seminorm: %s", result)
-            return result
+            if self.axis is not None:
+                # Compute along specified axis
+                return np.power(
+                    np.sum(np.power(np.abs(input_array), self.p), axis=self.axis),
+                    1.0 / self.p
+                )
+            else:
+                # Flatten the array and compute
+                flattened = input_array.ravel()
+                return np.power(
+                    np.sum(np.power(np.abs(flattened), self.p)),
+                    1.0 / self.p
+                )
             
         except Exception as e:
-            logger.error("Error computing Lp seminorm: %s", str(e))
-            raise NotImplementedError(f"Input type {type(input).__name__} is not supported")
-            
+            logger.error("Failed to compute Lp seminorm: %s", str(e))
+            raise ValueError(f"Failed to compute Lp seminorm: {str(e)}")
+        
+        return 0.0
+
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """
-        Checks if the triangle inequality holds for the given inputs.
+        Check if the triangle inequality holds for the given inputs.
+
+        The triangle inequality states that for any two vectors a and b:
+        seminorm(a + b) <= seminorm(a) + seminorm(b)
 
         Args:
             a: T
-                The first input vector
+                The first input.
             b: T
-                The second input vector
+                The second input.
 
         Returns:
-            bool: True if ||a + b||_p <= ||a||_p + ||b||_p, False otherwise
+            bool:
+                True if the triangle inequality holds, False otherwise.
         """
-        logger.info("Checking triangle inequality for Lp seminorm")
+        logger.debug("Checking triangle inequality for Lp seminorm")
         
         try:
             # Compute seminorms
-            norm_a = self.compute(a)
-            norm_b = self.compute(b)
-            norm_ab = self.compute([a, b])
+            seminorm_a = self.compute(a)
+            seminorm_b = self.compute(b)
+            seminorm_ab = self.compute(a + b)
             
             # Check inequality
-            return norm_ab <= (norm_a + norm_b)
+            return seminorm_ab <= seminorm_a + seminorm_b
             
         except Exception as e:
-            logger.error("Error checking triangle inequality: %s", str(e))
+            logger.error("Failed to check triangle inequality: %s", str(e))
             return False
-            
+
     def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds for the given input and scalar.
+        Check if scalar homogeneity holds for the given input and scalar.
+
+        Scalar homogeneity states that for any vector a and scalar c >= 0:
+        seminorm(c * a) = c * seminorm(a)
 
         Args:
             a: T
-                The input vector to check
+                The input to check.
             scalar: float
-                The scalar to test homogeneity with
+                The scalar to check against.
 
         Returns:
-            bool: True if ||scalar * a||_p = |scalar| * ||a||_p, False otherwise
+            bool:
+                True if scalar homogeneity holds, False otherwise.
         """
-        logger.info("Checking scalar homogeneity for Lp seminorm")
+        logger.debug("Checking scalar homogeneity for Lp seminorm")
         
         try:
-            # Compute original norm
-            norm_a = self.compute(a)
+            if scalar < 0:
+                raise ValueError("Scalar must be non-negative")
+                
+            # Compute original seminorm
+            seminorm_a = self.compute(a)
             
-            # Compute norm after scaling
-            scaled_a = [x * scalar for x in a]
-            norm_scaled = self.compute(scaled_a)
+            # Compute scaled seminorm
+            scaled_a = scalar * a
+            seminorm_scaled = self.compute(scaled_a)
             
-            # Compare with |scalar| * norm_a
-            expected = abs(scalar) * norm_a
-            return np.isclose(norm_scaled, expected)
+            # Compute expected value
+            expected_seminorm = scalar ** (1.0 / self.p) * seminorm_a
+            
+            # Check if values are close (allowing for floating point errors)
+            return np.isclose(seminorm_scaled, expected_seminorm)
             
         except Exception as e:
-            logger.error("Error checking scalar homogeneity: %s", str(e))
+            logger.error("Failed to check scalar homogeneity: %s", str(e))
             return False

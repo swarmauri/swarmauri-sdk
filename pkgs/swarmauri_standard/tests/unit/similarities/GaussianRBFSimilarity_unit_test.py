@@ -1,96 +1,94 @@
 import pytest
 import numpy as np
-import logging
-
-from swarmauri_standard.swarmauri_standard.GaussianRBFSimilarity import GaussianRBFSimilarity
+from swarmauri_standard.similarities import GaussianRBFSimilarity
+from swarmauri_standard.tests.unit.test_base import BaseTestCase
 
 @pytest.mark.unit
-class TestGaussianRBFSimilarity:
-    """Unit tests for the GaussianRBFSimilarity class."""
+class TestGaussianRBFSimilarity(BaseTestCase):
+    """Unit tests for GaussianRBFSimilarity class implementation."""
+    
+    @pytest.fixture
+    def gaussian_rbf_similarity(self):
+        """Fixture to provide a GaussianRBFSimilarity instance."""
+        return GaussianRBFSimilarity()
 
-    @pytest.mark.parametrize("gamma,expected_valid", [
-        (1.0, True),
-        (0.5, True),
-        (-1.0, False),
-        (0.0, False)
-    ])
-    def test_gamma_validation(self, gamma, expected_valid):
-        """Test validation of gamma parameter."""
-        if expected_valid:
-            GaussianRBFSimilarity(gamma=gamma)
-        else:
-            with pytest.raises(ValueError):
-                GaussianRBFSimilarity(gamma=gamma)
+    @pytest.mark.unit
+    def test_resource(self, gaussian_rbf_similarity):
+        """Test the resource property."""
+        assert gaussian_rbf_similarity.resource == "Similarity"
 
-    @pytest.mark.parametrize("a,b,expected_similarity", [
-        ([1, 2], [1, 2], 1.0),
-        ([1, 2], [2, 3], np.exp(-1.0 * (1.0**2 + 1.0**2))),
-        ([0.5, 0.5], [0.5, 0.5], 1.0)
-    ])
-    def test_similarity(self, a, b, expected_similarity):
-        """Test similarity calculation."""
-        gsim = GaussianRBFSimilarity()
-        similarity = gsim.similarity(a, b)
-        assert np.allclose(similarity, expected_similarity, atol=1e-6)
+    @pytest.mark.unit
+    def test_type(self, gaussian_rbf_similarity):
+        """Test the type property."""
+        assert gaussian_rbf_similarity.type == "GaussianRBFSimilarity"
 
-    def test_similarity_invalid_input(self):
-        """Test invalid input handling in similarity."""
-        gsim = GaussianRBFSimilarity()
+    @pytest.mark.unit
+    def test_serialization(self, gaussian_rbf_similarity):
+        """Test serialization/deserialization process."""
+        model_dump = gaussian_rbf_similarity.model_dump_json()
+        model_id = gaussian_rbf_similarity.id
+        assert gaussian_rbf_similarity.model_validate_json(model_dump) == model_id
+
+    @pytest.mark.unit
+    def test_similarity(self, gaussian_rbf_similarity):
+        """Test similarity calculation between vectors."""
+        # Test with identical vectors
+        x = np.array([1, 2, 3])
+        y = np.array([1, 2, 3])
+        similarity = gaussian_rbf_similarity.similarity(x, y)
+        assert similarity == 1.0
+
+        # Test with different vectors
+        x = np.array([1, 2, 3])
+        y = np.array([4, 5, 6])
+        similarity = gaussian_rbf_similarity.similarity(x, y)
+        assert 0 <= similarity < 1
+
+        # Test with zero vectors
+        x = np.array([0, 0, 0])
+        y = np.array([0, 0, 0])
+        similarity = gaussian_rbf_similarity.similarity(x, y)
+        assert similarity == 1.0
+
+    @pytest.mark.unit
+    def test_similarities(self, gaussian_rbf_similarity):
+        """Test batch similarity calculation."""
+        pairs = [
+            (np.array([1, 2]), np.array([1, 2])),
+            (np.array([3, 4]), np.array([5, 6]))
+        ]
+        results = gaussian_rbf_similarity.similarities(pairs)
+        assert len(results) == 2
+        assert all(0 <= res <= 1 for res in results)
+
+    @pytest.mark.unit
+    def test_dissimilarity(self, gaussian_rbf_similarity):
+        """Test dissimilarity calculation between vectors."""
+        x = np.array([1, 2, 3])
+        y = np.array([4, 5, 6])
+        dissimilarity = gaussian_rbf_similarity.dissimilarity(x, y)
+        assert 0 <= dissimilarity < 1
+
+    @pytest.mark.unit
+    def test_dissimilarities(self, gaussian_rbf_similarity):
+        """Test batch dissimilarity calculation."""
+        pairs = [
+            (np.array([1, 2]), np.array([1, 2])),
+            (np.array([3, 4]), np.array([5, 6]))
+        ]
+        results = gaussian_rbf_similarity.dissimilarities(pairs)
+        assert len(results) == 2
+        assert all(0 <= res <= 1 for res in results)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("invalid_gamma", [0, -1, -0.5])
+    def test_invalid_gamma(self, invalid_gamma):
+        """Test initialization with invalid gamma values."""
         with pytest.raises(ValueError):
-            gsim.similarity(None, [1, 2])
-        with pytest.raises(ValueError):
-            gsim.similarity([1, 2], None)
+            GaussianRBFSimilarity(gamma=invalid_gamma)
 
-    @pytest.mark.parametrize("a,b_list,expected_length", [
-        ([1, 2], [[2, 3], [3, 4]], 2)
-    ])
-    def test_similarities(self, a, b_list, expected_length):
-        """Test similarities calculation."""
-        gsim = GaussianRBFSimilarity()
-        similarities = gsim.similarities(a, b_list)
-        assert len(similarities) == expected_length
-        assert all(0 <= score <= 1 for score in similarities)
-
-    def test_dissimilarity(self):
-        """Test dissimilarity calculation."""
-        gsim = GaussianRBFSimilarity()
-        a = [1, 2]
-        b = [1, 2]
-        dissim = gsim.dissimilarity(a, b)
-        assert np.allclose(dissim, 0.0, atol=1e-6)
-
-        a = [1, 2]
-        b = [2, 3]
-        dissim = gsim.dissimilarity(a, b)
-        assert 0 <= dissim <= 1
-
-    def test_dissimilarities(self):
-        """Test dissimilarities calculation."""
-        gsim = GaussianRBFSimilarity()
-        a = [1, 2]
-        b_list = [[2, 3], [3, 4]]
-        dissims = gsim.dissimilarities(a, b_list)
-        assert len(dissims) == len(b_list)
-        assert all(0 <= d <= 1 for d in dissims)
-
-    def test_check_boundedness(self):
-        """Test boundedness check."""
-        gsim = GaussianRBFSimilarity()
-        assert gsim.check_boundedness([1, 2], [1, 2]) is True
-
-    def test_check_reflexivity(self):
-        """Test reflexivity check."""
-        gsim = GaussianRBFSimilarity()
-        assert gsim.check_reflexivity([1, 2]) is True
-
-    def test_check_symmetry(self):
-        """Test symmetry check."""
-        gsim = GaussianRBFSimilarity()
-        assert gsim.check_symmetry([1, 2], [1, 2]) is True
-
-    def test_check_identity(self):
-        """Test identity check."""
-        gsim = GaussianRBFSimilarity()
-        a = [1, 2]
-        b = [1, 2]
-        assert gsim.check_identity(a, b) is True
+    @pytest.mark.unit
+    def test_invalid_input(self, gaussian_rbf_similarity):
+        """Test handling of invalid input types."""
+        with pytest.raises(Exception):
+            gaussian_rbf_similarity.similarity("invalid", "input")

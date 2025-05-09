@@ -1,149 +1,154 @@
+from typing import Union, List, Optional
 import logging
-from abc import ABC
-from typing import TypeVar, Union, Sequence, Literal, Optional, Type
+import numpy as np
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.seminorms.SeminormBase import SeminormBase
-from swarmauri_core.seminorms.ISeminorm import IVector, IMatrix
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', IVector, IMatrix, Sequence)
-S = TypeVar('S', bound='CoordinateProjectionSeminorm')
-
+@ComponentBase.register_type(SeminormBase, "CoordinateProjectionSeminorm")
 class CoordinateProjectionSeminorm(SeminormBase):
     """
-    Implementation of a seminorm that projects onto a subset of coordinates.
+    A class providing a seminorm implementation that projects onto a subset of coordinates.
 
-    This seminorm implementation projects the input vector onto a specified subset
-    of coordinates (indices) and computes the L2 norm of the projected components.
-    The projection operation can lead to degeneracy if important components are ignored.
+    This class implements the seminorm by projecting the input vector onto a specified
+    set of coordinates and computing the L2 norm of the projected vector. The projection
+    is defined by the indices provided during initialization. This implementation inherits
+    from the base :class:`SeminormBase` class and implements the required methods.
 
     Attributes:
-        projection_indices: Sequence[int]
-            The indices of the coordinates to project onto.
+        projection_indices: List[int]
+            A list of indices to project onto. These indices define the subset of
+            coordinates that will be considered in the seminorm computation.
+        resource: str
+            The resource type identifier for this component.
     """
 
-    type: Literal["CoordinateProjectionSeminorm"] = "CoordinateProjectionSeminorm"
-    """
-    The type identifier for this seminorm implementation.
-    """
-
-    resource: str = ResourceTypes.SEMINORM.value
-    """
-    The resource type identifier for seminorm components.
-    """
-
-    def __init__(self, projection_indices: Sequence[int]) -> None:
+    def __init__(self, projection_indices: List[int]):
         """
         Initializes the CoordinateProjectionSeminorm instance.
 
         Args:
-            projection_indices: Sequence[int]
-                The indices of the coordinates to project onto. Must be a sequence
-                of non-negative integers that are valid indices for the input vectors.
+            projection_indices: List[int]
+                A list of integer indices representing the coordinates to project onto.
+                These indices must be valid for the input data structure.
 
         Raises:
-            ValueError: If projection_indices contains negative integers or duplicates
+            ValueError:
+                If the projection_indices list is empty or contains invalid indices.
         """
         super().__init__()
-        
-        # Validate projection indices
-        if not isinstance(projection_indices, Sequence):
-            raise TypeError("projection_indices must be a sequence")
-            
-        if not all(isinstance(idx, int) and idx >= 0 for idx in projection_indices):
-            raise ValueError("All projection indices must be non-negative integers")
-            
-        if len(projection_indices) != len(set(projection_indices)):
-            raise ValueError("Projection indices must be unique")
-            
-        self.projection_indices = tuple(projection_indices)
-        """
-        The indices of the coordinates to project onto.
-        """
+        self.projection_indices = projection_indices
+        self.resource = ResourceTypes.SEMINORM.value
 
-    def compute(self, input: T) -> float:
+        if not projection_indices:
+            raise ValueError("Projection indices list cannot be empty")
+
+    def compute(self, input: Union[np.ndarray, list, str, callable]) -> float:
         """
-        Computes the seminorm value by projecting the input onto the specified coordinates.
+        Computes the seminorm of the input by projecting onto the specified coordinates.
+
+        The input is projected onto the specified coordinates, and the L2 norm of the
+        projected vector is computed. This provides a seminorm that ignores certain
+        components of the vector, potentially leading to degeneracy.
 
         Args:
-            input: T
-                The input to compute the seminorm for. Can be a vector, matrix,
-                or sequence type.
+            input: Union[np.ndarray, list, str, callable]
+                The input to compute the seminorm on. This can be a vector, matrix,
+                string, or callable, but it must be convertible to a numpy array.
 
         Returns:
-            float: The computed seminorm value
+            float:
+                The computed seminorm value.
 
         Raises:
-            ValueError: If the input shape is incompatible with the projection indices
+            ValueError:
+                If the input cannot be converted to a numpy array or if the
+                projection indices are out of bounds.
         """
-        logger.debug(f"Computing seminorm for input of type {type(input).__name__}")
-        
-        # Get the components corresponding to the projection indices
         try:
-            components = input[self.projection_indices]
-        except IndexError:
-            raise ValueError("Input does not have sufficient dimensions for the projection indices")
+            # Convert input to numpy array if not already
+            if not isinstance(input, np.ndarray):
+                input = np.asarray(input)
             
-        # If input is a matrix, compute norm for each row and take the maximum
-        if isinstance(input, IMatrix):
-            # Assuming input is a matrix where each row is a vector
-            norms = [self.compute(row) for row in input.rows()]
-            return max(norms)
-            
-        # For vectors or sequences, compute the L2 norm of the projected components
-        elif isinstance(input, (IVector, Sequence)):
-            # Compute the L2 norm of the projected components
-            return float(sum(x**2 for x in components) ** 0.5)
-            
-        else:
-            raise ValueError(f"Unsupported input type: {type(input).__name__}")
+            # Check if projection indices are valid
+            if max(self.projection_indices) >= input.size:
+                raise ValueError("Projection indices exceed input dimensions")
 
-    def check_triangle_inequality(self, a: T, b: T) -> bool:
+            # Project input onto specified coordinates
+            projected_input = input[self.projection_indices]
+
+            # Compute and return L2 norm of projected input
+            return np.linalg.norm(projected_input)
+
+        except Exception as e:
+            logger.error(f"Error in compute method: {str(e)}")
+            raise
+
+    def check_triangle_inequality(self, a: Union[np.ndarray, list], b: Union[np.ndarray, list]) -> bool:
         """
-        Checks if the triangle inequality holds for this seminorm.
+        Checks if the triangle inequality holds for the projected seminorm.
 
-        The triangle inequality states that for any vectors a and b,
-        ||a + b|| <= ||a|| + ||b||.
+        The triangle inequality states that for any vectors a and b:
+        seminorm(a + b) <= seminorm(a) + seminorm(b)
+
+        This method computes the seminorms of a, b, and a + b, and checks if the
+        inequality holds.
 
         Args:
-            a: T
-                The first vector
-            b: T
-                The second vector
+            a: Union[np.ndarray, list]
+                The first vector.
+            b: Union[np.ndarray, list]
+                The second vector.
 
         Returns:
-            bool: True if the triangle inequality holds, False otherwise
+            bool:
+                True if the triangle inequality holds, False otherwise.
         """
-        logger.debug("Checking triangle inequality")
-        
-        norm_a = self.compute(a)
-        norm_b = self.compute(b)
-        norm_a_plus_b = self.compute(a + b)
-        
-        return norm_a_plus_b <= norm_a + norm_b
+        try:
+            a_np = np.asarray(a)
+            b_np = np.asarray(b)
+            
+            seminorm_a = self.compute(a_np)
+            seminorm_b = self.compute(b_np)
+            seminorm_a_plus_b = self.compute(a_np + b_np)
 
-    def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
+            return seminorm_a_plus_b <= seminorm_a + seminorm_b
+
+        except Exception as e:
+            logger.error(f"Error in check_triangle_inequality: {str(e)}")
+            raise
+
+    def check_scalar_homogeneity(self, a: Union[np.ndarray, list], scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds.
+        Checks if scalar homogeneity holds for the projected seminorm.
 
-        For any vector a and scalar c, this checks that ||c * a|| = |c| * ||a||.
+        Scalar homogeneity states that for any vector a and scalar c >= 0:
+        seminorm(c * a) = c * seminorm(a)
+
+        This method checks if this property holds for the given input and scalar.
 
         Args:
-            a: T
-                The input vector
+            a: Union[np.ndarray, list]
+                The input vector.
             scalar: float
-                The scalar to test homogeneity with
+                The scalar to check against.
 
         Returns:
-            bool: True if scalar homogeneity holds, False otherwise
+            bool:
+                True if scalar homogeneity holds, False otherwise.
         """
-        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
-        
-        norm_a = self.compute(a)
-        scaled_a = a * scalar
-        norm_scaled_a = self.compute(scaled_a)
-        
-        return norm_scaled_a == abs(scalar) * norm_a
+        try:
+            a_np = np.asarray(a)
+            
+            scaled_a = scalar * a_np
+            seminorm_scaled = self.compute(scaled_a)
+            scalar_times_seminorm = scalar * self.compute(a_np)
 
-__all__ = ["CoordinateProjectionSeminorm"]
+            return np.isclose(seminorm_scaled, scalar_times_seminorm)
+
+        except Exception as e:
+            logger.error(f"Error in check_scalar_homogeneity: {str(e)}")
+            raise

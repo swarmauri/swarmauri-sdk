@@ -1,87 +1,93 @@
-"""Unit tests for the LInfNorm class in the swarmauri_standard package."""
 import pytest
+from swarmauri_standard.swarmauri_standard.norms.LInfNorm import LInfNorm
 import logging
-from swarmauri_standard.norms.LInfNorm import LInfNorm
 
 @pytest.mark.unit
-def test_compute_list():
-    """Test the compute method with a list input."""
-    norm = LInfNorm()
-    test_input = [1, 2, 3, 4, 5]
-    expected_output = 5
-    assert norm.compute(test_input) == expected_output
+class TestLInfNorm:
+    """Unit tests for the LInfNorm class."""
 
-@pytest.mark.unit
-def test_compute_string_numeric():
-    """Test the compute method with a string of numeric characters."""
-    norm = LInfNorm()
-    test_input = "12345"
-    expected_output = 5
-    assert norm.compute(test_input) == expected_output
+    def test_resource(self):
+        """Test the resource property."""
+        assert LInfNorm.resource == "Norm"
 
-@pytest.mark.unit
-def test_compute_string_non_numeric():
-    """Test the compute method with a string of non-numeric characters."""
-    norm = LInfNorm()
-    test_input = "abcde"
-    # Unicode values for 'a' is 97, 'b' 98, etc.
-    expected_output = 101  # ord('e') = 101
-    assert norm.compute(test_input) == expected_output
+    def test_type(self):
+        """Test the type property."""
+        assert LInfNorm.type == "LInfNorm"
 
-@pytest.mark.unit
-def test_compute_callable():
-    """Test the compute method with a callable input."""
-    norm = LInfNorm(domain=[1, 2, 3])
-    test_input = lambda x: x**2
-    expected_output = 9  # max(1, 4, 9)
-    assert norm.compute(test_input) == expected_output
+    @pytest.mark.parametrize("x,expected", [
+        (lambda: 5, 5.0),
+        ([1, 2, 3, 4], 4.0),
+        (10, 10.0),
+        (-10, 10.0),
+        ([-5, -3, -8], 8.0),
+        ([0, 0, 0], 0.0)
+    ])
+    def test_compute(self, x, expected):
+        """Test the compute method with various inputs."""
+        norm = LInfNorm()
+        assert norm.compute(x) == expected
 
-@pytest.mark.unit
-def test_check_non_negativity():
-    """Test the check_non_negativity method."""
-    norm = LInfNorm()
-    test_input = [1, 2, 3]
-    norm.check_non_negativity(test_input)
-    
-    test_input_negative = [-1, -2, -3]
-    norm.check_non_negativity(test_input_negative)
+    @pytest.mark.parametrize("x", [
+        0,
+        5,
+        -5,
+        [1, 2, 3],
+        [0, 0, 0],
+        lambda: 0
+    ])
+    def test_check_non_negativity(self, x):
+        """Test the check_non_negativity method."""
+        norm = LInfNorm()
+        assert norm.check_non_negativity(x) is True
 
-@pytest.mark.unit
-def test_check_triangle_inequality():
-    """Test the triangle inequality check."""
-    norm = LInfNorm()
-    x = [1, 2]
-    y = [3, 4]
-    norm.check_triangle_inequality(x, y)
+    @pytest.mark.parametrize("x,y", [
+        (1, 2),
+        (2, 1),
+        (-3, 4),
+        ([1, 2], [3, 4]),
+        (lambda: 5, lambda: 7)
+    ])
+    def test_check_triangle_inequality(self, x, y):
+        """Test the check_triangle_inequality method."""
+        norm = LInfNorm()
+        assert norm.check_triangle_inequality(x, y) is True
 
-@pytest.mark.unit
-def test_check_absolute_homogeneity():
-    """Test the absolute homogeneity check."""
-    norm = LInfNorm()
-    x = [1, 2]
-    a = 2.5
-    norm.check_absolute_homogeneity(x, a)
-    
-    a_negative = -2.5
-    norm.check_absolute_homogeneity(x, a_negative)
+    @pytest.mark.parametrize("x,scalar", [
+        (5, 2),
+        (-4, 0.5),
+        ([1, 2, 3], -1),
+        (lambda: 10, 3.5)
+    ])
+    def test_check_absolute_homogeneity(self, x, scalar):
+        """Test the check_absolute_homogeneity method."""
+        norm = LInfNorm()
+        assert norm.check_absolute_homogeneity(x, scalar) is True
 
-@pytest.mark.unit
-def test_check_definiteness():
-    """Test the definiteness check."""
-    norm = LInfNorm()
-    zero_input = [0, 0]
-    non_zero_input = [1, 2]
-    
-    norm.check_definiteness(zero_input)
-    norm.check_definiteness(non_zero_input)
+    @pytest.mark.parametrize("x", [
+        0,
+        0.0,
+        [0, 0, 0],
+        lambda: 0
+    ])
+    def test_check_definiteness_true(self, x):
+        """Test the check_definiteness method for x=0 case."""
+        norm = LInfNorm()
+        assert norm.check_definiteness(x) is True
 
-@pytest.mark.unit
-def test_logging(caplog):
-    """Test that logging messages are generated correctly."""
-    caplog.set_level(logging.DEBUG)
-    norm = LInfNorm()
-    test_input = [1, 2, 3]
-    
-    norm.compute(test_input)
-    assert "Computing L-Infinity norm for input:" in caplog.text
-    assert "Computed L-Infinity norm:" in caplog.text
+    @pytest.mark.parametrize("x", [
+        1,
+        -1,
+        [1, 0],
+        [0, 1],
+        lambda: 5
+    ])
+    def test_check_definiteness_false(self, x):
+        """Test the check_definiteness method for non-zero x."""
+        norm = LInfNorm()
+        assert norm.check_definiteness(x) is False
+
+    def test_initialization_logging(caplog):
+        """Test if initialization logs correctly."""
+        norm = LInfNorm()
+        with caplog.at_level(logging.DEBUG):
+            assert "LInfNorm instance initialized" in caplog.text

@@ -1,156 +1,133 @@
-"""Module implementing the Frobenius inner product for complex matrices."""
-
-from typing import Literal
 import numpy as np
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
+from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
-from swarmauri_base.inner_products import InnerProductBase
-
-# Set up logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "FrobeniusComplexInnerProduct")
 class FrobeniusComplexInnerProduct(InnerProductBase):
+    """Concrete implementation of the InnerProductBase class for computing the Frobenius inner product for complex matrices.
+    
+    This class provides the functionality for computing the Frobenius inner product
+    between two complex matrices. The Frobenius inner product is defined as the sum
+    of the element-wise products of the conjugate of one matrix with the other.
+    
+    The class inherits from InnerProductBase and implements the core computation
+    methods required for the inner product operations.
     """
-    Class implementing the Frobenius inner product for complex matrices.
-
-    This class provides functionality to compute the Frobenius inner product
-    for complex matrices, which is based on the trace of the product of matrices.
-    The implementation ensures conjugate symmetry and handles complex numbers
-    appropriately.
-
-    Methods:
-        compute(a, b): Computes the inner product of matrices a and b.
-        check_conjugate_symmetry(a, b): Checks if the inner product is conjugate symmetric.
-        check_linearity(a, b, c): Checks if the inner product is linear in the first argument.
-        check_positivity(a): Checks if the inner product is positive definite.
-    """
-
-    type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
-
-    def __init__(self) -> None:
-        """
-        Initializes the FrobeniusComplexInnerProduct instance.
-        """
+    
+    type: str = "FrobeniusComplexInnerProduct"
+    
+    def __init__(self):
+        """Initialize the FrobeniusComplexInnerProduct instance."""
         super().__init__()
         logger.debug("FrobeniusComplexInnerProduct instance initialized")
-
-    def compute(self, a: np.ndarray, b: np.ndarray) -> float:
-        """
-        Computes the Frobenius inner product of two complex matrices.
-
-        The Frobenius inner product is defined as the sum of the element-wise
-        products of the conjugate of the second matrix with the first matrix.
-        Mathematically, it is equivalent to trace(A^* @ B), where A and B
-        are complex matrices.
-
+    
+    def compute(self, x: np.ndarray, y: np.ndarray) -> float:
+        """Compute the Frobenius inner product between two complex matrices.
+        
+        The Frobenius inner product is computed as the sum of the element-wise
+        products of the conjugate of one matrix with the other. This is equivalent
+        to the trace of the product of one matrix with the conjugate transpose
+        of the other.
+        
         Args:
-            a: The first complex matrix.
-            b: The second complex matrix.
-
+            x: First complex matrix
+            y: Second complex matrix
+            
         Returns:
-            A float representing the Frobenius inner product result.
-
+            The Frobenius inner product of x and y as a scalar value.
+            
         Raises:
-            ValueError: If the input matrices are not of compatible shapes.
+            ValueError: If the input matrices are not compatible for inner product computation
         """
         logger.debug("Computing Frobenius inner product")
         
-        # Ensure matrices are numpy arrays
-        a = np.asarray(a)
-        b = np.asarray(b)
+        # Ensure the input matrices are numpy arrays
+        if not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray):
+            raise ValueError("Inputs must be numpy arrays")
+            
+        # Compute the element-wise product with conjugate of y
+        product = x * y.conj()
         
-        # Check if matrices can be multiplied element-wise
-        if a.shape != b.shape:
-            logger.error("Input matrices must have the same shape")
-            raise ValueError("Input matrices must have the same shape")
+        # Sum all elements to get the inner product
+        inner_product = np.sum(product)
         
-        # Compute element-wise product and sum
-        product = a * b.conj()
-        result = np.sum(product)
+        # Return as a float
+        return float(inner_product)
+    
+    def check_conjugate_symmetry(self, x: np.ndarray, y: np.ndarray) -> bool:
+        """Check if the inner product satisfies conjugate symmetry.
         
-        # Return the real part to ensure a real-valued inner product
-        return np.real(result)
-
-    def check_conjugate_symmetry(self, a: np.ndarray, b: np.ndarray) -> bool:
-        """
-        Checks if the inner product is conjugate symmetric.
-
-        This method verifies if <a, b> = <b, a>*,
-        where * denotes the complex conjugate.
-
+        Conjugate symmetry requires that the inner product of x and y is
+        equal to the conjugate of the inner product of y and x.
+        
         Args:
-            a: The first complex matrix.
-            b: The second complex matrix.
-
+            x: First complex matrix
+            y: Second complex matrix
+            
         Returns:
-            bool: True if the inner product is conjugate symmetric, False otherwise.
+            True if conjugate symmetry holds, False otherwise
         """
         logger.debug("Checking conjugate symmetry")
         
-        # Compute <a, b>
-        inner_ab = self.compute(a, b)
+        ip_xy = self.compute(x, y)
+        ip_yx = self.compute(y, x)
         
-        # Compute <b, a>
-        inner_ba = self.compute(b, a)
+        # Compute the conjugate of ip_yx and compare with ip_xy
+        return np.isclose(ip_xy, ip_yx.conj())
+    
+    def check_linearity_first_argument(self, 
+                                      x: np.ndarray, 
+                                      y: np.ndarray, 
+                                      z: np.ndarray,
+                                      a: float = 1.0, 
+                                      b: float = 1.0) -> bool:
+        """Check if the inner product is linear in the first argument.
         
-        # Check if <a, b> is the conjugate of <b, a>
-        return np.isclose(inner_ab, inner_ba.conjugate())
-
-    def check_linearity(self, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
-        """
-        Checks if the inner product is linear in the first argument.
-
-        This method verifies two properties:
-        1. <a + c, b> = <a, b> + <c, b>
-        2. <c * a, b> = c * <a, b>
-
+        Linearity in the first argument requires that for any matrices x, y, z
+        and scalars a, b, the following holds:
+        <a*x + b*y, z> = a*<x, z> + b*<y, z>
+        
         Args:
-            a: The first complex matrix.
-            b: The second complex matrix.
-            c: A complex scalar.
-
+            x: First complex matrix
+            y: Second complex matrix
+            z: Third complex matrix
+            a: Scalar coefficient for x
+            b: Scalar coefficient for y
+            
         Returns:
-            bool: True if the inner product is linear, False otherwise.
+            True if linearity holds, False otherwise
         """
-        logger.debug("Checking linearity")
+        logger.debug("Checking linearity in the first argument")
         
-        # Test linearity: <a + c, b> = <a, b> + <c, b>
-        a_plus_c = a + c
-        inner_a_plus_c_b = self.compute(a_plus_c, b)
-        inner_a_b = self.compute(a, b)
-        inner_c_b = self.compute(c, b)
+        # Compute left-hand side: <a*x + b*y, z>
+        lhs = self.compute(a * x + b * y, z)
         
-        # Check if the two results are close
-        is_linear_add = np.isclose(inner_a_plus_c_b, inner_a_b + inner_c_b)
+        # Compute right-hand side: a*<x, z> + b*<y, z>
+        rhs = a * self.compute(x, z) + b * self.compute(y, z)
         
-        # Test scalar multiplication: <c * a, b> = c * <a, b>
-        c_times_a = c * a
-        inner_c_a_b = self.compute(c_times_a, b)
-        c_times_inner_a_b = c * inner_a_b
+        # Use numpy's isclose for numeric comparison
+        return np.isclose(lhs, rhs)
+    
+    def check_positivity(self, x: np.ndarray) -> bool:
+        """Check if the inner product is positive definite.
         
-        is_linear_scale = np.isclose(inner_c_a_b, c_times_inner_a_b)
+        Positive definiteness requires that for any non-zero matrix x,
+        the inner product <x, x> is positive.
         
-        return is_linear_add and is_linear_scale
-
-    def check_positivity(self, a: np.ndarray) -> bool:
-        """
-        Checks if the inner product is positive definite.
-
-        For the Frobenius inner product, this is always true except
-        when the matrix is the zero matrix.
-
         Args:
-            a: The complex matrix to check.
-
+            x: Complex matrix to check
+            
         Returns:
-            bool: True if the inner product is positive definite, False otherwise.
+            True if positivity holds, False otherwise
         """
         logger.debug("Checking positivity")
         
-        # Compute the inner product of a with itself
-        inner_aa = self.compute(a, a)
+        ip = self.compute(x, x)
         
-        # The result should be positive unless a is the zero matrix
-        return inner_aa > 0.0
+        # The inner product of a matrix with itself is a real number
+        # We check if it's positive
+        return ip > 0

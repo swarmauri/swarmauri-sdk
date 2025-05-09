@@ -1,150 +1,135 @@
 from abc import ABC, abstractmethod
-from typing import Union, Sequence, Callable, Tuple, List, Any
+from typing import Any, Callable, Iterable, Sequence, Tuple, TypeVar, Union
 import logging
+
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+# Define type variables for input types
+InputTypes = TypeVar('InputTypes', IVector, IMatrix, Sequence, str, Callable)
+DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
 
 class IPseudometric(ABC):
     """
-    Interface for pseudometric space structure.
+    Interface for pseudometric space. This interface defines a relaxed metric structure
+    where the distance function is non-negative, symmetric, and satisfies the triangle
+    inequality, but does not necessarily distinguish between distinct points.
 
-    This interface defines the basic structure and operations for working with
-    pseudometric spaces in various applications, such as machine learning,
-    information retrieval, and similarity search.
-
-    A pseudometric satisfies the following properties:
-    1. Non-negativity: d(x, y) ≥ 0
-    2. Symmetry: d(x, y) = d(y, x)
-    3. Triangle inequality: d(x, z) ≤ d(x, y) + d(y, z)
-    4. Weak identity: d(x, y) = 0 if x = y (but not necessarily vice versa)
-
-    Implementations should provide concrete distance calculations for various
-    data types including vectors, matrices, sequences, strings, and callables.
+    This interface provides methods for computing distances between points as well as
+    validating the pseudometric properties.
     """
 
-    def __init__(self):
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-
     @abstractmethod
-    def distance(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                  y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def distance(self, x: InputTypes, y: InputTypes) -> float:
         """
-        Computes the pseudometric distance between two elements.
+        Compute the distance between two points x and y.
 
         Args:
-            x: Union[IVector, IMatrix, Sequence, str, Callable]
-                The first element to compute distance between
-            y: Union[IVector, IMatrix, Sequence, str, Callable]
-                The second element to compute distance between
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
 
         Returns:
-            float: The computed pseudometric distance
+            float:
+                The distance between x and y
+
+        Raises:
+            TypeError:
+                If x or y are not of supported types
         """
-        raise NotImplementedError("distance method must be implemented")
+        pass
 
     @abstractmethod
-    def distances(self, xs: Sequence[Union[IVector, IMatrix, Sequence, str, Callable]],
-                   ys: Sequence[Union[IVector, IMatrix, Sequence, str, Callable]]) -> List[float]:
+    def distances(self, x: InputTypes, ys: Iterable[InputTypes]) -> Iterable[float]:
         """
-        Computes pairwise pseudometric distances between two sequences of elements.
+        Compute distances from point x to multiple points ys.
 
         Args:
-            xs: Sequence[Union[IVector, IMatrix, Sequence, str, Callable]]
-                The first sequence of elements
-            ys: Sequence[Union[IVector, IMatrix, Sequence, str, Callable]]
-                The second sequence of elements
+            x: InputTypes
+                The reference point
+            ys: Iterable[InputTypes]
+                The collection of points to compute distances to
 
         Returns:
-            List[float]: A list of computed pseudometric distances
-        """
-        raise NotImplementedError("distances method must be implemented")
-
-    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                             y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
-        """
-        Checks if the distance satisfies the non-negativity property.
-
-        Args:
-            x: Union[IVector, IMatrix, Sequence, str, Callable]
-                The first element to check
-            y: Union[IVector, IMatrix, Sequence, str, Callable]
-                The second element to check
+            Iterable[float]:
+                An iterable of distances from x to each point in ys
 
         Raises:
-            ValueError: If non-negativity property is violated
+            TypeError:
+                If x or any element in ys are not of supported types
         """
-        distance = self.distance(x, y)
-        if distance < 0:
-            self.logger.error(f"Non-negativity violated: d({x}, {y}) = {distance}")
-            raise ValueError(f"Non-negativity violated: d({x}, {y}) = {distance}")
+        pass
 
-    def check_symmetry(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                       y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    @abstractmethod
+    def check_non_negativity(self, x: InputTypes, y: InputTypes) -> bool:
         """
-        Checks if the distance satisfies the symmetry property.
+        Check if the distance satisfies non-negativity.
 
         Args:
-            x: Union[IVector, IMatrix, Sequence, str, Callable]
-                The first element to check
-            y: Union[IVector, IMatrix, Sequence, str, Callable]
-                The second element to check
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
 
-        Raises:
-            ValueError: If symmetry property is violated
+        Returns:
+            bool:
+                True if distance(x, y) >= 0, False otherwise
         """
-        d_xy = self.distance(x, y)
-        d_yx = self.distance(y, x)
-        if not abs(d_xy - d_yx) < 1e-9:  # Allowing for floating-point precision
-            self.logger.error(f"Symmetry violated: d({x}, {y}) = {d_xy}, d({y}, {x}) = {d_yx}")
-            raise ValueError(f"Symmetry violated: d({x}, {y}) = {d_xy}, d({y}, {x}) = {d_yx}")
+        pass
 
-    def check_triangle_inequality(self,
-                                   x: Union[IVector, IMatrix, Sequence, str, Callable],
-                                   y: Union[IVector, IMatrix, Sequence, str, Callable],
-                                   z: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    @abstractmethod
+    def check_symmetry(self, x: InputTypes, y: InputTypes) -> bool:
         """
-        Checks if the distance satisfies the triangle inequality property.
+        Check if the distance satisfies symmetry.
 
         Args:
-            x: Union[IVector, IMatrix, Sequence, str, Callable]
-                The first element to check
-            y: Union[IVector, IMatrix, Sequence, str, Callable]
-                The second element to check
-            z: Union[IVector, IMatrix, Sequence, str, Callable]
-                The third element to check
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
 
-        Raises:
-            ValueError: If triangle inequality property is violated
+        Returns:
+            bool:
+                True if distance(x, y) == distance(y, x), False otherwise
         """
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        if d_xz > d_xy + d_yz:
-            self.logger.error(f"Triangle inequality violated: d({x}, {z}) = {d_xz}, "
-                             f"d({x}, {y}) + d({y}, {z}) = {d_xy + d_yz}")
-            raise ValueError(f"Triangle inequality violated: d({x}, {z}) = {d_xz}, "
-                             f"d({x}, {y}) + d({y}, {z}) = {d_xy + d_yz}")
+        pass
 
-    def check_weak_identity(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                            y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    @abstractmethod
+    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
         """
-        Checks if the distance satisfies the weak identity property.
+        Check if the distance satisfies the triangle inequality.
 
         Args:
-            x: Union[IVector, IMatrix, Sequence, str, Callable]
-                The first element to check
-            y: Union[IVector, IMatrix, Sequence, str, Callable]
-                The second element to check
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+            z: InputTypes
+                The third point
 
-        Raises:
-            ValueError: If weak identity property is violated
+        Returns:
+            bool:
+                True if distance(x, z) <= distance(x, y) + distance(y, z), False otherwise
         """
-        if x != y:
-            distance = self.distance(x, y)
-            if distance == 0:
-                self.logger.error(f"Weak identity violated: d({x}, {y}) = 0 but {x} != {y}")
-                raise ValueError(f"Weak identity violated: d({x}, {y}) = 0 but {x} != {y}")
+        pass
+
+    @abstractmethod
+    def check_weak_identity(self, x: InputTypes, y: InputTypes) -> bool:
+        """
+        Check if the distance satisfies weak identity of indiscernibles.
+
+        Args:
+            x: InputTypes
+                The first point
+            y: InputTypes
+                The second point
+
+        Returns:
+            bool:
+                True if x == y implies distance(x, y) == 0, False otherwise
+        """
+        pass

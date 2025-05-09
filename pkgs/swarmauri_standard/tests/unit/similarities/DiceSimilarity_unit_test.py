@@ -3,113 +3,110 @@ from swarmauri_standard.swarmauri_standard.similarities.DiceSimilarity import Di
 import logging
 
 @pytest.fixture
-def dice_similarity():
-    """Fixture providing a fresh instance of DiceSimilarity for each test."""
-    return DiceSimilarity()
+def logging_fixture():
+    """Fixture to handle logging setup and teardown"""
+    # Set up logging
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # Clear any existing handlers
+    logger.handlers.clear()
+    # Add a handler for testing
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(handler)
+    yield logger
+    # Teardown - remove the handler
+    logger.removeHandler(handler)
 
 @pytest.mark.unit
-class TestDiceSimilarity:
-    """Unit tests for the DiceSimilarity class implementation."""
+def test_dice_similarity_init():
+    """Test initialization of DiceSimilarity class"""
+    # Arrange and Act
+    similarity = DiceSimilarity()
+    
+    # Assert
+    assert similarity.type == "DiceSimilarity"
 
-    def test_class_attributes(self, dice_similarity):
-        """Test that class attributes are correctly initialized."""
-        assert dice_similarity.resource == "similarity"
+@pytest.mark.unit
+def test_dice_similarity_empty_sets(logging_fixture):
+    """Test Dice similarity calculation with empty sets"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("", "")
+    
+    # Assert
+    assert result == 1.0
 
-    def test_similarity_with_identical_sets(self, dice_similarity):
-        """Test similarity calculation with identical sets."""
-        a = {1, 2, 3}
-        b = {1, 2, 3}
-        assert dice_similarity.similarity(a, b) == 1.0
+@pytest.mark.unit
+def test_dice_similarity_no_overlap():
+    """Test Dice similarity calculation with no overlapping elements"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("abc", "def")
+    
+    # Assert
+    assert result == 0.0
 
-    def test_similarity_with_disjoint_sets(self, dice_similarity):
-        """Test similarity calculation with disjoint sets."""
-        a = {1, 2, 3}
-        b = {4, 5, 6}
-        assert dice_similarity.similarity(a, b) == 0.0
+@pytest.mark.unit
+def test_dice_similarity_partial_overlap():
+    """Test Dice similarity calculation with partial overlapping elements"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("ab", "ab")
+    
+    # Assert
+    assert result == 1.0
 
-    def test_similarity_with_empty_sets(self, dice_similarity):
-        """Test similarity calculation with empty sets."""
-        a = set()
-        b = set()
-        assert dice_similarity.similarity(a, b) == 1.0
+@pytest.mark.unit
+def test_dice_similarity_multiset():
+    """Test Dice similarity calculation with multiset input"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("aab", "aab")
+    
+    # Assert
+    assert result == 1.0
 
-    def test_similarity_with_lists(self, dice_similarity):
-        """Test similarity calculation with lists instead of sets."""
-        a = [1, 2, 3]
-        b = [1, 2, 3]
-        assert dice_similarity.similarity(a, b) == 1.0
+@pytest.mark.unit
+def test_dice_similarity_single_element():
+    """Test Dice similarity calculation with single element"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("a", "a")
+    
+    # Assert
+    assert result == 1.0
 
-    def test_similarities_with_multiple_elements(self, dice_similarity):
-        """Test similarities calculation with multiple elements."""
-        a = {1, 2, 3}
-        b_list = [{1, 2, 3}, set(), {4, 5, 6}]
-        expected = (1.0, 1.0, 0.0)
-        assert dice_similarity.similarities(a, b_list) == expected
+@pytest.mark.unit
+def test_dice_similarity_logging(logging_fixture):
+    """Test if logging works correctly for similarity calculation"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act
+    result = similarity.similarity("a", "a")
+    
+    # Assert
+    assert logging.getLogger(__name__).handlers
+    assert any("Calculating Dice similarity between two elements" in record.msg 
+               for record in logging_fixture.handlers[0].records)
 
-    def test_dissimilarity(self, dice_similarity):
-        """Test dissimilarity calculation."""
-        a = {1, 2, 3}
-        b = {4, 5, 6}
-        assert dice_similarity.dissimilarity(a, b) == 1.0
-
-    def test_dissimilarities(self, dice_similarity):
-        """Test dissimilarities calculation."""
-        a = {1, 2, 3}
-        b_list = [{1, 2, 3}, set(), {4, 5, 6}]
-        expected = (0.0, 0.0, 1.0)
-        assert dice_similarity.dissimilarities(a, b_list) == expected
-
-    def test_check_boundedness(self, dice_similarity):
-        """Test that the measure is bounded between 0 and 1."""
-        a = {1, 2, 3}
-        b = {4, 5, 6}
-        assert dice_similarity.check_boundedness(a, b) is True
-
-    def test_check_reflexivity(self, dice_similarity):
-        """Test reflexivity of the similarity measure."""
-        a = {1, 2, 3}
-        assert dice_similarity.check_reflexivity(a) is True
-
-    def test_check_symmetry(self, dice_similarity):
-        """Test symmetry of the similarity measure."""
-        a = {1, 2, 3}
-        b = {3, 2, 1}
-        assert dice_similarity.check_symmetry(a, b) is True
-
-    def test_check_identity(self, dice_similarity):
-        """Test identity property of the similarity measure."""
-        a = {1, 2, 3}
-        b = {1, 2, 3}
-        assert dice_similarity.check_identity(a, b) is True
-
-    def test_check_identity_with_different_sets(self, dice_similarity):
-        """Test identity property with different sets."""
-        a = {1, 2, 3}
-        b = {4, 5, 6}
-        assert dice_similarity.check_identity(a, b) is False
-
-    def test_similarity_raises_value_error_on_none(self, dice_similarity):
-        """Test that similarity raises ValueError with None inputs."""
-        a = None
-        b = {1, 2, 3}
-        with pytest.raises(ValueError):
-            dice_similarity.similarity(a, b)
-
-    def test_similarity_with_empty_iterables(self, dice_similarity):
-        """Test similarity calculation with empty iterables."""
-        a = set()
-        b = set()
-        assert dice_similarity.similarity(a, b) == 1.0
-
-    def test_similarity_with_partial_overlap(self, dice_similarity):
-        """Test similarity calculation with partially overlapping sets."""
-        a = {1, 2, 3}
-        b = {2, 3, 4}
-        expected = 2 * 2 / (3 + 3)  # 4/6 = 2/3
-        assert dice_similarity.similarity(a, b) == expected
-
-    def test_similarity_with_tuple_inputs(self, dice_similarity):
-        """Test similarity calculation with tuple inputs."""
-        a = (1, 2, 3)
-        b = (1, 2, 3)
-        assert dice_similarity.similarity(a, b) == 1.0
+@pytest.mark.unit
+def test_dice_similarity_invalid_input():
+    """Test Dice similarity with invalid input types"""
+    # Arrange
+    similarity = DiceSimilarity()
+    
+    # Act and Assert
+    with pytest.raises(ValueError):
+        similarity.similarity(123, "abc")

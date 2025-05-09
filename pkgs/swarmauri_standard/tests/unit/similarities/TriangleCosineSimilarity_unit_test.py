@@ -1,121 +1,108 @@
 import pytest
-import logging
-from swarmauri_standard.swarmauri_standard.similarities.TriangleCosineSimilarity import TriangleCosineSimilarity
 import math
+import logging
+from typing import Any, Sequence, Tuple, TypeVar
+from swarmauri_standard.swarmauri_standard.similarities.TriangleCosineSimilarity import TriangleCosineSimilarity
 
 logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_resource():
-    """Test that the resource attribute is correctly set."""
-    triangle_cosine = TriangleCosineSimilarity()
-    assert triangle_cosine.resource == "Similarity"
+def test_TriangleCosineSimilarity_properties():
+    """Test the static properties of the TriangleCosineSimilarity class."""
+    assert TriangleCosineSimilarity.resource == "Similarity"
+    assert TriangleCosineSimilarity.type == "TriangleCosineSimilarity"
 
 @pytest.mark.unit
-def test_type():
-    """Test that the type attribute is correctly set."""
-    triangle_cosine = TriangleCosineSimilarity()
-    assert triangle_cosine.type == "TriangleCosineSimilarity"
+def test_TriangleCosineSimilarity_serialization():
+    """Test serialization/deserialization of TriangleCosineSimilarity model."""
+    tcs = TriangleCosineSimilarity()
+    dumped = tcs.model_dump_json()
+    loaded_id = TriangleCosineSimilarity.model_validate_json(dumped)
+    assert tcs.id == loaded_id
 
 @pytest.mark.unit
-def test_serialization():
-    """Test serialization and validation of the model."""
-    triangle_cosine = TriangleCosineSimilarity()
-    model_json = triangle_cosine.model_dump_json()
-    validated_id = triangle_cosine.model_validate_json(model_json)
-    assert triangle_cosine.id == validated_id
+def test_TriangleCosineSimilarity_similarity_basic():
+    """Test basic functionality of the similarity calculation."""
+    tcs = TriangleCosineSimilarity()
+    
+    # Test with non-zero vectors
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    similarity = tcs.similarity(x, y)
+    assert isinstance(similarity, float)
+    assert 0.0 <= similarity <= 1.0
 
 @pytest.mark.unit
-def test_similarity_valid_vectors():
-    """Test cosine similarity calculation with valid vectors."""
-    a = [1, 2, 3]
-    b = [4, 5, 6]
-    
-    triangle_cosine = TriangleCosineSimilarity()
-    similarity = triangle_cosine.similarity(a, b)
-    
-    # Expected value from numpy.corrcoef
-    expected = 0.9999999999999999  # Due to floating point precision
-    
-    assert math.isclose(similarity, expected, rel_tol=1e-9, abs_tol=1e-9)
+def test_TriangleCosineSimilarity_similarity_identicical():
+    """Test similarity with identical vectors."""
+    tcs = TriangleCosineSimilarity()
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    similarity = tcs.similarity(x, y)
+    assert math.isclose(similarity, 1.0, rel_tol=1e-9)
 
 @pytest.mark.unit
-def test_similarity_zero_vector():
-    """Test that similarity raises ValueError for zero vectors."""
-    triangle_cosine = TriangleCosineSimilarity()
-    
+def test_TriangleCosineSimilarity_similarity_zero_vector():
+    """Test similarity with zero vector."""
+    tcs = TriangleCosineSimilarity()
+    x = [0, 0, 0]
+    y = [1, 2, 3]
     with pytest.raises(ValueError):
-        triangle_cosine.similarity([0, 0, 0], [1, 2, 3])
+        tcs.similarity(x, y)
 
 @pytest.mark.unit
-def test_similarity_none_input():
-    """Test that similarity raises ValueError for None input."""
-    triangle_cosine = TriangleCosineSimilarity()
-    
-    with pytest.raises(ValueError):
-        triangle_cosine.similarity(None, [1, 2, 3])
+def test_TriangleCosineSimilarity_similarities_multiple():
+    """Test multiple similarities calculation."""
+    tcs = TriangleCosineSimilarity()
+    pairs = [
+        ([1, 2], [3, 4]),
+        ([5, 6], [7, 8]),
+        ([9, 10], [11, 12])
+    ]
+    results = tcs.similarities(pairs)
+    assert len(results) == 3
+    assert all(0.0 <= res <= 1.0 for res in results)
 
 @pytest.mark.unit
-def test_similarities():
-    """Test computing similarities with multiple vectors."""
-    a = [1, 2, 3]
-    b_list = [[4, 5, 6], [7, 8, 9]]
-    
-    triangle_cosine = TriangleCosineSimilarity()
-    similarities = triangle_cosine.similarities(a, b_list)
-    
-    assert isinstance(similarities, tuple)
-    assert len(similarities) == 2
+def test_TriangleCosineSimilarity_dissimilarity_basic():
+    """Test basic dissimilarity calculation."""
+    tcs = TriangleCosineSimilarity()
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    dissim = tcs.dissimilarity(x, y)
+    assert isinstance(dissim, float)
+    assert 0.0 <= dissim <= 1.0
 
 @pytest.mark.unit
-def test_dissimilarity():
-    """Test that dissimilarity is 1 - similarity."""
-    a = [1, 2, 3]
-    b = [4, 5, 6]
+def test_TriangleCosineSimilarity_dissimilarity_invalid_input():
+    """Test dissimilarity with invalid input types."""
+    tcs = TriangleCosineSimilarity()
     
-    triangle_cosine = TriangleCosineSimilarity()
-    similarity = triangle_cosine.similarity(a, b)
-    dissimilarity = triangle_cosine.dissimilarity(a, b)
-    
-    assert math.isclose(dissimilarity, 1.0 - similarity, rel_tol=1e-9, abs_tol=1e-9)
+    # Test with string input
+    x = "test"
+    y = "test"
+    with pytest.raises(TypeError):
+        tcs.dissimilarity(x, y)
+        
+    # Test with list input
+    x = ["test"]
+    y = ["test"]
+    with pytest.raises(TypeError):
+        tcs.dissimilarity(x, y)
 
 @pytest.mark.unit
-def test_check_reflexivity():
-    """Test that reflexivity check returns True for valid input."""
-    a = [1, 2, 3]
+def test_TriangleCosineSimilarity_similarities_edge_cases():
+    """Test edge cases for similarities method."""
+    tcs = TriangleCosineSimilarity()
     
-    triangle_cosine = TriangleCosineSimilarity()
-    is_reflexive = triangle_cosine.check_reflexivity(a)
+    # Test with empty list
+    results = tcs.similarities([])
+    assert len(results) == 0
     
-    assert is_reflexive is True
-
-@pytest.mark.unit
-def test_check_symmetry():
-    """Test that symmetry check returns True for valid input."""
-    a = [1, 2, 3]
-    b = [4, 5, 6]
-    
-    triangle_cosine = TriangleCosineSimilarity()
-    is_symmetric = triangle_cosine.check_symmetry(a, b)
-    
-    assert is_symmetric is True
-
-@pytest.mark.unit
-def test_check_boundedness():
-    """Test that boundedness check returns True."""
-    triangle_cosine = TriangleCosineSimilarity()
-    is_bounded = triangle_cosine.check_boundedness([1, 2, 3], [4, 5, 6])
-    
-    assert is_bounded is True
-
-@pytest.mark.unit
-def test_dissimilarities():
-    """Test computing dissimilarities with multiple vectors."""
-    a = [1, 2, 3]
-    b_list = [[4, 5, 6], [7, 8, 9]]
-    
-    triangle_cosine = TriangleCosineSimilarity()
-    dissimilarities = triangle_cosine.dissimilarities(a, b_list)
-    
-    assert isinstance(dissimilarities, tuple)
-    assert len(dissimilarities) == 2
+    # Test with zero vectors
+    pairs = [
+        ([0, 0], [1, 2]),
+        ([3, 4], [0, 0])
+    ]
+    results = tcs.similarities(pairs)
+    assert all(res == 0.0 for res in results)

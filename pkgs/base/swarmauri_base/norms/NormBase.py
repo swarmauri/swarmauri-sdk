@@ -1,113 +1,127 @@
+from typing import Optional, TypeVar, Union
+from pydantic import Field
 import logging
-from abc import ABC, abstractmethod
-from typing import Union, Any, Sequence, Tuple, Optional, Callable
-from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.norms.INorm import INorm
 
-logger = logging.getLogger(__name__)
+T = TypeVar('T', Union['IVector', 'IMatrix', str, bytes, Sequence, Callable])
 
-class INorm(ABC):
+@ComponentBase.register_model()
+class NormBase(INorm, ComponentBase):
     """
-    Interface for vector norms.
-
-    This abstract base class defines the interface for various vector norms.
-    It enforces the contract that any implementing class must provide a compute method
-    and can optionally provide specific implementations for different types of checks.
-    The checks are designed to verify the mathematical properties of a norm.
+    Base class providing template logic for norm behaviors. This class implements 
+    common interfaces for norm computations and provides a foundation for 
+    concrete norm implementations.
+    
+    Inherits From:
+        INorm: Interface for norm computations on vector spaces.
+        ComponentBase: Base class for all components in the system.
     """
-
+    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
+    
     def __init__(self):
+        """
+        Initializes the NormBase instance.
+        
+        Raises:
+            NotImplementedError: This class is a base class and should not be 
+                instantiated directly.
+        """
         super().__init__()
+        logger.debug("NormBase instance initialized")
+        raise NotImplementedError("This class is a base class and should not be instantiated directly")
 
-    @abstractmethod
-    def compute(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def compute(self, x: T) -> float:
         """
-        Compute the norm of the input.
-
+        Template method for computing the norm of the given input.
+        
         Args:
-            x: The input to compute the norm for. Can be a vector, matrix, sequence, string, or callable.
-
+            x: T
+                The input to compute the norm for. Can be a vector, matrix, 
+                string, bytes, sequence, or callable.
+                
         Returns:
-            float: The computed norm value.
-        """
-        raise NotImplementedError("compute method must be implemented by subclass.")
-
-    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
-        """
-        Check if the norm is non-negative.
-
-        Args:
-            x: The input to check the norm for.
-
+            float:
+                The computed norm value
+                
         Raises:
-            AssertionError: If the norm is negative.
+            NotImplementedError: Method must be implemented in subclass
         """
-        logger.debug(f"Checking non-negativity for input: {x}")
-        norm = self.compute(x)
-        if norm < 0:
-            raise AssertionError(f"Norm value {norm} is negative. Non-negativity violated.")
-        logger.debug("Non-negativity check passed.")
+        logger.debug("Computing norm")
+        raise NotImplementedError("Method 'compute' must be implemented in subclass")
 
-    def check_triangle_inequality(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                                    y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_non_negativity(self, x: T) -> bool:
         """
-        Check the triangle inequality: ||x + y|| <= ||x|| + ||y||.
-
+        Template method for checking if the norm satisfies non-negativity.
+        
         Args:
-            x: First input vector.
-            y: Second input vector.
-
+            x: T
+                The input to check
+                
+        Returns:
+            bool:
+                True if norm(x) >= 0, False otherwise
+                
         Raises:
-            AssertionError: If the triangle inequality is violated.
+            NotImplementedError: Method must be implemented in subclass
         """
-        logger.debug(f"Checking triangle inequality for inputs: {x}, {y}")
-        norm_x_plus_y = self.compute(x + y)
-        norm_x = self.compute(x)
-        norm_y = self.compute(y)
-        if norm_x_plus_y > norm_x + norm_y:
-            raise AssertionError(f"Triangle inequality violated: {norm_x_plus_y} > {norm_x} + {norm_y}")
-        logger.debug("Triangle inequality check passed.")
+        logger.debug("Checking non-negativity")
+        raise NotImplementedError("Method 'check_non_negativity' must be implemented in subclass")
 
-    def check_absolute_homogeneity(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
-                                     a: float) -> None:
+    def check_triangle_inequality(self, x: T, y: T) -> bool:
         """
-        Check absolute homogeneity: ||a * x|| = |a| * ||x||.
-
+        Template method for checking if the norm satisfies the triangle inequality.
+        
         Args:
-            x: Input vector.
-            a: Scalar multiplier.
-
+            x: T
+                The first input vector/matrix
+            y: T
+                The second input vector/matrix
+                
+        Returns:
+            bool:
+                True if ||x + y|| <= ||x|| + ||y||, False otherwise
+                
         Raises:
-            AssertionError: If absolute homogeneity is violated.
+            NotImplementedError: Method must be implemented in subclass
         """
-        logger.debug(f"Checking absolute homogeneity for input: {x}, scalar: {a}")
-        norm_scaled = self.compute(a * x)
-        norm_original = self.compute(x)
-        expected = abs(a) * norm_original
-        if not (norm_scaled - expected) < 1e-9:  # Using approximate equality for floats
-            raise AssertionError(f"Absolute homogeneity violated: {norm_scaled} != {expected}")
-        logger.debug("Absolute homogeneity check passed.")
+        logger.debug("Checking triangle inequality")
+        raise NotImplementedError("Method 'check_triangle_inequality' must be implemented in subclass")
 
-    def check_definiteness(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_absolute_homogeneity(self, x: T, scalar: float) -> bool:
         """
-        Check definiteness: ||x|| = 0 if and only if x is the zero vector.
-
+        Template method for checking if the norm satisfies absolute homogeneity.
+        
         Args:
-            x: Input vector to check.
-
+            x: T
+                The input to check
+            scalar: float
+                The scalar to scale with
+                
+        Returns:
+            bool:
+                True if ||c * x|| = |c| * ||x||, False otherwise
+                
         Raises:
-            AssertionError: If definiteness is violated.
+            NotImplementedError: Method must be implemented in subclass
         """
-        logger.debug(f"Checking definiteness for input: {x}")
-        norm = self.compute(x)
-        if norm == 0:
-            logger.info("Norm is zero, implying x is the zero vector")
-        else:
-            logger.info("Norm is non-zero, x is non-zero")
-        logger.debug("Definiteness check completed.")
+        logger.debug("Checking absolute homogeneity")
+        raise NotImplementedError("Method 'check_absolute_homogeneity' must be implemented in subclass")
 
-    def __str__(self) -> str:
-        return f"Norm type: {self.__class__.__name__}"
-
-    def __repr__(self) -> str:
-        return f"Norm({self.__class__.__name__})"
+    def check_definiteness(self, x: T) -> bool:
+        """
+        Template method for checking if the norm is definite (norm(x) = 0 if and only if x = 0).
+        
+        Args:
+            x: T
+                The input to check
+                
+        Returns:
+            bool:
+                True if norm(x) = 0 implies x = 0, False otherwise
+                
+        Raises:
+            NotImplementedError: Method must be implemented in subclass
+        """
+        logger.debug("Checking definiteness")
+        raise NotImplementedError("Method 'check_definiteness' must be implemented in subclass")

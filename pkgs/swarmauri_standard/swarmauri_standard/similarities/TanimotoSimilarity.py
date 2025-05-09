@@ -1,261 +1,137 @@
-from typing import Union, Sequence, Tuple, Any, Optional
+from typing import Any, Sequence, Tuple, TypeVar, Union, Literal
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 import logging
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from ..SimilarityBase import SimilarityBase
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+InputType = TypeVar('InputType', str, bytes, Any)
+OutputType = TypeVar('OutputType', float)
 
 @ComponentBase.register_type(SimilarityBase, "TanimotoSimilarity")
 class TanimotoSimilarity(SimilarityBase):
     """
-    A concrete implementation of the Tanimoto similarity measure.
+    Implementation of the Tanimoto similarity measure for real vectors.
 
-    This class provides the implementation for calculating the Tanimoto similarity
-    between vectors. The Tanimoto similarity is a generalization of the Jaccard
-    similarity for real-valued vectors and is commonly used in cheminformatics for
-    comparing molecular fingerprints.
+    The Tanimoto similarity is a commonly used measure in cheminformatics
+    for comparing molecular fingerprints. It generalizes the Jaccard index
+    to real-valued vectors. The similarity is calculated as:
 
-    Inherits From:
-        SimilarityBase: Base class for similarity measures
+    Tanimoto(a, b) = (a·b) / (|a|² + |b|² - a·b)
 
-    Attributes:
-        resource: Optional[str] = "similarity"
-            Specifies the resource type for this component
+    where:
+    - a·b is the dot product of vectors a and b
+    - |a|² is the squared magnitude of vector a
+    - |b|² is the squared magnitude of vector b
+
+    This implementation ensures that vectors are non-zero and provides
+    efficient computation of similarities for both individual pairs
+    and batches of pairs.
     """
-    resource: Optional[str] = "similarity"
+    
+    type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
+    resource: str = ResourceTypes.SIMILARITY.value
 
-    def similarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def __init__(self):
         """
-        Calculates the Tanimoto similarity between two vectors.
+        Initialize the TanimotoSimilarity instance.
+        """
+        super().__init__()
+        logger.debug("Initialized TanimotoSimilarity instance")
 
-        The Tanimoto similarity is calculated as:
-            T = (a · b) / (||a||² + ||b||² - (a · b))
-        
-        Where:
-            a · b = dot product of vectors a and b
-            ||a||² = squared magnitude of vector a
-            ||b||² = squared magnitude of vector b
+    def similarity(self, x: InputType, y: InputType) -> float:
+        """
+        Calculate the Tanimoto similarity between two vectors.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first vector to compare
-            b: Union[Any, None]
+            y: InputType
                 The second vector to compare
 
         Returns:
             float:
-                The Tanimoto similarity score between the two vectors
+                A float representing the Tanimoto similarity between x and y.
+                The value will be in the range [0, 1]
 
         Raises:
-            ValueError:
-                If either vector is None or zero vector
+            ValueError: If either vector is empty or not of the same length
+            ZeroDivisionError: If the denominator is zero (should not occur with non-zero vectors)
         """
-        if a is None or b is None:
-            logger.error("Input vectors cannot be None")
-            raise ValueError("Input vectors cannot be None")
+        # Ensure inputs are valid
+        if not x or not y:
+            raise ValueError("Vectors must be non-zero")
             
-        if len(a) == 0 or len(b) == 0:
-            logger.error("Input vectors cannot be empty")
-            raise ValueError("Input vectors cannot be empty")
+        if len(x) != len(y):
+            raise ValueError("Vectors must be of the same length")
 
-        # Calculate the dot product
-        dot_product = sum(x * y for x, y in zip(a, b))
-        
-        # Calculate the squared magnitudes
-        sum_a_sq = sum(x**2 for x in a)
-        sum_b_sq = sum(x**2 for x in b)
-        
-        # Calculate the denominator
-        denominator = sum_a_sq + sum_b_sq - dot_product
-        
+        # Calculate dot product
+        dot_product = sum(a * b for a, b in zip(x, y))
+        # Calculate squared magnitudes
+        mag_x_sq = sum(a ** 2 for a in x)
+        mag_y_sq = sum(b ** 2 for b in y)
+
+        # Compute denominator
+        denominator = mag_x_sq + mag_y_sq - dot_product
+
+        # Handle division by zero
         if denominator == 0:
-            logger.error("Denominator is zero, cannot calculate similarity")
-            raise ValueError("Denominator is zero, cannot calculate similarity")
-            
+            raise ZeroDivisionError("Denominator is zero - cannot compute similarity")
+
         similarity = dot_product / denominator
-        
+
         logger.debug(f"Calculated Tanimoto similarity: {similarity}")
         return similarity
 
-    def similarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
         """
-        Calculates Tanimoto similarity scores between one vector and a list of vectors.
+        Calculate Tanimoto similarities for multiple pairs of vectors.
 
         Args:
-            a: Union[Any, None]
-                The vector to compare against multiple vectors
-            b_list: Sequence[Union[Any, None]]
-                The list of vectors to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of vector pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of Tanimoto similarity scores
-
-        Raises:
-            ValueError:
-                If input vector 'a' or any vector in 'b_list' is None or empty
+            Sequence[float]:
+                A sequence of Tanimoto similarity scores corresponding to each pair
         """
-        if a is None or len(a) == 0:
-            logger.error("Input vector 'a' cannot be None or empty")
-            raise ValueError("Input vector 'a' cannot be None or empty")
-            
-        similarities = []
-        for b in b_list:
-            if b is None or len(b) == 0:
-                logger.error("Input vector in 'b_list' cannot be None or empty")
-                raise ValueError("Input vector in 'b_list' cannot be None or empty")
-            similarities.append(self.similarity(a, b))
-            
-        logger.debug(f"Calculated similarities for {len(similarities)} vectors")
-        return tuple(similarities)
+        return [self.similarity(x, y) for x, y in pairs]
 
-    def dissimilarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def dissimilarity(self, x: InputType, y: InputType) -> float:
         """
-        Calculates the dissimilarity score as 1 - similarity.
+        Calculate the Tanimoto dissimilarity between two vectors.
+
+        The dissimilarity is simply 1 minus the similarity.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first vector to compare
-            b: Union[Any, None]
+            y: InputType
                 The second vector to compare
 
         Returns:
             float:
-                The dissimilarity score between the two vectors
+                A float representing the Tanimoto dissimilarity between x and y.
+                The value will be in the range [0, 1]
         """
-        similarity = self.similarity(a, b)
+        similarity = self.similarity(x, y)
         dissimilarity = 1.0 - similarity
         
-        logger.debug(f"Calculated dissimilarity: {dissimilarity}")
+        logger.debug(f"Calculated Tanimoto dissimilarity: {dissimilarity}")
         return dissimilarity
 
-    def dissimilarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
         """
-        Calculates dissimilarity scores as 1 - similarity for multiple vectors.
+        Calculate Tanimoto dissimilarities for multiple pairs of vectors.
 
         Args:
-            a: Union[Any, None]
-                The vector to compare against multiple vectors
-            b_list: Sequence[Union[Any, None]]
-                The list of vectors to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of vector pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of dissimilarity scores
+            Sequence[float]:
+                A sequence of Tanimoto dissimilarity scores corresponding to each pair
         """
-        similarities = self.similarities(a, b_list)
-        dissimilarities = tuple(1.0 - s for s in similarities)
-        
-        logger.debug(f"Calculated dissimilarities for {len(dissimilarities)} vectors")
-        return dissimilarities
-
-    def check_boundedness(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the Tanimoto similarity measure is bounded.
-
-        Tanimoto similarity is bounded between 0 and 1.
-
-        Args:
-            a: Union[Any, None]
-                The first vector to compare
-            b: Union[Any, None]
-                The second vector to compare
-
-        Returns:
-            bool:
-                True if the measure is bounded, False otherwise
-        """
-        # Tanimoto similarity is always between 0 and 1
-        return True
-
-    def check_reflexivity(
-            self, 
-            a: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the Tanimoto similarity measure is reflexive.
-
-        A measure is reflexive if s(x, x) = 1 for all x.
-
-        Args:
-            a: Union[Any, None]
-                The vector to check reflexivity for
-
-        Returns:
-            bool:
-                True if the measure is reflexive, False otherwise
-        """
-        try:
-            similarity = self.similarity(a, a)
-            return similarity == 1.0
-        except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
-            return False
-
-    def check_symmetry(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the Tanimoto similarity measure is symmetric.
-
-        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
-
-        Args:
-            a: Union[Any, None]
-                The first vector to compare
-            b: Union[Any, None]
-                The second vector to compare
-
-        Returns:
-            bool:
-                True if the measure is symmetric, False otherwise
-        """
-        # Tanimoto similarity is symmetric
-        return True
-
-    def check_identity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the Tanimoto similarity measure satisfies identity.
-
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
-
-        Args:
-            a: Union[Any, None]
-                The first vector to compare
-            b: Union[Any, None]
-                The second vector to compare
-
-        Returns:
-            bool:
-                True if the measure satisfies identity, False otherwise
-        """
-        if a == b:
-            return self.similarity(a, b) == 1.0
-        return False
+        return [self.dissimilarity(x, y) for x, y in pairs]

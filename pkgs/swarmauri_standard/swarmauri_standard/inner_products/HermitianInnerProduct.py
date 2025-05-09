@@ -1,120 +1,120 @@
-"""Module implementing the Hermitian inner product for swarmauri_standard package."""
+from abc import ABC
 from typing import Literal
-from abc import ABC, abstractmethod
 import logging
+from ..ComponentBase import ComponentBase
+from ..inner_products.IInnerProduct import IInnerProduct
 
-from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-
-# Set up logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "HermitianInnerProduct")
 class HermitianInnerProduct(InnerProductBase):
+    """Concrete implementation of InnerProductBase for Hermitian inner products.
+
+    Provides functionality for computing inner products with conjugate symmetry,
+    suitable for complex vector spaces. Implements the Hermitian inner product
+    definition where the inner product of vectors x and y is defined as the
+    conjugate transpose of x multiplied by y.
     """
-    A concrete implementation of InnerProductBase for computing Hermitian inner products.
-
-    This class handles complex inner products with Hermitian symmetry, supporting
-    conjugate symmetry and L2 structure for complex vectors.
-
-    Methods:
-        compute(a, b): Computes the inner product of two complex vectors.
-        check_conjugate_symmetry(a, b): Verifies conjugate symmetry of the inner product.
-        check_linearity(a, b, c): Checks linearity in the first argument.
-        check_positivity(a): Verifies positive definiteness of the inner product.
-    """
-
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
 
-    def __init__(self):
-        """
-        Initializes the HermitianInnerProduct instance.
-        """
-        super().__init__()
-        logger.debug("Initialized HermitianInnerProduct.")
+    def compute(self, x: "IVector", y: "IVector") -> float:
+        """Compute the Hermitian inner product of two complex vectors.
 
-    def compute(self, a: complex, b: complex) -> float:
-        """
-        Computes the inner product of two complex vectors with Hermitian symmetry.
+        The Hermitian inner product is defined as the conjugate transpose of
+        the first vector multiplied by the second vector. This implementation
+        ensures conjugate symmetry and handles complex vectors appropriately.
 
         Args:
-            a: The first complex vector.
-            b: The second complex vector.
+            x: The first complex vector
+            y: The second complex vector
 
         Returns:
-            A float representing the inner product result.
+            The real-valued inner product of x and y
 
         Raises:
-            TypeError: If input vectors are not of complex type.
+            ValueError: If the input vectors are not of complex type
         """
-        logger.debug("Computing Hermitian inner product...")
+        logger.debug("Computing Hermitian inner product")
         
-        if not isinstance(a, complex) or not isinstance(b, complex):
-            raise TypeError("Input vectors must be complex.")
+        # Ensure input vectors are complex
+        if not x.is_complex or not y.is_complex:
+            raise ValueError("HermitianInnerProduct requires complex vectors")
 
-        # Compute the inner product using conjugate symmetry
-        product = a * b.conjugate()
-        return float(product.real)  # Return only the real part of the product
+        # Compute conjugate transpose of x and dot product with y
+        product = x.conj().dot(y)
+        
+        # Return real part to ensure scalar output
+        return float(product.real)
 
-    def check_conjugate_symmetry(self, a: complex, b: complex) -> bool:
-        """
-        Checks if the inner product satisfies conjugate symmetry (<a, b> = <b, a>*).
+    def check_conjugate_symmetry(self, x: "IVector", y: "IVector") -> bool:
+        """Check if the inner product satisfies conjugate symmetry.
+
+        For Hermitian inner product, we must verify that <x, y> = conj(<y, x>).
 
         Args:
-            a: The first complex vector.
-            b: The second complex vector.
+            x: First complex vector
+            y: Second complex vector
 
         Returns:
-            bool: True if conjugate symmetric, False otherwise.
+            True if conjugate symmetry holds, False otherwise
         """
-        logger.debug("Checking conjugate symmetry...")
+        logger.debug("Checking conjugate symmetry")
         
-        inner_product_ab = self.compute(a, b)
-        inner_product_ba = self.compute(b, a)
+        # Compute inner products
+        inner_xy = self.compute(x, y)
+        inner_yx = self.compute(y, x)
         
-        # Check if <a, b> is the conjugate of <b, a>
-        return inner_product_ab == inner_product_ba.conjugate()
+        # Check if inner_xy is the conjugate of inner_yx
+        return inner_xy == inner_yx.conjugate()
 
-    def check_linearity(self, a: complex, b: complex, c: complex) -> bool:
-        """
-        Checks if the inner product is linear in the first argument.
+    def check_linearity_first_argument(self, 
+                                      x: "IVector", 
+                                      y: "IVector", 
+                                      z: "IVector",
+                                      a: float = 1.0, 
+                                      b: float = 1.0) -> bool:
+        """Verify linearity in the first argument.
+
+        Checks if a<x,z> + b<y,z> equals <ax + by, z>.
 
         Args:
-            a: The first complex vector.
-            b: The second complex vector.
-            c: A scalar for linearity check.
+            x: First vector
+            y: Second vector
+            z: Third vector
+            a: Scalar coefficient for x
+            b: Scalar coefficient for y
 
         Returns:
-            bool: True if the inner product is linear, False otherwise.
+            True if linearity holds, False otherwise
         """
-        logger.debug("Checking linearity...")
+        logger.debug("Checking linearity in first argument")
         
-        # Check linearity: <a + b, c> = <a, c> + <b, c>
-        # and <k*a, b> = k*<a, b>
-        inner_product_add = self.compute(a + b, c)
-        inner_product_sum = self.compute(a, c) + self.compute(b, c)
+        # Compute left side: a<x,z> + b<y,z>
+        left = a * self.compute(x, z) + b * self.compute(y, z)
         
-        inner_product_scale = self.compute(c * a, b)
-        inner_product_scaled = c * self.compute(a, b)
+        # Compute right side: <ax + by, z>
+        ax_by = a * x + b * y
+        right = self.compute(ax_by, z)
         
-        return (inner_product_add == inner_product_sum) and \
-               (inner_product_scale == inner_product_scaled)
+        # Compare with tolerance for floating point precision
+        return abs(left - right) < 1e-12
 
-    def check_positivity(self, a: complex) -> bool:
-        """
-        Checks if the inner product is positive definite.
+    def check_positivity(self, x: "IVector") -> bool:
+        """Check if the inner product is positive definite.
+
+        For any non-zero vector x, <x, x> should be positive.
 
         Args:
-            a: The vector to check.
+            x: Vector to check
 
         Returns:
-            bool: True if the inner product is positive definite, False otherwise.
+            True if the inner product is positive, False otherwise
         """
-        logger.debug("Checking positivity...")
+        logger.debug("Checking positivity")
         
-        inner_product = self.compute(a, a)
+        # Compute inner product of x with itself
+        inner = self.compute(x, x)
         
-        # For positive definiteness, <a, a> must be positive for a ≠ 0
-        if a == 0:
-            return inner_product == 0.0
-        return inner_product > 0.0
+        # Ensure result is a positive real number
+        return inner > 0.0

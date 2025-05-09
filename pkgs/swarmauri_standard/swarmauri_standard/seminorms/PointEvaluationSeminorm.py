@@ -1,112 +1,110 @@
+from typing import TypeVar, Union, Tuple, Any
 import logging
-from abc import ABC, abstractmethod
-from typing import TypeVar, Union, Callable, Sequence
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.seminorms.ISeminorm import ISeminorm
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', bound=Union[IVector, IMatrix, Sequence, str, Callable])
+T = TypeVar('T', Union[str, callable, Tuple[float, ...], Sequence[float]])
 
 @ComponentBase.register_type(SeminormBase, "PointEvaluationSeminorm")
 class PointEvaluationSeminorm(SeminormBase):
     """
-    A concrete implementation of SeminormBase that evaluates functions at a single point.
+    Concrete implementation of SeminormBase that evaluates the function at a single point.
 
-    This class provides a seminorm that evaluates the value of a function at a specific,
-    fixed point in its domain. The point of evaluation must be within the domain of
-    the function being evaluated.
+    This class provides the functionality to compute the seminorm by evaluating the input
+    at a fixed point in its domain. The evaluation point is specified during initialization.
 
     Attributes:
-        point: The fixed point at which the function is evaluated.
+        resource: str = ResourceTypes.SEMINORM.value
+            The resource type identifier for this component.
+        evaluation_point: Tuple[float, ...]
+            The point at which to evaluate the function.
     """
-    type: Literal["PointEvaluationSeminorm"] = "PointEvaluationSeminorm"
-    resource: str = ResourceTypes.SEMINORM.value
 
-    def __init__(self, point: Union[int, float, str]):
+    resource: str = ResourceTypes.SEMINORM.value
+    evaluation_point: Tuple[float, ...]
+
+    def __init__(self, evaluation_point: Tuple[float, ...] = (0.0,)) -> None:
         """
         Initializes the PointEvaluationSeminorm instance.
 
         Args:
-            point: Union[int, float, str]
-                The fixed point at which the function will be evaluated. This must be
-                within the domain of the function being evaluated.
-
-        Raises:
-            ValueError: If the point is not in the function's domain
+            evaluation_point: Tuple[float, ...]
+                The point at which to evaluate the function. Defaults to (0.0,).
         """
         super().__init__()
-        self.point = point
-        logger.info(f"Initialized PointEvaluationSeminorm with evaluation point {self.point}")
+        if not isinstance(evaluation_point, tuple) or not all(isinstance(x, (int, float)) for x in evaluation_point):
+            raise ValueError("evaluation_point must be a tuple of numeric values")
+        self_evaluation_point = evaluation_point
 
     def compute(self, input: T) -> float:
         """
-        Computes the seminorm value by evaluating the input at the fixed point.
+        Computes the seminorm by evaluating the input at the specified point.
 
         Args:
             input: T
-                The input to evaluate at the fixed point. Can be a vector, matrix,
-                sequence, string, or callable.
+                The input to evaluate. This can be a callable, vector, or other evaluable type.
 
         Returns:
-            float: The value of the input at the fixed point.
+            float:
+                The value of the input at the evaluation point.
 
         Raises:
-            ValueError: If the input is not evaluable at the fixed point
+            ValueError:
+                If the input type is not supported or the evaluation point is invalid.
         """
-        logger.debug(f"Computing seminorm by evaluating input at point {self.point}")
+        logger.debug(f"Computing seminorm at point {self_evaluation_point}")
         
         try:
             if callable(input):
-                return float(input(self.point))
-            elif isinstance(input, Sequence):
-                if self.point < len(input):
-                    return float(input[self.point])
-                else:
-                    raise ValueError(f"Point {self.point} exceeds input length {len(input)}")
-            elif isinstance(input, str):
-                if self.point < len(input):
-                    return float(ord(input[self.point]))
-                else:
-                    raise ValueError(f"Point {self.point} exceeds string length {len(input)}")
+                # If input is callable, evaluate it at the point
+                return float(input(*self_evaluation_point))
+            elif isinstance(input, (list, tuple)):
+                # If input is a vector, take the value at the evaluation point index
+                return float(input[self_evaluation_point[0]])
             else:
-                return float(input)
+                # Handle other types if necessary
+                raise TypeError(f"Unsupported input type: {type(input)}")
         except Exception as e:
-            logger.error(f"Failed to compute seminorm: {str(e)}")
-            raise ValueError(f"Could not evaluate input at point {self.point}: {str(e)}")
+            logger.error(f"Error during point evaluation: {str(e)}")
+            raise ValueError(f"Failed to evaluate input at point {self_evaluation_point}") from e
 
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """
-        Checks if the triangle inequality holds for point evaluation.
-
-        For point evaluation, the triangle inequality holds because:
-        |f(a + b)| ≤ |f(a)| + |f(b)|
+        Checks if the triangle inequality holds for the given inputs.
 
         Args:
             a: T
-                The first input
+                The first input.
             b: T
-                The second input
+                The second input.
 
         Returns:
-            bool: True if the triangle inequality holds, False otherwise
+            bool:
+                True if seminorm(a + b) <= seminorm(a) + seminorm(b), False otherwise.
         """
-        return True
+        seminorm_a = self.compute(a)
+        seminorm_b = self.compute(b)
+        seminorm_a_plus_b = self.compute(a + b)
+        return seminorm_a_plus_b <= seminorm_a + seminorm_b
 
     def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds for point evaluation.
-
-        For point evaluation, scalar homogeneity holds because:
-        p(t*f) = |t| * p(f)
+        Checks if scalar homogeneity holds for the given input and scalar.
 
         Args:
             a: T
-                The input to check
+                The input to check.
             scalar: float
-                The scalar to test homogeneity with
+                The scalar to check against.
 
         Returns:
-            bool: True if scalar homogeneity holds, False otherwise
+            bool:
+                True if seminorm(scalar * a) == scalar * seminorm(a), False otherwise.
         """
-        return True
+        scaled_input = scalar * a
+        seminorm_scaled = self.compute(scaled_input)
+        seminorm_a = self.compute(a)
+        return seminorm_scaled == scalar * seminorm_a

@@ -1,259 +1,109 @@
+from typing import Sequence, Tuple, TypeVar, Union
 import logging
-import numpy as np
-from typing import Union, Sequence, Tuple, Any, Optional
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+import math
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
+
+# Configure logging
 logger = logging.getLogger(__name__)
 
+InputType = TypeVar('InputType', str, bytes, Union[float, int])
+OutputType = TypeVar('OutputType', float)
 
 @ComponentBase.register_model()
 class HellingerAffinitySimilarity(SimilarityBase):
     """
-    Computes the Hellinger affinity similarity between two discrete probability distributions.
+    Implementation of the Hellinger affinity similarity measure for discrete probability distributions.
 
-    The Hellinger affinity is a measure of similarity between two probability distributions.
-    It is based on the square root of the sum of the product of the square roots of the
-    corresponding probabilities. This measure is particularly useful for comparing
-    distributions and is always non-negative.
+    This class provides a concrete implementation of the SimilarityBase class for calculating
+    the Hellinger affinity between two probability vectors. The Hellinger affinity is
+    defined as the square root of the sum of the square roots of the product of corresponding
+    probabilities.
 
-    Inherits From:
-        SimilarityBase: Base class for implementing similarity measures
-
-    Attributes:
-        resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
-            Specifies the resource type for this component
+    The measure operates on discrete probability vectors and provides a similarity score
+    in the range [0, 1], where 1 indicates identical distributions and 0 indicates complete
+    dissimilarity.
     """
-    resource: Optional[str] = ResourceTypes.SIMILARITY.value
+    
+    resource: str = ResourceTypes.SIMILARITY.value
+    type: Literal["HellingerAffinitySimilarity"] = "HellingerAffinitySimilarity"
 
-    def __init__(self) -> None:
+    def __init__(self):
         """
-        Initializes the HellingerAffinitySimilarity class.
+        Initialize the HellingerAffinitySimilarity instance.
         """
         super().__init__()
-        logger.debug("Initialized HellingerAffinitySimilarity")
+        logger.debug("Initialized HellingerAffinitySimilarity instance")
 
-    def similarity(
-            self,
-            a: Union[Any, None],
-            b: Union[Any, None]
-    ) -> float:
+    def similarity(self, x: InputType, y: InputType) -> float:
         """
-        Computes the Hellinger affinity similarity between two probability distributions.
+        Calculate the Hellinger affinity similarity between two probability vectors.
 
         Args:
-            a: Union[Any, None]
-                The first probability distribution
-            b: Union[Any, None]
-                The second probability distribution
+            x: InputType
+                The first probability vector
+            y: InputType
+                The second probability vector
 
         Returns:
             float:
-                The similarity score between the two distributions
+                The Hellinger affinity similarity score in the range [0, 1]
 
         Raises:
-            ValueError:
-                If the input distributions are invalid (not probability distributions)
+            ValueError: If input vectors are invalid probability distributions
         """
-        if a is None and b is None:
-            return 1.0
-        if a is None or b is None:
-            return 0.0
+        logger.debug("Calculating Hellinger affinity similarity")
 
-        if not self._is_valid_probability_distribution(a):
-            raise ValueError("Invalid probability distribution a")
-        if not self._is_valid_probability_distribution(b):
-            raise ValueError("Invalid probability distribution b")
+        # Validate input vectors
+        if not self._is_valid_probability_vector(x) or not self._is_valid_probability_vector(y):
+            raise ValueError("Invalid probability vectors")
 
-        sqrt_a = np.sqrt(a)
-        sqrt_b = np.sqrt(b)
-        similarity_score = np.sqrt(np.sum(sqrt_a * sqrt_b))
-        return similarity_score
+        # Calculate element-wise product and square root
+        sqrt_products = [math.sqrt(x_i * y_i) for x_i, y_i in zip(x, y)]
+        
+        # Sum the square roots
+        affinity = sum(sqrt_products)
+        
+        logger.debug(f"Hellinger affinity similarity score: {affinity}")
+        return affinity
 
-    def similarities(
-            self,
-            a: Union[Any, None],
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
         """
-        Computes the Hellinger affinity similarity scores between one distribution
-        and a list of distributions.
+        Calculate Hellinger affinity similarities for multiple pairs of probability vectors.
 
         Args:
-            a: Union[Any, None]
-                The distribution to compare against multiple distributions
-            b_list: Sequence[Union[Any, None]]
-                The list of distributions to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of probability vector pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of similarity scores
-
-        Raises:
-            ValueError:
-                If any input distribution is invalid
+            Sequence[float]:
+                A sequence of Hellinger affinity similarity scores
         """
-        if a is None:
-            return tuple(0.0 for _ in b_list)
+        logger.debug("Calculating Hellinger affinity similarities for multiple pairs")
+        return [self.similarity(x, y) for x, y in pairs]
 
-        if not self._is_valid_probability_distribution(a):
-            raise ValueError("Invalid probability distribution a")
-
-        scores = []
-        for b in b_list:
-            if b is None:
-                scores.append(0.0)
-                continue
-            if not self._is_valid_probability_distribution(b):
-                raise ValueError("Invalid probability distribution in b_list")
-            scores.append(self.similarity(a, b))
-        return tuple(scores)
-
-    def dissimilarity(
-            self,
-            a: Union[Any, None],
-            b: Union[Any, None]
-    ) -> float:
+    def _is_valid_probability_vector(self, vector: InputType) -> bool:
         """
-        Computes the dissimilarity score based on the Hellinger affinity similarity.
+        Validate if a given vector is a valid probability distribution.
 
         Args:
-            a: Union[Any, None]
-                The first distribution
-            b: Union[Any, None]
-                The second distribution
-
-        Returns:
-            float:
-                The dissimilarity score between the two distributions
-        """
-        return 1.0 - self.similarity(a, b)
-
-    def dissimilarities(
-            self,
-            a: Union[Any, None],
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
-        """
-        Computes the dissimilarity scores between one distribution and a list of distributions.
-
-        Args:
-            a: Union[Any, None]
-                The distribution to compare against multiple distributions
-            b_list: Sequence[Union[Any, None]]
-                The list of distributions to compare against
-
-        Returns:
-            Tuple[float, ...]:
-                A tuple of dissimilarity scores
-        """
-        return tuple(1.0 - score for score in self.similarities(a, b_list))
-
-    def check_boundedness(
-            self,
-            a: Union[Any, None],
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        The Hellinger affinity is always bounded between 0 and 1.
-
-        Args:
-            a: Union[Any, None]
-                The first distribution
-            b: Union[Any, None]
-                The second distribution
+            vector: InputType
+                The vector to validate
 
         Returns:
             bool:
-                True if the similarity measure is bounded, False otherwise
+                True if the vector is a valid probability distribution, False otherwise
         """
-        return True
-
-    def check_reflexivity(
-            self,
-            a: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is reflexive.
-
-        For the Hellinger affinity, s(x, x) = 1, so it is reflexive.
-
-        Args:
-            a: Union[Any, None]
-                The distribution to check reflexivity for
-
-        Returns:
-            bool:
-                True if the similarity measure is reflexive, False otherwise
-        """
-        return True
-
-    def check_symmetry(
-            self,
-            a: Union[Any, None],
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-
-        The Hellinger affinity is symmetric, i.e., s(x, y) = s(y, x).
-
-        Args:
-            a: Union[Any, None]
-                The first distribution
-            b: Union[Any, None]
-                The second distribution
-
-        Returns:
-            bool:
-                True if the similarity measure is symmetric, False otherwise
-        """
-        return True
-
-    def check_identity(
-            self,
-            a: Union[Any, None],
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure satisfies identity.
-
-        The Hellinger affinity does not necessarily satisfy identity since
-        s(x, y) can be 1 even if x ≠ y.
-
-        Args:
-            a: Union[Any, None]
-                The first distribution
-            b: Union[Any, None]
-                The second distribution
-
-        Returns:
-            bool:
-                True if the similarity measure satisfies identity, False otherwise
-        """
-        return False
-
-    def _is_valid_probability_distribution(self, distribution: Any) -> bool:
-        """
-        Checks if the given distribution is a valid probability distribution.
-
-        A valid probability distribution must have non-negative values and
-        sum to 1.
-
-        Args:
-            distribution: Any
-                The distribution to validate
-
-        Returns:
-            bool:
-                True if the distribution is valid, False otherwise
-        """
-        if not isinstance(distribution, np.ndarray) or distribution.ndim != 1:
+        # Check if all elements are non-negative
+        if any(value < 0 for value in vector):
+            logger.error("Probability vector contains negative values")
             return False
-
-        if np.any(distribution < 0):
+        
+        # Check if elements sum to 1 (allowing for floating point precision)
+        total = sum(vector)
+        if not math.isclose(total, 1.0, rel_tol=1e-9, abs_tol=1e-9):
+            logger.error(f"Probability vector sums to {total}, not 1")
             return False
-
-        return np.isclose(np.sum(distribution), 1.0, atol=1e-8)
+            
+        return True

@@ -1,81 +1,92 @@
+from typing import TypeVar, Union
 import logging
-from abc import ABC
-from typing import TypeVar, Union, Sequence, Callable, Literal
-
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.seminorms.ISeminorm import ISeminorm
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[Sequence, str, Callable])
+# Define type variable for input types
+T = TypeVar('T', Union[str, callable, Sequence[float], Sequence[Sequence[float]]])
 
 @ComponentBase.register_type(SeminormBase, "ZeroSeminorm")
 class ZeroSeminorm(SeminormBase):
     """
-    A trivial seminorm that assigns zero to all inputs.
+    A trivial seminorm implementation that assigns zero to all inputs.
 
-    This is a degenerate seminorm implementation that does not separate points,
-    as every input is mapped to zero. It satisfies the seminorm properties
-    trivially but provides no meaningful distinction between different inputs.
+    This class implements a degenerate seminorm that does not separate points. It
+    serves as a simple example of a seminorm implementation and can be used as
+    a placeholder or for testing purposes.
 
     Attributes:
-        resource: The resource type identifier for this component.
+        resource: str = ResourceTypes.SEMINORM.value
+            The resource type identifier for this component.
     """
-    
     resource: str = ResourceTypes.SEMINORM.value
-    type: Literal["ZeroSeminorm"] = "ZeroSeminorm"
     
+    def __init__(self):
+        """
+        Initialize the ZeroSeminorm instance.
+        
+        Initializes the base class and sets up the component.
+        """
+        super().__init__()
+        
     def compute(self, input: T) -> float:
         """
-        Computes the seminorm value for the given input.
+        Compute the seminorm of the given input.
 
-        Since this is a trivial seminorm, the result is always zero regardless
-        of the input.
+        Since this is a trivial implementation, the seminorm value will always
+        be 0 regardless of the input.
 
         Args:
-            input: The input to compute the seminorm for. The type can be a
-                vector, matrix, sequence, string, or callable.
+            input: T
+                The input to compute the seminorm on. This can be a vector, matrix,
+                sequence, string, or callable.
 
         Returns:
-            float: The computed seminorm value, which is always 0.0.
-
-        Examples:
-            >>> seminorm.compute("any_input")
-            0.0
+            float:
+                The computed seminorm value, which will always be 0.0.
         """
-        logger.debug("Computing ZeroSeminorm value")
+        logger.debug("Computing zero seminorm for input of type {}".format(type(input)))
         return 0.0
-    
+
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """
-        Checks if the triangle inequality holds for the given inputs.
+        Check if the triangle inequality holds for the given inputs.
 
-        For the ZeroSeminorm, this property trivially holds because:
-        seminorm(a + b) = 0 ≤ 0 + 0 = seminorm(a) + seminorm(b)
+        For this trivial seminorm, since both seminorm(a) and seminorm(b)
+        will be 0, the inequality 0 <= 0 + 0 holds true.
 
         Args:
-            a: The first input
-            b: The second input
+            a: T
+                The first input.
+            b: T
+                The second input.
 
         Returns:
-            bool: True, as the triangle inequality holds
+            bool:
+                True, since 0 <= 0 + 0 is always true.
         """
-        logger.debug("Checking triangle inequality")
+        logger.debug("Checking triangle inequality for zero seminorm")
         return True
-    
+
     def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
         """
-        Checks if the scalar homogeneity property holds.
+        Check if scalar homogeneity holds for the given input and scalar.
 
-        For the ZeroSeminorm, this property trivially holds because:
-        seminorm(c * a) = 0 = |c| * 0 = |c| * seminorm(a)
+        For this trivial seminorm, since seminorm(c * a) will be 0 and
+        c * seminorm(a) will also be 0, the equality holds.
 
         Args:
-            a: The input to check
-            scalar: The scalar to test homogeneity with
+            a: T
+                The input to check.
+            scalar: float
+                The scalar to check against.
 
         Returns:
-            bool: True, as scalar homogeneity holds
+            bool:
+                True, since 0 = 0 * c for any scalar c.
         """
-        logger.debug("Checking scalar homogeneity")
+        logger.debug("Checking scalar homogeneity for zero seminorm")
         return True

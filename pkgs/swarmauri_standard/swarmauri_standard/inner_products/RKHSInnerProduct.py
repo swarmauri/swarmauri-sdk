@@ -1,137 +1,128 @@
-"""Module implementing the RKHSInnerProduct class for swarmauri_standard package."""
-
-from abc import ABC, abstractmethod
-from typing import Literal, object, float, bool
+from typing import Literal
+from swarmauri_base.ComponentBase import ComponentBase
+from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from base.swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from base.swarmauri_standard.kernels.Kernel import Kernel
 import logging
 
-# Set up logger
 logger = logging.getLogger(__name__)
 
 
+@ComponentBase.register_type(InnerProductBase, "RKHSInnerProduct")
 class RKHSInnerProduct(InnerProductBase):
-    """
-    A class implementing the InnerProductBase interface for computing inner products
-    via a reproducing kernel.
+    """Implementation of the InnerProductBase interface using a Reproducing Kernel Hilbert Space (RKHS) kernel.
 
-    This class provides methods to compute inner products using a kernel function,
-    and checks for properties like conjugate symmetry, linearity, and positivity.
+    This class provides an inner product implementation based on kernel evaluation in an RKHS.
+    The inner product is defined as the evaluation of a positive-definite kernel function
+    at pairs of vectors.
 
     Attributes:
-        _kernel: The kernel function used to compute the inner product.
-
-    Methods:
-        compute(a, b): Computes the inner product of a and b using the kernel.
-        check_conjugate_symmetry(a, b): Checks if <a, b> is conjugate symmetric.
-        check_linearity(a, b, c): Checks if the inner product is linear in a.
-        check_positivity(a): Checks if the inner product is positive definite.
+        kernel: The kernel object used to compute the inner product.
     """
 
     type: Literal["RKHSInnerProduct"] = "RKHSInnerProduct"
 
-    def __init__(self, kernel: object) -> None:
-        """
-        Initializes the RKHSInnerProduct with a kernel function.
+    def __init__(self, kernel: Kernel):
+        """Initialize the RKHSInnerProduct with a kernel.
 
         Args:
-            kernel: A callable implementing the kernel evaluation.
-
-        Raises:
-            ValueError: If the kernel is not callable.
-            ValueError: If the kernel is not positive-definite.
+            kernel: The kernel object that will be used to compute inner products.
+                  Must be a positive-definite kernel.
         """
         super().__init__()
-        if not callable(kernel):
-            raise ValueError("Kernel must be a callable function.")
-        # Assuming we have a way to verify positive-definiteness
-        # For demonstration, we'll just check if it's callable
-        self._kernel = kernel
-        logger.info("Initialized RKHSInnerProduct with kernel: %s", self._kernel.__name__)
+        self.kernel = kernel
 
-    def compute(self, a: object, b: object) -> float:
-        """
-        Computes the inner product of vectors a and b using the kernel.
+    def compute(self, x: IInnerProduct.IVector, y: IInnerProduct.IVector) -> float:
+        """Compute the inner product between two vectors using the kernel.
+
+        The inner product is defined as the evaluation of the kernel at the pair (x, y):
+        <x, y> = k(x, y)
 
         Args:
-            a: The first vector or function.
-            b: The second vector or function.
+            x: First vector
+            y: Second vector
 
         Returns:
-            float: The inner product result.
+            The value of the inner product as a scalar.
 
         Raises:
-            ValueError: If the computation fails.
+            ValueError: If the kernel is not positive-definite
         """
-        try:
-            result = self._kernel(a, b)
-            if not isinstance(result, (int, float)):
-                raise ValueError("Kernel must return a numeric value.")
-            return float(result)
-        except Exception as e:
-            logger.error("Failed to compute inner product: %s", str(e))
-            raise ValueError("Inner product computation failed.")
+        logger.debug(f"Computing inner product using kernel {self.kernel.__class__.__name__}")
+        
+        # Evaluate the kernel at x and y
+        return self.kernel.evaluate(x, y)
 
-    def check_conjugate_symmetry(self, a: object, b: object) -> bool:
-        """
-        Checks if the inner product satisfies conjugate symmetry.
+    def check_conjugate_symmetry(self, x: IInnerProduct.IVector, y: IInnerProduct.IVector) -> bool:
+        """Check if the inner product satisfies conjugate symmetry.
+
+        For the RKHS inner product, this requires that:
+        k(x, y) = conjugate(k(y, x))
 
         Args:
-            a: The first vector or function.
-            b: The second vector or function.
+            x: First vector
+            y: Second vector
 
         Returns:
-            bool: True if <a, b> = <b, a>*, False otherwise.
+            True if conjugate symmetry holds, False otherwise.
         """
-        try:
-            inner_ab = self.compute(a, b)
-            inner_ba = self.compute(b, a)
-            # Check conjugate symmetry
-            return inner_ab == inner_ba.conjugate()
-        except Exception as e:
-            logger.error("Conjugate symmetry check failed: %s", str(e))
-            return False
+        logger.debug("Checking conjugate symmetry")
+        
+        # Compute both directions
+        k_xy = self.compute(x, y)
+        k_yx = self.compute(y, x)
+        
+        # Check if they are conjugate symmetric
+        return k_xy == k_yx.conjugate()
 
-    def check_linearity(self, a: object, b: object, c: object) -> bool:
-        """
-        Checks if the inner product is linear in the first argument.
+    def check_linearity_first_argument(self, 
+                                      x: IInnerProduct.IVector, 
+                                      y: IInnerProduct.IVector, 
+                                      z: IInnerProduct.IVector,
+                                      a: float = 1.0, 
+                                      b: float = 1.0) -> bool:
+        """Check if the inner product is linear in the first argument.
+
+        Linearity requires that:
+        <a*x + b*y, z> = a*<x, z> + b*<y, z>
 
         Args:
-            a: The first vector or function.
-            b: The second vector or function.
-            c: A scalar for linearity check.
+            x: First vector
+            y: Second vector
+            z: Third vector
+            a: Scalar coefficient for x
+            b: Scalar coefficient for y
 
         Returns:
-            bool: True if the inner product is linear, False otherwise.
+            True if linearity holds, False otherwise.
         """
-        try:
-            # Linearity in first argument: <a + b, c> = <a, c> + <b, c>
-            inner_ab_c = self.compute(a + b, c)
-            inner_a_c = self.compute(a, c)
-            inner_b_c = self.compute(b, c)
-            
-            # Check scalar multiplication: <c*a, b> = c*<a, b>
-            inner_ca_b = self.compute(c * a, b)
-            
-            # Using approximate equality for floating points
-            return (abs(inner_ab_c - (inner_a_c + inner_b_c)) < 1e-9 and
-                    abs(inner_ca_b - c * inner_a_c) < 1e-9)
-        except Exception as e:
-            logger.error("Linearity check failed: %s", str(e))
-            return False
+        logger.debug("Checking linearity in first argument")
+        
+        # Compute left-hand side: <a*x + b*y, z>
+        lhs = self.compute(x * a + y * b, z)
+        
+        # Compute right-hand side: a*<x, z> + b*<y, z>
+        rhs = a * self.compute(x, z) + b * self.compute(y, z)
+        
+        # Compare with some tolerance for floating point errors
+        return abs(lhs - rhs) < 1e-12
 
-    def check_positivity(self, a: object) -> bool:
-        """
-        Checks if the inner product is positive definite.
+    def check_positivity(self, x: IInnerProduct.IVector) -> bool:
+        """Check if the inner product is positive definite.
+
+        Positive definiteness requires that for any non-zero vector x:
+        <x, x> > 0
 
         Args:
-            a: The vector or function to check.
+            x: Vector to check
 
         Returns:
-            bool: True if the inner product is positive definite, False otherwise.
+            True if positive definite, False otherwise.
         """
-        try:
-            inner_aa = self.compute(a, a)
-            # For positive definiteness, <a, a> > 0 for all non-zero a
-            return inner_aa > 0
-        except Exception as e:
-            logger.error("Positivity check failed: %s", str(e))
-            return False
+        logger.debug("Checking positive definiteness")
+        
+        # Compute the inner product of x with itself
+        value = self.compute(x, x)
+        
+        # Check if it's positive and x is non-zero
+        return value > 0 and x.norm() > 0

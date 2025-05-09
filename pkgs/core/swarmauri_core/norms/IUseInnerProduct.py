@@ -1,70 +1,79 @@
-import abc
+from abc import ABC, abstractmethod
+from typing import Type, Literal
 import logging
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.vectors.IVector import IVector
 
-logger = logging.getLogger("IUseInnerProduct")
+logger = logging.getLogger(__name__)
 
-class IUseInnerProduct(abc.ABC):
+
+class IUseInnerProduct(ABC):
+    """Abstract interface marking components using inner product geometry.
+    
+    This interface defines the contract for components that depend on inner product
+    operations. It provides abstract methods for checking key geometric properties
+    enabled by the inner product structure.
     """
-    Interface marking components that utilize inner product geometry.
     
-    This abstract base class provides a contract for components that require
-    dependency on inner product structures. It defines methods for checking
-    various properties related to inner product spaces such as angle between
-    vectors, orthogonality, projections, and the parallelogram law.
-    """
-    
-    @abc.abstractmethod
-    def check_angle_between_vectors(self, a: object, b: object) -> float:
-        """
-        Calculate and return the angle between two vectors using the inner product.
+    def __init__(self, inner_product: Type[IInnerProduct]):
+        """Initialize with a compatible inner product implementation.
         
         Args:
-            a: First vector
-            b: Second vector
+            inner_product: Implementation of IInnerProduct to use for operations
+        """
+        self.inner_product = inner_product()
+        
+    @abstractmethod
+    def check_angle_between_vectors(self, x: IVector, y: IVector) -> float:
+        """Compute the angle between two vectors using the inner product.
+        
+        Args:
+            x: First vector
+            y: Second vector
             
         Returns:
-            The angle in radians between the two vectors.
+            Angle in radians between the two vectors
         """
         pass
     
-    @abc.abstractmethod
-    def check_verify_orthogonality(self, a: object, b: object) -> bool:
-        """
-        Check if two vectors are orthogonal using the inner product.
+    @abstractmethod
+    def check_verify_orthogonality(self, x: IVector, y: IVector) -> bool:
+        """Verify if two vectors are orthogonal using the inner product.
         
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
             
         Returns:
-            True if the vectors are orthogonal, False otherwise.
+            True if vectors are orthogonal (inner product is zero), False otherwise
         """
         pass
     
-    @abc.abstractmethod
-    def check_xy_project(self, vector: object, basis: object) -> object:
-        """
-        Project a vector onto a specified basis using the inner product.
+    @abstractmethod
+    def check_xy_project(self, x: IVector, y: IVector) -> IVector:
+        """Project vector x onto vector y using the inner product.
         
         Args:
-            vector: Vector to be projected
-            basis: Basis vectors for projection
+            x: Vector to project
+            y: Vector onto which to project
             
         Returns:
-            Projected vector onto the specified basis.
+            Projection of x onto y
         """
         pass
     
-    @abc.abstractmethod
-    def check_verify_parallelogram_law(self, a: object, b: object) -> bool:
-        """
-        Verify the parallelogram law using the inner product.
+    @abstractmethod
+    def check_verify_parallelogram_law(self, x: IVector, y: IVector) -> bool:
+        """Verify the parallelogram law using the inner product.
+        
+        The parallelogram law states that:
+        ||x + y||² + ||x - y||² = 2||x||² + 2||y||²
         
         Args:
-            a: First vector
-            b: Second vector
+            x: First vector
+            y: Second vector
             
         Returns:
-            True if the parallelogram law holds, False otherwise.
+            True if the parallelogram law holds, False otherwise
         """
         pass

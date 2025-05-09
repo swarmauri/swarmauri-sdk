@@ -1,107 +1,73 @@
 import pytest
-import numpy as np
+import unittest
+from unittest.mock import TestCase
+import math
+
 from swarmauri_standard.swarmauri_standard.similarities.HellingerAffinitySimilarity import HellingerAffinitySimilarity
 
-@pytest.fixture
-def hellinger_affinity_similarity():
-    """Fixture to create an instance of HellingerAffinitySimilarity"""
-    return HellingerAffinitySimilarity()
-
 @pytest.mark.unit
-def test_similarity_with_valid_distributions(hellinger_affinity_similarity):
-    """Test similarity method with valid probability distributions"""
-    a = np.array([0.5, 0.5])
-    b = np.array([0.5, 0.5])
-    assert hellinger_affinity_similarity.similarity(a, b) == 1.0
+class TestHellingerAffinitySimilarity(TestCase):
+    """Unit tests for the HellingerAffinitySimilarity class."""
+    
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Fixture to provide a fresh instance of HellingerAffinitySimilarity for each test."""
+        self.hellinger_affinity = HellingerAffinitySimilarity()
+        
+    def test_init(self):
+        """Test that the instance is initialized correctly."""
+        assert isinstance(self.hellinger_affinity, HellingerAffinitySimilarity)
+        assert self.hellinger_affinity.resource == "Similarity"
+        assert self.hellinger_affinity.type == "HellingerAffinitySimilarity"
 
-@pytest.mark.unit
-def test_similarity_with_different_distributions(hellinger_affinity_similarity):
-    """Test similarity method with different distributions"""
-    a = np.array([1.0, 0.0])
-    b = np.array([0.0, 1.0])
-    similarity_score = hellinger_affinity_similarity.similarity(a, b)
-    assert 0.0 <= similarity_score <= 1.0
+    @pytest.mark.parametrize("x,y,expected", [
+        ([1.0, 0.0], [1.0, 0.0], 1.0),  # Identical distributions
+        ([0.5, 0.5], [0.5, 0.5], 1.0),  # Identical distributions
+        ([1.0, 0.0], [0.0, 1.0], 0.0),  # Completely different
+        ([0.3, 0.7], [0.7, 0.3], math.sqrt(0.3*0.7) + math.sqrt(0.7*0.3)),  # Partial overlap
+        ([0.0, 1.0], [0.0, 1.0], 1.0),  # Edge case with zeros
+        ([0.25, 0.75], [0.25, 0.75], 1.0)  # Different structure but same distribution
+    ])
+    def test_similarity(self, x, y, expected):
+        """Test the similarity calculation between different probability vectors."""
+        result = self.hellinger_affinity.similarity(x, y)
+        assert isinstance(result, float)
+        assert 0.0 <= result <= 1.0
+        assert math.isclose(result, expected, rel_tol=1e-9, abs_tol=1e-9)
 
-@pytest.mark.unit
-def test_similarity_with_none_inputs(hellinger_affinity_similarity):
-    """Test similarity method with None inputs"""
-    assert hellinger_affinity_similarity.similarity(None, None) == 1.0
-    assert hellinger_affinity_similarity.similarity(None, np.array([0.5, 0.5])) == 0.0
+    @pytest.mark.parametrize("pairs,expected_length", [
+        ([([1.0, 0.0], [1.0, 0.0]), ([0.5, 0.5], [0.5, 0.5])], 2),
+        ([([0.3, 0.7], [0.7, 0.3])], 1),
+        ([([1.0, 0.0], [0.0, 1.0])], 1)
+    ])
+    def test_similarities(self, pairs, expected_length):
+        """Test batch similarity calculation."""
+        results = self.hellinger_affinity.similarities(pairs)
+        assert isinstance(results, list)
+        assert len(results) == expected_length
+        for result in results:
+            assert isinstance(result, float)
+            assert 0.0 <= result <= 1.0
 
-@pytest.mark.unit
-def test_similarity_with_invalid_distributions(hellinger_affinity_similarity):
-    """Test similarity method with invalid distributions"""
-    with pytest.raises(ValueError):
-        hellinger_affinity_similarity.similarity([1, 2], [3, 4])
-    with pytest.raises(ValueError):
-        hellinger_affinity_similarity.similarity(np.array([1.0, -0.5]), np.array([0.5, 0.5]))
+    @pytest.mark.parametrize("vector,expected", [
+        ([1.0, 0.0], True),  # Valid
+        ([0.5, 0.5], True),  # Valid
+        ([-0.1, 1.1], False),  # Contains negative
+        ([0.9, 0.1], True),  # Valid
+        ([1.0, 0.0, 0.0], True),  # Valid with zeros
+        ([], False),  # Empty vector
+        ([2.0], False)  # Sum greater than 1
+    ])
+    def test_is_valid_probability_vector(self, vector, expected):
+        """Test validation of probability vectors."""
+        result = self.hellinger_affinity._is_valid_probability_vector(vector)
+        assert isinstance(result, bool)
+        assert result == expected
 
-@pytest.mark.unit
-def test_similarities_with_valid_distributions(hellinger_affinity_similarity):
-    """Test similarities method with valid distributions"""
-    a = np.array([0.5, 0.5])
-    b_list = [np.array([0.5, 0.5]), np.array([0.6, 0.4])]
-    scores = hellinger_affinity_similarity.similarities(a, b_list)
-    assert len(scores) == 2
-    assert all(0.0 <= score <= 1.0 for score in scores)
+    def test_similarity_invalid_vectors(self):
+        """Test that invalid vectors raise ValueError."""
+        with pytest.raises(ValueError):
+            self.hellinger_affinity.similarity([1.0, -0.5], [0.5, 0.5])
 
-@pytest.mark.unit
-def test_similarities_with_none_inputs(hellinger_affinity_similarity):
-    """Test similarities method with None inputs"""
-    a = np.array([0.5, 0.5])
-    b_list = [None, np.array([0.5, 0.5]), None]
-    scores = hellinger_affinity_similarity.similarities(a, b_list)
-    assert len(scores) == 3
-    assert all(score == 0.0 or score == 1.0 for score in scores)
-
-@pytest.mark.unit
-def test_similarities_with_invalid_distributions(hellinger_affinity_similarity):
-    """Test similarities method with invalid distributions"""
-    a = np.array([0.5, 0.5])
-    b_list = [np.array([1.0, -0.5]), np.array([0.6, 0.4])]
-    with pytest.raises(ValueError):
-        hellinger_affinity_similarity.similarities(a, b_list)
-
-@pytest.mark.unit
-def test_dissimilarity_with_valid_distributions(hellinger_affinity_similarity):
-    """Test dissimilarity method with valid distributions"""
-    a = np.array([0.5, 0.5])
-    b = np.array([0.5, 0.5])
-    assert hellinger_affinity_similarity.dissimilarity(a, b) == 0.0
-
-@pytest.mark.unit
-def test_dissimilarity_with_different_distributions(hellinger_affinity_similarity):
-    """Test dissimilarity method with different distributions"""
-    a = np.array([1.0, 0.0])
-    b = np.array([0.0, 1.0])
-    dissimilarity_score = hellinger_affinity_similarity.dissimilarity(a, b)
-    assert 0.0 <= dissimilarity_score <= 1.0
-
-@pytest.mark.unit
-def test_dissimilarities_with_valid_distributions(hellinger_affinity_similarity):
-    """Test dissimilarities method with valid distributions"""
-    a = np.array([0.5, 0.5])
-    b_list = [np.array([0.5, 0.5]), np.array([0.6, 0.4])]
-    scores = hellinger_affinity_similarity.dissimilarities(a, b_list)
-    assert len(scores) == 2
-    assert all(0.0 <= score <= 1.0 for score in scores)
-
-@pytest.mark.unit
-def test_check_boundedness_true(hellinger_affinity_similarity):
-    """Test check_boundedness method returns True"""
-    assert hellinger_affinity_similarity.check_boundedness(None, None) is True
-
-@pytest.mark.unit
-def test_check_reflexivity_true(hellinger_affinity_similarity):
-    """Test check_reflexivity method returns True"""
-    assert hellinger_affinity_similarity.check_reflexivity(None) is True
-
-@pytest.mark.unit
-def test_check_symmetry_true(hellinger_affinity_similarity):
-    """Test check_symmetry method returns True"""
-    assert hellinger_affinity_similarity.check_symmetry(None, None) is True
-
-@pytest.mark.unit
-def test_check_identity_false(hellinger_affinity_similarity):
-    """Test check_identity method returns False"""
-    assert hellinger_affinity_similarity.check_identity(None, None) is False
+if __name__ == "__main__":
+    pytest.main([__file__])

@@ -1,214 +1,141 @@
 import logging
 import numpy as np
+from typing import Sequence, Tuple, Any
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_standard.swarmauri_standard.similarities.SimilarityBase import SimilarityBase
-from typing import Union, Sequence, Tuple, Any, Optional
+from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
 
 logger = logging.getLogger(__name__)
 
+InputType = Any
+OutputType = float
 
-@ComponentBase.register_type(SimilarityBase, "GaussianRBFSimilarity")
+@ComponentBase.register_model()
 class GaussianRBFSimilarity(SimilarityBase):
     """
-    Implementation of the Gaussian RBF similarity measure.
+    Concrete implementation of the RBF (Gaussian) similarity measure.
 
-    This class provides an implementation of the Radial Basis Function (RBF)
-    kernel similarity, which measures the exponential decay of the squared Euclidean
-    distance between two elements. The similarity score is calculated as:
+    This class implements the Gaussian radial basis function (RBF) similarity,
+    which measures the exponential decay of similarity with squared Euclidean distance.
+    The similarity is calculated as:
+    
+    similarity(x, y) = exp(-γ ||x - y||²)
 
-        s(a, b) = exp(-gamma * ||a - b||^2)
-
-    where gamma is a positive parameter that controls the width of the RBF kernel.
-
-    Inherits From:
-        SimilarityBase: Base class for similarity measures
+    where γ is a positive parameter controlling the bandwidth of the RBF.
 
     Attributes:
         gamma: float
-            The width parameter of the RBF kernel. Must be greater than 0.
+            The bandwidth parameter of the RBF kernel. Must be greater than 0.
     """
-    type: Literal["GaussianRBFSimilarity"] = "GaussianRBFSimilarity"
-    gamma: float
+    type: str = "GaussianRBFSimilarity"
 
-    def __init__(self, gamma: float = 1.0) -> None:
+    def __init__(self, gamma: float = 1.0):
         """
-        Initializes the GaussianRBFSimilarity instance.
+        Initialize the GaussianRBFSimilarity instance.
 
         Args:
             gamma: float
-                The width parameter of the RBF kernel. Must be greater than 0.
-
-        Raises:
-            ValueError:
-                If gamma is not greater than 0.
+                The bandwidth parameter of the RBF kernel. Must be greater than 0.
+                Defaults to 1.0
         """
+        super().__init__()
         if gamma <= 0:
             raise ValueError("Gamma must be greater than 0")
         self.gamma = gamma
+        logger.debug("Initialized GaussianRBFSimilarity with gamma=%s", gamma)
 
-    def similarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def similarity(self, x: InputType, y: InputType) -> OutputType:
         """
-        Calculates the Gaussian RBF similarity between two elements.
+        Calculate the Gaussian RBF similarity between two elements.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first element to compare
-            b: Union[Any, None]
+            y: InputType
                 The second element to compare
 
         Returns:
-            float:
-                The similarity score between the two elements
+            OutputType:
+                A float representing the similarity between x and y,
+                ranging between 0 and 1.
 
-        Raises:
-            ValueError:
-                If either element is None
+        Note:
+            The elements can be of any type that can be converted to a numpy array.
+            The similarity is computed as exp(-gamma * ||x - y||²).
         """
-        if a is None or b is None:
-            raise ValueError("Both elements must be non-None")
+        try:
+            # Convert inputs to numpy arrays if they aren't already
+            x_array = np.asarray(x)
+            y_array = np.asarray(y)
+            
+            # Compute squared Euclidean distance
+            distance_sq = np.linalg.norm(x_array - y_array) ** 2
+            
+            # Compute RBF similarity
+            similarity = np.exp(-self.gamma * distance_sq)
+            
+            logger.debug("Computed similarity: %s", similarity)
+            return similarity
+            
+        except Exception as e:
+            logger.error("Error computing similarity", exc_info=e)
+            raise
 
-        # Compute squared Euclidean distance between a and b
-        distance = np.linalg.norm(np.array(a) - np.array(b))
-        squared_distance = distance ** 2
-
-        # Compute RBF kernel
-        similarity_score = np.exp(-self.gamma * squared_distance)
-
-        logger.debug(f"Similarity score calculated: {similarity_score}")
-        return similarity_score
-
-    def similarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
         """
-        Calculates Gaussian RBF similarity scores between one element and a list of elements.
+        Calculate Gaussian RBF similarities for multiple pairs of elements.
 
         Args:
-            a: Union[Any, None]
-                The element to compare against multiple elements
-            b_list: Sequence[Union[Any, None]]
-                The list of elements to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of element pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of similarity scores
-
-        Raises:
-            ValueError:
-                If a is None or if any element in b_list is None
+            Sequence[OutputType]:
+                A sequence of similarity scores corresponding to each pair.
         """
-        if a is None:
-            raise ValueError("Element a must be non-None")
-        if any(b is None for b in b_list):
-            raise ValueError("All elements in b_list must be non-None")
+        try:
+            # Use list comprehension to compute similarity for each pair
+            return [self.similarity(x, y) for x, y in pairs]
+        except Exception as e:
+            logger.error("Error computing similarities", exc_info=e)
+            raise
 
-        # Compute similarities for each element in b_list
-        similarity_scores = tuple(
-            self.similarity(a, b) for b in b_list
-        )
-
-        logger.debug(f"Similarity scores calculated: {similarity_scores}")
-        return similarity_scores
-
-    def dissimilarity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> float:
+    def dissimilarity(self, x: InputType, y: InputType) -> OutputType:
         """
-        Calculates the dissimilarity score between two elements.
+        Calculate the Gaussian RBF dissimilarity between two elements.
 
         Args:
-            a: Union[Any, None]
+            x: InputType
                 The first element to compare
-            b: Union[Any, None]
+            y: InputType
                 The second element to compare
 
         Returns:
-            float:
-                The dissimilarity score between the two elements
+            OutputType:
+                A float representing the dissimilarity between x and y,
+                ranging between 0 and 1.
         """
-        # Dissimilarity is 1 - similarity
-        return 1.0 - self.similarity(a, b)
+        try:
+            # Dissimilarity is 1 - similarity
+            return 1.0 - self.similarity(x, y)
+        except Exception as e:
+            logger.error("Error computing dissimilarity", exc_info=e)
+            raise
 
-    def dissimilarities(
-            self, 
-            a: Union[Any, None], 
-            b_list: Sequence[Union[Any, None]]
-    ) -> Tuple[float, ...]:
+    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
         """
-        Calculates dissimilarity scores between one element and a list of elements.
+        Calculate Gaussian RBF dissimilarities for multiple pairs of elements.
 
         Args:
-            a: Union[Any, None]
-                The element to compare against multiple elements
-            b_list: Sequence[Union[Any, None]]
-                The list of elements to compare against
+            pairs: Sequence[Tuple[InputType, InputType]]
+                A sequence of element pairs to compare
 
         Returns:
-            Tuple[float, ...]:
-                A tuple of dissimilarity scores
+            Sequence[OutputType]:
+                A sequence of dissimilarity scores corresponding to each pair.
         """
-        # Dissimilarities are 1 - similarities
-        return tuple(1.0 - score for score in self.similarities(a, b_list))
-
-    def check_boundedness(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        Returns:
-            bool:
-                True if the similarity measure is bounded, False otherwise
-        """
-        return True
-
-    def check_reflexivity(
-            self, 
-            a: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is reflexive.
-
-        Returns:
-            bool:
-                True if the similarity measure is reflexive, False otherwise
-        """
-        return True
-
-    def check_symmetry(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-
-        Returns:
-            bool:
-                True if the similarity measure is symmetric, False otherwise
-        """
-        return True
-
-    def check_identity(
-            self, 
-            a: Union[Any, None], 
-            b: Union[Any, None]
-    ) -> bool:
-        """
-        Checks if the similarity measure satisfies identity.
-
-        Returns:
-            bool:
-                True if the similarity measure satisfies identity, False otherwise
-        """
-        return True
+        try:
+            # Use list comprehension to compute dissimilarity for each pair
+            return [self.dissimilarity(x, y) for x, y in pairs]
+        except Exception as e:
+            logger.error("Error computing dissimilarities", exc_info=e)
+            raise

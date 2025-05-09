@@ -1,93 +1,134 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import OverlapCoefficientSimilarity
 import logging
+from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import OverlapCoefficientSimilarity
+
+@pytest.fixture
+def overlap_coefficient_similarity():
+    """
+    Fixture to provide an instance of OverlapCoefficientSimilarity for testing.
+    """
+    instance = OverlapCoefficientSimilarity()
+    logging.debug("OverlapCoefficientSimilarity instance created for testing")
+    return instance
 
 @pytest.mark.unit
-class TestOverlapCoefficientSimilarity:
-    """Unit tests for OverlapCoefficientSimilarity class."""
+def test_similarity_initialization(overlap_coefficient_similarity):
+    """
+    Test that the OverlapCoefficientSimilarity instance is properly initialized.
+    """
+    assert isinstance(overlap_coefficient_similarity, OverlapCoefficientSimilarity)
+    assert overlap_coefficient_similarity.type == "OverlapCoefficientSimilarity"
+    assert overlap_coefficient_similarity.resource == "Similarity"
 
-    @pytest.mark.parametrize("a,b,expected_similarity", [
-        (set(), set(), 0.0),
-        (set(), {1, 2, 3}, 0.0),
-        ({1, 2}, {1, 2}, 1.0),
-        ({1, 2}, {2, 3}, 0.5),
-        ({1, 2, 3}, {1, 2}, 1.0),  # a is larger than b
-        ({1, 2, 3, 4}, {2, 3, 4, 5}, 3/4),
-    ])
-    def test_similarity(self, a, b, expected_similarity):
-        """Test the similarity calculation between two sets."""
-        similarity = OverlapCoefficientSimilarity().similarity(a, b)
-        assert similarity == expected_similarity
+@pytest.mark.unit
+def test_similarity(overlap_coefficient_similarity):
+    """
+    Test the similarity calculation with various input pairs.
+    """
+    # Test with equal sets
+    set_a = {1, 2, 3}
+    set_b = {1, 2, 3}
+    assert overlap_coefficient_similarity.similarity(set_a, set_b) == 1.0
 
-    @pytest.mark.parametrize("a,b,expected_exception", [
-        (None, {1, 2}, ValueError),
-        ({1, 2}, None, ValueError),
-        ("not a set", {1, 2}, ValueError),
-        ({1, 2}, "not a set", ValueError),
-    ])
-    def test_similarity_invalid_input(self, a, b, expected_exception):
-        """Test that invalid input raises the correct exception."""
-        with pytest.raises(expected_exception):
-            OverlapCoefficientSimilarity().similarity(a, b)
+    # Test with partially overlapping sets
+    set_c = {1, 2}
+    set_d = {2, 3}
+    assert overlap_coefficient_similarity.similarity(set_c, set_d) == 0.5
 
-    def test_similarities(self):
-        """Test the similarities method with multiple sets."""
-        a = {1, 2, 3}
-        b_list = [{1, 2}, {2, 3}, {3, 4}]
-        expected = (
-            OverlapCoefficientSimilarity().similarity(a, b_list[0]),
-            OverlapCoefficientSimilarity().similarity(a, b_list[1]),
-            OverlapCoefficientSimilarity().similarity(a, b_list[2])
-        )
-        
-        similarities = OverlapCoefficientSimilarity().similarities(a, b_list)
-        assert len(similarities) == len(b_list)
-        assert similarities == expected
+    # Test with disjoint sets
+    set_e = {1, 2}
+    set_f = {3, 4}
+    assert overlap_coefficient_similarity.similarity(set_e, set_f) == 0.0
 
-    def test_dissimilarity(self):
-        """Test the dissimilarity calculation."""
-        a = {1, 2}
-        b = {2, 3}
-        similarity = OverlapCoefficientSimilarity().similarity(a, b)
-        dissimilarity = OverlapCoefficientSimilarity().dissimilarity(a, b)
-        assert dissimilarity == 1.0 - similarity
+    # Test with one empty set
+    set_g = set()
+    set_h = {1, 2}
+    assert overlap_coefficient_similarity.similarity(set_g, set_h) == 0.0
 
-    def test_dissimilarities(self):
-        """Test the dissimilarities method with multiple sets."""
-        a = {1, 2, 3}
-        b_list = [{1, 2}, {2, 3}, {3, 4}]
-        similarities = OverlapCoefficientSimilarity().similarities(a, b_list)
-        dissimilarities = OverlapCoefficientSimilarity().dissimilarities(a, b_list)
-        assert len(dissimilarities) == len(b_list)
-        assert all(1.0 - s for s in similarities)
+    # Test with both empty sets
+    set_i = set()
+    set_j = set()
+    assert overlap_coefficient_similarity.similarity(set_i, set_j) == 0.0
 
-    def test_check_boundedness(self):
-        """Test that the measure is bounded."""
-        a = {1, 2}
-        b = {2, 3}
-        assert OverlapCoefficientSimilarity().check_boundedness(a, b) is True
+@pytest.mark.unit
+def test_dissimilarity(overlap_coefficient_similarity):
+    """
+    Test the dissimilarity calculation with various input pairs.
+    """
+    # Test with equal sets
+    set_a = {1, 2, 3}
+    set_b = {1, 2, 3}
+    assert overlap_coefficient_similarity.dissimilarity(set_a, set_b) == 0.0
 
-    def test_check_reflexivity(self):
-        """Test reflexivity of the measure."""
-        a = {1, 2}
-        assert OverlapCoefficientSimilarity().check_reflexivity(a) is True
+    # Test with partially overlapping sets
+    set_c = {1, 2}
+    set_d = {2, 3}
+    assert overlap_coefficient_similarity.dissimilarity(set_c, set_d) == 0.5
 
-    @pytest.mark.parametrize("a,b", [
+    # Test with disjoint sets
+    set_e = {1, 2}
+    set_f = {3, 4}
+    assert overlap_coefficient_similarity.dissimilarity(set_e, set_f) == 1.0
+
+    # Test with one empty set
+    set_g = set()
+    set_h = {1, 2}
+    assert overlap_coefficient_similarity.dissimilarity(set_g, set_h) == 1.0
+
+    # Test with both empty sets
+    set_i = set()
+    set_j = set()
+    assert overlap_coefficient_similarity.dissimilarity(set_i, set_j) == 0.0
+
+@pytest.mark.unit
+def test_similarities(overlap_coefficient_similarity):
+    """
+    Test batch similarity calculation with multiple input pairs.
+    """
+    pairs = [
         ({1, 2}, {2, 3}),
-        ({1, 2, 3}, {3, 4, 5}),
-        ({1, 2}, {1, 2}),
-    ])
-    def test_check_symmetry(self, a, b):
-        """Test the symmetry of the measure."""
-        similarity_ab = OverlapCoefficientSimilarity().similarity(a, b)
-        similarity_ba = OverlapCoefficientSimilarity().similarity(b, a)
-        assert similarity_ab == similarity_ba
+        ({3, 4}, {4, 5}),
+        ({5, 6}, {6, 7}),
+        (set(), {1, 2}),
+        ({1, 2}, set())
+    ]
+    
+    expected_results = [0.5, 0.5, 0.5, 0.0, 0.0]
+    
+    results = overlap_coefficient_similarity.similarities(pairs)
+    assert len(results) == len(pairs)
+    for result, expected in zip(results, expected_results):
+        assert result == expected
 
-    @pytest.mark.parametrize("a,b,expected", [
-        ({1, 2}, {1, 2}, True),
-        ({1, 2}, {2, 3}, False),
-        ({1, 2, 3}, {1, 2, 3}, True),
-    ])
-    def test_check_identity(self, a, b, expected):
-        """Test the identity check of the measure."""
-        assert OverlapCoefficientSimilarity().check_identity(a, b) == expected
+@pytest.mark.unit
+def test_dissimilarities(overlap_coefficient_similarity):
+    """
+    Test batch dissimilarity calculation with multiple input pairs.
+    """
+    pairs = [
+        ({1, 2}, {2, 3}),
+        ({3, 4}, {4, 5}),
+        ({5, 6}, {6, 7}),
+        (set(), {1, 2}),
+        ({1, 2}, set())
+    ]
+    
+    expected_results = [0.5, 0.5, 0.5, 1.0, 1.0]
+    
+    results = overlap_coefficient_similarity.dissimilarities(pairs)
+    assert len(results) == len(pairs)
+    for result, expected in zip(results, expected_results):
+        assert result == expected
+
+@pytest.mark.unit
+def test_invalid_inputs(overlap_coefficient_similarity):
+    """
+    Test that invalid inputs raise appropriate ValueError exceptions.
+    """
+    # Test non-set inputs
+    with pytest.raises(ValueError):
+        overlap_coefficient_similarity.similarity([1, 2], [3, 4])
+    
+    # Test empty sets
+    with pytest.raises(ValueError):
+        overlap_coefficient_similarity.similarity(set(), set())

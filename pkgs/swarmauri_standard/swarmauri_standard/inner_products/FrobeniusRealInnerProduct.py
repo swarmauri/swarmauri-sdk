@@ -1,140 +1,120 @@
-"""Module implementing the Frobenius real inner product for real matrices."""
-
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-import numpy as np
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 import logging
+import numpy as np
 
-# Set up logger
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_type(InnerProductBase, "FrobeniusRealInnerProduct")
+@InnerProductBase.register_type(IInnerProduct, "FrobeniusRealInnerProduct")
 class FrobeniusRealInnerProduct(InnerProductBase):
-    """
-    A class implementing the Frobenius inner product for real matrices.
-
-    This class provides the functionality to compute the Frobenius inner product
-    between two real matrices. The Frobenius inner product is defined as the
-    sum of the element-wise products of the two matrices, which is equivalent
-    to the trace of the matrix product of the transpose of the first matrix
-    with the second matrix.
-
+    """Implementation of the Frobenius inner product for real matrices.
+    
+    This class provides the concrete implementation of the InnerProductBase for
+    computing the Frobenius inner product between real matrices. The Frobenius
+    inner product is defined as the sum of the element-wise products of the two
+    matrices, which is equivalent to the trace of the matrix product of the
+    transpose of the first matrix and the second matrix.
+    
     Inherits From:
         InnerProductBase: The base class for all inner product implementations.
-
-    Methods:
-        compute(a, b): Computes the Frobenius inner product of matrices a and b.
-        check_conjugate_symmetry(a, b): Checks if the inner product is conjugate symmetric.
-        check_linearity(a, b, c): Checks if the inner product is linear in the first argument.
-        check_positivity(a): Checks if the inner product is positive definite.
+        
+    Attributes:
+        type: Type identifier for this inner product implementation.
     """
-
-    def __init__(self):
-        super().__init__()
-        self.type: Literal["FrobeniusRealInnerProduct"] = "FrobeniusRealInnerProduct"
-
-    def compute(self, a: np.ndarray, b: np.ndarray) -> float:
-        """
-        Computes the Frobenius inner product of two real matrices.
-
-        The Frobenius inner product is computed as the sum of the element-wise
-        products of the two matrices. This is equivalent to the trace of the
-        matrix product of the transpose of the first matrix with the second matrix.
-
+    type: Literal["FrobeniusRealInnerProduct"] = "FrobeniusRealInnerProduct"
+    
+    def compute(self, x: np.ndarray, y: np.ndarray) -> float:
+        """Compute the Frobenius inner product between two real matrices.
+        
+        The Frobenius inner product is computed as the trace of the matrix
+        product of x.T (transpose of x) and y. This is equivalent to summing
+        the element-wise products of the two matrices.
+        
         Args:
-            a: The first real matrix.
-            b: The second real matrix.
-
+            x: First real matrix
+            y: Second real matrix
+            
         Returns:
-            A float representing the Frobenius inner product result.
-
+            The Frobenius inner product of x and y as a scalar value.
+            
         Raises:
-            ValueError: If the input matrices are not of the same shape.
+            ValueError: If the input matrices are not of the same shape
         """
         logger.debug("Computing Frobenius inner product")
         
-        # Ensure inputs are numpy arrays
-        if not (isinstance(a, np.ndarray) and isinstance(b, np.ndarray)):
-            raise ValueError("Inputs must be numpy arrays")
+        if x.shape != y.shape:
+            raise ValueError("Matrices must be of the same shape")
             
-        # Check if matrices have the same shape
-        if a.shape != b.shape:
-            raise ValueError("Matrices must have the same shape")
-            
-        # Compute the Frobenius inner product
-        return float(np.trace(np.transpose(a) @ b))
-
-    def check_conjugate_symmetry(self, a: np.ndarray, b: np.ndarray) -> bool:
-        """
-        Checks if the inner product is conjugate symmetric.
-
+        # Compute the trace of x.T @ y which is equivalent to Frobenius inner product
+        return float(np.trace(x.T @ y))
+    
+    def check_conjugate_symmetry(self, x: np.ndarray, y: np.ndarray) -> bool:
+        """Check if the inner product satisfies conjugate symmetry.
+        
         For real matrices, the Frobenius inner product is symmetric, meaning
-        that <a, b> = <b, a>.
-
+        that <x, y> = <y, x>. This method verifies this property.
+        
         Args:
-            a: The first matrix.
-            b: The second matrix.
-
+            x: First real matrix
+            y: Second real matrix
+            
         Returns:
-            bool: True if the inner product is conjugate symmetric, False otherwise.
+            True if the inner product is conjugate symmetric, False otherwise
         """
         logger.debug("Checking conjugate symmetry")
         
-        # Compute inner products
-        inner_product_ab = self.compute(a, b)
-        inner_product_ba = self.compute(b, a)
+        inner_product_xy = self.compute(x, y)
+        inner_product_yx = self.compute(y, x)
         
-        # Check if they are equal
-        return np.isclose(inner_product_ab, inner_product_ba)
-
-    def check_linearity(self, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
-        """
-        Checks if the inner product is linear in the first argument.
-
-        This method verifies two properties:
-        1. Additivity: <a + c, b> = <a, b> + <c, b>
-        2. Homogeneity: <c*a, b> = c*<a, b>
-
+        return np.isclose(inner_product_xy, inner_product_yx)
+    
+    def check_linearity_first_argument(self, 
+                                      x: np.ndarray, 
+                                      y: np.ndarray, 
+                                      z: np.ndarray,
+                                      a: float = 1.0, 
+                                      b: float = 1.0) -> bool:
+        """Check linearity in the first argument.
+        
+        Verifies that for any matrices x, y, z and scalars a, b:
+        <a*x + b*y, z> = a*<x, z> + b*<y, z>
+        
         Args:
-            a: The first matrix.
-            b: The second matrix.
-            c: A scalar for linearity check.
-
+            x: First matrix
+            y: Second matrix
+            z: Third matrix
+            a: Scalar coefficient for x
+            b: Scalar coefficient for y
+            
         Returns:
-            bool: True if the inner product is linear, False otherwise.
+            True if the inner product is linear in the first argument, False otherwise
         """
-        logger.debug("Checking linearity")
+        logger.debug("Checking linearity in first argument")
         
-        # Additivity check
-        add_result = self.compute(a + c, b)
-        expected_add = self.compute(a, b) + self.compute(c, b)
+        # Compute left side: <a*x + b*y, z>
+        left_side = self.compute(a * x + b * y, z)
         
-        # Homogeneity check
-        homo_result = self.compute(c * a, b)
-        expected_homo = c * self.compute(a, b)
+        # Compute right side: a*<x, z> + b*<y, z>
+        right_side = a * self.compute(x, z) + b * self.compute(y, z)
         
-        # Check if both conditions are satisfied
-        return (np.isclose(add_result, expected_add) and 
-                np.isclose(homo_result, expected_homo))
-
-    def check_positivity(self, a: np.ndarray) -> bool:
-        """
-        Checks if the inner product is positive definite.
-
-        For the Frobenius inner product, this is true if the matrix
-        is not the zero matrix.
-
+        return np.isclose(left_side, right_side)
+    
+    def check_positivity(self, x: np.ndarray) -> bool:
+        """Check if the inner product is positive definite.
+        
+        For the Frobenius inner product, this is true for any non-zero matrix
+        since the inner product of any matrix with itself is the sum of the
+        squares of its elements, which is always non-negative and positive
+        for non-zero matrices.
+        
         Args:
-            a: The matrix to check.
-
+            x: Matrix to check
+            
         Returns:
-            bool: True if the inner product is positive definite, False otherwise.
+            True if the inner product is positive definite, False otherwise
         """
         logger.debug("Checking positivity")
         
-        # Compute the inner product of a with itself
-        inner_product = self.compute(a, a)
-        
-        # The result should be positive if a is not the zero matrix
+        inner_product = self.compute(x, x)
         return inner_product > 0
