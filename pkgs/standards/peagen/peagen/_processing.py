@@ -12,8 +12,9 @@ import os
 from pprint import pformat
 from typing import Any, Dict, List, Optional
 
-from swarmauri_prompt_j2prompttemplate import j2pt
 
+from colorama import Fore, Style
+from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 from ._config import _config
@@ -95,36 +96,36 @@ def _process_file(
     global_attrs: Dict[str, Any],
     template_dir: str,
     agent_env: Dict[str, Any],
+    j2_instance: Any,               # <-- new parameter
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
 ) -> bool:
     """
-    Processes a single file record based on its PROCESS_TYPE.
+    File: _processing.py
+    Function: _process_file
 
-    - For "COPY": renders and always saves (even if content is blank).
-    - For "GENERATE": renders; if content generation returns None, skips save; if empty string, still saves.
+    Now receives a Jinja2PromptTemplate instance (j2_instance) instead of using the singleton.
     """
     context = _create_context(file_record, global_attrs, logger)
     final_filename = file_record.get("RENDERED_FILE_NAME")
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
     if process_type == "COPY":
-        content = _render_copy_template(file_record, context, logger)
+        content = _render_copy_template(file_record, context, j2_instance, logger)
 
     elif process_type == "GENERATE":
         if _config["revise"] and "agent_prompt_template_file" not in agent_env:
             agent_env["agent_prompt_template_file"] = "agent_revise.j2"
-
         if _config["revise"]:
-            agent_prompt_template_name = agent_env["agent_prompt_template_file"]
             context["INJ"] = _config["revision_notes"]
+            agent_prompt_template_name = agent_env["agent_prompt_template_file"]
         else:
             agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
 
-        agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
+        prompt_path = os.path.join(template_dir, agent_prompt_template_name)
         content = _render_generate_template(
-            file_record, context, agent_prompt_template_path, agent_env, logger
+            file_record, context, prompt_path, j2_instance, agent_env, logger
         )
 
     else:
@@ -134,7 +135,6 @@ def _process_file(
             )
         return False
 
-    # Handle None (failure) vs. empty string (blank file)
     if content is None:
         if logger:
             logger.warning(f"No content generated for file '{final_filename}'; skipping save.")
@@ -157,15 +157,19 @@ def _process_project_files(
     start_idx: int = 0,
 ) -> None:
     """
-    Processes all file records for a project, optionally in parallel, while respecting dependencies.
+    File: _processing.py
+    Function: _process_project_files
 
-    If _config["workers"] > 0, files are rendered in parallel but only once their dependencies complete.
-    Otherwise, files are rendered sequentially in sorted order.
+    Processes all file_records, creating a fresh J2PromptTemplate instance
+    for each record (or thread) via j2pt.copy(deep=False), then overriding
+    its templates_dir[0] to the file’s TEMPLATE_SET (or the project default).
     """
+
     idx_len = len(file_records) + start_idx
     workers = _config.get("workers", 0)
 
     if workers and workers > 0:
+        # Build dependency graph for parallel execution
         forward_graph, in_degree, _ = _build_forward_graph(file_records)
         entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
         idx_map = {
@@ -173,27 +177,36 @@ def _process_project_files(
             for i, rec in enumerate(file_records)
         }
 
-        def _worker(fname: str) -> str:
+        def _worker(fname: str) -> None:
             rec = entry_map[fname]
             idx = idx_map[fname]
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-            if new_dir and str(j2pt.templates_dir[0]) != str(new_dir):
-                if logger:
-                    logger.debug(
-                        "Template dir updated: "
-                        f" '{j2pt.templates_dir[0]}' -> '{new_dir}'"
-                    )
-                j2pt.templates_dir[0] = str(new_dir)
-            _process_file(rec, global_attrs, template_dir, agent_env, logger, idx, idx_len)
-            return fname
+
+            # Create a fresh instance
+            j2 = j2pt.copy(deep=False)
+            # Detach and override template directory
+            j2.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
+
+            _process_file(
+                rec,
+                global_attrs,
+                template_dir,
+                agent_env,
+                j2,
+                logger,
+                idx,
+                idx_len,
+            )
 
         executor = ThreadPoolExecutor(max_workers=workers)
         futures = {}
         try:
+            # Launch roots
             for fname, deps in in_degree.items():
                 if deps == 0:
                     futures[executor.submit(_worker, fname)] = fname
 
+            # As tasks finish, schedule their dependents
             while futures:
                 done, _ = wait(futures, return_when=FIRST_COMPLETED)
                 for fut in done:
@@ -209,16 +222,22 @@ def _process_project_files(
             executor.shutdown(wait=True)
         return
 
+    # Sequential execution: one fresh instance per file
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-        if new_dir and str(j2pt.templates_dir[0]) != str(new_dir):
-            if logger:
-                logger.debug(
-                    "Template dir updated: "
-                    f" '{j2pt.templates_dir[0]}' -> '{new_dir}'"
-                )
-            j2pt.templates_dir[0] = str(new_dir)
 
-        if not _process_file(rec, global_attrs, template_dir, agent_env, logger, start_idx, idx_len):
+        j2_instance = J2PromptTemplate()
+        j2_instance.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
+
+        if not _process_file(
+            rec,
+            global_attrs,
+            template_dir,
+            agent_env,
+            j2,
+            logger,
+            start_idx,
+            idx_len,
+        ):
             break
         start_idx += 1
