@@ -13,6 +13,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
     This class computes the inner product using the trace of the product of two matrices, modulated by a weight matrix.
     """
+
     type: Literal["TraceFormWeightedInnerProduct"] = "TraceFormWeightedInnerProduct"
 
     def __init__(self, weight: np.ndarray):
@@ -30,7 +31,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             raise ValueError("Weight must be a numpy array")
         self.weight = weight
 
-    def compute(self, a: Union[np.ndarray, Callable], b: Union[np.ndarray, Callable]) -> float:
+    def compute(
+        self, a: Union[np.ndarray, Callable], b: Union[np.ndarray, Callable]
+    ) -> float:
         """
         Computes the inner product using the weighted trace of matrix product.
 
@@ -51,37 +54,39 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             ValueError: If the matrix dimensions are incompatible for multiplication.
         """
         logger.debug("Computing weighted trace inner product")
-        
+
         # Convert callables to matrices
         if callable(a):
             a_matrix = a()
         else:
             a_matrix = a
-            
+
         if callable(b):
             b_matrix = b()
         else:
             b_matrix = b
-        
+
         # Ensure inputs are numpy arrays
         a_matrix = np.asarray(a_matrix)
         b_matrix = np.asarray(b_matrix)
-        
+
         # Compute matrix product
         try:
             product_matrix = np.matmul(a_matrix, b_matrix.T)
         except ValueError as e:
             logger.error("Matrix dimensions are incompatible for multiplication")
             raise ValueError("Incompatible matrix dimensions for multiplication") from e
-        
+
         # Verify weight matrix dimensions match product matrix
         if product_matrix.shape != self.weight.shape:
             logger.error("Weight matrix dimensions do not match product matrix")
-            raise ValueError("Weight matrix dimensions do not match product matrix dimensions")
-        
+            raise ValueError(
+                "Weight matrix dimensions do not match product matrix dimensions"
+            )
+
         # Apply weight element-wise
         weighted_product = np.multiply(product_matrix, self.weight)
-        
+
         # Compute and return trace
         trace_result = np.trace(weighted_product)
         logger.debug("Weighted trace computation completed successfully")

@@ -1,12 +1,15 @@
 import pytest
 import numpy as np
-from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import CoordinateProjectionSeminorm
+from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import (
+    CoordinateProjectionSeminorm,
+)
 from swarmauri_core.vectors.IVector import IVector
+
 
 @pytest.mark.unit
 class TestCoordinateProjectionSeminorm:
     """Unit tests for the CoordinateProjectionSeminorm class."""
-    
+
     @pytest.fixture
     def coordinate_projection_seminorm(self):
         """Fixture providing a default instance of CoordinateProjectionSeminorm."""
@@ -47,11 +50,11 @@ class TestCoordinateProjectionSeminorm:
         """Test the triangle inequality property."""
         vector_a = IVector(data=np.array([1.0, 2.0]))
         vector_b = IVector(data=np.array([3.0, 4.0]))
-        
+
         seminorm_a = coordinate_projection_seminorm.compute(vector_a)
         seminorm_b = coordinate_projection_seminorm.compute(vector_b)
         seminorm_a_plus_b = coordinate_projection_seminorm.compute(vector_a + vector_b)
-        
+
         assert seminorm_a_plus_b <= seminorm_a + seminorm_b
 
     @pytest.mark.unit
@@ -59,11 +62,11 @@ class TestCoordinateProjectionSeminorm:
         """Test the scalar homogeneity property."""
         test_vector = IVector(data=np.array([2.0, 4.0]))
         scalar = 3.0
-        
+
         scaled_vector = scalar * test_vector
         seminorm_scaled = coordinate_projection_seminorm.compute(scaled_vector)
         seminorm_original = coordinate_projection_seminorm.compute(test_vector)
-        
+
         assert np.isclose(seminorm_scaled, abs(scalar) * seminorm_original)
 
     @pytest.mark.unit
@@ -75,7 +78,9 @@ class TestCoordinateProjectionSeminorm:
     @pytest.mark.unit
     def test_repr(coordinate_projection_seminorm):
         """Test official string representation of the object."""
-        assert repr(coordinate_projection_seminorm) == str(coordinate_projection_seminorm)
+        assert repr(coordinate_projection_seminorm) == str(
+            coordinate_projection_seminorm
+        )
 
     @pytest.mark.unit
     def test_compute_without_projection_indices():

@@ -20,6 +20,7 @@ class LevenshteinMetric(MetricBase):
     Attributes:
         type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
     """
+
     type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
 
     def __init__(self) -> None:
@@ -55,7 +56,9 @@ class LevenshteinMetric(MetricBase):
         logger.debug(f"Calculating Levenshtein distance between '{x}' and '{y}'")
         return float(self._levenshtein_distance(x, y))
 
-    def distances(self, xs: List[Union[str, Sequence]], ys: List[Union[str, Sequence]]) -> List[List[float]]:
+    def distances(
+        self, xs: List[Union[str, Sequence]], ys: List[Union[str, Sequence]]
+    ) -> List[List[float]]:
         """
         Computes pairwise Levenshtein distances between two lists of strings.
 
@@ -66,10 +69,14 @@ class LevenshteinMetric(MetricBase):
         Returns:
             List[List[float]]: Matrix of pairwise Levenshtein distances
         """
-        logger.debug(f"Calculating pairwise Levenshtein distances between {len(xs)} and {len(ys)} strings")
+        logger.debug(
+            f"Calculating pairwise Levenshtein distances between {len(xs)} and {len(ys)} strings"
+        )
         return [[self.distance(x, y) for y in ys] for x in xs]
 
-    def check_non_negativity(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> None:
+    def check_non_negativity(
+        self, x: Union[str, Sequence], y: Union[str, Sequence]
+    ) -> None:
         """
         Verifies the non-negativity axiom: distance(x, y) >= 0.
 
@@ -82,7 +89,9 @@ class LevenshteinMetric(MetricBase):
         """
         distance = self.distance(x, y)
         if distance < 0:
-            raise ValueError(f"Non-negativity violation: distance({x}, {y}) = {distance} < 0")
+            raise ValueError(
+                f"Non-negativity violation: distance({x}, {y}) = {distance} < 0"
+            )
 
     def check_identity(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> None:
         """
@@ -97,7 +106,9 @@ class LevenshteinMetric(MetricBase):
         """
         distance = self.distance(x, y)
         if (x == y and distance != 0) or (x != y and distance == 0):
-            raise ValueError(f"Identity violation: x={'x'}, y={'y'}, distance={distance}")
+            raise ValueError(
+                f"Identity violation: x={'x'}, y={'y'}, distance={distance}"
+            )
 
     def check_symmetry(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> None:
         """
@@ -111,9 +122,13 @@ class LevenshteinMetric(MetricBase):
             ValueError: If distance(x, y) != distance(y, x)
         """
         if self.distance(x, y) != self.distance(y, x):
-            raise ValueError(f"Symmetry violation: distance({x}, {y}) != distance({y}, {x})")
+            raise ValueError(
+                f"Symmetry violation: distance({x}, {y}) != distance({y}, {x})"
+            )
 
-    def check_triangle_inequality(self, x: Union[str, Sequence], y: Union[str, Sequence], z: Union[str, Sequence]) -> None:
+    def check_triangle_inequality(
+        self, x: Union[str, Sequence], y: Union[str, Sequence], z: Union[str, Sequence]
+    ) -> None:
         """
         Verifies the triangle inequality axiom: distance(x, z) <= distance(x, y) + distance(y, z).
 
@@ -128,7 +143,7 @@ class LevenshteinMetric(MetricBase):
         d_xz = self.distance(x, z)
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
-        
+
         if d_xz > d_xy + d_yz:
             raise ValueError(f"Triangle inequality violation: {d_xz} > {d_xy} + {d_yz}")
 
@@ -154,8 +169,10 @@ class LevenshteinMetric(MetricBase):
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 cost = 0 if x[i - 1] == y[j - 1] else 1
-                dp[i][j] = min(dp[i - 1][j] + 1,      # Deletion
-                               dp[i][j - 1] + 1,      # Insertion
-                               dp[i - 1][j - 1] + cost)  # Substitution or no cost
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,  # Deletion
+                    dp[i][j - 1] + 1,  # Insertion
+                    dp[i - 1][j - 1] + cost,
+                )  # Substitution or no cost
 
         return dp[m][n]

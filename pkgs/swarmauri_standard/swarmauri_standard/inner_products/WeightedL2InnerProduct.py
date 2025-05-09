@@ -18,6 +18,7 @@ class WeightedL2InnerProduct(InnerProductBase):
     Inherits from:
         InnerProductBase: The base class for inner product implementations
     """
+
     type: str = "WeightedL2InnerProduct"
 
     def __init__(self, weight_function: Callable):
@@ -50,10 +51,10 @@ class WeightedL2InnerProduct(InnerProductBase):
         # For demonstration, we sample at a few points
         sample_points = np.linspace(0, 1, 10)
         weights = self.weight_function(sample_points)
-        
+
         if np.any(weights <= 0):
             raise ValueError("Weight function must be strictly positive")
-            
+
         logger.info("Weight function validation passed")
 
     @property
@@ -66,8 +67,11 @@ class WeightedL2InnerProduct(InnerProductBase):
         """
         return self._weight_function
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], 
-               b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the weighted L2 inner product of two functions/vectors.
 
@@ -113,16 +117,18 @@ class WeightedL2InnerProduct(InnerProductBase):
     def __str__(self) -> str:
         """
         Returns a string representation of the object.
-        
+
         Returns:
             str: String representation
         """
-        return f"WeightedL2InnerProduct(weight_function={self.weight_function.__name__})"
+        return (
+            f"WeightedL2InnerProduct(weight_function={self.weight_function.__name__})"
+        )
 
     def __repr__(self) -> str:
         """
         Returns the string representation of the object for official string representation.
-        
+
         Returns:
             str: Official string representation
         """

@@ -1,12 +1,15 @@
 import pytest
 import logging
 from unittest.mock import patch
-from swarmauri_standard.similarities.TriangleCosineSimilarity import TriangleCosineSimilarity
+from swarmauri_standard.similarities.TriangleCosineSimilarity import (
+    TriangleCosineSimilarity,
+)
+
 
 @pytest.mark.unit
 class TestTriangleCosineSimilarity:
     """Unit tests for TriangleCosineSimilarity class."""
-    
+
     @pytest.fixture
     def triangle_cosine_similarity(self):
         """Fixture providing an instance of TriangleCosineSimilarity."""
@@ -23,7 +26,10 @@ class TestTriangleCosineSimilarity:
     def test_serialization(self, triangle_cosine_similarity):
         """Test model serialization and validation."""
         model_json = triangle_cosine_similarity.model_dump_json()
-        assert TriangleCosineSimilarity.model_validate_json(model_json) == TriangleCosineSimilarity.id
+        assert (
+            TriangleCosineSimilarity.model_validate_json(model_json)
+            == TriangleCosineSimilarity.id
+        )
 
     def test_similarity_identical_vectors(self, triangle_cosine_similarity):
         """Test similarity calculation with identical vectors."""
@@ -83,18 +89,22 @@ class TestTriangleCosineSimilarity:
         """Test check_identity method."""
         assert not triangle_cosine_similarity.check_identity()
 
-    @patch('logging.debug')
+    @patch("logging.debug")
     def test_logging_similarity(self, mock_logging, triangle_cosine_similarity):
         """Test logging in similarity method."""
         x = [1.0, 2.0, 3.0]
         y = [1.0, 2.0, 3.0]
         triangle_cosine_similarity.similarity(x, y)
-        mock_logging.assert_called_with(f"Calculating cosine similarity between vectors {x} and {y}")
+        mock_logging.assert_called_with(
+            f"Calculating cosine similarity between vectors {x} and {y}"
+        )
 
-    @patch('logging.debug')
+    @patch("logging.debug")
     def test_logging_dissimilarity(self, mock_logging, triangle_cosine_similarity):
         """Test logging in dissimilarity method."""
         x = [1.0, 2.0, 3.0]
         y = [1.0, 2.0, 3.0]
         triangle_cosine_similarity.dissimilarity(x, y)
-        mock_logging.assert_called_with(f"Calculating dissimilarity between vectors {x} and {y}")
+        mock_logging.assert_called_with(
+            f"Calculating dissimilarity between vectors {x} and {y}"
+        )

@@ -28,13 +28,14 @@ class ZeroPseudometric(PseudometricBase):
         check_triangle_inequality: Verifies the triangle inequality property
         check_weak_identity: Verifies the weak identity property
     """
+
     type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
     resource: str = "PSEUDOMETRIC"
 
     def distance(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> float:
         """
         Computes the distance between two elements.
@@ -54,7 +55,7 @@ class ZeroPseudometric(PseudometricBase):
     def distances(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]],
     ) -> List[float]:
         """
         Computes distances from a single element to multiple elements.
@@ -74,7 +75,7 @@ class ZeroPseudometric(PseudometricBase):
     def check_non_negativity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the non-negativity property: d(x,y) ≥ 0.
@@ -94,7 +95,7 @@ class ZeroPseudometric(PseudometricBase):
     def check_symmetry(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the symmetry property: d(x,y) = d(y,x).
@@ -115,7 +116,7 @@ class ZeroPseudometric(PseudometricBase):
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
         y: Union[IVector, IMatrix, List[float], str, Callable],
-        z: Union[IVector, IMatrix, List[float], str, Callable]
+        z: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
@@ -136,7 +137,7 @@ class ZeroPseudometric(PseudometricBase):
     def check_weak_identity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies weak identity property: d(x,y) = 0 does not imply x = y.

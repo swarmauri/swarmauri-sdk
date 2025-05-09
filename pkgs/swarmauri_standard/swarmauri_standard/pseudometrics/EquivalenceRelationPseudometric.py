@@ -18,8 +18,9 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         PseudometricBase: Base class for pseudometric spaces
         ComponentBase: Base class for all components in the system
     """
+
     type: str = "EquivalenceRelationPseudometric"
-    
+
     def __init__(self, equivalence_function: callable):
         """
         Initializes the EquivalenceRelationPseudometric instance.
@@ -30,12 +31,14 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         """
         super().__init__()
         self.equivalence_function = equivalence_function
-        logger.debug("Initialized EquivalenceRelationPseudometric with equivalence function")
+        logger.debug(
+            "Initialized EquivalenceRelationPseudometric with equivalence function"
+        )
 
     def distance(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> float:
         """
         Computes the distance between two elements based on equivalence.
@@ -56,7 +59,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
     def check_symmetry(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the symmetry property: d(x,y) = d(y,x).
@@ -76,7 +79,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
     def check_non_negativity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the non-negativity property: d(x,y) ≥ 0.
@@ -97,7 +100,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
         y: Union[IVector, IMatrix, List[float], str, Callable],
-        z: Union[IVector, IMatrix, List[float], str, Callable]
+        z: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
@@ -120,7 +123,7 @@ class EquivalenceRelationPseudometric(PseudometricBase):
     def check_weak_identity(
         self,
         x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
+        y: Union[IVector, IMatrix, List[float], str, Callable],
     ) -> bool:
         """
         Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.

@@ -11,24 +11,27 @@ logger = logging.getLogger(__name__)
 class TestDiceSimilarity:
     """
     Unit tests for the DiceSimilarity class.
-    
+
     This test suite validates the implementation of the DiceSimilarity class,
     ensuring it behaves as expected for various input scenarios.
     """
 
-    @pytest.mark.parametrize("x,y,expected_similarity", [
-        ("abc", "abc", 1.0),
-        ("abc", "def", 0.0),
-        ("abcc", "abbc", 0.8),
-        ("a", "a", 1.0),
-        ("a", "b", 0.0),
-        ("", "", 1.0),
-        ("", "a", 0.0),
-    ])
+    @pytest.mark.parametrize(
+        "x,y,expected_similarity",
+        [
+            ("abc", "abc", 1.0),
+            ("abc", "def", 0.0),
+            ("abcc", "abbc", 0.8),
+            ("a", "a", 1.0),
+            ("a", "b", 0.0),
+            ("", "", 1.0),
+            ("", "a", 0.0),
+        ],
+    )
     def test_similarity(self, x: str, y: str, expected_similarity: float) -> None:
         """
         Test the similarity method with various string inputs.
-        
+
         Args:
             x: First string to compare
             y: Second string to compare
@@ -38,18 +41,23 @@ class TestDiceSimilarity:
         similarity = dice.similarity(x, y)
         assert abs(similarity - expected_similarity) < 1e-6
 
-    @pytest.mark.parametrize("x,y,expected_similarity", [
-        (["a", "b", "c"], ["a", "b", "c"], 1.0),
-        (["a", "b", "c"], ["d", "e", "f"], 0.0),
-        (["a", "a", "b"], ["a", "b", "b"], 0.8),
-        (["a"], ["a"], 1.0),
-        (["a"], ["b"], 0.0),
-        (["a", "a", "a"], ["a", "a", "a"], 1.0),
-    ])
-    def test_similarity_list_input(self, x: Sequence, y: Sequence, expected_similarity: float) -> None:
+    @pytest.mark.parametrize(
+        "x,y,expected_similarity",
+        [
+            (["a", "b", "c"], ["a", "b", "c"], 1.0),
+            (["a", "b", "c"], ["d", "e", "f"], 0.0),
+            (["a", "a", "b"], ["a", "b", "b"], 0.8),
+            (["a"], ["a"], 1.0),
+            (["a"], ["b"], 0.0),
+            (["a", "a", "a"], ["a", "a", "a"], 1.0),
+        ],
+    )
+    def test_similarity_list_input(
+        self, x: Sequence, y: Sequence, expected_similarity: float
+    ) -> None:
         """
         Test the similarity method with list inputs.
-        
+
         Args:
             x: First list to compare
             y: Second list to compare
@@ -78,16 +86,19 @@ class TestDiceSimilarity:
         similarity = dice.similarities("a", "a")
         assert similarity == 1.0
 
-    @pytest.mark.parametrize("x,y,expected_dissimilarity", [
-        ("a", "a", 0.0),
-        ("a", "b", 1.0),
-        ("ab", "cd", 1.0),
-        ("ab", "ab", 0.0),
-    ])
+    @pytest.mark.parametrize(
+        "x,y,expected_dissimilarity",
+        [
+            ("a", "a", 0.0),
+            ("a", "b", 1.0),
+            ("ab", "cd", 1.0),
+            ("ab", "ab", 0.0),
+        ],
+    )
     def test_dissimilarity(self, x: str, y: str, expected_dissimilarity: float) -> None:
         """
         Test the dissimilarity method.
-        
+
         Args:
             x: First input to compare
             y: Second input to compare
@@ -133,22 +144,26 @@ class TestDiceSimilarity:
     def test_logging_similarity(self, mock_logger: Callable) -> None:
         """
         Test that logging is correctly implemented in similarity method.
-        
+
         Args:
             mock_logger: Mocked logger instance
         """
         dice = DiceSimilarity()
         dice.similarity("a", "b")
-        mock_logger.debug.assert_called_once_with("Calculating Dice similarity between a and b")
+        mock_logger.debug.assert_called_once_with(
+            "Calculating Dice similarity between a and b"
+        )
 
     @patch_logger
     def test_logging_dissimilarity(self, mock_logger: Callable) -> None:
         """
         Test that logging is correctly implemented in dissimilarity method.
-        
+
         Args:
             mock_logger: Mocked logger instance
         """
         dice = DiceSimilarity()
         dice.dissimilarity("a", "b")
-        mock_logger.debug.assert_called_once_with("Calculating dissimilarity between a and b")
+        mock_logger.debug.assert_called_once_with(
+            "Calculating dissimilarity between a and b"
+        )

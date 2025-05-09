@@ -28,13 +28,16 @@ class TestGeneralLpNorm:
         assert general_l_p_norm.type == "GeneralLpNorm"
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("invalid_p,expected_error", [
-        (1.0, ValueError),
-        (0.5, ValueError),
-        (float('inf'), ValueError),
-        (float('nan'), ValueError),
-        ('non-numeric', ValueError)
-    ])
+    @pytest.mark.parametrize(
+        "invalid_p,expected_error",
+        [
+            (1.0, ValueError),
+            (0.5, ValueError),
+            (float("inf"), ValueError),
+            (float("nan"), ValueError),
+            ("non-numeric", ValueError),
+        ],
+    )
     def test_invalid_p_values(self, invalid_p, expected_error):
         """
         Test that initializing with invalid p values raises ValueError.
@@ -49,23 +52,23 @@ class TestGeneralLpNorm:
         Test that the compute method calculates the correct Lp norm.
         """
         logger.debug("Testing compute method with various inputs")
-        
+
         # Test with p=2.0 (Euclidean norm)
         vector = [3.0, 4.0]
         expected_norm = 5.0
         assert general_l_p_norm.compute(vector) == expected_norm
-        
+
         # Test with p=1.0 (Should use a different instance)
         l1_norm = GeneralLpNorm(p=1.0)
         vector = [1.0, 2.0, 3.0]
         expected_norm = 6.0
         assert l1_norm.compute(vector) == expected_norm
-        
+
         # Test with single-element vector
         vector = [5.0]
         expected_norm = 5.0
         assert general_l_p_norm.compute(vector) == expected_norm
-        
+
         # Test with zero vector
         vector = [0.0, 0.0, 0.0]
         expected_norm = 0.0
@@ -77,11 +80,11 @@ class TestGeneralLpNorm:
         Test that compute method raises ValueError for invalid input.
         """
         logger.debug("Testing compute method with invalid input")
-        
+
         # Test with non-sequence input
         with pytest.raises(ValueError):
             general_l_p_norm.compute(5.0)
-            
+
         # Test with None input
         with pytest.raises(ValueError):
             general_l_p_norm.compute(None)

@@ -18,6 +18,7 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
     with the conjugate transpose of the other. It is a commonly used inner product
     for complex matrices and ensures conjugate symmetry.
     """
+
     type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
 
     def __init__(self) -> None:
@@ -27,7 +28,11 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         super().__init__()
         logger.debug("FrobeniusComplexInnerProduct instance initialized")
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the Frobenius inner product between two complex matrices.
 
@@ -67,7 +72,11 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
         return float(trace)
 
-    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_conjugate_symmetry(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the conjugate symmetry property for the Frobenius inner product.
 
@@ -91,7 +100,12 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         if not np.isclose(inner_ab, inner_ba.conjugate(), rtol=1e-4):
             raise ValueError("Conjugate symmetry not satisfied")
 
-    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_linearity_first_argument(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+        c: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the linearity property in the first argument of the inner product.
 
@@ -145,4 +159,6 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         inner_aa = self.compute(a, a)
 
         if inner_aa <= 0:
-            raise ValueError(f"Positivity not satisfied. Inner product <a, a> = {inner_aa}")
+            raise ValueError(
+                f"Positivity not satisfied. Inner product <a, a> = {inner_aa}"
+            )

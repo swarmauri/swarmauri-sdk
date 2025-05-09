@@ -4,20 +4,22 @@ import math
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
 
-T = TypeVar('T', Sequence[float], Union[float, Sequence[float]])
+T = TypeVar("T", Sequence[float], Union[float, Sequence[float]])
+
 
 @ComponentBase.register_type(NormBase, "GeneralLpNorm")
 class GeneralLpNorm(NormBase):
     """
     A concrete implementation of the Lp norm for various values of p > 1.
 
-    This class provides functionality to compute the Lp norm of vectors. The Lp norm 
-    is defined as the nth root of the sum of the absolute values of the vector elements 
+    This class provides functionality to compute the Lp norm of vectors. The Lp norm
+    is defined as the nth root of the sum of the absolute values of the vector elements
     each raised to the power p.
 
     Attributes:
         p: The parameter of the Lp norm. Must be finite and greater than 1.
     """
+
     type: Literal["GeneralLpNorm"] = "GeneralLpNorm"
     p: float
 
@@ -59,10 +61,11 @@ class GeneralLpNorm(NormBase):
     def __repr__(self) -> str:
         """
         Returns a string representation of the GeneralLpNorm instance.
-        
+
         Returns:
             str: String representation showing the class name and p value.
         """
         return f"GeneralLpNorm(p={self.p})"
+
 
 logger = logging.getLogger(__name__)

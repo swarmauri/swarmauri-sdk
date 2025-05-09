@@ -3,18 +3,21 @@ import logging
 from swarmauri_standard.metrics.LpMetric import LpMetric
 from swarmauri_base.exceptions import MetricViolationError
 
+
 @pytest.fixture
 def lp_metric():
     return LpMetric(p=2.0)
+
 
 @pytest.fixture(params=[2.0, 1.5, 3.0])
 def lp_metric_var_p(request):
     return LpMetric(p=request.param)
 
+
 @pytest.mark.unit
 class TestLpMetric:
     """Unit tests for the LpMetric class."""
-    
+
     def test_initialization(self, lp_metric_var_p):
         """Test that the LpMetric instance is correctly initialized."""
         assert lp_metric_var_p.p == lp_metric_var_p.norm.p
@@ -23,7 +26,7 @@ class TestLpMetric:
         with pytest.raises(ValueError):
             LpMetric(p=1.0)
         with pytest.raises(ValueError):
-            LpMetric(p=float('inf'))
+            LpMetric(p=float("inf"))
         with pytest.raises(ValueError):
             LpMetric(p=None)
 
@@ -36,8 +39,8 @@ class TestLpMetric:
         """Test the is_valid method for different input types."""
         assert lp_metric.is_valid(1)
         assert lp_metric.is_valid([1.0, 2.0])
-        assert not lp_metric.is_valid(float('nan'))
-        assert not lp_metric.is_valid([float('inf'), 2.0])
+        assert not lp_metric.is_valid(float("nan"))
+        assert not lp_metric.is_valid([float("inf"), 2.0])
         assert not lp_metric.is_valid(None)
 
     def test_resource_and_type(self, lp_metric):
@@ -54,15 +57,15 @@ class TestLpMetric:
         # Vector vs Vector
         d = lp_metric.distance([1.0, 2.0], [3.0, 4.0])
         assert d >= 0.0
-        
+
         # Vector vs Scalar
         d = lp_metric.distance([1.0, 2.0], 3.0)
         assert d >= 0.0
-        
+
         # Scalar vs Vector
         d = lp_metric.distance(3.0, [4.0, 5.0])
         assert d >= 0.0
-        
+
         # Scalar vs Scalar
         d = lp_metric.distance(3.0, 4.0)
         assert d >= 0.0
@@ -72,7 +75,7 @@ class TestLpMetric:
         point = [1.0, 2.0]
         d = lp_metric.distance(point, point)
         assert d == 0.0
-        
+
         with pytest.raises(MetricViolationError):
             lp_metric.distance([1.0, 2.0], [1.0, 3.0])
             lp_metric.check_identity([1.0, 2.0], [1.0, 2.0])
@@ -88,9 +91,9 @@ class TestLpMetric:
         x = [0.0, 0.0]
         y = [1.0, 0.0]
         z = [0.0, 1.0]
-        
+
         d_xy = lp_metric.distance(x, y)
         d_yz = lp_metric.distance(y, z)
         d_xz = lp_metric.distance(x, z)
-        
+
         assert d_xz <= d_xy + d_yz

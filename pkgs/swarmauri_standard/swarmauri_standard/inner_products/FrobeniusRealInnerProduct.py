@@ -31,7 +31,11 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         """
         super().__init__()
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
         Computes the Frobenius inner product between two real matrices.
 
@@ -65,7 +69,11 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         logger.debug(f"Frobenius inner product result: {inner_product}")
         return float(inner_product)
 
-    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_conjugate_symmetry(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
         Verifies the conjugate symmetry property for the Frobenius inner product.
 

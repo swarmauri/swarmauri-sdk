@@ -26,6 +26,7 @@ class PartialSumSeminorm(SeminormBase):
         check_triangle_inequality: Verifies the triangle inequality property
         check_scalar_homogeneity: Verifies the scalar homogeneity property
     """
+
     _start_index: int
     _end_index: int
     resource: str = ResourceTypes.SEMINORM.value
@@ -41,9 +42,14 @@ class PartialSumSeminorm(SeminormBase):
         super().__init__()
         self._start_index = start_index
         self._end_index = end_index
-        logger.debug(f"Initialized PartialSumSeminorm with start_index={start_index}, end_index={end_index}")
+        logger.debug(
+            f"Initialized PartialSumSeminorm with start_index={start_index}, end_index={end_index}"
+        )
 
-    def compute(self, input: Union[IVector, IMatrix, List[float], Tuple[float, ...], str, Callable]) -> float:
+    def compute(
+        self,
+        input: Union[IVector, IMatrix, List[float], Tuple[float, ...], str, Callable],
+    ) -> float:
         """
         Computes the seminorm by summing the elements from start_index to end_index.
 
@@ -58,8 +64,10 @@ class PartialSumSeminorm(SeminormBase):
             ValueError: If indices are out of bounds
             TypeError: If input type is not supported
         """
-        logger.debug(f"Computing partial sum seminorm for input of type {type(input).__name__}")
-        
+        logger.debug(
+            f"Computing partial sum seminorm for input of type {type(input).__name__}"
+        )
+
         if self._is_vector(input):
             vector = input.data()
         elif self._is_matrix(input):
@@ -72,17 +80,20 @@ class PartialSumSeminorm(SeminormBase):
         # Validate indices
         if self._end_index is None:
             self._end_index = len(vector)
-            
+
         if self._start_index >= len(vector):
             raise ValueError("Start index out of bounds")
         if self._end_index > len(vector):
             raise ValueError("End index out of bounds")
 
         # Compute partial sum
-        return sum(vector[self._start_index:self._end_index])
+        return sum(vector[self._start_index : self._end_index])
 
-    def check_triangle_inequality(self, a: Union[IVector, IMatrix, List[float], Tuple[float, ...]], 
-                                  b: Union[IVector, IMatrix, List[float], Tuple[float, ...]]) -> bool:
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        b: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
         """
         Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
 
@@ -94,15 +105,18 @@ class PartialSumSeminorm(SeminormBase):
             bool: True if triangle inequality holds, False otherwise
         """
         logger.debug("Checking triangle inequality for PartialSumSeminorm")
-        
+
         seminorm_ab = self.compute(a + b)
         seminorm_a = self.compute(a)
         seminorm_b = self.compute(b)
-        
+
         return seminorm_ab <= seminorm_a + seminorm_b
 
-    def check_scalar_homogeneity(self, a: Union[IVector, IMatrix, List[float], Tuple[float, ...]], 
-                               scalar: Union[int, float]) -> bool:
+    def check_scalar_homogeneity(
+        self,
+        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        scalar: Union[int, float],
+    ) -> bool:
         """
         Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
 
@@ -114,17 +128,17 @@ class PartialSumSeminorm(SeminormBase):
             bool: True if scalar homogeneity holds, False otherwise
         """
         logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
-        
+
         scaled_a = a * scalar
         seminorm_scaled = self.compute(scaled_a)
         seminorm_original = self.compute(a)
-        
+
         return seminorm_scaled == abs(scalar) * seminorm_original
 
     def __str__(self) -> str:
         """
         Returns a string representation of the PartialSumSeminorm instance.
-        
+
         Returns:
             str: String representation
         """
@@ -133,7 +147,7 @@ class PartialSumSeminorm(SeminormBase):
     def __repr__(self) -> str:
         """
         Returns the official string representation of the PartialSumSeminorm instance.
-        
+
         Returns:
             str: Official string representation
         """

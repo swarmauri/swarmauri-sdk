@@ -23,6 +23,7 @@ class L1ManhattanNorm(NormBase):
     Methods:
         compute: Computes the L1 norm of the input vector.
     """
+
     type: Literal["L1ManhattanNorm"] = "L1ManhattanNorm"
 
     def compute(self, x: T) -> float:
@@ -44,11 +45,11 @@ class L1ManhattanNorm(NormBase):
             TypeError: If the input type is not supported.
         """
         logger.debug("Computing L1 Manhattan norm")
-        
+
         # Check if input is a valid numerical sequence
         if not isinstance(x, (Iterable, Sequence)):
             raise TypeError("Input must be an iterable or sequence type")
-            
+
         try:
             # Convert input to list and compute sum of absolute values
             vector = list(x)
