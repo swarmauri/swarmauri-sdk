@@ -17,6 +17,7 @@ class BorderFormatter(FormatterBase):
     border_char: str = "-"
     border_width: int = 80
     padding: int = 1
+    message_format: str = None
 
     def model_post_init(self, *args, **kwargs):
         """

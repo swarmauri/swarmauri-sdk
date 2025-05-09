@@ -23,7 +23,7 @@ def test_default_initialization():
     Test that ColorFormatter initializes with expected default values.
     """
     formatter = ColorFormatter()
-    assert formatter.format == "[%(name)s][%(levelname)s] %(message)s"
+    assert formatter.format == "[%(name)s] [%(levelname)s] %(message)s"
     assert formatter.date_format == "%Y-%m-%d %H:%M:%S"
     assert formatter.use_colors is True
     assert formatter.include_timestamp is False

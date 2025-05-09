@@ -9,17 +9,15 @@ It supports:
 """
 
 import os
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pprint import pformat
 from typing import Any, Dict, List, Optional
 
-
-from colorama import Fore, Style
-from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from swarmauri_prompt_j2prompttemplate import j2pt
 
 from ._config import _config
-from ._rendering import _render_copy_template, _render_generate_template
 from ._graph import _build_forward_graph
+from ._rendering import _render_copy_template, _render_generate_template
 
 
 def _save_file(
@@ -65,7 +63,11 @@ def _create_context(
 
     if package_name:
         package = next(
-            (pkg for pkg in project_global_attributes["PACKAGES"] if pkg["NAME"] == package_name),
+            (
+                pkg
+                for pkg in project_global_attributes["PACKAGES"]
+                if pkg["NAME"] == package_name
+            ),
             None,
         )
         if package:
@@ -96,7 +98,7 @@ def _process_file(
     global_attrs: Dict[str, Any],
     template_dir: str,
     agent_env: Dict[str, Any],
-    j2_instance: Any,               # <-- new parameter
+    j2_instance: Any,  # <-- new parameter
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
@@ -121,7 +123,9 @@ def _process_file(
             context["INJ"] = _config["revision_notes"]
             agent_prompt_template_name = agent_env["agent_prompt_template_file"]
         else:
-            agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+            agent_prompt_template_name = file_record.get(
+                "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
+            )
 
         prompt_path = os.path.join(template_dir, agent_prompt_template_name)
         content = _render_generate_template(
@@ -137,12 +141,16 @@ def _process_file(
 
     if content is None:
         if logger:
-            logger.warning(f"No content generated for file '{final_filename}'; skipping save.")
+            logger.warning(
+                f"No content generated for file '{final_filename}'; skipping save."
+            )
         return False
 
     if content == "":
         if logger:
-            logger.warning(f"Blank content for file '{final_filename}'; saving empty file.")
+            logger.warning(
+                f"Blank content for file '{final_filename}'; saving empty file."
+            )
 
     _save_file(content, final_filename, logger, start_idx, idx_len)
     return True
@@ -226,15 +234,15 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
-        j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
+        j2_instance = j2pt.copy(deep=False)
+        j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
 
         if not _process_file(
             rec,
             global_attrs,
             template_dir,
             agent_env,
-            j2,
+            j2_instance,
             logger,
             start_idx,
             idx_len,

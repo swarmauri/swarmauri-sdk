@@ -151,25 +151,30 @@ class ContextualFormatterImpl(logging.Formatter):
         if not context_values and not self.include_empty_context:
             return formatted_message
 
-        # Format the context section
+        # Format the context section - even if empty with include_empty_context
         context_str = self._format_context(context_values)
 
-        # Add the context to the message
-        if context_str:
-            if self.context_as_prefix:
-                # Add as prefix to the message
-                return f"{context_str} {formatted_message}"
-            else:
-                # Add after the log level but before the message content
-                # Find the position after the log level
-                parts = formatted_message.split("] ", 1)
-                if len(parts) > 1:
-                    return f"{parts[0]}] {context_str} {parts[1]}"
-                else:
-                    # If we can't find the expected format, append to the end
-                    return f"{formatted_message} {context_str}"
+        # For empty context with include_empty_context=True
+        if not context_values and self.include_empty_context:
+            context_str = f"{self.context_prefix}{self.context_suffix}"
 
-        return formatted_message
+        # Add the context to the message
+        if self.context_as_prefix:
+            # Add as prefix to the message
+            return f"{context_str} {formatted_message}"
+        else:
+            # Add after the log level but before the message content
+            if ": " in formatted_message:
+                # Format like "INFO: [context] message"
+                level_part, message_part = formatted_message.split(": ", 1)
+                return f"{level_part}: {context_str} {message_part}"
+            elif "] " in formatted_message:
+                # Format like "[logger][INFO] [context] message"
+                parts = formatted_message.split("] ", 1)
+                return f"{parts[0]}] {context_str} {parts[1]}"
+            else:
+                # If we can't find the expected format, append to the end
+                return f"{formatted_message} {context_str}"
 
     def _format_context(self, context_values: Dict[str, Any]) -> str:
         """

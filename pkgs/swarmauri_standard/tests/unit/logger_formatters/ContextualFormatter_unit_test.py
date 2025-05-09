@@ -324,4 +324,3 @@ def test_format_log_record_with_none_context_values():
 
     result = formatter.format(record)
     assert result == "INFO: [request_id=req-123] Test message"
-
