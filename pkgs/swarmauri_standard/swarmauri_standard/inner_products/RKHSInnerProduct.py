@@ -34,8 +34,11 @@ class RKHSInnerProduct(InnerProductBase):
         super().__init__()
         self.kernel = kernel
 
-    def compute(self, a: Union[IVector, np.ndarray, Callable], 
-                b: Union[IVector, np.ndarray, Callable]) -> float:
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """Computes the inner product using the kernel evaluation.
 
         The inner product is defined as ⟨a, b⟩_K = K(a, b), where K is the kernel.
@@ -55,7 +58,9 @@ class RKHSInnerProduct(InnerProductBase):
         if self.kernel is None:
             raise ValueError("Kernel must be set before computing the inner product")
 
-        if isinstance(a, (IVector, np.ndarray)) and isinstance(b, (IVector, np.ndarray)):
+        if isinstance(a, (IVector, np.ndarray)) and isinstance(
+            b, (IVector, np.ndarray)
+        ):
             # For vectors, compute the kernel evaluation
             return self.kernel(a, b)
         elif callable(a) and callable(b):
@@ -64,7 +69,9 @@ class RKHSInnerProduct(InnerProductBase):
         else:
             raise ValueError("Invalid input types for inner product computation")
 
-    def check_positive_definite(self, vector: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_positive_definite(
+        self, vector: Union[IVector, np.ndarray, Callable]
+    ) -> None:
         """Checks if the kernel induces a positive-definite inner product.
 
         Args:
@@ -75,7 +82,9 @@ class RKHSInnerProduct(InnerProductBase):
         """
         value = self.compute(vector, vector)
         if value <= 0:
-            raise ValueError(f"Kernel is not positive-definite. Computed value: {value}")
+            raise ValueError(
+                f"Kernel is not positive-definite. Computed value: {value}"
+            )
 
     def set_kernel(self, kernel: Callable) -> None:
         """Sets the kernel function for the inner product.
