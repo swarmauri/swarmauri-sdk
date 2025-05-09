@@ -1,7 +1,8 @@
-import pytest
-import numpy as np
-from swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
 import logging
+
+import pytest
+
+from swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
 
 
 @pytest.mark.unit
@@ -20,7 +21,7 @@ def test_braycurtis_similarity_resource():
 def test_braycurtis_similarity_init(mocker):
     """Test that BrayCurtisSimilarity initializes correctly."""
     mock_logger = mocker.patch.object(logging.getLogger(__name__), "debug")
-    braycurtis = BrayCurtisSimilarity()
+    BrayCurtisSimilarity()
     mock_logger.assert_called_once_with("BrayCurtisSimilarity instance initialized")
 
 

@@ -1,5 +1,5 @@
 import pytest
-import logging
+from swarmauri_core.metrics.IMetric import MetricViolationError
 from swarmauri_standard.metrics.DiscreteMetric import DiscreteMetric
 from unittest.mock import patch
 

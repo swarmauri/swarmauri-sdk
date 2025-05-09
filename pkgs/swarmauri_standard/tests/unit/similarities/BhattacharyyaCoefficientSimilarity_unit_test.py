@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from swarmauri_standard.similarities.BhattacharyyaCoefficientSimilarity import (
     BhattacharyyaCoefficientSimilarity,
 )

@@ -141,14 +141,14 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
         chunks = chunker.chunk_text(cleaned_text)
         if len(chunks) > 1:
             logger.warning(
-                f"MdSnippetChunker found more than one snippet, took the first."
+                "MdSnippetChunker found more than one snippet, took the first."
                 )
             return chunks[0][2]
         try:
             return chunks[0][2]
         except IndexError:
             logger.warning(
-                f"MdSnippetChunker found no chunks, using cleaned_text."
+                "MdSnippetChunker found no chunks, using cleaned_text."
                 )
             return cleaned_text
     except ImportError:

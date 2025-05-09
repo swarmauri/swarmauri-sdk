@@ -1,6 +1,8 @@
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
-from typing import Union, Sequence, Optional
+from typing import Callable, Union, Sequence, Optional
 from collections import Counter
 import logging
 

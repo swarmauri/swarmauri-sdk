@@ -1,7 +1,8 @@
 from typing import Union, List, Sequence, Callable, Optional
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 import logging
 
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.metrics.IMetric import IMetric
 from swarmauri_core.vectors.IVector import IVector

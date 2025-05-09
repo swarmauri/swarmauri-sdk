@@ -1,8 +1,10 @@
-from typing import Union, Literal
+from typing import Callable, Union, Literal
 import numpy as np
 import logging
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +147,7 @@ class HermitianInnerProduct(InnerProductBase):
         """
         Returns a string representation of the HermitianInnerProduct instance.
         """
-        return f"HermitianInnerProduct()"
+        return "HermitianInnerProduct()"
 
     def __repr__(self) -> str:
         """

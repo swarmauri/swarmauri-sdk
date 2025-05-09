@@ -1,7 +1,8 @@
-from typing import Union, Callable, Optional
+from typing import Union, Callable
 import numpy as np
 import logging
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 from swarmauri_core.vectors.IVector import IVector
 

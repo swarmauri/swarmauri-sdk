@@ -1,8 +1,6 @@
 import pytest
-from copy import deepcopy
 
 from jaml import (
-    loads,
     round_trip_loads
 )
 

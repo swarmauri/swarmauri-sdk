@@ -1,7 +1,6 @@
 import json
 import re
 from lark import Transformer, Token, v_args
-from copy import deepcopy
 
 from .ast_nodes import (
     PreservedString, 

@@ -1,28 +1,28 @@
-from abc import ABC, abstractmethod
-from typing import TypeVar, Union
 import logging
+from abc import ABC, abstractmethod
+from typing import Sequence, TypeVar
 
-from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
 # Define a TypeVar to represent supported input types
-T = TypeVar('T', IVector, IMatrix, str, callable, Sequence[float])
+T = TypeVar("T", IVector, IMatrix, str, callable, Sequence[float])
 
 
 class INorm(ABC):
     """
     Interface for norm computations on vector spaces.
-    
+
     This interface defines the contract for norm behavior, ensuring point-separating
     distance logic is enforced. Implementations must satisfy the mathematical
     properties of norms: non-negativity, triangle inequality, absolute homogeneity,
     and definiteness.
-    
+
     Attributes:
         None
-        
+
     Methods:
         compute: Computes the norm of the given input
         check_non_negativity: Verifies non-negativity property
@@ -39,14 +39,14 @@ class INorm(ABC):
     def compute(self, x: T) -> float:
         """
         Computes the norm of the input vector, matrix, sequence, string, or callable.
-        
+
         Args:
             x: Input to compute the norm of. Can be a vector, matrix, sequence,
                string, or callable.
-        
+
         Returns:
             float: Computed norm value
-            
+
         Raises:
             NotImplementedError: If compute() is not implemented in subclass
         """
@@ -56,10 +56,10 @@ class INorm(ABC):
     def check_non_negativity(self, x: T) -> bool:
         """
         Verifies the non-negativity property of the norm.
-        
+
         Args:
             x: Input to check non-negativity for
-            
+
         Returns:
             bool: True if norm is non-negative, False otherwise
         """
@@ -70,11 +70,11 @@ class INorm(ABC):
     def check_triangle_inequality(self, x: T, y: T) -> bool:
         """
         Verifies the triangle inequality property of the norm.
-        
+
         Args:
             x: First input vector
             y: Second input vector
-            
+
         Returns:
             bool: True if triangle inequality holds, False otherwise
         """
@@ -87,11 +87,11 @@ class INorm(ABC):
     def check_absolute_homogeneity(self, x: T, alpha: float) -> bool:
         """
         Verifies the absolute homogeneity property of the norm.
-        
+
         Args:
             x: Input vector
             alpha: Scaling factor
-            
+
         Returns:
             bool: True if absolute homogeneity holds, False otherwise
         """
@@ -103,12 +103,12 @@ class INorm(ABC):
     def check_definiteness(self, x: T) -> bool:
         """
         Verifies the definiteness property of the norm.
-        
+
         A norm is definite if norm(x) = 0 if and only if x = 0.
-        
+
         Args:
             x: Input vector
-            
+
         Returns:
             bool: True if definiteness holds, False otherwise
         """

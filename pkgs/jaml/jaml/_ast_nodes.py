@@ -1,8 +1,7 @@
 from typing import Any, Dict, List, Optional
 
-import ast
 import re
-from lark import Token, Tree
+from lark import Tree
 import logging
 
 logger = logging.getLogger(__name__)          # put this with your other imports
@@ -11,7 +10,7 @@ logger.setLevel(logging.DEBUG)                # caller can override
 from ._make_static import make_static_section
 from ._fstring import _evaluate_f_string, _lookup
 from ._substitute import _substitute_vars
-from ._expression import _render_folded_expression_node, evaluate_expression_tree
+from ._expression import evaluate_expression_tree
 from ._comprehension import iter_environments, _evaluate_comprehension
 
 class BaseNode:
@@ -571,7 +570,6 @@ class FoldedExpressionNode(BaseNode):
         - Substitutes @{…} and %{…} immediately.
         - Leaves ${…} intact and wraps the result in an f-string if any remain.
         """
-        from ._expression import evaluate_expression_tree
 
         logger.debug("FoldedExpressionNode.resolve() triggered.")
         # Always pass an empty dict for `context` here so that ${…} tokens
@@ -598,7 +596,6 @@ class FoldedExpressionNode(BaseNode):
         context: Optional[Dict] = None,
     ) -> Any:
         # Phase 3: final inject of context placeholders
-        from ._expression import evaluate_expression_tree
         final = evaluate_expression_tree(
             self.content_tree, global_env, local_env or {}, context or {}
         )
@@ -1439,7 +1436,6 @@ class GlobalScopedVarNode(BaseNode):
 
     def resolve(self, global_env, local_env=None):
         inner = self.origin[2:-1]
-        from ._fstring import _lookup          # reuse existing helper
         val = _lookup(inner, global_env, {})
         self.resolved = val if val is not None else self.origin
         self.value    = self.resolved

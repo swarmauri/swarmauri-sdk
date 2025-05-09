@@ -101,19 +101,3 @@ def l2euclidean_norm_instance():
     Fixture providing a fresh instance of L2EuclideanNorm for each test.
     """
     return L2EuclideanNorm()
-
-
-@pytest.fixture
-def caplog():
-    """
-    Fixture to capture log messages during testing.
-    """
-    import logging
-    import pytest
-
-    # Set up logging to capture messages
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(L2EuclideanNorm.__module__)
-
-    # Capture logs in pytest
-    return pytest.LogCapture()

@@ -1,4 +1,5 @@
-from typing import Union, List, Optional, Literal, Tuple
+from collections.abc import Callable
+from typing import Any, Union, List, Optional, Literal, Tuple
 import logging
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_core.vectors.IVector import IVector

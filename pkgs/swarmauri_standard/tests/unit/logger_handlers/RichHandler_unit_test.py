@@ -2,11 +2,10 @@ import unittest
 import pytest
 import logging
 from unittest.mock import patch, MagicMock
-from typing import Dict, Any
+from typing import Any
 
 from swarmauri_standard.logger_handlers.RichHandler import RichHandler
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from rich.logging import RichHandler as RichHandlerLib
 
 
 @pytest.mark.unit

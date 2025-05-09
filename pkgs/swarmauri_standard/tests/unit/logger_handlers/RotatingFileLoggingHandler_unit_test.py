@@ -98,7 +98,7 @@ def test_directory_creation():
         assert not os.path.exists(non_existent_dir)
 
         # Initialize handler, which should create the directory
-        handler = RotatingFileLoggingHandler(filename=log_file)
+        RotatingFileLoggingHandler(filename=log_file)
 
         # Verify directory was created
         assert os.path.exists(non_existent_dir)
@@ -148,7 +148,7 @@ def test_compile_handler_with_formatter_object():
             filename=tmp.name, formatter=mock_formatter
         )
 
-        compiled_handler = handler.compile_handler()
+        handler.compile_handler()
 
         # Verify that compile_formatter was called
         mock_formatter.compile_formatter.assert_called_once()

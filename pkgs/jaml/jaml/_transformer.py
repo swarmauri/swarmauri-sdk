@@ -1,5 +1,5 @@
 from lark import Transformer, Token, Tree, v_args
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Union
 from ._ast_nodes import (
     BaseNode, StartNode, SectionNode, SectionNameNode, TableArraySectionNode, TableArrayHeaderNode,
     ComprehensionHeaderNode, AssignmentNode, CommentNode, NewlineNode, IntegerNode, BooleanNode, 
@@ -40,24 +40,12 @@ class ConfigTransformer(Transformer):
         table‑array sections), and prime the raw data‑dict.
         """
         from ._ast_nodes import (
-            BaseNode,
             AssignmentNode,
             CommentNode,
             NewlineNode,
             SectionNode,
             TableArraySectionNode,     # <— include table‑array sections
-            IntegerNode,
-            FloatNode,
-            SingleQuotedStringNode,
-            TripleQuotedStringNode,
-            BacktickStringNode,
-            FStringNode,
-            TripleBacktickStringNode,
-            BooleanNode,
-            NullNode,
-            SingleLineArrayNode,
-            MultiLineArrayNode,
-        )
+            )
 
         self.debug_print("start() called with items")
         node = StartNode(data=self._root_data, contents=items, origin="", meta=meta)
@@ -1748,7 +1736,7 @@ class ConfigTransformer(Transformer):
         Transform the FLOAT terminal: /[+-]?(?:\\d+\\.\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[+-]?(?:inf|nan)/
         Creates an IntegerNode (simplified; FloatNode could be used if distinct).
         """
-        self.debug_print(f"FLOAT() called with token")
+        self.debug_print("FLOAT() called with token")
         node = FloatNode()
         node.value = token.value
         node.origin = token.value

@@ -3,7 +3,6 @@ from typing import Optional, Union, Literal, Any
 from logging.handlers import MemoryHandler
 
 from swarmauri_base import FullUnion
-from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_core.ComponentBase import ComponentBase
 

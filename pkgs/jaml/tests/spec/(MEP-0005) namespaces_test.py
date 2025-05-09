@@ -1,5 +1,4 @@
 import pytest
-from pprint import pprint
 
 # Suppose we have a hypothetical loads function that:
 # 1) Parses the TOML/markup file,

@@ -12,7 +12,6 @@ import os
 from pprint import pformat
 from typing import Any, Dict, List, Optional
 
-from colorama import Fore, Style
 from swarmauri_prompt_j2prompttemplate import j2pt
 
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED

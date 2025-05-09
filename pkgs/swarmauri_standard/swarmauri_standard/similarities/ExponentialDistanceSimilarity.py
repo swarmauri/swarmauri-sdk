@@ -3,7 +3,6 @@ import numpy as np
 import logging
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
-from swarmauri_core.similarities.ISimilarity import ISimilarity
 
 logger = logging.getLogger(__name__)
 

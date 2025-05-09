@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Literal, Union, List
 import logging
 import numpy as np
 
@@ -219,10 +219,10 @@ class FrobeniusMetric(MetricBase, IMetric):
         """
         Returns a string representation of the FrobeniusMetric instance.
         """
-        return f"FrobeniusMetric()"
+        return "FrobeniusMetric()"
 
     def __repr__(self) -> str:
         """
         Returns a string representation of the FrobeniusMetric instance.
         """
-        return f"FrobeniusMetric()"
+        return "FrobeniusMetric()"

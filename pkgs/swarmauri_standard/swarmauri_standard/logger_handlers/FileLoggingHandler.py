@@ -1,10 +1,8 @@
 from logging.handlers import RotatingFileHandler
 import logging
 import os
-from typing import Optional, Union, Literal, Dict, Any
+from typing import Optional, Literal, Dict, Any
 
-from swarmauri_base import FullUnion
-from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_core.ComponentBase import ComponentBase
 

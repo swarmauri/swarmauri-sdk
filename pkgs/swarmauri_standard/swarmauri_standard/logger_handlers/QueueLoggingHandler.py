@@ -65,7 +65,6 @@ class QueueLoggingHandler(HandlerBase):
                 super().emit(record)
 
         # Import here to avoid circular imports
-        from logging.handlers import QueueHandler
 
         # Create and configure the handler
         handler = CustomQueueHandler(self.queue, self.respect_handler_level, self)

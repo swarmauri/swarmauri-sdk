@@ -1,5 +1,8 @@
-import pytest
 import logging
+from collections.abc import Callable
+
+import pytest
+
 from swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
 
 

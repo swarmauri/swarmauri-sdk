@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Union, List, Optional
+from typing import Tuple, Union, List
 import logging
 
 from swarmauri_core.vectors.IVector import IVector

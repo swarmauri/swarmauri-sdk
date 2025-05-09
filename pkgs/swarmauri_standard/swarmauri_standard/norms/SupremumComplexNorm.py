@@ -1,7 +1,7 @@
-from typing import TypeVar, Union, Sequence, Callable, Optional
+from typing import TypeVar, Sequence, Callable, Optional
 import logging
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.norms.INorm import INorm
+from swarmauri_base.norms import NormBase
 
 # Define a TypeVar to represent supported input types
 T = TypeVar("T", Sequence[float], Callable)

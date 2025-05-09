@@ -1,5 +1,5 @@
 import pytest
-from jaml import round_trip_loads, round_trip_dumps, loads
+from jaml import round_trip_loads
 
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Circular reference detection not fully implemented")

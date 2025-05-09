@@ -1,5 +1,5 @@
 import pytest
-import logging
+from swarmauri_base.seminorms.SeminormBase import SeminormBase
 from swarmauri_standard.seminorms.LpSeminorm import LpSeminorm
 
 

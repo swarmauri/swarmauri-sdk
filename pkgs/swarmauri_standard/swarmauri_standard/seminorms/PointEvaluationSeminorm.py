@@ -1,6 +1,9 @@
-from typing import Union, Callable, Optional, Literal
+from typing import Union, Callable
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.seminorms.SeminormBase import SeminormBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 

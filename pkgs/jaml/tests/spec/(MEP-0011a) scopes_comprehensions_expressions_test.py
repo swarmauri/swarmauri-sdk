@@ -1,5 +1,4 @@
 import pytest
-from copy import deepcopy
 
 from jaml import (
     loads,

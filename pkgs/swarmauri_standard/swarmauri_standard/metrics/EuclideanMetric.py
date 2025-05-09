@@ -1,5 +1,4 @@
-from typing import Union, List, Sequence, Callable, Optional
-import math
+from typing import Union, List, Sequence, Callable
 import logging
 
 from swarmauri_base.metrics import MetricBase
@@ -184,10 +183,10 @@ class EuclideanMetric(MetricBase):
         """
         Returns a string representation of the EuclideanMetric instance.
         """
-        return f"EuclideanMetric()"
+        return "EuclideanMetric()"
 
     def __repr__(self) -> str:
         """
         Returns a string representation of the EuclideanMetric instance.
         """
-        return f"EuclideanMetric()"
+        return "EuclideanMetric()"

@@ -1,6 +1,8 @@
 import pytest
 import logging
 from unittest.mock import MagicMock
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 from swarmauri_standard.seminorms.PartialSumSeminorm import PartialSumSeminorm
 
 

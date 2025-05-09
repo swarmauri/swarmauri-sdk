@@ -1,5 +1,7 @@
 import pytest
-from typing import Union
+from typing import Callable, List, Union
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 from swarmauri_standard.pseudometrics.EquivalenceRelationPseudometric import (
     EquivalenceRelationPseudometric,
 )

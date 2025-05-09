@@ -1,5 +1,4 @@
 import pytest
-import logging
 from swarmauri_standard.pseudometrics.ProjectionPseudometricR2 import (
     ProjectionPseudometricR2,
 )

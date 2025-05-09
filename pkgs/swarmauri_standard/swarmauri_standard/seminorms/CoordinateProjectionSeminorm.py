@@ -1,7 +1,7 @@
-from typing import Union, Optional, List
 import logging
-import numpy as np
+from typing import Callable, List, Union
 
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.seminorms import SeminormBase
 from swarmauri_core.vectors.IVector import IVector
