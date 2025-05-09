@@ -1,10 +1,9 @@
-from typing import Union, List, Any, Optional, Literal, Tuple
-from abc import ABC
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from core.swarmauri_core.pseudometrics.IPseudometric import IPseudometric
-from swarmauri_standard.swarmauri_standard.seminorms.LpSeminorm import LpSeminorm
+from typing import Union, List, Optional, Literal, Tuple
 import logging
-import numpy as np
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -12,196 +11,406 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(PseudometricBase, "LpPseudometric")
 class LpPseudometric(PseudometricBase):
     """
-    A concrete implementation of the Lp-style pseudometric space.
+    A concrete implementation of the PseudometricBase class for the Lp pseudometric.
 
-    This class provides the implementation for computing the Lp pseudometric
-    between functions or vectors. It inherits from the PseudometricBase class
-    and implements the required methods for computing distances and checking
-    pseudometric properties.
-
-    The Lp pseudometric is defined as the Lp norm of the difference between
-    two functions or vectors. The parameter p must be in the range [1, ∞].
-    The domain or coordinates can be specified to measure the pseudometric
-    over a subset of the full space.
+    This class provides functionality to compute the Lp-style pseudometric between
+    elements in a function space. The Lp pseudometric is defined using Lp integration
+    over a specified domain or subset of coordinates. This implementation does not
+    enforce point separation, meaning d(x,y) = 0 does not necessarily imply x = y.
 
     Attributes:
-        p (float): The parameter controlling the pseudometric's sensitivity.
-            Must be in the range [1, ∞].
-        domain (Optional[Union[Tuple, List]]): The domain or coordinates over
-            which to compute the pseudometric. If not specified, the entire
-            domain is used.
+        p: float
+            The order of the Lp pseudometric. Must be in the range [1, ∞].
+        domain: Optional[Union[str, List[str], Tuple[str]]]
+            The domain over which to compute the pseudometric.
+            Can be a single string, list of strings, or tuple of strings.
+        coordinates: Optional[Union[str, List[str], Tuple[str]]]
+            Specific coordinates to include in the pseudometric calculation.
+
+    Methods:
+        distance: Computes the pseudometric distance between two elements
+        distances: Computes distances from a single element to multiple elements
+        check_non_negativity: Verifies the non-negativity property
+        check_symmetry: Verifies the symmetry property
+        check_triangle_inequality: Verifies the triangle inequality property
+        check_weak_identity: Verifies the weak identity property
     """
-
+    
     type: Literal["LpPseudometric"] = "LpPseudometric"
-
-    def __init__(self, p: float = 2.0, domain: Optional[Union[Tuple, List]] = None):
+    
+    def __init__(
+        self,
+        p: float,
+        domain: Optional[Union[str, List[str], Tuple[str]]] = None,
+        coordinates: Optional[Union[str, List[str], Tuple[str]]] = None
+    ):
         """
-        Initialize the LpPseudometric instance.
+        Initializes the LpPseudometric instance with the given parameters.
 
         Args:
-            p (float): The parameter for the Lp pseudometric. Must be in [1, ∞].
-                Defaults to 2.0.
-            domain (Optional[Union[Tuple, List]]): The domain or coordinates
-                over which to compute the pseudometric. Defaults to None.
+            p: float - The order of the Lp pseudometric. Must be in the range [1, ∞]
+            domain: Optional[Union[str, List[str], Tuple[str]]] - Domain over which to compute
+            coordinates: Optional[Union[str, List[str], Tuple[str]]] - Specific coordinates to include
 
         Raises:
-            ValueError: If p is not in the range [1, ∞].
+            ValueError: If p is not in the range [1, ∞]
         """
         super().__init__()
-        if p < 1:
+        if not (1 <= p <= float('inf')):
             raise ValueError("p must be in the range [1, ∞]")
+        
         self.p = p
-        self.domain = domain
-        logger.debug("Initialized LpPseudometric with p=%s and domain=%s", p, domain)
-
-    def distance(self, x: Union[Any], y: Union[Any]) -> float:
+        self.domain = domain if domain is not None else None
+        self.coordinates = (
+            set(coordinates) if coordinates is not None else set()
+        )
+        
+        logger.debug(f"Initialized LpPseudometric with p={p}, domain={domain}, coordinates={coordinates}")
+    
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> float:
         """
-        Calculate the Lp pseudometric distance between two elements.
+        Computes the Lp pseudometric distance between two elements.
 
         Args:
-            x: The first element to measure distance from
-            y: The second element to measure distance to
+            x: Union[IVector, IMatrix, List[float], str, Callable] - First element
+            y: Union[IVector, IMatrix, List[float], str, Callable] - Second element
 
         Returns:
-            float: The non-negative distance between x and y
+            float: The computed pseudometric distance
+
+        Raises:
+            TypeError: If input types are not supported
+            ValueError: If the input cannot be processed
         """
-        logger.debug("Computing Lp pseudometric distance between %s and %s", x, y)
-
-        # Ensure the inputs are compatible
-        if not self._check_compatibility(x, y):
-            raise ValueError("Inputs must be compatible for distance computation")
-
-        # Get the domain if specified
-        domain = self.domain if self.domain is not None else None
-
-        # Compute the difference
-        diff = x - y
-
-        # Compute the Lp norm of the difference
-        if isinstance(diff, np.ndarray):
-            return self._compute_lp_norm(diff, domain)
-        else:
-            raise TypeError("Unsupported input type for distance computation")
-
+        logger.debug(f"Computing Lp distance between {x} and {y}")
+        
+        try:
+            # Handle vector inputs
+            if self._is_vector(x) and self._is_vector(y):
+                return self._compute_vector_distance(x, y)
+            
+            # Handle matrix inputs
+            if self._is_matrix(x) and self._is_matrix(y):
+                return self._compute_matrix_distance(x, y)
+            
+            # Handle callable inputs
+            if self._is_callable(x) and self._is_callable(y):
+                return self._compute_callable_distance(x, y)
+            
+            # Handle scalar/list inputs
+            x_val = self._convert_to_scalar(x)
+            y_val = self._convert_to_scalar(y)
+            return self._compute_scalar_distance(x_val, y_val)
+            
+        except Exception as e:
+            logger.error(f"Error computing distance: {str(e)}")
+            raise e
+    
     def distances(
-        self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
     ) -> List[float]:
         """
-        Calculate distances from a single element to a list of elements.
+        Computes distances from a single element to multiple elements.
 
         Args:
-            x: The reference element
-            y_list: List or tuple of elements to measure distances to
+            x: Union[IVector, IMatrix, List[float], str, Callable] - Reference element
+            y_list: List[Union[IVector, IMatrix, List[float], str, Callable]] - List of elements
 
         Returns:
             List[float]: List of distances from x to each element in y_list
         """
-        logger.debug("Computing Lp pseudometric distances from %s to list", x)
-
+        logger.debug(f"Computing distances from {x} to {y_list}")
         return [self.distance(x, y) for y in y_list]
-
-    def check_non_negativity(self, x: Union[Any], y: Union[Any]) -> bool:
-        """
-        Check if the distance satisfies non-negativity: d(x,y) ≥ 0.
-
-        Args:
-            x: The first element
-            y: The second element
-
-        Returns:
-            bool: True if distance is non-negative, False otherwise
-        """
-        logger.debug("Checking non-negativity for LpPseudometric")
-
-        distance = self.distance(x, y)
-        return distance >= 0
-
-    def check_symmetry(self, x: Union[Any], y: Union[Any]) -> bool:
-        """
-        Check if the distance satisfies symmetry: d(x,y) = d(y,x).
-
-        Args:
-            x: The first element
-            y: The second element
-
-        Returns:
-            bool: True if distance is symmetric, False otherwise
-        """
-        logger.debug("Checking symmetry for LpPseudometric")
-
-        return self.distance(x, y) == self.distance(y, x)
-
-    def check_triangle_inequality(
-        self, x: Union[Any], y: Union[Any], z: Union[Any]
+    
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
     ) -> bool:
         """
-        Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
+        Verifies the non-negativity property: d(x,y) ≥ 0.
 
         Args:
-            x: The first element
-            y: The second element
-            z: The third element
+            x: Union[IVector, IMatrix, List[float], str, Callable] - First element
+            y: Union[IVector, IMatrix, List[float], str, Callable] - Second element
+
+        Returns:
+            bool: True if non-negativity holds, False otherwise
+        """
+        logger.debug(f"Checking non-negativity for {x} and {y}")
+        return self.distance(x, y) >= 0
+    
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies the symmetry property: d(x,y) = d(y,x).
+
+        Args:
+            x: Union[IVector, IMatrix, List[float], str, Callable] - First element
+            y: Union[IVector, IMatrix, List[float], str, Callable] - Second element
+
+        Returns:
+            bool: True if symmetry holds, False otherwise
+        """
+        logger.debug(f"Checking symmetry for {x} and {y}")
+        return self.distance(x, y) == self.distance(y, x)
+    
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+        z: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: Union[IVector, IMatrix, List[float], str, Callable] - First element
+            y: Union[IVector, IMatrix, List[float], str, Callable] - Second element
+            z: Union[IVector, IMatrix, List[float], str, Callable] - Third element
 
         Returns:
             bool: True if triangle inequality holds, False otherwise
         """
-        logger.debug("Checking triangle inequality for LpPseudometric")
-
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        return d_xz <= d_xy + d_yz
-
-    def check_weak_identity(self, x: Union[Any], y: Union[Any]) -> bool:
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
+        return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
+    
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
         """
-        Check if the distance satisfies weak identity of indiscernibles:
-        d(x,y) = 0 if and only if x and y are not distinguishable.
+        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
 
         Args:
-            x: The first element
-            y: The second element
+            x: Union[IVector, IMatrix, List[float], str, Callable] - First element
+            y: Union[IVector, IMatrix, List[float], str, Callable] - Second element
 
         Returns:
-            bool: True if weak identity holds, False otherwise
+            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
         """
-        logger.debug("Checking weak identity for LpPseudometric")
-
-        return self.distance(x, y) == 0
-
-    def _check_compatibility(self, x: Any, y: Any) -> bool:
-        """
-        Check if the inputs are compatible for distance computation.
-
-        Args:
-            x: The first element
-            y: The second element
-
-        Returns:
-            bool: True if inputs are compatible, False otherwise
-        """
-        logger.debug("Checking compatibility for distance computation")
-
-        if not isinstance(x, type(y)):
-            logger.warning("Inputs are of different types: %s and %s", type(x), type(y))
-            return False
+        logger.debug(f"Checking weak identity for {x} and {y}")
         return True
-
-    def _compute_lp_norm(
-        self, vector: np.ndarray, domain: Optional[Union[Tuple, List]] = None
+    
+    def _compute_vector_distance(
+        self,
+        x: IVector,
+        y: IVector
     ) -> float:
         """
-        Compute the Lp norm of a vector.
+        Computes the Lp distance between two vector elements.
 
         Args:
-            vector: The vector to compute the norm for
-            domain: The domain or coordinates to consider. If None, uses the entire vector.
+            x: IVector - First vector
+            y: IVector - Second vector
 
         Returns:
-            float: The Lp norm of the vector
+            float: The computed Lp distance
         """
-        logger.debug("Computing Lp norm for vector with p=%s", self.p)
+        elements = self._get_elements_from_vectors(x, y)
+        return self._compute_lp_sum(elements)
+    
+    def _compute_matrix_distance(
+        self,
+        x: IMatrix,
+        y: IMatrix
+    ) -> float:
+        """
+        Computes the Lp distance between two matrix elements.
 
-        if domain is not None:
-            vector = vector[domain]
+        Args:
+            x: IMatrix - First matrix
+            y: IMatrix - Second matrix
 
-        return np.power(np.sum(np.abs(vector) ** self.p), 1.0 / self.p)
+        Returns:
+            float: The computed Lp distance
+        """
+        elements = self._get_elements_from_matrices(x, y)
+        return self._compute_lp_sum(elements)
+    
+    def _compute_callable_distance(
+        self,
+        x: Callable,
+        y: Callable
+    ) -> float:
+        """
+        Computes the Lp distance between two callable elements.
+
+        Args:
+            x: Callable - First callable
+            y: Callable - Second callable
+
+        Returns:
+            float: The computed Lp distance
+        """
+        # This is a placeholder implementation
+        # In a real implementation, you would need to define how to handle callables
+        logger.warning("Callable input type is not fully implemented")
+        return 0.0
+    
+    def _compute_scalar_distance(
+        self,
+        x: Union[float, List[float]],
+        y: Union[float, List[float]]
+    ) -> float:
+        """
+        Computes the Lp distance between two scalar elements.
+
+        Args:
+            x: Union[float, List[float]] - First scalar or list of scalars
+            y: Union[float, List[float]] - Second scalar or list of scalars
+
+        Returns:
+            float: The computed Lp distance
+        """
+        elements = self._get_elements_from_scalars(x, y)
+        return self._compute_lp_sum(elements)
+    
+    def _get_elements_from_vectors(
+        self,
+        x: IVector,
+        y: IVector
+    ) -> List[float]:
+        """
+        Extracts elements from vector inputs.
+
+        Args:
+            x: IVector - First vector
+            y: IVector - Second vector
+
+        Returns:
+            List[float]: List of element-wise differences
+        """
+        x_elements = x.get_elements()
+        y_elements = y.get_elements()
+        return [abs(x_elements[i] - y_elements[i]) for i in range(len(x_elements))]
+    
+    def _get_elements_from_matrices(
+        self,
+        x: IMatrix,
+        y: IMatrix
+    ) -> List[float]:
+        """
+        Extracts elements from matrix inputs.
+
+        Args:
+            x: IMatrix - First matrix
+            y: IMatrix - Second matrix
+
+        Returns:
+            List[float]: List of element-wise differences
+        """
+        x_flattened = x.flatten()
+        y_flattened = y.flatten()
+        return [abs(x_flattened[i] - y_flattened[i]) for i in range(len(x_flattened))]
+    
+    def _get_elements_from_scalars(
+        self,
+        x: Union[float, List[float]],
+        y: Union[float, List[float]]
+    ) -> List[float]:
+        """
+        Extracts elements from scalar inputs.
+
+        Args:
+            x: Union[float, List[float]] - First scalar or list of scalars
+            y: Union[float, List[float]] - Second scalar or list of scalars
+
+        Returns:
+            List[float]: List of element-wise differences
+        """
+        if isinstance(x, float):
+            x = [x]
+        if isinstance(y, float):
+            y = [y]
+        return [abs(x[i] - y[i]) for i in range(len(x))]
+    
+    def _compute_lp_sum(
+        self,
+        elements: List[float]
+    ) -> float:
+        """
+        Computes the Lp sum for the given elements.
+
+        Args:
+            elements: List[float] - List of element-wise differences
+
+        Returns:
+            float: The computed Lp sum
+        """
+        if not elements:
+            return 0.0
+            
+        sum_powers = sum(e ** self.p for e in elements)
+        if sum_powers == 0:
+            return 0.0
+            
+        return sum_powers ** (1.0 / self.p)
+    
+    def _is_vector(self, obj: Any) -> bool:
+        """
+        Checks if the object is an instance of IVector.
+
+        Args:
+            obj: Any - Object to check
+
+        Returns:
+            bool: True if the object is an IVector, False otherwise
+        """
+        return isinstance(obj, IVector)
+    
+    def _is_matrix(self, obj: Any) -> bool:
+        """
+        Checks if the object is an instance of IMatrix.
+
+        Args:
+            obj: Any - Object to check
+
+        Returns:
+            bool: True if the object is an IMatrix, False otherwise
+        """
+        return isinstance(obj, IMatrix)
+    
+    def _is_callable(self, obj: Any) -> bool:
+        """
+        Checks if the object is callable.
+
+        Args:
+            obj: Any - Object to check
+
+        Returns:
+            bool: True if the object is callable, False otherwise
+        """
+        return callable(obj)
+    
+    def _convert_to_scalar(self, obj: Any) -> Union[float, List[float]]:
+        """
+        Converts the input to a scalar or list of scalars.
+
+        Args:
+            obj: Any - Object to convert
+
+        Returns:
+            Union[float, List[float]]: Converted scalar or list of scalars
+
+        Raises:
+            TypeError: If conversion is not possible
+        """
+        if isinstance(obj, (float, int)):
+            return float(obj)
+        elif isinstance(obj, str):
+            try:
+                return float(obj)
+            except ValueError:
+                raise TypeError(f"Cannot convert string '{obj}' to float")
+        return obj

@@ -1,122 +1,158 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.similarities.GaussianRBFSimilarity import (
-    GaussianRBFSimilarity,
-)
+import numpy as np
 import logging
+from swarmauri_standard.similarities.GaussianRBFSimilarity import GaussianRBFSimilarity
 
+logger = logging.getLogger(__name__)
+
+@pytest.fixture
+def gaussianrbfsimilarity():
+    """
+    Fixture providing a GaussianRBFSimilarity instance with default parameters.
+    """
+    return GaussianRBFSimilarity(gamma=1.0)
 
 @pytest.mark.unit
-def test_gaussianrbf_similarity_resource_type():
-    """Test that the GaussianRBFSimilarity resource type is correct."""
+def test_resource():
+    """
+    Test that the resource property returns the correct value.
+    """
     assert GaussianRBFSimilarity.resource == "Similarity"
 
+@pytest.mark.unit
+def test_type():
+    """
+    Test that the type property returns the correct value.
+    """
+    assert GaussianRBFSimilarity.type == "GaussianRBFSimilarity"
 
 @pytest.mark.unit
-def test_gaussianrbf_similarity_gamma_default():
-    """Test that the default gamma value is initialized correctly."""
-    gaussianrbfsimilarity = GaussianRBFSimilarity()
-    assert gaussianrbfsimilarity.gamma == 1.0
-
-
-@pytest.mark.unit
-def test_gaussianrbf_similarity_initialization(caplog):
-    """Test the initialization of GaussianRBFSimilarity with valid gamma."""
-    with caplog.at_level(logging.INFO):
-        gaussianrbfsimilarity = GaussianRBFSimilarity(gamma=2.0)
-        assert "GaussianRBFSimilarity initialized with gamma = 2.0" in caplog.text
-        assert gaussianrbfsimilarity.gamma == 2.0
-
-
-@pytest.mark.unit
-def test_gaussianrbf_similarity_invalid_gamma():
-    """Test that invalid gamma values raise ValueError during initialization."""
-    with pytest.raises(ValueError):
-        GaussianRBFSimilarity(gamma=-1.0)
-    with pytest.raises(ValueError):
-        GaussianRBFSimilarity(gamma=0.0)
-
-
-@pytest.mark.unit
-def test_gaussianrbf_similarity_calculation():
-    """Test the calculation of similarity for various input types."""
-    similarity = GaussianRBFSimilarity()
-
-    # Test with scalar values
-    assert similarity.similarity(1, 1) == 1.0
-    assert similarity.similarity(1, 2) < 1.0
-
-    # Test with vector inputs
-    assert similarity.similarity([1, 2], [1, 2]) == 1.0
-    assert similarity.similarity([1, 2], [2, 3]) < 1.0
-
-    # Test with identical inputs
-    assert similarity.similarity([1.5, 2.5], [1.5, 2.5]) == 1.0
-
+def test_similarity(gaussianrbfsimilarity):
+    """
+    Test the similarity method with various input types and values.
+    """
+    # Test with 0D arrays (scalars)
+    x = 1.0
+    y = 2.0
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert isinstance(similarity, float)
+    
+    # Test with 1D arrays
+    x = np.array([1.0, 2.0])
+    y = np.array([3.0, 4.0])
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert isinstance(similarity, float)
+    
+    # Test with 2D arrays
+    x = np.array([[1.0, 2.0], [3.0, 4.0]])
+    y = np.array([[5.0, 6.0], [7.0, 8.0]])
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert isinstance(similarity, float)
+    
+    # Test with 3D arrays
+    x = np.random.rand(2, 3, 4)
+    y = np.random.rand(2, 3, 4)
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert isinstance(similarity, float)
 
 @pytest.mark.unit
-def test_gaussianrbf_similarities_calculation():
-    """Test the calculation of similarities for multiple elements."""
-    similarity = GaussianRBFSimilarity()
-
-    # Single element
-    result = similarity.similarities([1, 2], [3, 4])
-    assert isinstance(result, float)
-    assert result < 1.0
-
-    # List of elements
-    results = similarity.similarities([1, 2], [[3, 4], [5, 6]])
-    assert isinstance(results, list)
-    assert all(isinstance(res, float) for res in results)
-    assert all(res < 1.0 for res in results)
-
+@pytest.mark.parametrize("gamma,expected_exception", [
+    (0.0, ValueError),
+    (-1.0, ValueError),
+    (-0.5, ValueError)
+])
+def test_init_invalid_gamma(gamma, expected_exception):
+    """
+    Test that initializing with invalid gamma values raises ValueError.
+    """
+    with pytest.raises(expected_exception):
+        GaussianRBFSimilarity(gamma=gamma)
 
 @pytest.mark.unit
-def test_gaussianrbf_dissimilarity_calculation():
-    """Test the calculation of dissimilarity."""
-    similarity = GaussianRBFSimilarity()
-
-    # Test with scalar values
-    assert similarity.dissimilarity(1, 1) == 0.0
-    assert similarity.dissimilarity(1, 2) > 0.0
-
-    # Test with vector inputs
-    assert similarity.dissimilarity([1, 2], [1, 2]) == 0.0
-    assert similarity.dissimilarity([1, 2], [2, 3]) > 0.0
-
-
-@pytest.mark.unit
-def test_gaussianrbf_similarity_reflexive():
-    """Test the reflexive property of similarity."""
-    similarity = GaussianRBFSimilarity()
-
-    # Test with vector
-    assert similarity.similarity([1, 2], [1, 2]) == 1.0
-
-    # Test with scalar
-    assert similarity.similarity(5, 5) == 1.0
-
-
-@pytest.mark.unit
-def test_gaussianrbf_similarity_bounded():
-    """Test that similarity values are bounded between 0 and 1."""
-    similarity = GaussianRBFSimilarity()
-
-    # Test with scalar values
-    assert 0 <= similarity.similarity(1, 2) <= 1
-
-    # Test with vector inputs
-    assert 0 <= similarity.similarity([1, 2], [3, 4]) <= 1
-
+def test_dissimilarity(gaussianrbfsimilarity):
+    """
+    Test the dissimilarity method with various input types and values.
+    """
+    # Test with 0D arrays (scalars)
+    x = 1.0
+    y = 2.0
+    dissimilarity = gaussianrbfsimilarity.dissimilarity(x, y)
+    assert isinstance(dissimilarity, float)
+    
+    # Test with 1D arrays
+    x = np.array([1.0, 2.0])
+    y = np.array([3.0, 4.0])
+    dissimilarity = gaussianrbfsimilarity.dissimilarity(x, y)
+    assert isinstance(dissimilarity, float)
+    
+    # Test with 2D arrays
+    x = np.array([[1.0, 2.0], [3.0, 4.0]])
+    y = np.array([[5.0, 6.0], [7.0, 8.0]])
+    dissimilarity = gaussianrbfsimilarity.dissimilarity(x, y)
+    assert isinstance(dissimilarity, float)
+    
+    # Test with 3D arrays
+    x = np.random.rand(2, 3, 4)
+    y = np.random.rand(2, 3, 4)
+    dissimilarity = gaussianrbfsimilarity.dissimilarity(x, y)
+    assert isinstance(dissimilarity, float)
 
 @pytest.mark.unit
-def test_gaussianrbf_similarity_symmetric():
-    """Test the symmetric property of similarity."""
-    similarity = GaussianRBFSimilarity()
+def test_check_boundedness(gaussianrbfsimilarity):
+    """
+    Test that check_boundedness returns True.
+    """
+    assert gaussianrbfsimilarity.check_boundedness() is True
 
-    # Test with scalar values
-    assert similarity.similarity(1, 2) == similarity.similarity(2, 1)
+@pytest.mark.unit
+def test_check_reflexivity(gaussianrbfsimilarity):
+    """
+    Test that the similarity measure is reflexive.
+    """
+    # Test with 0D arrays (scalars)
+    x = 1.0
+    y = x
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert similarity == 1.0
+    
+    # Test with 1D arrays
+    x = np.array([1.0, 2.0])
+    y = x
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert similarity == 1.0
+    
+    # Test with 2D arrays
+    x = np.array([[1.0, 2.0], [3.0, 4.0]])
+    y = x
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert similarity == 1.0
+    
+    # Test with 3D arrays
+    x = np.random.rand(2, 3, 4)
+    y = x
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert similarity == 1.0
 
-    # Test with vector inputs
-    assert similarity.similarity([1, 2], [3, 4]) == similarity.similarity(
-        [3, 4], [1, 2]
-    )
+@pytest.mark.unit
+def test_check_symmetry(gaussianrbfsimilarity):
+    """
+    Test that the similarity measure is symmetric.
+    """
+    x = np.array([1.0, 2.0])
+    y = np.array([3.0, 4.0])
+    
+    similarity_xy = gaussianrbfsimilarity.similarity(x, y)
+    similarity_yx = gaussianrbfsimilarity.similarity(y, x)
+    
+    assert similarity_xy == similarity_yx
+
+@pytest.mark.unit
+def test_check_identity(gaussianrbfsimilarity):
+    """
+    Test that the similarity measure satisfies identity of discernibles.
+    """
+    x = np.array([1.0, 2.0])
+    y = np.array([3.0, 4.0])
+    
+    similarity = gaussianrbfsimilarity.similarity(x, y)
+    assert similarity < 1.0

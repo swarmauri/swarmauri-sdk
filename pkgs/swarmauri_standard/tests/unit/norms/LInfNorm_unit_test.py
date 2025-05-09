@@ -1,95 +1,79 @@
 import pytest
-from typing import Union, Sequence
-import numpy as np
 import logging
+from swarmauri_standard.norms.LInfNorm import LInfNorm
 
-from swarmauri_standard.swarmauri_standard.norms.LInfNorm import LInfNorm
-
-logger = logging.getLogger(__name__)
-
+@pytest.fixture
+def linf_norm_instance():
+    """Fixture to provide a fresh LInfNorm instance for each test."""
+    return LInfNorm()
 
 @pytest.mark.unit
-class TestLInfNorm:
-    """Unit tests for the LInfNorm class implementation."""
+def test_resource_type(linf_norm_instance):
+    """Test that the resource type is correctly set."""
+    assert linf_norm_instance.resource == "LInfNorm"
 
-    @pytest.fixture
-    def norm_instance(self):
-        """Fixture providing an instance of LInfNorm."""
-        return LInfNorm()
+@pytest.mark.unit
+def test_type(linf_norm_instance):
+    """Test that the type string is correctly implemented."""
+    assert linf_norm_instance.type == "LInfNorm"
 
-    @pytest.mark.parametrize(
-        "x,expected_norm",
-        [
-            ([1, 2, 3], 3),
-            ([-1, -2, -3], 3),
-            ([0, 0, 0], 0),
-            (lambda x: x**2, 1),
-            (lambda x: -x, 1),
-        ],
-    )
-    def test_compute(self, norm_instance, x, expected_norm):
-        """Test the compute method with various inputs."""
-        logger.info(f"Testing compute method with input type {type(x).__name__}")
-        assert norm_instance.compute(x) == expected_norm
+@pytest.mark.unit
+@pytest.mark.parametrize("input_data,expected_output", [
+    ([1.0, 2.0, 3.0], 3.0),
+    ((-5.0, 3.0, 2.0), 5.0),
+    ("1.0 2.0 3.0", 3.0),
+    (lambda: [1.0, 2.0, 3.0], 3.0)
+])
+def test_compute(linf_norm_instance, input_data, expected_output):
+    """Test the compute method with different input types."""
+    assert linf_norm_instance.compute(input_data) == expected_output
 
-    def test_compute_invalid_input(self, norm_instance):
-        """Test compute method with invalid input types."""
-        logger.info("Testing compute method with invalid input types")
-        with pytest.raises(ValueError):
-            norm_instance.compute("invalid_type")
+@pytest.mark.unit
+def test_compute_invalid_input(linf_norm_instance):
+    """Test that compute raises ValueError for invalid input types."""
+    with pytest.raises(ValueError):
+        linf_norm_instance.compute("invalid_string")
 
-    def test_check_non_negativity(self, norm_instance):
-        """Test the non-negativity property of the norm."""
-        logger.info("Testing non-negativity property")
-        test_cases = [[1, 2, 3], [-1, -2, -3], [0, 0, 0], lambda x: x**2, lambda x: -x]
+@pytest.mark.unit
+def test_compute_callable_input(linf_norm_instance):
+    """Test compute with a callable that returns a sequence."""
+    def test_callable():
+        return [1.0, 2.0, 3.0]
+    assert linf_norm_instance.compute(test_callable) == 3.0
 
-        for x in test_cases:
-            norm = norm_instance.compute(x)
-            assert norm >= 0, f"Non-negativity failed for input {x}"
+@pytest.mark.unit
+def test_check_non_negativity(linf_norm_instance):
+    """Test the non-negativity property."""
+    assert linf_norm_instance.check_non_negativity([1.0, 2.0, 3.0]) is True
 
-    def test_check_triangle_inequality(self, norm_instance):
-        """Test the triangle inequality property."""
-        logger.info("Testing triangle inequality property")
-        x = [1, 2, 3]
-        y = [4, 5, 6]
+@pytest.mark.unit
+def test_check_triangle_inequality(linf_norm_instance):
+    """Test the triangle inequality property."""
+    x = [1.0, 2.0]
+    y = [2.0, 3.0]
+    assert linf_norm_instance.check_triangle_inequality(x, y) is True
 
-        norm_x = norm_instance.compute(x)
-        norm_y = norm_instance.compute(y)
-        norm_xy = norm_instance.compute([x[i] + y[i] for i in range(len(x))])
+@pytest.mark.unit
+def test_check_absolute_homogeneity(linf_norm_instance):
+    """Test the absolute homogeneity property."""
+    x = [1.0, 2.0]
+    alpha = 2.0
+    assert linf_norm_instance.check_absolute_homogeneity(x, alpha) is True
 
-        assert norm_xy <= norm_x + norm_y, "Triangle inequality failed"
+@pytest.mark.unit
+def test_check_definiteness(linf_norm_instance):
+    """Test the definiteness property."""
+    zero_vector = [0.0, 0.0]
+    non_zero_vector = [1.0, 2.0]
+    assert linf_norm_instance.check_definiteness(zero_vector) is True
+    assert linf_norm_instance.check_definiteness(non_zero_vector) is True
 
-    def test_check_absolute_homogeneity(self, norm_instance):
-        """Test the absolute homogeneity property."""
-        logger.info("Testing absolute homogeneity property")
-        x = [1, 2, 3]
-        alpha = 2.5
+@pytest.mark.unit
+def test_compute_returns_zero_only_for_zero_input(linf_norm_instance):
+    """Test that compute returns zero only for zero input."""
+    zero_input = [0.0, 0.0]
+    non_zero_input = [1.0, 2.0]
+    assert linf_norm_instance.compute(zero_input) == 0.0
+    assert linf_norm_instance.compute(non_zero_input) != 0.0
 
-        norm_x = norm_instance.compute(x)
-        scaled_x = [alpha * val for val in x]
-        norm_scaled = norm_instance.compute(scaled_x)
-
-        assert np.isclose(norm_scaled, abs(alpha) * norm_x), (
-            "Absolute homogeneity failed"
-        )
-
-    def test_check_definiteness(self, norm_instance):
-        """Test the definiteness property."""
-        logger.info("Testing definiteness property")
-        zero_sequence = [0, 0, 0]
-        non_zero_sequence = [1, 2, 3]
-
-        norm_zero = norm_instance.compute(zero_sequence)
-        norm_non_zero = norm_instance.compute(non_zero_sequence)
-
-        assert norm_zero == 0, "Definiteness failed for zero input"
-        assert norm_non_zero != 0, "Definiteness failed for non-zero input"
-
-    def test_serialization(self, norm_instance):
-        """Test JSON serialization and deserialization."""
-        logger.info("Testing JSON serialization")
-        dumped_json = norm_instance.model_dump_json()
-        loaded_json = LInfNorm.model_validate_json(dumped_json)
-        assert norm_instance.id == loaded_json.id, (
-            "Serialization/Deserialization failed"
-        )
+logger = logging.getLogger(__name__)

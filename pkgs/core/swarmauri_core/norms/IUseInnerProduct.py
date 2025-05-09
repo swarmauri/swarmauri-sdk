@@ -1,123 +1,133 @@
 from abc import ABC, abstractmethod
 from typing import Union
+import numpy as np
 import logging
 
-# Define logger
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.vectors.IVector import IVector
+
+
 logger = logging.getLogger(__name__)
 
-# Type alias for vector types
-IVector = "IVector"
-
-# Type alias for matrix types
-Matrix = "Matrix"
-
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 
 class IUseInnerProduct(ABC):
     """
     Abstract interface marking components that use inner product geometry.
-    This interface defines methods that rely on an inner product structure for geometric operations.
-    Implementations should provide concrete geometric functionality using the inner product.
+
+    This interface defines the contract for components that depend on inner product
+    structures. It provides methods for verifying key geometric properties that
+    rely on an inner product implementation.
+
+    The interface requires a compatible IInnerProduct implementation to be injected
+    or defined. All methods are abstract and must be implemented by concrete subclasses.
     """
 
     def __init__(self, inner_product: IInnerProduct):
         """
-        Initializes the IUseInnerProduct implementation with a specific inner product.
+        Initializes the IUseInnerProduct instance with a specific inner product implementation.
 
         Args:
-            inner_product: An instance of IInnerProduct to be used for geometric operations
+            inner_product: An instance of IInnerProduct that will be used for inner product operations
         """
         self.inner_product = inner_product
 
-    def check_angle(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> float:
+    @abstractmethod
+    def check_angle_between_vectors(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> float:
         """
-        Computes and checks the angle between two vectors using the inner product.
+        Computes and verifies the angle between two vectors using the inner product.
 
         Args:
-            a: First vector
-            b: Second vector
+            a: The first vector
+            b: The second vector
 
         Returns:
-            float: The angle between the two vectors in radians
+            float: The angle in radians between the two vectors
+
+        Raises:
+            ValueError: If the angle calculation fails or inputs are invalid
         """
-        logger.info("Computing angle between vectors")
-        inner = self.inner_product.compute(a, b)
-        magnitude_a = self.inner_product.compute(a, a) ** 0.5
-        magnitude_b = self.inner_product.compute(b, b) ** 0.5
-        
-        if magnitude_a == 0 or magnitude_b == 0:
-            logger.warning("Cannot compute angle with zero magnitude vector")
-            return 0.0
-            
-        cosine_similarity = inner / (magnitude_a * magnitude_b)
-        angle = self.inner_product.compute(cosine_similarity, 1).real  # Assuming compute handles inverse cosine
-        
-        logger.info(f"Angle between vectors: {angle}")
+        logger.debug("Calculating angle between vectors")
+        # Compute the dot product using the inner product
+        dot_product = self.inner_product.compute(a, b)
+        # Compute magnitudes
+        mag_a = self.inner_product.compute(a, a) ** 0.5
+        mag_b = self.inner_product.compute(b, b) ** 0.5
+
+        if mag_a == 0 or mag_b == 0:
+            raise ValueError("Cannot compute angle with zero vectors")
+
+        cosine_similarity = dot_product / (mag_a * mag_b)
+        angle = np.arccos(cosine_similarity)
+
         return angle
 
-    def check_verify_orthogonality(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
+    @abstractmethod
+    def check_verify_orthogonality(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> None:
         """
-        Verifies if two vectors are orthogonal using the inner product.
+        Verifies that two vectors are orthogonal using the inner product.
 
         Args:
-            a: First vector
-            b: Second vector
+            a: The first vector
+            b: The second vector
 
-        Returns:
-            bool: True if vectors are orthogonal, False otherwise
+        Raises:
+            ValueError: If the vectors are not orthogonal
         """
-        logger.info("Checking orthogonality")
-        inner = self.inner_product.compute(a, b)
-        
-        if inner == 0:
-            logger.info("Vectors are orthogonal")
-            return True
-        else:
-            logger.info("Vectors are not orthogonal")
-            return False
+        logger.debug("Checking orthogonality")
+        inner_product = self.inner_product.compute(a, b)
+        if not np.isclose(inner_product, 0.0):
+            raise ValueError("Vectors are not orthogonal")
 
-    def check_xy_project(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> Union[IVector, Matrix]:
+    @abstractmethod
+    def check_xy_project(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> Union[IVector, np.ndarray]:
         """
         Projects vector a onto vector b using the inner product.
 
         Args:
-            a: Vector to project
-            b: Vector onto which to project
+            a: The vector to project
+            b: The vector onto which to project
 
         Returns:
-            Union[IVector, Matrix]: Projection of a onto b
+            Union[IVector, np.ndarray]: The projection of a onto b
+
+        Raises:
+            ValueError: If the projection fails
         """
-        logger.info("Projecting vector a onto vector b")
-        inner = self.inner_product.compute(a, b)
-        norm_b = self.inner_product.compute(b, b)
-        
-        if norm_b == 0:
-            logger.warning("Cannot project onto zero vector")
-            return a
-            
-        projection = (inner / norm_b) * b
-        logger.info("Projection computed successfully")
+        logger.debug("Projecting vector a onto vector b")
+        dot_product = self.inner_product.compute(a, b)
+        mag_b_squared = self.inner_product.compute(b, b)
+
+        if mag_b_squared == 0:
+            raise ValueError("Cannot project onto zero vector")
+
+        projection_scalar = dot_product / mag_b_squared
+        projection = projection_scalar * b
+
         return projection
 
-    def check_verify_parallelogram_law(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
+    @abstractmethod
+    def check_verify_parallelogram_law(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> None:
         """
         Verifies the parallelogram law using the inner product.
 
-        Args:
-            a: First vector
-            b: Second vector
+        The parallelogram law states that:
+        ||a + b||^2 + ||a - b||^2 = 2(||a||^2 + ||b||^2)
 
-        Returns:
-            bool: True if parallelogram law holds, False otherwise
+        Args:
+            a: The first vector
+            b: The second vector
+
+        Raises:
+            ValueError: If the parallelogram law is not satisfied
         """
-        logger.info("Checking parallelogram law")
-        norm_a_plus_b = self.inner_product.compute(a + b, a + b)
-        norm_a_minus_b = self.inner_product.compute(a - b, a - b)
-        sum_of_squares = self.inner_product.compute(a, a) + self.inner_product.compute(b, b)
-        
-        if norm_a_plus_b + norm_a_minus_b == 2 * sum_of_squares:
-            logger.info("Parallelogram law holds")
-            return True
-        else:
-            logger.info("Parallelogram law does not hold")
-            return False
+        logger.debug("Verifying parallelogram law")
+        a_plus_b = self.inner_product.compute(a + b, a + b)
+        a_minus_b = self.inner_product.compute(a - b, a - b)
+        left_side = a_plus_b + a_minus_b
+
+        mag_a_squared = self.inner_product.compute(a, a)
+        mag_b_squared = self.inner_product.compute(b, b)
+        right_side = 2 * (mag_a_squared + mag_b_squared)
+
+        if not np.isclose(left_side, right_side):
+            raise ValueError("Parallelogram law not satisfied")

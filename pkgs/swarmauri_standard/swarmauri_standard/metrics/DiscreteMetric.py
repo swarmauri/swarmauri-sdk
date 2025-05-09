@@ -1,141 +1,112 @@
-from typing import Union, List, Literal, Optional
-from swarmauri_base.metrics.MetricBase import MetricBase
+from typing import Union, List, Optional
+from abc import ABC
 import logging
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase
 
 logger = logging.getLogger(__name__)
 
 
-@MetricBase.register_type(MetricBase, "DiscreteMetric")
+@ComponentBase.register_type(MetricBase, "DiscreteMetric")
 class DiscreteMetric(MetricBase):
     """
-    A basic discrete metric implementation that returns 1 if two points are different
-    and 0 if they are the same. This metric satisfies all metric axioms.
-
-    Inherits from:
-    - MetricBase: The base class for all metric implementations.
+    A basic binary metric implementation that returns 1 if two points are different
+    and 0 if they are the same. This metric works with any hashable types.
     """
+    type: str = "DiscreteMetric"
+    resource: Optional[str] = "DiscreteMetric"
 
-    type: Literal["DiscreteMetric"] = "DiscreteMetric"
-
-    def distance(
-        self,
-        x: Union[object, List, str, callable],
-        y: Union[object, List, str, callable],
-    ) -> float:
+    def distance(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Compute the discrete distance between two points.
+        Computes the distance between two points x and y. Returns 1 if x and y are different,
+        and 0 if they are the same.
 
         Args:
-            x: The first point. Can be any hashable type.
-            y: The second point. Can be any hashable type.
+            x: The first point to measure distance from
+            y: The second point to measure distance to
 
         Returns:
-            float: 0 if x and y are the same, 1 otherwise.
-
-        Example:
-            >>> metric.distance("a", "a")
-            0
-            >>> metric.distance("a", "b")
-            1
+            float: 0 if x == y, 1 otherwise
         """
-        logger.debug("Computing discrete distance between two points")
-        return 0 if x == y else 1
+        logger.debug(f"Calculating discrete distance between {x} and {y}")
+        return 0.0 if x == y else 1.0
 
-    def distances(
-        self,
-        x: Union[object, List, str, callable],
-        ys: List[Union[object, List, str, callable]],
-    ) -> List[float]:
+    def distances(self, xs: List[Union[IVector, IMatrix, Sequence, str, Callable]], ys: List[Union[IVector, IMatrix, Sequence, str, Callable]]) -> List[List[float]]:
         """
-        Compute the discrete distances from a single point to multiple points.
+        Computes pairwise distances between two lists of points.
 
         Args:
-            x: The reference point. Can be any hashable type.
-            ys: List of points to compute distances to. Each can be any hashable type.
+            xs: First list of points
+            ys: Second list of points
 
         Returns:
-            List[float]: List of distances from x to each point in ys.
-
-        Example:
-            >>> metric.distances("a", ["a", "b", "a"])
-            [0, 1, 0]
+            List[List[float]]: Matrix where each element [i][j] is 0 if xs[i] == ys[j], otherwise 1
         """
-        logger.debug(f"Computing distances from {x} to {ys}")
-        return [self.distance(x, y) for y in ys]
+        logger.debug(f"Calculating pairwise discrete distances between {len(xs)} points and {len(ys)} points")
+        return [[0.0 if x == y else 1.0 for y in ys] for x in xs]
 
-    def check_non_negativity(
-        self,
-        x: Union[object, List, str, callable],
-        y: Union[object, List, str, callable],
-    ) -> Literal[True]:
+    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Verify the non-negativity property: d(x, y) ≥ 0.
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
         Args:
-            x: The first point. Can be any hashable type.
-            y: The second point. Can be any hashable type.
+            x: First point
+            y: Second point
 
-        Returns:
-            Literal[True]: Always True since discrete metric returns 0 or 1.
+        Raises:
+            MetricViolationError: If distance is negative
         """
-        logger.debug("Checking non-negativity property")
-        return True
-
-    def check_identity(
-        self,
-        x: Union[object, List, str, callable],
-        y: Union[object, List, str, callable],
-    ) -> Literal[True]:
-        """
-        Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
-
-        Args:
-            x: The first point. Can be any hashable type.
-            y: The second point. Can be any hashable type.
-
-        Returns:
-            Literal[True]: True if the identity property holds, False otherwise.
-        """
-        logger.debug("Checking identity property")
         distance = self.distance(x, y)
-        return Literal[True](distance == 0 if x == y else False)
+        if distance < 0:
+            raise MetricViolationError(f"Non-negativity violated: distance({x}, {y}) = {distance}")
 
-    def check_symmetry(
-        self,
-        x: Union[object, List, str, callable],
-        y: Union[object, List, str, callable],
-    ) -> Literal[True]:
+    def check_identity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Verify the symmetry property: d(x, y) = d(y, x).
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
         Args:
-            x: The first point. Can be any hashable type.
-            y: The second point. Can be any hashable type.
+            x: First point
+            y: Second point
 
-        Returns:
-            Literal[True]: Always True since discrete metric is symmetric.
+        Raises:
+            MetricViolationError: If axiom is violated
         """
-        logger.debug("Checking symmetry property")
-        return Literal[True](self.distance(x, y) == self.distance(y, x))
+        distance = self.distance(x, y)
+        if (x == y and distance != 0) or (x != y and distance == 0):
+            raise MetricViolationError(f"Identity axiom violated: {x} and {y} have distance {distance}")
 
-    def check_triangle_inequality(
-        self,
-        x: Union[object, List, str, callable],
-        y: Union[object, List, str, callable],
-        z: Union[object, List, str, callable],
-    ) -> Literal[True]:
+    def check_symmetry(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
 
         Args:
-            x: The first point. Can be any hashable type.
-            y: The second point. Can be any hashable type.
-            z: The third point. Can be any hashable type.
+            x: First point
+            y: Second point
 
-        Returns:
-            Literal[True]: Always True since discrete metric satisfies triangle inequality.
+        Raises:
+            MetricViolationError: If d(x,y) ≠ d(y,x)
         """
-        logger.debug("Checking triangle inequality property")
-        return Literal[True](
-            (self.distance(x, z) <= self.distance(x, y) + self.distance(y, z))
-        )
+        distance_xy = self.distance(x, y)
+        distance_yx = self.distance(y, x)
+        if distance_xy != distance_yx:
+            raise MetricViolationError(f"Symmetry violated: d({x}, {y}) = {distance_xy}, d({y}, {x}) = {distance_yx}")
+
+    def check_triangle_inequality(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable], z: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+        """
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: First point
+            y: Second point
+            z: Third point
+
+        Raises:
+            MetricViolationError: If d(x,z) > d(x,y) + d(y,z)
+        """
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+        
+        if d_xz > d_xy + d_yz:
+            raise MetricViolationError(f"Triangle inequality violated: d({x}, {z}) = {d_xz}, d({x}, {y}) + d({y}, {z}) = {d_xy + d_yz}")

@@ -1,8 +1,7 @@
-import numpy as np
-from typing import Union, List, Optional
-import logging
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from typing import Union, Sequence, Optional, Literal
+import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -10,181 +9,157 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SimilarityBase, "TanimotoSimilarity")
 class TanimotoSimilarity(SimilarityBase):
     """
-    Implementation of the Tanimoto similarity measure for real vectors.
-
-    This class provides functionality to calculate the Tanimoto similarity between vectors.
-    The Tanimoto similarity is a generalization of the Jaccard similarity for real-valued
-    vectors and is commonly used in cheminformatics for comparing molecular fingerprints.
-
+    Implementation of the Tanimoto similarity measure for real-valued vectors.
+    
+    The Tanimoto similarity is a generalization of the Jaccard index for 
+    real-valued vectors. It is commonly used in cheminformatics for 
+    comparing molecular fingerprints. The similarity is calculated as:
+    
+    S = (A·B) / (|A|² + |B|² - A·B)
+    
+    where A and B are vectors, A·B is the dot product, and |A| is the 
+    Euclidean norm of vector A.
+    
     Attributes:
-        type: Type identifier for the similarity measure.
+        type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
+        is_symmetric: bool = True
+        is_bounded: bool = True
     """
+    type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
+    is_symmetric: bool = True
+    is_bounded: bool = True
 
-    type: str = "TanimotoSimilarity"
-
-    def __init__(self):
-        """
-        Initializes the Tanimoto similarity measure.
-        """
-        super().__init__()
-
-    def similarity(
-        self, x: Union[np.ndarray, list], y: Union[np.ndarray, list]
-    ) -> float:
+    def similarity(self, x: Union[Sequence[float], np.ndarray], 
+                    y: Union[Sequence[float], np.ndarray]) -> float:
         """
         Calculate the Tanimoto similarity between two vectors.
-
-        The Tanimoto similarity is calculated as:
-        \[
-            \text{similarity} = \frac{x \cdot y}{|x|^2 + |y|^2 - x \cdot y}
-        \]
-        where \( x \cdot y \) is the dot product of vectors x and y, and \( |x| \) denotes
-        the Euclidean norm (magnitude) of vector x.
-
+        
         Args:
-            x: First vector for comparison.
-            y: Second vector for comparison.
-
+            x: First vector
+            y: Second vector
+            
         Returns:
-            float: Tanimoto similarity score between vectors x and y.
-
+            float: Tanimoto similarity between x and y
+            
         Raises:
-            ValueError: If either vector has a zero magnitude.
+            ValueError: If either vector contains only zeros
         """
-        # Calculate the dot product of x and y
+        logger.debug(f"Calculating Tanimoto similarity between {x} and {y}")
+        
+        # Convert to numpy arrays if not already
+        x = np.asarray(x)
+        y = np.asarray(y)
+        
+        # Handle edge case where both vectors are zero
+        if np.all(x == 0) and np.all(y == 0):
+            return 1.0
+        if np.all(x == 0) or np.all(y == 0):
+            return 0.0
+        
+        # Calculate dot product
         dot_product = np.dot(x, y)
-
-        # Calculate the magnitudes of x and y
+        
+        # Calculate magnitudes
         mag_x = np.dot(x, x)
         mag_y = np.dot(y, y)
-
-        # Check for zero magnitude vectors
-        if mag_x == 0 or mag_y == 0:
-            raise ValueError("Vectors must be non-zero")
-
-        # Calculate the Tanimoto similarity
+        
+        # Compute similarity
         similarity = dot_product / (mag_x + mag_y - dot_product)
+        
+        return similarity
 
-        # Ensure the result is a float
-        return float(similarity)
-
-    def similarities(
-        self,
-        x: Union[np.ndarray, list],
-        ys: Union[List[Union[np.ndarray, list]], Union[np.ndarray, list]],
-    ) -> Union[float, List[float]]:
+    def similarities(self, xs: Union[Sequence[Sequence[float]], Sequence[np.ndarray]], 
+                     ys: Union[Sequence[Sequence[float]], Sequence[np.ndarray]]) -> Sequence[float]:
         """
-        Calculate Tanimoto similarities between vector x and multiple vectors ys.
-
+        Calculate Tanimoto similarities for multiple pairs of vectors.
+        
         Args:
-            x: Reference vector for comparison.
-            ys: List of vectors or single vector to compare with x.
-
+            xs: Sequence of first vectors
+            ys: Sequence of second vectors
+            
         Returns:
-            Union[float, List[float]]: List of similarity scores or single score.
+            Sequence[float]: Sequence of Tanimoto similarities for each pair
         """
-        # If ys is a single vector, convert it to a list
-        if not isinstance(ys, list):
-            ys = [ys]
+        logger.debug(f"Calculating Tanimoto similarities between {xs} and {ys}")
+        return [self.similarity(x, y) for x, y in zip(xs, ys)]
 
-        # Calculate similarities for each vector
-        return [self.similarity(x, y) for y in ys]
-
-    def dissimilarity(
-        self, x: Union[np.ndarray, list], y: Union[np.ndarray, list]
-    ) -> float:
+    def dissimilarity(self, x: Union[Sequence[float], np.ndarray], 
+                      y: Union[Sequence[float], np.ndarray]) -> float:
         """
-        Calculate the dissimilarity based on Tanimoto similarity.
-
+        Calculate the Tanimoto dissimilarity between two vectors.
+        
+        The dissimilarity is 1 minus the similarity.
+        
         Args:
-            x: First vector for comparison.
-            y: Second vector for comparison.
-
+            x: First vector
+            y: Second vector
+            
         Returns:
-            float: Dissimilarity score.
+            float: Tanimoto dissimilarity between x and y
         """
+        logger.debug(f"Calculating Tanimoto dissimilarity between {x} and {y}")
         return 1.0 - self.similarity(x, y)
 
-    def dissimilarities(
-        self,
-        x: Union[np.ndarray, list],
-        ys: Union[List[Union[np.ndarray, list]], Union[np.ndarray, list]],
-    ) -> Union[float, List[float]]:
+    def dissimilarities(self, xs: Union[Sequence[Sequence[float]], Sequence[np.ndarray]], 
+                       ys: Union[Sequence[Sequence[float]], Sequence[np.ndarray]]) -> Sequence[float]:
         """
-        Calculate dissimilarities between vector x and multiple vectors ys.
-
+        Calculate Tanimoto dissimilarities for multiple pairs of vectors.
+        
         Args:
-            x: Reference vector for comparison.
-            ys: List of vectors or single vector to compare with x.
-
+            xs: Sequence of first vectors
+            ys: Sequence of second vectors
+            
         Returns:
-            Union[float, List[float]]: List of dissimilarity scores or single score.
+            Sequence[float]: Sequence of Tanimoto dissimilarities for each pair
         """
-        if not isinstance(ys, list):
-            ys = [ys]
+        logger.debug(f"Calculating Tanimoto dissimilarities between {xs} and {ys}")
+        return [1.0 - sim for sim in self.similarities(xs, ys)]
 
-        return [1.0 - self.similarity(x, y) for y in ys]
-
-    def check_boundedness(
-        self, x: Union[np.ndarray, list], y: Union[np.ndarray, list]
-    ) -> bool:
+    def check_boundedness(self) -> bool:
         """
-        Check if the similarity measure is bounded.
-
-        The Tanimoto similarity ranges between 0 (dissimilar) and 1 (identical),
-        making it a bounded measure.
-
-        Args:
-            x: First vector for comparison.
-            y: Second vector for comparison.
-
+        Check if the Tanimoto similarity measure is bounded.
+        
+        The Tanimoto similarity is bounded between 0 and 1 inclusive.
+        
         Returns:
-            bool: True if the measure is bounded, False otherwise.
+            bool: True if the measure is bounded, False otherwise
         """
+        logger.debug("Checking Tanimoto similarity boundedness")
+        return self.is_bounded
+
+    def check_reflexivity(self) -> bool:
+        """
+        Check if the Tanimoto similarity measure satisfies reflexivity.
+        
+        A measure is reflexive if s(x, x) = 1 for all x.
+        
+        Returns:
+            bool: True if the measure is reflexive, False otherwise
+        """
+        logger.debug("Checking Tanimoto similarity reflexivity")
         return True
 
-    def check_reflexivity(self, x: Union[np.ndarray, list]) -> bool:
+    def check_symmetry(self) -> bool:
         """
-        Check if the similarity measure is reflexive.
-
-        A measure is reflexive if the similarity of any vector with itself is 1.
-
-        Args:
-            x: Vector to check reflexivity for.
-
+        Check if the Tanimoto similarity measure is symmetric.
+        
+        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
+        
         Returns:
-            bool: True if the measure is reflexive, False otherwise.
+            bool: True if the measure is symmetric, False otherwise
         """
-        return self.similarity(x, x) == 1.0
+        logger.debug("Checking Tanimoto similarity symmetry")
+        return self.is_symmetric
 
-    def check_symmetry(
-        self, x: Union[np.ndarray, list], y: Union[np.ndarray, list]
-    ) -> bool:
+    def check_identity(self) -> bool:
         """
-        Check if the similarity measure is symmetric.
-
-        Args:
-            x: First vector for comparison.
-            y: Second vector for comparison.
-
+        Check if the Tanimoto similarity measure satisfies identity of 
+        discernibles.
+        
+        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
+        
         Returns:
-            bool: True if the measure is symmetric, False otherwise.
+            bool: True if the measure satisfies identity, False otherwise
         """
-        return self.similarity(x, y) == self.similarity(y, x)
-
-    def check_identity(
-        self, x: Union[np.ndarray, list], y: Union[np.ndarray, list]
-    ) -> bool:
-        """
-        Check if the similarity measure satisfies identity.
-
-        A measure satisfies identity if the similarity of identical vectors is 1.
-
-        Args:
-            x: First vector for comparison.
-            y: Second vector for comparison.
-
-        Returns:
-            bool: True if identical vectors have maximum similarity, False otherwise.
-        """
-        return self.similarity(x, y) == 1.0
+        logger.debug("Checking Tanimoto similarity identity of discernibles")
+        return False

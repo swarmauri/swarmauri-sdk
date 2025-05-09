@@ -1,242 +1,77 @@
-import numpy as np
+from typing import Union, Sequence, Optional, Literal
+from abc import ABC
+import math
 import logging
-from typing import Union, List
+
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_core.resource.IResource import IResource
 
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_model()
+@ComponentBase.register_type(SimilarityBase, "HellingerAffinitySimilarity")
 class HellingerAffinitySimilarity(SimilarityBase):
     """
-    Computes the Hellinger Affinity Similarity between two discrete probability distributions.
-
-    The Hellinger Affinity Similarity is based on the Hellinger distance, which is a measure
-    of the difference between two probability distributions. The similarity is computed as
-    1 minus the Hellinger distance, providing a value between 0 and 1 where higher values
-    indicate greater similarity.
-
-    Attributes:
-        resource: Type of resource this component represents, defaults to SIMILARITY.
+    A class that implements the Hellinger Affinity Similarity measure for discrete probability vectors.
+    
+    This measure is based on the square root of the sum of the product of square roots of corresponding probabilities.
+    It works on discrete probability vectors and ensures values are non-negative and sum to 1.
+    
+    Inherits from:
+        SimilarityBase: Base class for similarity measures providing foundational structures and interfaces.
+        
+    Implements:
+        similarity() method: Computes the similarity between two probability vectors using Hellinger affinity formula.
     """
-    resource: str = "SIMILARITY"
-
+    type: Literal["HellingerAffinitySimilarity"] = "HellingerAffinitySimilarity"
+    
     def __init__(self):
+        """
+        Initializes the HellingerAffinitySimilarity class.
+        """
         super().__init__()
-
-    def similarity(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]], 
-        y: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> float:
+        self._resource_type = "SIMILARITY"
+        
+    def similarity(self, x: Union[Sequence[float], str], y: Union[Sequence[float], str]) -> float:
         """
-        Computes the similarity between two probability distributions.
-
+        Computes the Hellinger Affinity Similarity between two discrete probability vectors.
+        
         Args:
-            x: First probability distribution.
-            y: Second probability distribution.
-
+            x: First probability vector (must sum to 1)
+            y: Second probability vector (must sum to 1)
+            
         Returns:
-            float: Similarity score between x and y, ranging from 0 to 1.
-
+            float: Hellinger affinity similarity score between x and y
+        
         Raises:
-            ValueError: If x or y are not valid probability vectors.
+            ValueError: If input vectors are invalid (negative values or don't sum to 1)
         """
-        x = np.asarray(x)
-        y = np.asarray(y)
+        logger.debug(f"Calculating Hellinger affinity similarity between {x} and {y}")
         
-        if not self._is_valid_probability_vector(x):
-            raise ValueError("Invalid probability vector x.")
-        if not self._is_valid_probability_vector(y):
-            raise ValueError("Invalid probability vector y.")
+        # Validate input vectors
+        self._validate_probability_vector(x)
+        self._validate_probability_vector(y)
         
-        sqrt_x = np.sqrt(x)
-        sqrt_y = np.sqrt(y)
-        diff = sqrt_x - sqrt_y
-        h = np.sqrt(0.5 * np.sum(diff ** 2))
+        # Calculate element-wise product of square roots
+        sqrt_product = (math.sqrt(x_i) * math.sqrt(y_i) for x_i, y_i in zip(x, y))
         
-        return 1.0 - h
-
-    def similarities(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        ys: Union[List[Union[np.ndarray, List[float], Tuple[float, ...]]], Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> Union[float, List[float]]:
+        # Sum the products and take square root
+        similarity = math.sqrt(sum(sqrt_product))
+        
+        return similarity
+    
+    def _validate_probability_vector(self, vector: Sequence[float]) -> None:
         """
-        Computes similarities between a base distribution and one or more distributions.
-
+        Validates if a given sequence is a valid probability vector.
+        
         Args:
-            x: Base probability distribution.
-            ys: Single or list of probability distributions to compare against.
-
-        Returns:
-            Union[float, List[float]]: Similarity scores between x and each distribution in ys.
+            vector: Sequence to validate
+            
+        Raises:
+            ValueError: If vector contains negative values or does not sum to 1
         """
-        if not isinstance(ys, list):
-            ys = [ys]
-        
-        similarities = []
-        for y in ys:
-            similarities.append(self.similarity(x, y))
-        
-        return similarities if len(similarities) > 1 else similarities[0]
-
-    def dissimilarity(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        y: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> float:
-        """
-        Computes the dissimilarity between two probability distributions.
-
-        Args:
-            x: First probability distribution.
-            y: Second probability distribution.
-
-        Returns:
-            float: Dissimilarity score between x and y, ranging from 0 to 1.
-        """
-        x = np.asarray(x)
-        y = np.asarray(y)
-        
-        if not self._is_valid_probability_vector(x):
-            raise ValueError("Invalid probability vector x.")
-        if not self._is_valid_probability_vector(y):
-            raise ValueError("Invalid probability vector y.")
-        
-        sqrt_x = np.sqrt(x)
-        sqrt_y = np.sqrt(y)
-        diff = sqrt_x - sqrt_y
-        h = np.sqrt(0.5 * np.sum(diff ** 2))
-        
-        return h
-
-    def dissimilarities(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        ys: Union[List[Union[np.ndarray, List[float], Tuple[float, ...]]], Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> Union[float, List[float]]:
-        """
-        Computes dissimilarities between a base distribution and one or more distributions.
-
-        Args:
-            x: Base probability distribution.
-            ys: Single or list of probability distributions to compare against.
-
-        Returns:
-            Union[float, List[float]]: Dissimilarity scores between x and each distribution in ys.
-        """
-        if not isinstance(ys, list):
-            ys = [ys]
-        
-        dissimilarities = []
-        for y in ys:
-            dissimilarities.append(self.dissimilarity(x, y))
-        
-        return dissimilarities if len(dissimilarities) > 1 else dissimilarities[0]
-
-    def check_boundedness(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        y: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise.
-        """
-        return True
-
-    def check_reflexivity(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> bool:
-        """
-        Checks if the similarity measure is reflexive.
-
-        A measure is reflexive if the similarity of any distribution with itself is 1.
-
-        Args:
-            x: Probability distribution to check reflexivity for.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise.
-        """
-        x = np.asarray(x)
-        if not self._is_valid_probability_vector(x):
-            raise ValueError("Invalid probability vector x.")
-        return np.isclose(self.similarity(x, x), 1.0, atol=1e-8)
-
-    def check_symmetry(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        y: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-
-        A measure is symmetric if similarity(x, y) == similarity(y, x).
-
-        Args:
-            x: First probability distribution.
-            y: Second probability distribution.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise.
-        """
-        x = np.asarray(x)
-        y = np.asarray(y)
-        if not self._is_valid_probability_vector(x):
-            raise ValueError("Invalid probability vector x.")
-        if not self._is_valid_probability_vector(y):
-            raise ValueError("Invalid probability vector y.")
-        return np.isclose(self.similarity(x, y), self.similarity(y, x), atol=1e-8)
-
-    def check_identity(
-        self, 
-        x: Union[np.ndarray, List[float], Tuple[float, ...]],
-        y: Union[np.ndarray, List[float], Tuple[float, ...]]
-    ) -> bool:
-        """
-        Checks if the similarity measure satisfies identity.
-
-        A measure satisfies identity if similarity(x, y) == 1 if and only if x == y.
-
-        Args:
-            x: First probability distribution.
-            y: Second probability distribution.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise.
-        """
-        x = np.asarray(x)
-        y = np.asarray(y)
-        if not self._is_valid_probability_vector(x):
-            raise ValueError("Invalid probability vector x.")
-        if not self._is_valid_probability_vector(y):
-            raise ValueError("Invalid probability vector y.")
-        if np.array_equal(x, y):
-            return np.isclose(self.similarity(x, y), 1.0, atol=1e-8)
-        else:
-            return self.similarity(x, y) < 1.0
-
-    def _is_valid_probability_vector(self, vector: Union[np.ndarray, List[float], Tuple[float, ...]]) -> bool:
-        """
-        Checks if a vector is a valid probability vector.
-
-        A valid probability vector must have all non-negative elements and sum to 1.
-
-        Args:
-            vector: Vector to validate.
-
-        Returns:
-            bool: True if the vector is valid, False otherwise.
-        """
-        vector = np.asarray(vector)
-        if not np.all(vector >= 0):
-            return False
-        if not np.isclose(np.sum(vector), 1.0, atol=1e-8):
-            return False
-        return True
+        if any(val < 0 for val in vector):
+            raise ValueError("Probability vector contains negative values")
+        if not math.isclose(sum(vector), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+            raise ValueError("Probability vector does not sum to 1")

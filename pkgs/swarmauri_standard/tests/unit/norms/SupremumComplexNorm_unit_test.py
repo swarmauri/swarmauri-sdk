@@ -1,119 +1,101 @@
 import pytest
 import logging
-import numpy as np
-from swarmauri_standard.swarmauri_standard.norms.SupremumComplexNorm import SupremumComplexNorm
+from unittest.mock import MagicMock
+from typing import Sequence, Callable
+from swarmauri_standard.norms.SupremumComplexNorm import SupremumComplexNorm
 
 @pytest.mark.unit
 class TestSupremumComplexNorm:
-    """Unit tests for the SupremumComplexNorm class."""
-    
-    @pytest.fixture
-    def supremum_norm(self):
-        """Fixture to provide a SupremumComplexNorm instance."""
-        return SupremumComplexNorm()
+    """
+    Unit tests for the SupremumComplexNorm class implementation.
+    """
+    def test_compute_callable(self):
+        """
+        Test compute method with a callable input.
+        """
+        norm = SupremumComplexNorm()
+        # Mock a simple function that returns a constant complex number
+        mock_func = MagicMock(return_value=3 + 4j)
+        
+        # Since we're mocking, we don't need to evaluate over interval
+        # Just test the compute method's logic
+        result = norm.compute(mock_func)
+        assert result == 5.0  # Magnitude of 3+4j
+        
+    def test_compute_sequence(self):
+        """
+        Test compute method with a sequence input.
+        """
+        norm = SupremumComplexNorm()
+        # Test with a sequence of complex numbers
+        complex_sequence = [1 + 2j, 3 + 4j, 5 + 6j]
+        expected = max(abs(c) for c in complex_sequence)
+        result = norm.compute(complex_sequence)
+        assert result == expected
+        
+    def test_check_non_negativity(self):
+        """
+        Test the non-negativity property check.
+        """
+        norm = SupremumComplexNorm()
+        # Test with zero vector
+        zero_vector = [0j, 0j]
+        assert norm.check_non_negativity(zero_vector) == True
+        
+        # Test with non-zero vector
+        non_zero = [1j, 2j]
+        assert norm.check_non_negativity(non_zero) == True
+        
+    def test_check_triangle_inequality(self):
+        """
+        Test triangle inequality property.
+        """
+        norm = SupremumComplexNorm()
+        # Test with simple vectors
+        x = [1j, 2j]
+        y = [3j, 4j]
+        x_plus_y = [4j, 6j]
+        
+        norm_x = norm.compute(x)
+        norm_y = norm.compute(y)
+        norm_xy = norm.compute(x_plus_y)
+        
+        assert norm.check_triangle_inequality(x, y)
+        
+    def test_check_absolute_homogeneity(self):
+        """
+        Test absolute homogeneity property.
+        """
+        norm = SupremumComplexNorm()
+        # Test with alpha = 2.0
+        x = [1j, 2j]
+        alpha = 2.0
+        norm_x = norm.compute(x)
+        norm_alpha_x = norm.compute([alpha * val for val in x])
+        
+        assert norm.check_absolute_homogeneity(x, alpha)
+        
+        # Test with alpha = -1.0
+        alpha = -1.0
+        norm_alpha_x = norm.compute([alpha * val for val in x])
+        assert norm.check_absolute_homogeneity(x, alpha)
+        
+        # Test with alpha = 0.0
+        alpha = 0.0
+        norm_alpha_x = norm.compute([alpha * val for val in x])
+        assert norm.check_absolute_homogeneity(x, alpha)
+        
+    def test_check_definiteness(self):
+        """
+        Test definiteness property.
+        """
+        norm = SupremumComplexNorm()
+        # Test with zero vector
+        zero_vector = [0j, 0j]
+        assert norm.check_definiteness(zero_vector) == True
+        
+        # Test with non-zero vector
+        non_zero = [1j, 2j]
+        assert norm.check_definiteness(non_zero) == True
 
-    def test_init(self, supremum_norm):
-        """Test initialization of SupremumComplexNorm."""
-        assert isinstance(supremum_norm, SupremumComplexNorm)
-        assert supremum_norm.resource == "norm"
-        assert supremum_norm.type == "SupremumComplexNorm"
-
-    @pytest.mark.parametrize("inputCallable", [lambda x: x, lambda x: x**2])
-    def test_compute_callable(self, inputCallable, supremum_norm):
-        """Test compute method with callable input."""
-        result = supremum_norm.compute(inputCallable)
-        assert result >= 0
-        assert isinstance(result, float)
-
-    @pytest.mark.parametrize("inputSequence,expected_result", [
-        ([1, 2, 3], 3),
-        ([-1, 0, 1], 1),
-        ([], 0),
-        (np.array([1, 2, 3]), 3),
-        (np.array([-1, 0, 1]), 1)
-    ])
-    def test_compute_sequence(self, inputSequence, expected_result, supremum_norm):
-        """Test compute method with sequence input."""
-        result = supremum_norm.compute(inputSequence)
-        assert result == expected_result
-
-    @pytest.mark.parametrize("inputString,expected_result", [
-        ("abc", max(ord(c) for c in "abc")),
-        ("abcdef", max(ord(c) for c in "abcdef")),
-        ("", 0)
-    ])
-    def test_compute_string(self, inputString, expected_result, supremum_norm):
-        """Test compute method with string input."""
-        result = supremum_norm.compute(inputString)
-        assert result == expected_result
-
-    @pytest.mark.parametrize("inputBytes,expected_result", [
-        (b"abc", max(ord(c) for c in b"abc")),
-        (b"abcdef", max(ord(c) for c in b"abcdef")),
-        (b"", 0)
-    ])
-    def test_compute_bytes(self, inputBytes, expected_result, supremum_norm):
-        """Test compute method with bytes input."""
-        result = supremum_norm.compute(inputBytes)
-        assert result == expected_result
-
-    def test_check_non_negativity(self, supremum_norm):
-        """Test non-negativity property."""
-        # Test with zero input
-        supremum_norm.check_non_negativity(0)
-        # Test with positive input
-        supremum_norm.check_non_negativity(5)
-        # Test with negative input
-        supremum_norm.check_non_negativity(-3)
-
-    @pytest.mark.parametrize("x,y", [
-        (1, 2),
-        (np.array([1, 2]), np.array([3, 4])),
-        (lambda x: x, lambda x: x),
-        ("a", "b"),
-        (b"a", b"b")
-    ])
-    def test_check_triangle_inequality(self, x, y, supremum_norm):
-        """Test triangle inequality property."""
-        norm_x = supremum_norm.compute(x)
-        norm_y = supremum_norm.compute(y)
-        norm_xy = supremum_norm.compute(x + y)
-        assert norm_xy <= norm_x + norm_y
-
-    @pytest.mark.parametrize("x,alpha", [
-        (1, 2),
-        (np.array([1, 2]), 3),
-        (lambda x: x, 4),
-        ("a", 5),
-        (b"a", 6)
-    ])
-    def test_check_absolute_homogeneity(self, x, alpha, supremum_norm):
-        """Test absolute homogeneity property."""
-        norm_x = supremum_norm.compute(x)
-        scaled_x = alpha * x
-        norm_scaled_x = supremum_norm.compute(scaled_x)
-        assert np.isclose(norm_scaled_x, abs(alpha) * norm_x, rtol=1e-9)
-
-    @pytest.mark.parametrize("x", [
-        0,
-        np.array([0]),
-        lambda x: 0,
-        "",
-        b""
-    ])
-    def test_check_definiteness_zero(self, x, supremum_norm):
-        """Test definiteness property for zero input."""
-        supremum_norm.check_definiteness(x)
-
-    @pytest.mark.parametrize("x", [
-        1,
-        np.array([1]),
-        lambda x: 1,
-        "a",
-        b"a"
-    ])
-    def test_check_definiteness_non_zero(self, x, supremum_norm):
-        """Test definiteness property for non-zero input."""
-        with pytest.raises(AssertionError):
-            supremum_norm.check_definiteness(x)
-```
+logger = logging.getLogger(__name__)

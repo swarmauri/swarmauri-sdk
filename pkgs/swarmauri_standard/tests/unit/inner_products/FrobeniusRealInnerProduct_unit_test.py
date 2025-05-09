@@ -1,139 +1,115 @@
 import pytest
 import numpy as np
 import logging
-from swarmauri_standard.swarmauri_standard.inner_products.FrobeniusRealInnerProduct import (
-    FrobeniusRealInnerProduct,
-)
 
+from swarmauri_standard.inner_products.FrobeniusRealInnerProduct import FrobeniusRealInnerProduct
 
 @pytest.fixture
 def frobenius_inner_product():
     """Fixture to provide a FrobeniusRealInnerProduct instance for testing."""
     return FrobeniusRealInnerProduct()
 
-
 @pytest.mark.unit
-def test_type_attribute(frobenius_inner_product):
-    """Test the type attribute of the FrobeniusRealInnerProduct class."""
-    assert frobenius_inner_product.type == "FrobeniusRealInnerProduct"
+def test_compute_with_zero_matrices(frobenius_inner_product):
+    """
+    Test compute method with zero matrices.
 
-
-@pytest.mark.unit
-def test_compute_with_valid_matrices(frobenius_inner_product):
-    """Test compute method with valid real matrices."""
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6], [7, 8]])
+    Verifies that the inner product of two zero matrices is zero.
+    """
+    a = np.zeros((2, 2))
+    b = np.zeros((2, 2))
     result = frobenius_inner_product.compute(a, b)
-    expected_result = np.sum(a * b)
-    assert np.isclose(result, expected_result)
-
+    assert result == 0.0
 
 @pytest.mark.unit
-def test_compute_with_invalid_shapes(frobenius_inner_product):
-    """Test compute method with matrices of different shapes."""
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6]])
-    with pytest.raises(ValueError):
-        frobenius_inner_product.compute(a, b)
+def test_compute_with_identity_matrices(frobenius_inner_product):
+    """
+    Test compute method with identity matrices.
 
+    Verifies that the inner product of identity matrices of different sizes
+    results in the sum of 1s on the diagonal.
+    """
+    # 2x2 identity matrix
+    a = np.eye(2)
+    b = np.eye(2)
+    result = frobenius_inner_product.compute(a, b)
+    assert result == 2.0
+
+    # 3x3 identity matrix
+    a = np.eye(3)
+    b = np.eye(3)
+    result = frobenius_inner_product.compute(a, b)
+    assert result == 3.0
 
 @pytest.mark.unit
-def test_compute_with_complex_matrices(frobenius_inner_product):
-    """Test compute method with complex matrices."""
-    a = np.array([[1, 2], [3, 4]], dtype=np.complex64)
-    b = np.array([[5, 6], [7, 8]], dtype=np.complex64)
+def test_compute_with_random_matrices(frobenius_inner_product):
+    """
+    Test compute method with random matrices.
+
+    Verifies that the inner product computation works correctly for random
+    matrices and that the result is a float.
+    """
+    np.random.seed(42)
+    a = np.random.rand(3, 3)
+    b = np.random.rand(3, 3)
+    result = frobenius_inner_product.compute(a, b)
+    assert isinstance(result, float)
+
+@pytest.mark.unit
+def test_compute_with_different_shapes(frobenius_inner_product):
+    """
+    Test compute method with matrices of different shapes.
+
+    Verifies that the method raises a ValueError when input matrices
+    have different shapes.
+    """
+    a = np.zeros((2, 3))
+    b = np.zeros((3, 2))
     with pytest.raises(ValueError):
         frobenius_inner_product.compute(a, b)
-
 
 @pytest.mark.unit
 def test_check_conjugate_symmetry(frobenius_inner_product):
-    """Test conjugate symmetry property."""
+    """
+    Test the conjugate symmetry property.
+
+    Verifies that the inner product of a and b is equal to the inner product
+    of b and a, which should always hold for real matrices.
+    """
+    np.random.seed(42)
     a = np.random.rand(3, 3)
     b = np.random.rand(3, 3)
-    result_ab = frobenius_inner_product.compute(a, b)
-    result_ba = frobenius_inner_product.compute(b, a)
-    assert np.isclose(result_ab, result_ba)
-
-
-@pytest.mark.unit
-def test_check_linearity_first_argument(frobenius_inner_product):
-    """Test linearity in the first argument."""
-    a = np.random.rand(2, 2)
-    b = np.random.rand(2, 2)
-    c = np.random.rand(2, 2)
-
-    # Test addition
-    result_add = frobenius_inner_product.compute(a + c, b)
-    expected_add = frobenius_inner_product.compute(
-        a, b
-    ) + frobenius_inner_product.compute(c, b)
-
-    # Test scalar multiplication
-    scalar = 2.0
-    result_mult = frobenius_inner_product.compute(scalar * a, b)
-    expected_mult = scalar * frobenius_inner_product.compute(a, b)
-
-    assert np.isclose(result_add, expected_add) and np.isclose(
-        result_mult, expected_mult
-    )
-
+    
+    inner_ab = frobenius_inner_product.compute(a, b)
+    inner_ba = frobenius_inner_product.compute(b, a)
+    
+    assert np.isclose(inner_ab, inner_ba)
 
 @pytest.mark.unit
-def test_check_linearity_second_argument(frobenius_inner_product):
-    """Test linearity in the second argument."""
-    a = np.random.rand(2, 2)
-    b = np.random.rand(2, 2)
-    c = np.random.rand(2, 2)
+def test_compute_with_non_numeric_input(frobenius_inner_product):
+    """
+    Test compute method with non-numeric input.
 
-    # Test addition
-    result_add = frobenius_inner_product.compute(a, b + c)
-    expected_add = frobenius_inner_product.compute(
-        a, b
-    ) + frobenius_inner_product.compute(a, c)
-
-    # Test scalar multiplication
-    scalar = 2.0
-    result_mult = frobenius_inner_product.compute(a, scalar * b)
-    expected_mult = scalar * frobenius_inner_product.compute(a, b)
-
-    assert np.isclose(result_add, expected_add) and np.isclose(
-        result_mult, expected_mult
-    )
-
-
-@pytest.mark.unit
-def test_check_positivity(frobenius_inner_product):
-    """Test positive definiteness."""
-    a = np.random.rand(2, 2)
-    result = frobenius_inner_product.check_positivity(a)
-    assert result
-
-
-@pytest.mark.unit
-def test_check_positivity_zero_matrix(frobenius_inner_product):
-    """Test positive definiteness with zero matrix."""
-    a = np.zeros((2, 2))
-    result = frobenius_inner_product.check_positivity(a)
-    assert not result
-
-
-@pytest.mark.unit
-def test_logging_in_compute(frobenius_inner_product, caplog):
-    """Test if logging occurs during compute method execution."""
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6], [7, 8]])
-    with caplog.at_level(logging.DEBUG):
+    Verifies that the method raises a ValueError when inputs are not numeric.
+    """
+    a = "non_numeric_input"
+    b = np.zeros((2, 2))
+    
+    with pytest.raises(ValueError):
         frobenius_inner_product.compute(a, b)
-    assert "Computed Frobenius inner product:" in caplog.text
-
 
 @pytest.mark.unit
-@pytest.mark.parametrize("matrix_dim", [(2, 2), (3, 3), (4, 4)])
-def test_compute_with_different_dimensions(frobenius_inner_product, matrix_dim):
-    """Test compute method with matrices of different dimensions."""
-    a = np.random.rand(*matrix_dim)
-    b = np.random.rand(*matrix_dim)
-    result = frobenius_inner_product.compute(a, b)
-    expected_result = np.sum(a * b)
-    assert np.isclose(result, expected_result)
+def test_logging(frobenius_inner_product, caplog):
+    """
+    Test that logging messages are generated during computation.
+
+    Verifies that debug level logs are emitted when compute is called.
+    """
+    caplog.set_level(logging.DEBUG)
+    
+    a = np.zeros((2, 2))
+    b = np.zeros((2, 2))
+    frobenius_inner_product.compute(a, b)
+    
+    assert "Starting computation of Frobenius inner product" in caplog.text
+    assert "Frobenius inner product result: 0.0" in caplog.text

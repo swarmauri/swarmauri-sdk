@@ -1,86 +1,89 @@
 from abc import ABC, abstractmethod
 from typing import Union
+import numpy as np
 import logging
 
-# Define logger
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.vectors.IVector import IVector
+
 logger = logging.getLogger(__name__)
 
-# Import the interface class
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 
 class InnerProductBase(ABC, IInnerProduct):
     """
-    A base implementation of the IInnerProduct interface.
-    
-    This class provides a foundation for implementing inner product calculations.
-    It includes abstract methods that must be implemented by subclasses.
+    Provides a base implementation for inner product operations. This class serves as
+    a foundation for various inner product implementations and defines the common
+    interface and functionality according to the IInnerProduct contract.
+
+    This class should be subclassed by specific inner product implementations.
     """
-    
+
     @abstractmethod
-    def compute(self, a: Union[object, object], b: Union[object, object]) -> Union[float, complex]:
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
         """
-        Computes the inner product between two elements.
-        
+        Computes the inner product between two vectors, matrices, or callables.
+
         Args:
-            a: The first element for the inner product
-            b: The second element for the inner product
-            
+            a: The first element in the inner product operation. Can be a vector,
+               matrix, or callable.
+            b: The second element in the inner product operation. Can be a vector,
+               matrix, or callable.
+
         Returns:
-            Union[float, complex]: The result of the inner product computation
-            
+            float: The result of the inner product operation.
+
         Raises:
-            NotImplementedError: If the method is not implemented in the subclass
+            NotImplementedError: This method must be implemented by subclasses
+            ValueError: If the input types are not supported or dimensions are incompatible
+            ZeroDivisionError: If any operation leads to division by zero
         """
-        logger.error("Compute method not implemented in subclass")
-        raise NotImplementedError("Subclass must implement the compute method")
-    
-    def check_conjugate_symmetry(self, a: Union[object, object], b: Union[object, object]) -> bool:
+        logger.error("compute() method not implemented in subclass")
+        raise NotImplementedError("Subclasses must implement the compute() method")
+
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation satisfies conjugate symmetry.
-        
+        Verifies the conjugate symmetry property of the inner product implementation.
+
+        The inner product <a, b> should be equal to the conjugate of <b, a>.
+
         Args:
-            a: The first element to check
-            b: The second element to check
-            
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise
-            
+            a: The first element in the inner product operation
+            b: The second element in the inner product operation
+
         Raises:
-            NotImplementedError: If the method is not implemented in the subclass
+            ValueError: If the conjugate symmetry property is not satisfied
         """
-        logger.error("check_conjugate_symmetry method not implemented in subclass")
-        raise NotImplementedError("Subclass must implement the check_conjugate_symmetry method")
-    
-    def check_linearity_first_argument(self, a: Union[object, object], b: Union[object, object], c: Union[object, object]) -> bool:
+        super().check_conjugate_symmetry(a, b)
+
+    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation is linear in the first argument.
-        
+        Verifies the linearity property in the first argument of the inner product implementation.
+
+        For vectors a, b, c and scalar α:
+        - Linearity: <a + b, c> = <a, c> + <b, c>
+        - Homogeneity: <αa, c> = α <a, c>
+
         Args:
-            a: The first element for linearity check
-            b: The second element for linearity check
-            c: The third element for linearity check
-            
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise
-            
+            a: The first vector for linearity check
+            b: The second vector for linearity check
+            c: The vector against which the inner product is computed
+
         Raises:
-            NotImplementedError: If the method is not implemented in the subclass
+            ValueError: If the linearity property in the first argument is not satisfied
         """
-        logger.error("check_linearity_first_argument method not implemented in subclass")
-        raise NotImplementedError("Subclass must implement the check_linearity_first_argument method")
-    
-    def check_positivity(self, a: Union[object, object]) -> bool:
+        super().check_linearity_first_argument(a, b, c)
+
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation satisfies positive definiteness.
-        
+        Verifies the positivity property of the inner product implementation.
+
+        For any non-zero vector a:
+        - <a, a> > 0
+
         Args:
-            a: The element to check for positivity
-            
-        Returns:
-            bool: True if positivity holds, False otherwise
-            
+            a: The vector to check for positivity
+
         Raises:
-            NotImplementedError: If the method is not implemented in the subclass
+            ValueError: If the positivity property is not satisfied
         """
-        logger.error("check_positivity method not implemented in subclass")
-        raise NotImplementedError("Subclass must implement the check_positivity method")
+        super().check_positivity(a)

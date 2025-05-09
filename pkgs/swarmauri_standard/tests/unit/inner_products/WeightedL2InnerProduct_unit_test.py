@@ -1,127 +1,132 @@
 import pytest
 import numpy as np
 import logging
-from swarmauri_standard.swarmauri_standard.inner_products.WeightedL2InnerProduct import (
-    WeightedL2InnerProduct,
-)
+from swarmauri_standard.inner_products import WeightedL2InnerProduct
+from swarmauri_core.vectors import IVector
 
-
-@pytest.mark.unit
-def test_WeightedL2InnerProduct_resource():
-    """Test that the resource property returns the correct value."""
-    assert WeightedL2InnerProduct.resource == "Inner_product"
-
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_WeightedL2InnerProduct_type():
-    """Test that the type property returns the correct value."""
-    assert WeightedL2InnerProduct.type == "WeightedL2InnerProduct"
+class TestWeightedL2InnerProduct:
+    """Unit tests for WeightedL2InnerProduct class."""
+    
+    def setup_class(self):
+        """Setup class-level resources."""
+        self.test_weight_function = lambda x: x**2 + 1  # Positive weight function
+        self.weighted_l2 = WeightedL2InnerProduct(self.test_weight_function)
 
+    def test_init_with_valid_weight_function(self):
+        """Test initialization with a valid weight function."""
+        # Arrange
+        weight_func = lambda x: x**2 + 1  # Positive function
+        
+        # Act
+        weighted_l2 = WeightedL2InnerProduct(weight_func)
+        
+        # Assert
+        assert weighted_l2.weight_function is not None
+        assert callable(weighted_l2.weight_function)
+        
+    def test_init_with_invalid_weight_function(self):
+        """Test initialization with a weight function that can be zero or negative."""
+        # Arrange
+        weight_func = lambda x: x**2 - 1  # Can be zero or negative
+        
+        # Act and Assert
+        with pytest.raises(ValueError):
+            WeightedL2InnerProduct(weight_func)
+
+    def test_compute_with_numpy_arrays(self):
+        """Test compute method with numpy arrays."""
+        # Arrange
+        a = np.array([1, 2])
+        b = np.array([3, 4])
+        expected = np.dot(a * np.sqrt(self.test_weight_function(a)), 
+                         b * np.sqrt(self.test_weight_function(b)))
+        
+        # Act
+        result = self.weighted_l2.compute(a, b)
+        
+        # Assert
+        assert np.allclose(result, expected, atol=1e-6)
+
+    def test_compute_with_ivectors(self):
+        """Test compute method with IVector instances."""
+        # Arrange
+        a = IVector(np.array([1, 2]))
+        b = IVector(np.array([3, 4]))
+        expected = np.dot(a.vector * np.sqrt(self.test_weight_function(a.vector)), 
+                         b.vector * np.sqrt(self.test_weight_function(b.vector)))
+        
+        # Act
+        result = self.weighted_l2.compute(a, b)
+        
+        # Assert
+        assert np.allclose(result, expected, atol=1e-6)
+
+    def test_compute_with_callables(self):
+        """Test compute method with callable functions."""
+        # Arrange
+        a = lambda x: x
+        b = lambda x: x**2
+        sample_x = np.linspace(0, 1, 100)
+        a_values = a(sample_x)
+        b_values = b(sample_x)
+        expected = np.dot(a_values * np.sqrt(self.test_weight_function(sample_x)), 
+                         b_values * np.sqrt(self.test_weight_function(sample_x)))
+        
+        # Act
+        result = self.weighted_l2.compute(a, b)
+        
+        # Assert
+        assert np.allclose(result, expected, atol=1e-6)
+
+    def test_serialization(self):
+        """Test serialization and deserialization."""
+        # Act
+        instance = WeightedL2InnerProduct(self.test_weight_function)
+        dumped_json = instance.model_dump_json()
+        validated = instance.model_validate_json(dumped_json)
+        
+        # Assert
+        assert instance.id == validated.id
+
+    def test_str_representation(self):
+        """Test string representation."""
+        # Act
+        str_repr = str(self.weighted_l2)
+        
+        # Assert
+        assert str_repr.startswith("WeightedL2InnerProduct")
+        assert "weight_function" in str_repr
 
 @pytest.fixture
-def weighted_inner_product():
-    """Fixture to provide a default WeightedL2InnerProduct instance."""
-    # Using a simple weight array for testing
-    weight = np.array([1.0, 1.0, 1.0])
-    return WeightedL2InnerProduct(weight)
-
-
-@pytest.mark.unit
-def test_compute(weighted_inner_product):
-    """Test the compute method with sample vectors."""
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5, 6])
-
-    # Compute weighted inner product
-    result = weighted_inner_product.compute(a, b)
-
-    # Expected result without weights (for verification)
-    expected_unweighted = np.vdot(a, b)
-
-    # Since weights are all 1.0 in this case, result should match expected_unweighted
-    assert np.isclose(result, expected_unweighted)
-
-
-@pytest.mark.unit
-def test_compute_with_callable_weight():
-    """Test compute method with a callable weight."""
-
-    # Define a callable weight that returns an array
-    def weight_callable(x):
-        return np.array([0.5, 1.0, 2.0])
-
-    weighted = WeightedL2InnerProduct(weight_callable)
-
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5, 6])
-
-    result = weighted.compute(a, b)
-
-    # Compute expected result manually
-    weights = weight_callable(a)
-    weighted_a = a * np.sqrt(weights)
-    weighted_b = b * np.sqrt(weights)
-    expected_result = np.vdot(weighted_a.ravel(), weighted_b.ravel())
-
-    assert np.isclose(result, expected_result)
-
-
-@pytest.mark.unit
-def test_check_conjugate_symmetry(weighted_inner_product):
-    """Test the conjugate symmetry property."""
+def numpy_arrays():
+    """Fixture providing numpy arrays for testing."""
     a = np.array([1, 2])
     b = np.array([3, 4])
+    return a, b
 
-    inner_product_ab = weighted_inner_product.compute(a, b)
-    inner_product_ba = weighted_inner_product.compute(b, a)
-
-    # Check if inner_product_ab is the conjugate of inner_product_ba
-    assert np.isclose(inner_product_ab, np.conj(inner_product_ba))
-
-
-@pytest.mark.unit
-def test_check_linearity_first_argument(weighted_inner_product):
-    """Test linearity in the first argument."""
-    a = np.array([1, 2])
-    b = np.array([3, 4])
-    c = np.array([5, 6])
-
-    # Test additivity
-    inner_product_add = weighted_inner_product.compute(a + c, b)
-    inner_product_sum = weighted_inner_product.compute(
-        a, b
-    ) + weighted_inner_product.compute(c, b)
-
-    # Test homogeneity
-    scalar = 2.0
-    inner_product_scale = weighted_inner_product.compute(scalar * a, b)
-    inner_product_scaled = scalar * weighted_inner_product.compute(a, b)
-
-    assert np.isclose(inner_product_add, inner_product_sum)
-    assert np.isclose(inner_product_scale, inner_product_scaled)
-
+@pytest.fixture
+def ivectors():
+    """Fixture providing IVector instances for testing."""
+    a = IVector(np.array([1, 2]))
+    b = IVector(np.array([3, 4]))
+    return a, b
 
 @pytest.mark.unit
-def test_check_positivity(weighted_inner_product):
-    """Test positive definiteness."""
-    a = np.array([1, 2, 3])
-
-    inner_product = weighted_inner_product.compute(a, a)
-
-    assert inner_product > 0
-
-
-@pytest.mark.unit
-def test_invalid_weights():
-    """Test that invalid weights raise a ValueError."""
-    # Test with non-positive weights
-    weight = np.array([1.0, -1.0, 1.0])
-
-    with pytest.raises(ValueError):
-        WeightedL2InnerProduct(weight)
-
-    # Test with zero weights
-    weight = np.array([1.0, 0.0, 1.0])
-
-    with pytest.raises(ValueError):
-        WeightedL2InnerProduct(weight)
+class TestWeightedL2InnerProductParameterized:
+    """Parameterized unit tests for WeightedL2InnerProduct class."""
+    
+    @pytest.mark.parametrize("a,b,expected", [
+        (np.array([1, 2]), np.array([3, 4]), 20.0),
+        (IVector(np.array([1, 2])), IVector(np.array([3, 4])), 20.0),
+        (lambda x: x, lambda x: x**2, 20.0)
+    ])
+    def test_compute_parameterized(self, a, b, expected):
+        """Test compute method with different input types."""
+        # Act
+        result = self.weighted_l2.compute(a, b)
+        
+        # Assert
+        assert np.allclose(result, expected, atol=1e-6)

@@ -1,82 +1,99 @@
-from typing import Union
+from typing import Union, Optional
+import numpy as np
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.vectors.IVector import IVector
 
-# Define logger
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_model()
-class UseInnerProductMixin(ComponentBase, IUseInnerProduct):
+class UseInnerProductMixin(IUseInnerProduct, ComponentBase):
     """
-    A mixin class providing basic functionality for components that utilize inner product geometry.
-    This class should be inherited by components that require inner product operations.
-    It provides a base implementation that must be extended with concrete geometric logic.
+    A mixin class providing base implementation for components that use inner product geometry.
+
+    This class serves as a foundation for other components that require inner product functionality.
+    It implements the IUseInnerProduct interface by providing method signatures and basic structure,
+    while delegating the actual implementation to subclasses through abstract methods.
+
+    The class maintains a reference to an IInnerProduct implementation and provides logging functionality.
+    All methods raise NotImplementedError as this class is intended to be extended by concrete implementations.
     """
-    
+
+    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
+
     def __init__(self, inner_product: IInnerProduct):
         """
-        Initializes the UseInnerProductMixin with an inner product implementation.
+        Initialize the UseInnerProductMixin with an inner product implementation.
 
         Args:
-            inner_product: An instance of IInnerProduct to be used for geometric operations
+            inner_product: An instance of IInnerProduct that will be used for inner product operations
         """
         self.inner_product = inner_product
-        super().__init__()
 
-    def compute_angle(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> float:
+    def check_angle_between_vectors(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> float:
         """
-        Computes the angle between two vectors using the inner product.
-        
+        Computes and verifies the angle between two vectors using the inner product.
+
         Args:
-            a: First vector
-            b: Second vector
-            
-        Returns:
-            float: The angle between the two vectors in radians
-        """
-        logger.info("Computing angle between vectors")
-        raise NotImplementedError("Must implement compute_angle in subclass")
+            a: The first vector
+            b: The second vector
 
-    def compute_projection(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> Union[IVector, Matrix]:
+        Returns:
+            float: The angle in radians between the two vectors
+
+        Raises:
+            NotImplementedError: This method must be implemented in a subclass
+        """
+        logger.debug("Calculating angle between vectors")
+        raise NotImplementedError("Method must be implemented in a subclass")
+
+    def check_verify_orthogonality(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> None:
+        """
+        Verifies that two vectors are orthogonal using the inner product.
+
+        Args:
+            a: The first vector
+            b: The second vector
+
+        Raises:
+            NotImplementedError: This method must be implemented in a subclass
+        """
+        logger.debug("Checking orthogonality")
+        raise NotImplementedError("Method must be implemented in a subclass")
+
+    def check_xy_project(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> Union[IVector, np.ndarray]:
         """
         Projects vector a onto vector b using the inner product.
-        
-        Args:
-            a: Vector to project
-            b: Vector onto which to project
-            
-        Returns:
-            Union[IVector, Matrix]: Projection of a onto b
-        """
-        logger.info("Projecting vector a onto vector b")
-        raise NotImplementedError("Must implement compute_projection in subclass")
 
-    def compute_orthogonality(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
-        """
-        Checks if two vectors are orthogonal using the inner product.
-        
         Args:
-            a: First vector
-            b: Second vector
-            
-        Returns:
-            bool: True if vectors are orthogonal, False otherwise
-        """
-        logger.info("Checking orthogonality")
-        raise NotImplementedError("Must implement compute_orthogonality in subclass")
+            a: The vector to project
+            b: The vector onto which to project
 
-    def compute_parallelogram_law(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
+        Returns:
+            Union[IVector, np.ndarray]: The projection of a onto b
+
+        Raises:
+            NotImplementedError: This method must be implemented in a subclass
+        """
+        logger.debug("Projecting vector a onto vector b")
+        raise NotImplementedError("Method must be implemented in a subclass")
+
+    def check_verify_parallelogram_law(self, a: Union[IVector, np.ndarray], b: Union[IVector, np.ndarray]) -> None:
         """
         Verifies the parallelogram law using the inner product.
-        
+
+        The parallelogram law states that:
+        ||a + b||^2 + ||a - b||^2 = 2(||a||^2 + ||b||^2)
+
         Args:
-            a: First vector
-            b: Second vector
-            
-        Returns:
-            bool: True if parallelogram law holds, False otherwise
+            a: The first vector
+            b: The second vector
+
+        Raises:
+            NotImplementedError: This method must be implemented in a subclass
         """
-        logger.info("Checking parallelogram law")
-        raise NotImplementedError("Must implement compute_parallelogram_law in subclass")
+        logger.debug("Verifying parallelogram law")
+        raise NotImplementedError("Method must be implemented in a subclass")

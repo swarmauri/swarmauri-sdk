@@ -2,159 +2,147 @@ from typing import Union, Literal
 import numpy as np
 import logging
 
-# Define logger
-logger = logging.getLogger(__name__)
+from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
-from swarmauri_base.ComponentBase import ComponentBase
-from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "FrobeniusComplexInnerProduct")
 class FrobeniusComplexInnerProduct(InnerProductBase):
     """
-    A class that implements the Frobenius inner product for complex matrices.
+    Provides a concrete implementation of the Frobenius inner product for complex matrices.
+    Inherits from the InnerProductBase class and implements the compute method
+    to calculate the trace-based inner product with conjugate symmetry.
 
-    This class provides functionality to compute the Frobenius inner product, which is
-    based on the trace of the product of the conjugate transpose of the first matrix
-    and the second matrix. It inherits from the InnerProductBase class and implements
-    the required methods for computing and validating the inner product properties.
-
-    Attributes:
-        type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
-            The type identifier for this inner product implementation.
-
-    Methods:
-        compute: Computes the Frobenius inner product between two complex matrices.
-        check_conjugate_symmetry: Verifies the conjugate symmetry property of the inner product.
-        check_linearity_first_argument: Checks if the inner product is linear in the first argument.
-        check_positivity: Validates the positive definiteness of the inner product.
+    The Frobenius inner product is defined as the trace of the product of one matrix
+    with the conjugate transpose of the other. It is a commonly used inner product
+    for complex matrices and ensures conjugate symmetry.
     """
-
     type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
 
-    def compute(
-        self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]
-    ) -> Union[float, complex]:
+    def __init__(self) -> None:
+        """
+        Initializes the FrobeniusComplexInnerProduct instance.
+        """
+        super().__init__()
+        logger.debug("FrobeniusComplexInnerProduct instance initialized")
+
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
         """
         Computes the Frobenius inner product between two complex matrices.
 
-        The Frobenius inner product is computed as the trace of the product of the
-        conjugate transpose of the first matrix and the second matrix. This is
-        equivalent to summing the element-wise products of the matrices.
+        The Frobenius inner product is defined as:
+        <A, B> = trace(A * B^H)
+        where B^H is the conjugate transpose of B.
 
         Args:
-            a: The first complex matrix.
-            b: The second complex matrix.
+            a: The first complex matrix (numpy.ndarray or IVector)
+            b: The second complex matrix (numpy.ndarray or IVector)
 
         Returns:
-            Union[float, complex]: The result of the Frobenius inner product computation.
+            float: The result of the Frobenius inner product operation.
 
         Raises:
-            ValueError: If the input matrices are not compatible for the inner product computation.
+            ValueError: If the input matrices are not compatible for multiplication
+            ZeroDivisionError: If any operation leads to division by zero
         """
-        logger.debug("Computing Frobenius inner product for complex matrices")
+        logger.debug("Computing Frobenius inner product")
 
         # Ensure inputs are numpy arrays
-        if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
-            raise ValueError("Inputs must be numpy arrays")
+        if not isinstance(a, np.ndarray):
+            a = a.to_numpy()
+        if not isinstance(b, np.ndarray):
+            b = b.to_numpy()
 
-        # Compute the conjugate transpose of matrix a
-        a_conj_transpose = a.conj().T
+        # Check if matrices can be multiplied
+        if a.shape[1] != b.shape[0]:
+            raise ValueError("Incompatible dimensions for matrix multiplication")
 
-        # Compute the product of a_conj_transpose and b
-        product_matrix = a_conj_transpose @ b
+        # Compute conjugate transpose of b
+        b_conj_transpose = b.conj().T
 
-        # Compute the trace of the product matrix
-        trace = np.trace(product_matrix)
+        # Compute element-wise product and trace
+        product = np.multiply(a, b_conj_transpose)
+        trace = np.trace(product)
 
-        logger.debug(f"Frobenius inner product result: {trace}")
-        return trace
+        return float(trace)
 
-    def check_conjugate_symmetry(
-        self, a: Union[np.ndarray, object], b: Union[np.ndarray, object]
-    ) -> bool:
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product satisfies conjugate symmetry.
+        Verifies the conjugate symmetry property for the Frobenius inner product.
 
-        Conjugate symmetry requires that <a, b> = conj(<b, a>). This method computes
-        both inner products and checks for their conjugate symmetry.
+        For complex matrices A and B, the inner product should satisfy:
+        <A, B> = conjugate(<B, A>)
 
         Args:
-            a: The first element to check.
-            b: The second element to check.
+            a: The first complex matrix
+            b: The second complex matrix
 
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise.
+        Raises:
+            ValueError: If conjugate symmetry is not satisfied
         """
         logger.debug("Checking conjugate symmetry")
 
-        # Compute <a, b>
-        inner_product_ab = self.compute(a, b)
+        # Compute inner products
+        inner_ab = self.compute(a, b)
+        inner_ba = self.compute(b, a)
 
-        # Compute <b, a> and take its conjugate
-        inner_product_ba = self.compute(b, a)
-        inner_product_ba_conj = np.conj(inner_product_ba)
+        # Check conjugate symmetry
+        if not np.isclose(inner_ab, inner_ba.conjugate(), rtol=1e-4):
+            raise ValueError("Conjugate symmetry not satisfied")
 
-        # Check if <a, b> equals the conjugate of <b, a>
-        return np.isclose(inner_product_ab, inner_product_ba_conj)
-
-    def check_linearity_first_argument(
-        self,
-        a: Union[np.ndarray, object],
-        b: Union[np.ndarray, object],
-        c: Union[np.ndarray, object],
-    ) -> bool:
+    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product is linear in the first argument.
+        Verifies the linearity property in the first argument of the inner product.
 
-        Linearity in the first argument requires that for any matrices a, b, c and
-        scalar k, <a + c, b> = <a, b> + <c, b> and <k*a, b> = k*<a, b>.
+        For complex matrices A, B, C and scalar α:
+        - Linearity: <A + B, C> = <A, C> + <B, C>
+        - Homogeneity: <αA, C> = α <A, C>
 
         Args:
-            a: The first matrix for linearity check.
-            b: The second matrix for linearity check.
-            c: The third matrix for linearity check.
+            a: The first complex matrix
+            b: The second complex matrix
+            c: The third complex matrix
 
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise.
+        Raises:
+            ValueError: If linearity in the first argument is not satisfied
         """
-        logger.debug("Checking linearity in the first argument")
+        logger.debug("Checking linearity in first argument")
 
-        # Test additivity: <a + c, b> = <a, b> + <c, b>
-        additivity_result = self.compute(a + c, b)
-        expected_additivity = self.compute(a, b) + self.compute(c, b)
+        # Test linearity: <a + b, c> = <a, c> + <b, c>
+        ab = a + b
+        inner_ab_c = self.compute(ab, c)
+        inner_a_c = self.compute(a, c)
+        inner_b_c = self.compute(b, c)
 
-        # Test homogeneity: <k*a, b> = k*<a, b> for some scalar k
-        # Choose k = 2.0 for testing
-        k = 2.0
-        homogeneity_result = self.compute(k * a, b)
-        expected_homogeneity = k * self.compute(a, b)
+        if not np.isclose(inner_ab_c, inner_a_c + inner_b_c, rtol=1e-4):
+            raise ValueError("Linearity in first argument not satisfied")
 
-        # Check both conditions
-        return np.isclose(additivity_result, expected_additivity) and np.isclose(
-            homogeneity_result, expected_homogeneity
-        )
+        # Test homogeneity: <αa, c> = α <a, c>
+        alpha = 2.0
+        a_scaled = alpha * a
+        inner_scaled = self.compute(a_scaled, c)
+        expected = alpha * inner_a_c
 
-    def check_positivity(self, a: Union[np.ndarray, object]) -> bool:
+        if not np.isclose(inner_scaled, expected, rtol=1e-4):
+            raise ValueError("Homogeneity in first argument not satisfied")
+
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product satisfies positive definiteness.
+        Verifies the positivity property of the inner product.
 
-        Positive definiteness requires that for any non-zero matrix a, <a, a> > 0.
-        For the zero matrix, <a, a> = 0.
+        For any non-zero complex matrix A:
+        - <A, A> > 0
 
         Args:
-            a: The matrix to check for positivity.
+            a: The complex matrix to check for positivity
 
-        Returns:
-            bool: True if positivity holds, False otherwise.
+        Raises:
+            ValueError: If the positivity property is not satisfied
         """
         logger.debug("Checking positivity")
 
-        # Compute <a, a>
-        inner_product_aa = self.compute(a, a)
+        inner_aa = self.compute(a, a)
 
-        # Check if the result is positive (and not zero for non-zero a)
-        if np.allclose(a, np.zeros_like(a)):
-            return inner_product_aa == 0
-        else:
-            return inner_product_aa > 0
+        if inner_aa <= 0:
+            raise ValueError(f"Positivity not satisfied. Inner product <a, a> = {inner_aa}")

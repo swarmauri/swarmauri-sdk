@@ -1,125 +1,155 @@
-from typing import Union, List, Any
+from typing import Union, List, Literal, Optional
 from abc import ABC
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 
 logger = logging.getLogger(__name__)
 
 
+@ComponentBase.register_type(PseudometricBase, "ZeroPseudometric")
 class ZeroPseudometric(PseudometricBase):
     """
-    A trivial pseudometric that assigns zero distance between all pairs of points.
+    A trivial pseudometric where all distances are zero.
 
     This class implements a pseudometric space where the distance between any two
-    points is always zero. This satisfies all the pseudometric axioms trivially.
+    points is always zero. It satisfies all pseudometric axioms trivially.
 
-    Inherits:
-        PseudometricBase: Base class for pseudometric implementations
+    Attributes:
+        resource: str - The resource type identifier for this component
+        type: Literal["ZeroPseudometric"] - The type identifier for this pseudometric
+
+    Methods:
+        distance: Computes the distance between two elements
+        distances: Computes distances from a single element to multiple elements
+        check_non_negativity: Verifies the non-negativity property
+        check_symmetry: Verifies the symmetry property
+        check_triangle_inequality: Verifies the triangle inequality property
+        check_weak_identity: Verifies the weak identity property
     """
-
     type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
+    resource: str = "PSEUDOMETRIC"
 
-    def distance(self, x: Union[Any], y: Union[Any]) -> float:
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> float:
         """
-        Calculate the distance between two elements in the pseudometric space.
+        Computes the distance between two elements.
 
-        Since this is a zero pseudometric, the distance will always be 0.0
-        regardless of the input.
+        Since this is a trivial pseudometric, the distance is always 0.0.
 
         Args:
-            x: The first element to measure distance from
-            y: The second element to measure distance to
+            x: First element to compute distance from
+            y: Second element to compute distance to
 
         Returns:
-            float: The distance between x and y, which is always 0.0
+            float: Distance between x and y (always 0.0)
         """
-        logger.debug("Calculating zero distance between two points")
+        logger.debug(f"Computing zero distance between {x} and {y}")
         return 0.0
 
     def distances(
-        self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
     ) -> List[float]:
         """
-        Calculate distances from a single element to a list of elements.
+        Computes distances from a single element to multiple elements.
 
-        Since this is a zero pseudometric, all distances will be 0.0
-        regardless of the input.
+        Since this is a trivial pseudometric, all distances will be 0.0.
 
         Args:
-            x: The reference element
-            y_list: List or tuple of elements to measure distances to
+            x: Reference element
+            y_list: List of elements to compute distances to
 
         Returns:
-            List[float]: List of distances from x to each element in y_list,
-                         which will all be 0.0
+            List[float]: List of distances from x to each element in y_list (all zeros)
         """
-        logger.debug("Calculating zero distances from one point to multiple points")
+        logger.debug(f"Computing zero distances from {x} to {y_list}")
         return [0.0] * len(y_list)
 
-    def check_non_negativity(self, x: Union[Any], y: Union[Any]) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
         """
-        Check if the distance satisfies non-negativity: d(x,y) ≥ 0.
+        Verifies the non-negativity property: d(x,y) ≥ 0.
 
-        Since the distance is always 0.0, this condition is always satisfied.
+        Since the distance is always 0, this property trivially holds.
 
         Args:
-            x: The first element
-            y: The second element
+            x: First element
+            y: Second element
 
         Returns:
-            bool: True, as distance is always non-negative
+            bool: True if non-negativity holds, False otherwise
         """
-        logger.debug("Checking non-negativity condition")
+        logger.debug(f"Checking non-negativity for {x} and {y}")
         return True
 
-    def check_symmetry(self, x: Union[Any], y: Union[Any]) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
         """
-        Check if the distance satisfies symmetry: d(x,y) = d(y,x).
+        Verifies the symmetry property: d(x,y) = d(y,x).
 
-        Since the distance is always 0.0, this condition is always satisfied.
+        Since all distances are 0, this property trivially holds.
 
         Args:
-            x: The first element
-            y: The second element
+            x: First element
+            y: Second element
 
         Returns:
-            bool: True, as distance is symmetric
+            bool: True if symmetry holds, False otherwise
         """
-        logger.debug("Checking symmetry condition")
+        logger.debug(f"Checking symmetry for {x} and {y}")
         return True
 
     def check_triangle_inequality(
-        self, x: Union[Any], y: Union[Any], z: Union[Any]
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+        z: Union[IVector, IMatrix, List[float], str, Callable]
     ) -> bool:
         """
-        Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
 
-        Since all distances are 0.0, this condition is always satisfied:
-        0.0 ≤ 0.0 + 0.0
+        Since all distances are 0, this property trivially holds.
 
         Args:
-            x: The first element
-            y: The second element
-            z: The third element
+            x: First element
+            y: Second element
+            z: Third element
 
         Returns:
-            bool: True, as triangle inequality holds
+            bool: True if triangle inequality holds, False otherwise
         """
-        logger.debug("Checking triangle inequality condition")
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
         return True
 
-    def check_weak_identity(self, x: Union[Any], y: Union[Any]) -> bool:
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
         """
-        Check if the distance satisfies weak identity of indiscernibles:
-        d(x,y) = 0 if and only if x and y are not distinguishable.
+        Verifies weak identity property: d(x,y) = 0 does not imply x = y.
 
-        Since the distance is always 0.0, this condition is trivially satisfied.
+        This property holds for this pseudometric since the distance being zero
+        does not provide any information about the equality of x and y.
 
         Args:
-            x: The first element
-            y: The second element
+            x: First element
+            y: Second element
 
         Returns:
-            bool: True, as distance is always zero
+            bool: True if weak identity holds, False otherwise
         """
-        logger.debug("Checking weak identity condition")
+        logger.debug(f"Checking weak identity for {x} and {y}")
         return True

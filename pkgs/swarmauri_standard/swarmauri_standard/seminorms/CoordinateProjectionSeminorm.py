@@ -1,10 +1,10 @@
-from typing import Union, Sequence, Tuple, Optional, Literal
-from abc import ABC
-from swarmauri_core.seminorms.ISeminorm import ISeminorm
-from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+from typing import Union, Optional, List
 import logging
-from ..ComponentBase import ComponentBase
+import numpy as np
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.seminorms import SeminormBase
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
@@ -12,122 +12,107 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SeminormBase, "CoordinateProjectionSeminorm")
 class CoordinateProjectionSeminorm(SeminormBase):
     """
-    A seminorm that projects the input onto a specified subset of coordinates.
-
-    This class implements a seminorm that projects the input vector onto a specified
-    subset of coordinates before computing the norm. The projection operation can
-    lead to degeneracy since certain components of the vector are ignored.
-
+    A seminorm implementation that computes the seminorm by projecting onto a specified subset of coordinates.
+    
+    This class provides functionality to ignore certain components of the vector, potentially leading to a degenerate seminorm.
+    
     Attributes:
-        _projection_indices: A tuple of indices to project onto.
+        projection_indices: List[int] - The indices of the coordinates to project onto
     """
-
-    type: Literal["CoordinateProjectionSeminorm"] = "CoordinateProjectionSeminorm"
-
-    def __init__(self, projection_indices: Sequence[int]):
+    def __init__(self, projection_indices: List[int] = None):
         """
-        Initialize the CoordinateProjectionSeminorm instance.
-
+        Initializes the CoordinateProjectionSeminorm instance with specified projection indices.
+        
         Args:
-            projection_indices: A sequence of indices to project onto.
+            projection_indices: List[int] - Optional list of indices to project onto. If None, all coordinates are used.
         """
         super().__init__()
-        self._projection_indices = tuple(projection_indices)
-        logger.debug(
-            "Initialized CoordinateProjectionSeminorm with projection indices: %s",
-            self._projection_indices,
-        )
+        self.projection_indices = projection_indices if projection_indices is not None else []
+        logger.debug(f"Initialized CoordinateProjectionSeminorm with projection indices {self.projection_indices}")
 
-    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def compute(self, input: Union[IVector, str, Callable, list, tuple]) -> float:
         """
-        Compute the seminorm of the given input by projecting onto the specified coordinates.
-
+        Computes the seminorm value of the input by projecting onto the specified coordinates.
+        
         Args:
-            input: The input to compute the seminorm for. Can be a vector, matrix, or sequence.
-
+            input: The input to compute the seminorm for. Currently supports IVector and other types are forwarded to base class.
+            
         Returns:
-            float: The computed seminorm value.
-
+            float: The computed seminorm value
+            
         Raises:
-            ValueError: If the input type is not supported.
-            TypeError: If the input is of incorrect type.
+            NotImplementedError: If input type is not supported
         """
-        logger.debug("Computing seminorm for input: %s", input)
-
+        logger.debug(f"Computing seminorm for input of type {type(input).__name__}")
+        
         if isinstance(input, IVector):
-            projected_input = input.values[:, self._projection_indices]
-        elif isinstance(input, IMatrix):
-            projected_input = input.values[:, self._projection_indices]
-        elif isinstance(input, Sequence):
-            projected_input = [input[i] for i in self._projection_indices]
-        else:
-            raise ValueError(f"Unsupported input type: {type(input)}")
+            if not self.projection_indices:
+                # If no projection indices are specified, use all coordinates
+                vector = input.data
+            else:
+                # Project the vector onto the specified coordinates
+                vector = input.data[self.projection_indices]
+            
+            # Compute the L2 norm of the projected vector
+            return np.linalg.norm(vector)
+        
+        # For other input types, defer to base class implementation
+        return super().compute(input)
 
-        # Compute the norm of the projected input
-        return self._compute_norm(projected_input)
-
-    def _compute_norm(self, vector: Union[Sequence[float], IMatrix]) -> float:
+    def check_triangle_inequality(self, a: Union[IVector, str, Callable, list, tuple],
+                                  b: Union[IVector, str, Callable, list, tuple]) -> bool:
         """
-        Compute the Euclidean norm of the projected vector.
-
+        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
+        
         Args:
-            vector: The projected vector to compute the norm for.
-
+            a: First element to check
+            b: Second element to check
+            
         Returns:
-            float: The computed norm value.
+            bool: True if triangle inequality holds, False otherwise
         """
-        # Default implementation uses L2 norm
-        # Subclasses can override this for different norms
-        return sum(x**2 for x in vector) ** 0.5
-
-    def check_triangle_inequality(
-        self, a: Union[IVector, IMatrix, Sequence], b: Union[IVector, IMatrix, Sequence]
-    ) -> bool:
-        """
-        Check if the triangle inequality holds for the projected inputs.
-
-        Args:
-            a: The first input to check.
-            b: The second input to check.
-
-        Returns:
-            bool: True if the triangle inequality holds, False otherwise.
-        """
-        logger.debug("Checking triangle inequality for projected inputs")
-
+        logger.debug("Checking triangle inequality")
+        
         seminorm_a = self.compute(a)
         seminorm_b = self.compute(b)
         seminorm_a_plus_b = self.compute(a + b)
-
+        
         return seminorm_a_plus_b <= seminorm_a + seminorm_b
 
-    def check_scalar_homogeneity(
-        self, input: Union[IVector, IMatrix, Sequence], scalar: float
-    ) -> bool:
+    def check_scalar_homogeneity(self, a: Union[IVector, str, Callable, list, tuple],
+                               scalar: Union[int, float]) -> bool:
         """
-        Check if the seminorm satisfies scalar homogeneity for the projected input.
-
+        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
+        
         Args:
-            input: The input to check.
-            scalar: The scalar to scale the input by.
-
+            a: Element to check
+            scalar: Scalar value to scale with
+            
         Returns:
-            bool: True if scalar homogeneity holds, False otherwise.
+            bool: True if scalar homogeneity holds, False otherwise
         """
-        logger.debug("Checking scalar homogeneity for projected input")
+        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
+        
+        scaled_a = scalar * a
+        seminorm_scaled = self.compute(scaled_a)
+        seminorm_original = self.compute(a)
+        
+        return np.isclose(seminorm_scaled, abs(scalar) * seminorm_original)
 
-        original_seminorm = self.compute(input)
-        scaled_input = scalar * input
-        scaled_seminorm = self.compute(scaled_input)
-
-        return abs(scaled_seminorm - abs(scalar) * original_seminorm) < 1e-9
-
-    @property
-    def projection_indices(self) -> Tuple[int]:
+    def __str__(self) -> str:
         """
-        Get the indices used for projection.
-
+        Returns a string representation of the CoordinateProjectionSeminorm instance.
+        
         Returns:
-            Tuple[int]: The indices used for projection.
+            str: String representation
         """
-        return self._projection_indices
+        return f"CoordinateProjectionSeminorm(projection_indices={self.projection_indices})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the CoordinateProjectionSeminorm instance.
+        
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

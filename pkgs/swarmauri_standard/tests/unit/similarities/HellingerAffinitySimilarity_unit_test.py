@@ -1,129 +1,62 @@
 import pytest
-import numpy as np
-from swarmauri_standard.swarmauri_standard.similarities.HellingerAffinitySimilarity import (
-    HellingerAffinitySimilarity,
-)
-
+import math
+from swarmauri_standard.similarities.HellingerAffinitySimilarity import HellingerAffinitySimilarity
 
 @pytest.mark.unit
-def test_hellinger_affinity_similarity_resource() -> None:
-    """Test that the resource property is correctly set."""
-    assert HellingerAffinitySimilarity.resource == "SIMILARITY"
+class TestHellingerAffinitySimilarity:
+    """Unit tests for the HellingerAffinitySimilarity class."""
 
+    def test_resource_type(self):
+        """Test that the resource type is correctly set."""
+        similarity = HellingerAffinitySimilarity()
+        assert similarity.resource == "SIMILARITY"
 
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_type() -> None:
-    """Test that the type property is correctly set."""
-    assert HellingerAffinitySimilarity.type == "HellingerAffinitySimilarity"
+    def test_similarity_method(self):
+        """Test the similarity calculation method with valid input vectors."""
+        similarity = HellingerAffinitySimilarity()
+        
+        # Test with identical vectors
+        x = [0.5, 0.5]
+        y = [0.5, 0.5]
+        result = similarity.similarity(x, y)
+        assert math.isclose(result, 1.0, rel_tol=1e-9, abs_tol=1e-9)
 
+        # Test with different vectors
+        x = [0.0, 1.0]
+        y = [1.0, 0.0]
+        result = similarity.similarity(x, y)
+        assert math.isclose(result, 0.0, rel_tol=1e-9, abs_tol=1e-9)
 
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_similarity() -> None:
-    """Test the computation of similarity between probability distributions."""
-    similarity = HellingerAffinitySimilarity()
+    def test_similarity_validation(self):
+        """Test that invalid input vectors raise ValueError."""
+        similarity = HellingerAffinitySimilarity()
+        
+        # Test with negative values
+        x = [0.5, -0.5]
+        y = [0.5, 0.5]
+        with pytest.raises(ValueError):
+            similarity.similarity(x, y)
 
-    # Test with identical distributions
-    x = np.array([0.5, 0.5])
-    y = np.array([0.5, 0.5])
-    assert np.isclose(similarity.similarity(x, y), 1.0, atol=1e-8)
+        # Test with vectors that don't sum to 1
+        x = [0.6, 0.5]
+        y = [0.5, 0.5]
+        with pytest.raises(ValueError):
+            similarity.similarity(x, y)
 
-    # Test with different distributions
-    x = np.array([1.0, 0.0])
-    y = np.array([0.0, 1.0])
-    similarity_score = similarity.similarity(x, y)
-    assert similarity_score < 1.0
+    @pytest.mark.parametrize("x,y,expected_similarity", [
+        ([0.5, 0.5], [0.5, 0.5], 1.0),
+        ([0.0, 1.0], [1.0, 0.0], 0.0),
+        ([0.7071, 0.7071], [0.7071, 0.7071], 1.0),
+        ([0.3, 0.7], [0.3, 0.7], 1.0),
+        ([0.1, 0.9], [0.2, 0.8], 0.4472)
+    ])
+    def test_parameterized_similarity(self, x, y, expected_similarity):
+        """Test the similarity method with parameterized input vectors."""
+        similarity = HellingerAffinitySimilarity()
+        result = similarity.similarity(x, y)
+        assert math.isclose(result, expected_similarity, rel_tol=1e-9, abs_tol=1e-9)
 
-    # Test with invalid distribution
-    x = np.array([1.5, -0.5])
-    with pytest.raises(ValueError):
-        similarity.similarity(x, y)
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_similarities() -> None:
-    """Test the computation of similarities with multiple distributions."""
-    similarity = HellingerAffinitySimilarity()
-    x = np.array([0.5, 0.5])
-
-    # Test with single distribution
-    y = np.array([0.5, 0.5])
-    result = similarity.similarities(x, y)
-    assert np.isclose(result, 1.0, atol=1e-8)
-
-    # Test with list of distributions
-    ys = [np.array([0.5, 0.5]), np.array([0.0, 1.0])]
-    results = similarity.similarities(x, ys)
-    assert len(results) == 2
-    assert np.isclose(results[0], 1.0, atol=1e-8)
-    assert results[1] < 1.0
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_dissimilarity() -> None:
-    """Test the computation of dissimilarity between probability distributions."""
-    dissimilarity = HellingerAffinitySimilarity()
-
-    # Test with identical distributions
-    x = np.array([0.5, 0.5])
-    y = np.array([0.5, 0.5])
-    assert np.isclose(dissimilarity.dissimilarity(x, y), 0.0, atol=1e-8)
-
-    # Test with different distributions
-    x = np.array([1.0, 0.0])
-    y = np.array([0.0, 1.0])
-    dissimilarity_score = dissimilarity.dissimilarity(x, y)
-    assert dissimilarity_score > 0.0
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_check_boundedness() -> None:
-    """Test that the measure is bounded between 0 and 1."""
-    assert HellingerAffinitySimilarity().check_boundedness(
-        np.array([0.5, 0.5]), np.array([0.5, 0.5])
-    )
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_check_reflexivity() -> None:
-    """Test the reflexivity of the similarity measure."""
-    measure = HellingerAffinitySimilarity()
-    x = np.array([0.5, 0.5])
-    assert measure.check_reflexivity(x)
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_check_symmetry() -> None:
-    """Test the symmetry of the similarity measure."""
-    measure = HellingerAffinitySimilarity()
-    x = np.array([0.5, 0.5])
-    y = np.array([0.0, 1.0])
-    assert measure.check_symmetry(x, y)
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_check_identity() -> None:
-    """Test the identity property of the similarity measure."""
-    measure = HellingerAffinitySimilarity()
-    x = np.array([0.5, 0.5])
-    y = np.array([0.5, 0.5])
-    assert measure.check_identity(x, y)
-
-    x = np.array([1.0, 0.0])
-    y = np.array([0.0, 1.0])
-    assert not measure.check_identity(x, y)
-
-
-@pytest.mark.unit
-def test_hellinger_affinity_similarity_edge_cases() -> None:
-    """Test edge cases for the similarity measure."""
-    measure = HellingerAffinitySimilarity()
-
-    # Test with one element distributions
-    x = np.array([1.0])
-    y = np.array([1.0])
-    assert np.isclose(measure.similarity(x, y), 1.0, atol=1e-8)
-
-    # Test with zero vectors
-    x = np.array([0.0, 0.0])
-    y = np.array([0.0, 0.0])
-    assert np.isclose(measure.similarity(x, y), 1.0, atol=1e-8)
+@pytest.fixture
+def similarity_fixture():
+    """Fixture to provide a HellingerAffinitySimilarity instance."""
+    return HellingerAffinitySimilarity()

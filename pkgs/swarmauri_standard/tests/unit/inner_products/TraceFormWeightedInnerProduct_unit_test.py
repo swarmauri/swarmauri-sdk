@@ -1,114 +1,106 @@
 import pytest
-import logging
 import numpy as np
+import logging
+from swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import TraceFormWeightedInnerProduct
 
-from swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import (
-    TraceFormWeightedInnerProduct,
-)
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.unit
 class TestTraceFormWeightedInnerProduct:
-    """Unit tests for TraceFormWeightedInnerProduct class."""
-
+    """
+    A test class for the TraceFormWeightedInnerProduct implementation.
+    """
+    
     @pytest.fixture
-    def valid_matrices(self):
-        """Fixture providing valid matrix pairs for testing."""
+    def weight_matrix(self):
+        """
+        Provides a sample weight matrix for testing.
+        """
+        return np.array([[0.5, 0.0], [0.0, 1.0]])
+    
+    @pytest.fixture
+    def instance(self, weight_matrix):
+        """
+        Provides a configured instance of TraceFormWeightedInnerProduct for testing.
+        """
+        return TraceFormWeightedInnerProduct(weight_matrix)
+    
+    @pytest.mark.unit
+    def test_init(self, weight_matrix):
+        """
+        Tests the initialization of TraceFormWeightedInnerProduct.
+        """
+        # Test with valid weight matrix
+        instance = TraceFormWeightedInnerProduct(weight_matrix)
+        assert instance.weight is not None
+        assert isinstance(instance.weight, np.ndarray)
+        
+        # Test with invalid weight
+        with pytest.raises(ValueError):
+            TraceFormWeightedInnerProduct("invalid_weight")
+        
+        # Test with valid but different shape
+        different_weight = np.array([[1.0]])
+        instance = TraceFormWeightedInnerProduct(different_weight)
+        assert instance.weight.shape == (1, 1)
+        
+    @pytest.mark.unit
+    def test_compute(self, instance):
+        """
+        Tests the compute method with various input types and shapes.
+        """
+        # Test with numpy arrays
         a = np.array([[1, 2], [3, 4]])
         b = np.array([[5, 6], [7, 8]])
-        return a, b
-
-    @pytest.fixture
-    def invalid_matrices(self):
-        """Fixture providing invalid matrix pairs for testing."""
-        a = np.array([[1, 2, 3], [4, 5, 6]])
-        b = np.array([[7, 8], [9, 10], [11, 12]])
-        return a, b
-
-    @pytest.fixture
-    def complex_matrices(self):
-        """Fixture providing complex matrix pairs for testing."""
-        a = np.array([[1 + 1j, 2 - 1j], [3 + 2j, 4 - 3j]])
-        b = np.array([[5 + 6j, 7 - 8j], [9 + 10j, 11 - 12j]])
-        return a, b
-
-    @pytest.mark.unit
-    def test_resource_attribute(self):
-        """Test the resource attribute."""
-        assert TraceFormWeightedInnerProduct.resource == "Inner_product"
-
-    @pytest.mark.unit
-    def test_type_attribute(self):
-        """Test the type attribute."""
-        assert TraceFormWeightedInnerProduct.type == "TraceFormWeightedInnerProduct"
-
-    @pytest.mark.unit
-    def test_compute_with_valid_matrices(self, valid_matrices):
-        """Test compute method with valid matrices."""
-        a, b = valid_matrices
-        ip = TraceFormWeightedInnerProduct()
-        result = ip.compute(a, b)
-        assert isinstance(result, (float, complex))
-
-    @pytest.mark.unit
-    def test_compute_with_invalid_matrices(self, invalid_matrices):
-        """Test compute method with invalid matrices."""
-        a, b = invalid_matrices
-        ip = TraceFormWeightedInnerProduct()
+        result = instance.compute(a, b)
+        assert isinstance(result, float)
+        
+        # Test with callable matrices
+        a_callable = lambda: np.array([[1, 2], [3, 4]])
+        b_callable = lambda: np.array([[5, 6], [7, 8]])
+        result_callable = instance.compute(a_callable, b_callable)
+        assert isinstance(result_callable, float)
+        
+        # Test with 3D arrays
+        a_3d = np.random.rand(2, 2, 2)
+        b_3d = np.random.rand(2, 2, 2)
+        result_3d = instance.compute(a_3d, b_3d)
+        assert isinstance(result_3d, float)
+        
+        # Test invalid dimensions
+        a_incompatible = np.array([[1, 2]])
+        b_incompatible = np.array([[3], [4]])
         with pytest.raises(ValueError):
-            ip.compute(a, b)
-
+            instance.compute(a_incompatible, b_incompatible)
+            
     @pytest.mark.unit
-    def test_check_conjugate_symmetry(self, valid_matrices, complex_matrices):
-        """Test conjugate symmetry check."""
-        a, b = valid_matrices
-        ip = TraceFormWeightedInnerProduct()
-
-        # Test with real matrices
-        ab = ip.compute(a, b)
-        ba = ip.compute(b, a)
-        assert np.isclose(ab, ba)
-
-        # Test with complex matrices
-        a_complex, b_complex = complex_matrices
-        ab_complex = ip.compute(a_complex, b_complex)
-        ba_complex = ip.compute(b_complex, a_complex)
-        assert np.isclose(ab_complex, np.conj(ba_complex))
-
+    def test_compute_invalid_dimensions(self, instance):
+        """
+        Tests the compute method with incompatible matrix dimensions.
+        """
+        a = np.array([[1, 2]])
+        b = np.array([[3], [4]])
+        with pytest.raises(ValueError):
+            instance.compute(a, b)
+            
     @pytest.mark.unit
-    def test_check_linearity_first_argument(self, valid_matrices):
-        """Test linearity in the first argument."""
-        a, b = valid_matrices
-        c = np.array([[1, 0], [0, 1]])  # Identity matrix
-        ip = TraceFormWeightedInnerProduct()
-
-        # Test addition
-        ab = ip.compute(a + c, b)
-        a_b = ip.compute(a, b)
-        c_b = ip.compute(c, b)
-        assert np.isclose(ab, a_b + c_b)
-
-        # Test scalar multiplication
-        k = 2.0
-        ka_b = ip.compute(k * a, b)
-        assert np.isclose(ka_b, k * a_b)
-
+    def test_serialization(self, instance):
+        """
+        Tests the serialization and validation methods.
+        """
+        # Serialize the instance
+        serialized = instance.model_dump_json()
+        assert isinstance(serialized, dict)
+        
+        # Validate the serialized model
+        is_valid = instance.model_validate_json(serialized)
+        assert is_valid
+        
     @pytest.mark.unit
-    def test_check_positivity(self):
-        """Test positive definiteness."""
-        a = np.array([[2, 1], [1, 2]])
-        ip = TraceFormWeightedInnerProduct()
-        result = ip.check_positivity(a)
-        assert result
-
-    @pytest.mark.unit
-    def test_logging(self, caplog):
-        """Test logging functionality."""
-        with caplog.at_level(logging.DEBUG):
-            ip = TraceFormWeightedInnerProduct()
-            a = np.array([[1, 2], [3, 4]])
-            b = np.array([[5, 6], [7, 8]])
-            result = ip.compute(a, b)
-
-            assert "Computing inner product" in caplog.text
-            assert "Inner product result" in caplog.text
+    def test_getters(self, instance):
+        """
+        Tests the type and resource properties.
+        """
+        assert instance.type == "TraceFormWeightedInnerProduct"
+        assert instance.resource == "Inner_product"

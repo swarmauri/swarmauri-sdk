@@ -1,301 +1,226 @@
-from typing import Any, Tuple, Optional, Union, Type
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.tensors.ITensor import ITensor
-from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+from typing import Tuple, Union, List, Optional
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.tensors.ITensor import ITensor
 
 logger = logging.getLogger(__name__)
 
 @ComponentBase.register_model()
 class TensorBase(ITensor, ComponentBase):
     """
-    A base implementation of the ITensor interface providing basic tensor operations.
+    Base implementation of the ITensor interface. This class provides a foundation
+    for implementing tensor operations, including basic structure and logging
+    functionality. All methods raise NotImplementedError and are intended to be
+    overridden in derived classes.
 
-    This class provides a foundational structure for tensor operations, including
-    indexing, shape manipulation, and basic tensor arithmetic. It is designed to be
-    extended by specific tensor implementations.
-
-    All methods in this class are abstract and raise NotImplementedError. Subclasses
-    should implement these methods according to their specific requirements.
+    Attributes:
+        shape (Tuple[int, ...]): The shape of the tensor
+        dtype (type): The data type of the elements in the tensor
+        resource (Optional[str]): Resource identifier for the tensor
     """
-    resource: Optional[str] = Field(default=ComponentBase.ResourceTypes.TENSOR.value)
+    resource: Optional[str] = Field(default=ResourceTypes.TENSOR.value)
 
-    def __getitem__(self, index: Union[Tuple[int, ...], int, slice, ...]) -> Union['ITensor', IMatrix, IVector, Any]:
+    def __init__(self):
         """
-        Get item from tensor using indexing or slicing.
-
-        Args:
-            index: Index or slice to access elements. Can be a tuple of integers,
-                single integer, slice object, or a tuple of slices/ints.
-
-        Returns:
-            Union[ITensor, IMatrix, IVector, Any]: The accessed element(s). Returns a
-            new ITensor if slicing returns a subtensor, an IMatrix if slicing
-            returns a matrix, an IVector if slicing returns a vector, or the element
-            itself for single index.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            IndexError: If index is out of bounds.
-            ValueError: If slice step is invalid.
+        Initializes the TensorBase instance.
         """
-        logger.error("Method __getitem__ not implemented in base class")
-        raise NotImplementedError("__getitem__ must be implemented in a subclass")
-
-    def __setitem__(self, index: Union[Tuple[int, ...], int, slice, ...], value: Any) -> None:
-        """
-        Set item in tensor using indexing or slicing.
-
-        Args:
-            index: Index or slice to access elements. Can be a tuple of integers,
-                single integer, slice object, or a tuple of slices/ints.
-            value: Value to set at the specified index. Can be a single value,
-                vector, matrix, or another tensor of compatible shape.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            IndexError: If index is out of bounds.
-            ValueError: If value shape is incompatible with index.
-        """
-        logger.error("Method __setitem__ not implemented in base class")
-        raise NotImplementedError("__setitem__ must be implemented in a subclass")
-
-    def __iter__(self) -> iter:
-        """
-        Return an iterator over the tensor elements.
-
-        Yields:
-            Any: The next element in the tensor.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-        """
-        logger.error("Method __iter__ not implemented in base class")
-        raise NotImplementedError("__iter__ must be implemented in a subclass")
-
-    def __add__(self, other: 'ITensor') -> 'ITensor':
-        """
-        Tensor addition.
-
-        Args:
-            other: Another tensor of the same shape and compatible dtype.
-
-        Returns:
-            ITensor: Result of element-wise addition.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If tensor shapes do not match.
-            TypeError: If tensors have incompatible dtypes.
-        """
-        logger.error("Method __add__ not implemented in base class")
-        raise NotImplementedError("__add__ must be implemented in a subclass")
-
-    def __sub__(self, other: 'ITensor') -> 'ITensor':
-        """
-        Tensor subtraction.
-
-        Args:
-            other: Another tensor of the same shape and compatible dtype.
-
-        Returns:
-            ITensor: Result of element-wise subtraction.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If tensor shapes do not match.
-            TypeError: If tensors have incompatible dtypes.
-        """
-        logger.error("Method __sub__ not implemented in base class")
-        raise NotImplementedError("__sub__ must be implemented in a subclass")
-
-    def __mul__(self, other: Union['ITensor', Any]) -> Union['ITensor', IMatrix, IVector]:
-        """
-        Tensor multiplication or element-wise multiplication.
-
-        Args:
-            other: Either another tensor for tensor multiplication or a scalar for
-                element-wise multiplication.
-
-        Returns:
-            Union[ITensor, IMatrix, IVector]: Result of multiplication. Returns an
-            ITensor for tensor multiplication, or an IMatrix/IVector if multiplying
-            with a compatible lower-dimensional tensor, or the element-wise result
-            if multiplying with a scalar.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If tensor dimensions are incompatible for multiplication.
-            TypeError: If other is of unsupported type.
-        """
-        logger.error("Method __mul__ not implemented in base class")
-        raise NotImplementedError("__mul__ must be implemented in a subclass")
-
-    def __matmul__(self, other: 'ITensor') -> 'ITensor':
-        """
-        Tensor matrix multiplication (Python 3.5+ matrix multiplication operator).
-
-        Args:
-            other: Another tensor of compatible dimensions for multiplication.
-
-        Returns:
-            ITensor: Result of matrix multiplication.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If number of dimensions or shapes are incompatible.
-        """
-        logger.error("Method __matmul__ not implemented in base class")
-        raise NotImplementedError("__matmul__ must be implemented in a subclass")
+        super().__init__()
+        logger.debug("Initialized TensorBase")
 
     def shape(self) -> Tuple[int, ...]:
         """
-        Get the shape of the tensor as a tuple of dimensions.
-
+        Returns the shape of the tensor as a tuple of integers.
+        
         Returns:
-            Tuple[int, ...]: The shape of the tensor.
-
+            Tuple[int, ...]: Shape of the tensor
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method shape not implemented in base class")
-        raise NotImplementedError("shape must be implemented in a subclass")
+        logger.debug("Getting tensor shape")
+        raise NotImplementedError("Method not implemented in base class")
 
-    def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+    def reshape(self, new_shape: Tuple[int, ...]) -> ITensor:
         """
-        Reshape the tensor to new dimensions.
-
+        Reshapes the tensor to a new shape.
+        
         Args:
-            new_shape: Tuple[int, ...] representing the new shape.
-
+            new_shape: New shape as a tuple of integers
+            
         Returns:
-            ITensor: The reshaped tensor.
-
+            Reshaped tensor
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If the total number of elements does not match.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method reshape not implemented in base class")
-        raise NotImplementedError("reshape must be implemented in a subclass")
+        logger.debug(f"Reshaping tensor to {new_shape}")
+        raise NotImplementedError("Method not implemented in base class")
 
     def dtype(self) -> type:
         """
-        Get the data type of the tensor elements.
-
+        Returns the data type of the elements in the tensor.
+        
         Returns:
-            type: The dtype of the tensor elements.
-
+            type: Data type of the tensor elements
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method dtype not implemented in base class")
-        raise NotImplementedError("dtype must be implemented in a subclass")
+        logger.debug("Getting tensor dtype")
+        raise NotImplementedError("Method not implemented in base class")
 
-    def transpose(self, axes: Optional[Tuple[int, ...]] = None) -> 'ITensor':
+    def __getitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice]) -> Union[float, IVector, ITensor]:
         """
-        Transpose the tensor by swapping axes.
-
+        Gets elements using tensor indices or slices.
+        
         Args:
-            axes: Optional tuple of integers representing the new order of axes.
-                If None, reverses the order of the axes.
-
+            index: Tuple of indices or slices for multi-dimensional access
+            
         Returns:
-            ITensor: The transposed tensor.
-
+            Union[float, IVector, ITensor]: Element, vector, or subtensor based on index
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If the number of axes is invalid.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method transpose not implemented in base class")
-        raise NotImplementedError("transpose must be implemented in a subclass")
+        logger.debug(f"Getting item with index {index}")
+        raise NotImplementedError("Method not implemented in base class")
 
-    def broadcast(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+    def __setitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice], value: Union[float, IVector, ITensor]):
         """
-        Broadcast the tensor to a new shape.
-
+        Sets elements using tensor indices or slices.
+        
         Args:
-            new_shape: Tuple[int, ...] representing the new shape.
-
-        Returns:
-            ITensor: The broadcasted tensor.
-
+            index: Tuple of indices or slices for multi-dimensional access
+            value: Value or values to set at the specified index
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If broadcasting is not possible.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method broadcast not implemented in base class")
-        raise NotImplementedError("broadcast must be implemented in a subclass")
+        logger.debug(f"Setting item at index {index} with value {value}")
+        raise NotImplementedError("Method not implemented in base class")
 
-    @classmethod
-    def from_numpy(cls, array: Any) -> 'ITensor':
+    def tolist(self) -> Union[List[float], List[List[float]], ...]:
         """
-        Create a tensor from a numpy array.
+        Converts the tensor to a nested list structure.
+        
+        Returns:
+            Union[List[float], List[List[float]], ...]: Tensor as a nested list
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug("Converting tensor to list")
+        raise NotImplementedError("Method not implemented in base class")
 
+    def __add__(self, other: Union[float, int, ITensor]) -> ITensor:
+        """
+        Element-wise addition with another tensor or scalar.
+        
         Args:
-            array: Numpy array to convert to a tensor.
-
+            other: Another tensor or scalar to add
+            
         Returns:
-            ITensor: The constructed tensor.
-
+            ITensor: Resulting tensor after addition
+        
         Raises:
-            NotImplementedError: This method is not implemented in the base class.
-            ValueError: If the input array is invalid.
+            NotImplementedError: This method is not implemented in the base class
         """
-        logger.error("Method from_numpy not implemented in base class")
-        raise NotImplementedError("from_numpy must be implemented in a subclass")
+        logger.debug(f"Performing tensor addition with {other}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __sub__(self, other: Union[float, int, ITensor]) -> ITensor:
+        """
+        Element-wise subtraction with another tensor or scalar.
+        
+        Args:
+            other: Another tensor or scalar to subtract
+            
+        Returns:
+            ITensor: Resulting tensor after subtraction
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug(f"Performing tensor subtraction with {other}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __mul__(self, other: Union[float, int, ITensor]) -> ITensor:
+        """
+        Element-wise multiplication with another tensor or scalar.
+        
+        Args:
+            other: Another tensor or scalar to multiply
+            
+        Returns:
+            ITensor: Resulting tensor after multiplication
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug(f"Performing tensor multiplication with {other}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __truediv__(self, other: Union[float, int, ITensor]) -> ITensor:
+        """
+        Element-wise division with another tensor or scalar.
+        
+        Args:
+            other: Another tensor or scalar to divide by
+            
+        Returns:
+            ITensor: Resulting tensor after division
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug(f"Performing tensor division by {other}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def transpose(self) -> ITensor:
+        """
+        Transposes the tensor.
+        
+        Returns:
+            ITensor: Transposed tensor
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug("Transposing tensor")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def broadcast(self, new_shape: Tuple[int, ...]) -> ITensor:
+        """
+        Broadcasts the tensor to a new shape.
+        
+        Args:
+            new_shape: New shape as a tuple of integers
+            
+        Returns:
+            ITensor: Broadcasted tensor
+        
+        Raises:
+            NotImplementedError: This method is not implemented in the base class
+        """
+        logger.debug(f"Broadcasting tensor to {new_shape}")
+        raise NotImplementedError("Method not implemented in base class")
 
     def __str__(self) -> str:
         """
-        String representation of the tensor.
-
+        Returns a string representation of the tensor.
+        
         Returns:
-            str: A string representation of the tensor elements.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
+            str: String representation of the tensor
         """
-        logger.error("Method __str__ not implemented in base class")
-        raise NotImplementedError("__str__ must be implemented in a subclass")
+        logger.debug("Getting string representation of tensor")
+        return f"TensorBase(shape={self.shape()}, dtype={self.dtype()})"
 
-    @property
-    def ndim(self) -> int:
+    def __repr__(self) -> str:
         """
-        Get the number of dimensions in the tensor.
-
+        Returns the official string representation of the tensor.
+        
         Returns:
-            int: The number of dimensions.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
+            str: Official string representation
         """
-        logger.error("Property ndim not implemented in base class")
-        raise NotImplementedError("ndim must be implemented in a subclass")
-
-    @property
-    def size(self) -> int:
-        """
-        Get the total number of elements in the tensor.
-
-        Returns:
-            int: The total number of elements.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-        """
-        logger.error("Property size not implemented in base class")
-        raise NotImplementedError("size must be implemented in a subclass")
-
-    @property
-    def T(self) -> 'ITensor':
-        """
-        Get the transposed tensor.
-
-        Returns:
-            ITensor: The transposed tensor.
-
-        Raises:
-            NotImplementedError: This method is not implemented in the base class.
-        """
-        logger.error("Property T not implemented in base class")
-        raise NotImplementedError("T must be implemented in a subclass")
+        logger.debug("Getting official string representation of tensor")
+        return self.__str__()

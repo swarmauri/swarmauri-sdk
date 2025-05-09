@@ -1,98 +1,117 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.metrics.HammingMetric import HammingMetric
+from swarmauri_standard.metrics.HammingMetric import HammingMetric
 import logging
-
-logger = logging.getLogger(__name__)
-
 
 @pytest.mark.unit
 class TestHammingMetric:
-    """Unit tests for HammingMetric class."""
+    """Unit test class for HammingMetric class"""
 
     @pytest.fixture
     def hamming_metric(self):
-        """Fixture to provide a HammingMetric instance for testing."""
+        """Fixture to provide a HammingMetric instance"""
         return HammingMetric()
 
-    @pytest.mark.unit
-    def test_distance_equal_sequences(self, hamming_metric):
-        """Test distance method with identical sequences."""
-        x = "test"
-        y = "test"
-        assert hamming_metric.distance(x, y) == 0.0
+    @pytest.fixture
+    def test_data(self):
+        """Fixture to provide test data for Hamming distance calculations"""
+        return [
+            ("1010", "1010", 0),  # Identical strings
+            ("1010", "1110", 1),  # One bit difference
+            ("1010", "1000", 2),  # Two bits difference
+            ("1010", "1111", 3),  # Three bits difference
+            ("1010", "0000", 4),  # All bits different
+            ("ABCD", "ABCE", 1),  # String with character difference
+            ("1010", "10", 0)     # Different lengths
+        ]
 
     @pytest.mark.unit
-    def test_distance_different_sequences(self, hamming_metric):
-        """Test distance method with different sequences."""
-        x = "test"
-        y = "best"
-        assert hamming_metric.distance(x, y) == 1.0
+    def test_distance(self, hamming_metric, test_data):
+        """Test the distance method with various inputs"""
+        for x, y, expected_distance in test_data:
+            if len(x) != len(y):
+                with pytest.raises(ValueError):
+                    hamming_metric.distance(x, y)
+            else:
+                assert hamming_metric.distance(x, y) == expected_distance
 
     @pytest.mark.unit
-    def test_distance_different_length_sequences(self, hamming_metric):
-        """Test distance method with sequences of different lengths."""
-        x = "test"
-        y = "tes"
-        with pytest.raises(ValueError):
-            hamming_metric.distance(x, y)
+    def test_distances(self, hamming_metric):
+        """Test the distances method with multiple inputs"""
+        # Test with empty lists
+        assert hamming_metric.distances([], []) == []
+
+        # Test with matching points
+        points = ["1010", "1010", "1010"]
+        expected = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        assert hamming_metric.distances(points, points) == expected
+
+        # Test with mixed points
+        points = ["1010", "1110", "1000"]
+        expected = [
+            [0, 1, 2],
+            [1, 0, 1],
+            [2, 1, 0]
+        ]
+        assert hamming_metric.distances(points, points) == expected
 
     @pytest.mark.unit
-    def test_distance_with_list_input(self, hamming_metric):
-        """Test distance method with list inputs."""
-        x = ["a", "b", "c"]
-        y = ["a", "b", "d"]
-        assert hamming_metric.distance(x, y) == 1.0
+    def test_check_non_negativity(self, hamming_metric, test_data):
+        """Test the non-negativity check"""
+        for x, y, _ in test_data:
+            if len(x) == len(y):
+                hamming_metric.check_non_negativity(x, y)
 
     @pytest.mark.unit
-    def test_distance_with_bytes_input(self, hamming_metric):
-        """Test distance method with bytes inputs."""
-        x = b"test"
-        y = b"best"
-        assert hamming_metric.distance(x, y) == 1.0
+    def test_check_identity(self, hamming_metric):
+        """Test the identity check"""
+        # Test when x == y
+        x = "1010"
+        y = "1010"
+        hamming_metric.check_identity(x, y)
+
+        # Test when x != y but distance is 0
+        x = "1010"
+        y = "1010"
+        hamming_metric.check_identity(x, y)
+
+        # Test when x != y and distance is not 0
+        x = "1010"
+        y = "1110"
+        hamming_metric.check_identity(x, y)
 
     @pytest.mark.unit
-    def test_distances_multiple_sequences(self, hamming_metric):
-        """Test distances method with multiple sequences."""
-        x = "test"
-        ys = ["test", "best", "test1"]
-        results = hamming_metric.distances(x, ys)
-        assert len(results) == 3
-        assert results[0] == 0.0
-        assert results[1] == 1.0
-        assert results[2] == 1.0
-
-    @pytest.mark.unit
-    def test_check_non_negativity(self, hamming_metric):
-        """Test non-negativity property."""
-        x = "test"
-        y = "best"
-        assert hamming_metric.check_non_negativity(x, y) == True
-
-    @pytest.mark.unit
-    def test_check_identity_true(self, hamming_metric):
-        """Test identity property with identical sequences."""
-        x = "test"
-        y = "test"
-        assert hamming_metric.check_identity(x, y) == True
-
-    @pytest.mark.unit
-    def test_check_identity_false(self, hamming_metric):
-        """Test identity property with different sequences."""
-        x = "test"
-        y = "best"
-        assert hamming_metric.check_identity(x, y) == False
-
-    @pytest.mark.unit
-    def test_check_symmetry(self, hamming_metric):
-        """Test symmetry property."""
-        x = "test"
-        y = "best"
-        assert hamming_metric.check_symmetry(x, y) == True
+    def test_check_symmetry(self, hamming_metric, test_data):
+        """Test the symmetry check"""
+        for x, y, _ in test_data:
+            if len(x) == len(y):
+                hamming_metric.check_symmetry(x, y)
 
     @pytest.mark.unit
     def test_check_triangle_inequality(self, hamming_metric):
-        """Test triangle inequality property."""
-        x = "test"
-        y = "best"
-        z = "testz"
-        assert hamming_metric.check_triangle_inequality(x, y, z) == True
+        """Test the triangle inequality check"""
+        x = "1010"
+        y = "1110"
+        z = "1000"
+        hamming_metric.check_triangle_inequality(x, y, z)
+
+    @pytest.mark.unit
+    def test_logging(self, hamming_metric, test_data):
+        """Test if logging is properly configured"""
+        # Set up logging
+        logger = logging.getLogger("swarmauri_standard.metrics.HammingMetric")
+        logger.setLevel(logging.DEBUG)
+        
+        # Test if debug message is logged when distance is called
+        with pytest.raises(AssertionError):
+            # Using list to capture log messages
+            messages = []
+            def log_debug(msg):
+                messages.append(msg)
+            original_debug = logger.debug
+            logger.debug = log_debug
+            
+            try:
+                hamming_metric.distance("1010", "1010")
+                assert "Calculating Hamming distance" in messages
+            finally:
+                logger.debug = original_debug

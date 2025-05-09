@@ -1,111 +1,86 @@
-from typing import Union, Literal
+from typing import Union, Callable, Optional
+import numpy as np
 import logging
+
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "RKHSInnerProduct")
 class RKHSInnerProduct(InnerProductBase):
-    """A concrete implementation of the InnerProductBase class that provides
-    inner product functionality using a Reproducing Kernel Hilbert Space (RKHS)
-    approach.
+    """Implements an inner product induced by a reproducing kernel.
 
-    This class implements the inner product using kernel evaluation, ensuring the
-    properties of conjugate symmetry, linearity in the first argument, and positive
-    definiteness.
+    This class provides an implementation of the inner product in a Reproducing
+    Kernel Hilbert Space (RKHS). The inner product is defined through evaluation
+    of a positive-definite kernel function.
+
+    Attributes:
+        kernel: The kernel function used to induce the inner product.
+        type: The type identifier for this inner product implementation.
     """
 
-    type: Literal["RKHSInnerProduct"] = "RKHSInnerProduct"
+    type: str = "RKHSInnerProduct"
 
-    def __init__(self, kernel: callable) -> None:
-        """Initializes the RKHSInnerProduct instance with a kernel function.
+    def __init__(self, kernel: Optional[Callable] = None):
+        """Initializes the RKHSInnerProduct with an optional kernel function.
 
         Args:
-            kernel: A positive-definite kernel function used for inner product computation.
+            kernel: A positive-definite kernel function. If not provided,
+                must be set before use.
         """
         super().__init__()
         self.kernel = kernel
-        logger.info("Initialized RKHSInnerProduct with kernel function.")
 
-    def compute(
-        self, a: Union[object, object], b: Union[object, object]
-    ) -> Union[float, complex]:
-        """Computes the inner product between two elements using the kernel function.
+    def compute(self, a: Union[IVector, np.ndarray, Callable], 
+                b: Union[IVector, np.ndarray, Callable]) -> float:
+        """Computes the inner product using the kernel evaluation.
 
-        Args:
-            a: The first element for the inner product.
-            b: The second element for the inner product.
-
-        Returns:
-            Union[float, complex]: The inner product result.
-        """
-        logger.debug(f"Computing inner product between elements {a} and {b}.")
-        return self.kernel(a, b)
-
-    def check_conjugate_symmetry(
-        self, a: Union[object, object], b: Union[object, object]
-    ) -> bool:
-        """Checks if the inner product satisfies conjugate symmetry, i.e., <a, b> = <b, a>.
+        The inner product is defined as ⟨a, b⟩_K = K(a, b), where K is the kernel.
 
         Args:
-            a: The first element to check.
-            b: The second element to check.
+            a: The first element in the inner product operation. Can be a vector
+               or a callable.
+            b: The second element in the inner product operation. Can be a vector
+               or a callable.
 
         Returns:
-            bool: True if conjugate symmetry holds, False otherwise.
-        """
-        logger.debug("Checking conjugate symmetry.")
-        inner_product_ab = self.compute(a, b)
-        inner_product_ba = self.compute(b, a)
-        return inner_product_ab == inner_product_ba
+            float: The result of the inner product operation.
 
-    def check_linearity_first_argument(
-        self,
-        a: Union[object, object],
-        b: Union[object, object],
-        c: Union[object, object],
-    ) -> bool:
-        """Checks if the inner product is linear in the first argument, i.e.,
-        <a + c, b> = <a, b> + <c, b> and <a, b> = <a, b>.
+        Raises:
+            ValueError: If the kernel is not set or if inputs are invalid
+        """
+        if self.kernel is None:
+            raise ValueError("Kernel must be set before computing the inner product")
+
+        if isinstance(a, (IVector, np.ndarray) and isinstance(b, (IVector, np.ndarray)):
+            # For vectors, compute the kernel evaluation
+            return self.kernel(a, b)
+        elif callable(a) and callable(b):
+            # For callables, directly evaluate the kernel
+            return self.kernel(a, b)
+        else:
+            raise ValueError("Invalid input types for inner product computation")
+
+    def check_positive_definite(self, vector: Union[IVector, np.ndarray, Callable]) -> None:
+        """Checks if the kernel induces a positive-definite inner product.
 
         Args:
-            a: The first element for linearity check.
-            b: The second element for linearity check.
-            c: The third element for linearity check.
+            vector: The vector or callable to test with.
 
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise.
+        Raises:
+            ValueError: If the kernel does not produce positive-definite results
         """
-        logger.debug("Checking linearity in the first argument.")
+        value = self.compute(vector, vector)
+        if value <= 0:
+            raise ValueError(f"Kernel is not positive-definite. Computed value: {value}")
 
-        # Check additivity
-        inner_product_ac_b = self.compute(a + c, b)
-        inner_product_a_b = self.compute(a, b)
-        inner_product_c_b = self.compute(c, b)
-
-        additivity_holds = inner_product_ac_b == inner_product_a_b + inner_product_c_b
-
-        # Check homogeneity
-        inner_product_a_b = self.compute(a, b)
-        inner_product_a_b = self.compute(a, b)
-
-        homogeneity_holds = inner_product_a_b == inner_product_a_b
-
-        return additivity_holds and homogeneity_holds
-
-    def check_positivity(self, a: Union[object, object]) -> bool:
-        """Checks if the inner product satisfies positive definiteness, i.e.,
-        <a, a> ≥ 0 and <a, a> = 0 if and only if a = 0.
+    def set_kernel(self, kernel: Callable) -> None:
+        """Sets the kernel function for the inner product.
 
         Args:
-            a: The element to check for positivity.
-
-        Returns:
-            bool: True if positive definiteness holds, False otherwise.
+            kernel: A positive-definite kernel function.
         """
-        logger.debug("Checking positive definiteness.")
-        inner_product_aa = self.compute(a, a)
-        return inner_product_aa >= 0
+        self.kernel = kernel

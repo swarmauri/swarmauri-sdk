@@ -1,129 +1,100 @@
 import pytest
-import numpy as np
-from swarmauri_standard.swarmauri_standard.similarities.CosineSimilarity import (
-    CosineSimilarity,
-)
-
-
-@pytest.fixture
-def cosine_similarity_instance():
-    """Fixture to provide a CosineSimilarity instance for testing."""
-    instance = CosineSimilarity()
-    yield instance
-    # Cleanup if needed
-
+import logging
+from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 
 @pytest.mark.unit
-def test_cosine_similarity_type(cosine_similarity_instance):
-    """Test that the type is correctly set to 'CosineSimilarity'."""
-    assert cosine_similarity_instance.type == "CosineSimilarity"
-
-
-@pytest.mark.unit
-def test_cosine_similarity_resource(cosine_similarity_instance):
-    """Test that the resource type is correctly set to 'Similarity'."""
-    assert cosine_similarity_instance.resource == "Similarity"
-
-
-@pytest.mark.unit
-def test_cosine_similarity_similarity(cosine_similarity_instance):
-    """Test the cosine similarity calculation with sample vectors."""
-    # Test vectors
-    x = np.array([1, 2, 3])
-    y = np.array([4, 5, 6])
-
-    # Calculate similarity
-    similarity = cosine_similarity_instance.similarity(x, y)
-
-    # Verify result is within expected bounds
-    assert isinstance(similarity, float)
-    assert -1.0 <= similarity <= 1.0
-
+def test_similarity_with_valid_vectors():
+    """Test cosine similarity calculation with valid vectors."""
+    cos_sim = CosineSimilarity()
+    
+    # Test with identical vectors
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    assert cos_sim.similarity(x, y) == 1.0
+    
+    # Test with orthogonal vectors
+    x = [1, 0]
+    y = [0, 1]
+    assert cos_sim.similarity(x, y) == 0.0
 
 @pytest.mark.unit
-def test_cosine_similarity_zero_vectors(cosine_similarity_instance):
-    """Test that zero vectors raise ValueError."""
-    x = np.array([0, 0, 0])
-    y = np.array([1, 2, 3])
+def test_similarity_with_string_vectors():
+    """Test cosine similarity with string representations of vectors."""
+    cos_sim = CosineSimilarity()
+    
+    x = "[1, 2, 3]"
+    y = "[1, 2, 3]"
+    assert cos_sim.similarity(x, y) == 1.0
 
+@pytest.mark.unit
+def test_similarity_with_zero_vector():
+    """Test that similarity raises ValueError with zero vectors."""
+    cos_sim = CosineSimilarity()
+    
+    x = [0, 0]
+    y = [1, 1]
     with pytest.raises(ValueError):
-        cosine_similarity_instance.similarity(x, y)
-
-
-@pytest.mark.unit
-def test_cosine_similarity_with_strings(cosine_similarity_instance):
-    """Test that string inputs are processed correctly."""
-    x = "test_string"
-    y = "test_string"
-
-    similarity = cosine_similarity_instance.similarity(x, y)
-    assert isinstance(similarity, float)
-
+        cos_sim.similarity(x, y)
 
 @pytest.mark.unit
-def test_cosine_similarity_with_callable(cosine_similarity_instance):
-    """Test that callable inputs are processed correctly."""
-
-    def vector_callable():
-        return np.array([1, 2, 3])
-
-    similarity = cosine_similarity_instance.similarity(vector_callable, vector_callable)
-    assert isinstance(similarity, float)
-
-
-@pytest.mark.unit
-def test_cosine_similarity_multiple_vectors(cosine_similarity_instance):
-    """Test that multiple vectors are processed correctly."""
-    x = np.array([1, 2, 3])
-    y_list = [np.array([4, 5, 6]), np.array([7, 8, 9])]
-
-    similarities = cosine_similarity_instance.similarities(x, y_list)
-    assert isinstance(similarities, list)
-    assert all(isinstance(s, float) for s in similarities)
-
+def test_similarities_with_multiple_vectors():
+    """Test calculation of similarities for multiple vector pairs."""
+    cos_sim = CosineSimilarity()
+    
+    xs = [[1, 0], [0, 1]]
+    ys = [[0, 1], [1, 0]]
+    expected = [0.0, 0.0]
+    assert cos_sim.similarities(xs, ys) == expected
 
 @pytest.mark.unit
-def test_cosine_similarity_dissimilarity(cosine_similarity_instance):
-    """Test the dissimilarity calculation."""
-    x = np.array([1, 2, 3])
-    y = np.array([4, 5, 6])
-
-    similarity = cosine_similarity_instance.similarity(x, y)
-    dissimilarity = cosine_similarity_instance.dissimilarity(x, y)
-
-    assert isinstance(dissimilarity, float)
-    assert np.isclose(dissimilarity, 1.0 - similarity)
-
-
-@pytest.mark.unit
-def test_cosine_similarity_boundedness(cosine_similarity_instance):
-    """Test that the measure is bounded."""
-    assert (
-        cosine_similarity_instance.check_boundedness(
-            np.array([1, 2, 3]), np.array([4, 5, 6])
-        )
-        is True
-    )
-
+def test_dissimilarity_with_valid_vectors():
+    """Test cosine dissimilarity calculation with valid vectors."""
+    cos_sim = CosineSimilarity()
+    
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    assert cos_sim.dissimilarity(x, y) == 0.0
+    
+    x = [1, 0]
+    y = [0, 1]
+    assert cos_sim.dissimilarity(x, y) == 1.0
 
 @pytest.mark.unit
-def test_cosine_similarity_reflexivity(cosine_similarity_instance):
-    """Test reflexivity of the measure."""
-    x = np.array([1, 2, 3])
-    assert cosine_similarity_instance.check_reflexivity(x) is True
-
-
-@pytest.mark.unit
-def test_cosine_similarity_symmetry(cosine_similarity_instance):
-    """Test symmetry of the measure."""
-    x = np.array([1, 2, 3])
-    y = np.array([4, 5, 6])
-    assert cosine_similarity_instance.check_symmetry(x, y) is True
-
+def test_dissimilarities_with_multiple_vectors():
+    """Test calculation of dissimilarities for multiple vector pairs."""
+    cos_sim = CosineSimilarity()
+    
+    xs = [[1, 0], [0, 1]]
+    ys = [[0, 1], [1, 0]]
+    expected = [1.0, 1.0]
+    assert cos_sim.dissimilarities(xs, ys) == expected
 
 @pytest.mark.unit
-def test_cosine_similarity_identity(cosine_similarity_instance):
-    """Test identity of the measure."""
-    x = np.array([1, 2, 3])
-    y = np.array([1, 2, 3])
-    assert cosine_similarity_instance.check_identity(x, y) is True
+def test_check_boundedness():
+    """Test if cosine similarity is bounded between -1 and 1."""
+    cos_sim = CosineSimilarity()
+    assert cos_sim.check_boundedness() is True
+
+@pytest.mark.unit
+def test_check_reflexivity():
+    """Test if cosine similarity satisfies reflexivity."""
+    cos_sim = CosineSimilarity()
+    assert cos_sim.check_reflexivity() is True
+
+@pytest.mark.unit
+def test_check_symmetry():
+    """Test if cosine similarity is symmetric."""
+    cos_sim = CosineSimilarity()
+    assert cos_sim.check_symmetry() is True
+
+@pytest.mark.unit
+def test_check_identity():
+    """Test if cosine similarity satisfies identity of discernibles."""
+    cos_sim = CosineSimilarity()
+    assert cos_sim.check_identity() is False
+
+@pytest.mark.unit
+def test_class_attributes():
+    """Test if class attributes are correctly set."""
+    assert CosineSimilarity.type == "CosineSimilarity"
+    assert CosineSimilarity.resource == "COSINE_SIMILARITY"

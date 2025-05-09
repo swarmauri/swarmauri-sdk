@@ -1,138 +1,106 @@
 import pytest
-import numpy as np
-import logging
+from swarmauri_standard.metrics.SobolevMetric import SobolevMetric
+from swarmauri_base.exceptions.MetricViolationError import MetricViolationError
 
-from swarmauri_standard.swarmauri_standard.metrics.SobolevMetric import SobolevMetric
+@pytest.fixture
+def sobolev_metric(order: int = 1):
+    """Fixture to create a SobolevMetric instance with specified order."""
+    return SobolevMetric(order=order)
 
+def test_type():
+    """Test that the type is correctly set to 'SobolevMetric'."""
+    assert SobolevMetric.type == "SobolevMetric"
 
-@pytest.mark.unit
-class TestSobolevMetric:
-    """Unit tests for the SobolevMetric class implementation."""
+def test_resource():
+    """Test that the resource is correctly set."""
+    assert SobolevMetric.resource == "Metric"
 
-    def test_init(self):
-        """Test initialization of SobolevMetric with specified parameters."""
-        order = 3
-        metric = SobolevMetric(order=order)
-        assert metric.order == order
-        assert metric.resource == "Metric"
+def test_order_initialization(sobolev_metric):
+    """Test that the order is correctly initialized."""
+    assert sobolev_metric.order == 1
+    # Test with different order
+    sobolev_metric = SobolevMetric(order=2)
+    assert sobolev_metric.order == 2
 
-    def test_distance_callable_inputs(self):
-        """Test distance calculation with callable functions."""
+def test_non_negativity_axiom(sobolev_metric):
+    """Test the non-negativity axiom."""
+    # Test with simple functions
+    def f(x):
+        return x
+    def g(x):
+        return x
+    distance = sobolev_metric.distance(f, g)
+    assert distance >= 0
+    
+    # Test with different functions
+    def f(x):
+        return x
+    def g(x):
+        return -x
+    distance = sobolev_metric.distance(f, g)
+    assert distance >= 0
 
-        # Define test functions
-        def f(x):
-            return x
+def test_identity_axiom(sobolev_metric):
+    """Test the identity of indiscernibles axiom."""
+    # Test with identical functions
+    def f(x):
+        return x
+    def g(x):
+        return x
+    distance = sobolev_metric.distance(f, g)
+    assert distance == 0
+    
+    # Test with different functions
+    def f(x):
+        return x
+    def g(x):
+        return x + 1
+    distance = sobolev_metric.distance(f, g)
+    assert distance != 0
 
-        def g(x):
-            return x + 1
+def test_symmetry_axiom(sobolev_metric):
+    """Test the symmetry axiom."""
+    def f(x):
+        return x
+    def g(x):
+        return x + 1
+    
+    distance_fg = sobolev_metric.distance(f, g)
+    distance_gf = sobolev_metric.distance(g, f)
+    assert distance_fg == distance_gf
 
-        metric = SobolevMetric()
-        distance = metric.distance(f, g)
-        assert distance >= 0
+def test_triangle_inequality(sobolev_metric):
+    """Test the triangle inequality."""
+    def f(x):
+        return x
+    def g(x):
+        return x + 1
+    def h(x):
+        return x + 2
+    
+    distance_fg = sobolev_metric.distance(f, g)
+    distance_gh = sobolev_metric.distance(g, h)
+    distance_fh = sobolev_metric.distance(f, h)
+    
+    assert distance_fh <= distance_fg + distance_gh
 
-    def test_distance_array_inputs(self):
-        """Test distance calculation with array inputs."""
-        # Create test arrays
-        x = np.array([1.0, 2.0, 3.0])
-        y = np.array([1.0, 2.0, 3.0])
+def test_multiple_orders(sobolev_metric):
+    """Test different orders of the Sobolev metric."""
+    # Test with order=1
+    sobolev_metric = SobolevMetric(order=1)
+    def f(x):
+        return x
+    def g(x):
+        return x + 1
+    distance = sobolev_metric.distance(f, g)
+    assert distance >= 0
+    
+    # Test with order=2
+    sobolev_metric = SobolevMetric(order=2)
+    distance = sobolev_metric.distance(f, g)
+    assert distance >= 0
 
-        metric = SobolevMetric()
-        distance = metric.distance(x, y)
-        assert distance == 0.0
-
-    def test_distance_string_inputs(self):
-        """Test that string inputs raise ValueError."""
-        metric = SobolevMetric()
-        with pytest.raises(ValueError):
-            metric.distance("invalid", "invalid")
-
-    def test_compute_derivatives(self):
-        """Test numerical derivative computation."""
-
-        # Define a test function
-        def f(x):
-            return x**2
-
-        points = np.array([0.0, 1.0])
-        metric = SobolevMetric(order=2)
-        derivs = metric._compute_derivatives(f, points, 2)
-
-        # Check function values
-        assert np.allclose(derivs[0], [0.0, 1.0], rtol=1e-3)
-
-        # Check first derivative values
-        assert np.allclose(derivs[1], [2 * 0.0, 2 * 1.0], rtol=1e-3)
-
-        # Check second derivative values
-        assert np.allclose(derivs[2], [2.0, 2.0], rtol=1e-3)
-
-    def test_distances(self):
-        """Test computing distances to multiple points."""
-        metric = SobolevMetric()
-
-        def f(x):
-            return x
-
-        def g(x):
-            return x + 1
-
-        def h(x):
-            return x**2
-
-        distances = metric.distances(f, [f, g, h])
-        assert isinstance(distances, list)
-        assert len(distances) == 3
-
-    def test_check_non_negativity(self):
-        """Test non-negativity property."""
-
-        def f(x):
-            return x
-
-        def g(x):
-            return x + 1
-
-        metric = SobolevMetric()
-        metric.check_non_negativity(f, g)
-
-    def test_check_identity(self):
-        """Test identity of indiscernibles."""
-
-        def f(x):
-            return x
-
-        metric = SobolevMetric()
-        metric.check_identity(f, f)
-
-    def test_check_symmetry(self):
-        """Test symmetry property."""
-
-        def f(x):
-            return x
-
-        def g(x):
-            return x + 1
-
-        metric = SobolevMetric()
-        metric.check_symmetry(f, g)
-
-    def test_check_triangle_inequality(self):
-        """Test triangle inequality."""
-
-        def f(x):
-            return x
-
-        def g(x):
-            return x + 1
-
-        def h(x):
-            return x + 2
-
-        metric = SobolevMetric()
-        metric.check_triangle_inequality(f, g, h)
-
-
-def test_sobolev_metric_logger():
-    """Test that logging is properly configured."""
-    logger = logging.getLogger(__name__)
-    assert logger.name == __name__
+def test_invalid_order():
+    """Test that invalid order raises ValueError."""
+    with pytest.raises(ValueError):
+        SobolevMetric(order=-1)

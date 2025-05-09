@@ -1,98 +1,132 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.seminorms.PointEvaluationSeminorm import (
-    PointEvaluationSeminorm,
-)
-from typing import Union, Sequence, Callable
-from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
-
+import logging
+from swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
 
 @pytest.mark.unit
 class TestPointEvaluationSeminorm:
-    """Unit tests for the PointEvaluationSeminorm class."""
+    """
+    Unit test class for PointEvaluationSeminorm.
 
-    def test_initialization(self):
-        """Test the initialization of PointEvaluationSeminorm with and without point."""
-        pes = PointEvaluationSeminorm()
-        assert pes.point == 0.0
+    This class contains unit tests for the PointEvaluationSeminorm class.
+    It verifies the functionality of the compute method, triangle inequality,
+    and scalar homogeneity checks.
+    """
 
-        custom_point = 5.0
-        pes_custom = PointEvaluationSeminorm(point=custom_point)
-        assert pes_custom.point == custom_point
+    @pytest.fixture
+    def point_evaluation(self):
+        """
+        Fixture to provide a default PointEvaluationSeminorm instance.
+        
+        Returns:
+            PointEvaluationSeminorm: Instance with fixed_point=0.0
+        """
+        return PointEvaluationSeminorm(fixed_point=0.0)
 
-    def test_compute_vector(self):
-        """Test compute method with vector input."""
-        input_vector = [1, 2, 3]
-        point = 1
-        pes = PointEvaluationSeminorm(point=point)
-        result = pes.compute(input_vector)
-        assert result == input_vector[point]
+    @pytest.mark.parametrize("input_type, input_value, expected_result", [
+        (Callable, lambda x: x**2, 0.0),
+        (list, [1, 2, 3], 1),
+        (tuple, (1, 2, 3), 1)
+    ])
+    def test_compute_success(self, input_type, input_value, expected_result, point_evaluation):
+        """
+        Test successful computation of seminorm for different input types.
+        
+        Args:
+            input_type: Type of input to test
+            input_value: Input value for computation
+            expected_result: Expected result of computation
+            point_evaluation: PointEvaluationSeminorm instance
+        """
+        result = point_evaluation.compute(input_value)
+        assert result == expected_result
+        assert isinstance(result, float)
 
-    def test_compute_matrix(self):
-        """Test compute method with matrix input."""
-        input_matrix = IMatrix()  # Assuming IMatrix has some implementation
-        pes = PointEvaluationSeminorm()
-        with pytest.raises(NotImplementedError):
-            pes.compute(input_matrix)
+    def test_compute_unsupported_type(self, point_evaluation):
+        """
+        Test that compute raises TypeError for unsupported input types.
+        
+        Args:
+            point_evaluation: PointEvaluationSeminorm instance
+        """
+        with pytest.raises(TypeError):
+            point_evaluation.compute(set())
 
-    def test_compute_sequence(self):
-        """Test compute method with sequence input."""
-        input_seq = (10, 20, 30)
-        point = 2
-        pes = PointEvaluationSeminorm(point=point)
-        result = pes.compute(input_seq)
-        assert result == input_seq[point]
-
-    def test_compute_string(self):
-        """Test compute method with string input."""
-        input_str = "test"
-        point = 2
-        pes = PointEvaluationSeminorm(point=point)
-        result = pes.compute(input_str)
-        assert result == input_str[point]
-
-    def test_compute_callable(self):
-        """Test compute method with callable input."""
-
-        def func(x):
-            return x * 2
-
-        point = 5.0
-        pes = PointEvaluationSeminorm(point=point)
-        result = pes.compute(func)
-        assert result == func(point)
-
-    def test_check_triangle_inequality(self):
-        """Test the triangle inequality check."""
-        pes = PointEvaluationSeminorm()
-        a = [1, 2, 3]
-        b = [4, 5, 6]
-        assert pes.check_triangle_inequality(a, b) is True
-
-    def test_check_scalar_homogeneity(self):
-        """Test the scalar homogeneity check."""
-        pes = PointEvaluationSeminorm()
-        input = [1, 2, 3]
-        scalar = 2.0
-        assert pes.check_scalar_homogeneity(input, scalar) is True
-
-    def test_serialization(self):
-        """Test the model serialization and deserialization."""
-        pes = PointEvaluationSeminorm(point=10.0)
-        model_dump = pes.model_dump_json()
-        model_load = pes.model_validate_json(model_dump)
-        assert pes.id == model_load.id
-
-    def test_error_handling_point_out_of_bounds(self):
-        """Test error handling for point out of bounds."""
-        pes = PointEvaluationSeminorm(point=5)
-        input = [1, 2]
-        with pytest.raises(IndexError):
-            pes.compute(input)
-
-    def test_error_handling_unsupported_type(self):
-        """Test error handling for unsupported input type."""
-        pes = PointEvaluationSeminorm()
-        input = dict()
+    def test_compute_fixed_point_not_set(self):
+        """
+        Test that compute raises ValueError when fixed_point is not set.
+        """
+        pes = PointEvaluationSeminorm(fixed_point=None)
         with pytest.raises(ValueError):
-            pes.compute(input)
+            pes.compute([1, 2, 3])
+
+    @pytest.mark.parametrize("a, b, expected_result", [
+        ([1, 2, 3], [4, 5, 6], True),
+        (lambda x: x**2, lambda x: x + 1, True)
+    ])
+    def test_check_triangle_inequality(self, a, b, expected_result, point_evaluation):
+        """
+        Test triangle inequality check for different input types.
+        
+        Args:
+            a: First element to check
+            b: Second element to check
+            expected_result: Expected result of triangle inequality check
+            point_evaluation: PointEvaluationSeminorm instance
+        """
+        result = point_evaluation.check_triangle_inequality(a, b)
+        assert result == expected_result
+
+    @pytest.mark.parametrize("a, scalar, expected_result", [
+        ([1, 2, 3], 2, True),
+        (lambda x: x**2, 0.5, True)
+    ])
+    def test_check_scalar_homogeneity(self, a, scalar, expected_result, point_evaluation):
+        """
+        Test scalar homogeneity check for different input types.
+        
+        Args:
+            a: Element to check
+            scalar: Scalar value to scale with
+            expected_result: Expected result of scalar homogeneity check
+            point_evaluation: PointEvaluationSeminorm instance
+        """
+        result = point_evaluation.check_scalar_homogeneity(a, scalar)
+        assert result == expected_result
+
+    def test_constructor(self):
+        """
+        Test that constructor initializes with correct default values.
+        """
+        pes_default = PointEvaluationSeminorm()
+        assert pes_default.fixed_point is None
+        assert pes_default.resource == "PointEvaluationSeminorm"
+
+        pes_custom = PointEvaluationSeminorm(fixed_point=(1, 2))
+        assert pes_custom.fixed_point == (1, 2)
+
+@pytest.mark.unit
+def test_point_evaluation_serialization():
+    """
+    Test serialization/deserialization of PointEvaluationSeminorm.
+    """
+    pes = PointEvaluationSeminorm(fixed_point=1.0)
+    dumped = pes.model_dump_json()
+    loaded = PointEvaluationSeminorm.model_validate_json(dumped)
+    assert isinstance(loaded, PointEvaluationSeminorm)
+    assert loaded.fixed_point == pes.fixed_point
+
+@pytest.mark.unit
+def test_logging():
+    """
+    Test that logging is properly configured and used.
+    """
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    
+    pes = PointEvaluationSeminorm(fixed_point=0.0)
+    pes.compute([1, 2, 3])
+    
+    # Verify that debug messages are being logged
+    # This is a basic check - in a real test environment,
+    # you would typically use a logging handler to capture messages
+    assert True

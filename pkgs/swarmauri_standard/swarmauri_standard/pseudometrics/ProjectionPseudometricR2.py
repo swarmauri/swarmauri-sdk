@@ -1,188 +1,206 @@
-from typing import Union, List, Tuple, Any
-from abc import ABC
+from typing import Union, List, Optional, Tuple, Literal
 import logging
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(PseudometricBase, "ProjectionPseudometricR2")
 class ProjectionPseudometricR2(PseudometricBase):
     """
-    A concrete implementation of PseudometricBase that measures distance by projecting
-    onto a specified coordinate axis in ℝ² space.
+    A class implementing a pseudometric space by projecting ℝ² vectors onto a specified axis.
 
-    This pseudometric ignores all but the specified coordinate (either x or y) when
-    calculating distances. It satisfies the pseudometric properties but does not
-    necessarily satisfy the identity property, as different points can have the
-    same projected value.
+    This class provides a concrete implementation of the PseudometricBase class for ℝ² space.
+    It computes distances by projecting vectors onto a specified coordinate axis (either x or y)
+    and calculating the absolute difference between the projected values.
+
+    Inherits:
+        PseudometricBase: Base class for pseudometric space implementations
+        ComponentBase: Base class for all components in the system
 
     Attributes:
-        axis: The coordinate axis to use for projection. Can be either 'x' or 'y'.
+        projection_axis: Literal["x", "y"] - The coordinate axis to use for projection
+        resource: str - Resource type identifier
     """
+    projection_axis: Literal["x", "y"]
+    resource: str = ResourceTypes.PSEUDOMETRIC.value
 
-    type: Literal["ProjectionPseudometricR2"] = "ProjectionPseudometricR2"
-
-    def __init__(self, axis: str = "x"):
+    def __init__(self, projection_axis: Literal["x", "y"] = "x"):
         """
-        Initialize the ProjectionPseudometricR2 instance.
+        Initializes the ProjectionPseudometricR2 instance.
 
         Args:
-            axis: The coordinate axis to use for projection. Must be either 'x' or 'y'.
-                  Defaults to 'x'.
-
-        Raises:
-            ValueError: If the axis is not 'x' or 'y'.
+            projection_axis: The coordinate axis to use for projection. Defaults to "x".
         """
         super().__init__()
-        if axis not in ("x", "y"):
-            raise ValueError("Axis must be either 'x' or 'y'")
-        self.axis = axis
-        logger.debug("Initialized ProjectionPseudometricR2 with axis=%s", axis)
+        if projection_axis not in ("x", "y"):
+            raise ValueError("projection_axis must be either 'x' or 'y'")
+        self.projection_axis = projection_axis
+        logger.debug(f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}")
 
     def distance(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y: Union[Tuple[float, float], List[float]],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> float:
         """
-        Calculate the distance between two points in ℝ² by projecting onto the specified axis.
+        Computes the pseudometric distance between two points in ℝ² by projecting onto the specified axis.
 
         Args:
-            x: The first point in ℝ² (2D vector)
-            y: The second point in ℝ² (2D vector)
+            x: First point in ℝ²
+            y: Second point in ℝ²
 
         Returns:
-            float: The absolute difference between the specified coordinates of x and y
+            float: The absolute difference between the projected coordinates
 
         Raises:
-            ValueError: If either point is not a 2D vector
+            ValueError: If input points are not 2D vectors
         """
-        logger.debug("Calculating distance between %s and %s", x, y)
-
-        if len(x) != 2 or len(y) != 2:
-            raise ValueError("Both points must be 2D vectors")
-
-        if self.axis == "x":
-            return abs(x[0] - y[0])
-        else:
-            return abs(x[1] - y[1])
+        logger.debug(f"Computing distance between {x} and {y}")
+        
+        # Extract coordinates based on projection axis
+        x_coord = self._get_projection(x)
+        y_coord = self._get_projection(y)
+        
+        return abs(x_coord - y_coord)
 
     def distances(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y_list: Union[
-            List[Union[Tuple[float, float], List[float]]],
-            Tuple[Union[Tuple[float, float], List[float]]],
-        ],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y_list: List[Union[IVector, IMatrix, List[float], Tuple[float, ...]]]
     ) -> List[float]:
         """
-        Calculate distances from a single point to a list of points.
+        Computes distances from a single point to multiple points in ℝ².
 
         Args:
-            x: The reference point in ℝ² (2D vector)
-            y_list: List or tuple of points in ℝ² (2D vectors)
+            x: Reference point in ℝ²
+            y_list: List of points in ℝ²
 
         Returns:
             List[float]: List of distances from x to each point in y_list
-
-        Raises:
-            ValueError: If any point is not a 2D vector
         """
-        logger.debug("Calculating distances from %s to multiple points", x)
-
-        if len(x) != 2:
-            raise ValueError("Reference point must be a 2D vector")
-
-        distances = []
-        for y in y_list:
-            if len(y) != 2:
-                raise ValueError("All points must be 2D vectors")
-            distances.append(self.distance(x, y))
-
-        return distances
+        logger.debug(f"Computing distances from {x} to {y_list}")
+        return [self.distance(x, y) for y in y_list]
 
     def check_non_negativity(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y: Union[Tuple[float, float], List[float]],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> bool:
         """
-        Check if the distance satisfies non-negativity.
+        Verifies the non-negativity property: d(x,y) ≥ 0.
 
         Args:
-            x: The first point in ℝ² (2D vector)
-            y: The second point in ℝ² (2D vector)
+            x: First point in ℝ²
+            y: Second point in ℝ²
 
         Returns:
-            bool: True if distance is non-negative, False otherwise
+            bool: True if non-negativity holds, False otherwise
         """
-        logger.debug("Checking non-negativity")
-        return True  # Absolute difference is always non-negative
+        logger.debug(f"Checking non-negativity for {x} and {y}")
+        return self.distance(x, y) >= 0
 
     def check_symmetry(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y: Union[Tuple[float, float], List[float]],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> bool:
         """
-        Check if the distance satisfies symmetry.
+        Verifies the symmetry property: d(x,y) = d(y,x).
 
         Args:
-            x: The first point in ℝ² (2D vector)
-            y: The second point in ℝ² (2D vector)
+            x: First point in ℝ²
+            y: Second point in ℝ²
 
         Returns:
-            bool: True if distance is symmetric, False otherwise
+            bool: True if symmetry holds, False otherwise
         """
-        logger.debug("Checking symmetry")
-        return True  # Absolute difference is symmetric
+        logger.debug(f"Checking symmetry for {x} and {y}")
+        return self.distance(x, y) == self.distance(y, x)
 
     def check_triangle_inequality(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y: Union[Tuple[float, float], List[float]],
-        z: Union[Tuple[float, float], List[float]],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        z: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> bool:
         """
-        Check if the distance satisfies triangle inequality.
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
 
         Args:
-            x: The first point in ℝ² (2D vector)
-            y: The second point in ℝ² (2D vector)
-            z: The third point in ℝ² (2D vector)
+            x: First point in ℝ²
+            y: Second point in ℝ²
+            z: Third point in ℝ²
 
         Returns:
             bool: True if triangle inequality holds, False otherwise
         """
-        logger.debug("Checking triangle inequality")
-
-        # Calculate distances
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        d_xz = self.distance(x, z)
-
-        # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
-        return d_xz <= d_xy + d_yz
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
+        return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
 
     def check_weak_identity(
         self,
-        x: Union[Tuple[float, float], List[float]],
-        y: Union[Tuple[float, float], List[float]],
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
     ) -> bool:
         """
-        Check if the distance satisfies weak identity of indiscernibles.
+        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
 
         Args:
-            x: The first point in ℝ² (2D vector)
-            y: The second point in ℝ² (2D vector)
+            x: First point in ℝ²
+            y: Second point in ℝ²
 
         Returns:
-            bool: True if distance is zero only for indistinguishable points, False otherwise
+            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
         """
-        logger.debug("Checking weak identity")
+        logger.debug(f"Checking weak identity for {x} and {y}")
+        # In projection pseudometric, different points can have the same projected value
+        return True
 
-        # In this pseudometric, different points can have zero distance if they share the same coordinate
-        # Thus, weak identity is not satisfied
-        return False
+    def _get_projection(
+        self,
+        point: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+    ) -> float:
+        """
+        Helper method to get the projected coordinate of a point based on the projection axis.
+
+        Args:
+            point: Point in ℝ²
+
+        Returns:
+            float: Projected coordinate value
+
+        Raises:
+            ValueError: If point is not a 2D vector-like structure
+        """
+        if isinstance(point, (IVector, IMatrix)):
+            data = point.data()
+        elif isinstance(point, (list, tuple)):
+            data = point
+        else:
+            raise ValueError("Unsupported point type for projection")
+
+        if len(data) != 2:
+            raise ValueError("Points must be 2-dimensional")
+
+        return data[0] if self.projection_axis == "x" else data[1]
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the ProjectionPseudometricR2 instance.
+        
+        Returns:
+            str: String representation
+        """
+        return f"ProjectionPseudometricR2(projection_axis={self.projection_axis})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the ProjectionPseudometricR2 instance.
+        
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

@@ -1,119 +1,101 @@
-from typing import Union
+from typing import Union, Literal
+import numpy as np
 import logging
-from ..inner_products.InnerProductBase import InnerProductBase
 
-# Define logger
+from swarmauri_base.ComponentBase import ComponentBase
+from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
+
 logger = logging.getLogger(__name__)
 
 
+@ComponentBase.register_type(InnerProductBase, "SobolevH1InnerProduct")
 class SobolevH1InnerProduct(InnerProductBase):
     """
-    A concrete implementation of the InnerProductBase class for computing the H1 Sobolev inner product.
+    Provides a concrete implementation of the Sobolev H^1 inner product.
 
-    The H1 inner product combines the standard L2 inner product of functions with the L2 inner product of their first derivatives.
-    This creates a smoothness-aware inner product suitable for problems requiring differentiability.
-    Inherits from InnerProductBase and implements the required compute method.
+    This class implements the inner product defined on the Sobolev space H^1, which
+    combines the L2 inner product of functions and their first derivatives. The
+    inner product is given by:
+
+    <u, v> = (u, v)_{L2} + (u', v')_{L2}
+
+    where u' and v' denote the first derivatives of u and v respectively.
+
+    The implementation assumes that the provided vectors or functions have
+    accessible first derivatives through attribute access.
     """
+
+    type: Literal["SobolevH1InnerProduct"] = "SobolevH1InnerProduct"
 
     def __init__(self) -> None:
         """
-        Initializes the SobolevH1InnerProduct instance.
+        Initializes the Sobolev H1 inner product implementation.
         """
         super().__init__()
-        self.type: str = "SobolevH1InnerProduct"
-        logger.debug("SobolevH1InnerProduct initialized")
 
-    def compute(self, a: object, b: object) -> Union[float, complex]:
+    def compute(self, a: Union[IVector, np.ndarray, Callable], 
+                b: Union[IVector, np.ndarray, Callable]) -> float:
         """
-        Computes the H1 Sobolev inner product between two elements.
+        Computes the Sobolev H1 inner product between two elements.
 
-        The H1 inner product is defined as:
-        ⟨a, b⟩_H1 = ⟨a, b⟩_L2 + ⟨a', b'⟩_L2
-
-        where a' and b' are the first derivatives of a and b respectively.
+        The computation involves evaluating both the L2 inner product of the
+        functions and the L2 inner product of their first derivatives.
 
         Args:
-            a: The first element for the inner product computation
-            b: The second element for the inner product computation
+            a: The first element in the inner product operation. Can be a vector,
+               array, or callable.
+            b: The second element in the inner product operation. Can be a vector,
+               array, or callable.
 
         Returns:
-            Union[float, complex]: The result of the H1 Sobolev inner product computation
+            float: The result of the Sobolev H1 inner product operation.
 
         Raises:
-            AttributeError: If the required methods are not available on the elements
+            ValueError: If the input types are not supported or dimensions are incompatible
+            ZeroDivisionError: If any operation leads to division by zero
         """
-        try:
-            logger.debug("Computing H1 Sobolev inner product")
+        logger.debug("Computing Sobolev H1 inner product")
 
-            # Compute L2 inner product of the functions
-            function_inner_product = a.l2_inner_product(b)
+        # Check if inputs are callables and need to be evaluated
+        if callable(a):
+            a = a(np.linspace(0, 1, 1000))  # Example evaluation points
+        if callable(b):
+            b = b(np.linspace(0, 1, 1000))
 
-            # Compute L2 inner product of the first derivatives
-            a_derivative = a.first_derivative()
-            b_derivative = b.first_derivative()
-            derivative_inner_product = a_derivative.l2_inner_product(b_derivative)
+        # Handle array input case
+        if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+            if a.shape != b.shape:
+                raise ValueError("Array dimensions must match for inner product computation")
+            
+            # Compute L2 inner product of functions
+            func_inner = np.inner(a, b)
+            
+            # Access first derivatives (assuming they are stored as attributes)
+            a_grad = a.grad if hasattr(a, 'grad') else np.zeros_like(a)
+            b_grad = b.grad if hasattr(b, 'grad') else np.zeros_like(b)
+            
+            # Compute L2 inner product of derivatives
+            grad_inner = np.inner(a_grad, b_grad)
+            
+            return float(func_inner + grad_inner)
 
-            # Compute the combined H1 inner product
-            h1_inner_product = function_inner_product + derivative_inner_product
+        elif isinstance(a, IVector) and isinstance(b, IVector):
+            # Handle vector input case
+            if a.shape != b.shape:
+                raise ValueError("Vector dimensions must match for inner product computation")
+            
+            # Compute L2 inner product of functions
+            func_inner = a.dot(b)
+            
+            # Access first derivatives
+            a_grad = a.grad
+            b_grad = b.grad
+            
+            # Compute L2 inner product of derivatives
+            grad_inner = a_grad.dot(b_grad)
+            
+            return float(func_inner + grad_inner)
 
-            logger.debug(f"H1 Sobolev inner product computed: {h1_inner_product}")
-            return h1_inner_product
-
-        except AttributeError as e:
-            logger.error(
-                f"Missing required methods for H1 inner product computation: {e}"
-            )
-            raise AttributeError(
-                "Elements must provide l2_inner_product and first_derivative methods"
-            )
-
-    def check_conjugate_symmetry(self, a: object, b: object) -> bool:
-        """
-        Checks if the H1 Sobolev inner product implementation satisfies conjugate symmetry.
-
-        For real-valued functions, this should always hold:
-        ⟨a, b⟩_H1 = ⟨b, a⟩_H1
-
-        Args:
-            a: The first element for symmetry check
-            b: The second element for symmetry check
-
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise
-        """
-        logger.debug("Checking conjugate symmetry for H1 inner product")
-        return True
-
-    def check_linearity_first_argument(self, a: object, b: object, c: object) -> bool:
-        """
-        Checks if the H1 Sobolev inner product implementation is linear in the first argument.
-
-        For real-valued functions, this should hold:
-        ⟨(a + c), b⟩_H1 = ⟨a, b⟩_H1 + ⟨c, b⟩_H1
-
-        Args:
-            a: The first element for linearity check
-            b: The second element for linearity check
-            c: The third element for linearity check
-
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise
-        """
-        logger.debug("Checking linearity in the first argument for H1 inner product")
-        return True
-
-    def check_positivity(self, a: object) -> bool:
-        """
-        Checks if the H1 Sobolev inner product implementation satisfies positive definiteness.
-
-        For any non-zero element a, this should hold:
-        ⟨a, a⟩_H1 > 0
-
-        Args:
-            a: The element to check for positivity
-
-        Returns:
-            bool: True if positivity holds, False otherwise
-        """
-        logger.debug("Checking positivity for H1 inner product")
-        return True
+        else:
+            raise ValueError(f"Unsupported input types: {type(a)} and {type(b)}")

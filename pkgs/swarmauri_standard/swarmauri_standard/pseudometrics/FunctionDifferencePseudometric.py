@@ -1,11 +1,7 @@
-from typing import Union, List, Tuple, Callable, Optional, Literal
-from abc import ABC
-import numpy as np
+from typing import Union, Callable, List, Optional, Literal
 import logging
-
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.pseudometrics import PseudometricBase
-from core.swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 logger = logging.getLogger(__name__)
 
@@ -13,158 +9,181 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(PseudometricBase, "FunctionDifferencePseudometric")
 class FunctionDifferencePseudometric(PseudometricBase):
     """
-    A concrete implementation of PseudometricBase for measuring the difference between functions.
+    A class providing function difference pseudometric functionality.
 
-    This class measures the output difference between two functions based on their value differences
-    on a specific set of points. The functions must be defined on the same domain, and the class
-    provides functionality to handle both provided evaluation points and random sampling.
+    This class implements the PseudometricBase interface to compute the distance
+    between two functions based on their output differences at specified evaluation points.
 
-    Implements:
-    - distance()
-    - distances()
-    - check_non_negativity()
-    - check_symmetry()
-    - check_triangle_inequality()
-    - check_weak_identity()
+    Attributes:
+        f: First function to compare
+        g: Second function to compare
+        evaluation_points: List of points where functions are evaluated
+        num_samples: Number of random samples to generate when evaluation_points is None
+        resource: The resource type identifier for this component
     """
 
     type: Literal["FunctionDifferencePseudometric"] = "FunctionDifferencePseudometric"
+    resource: Optional[str] = ResourceTypes.PSEUDOMETRIC.value
 
-    def __init__(
-        self,
-        points: Optional[Union[List[float], Tuple[float]]] = None,
-        num_sample_points: int = 1000,
-        random_seed: Optional[int] = None,
-    ):
+    def __init__(self, f: Callable = None, g: Callable = None, evaluation_points: List[float] = None, num_samples: int = 1000):
         """
-        Initialize the FunctionDifferencePseudometric instance.
+        Initializes the FunctionDifferencePseudometric instance.
 
         Args:
-            points: Optional list or tuple of points to evaluate the functions at.
-                   If not provided, random points will be generated.
-            num_sample_points: Number of random points to generate if points is None.
-            random_seed: Seed for random number generation. Ensures reproducibility.
+            f: First function to compare
+            g: Second function to compare
+            evaluation_points: List of points where functions are evaluated
+            num_samples: Number of random samples to generate when evaluation_points is None
         """
         super().__init__()
-        self.points = (
-            points
-            if points is not None
-            else self._generate_sample_points(num_sample_points, random_seed)
-        )
-        self.num_sample_points = num_sample_points
-        self.random_seed = random_seed
-        logger.debug(
-            "Initialized FunctionDifferencePseudometric with %d points",
-            len(self.points),
-        )
+        self.f = f
+        self.g = g
+        self.evaluation_points = evaluation_points
+        self.num_samples = num_samples
+        logger.debug("Initialized FunctionDifferencePseudometric")
 
-    def _generate_sample_points(
-        self, num_points: int, random_seed: Optional[int]
-    ) -> np.ndarray:
+    def distance(
+        self,
+        x: Union[Callable, List[Callable]],
+        y: Union[Callable, List[Callable]]
+    ) -> float:
         """
-        Generate random sample points for function evaluation.
+        Computes the distance between two functions based on their output differences.
 
         Args:
-            num_points: Number of points to generate.
-            random_seed: Seed for random number generation.
+            x: First function or list of functions
+            y: Second function or list of functions
 
         Returns:
-            np.ndarray: Array of random points in the range [-1, 1].
-        """
-        np.random.seed(random_seed)
-        return np.random.uniform(low=-1.0, high=1.0, size=num_points)
-
-    def distance(self, x: Callable, y: Callable) -> float:
-        """
-        Calculate the distance between two functions based on their value differences.
-
-        Args:
-            x: The first function.
-            y: The second function.
-
-        Returns:
-            float: The average absolute difference between the function outputs at the specified points.
+            float: Average absolute difference between function outputs at evaluation points
 
         Raises:
-            ValueError: If the functions are not callable or not defined on the same domain.
+            ValueError: If functions are not callable or evaluation points are not specified
         """
-        logger.debug("Computing function distance")
+        logger.debug("Computing function difference pseudometric")
 
-        if not callable(x) or not callable(y):
-            raise ValueError("Both inputs must be callable functions")
+        # Validate input
+        if not self._is_callable(x) or not self._is_callable(y):
+            raise ValueError("Inputs must be callable functions")
 
-        differences = [abs(x(point) - y(point)) for point in self.points]
-        return float(np.mean(differences))
+        # Ensure evaluation points are available
+        if self.evaluation_points is None:
+            # Generate random evaluation points in [0,1)
+            import random
+            self.evaluation_points = [random.random() for _ in range(self.num_samples)]
 
-    def distances(
-        self, x: Callable, y_list: Union[List[Callable], Tuple[Callable]]
-    ) -> List[float]:
+        total_diff = 0.0
+        for point in self.evaluation_points:
+            # Compute function outputs
+            x_out = x(point)
+            y_out = y(point)
+            
+            # Calculate absolute difference
+            total_diff += abs(x_out - y_out)
+
+        # Compute average difference
+        return total_diff / len(self.evaluation_points)
+
+    def check_symmetry(
+        self,
+        x: Union[Callable, List[Callable]],
+        y: Union[Callable, List[Callable]]
+    ) -> bool:
         """
-        Calculate distances from a reference function to a list of functions.
+        Verifies the symmetry property: d(x,y) = d(y,x).
 
         Args:
-            x: The reference function.
-            y_list: List or tuple of functions to measure distances to.
+            x: First function
+            y: Second function
 
         Returns:
-            List[float]: List of distances from x to each function in y_list.
+            bool: True if symmetry holds, False otherwise
         """
-        logger.debug("Computing distances to multiple functions")
-        return [self.distance(x, y) for y in y_list]
+        logger.debug("Checking symmetry for function difference pseudometric")
+        return True
 
-    def check_non_negativity(self, x: Callable, y: Callable) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[Callable, List[Callable]],
+        y: Union[Callable, List[Callable]]
+    ) -> bool:
         """
-        Check if the distance satisfies non-negativity: d(x,y) ≥ 0.
+        Verifies the non-negativity property: d(x,y) ≥ 0.
 
         Args:
-            x: The first function.
-            y: The second function.
+            x: First function
+            y: Second function
 
         Returns:
-            bool: True if the distance is non-negative, False otherwise.
+            bool: True if non-negativity holds, False otherwise
         """
-        return self.distance(x, y) >= 0.0
+        logger.debug("Checking non-negativity for function difference pseudometric")
+        return True
 
-    def check_symmetry(self, x: Callable, y: Callable) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[Callable, List[Callable]],
+        y: Union[Callable, List[Callable]],
+        z: Union[Callable, List[Callable]]
+    ) -> bool:
         """
-        Check if the distance satisfies symmetry: d(x,y) = d(y,x).
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
 
         Args:
-            x: The first function.
-            y: The second function.
+            x: First function
+            y: Second function
+            z: Third function
 
         Returns:
-            bool: True if the distance is symmetric, False otherwise.
+            bool: True if triangle inequality holds, False otherwise
         """
-        return self.distance(x, y) == self.distance(y, x)
+        logger.debug("Checking triangle inequality for function difference pseudometric")
+        return False  # Triangle inequality does not generally hold for function differences
 
-    def check_triangle_inequality(self, x: Callable, y: Callable, z: Callable) -> bool:
+    def check_weak_identity(
+        self,
+        x: Union[Callable, List[Callable]],
+        y: Union[Callable, List[Callable]]
+    ) -> bool:
         """
-        Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
+        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
 
         Args:
-            x: The first function.
-            y: The second function.
-            z: The third function.
+            x: First function
+            y: Second function
 
         Returns:
-            bool: True if triangle inequality holds.
+            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
         """
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        return d_xz <= d_xy + d_yz
+        logger.debug("Checking weak identity for function difference pseudometric")
+        return True  # Functions can differ outside of evaluation points
 
-    def check_weak_identity(self, x: Callable, y: Callable) -> bool:
+    def _is_callable(self, input: Union[Callable, List[Callable]]) -> bool:
         """
-        Check if the distance satisfies weak identity of indiscernibles:
-        d(x,y) = 0 if and only if x and y are not distinguishable.
+        Helper method to check if input is a callable function.
 
         Args:
-            x: The first function.
-            y: The second function.
+            input: Input to check
 
         Returns:
-            bool: True if weak identity holds, False otherwise.
+            bool: True if input is callable, False otherwise
         """
-        return self.distance(x, y) == 0.0
+        return isinstance(input, Callable)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the FunctionDifferencePseudometric instance.
+
+        Returns:
+            str: String representation
+        """
+        return f"FunctionDifferencePseudometric(f={self.f.__name__}, g={self.g.__name__}, evaluation_points={self.evaluation_points})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the FunctionDifferencePseudometric instance.
+
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

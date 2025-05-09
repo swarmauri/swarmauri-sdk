@@ -1,181 +1,141 @@
 from abc import ABC, abstractmethod
-from typing import Union, Any, Tuple, Callable, Literal
+from typing import Union, Sequence, Callable
+import logging
+
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ISimilarity(ABC):
     """
-    Abstract base class for implementing similarity measures. This interface
-    provides a blueprint for creating concrete similarity implementations with
-    support for various data types and mathematical properties.
-
-    The interface enforces abstract methods for core similarity calculations
-    and property checks, ensuring consistency and type safety across different
-    implementations.
+    Interface for similarity measures. This abstract base class defines the core
+    methods for calculating similarities and dissimilarities between various
+    types of data, including vectors, matrices, sequences, strings, and callables.
+    
+    The interface provides methods for both single pair comparisons and batch
+    comparisons. Additionally, it includes checks for important properties of
+    similarity measures like boundedness, reflexivity, symmetry, and identity.
+    
+    Methods:
+        similarity: Calculates the similarity between two elements
+        similarities: Calculates similarities for multiple pairs
+        dissimilarity: Calculates the dissimilarity between two elements
+        dissimilarities: Calculates dissimilarities for multiple pairs
+        check_boundedness: Verifies if the similarity measure is bounded
+        check_reflexivity: Checks if the measure satisfies reflexivity
+        check_symmetry: Verifies if the measure is symmetric
+        check_identity: Checks if the measure satisfies identity of discernibles
     """
 
     @abstractmethod
-    def similarity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> float:
+    def similarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                    y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Calculate the similarity between two elements.
-
+        Calculates the similarity between two elements.
+        
         Args:
-            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
-            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
-
+            x: First element to compare
+            y: Second element to compare
+            
         Returns:
-            float: A measure of similarity between x and y.
-
-        Raises:
-            TypeError: If input types are not supported.
+            float: Similarity score between x and y
         """
-        pass
+        logger.debug(f"Calculating similarity between {x} and {y}")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def similarities(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        ys: Union[
-            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
-            Union[IVector, IMatrix, Tuple, str, Callable]
-        ]
-    ) -> Union[float, List[float]]:
+    def similarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                     ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
         """
-        Calculate similarities between an element and multiple elements.
-
+        Calculates similarities for multiple pairs of elements.
+        
         Args:
-            x: The reference element to compare against. Can be a vector, matrix, tuple, string, or callable.
-            ys: A list of elements or a single element to compare with x. Elements can be vectors, matrices, tuples, strings, or callables.
-
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+            
         Returns:
-            Union[float, List[float]]: A measure of similarity (or similarities) between x and each element in ys.
-
-        Raises:
-            TypeError: If input types are not supported.
+            Union[float, Sequence[float]]: Similarity scores for the pairs
         """
-        pass
+        logger.debug(f"Calculating similarities between {xs} and {ys}")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def dissimilarity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> float:
+    def dissimilarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                      y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Calculate the dissimilarity between two elements.
-
+        Calculates the dissimilarity between two elements.
+        
         Args:
-            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
-            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
-
+            x: First element to compare
+            y: Second element to compare
+            
         Returns:
-            float: A measure of dissimilarity between x and y.
-
-        Raises:
-            TypeError: If input types are not supported.
+            float: Dissimilarity score between x and y
         """
-        pass
+        logger.debug(f"Calculating dissimilarity between {x} and {y}")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def dissimilarities(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        ys: Union[
-            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
-            Union[IVector, IMatrix, Tuple, str, Callable]
-        ]
-    ) -> Union[float, List[float]]:
+    def dissimilarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                       ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
         """
-        Calculate dissimilarities between an element and multiple elements.
-
+        Calculates dissimilarities for multiple pairs of elements.
+        
         Args:
-            x: The reference element to compare against. Can be a vector, matrix, tuple, string, or callable.
-            ys: A list of elements or a single element to compare with x. Elements can be vectors, matrices, tuples, strings, or callables.
-
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+            
         Returns:
-            Union[float, List[float]]: A measure of dissimilarity (or dissimilarities) between x and each element in ys.
-
-        Raises:
-            TypeError: If input types are not supported.
+            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
         """
-        pass
+        logger.debug(f"Calculating dissimilarities between {xs} and {ys}")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def check_boundedness(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> bool:
+    def check_boundedness(self) -> bool:
         """
-        Check if the similarity measure is bounded.
-
-        Args:
-            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
-            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
-
+        Checks if the similarity measure is bounded.
+        
         Returns:
-            bool: True if the measure is bounded, False otherwise.
+            bool: True if the measure is bounded, False otherwise
         """
-        pass
+        logger.debug("Checking boundedness")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def check_reflexivity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> bool:
+    def check_reflexivity(self) -> bool:
         """
-        Check if the similarity measure is reflexive (s(x,x) = 0).
-
-        Args:
-            x: The element to check reflexivity for. Can be a vector, matrix, tuple, string, or callable.
-
+        Checks if the similarity measure satisfies reflexivity.
+        A measure is reflexive if s(x, x) = 1 for all x.
+        
         Returns:
-            bool: True if the measure is reflexive, False otherwise.
+            bool: True if the measure is reflexive, False otherwise
         """
-        pass
+        logger.debug("Checking reflexivity")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def check_symmetry(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> bool:
+    def check_symmetry(self) -> bool:
         """
-        Check if the similarity measure is symmetric (s(x,y) = s(y,x)).
-
-        Args:
-            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
-            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
-
+        Checks if the similarity measure is symmetric.
+        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
+        
         Returns:
-            bool: True if the measure is symmetric, False otherwise.
+            bool: True if the measure is symmetric, False otherwise
         """
-        pass
+        logger.debug("Checking symmetry")
+        raise NotImplementedError("Method not implemented")
 
     @abstractmethod
-    def check_identity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
-    ) -> bool:
+    def check_identity(self) -> bool:
         """
-        Check if the similarity measure satisfies identity (s(x,y) = 1 if and only if x == y).
-
-        Args:
-            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
-            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
-
+        Checks if the similarity measure satisfies identity of discernibles.
+        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
+        
         Returns:
-            bool: True if the measure satisfies identity, False otherwise.
+            bool: True if the measure satisfies identity, False otherwise
         """
-        pass
-
-    pass
+        logger.debug("Checking identity of discernibles")
+        raise NotImplementedError("Method not implemented")

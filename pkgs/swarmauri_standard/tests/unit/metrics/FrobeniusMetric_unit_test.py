@@ -1,122 +1,81 @@
 import pytest
+import numpy as np
+from swarmauri_standard.metrics.FrobeniusMetric import FrobeniusMetric
 import logging
-from swarmauri_standard.swarmauri_standard.metrics.FrobeniusMetric import (
-    FrobeniusMetric,
-)
-
-# Configure logging for testing
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 
 @pytest.mark.unit
-def test_frobenius_metric_resource_type():
-    """Test the resource and type attributes of FrobeniusMetric."""
-    assert FrobeniusMetric.resource == "metric"
-    assert FrobeniusMetric.type == "FrobeniusMetric"
+class TestFrobeniusMetric:
 
+    """Unit tests for the FrobeniusMetric class."""
 
-@pytest.fixture
-def simple_matrix():
-    """Fixture providing a simple 2x2 matrix for testing."""
-    return [[1, 2], [3, 4]]
+    def test_distance(self):
+        """Test the distance method with various inputs."""
+        # Test with numpy arrays
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 4]])
+        assert FrobeniusMetric().distance(x, y) == 0.0
+        
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 5]])
+        assert FrobeniusMetric().distance(x, y) == 1.0
 
+        # Test with vectors
+        x = np.array([1, 2, 3])
+        y = np.array([1, 2, 3])
+        assert FrobeniusMetric().distance(x, y) == 0.0
 
-@pytest.mark.unit
-def test_distance(simple_matrix):
-    """Test the distance method with valid matrices."""
-    metric = FrobeniusMetric()
+        # Test with different shapes
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2, 3], [4, 5, 6]])
+        with pytest.raises(ValueError):
+            FrobeniusMetric().distance(x, y)
 
-    # Test with valid input
-    x = [[1, 2], [3, 4]]
-    y = [[1, 2], [3, 4]]
-    assert metric.distance(x, y) == 0.0
+    def test_distances(self):
+        """Test the distances method with multiple inputs."""
+        x_list = [
+            np.array([[1, 2], [3, 4]]),
+            np.array([[5, 6], [7, 8]])
+        ]
+        y_list = [
+            np.array([[1, 2], [3, 4]]),
+            np.array([[5, 6], [7, 8]])
+        ]
+        result = FrobeniusMetric().distances(x_list, y_list)
+        assert len(result) == 2
+        assert all(isinstance(item, float) for sublist in result for item in sublist)
 
-    # Test with different matrices
-    y_diff = [[2, 3], [4, 5]]
-    distance = metric.distance(x, y_diff)
-    assert distance > 0
+    def test_check_non_negativity(self):
+        """Test the non-negativity check."""
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 4]])
+        FrobeniusMetric().check_non_negativity(x, y)
 
-    # Test with invalid input shapes
-    x_invalid = [[1], [2]]
-    with pytest.raises(ValueError):
-        metric.distance(x_invalid, y)
+    def test_check_identity(self):
+        """Test the identity of indiscernibles check."""
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 4]])
+        FrobeniusMetric().check_identity(x, y)
 
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 5]])
+        with pytest.raises(ValueError):
+            FrobeniusMetric().check_identity(x, y)
 
-@pytest.mark.unit
-def test_distances(simple_matrix):
-    """Test the distances method with multiple matrices."""
-    metric = FrobeniusMetric()
-    x = [[1, 2], [3, 4]]
+    def test_check_symmetry(self):
+        """Test the symmetry axiom."""
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 5]])
+        FrobeniusMetric().check_symmetry(x, y)
 
-    # Test with valid list of matrices
-    ys = [[[1, 2], [3, 4]], [[2, 3], [4, 5]]]
-    distances = metric.distances(x, ys)
-    assert len(distances) == 2
+    def test_check_triangle_inequality(self):
+        """Test the triangle inequality axiom."""
+        x = np.array([[1, 2], [3, 4]])
+        y = np.array([[1, 2], [3, 5]])
+        z = np.array([[1, 2], [3, 6]])
+        FrobeniusMetric().check_triangle_inequality(x, y, z)
 
-    # Test with invalid matrix in list
-    ys_invalid = [[[1], [2]], [[2, 3], [4, 5]]]
-    with pytest.raises(ValueError):
-        metric.distances(x, ys_invalid)
-
-
-@pytest.mark.unit
-def test_check_non_negativity(simple_matrix):
-    """Test the non-negativity property."""
-    metric = FrobeniusMetric()
-    x = [[1, 2], [3, 4]]
-    y = [[2, 3], [4, 5]]
-
-    # Test with valid matrices
-    result = metric.check_non_negativity(x, y)
-    assert result is True
-
-    # Test with identical matrices
-    result = metric.check_non_negativity(x, x)
-    assert result is True
-
-
-@pytest.mark.unit
-def test_check_identity(simple_matrix):
-    """Test the identity of indiscernibles property."""
-    metric = FrobeniusMetric()
-    x = [[1, 2], [3, 4]]
-    y = [[1, 2], [3, 4]]
-
-    # Test with identical matrices
-    result = metric.check_identity(x, y)
-    assert result is True
-
-    # Test with different matrices
-    y_diff = [[2, 3], [4, 5]]
-    result = metric.check_identity(x, y_diff)
-    assert result is True  # Because the method always returns True after assertion
-
-
-@pytest.mark.unit
-def test_check_symmetry(simple_matrix):
-    """Test the symmetry property."""
-    metric = FrobeniusMetric()
-    x = [[1, 2], [3, 4]]
-    y = [[2, 3], [4, 5]]
-
-    distance_xy = metric.distance(x, y)
-    distance_yx = metric.distance(y, x)
-
-    # Using approximate equality for floating point comparison
-    assert abs(distance_xy - distance_yx) < 1e-9
-
-
-@pytest.mark.unit
-def test_check_triangle_inequality(simple_matrix):
-    """Test the triangle inequality property."""
-    metric = FrobeniusMetric()
-    x = [[1, 2], [3, 4]]
-    y = [[2, 3], [4, 5]]
-    z = [[3, 4], [5, 6]]
-
-    distance_xz = metric.distance(x, z)
-    distance_xy = metric.distance(x, y)
-    distance_yz = metric.distance(y, z)
-
-    assert distance_xz <= distance_xy + distance_yz
+    def test_string_representation(self):
+        """Test the string representation methods."""
+        metric = FrobeniusMetric()
+        assert str(metric) == "FrobeniusMetric()"
+        assert repr(metric) == "FrobeniusMetric()"

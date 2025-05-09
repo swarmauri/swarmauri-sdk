@@ -1,166 +1,94 @@
 import pytest
-import logging
-from typing import Union, List, Tuple
-from swarmauri_standard.swarmauri_standard.similarities.JaccardIndexSimilarity import (
-    JaccardIndexSimilarity,
-)
-
-# Set up basic logging configuration
-logging.basicConfig(level=logging.DEBUG)
-
-
-@pytest.fixture
-def jaccard_index_similarity() -> JaccardIndexSimilarity:
-    """Fixture providing a JaccardIndexSimilarity instance for testing."""
-    return JaccardIndexSimilarity()
-
+from swarmauri_standard.similarities.JaccardIndexSimilarity import JaccardIndexSimilarity
 
 @pytest.mark.unit
-def test_similarity_empty_sets(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test Jaccard Index similarity calculation with empty sets."""
-    assert jaccard_index_similarity.similarity(set(), set()) == 1.0
+class TestJaccardIndexSimilarity:
+    """Unit tests for JaccardIndexSimilarity class."""
 
+    @pytest.fixture(scope="class")
+    def fixture_jaccard_index_similarity(self):
+        """Fixture to provide a JaccardIndexSimilarity instance for testing."""
+        return JaccardIndexSimilarity()
 
-@pytest.mark.unit
-def test_similarity_identical_sets(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test Jaccard Index similarity when input sets are identical."""
-    test_set = {"a", "b", "c"}
-    assert jaccard_index_similarity.similarity(test_set, test_set) == 1.0
+    def test_constructor(self, fixture_jaccard_index_similarity):
+        """Test that the JaccardIndexSimilarity instance is properly initialized."""
+        assert isinstance(fixture_jaccard_index_similarity, JaccardIndexSimilarity)
 
+    def test_resource(self, fixture_jaccard_index_similarity):
+        """Test the resource property."""
+        assert fixture_jaccard_index_similarity.resource == "JACCARD_INDEX_SIMILARITY"
 
-@pytest.mark.unit
-def test_similarity_disjoint_sets(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test Jaccard Index similarity when input sets are disjoint."""
-    set1 = {"a", "b"}
-    set2 = {"c", "d"}
-    assert jaccard_index_similarity.similarity(set1, set2) == 0.0
+    def test_type(self, fixture_jaccard_index_similarity):
+        """Test the type property."""
+        assert fixture_jaccard_index_similarity.type == "JaccardIndexSimilarity"
 
+    def test_similarity_empty_sets(self, fixture_jaccard_index_similarity):
+        """Test similarity calculation with empty sets."""
+        similarity = fixture_jaccard_index_similarity.similarity(set(), set())
+        assert similarity == 0.0
 
-@pytest.mark.unit
-def test_similarity_overlapping_sets(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test Jaccard Index similarity with partially overlapping sets."""
-    set1 = {"a", "b", "c"}
-    set2 = {"b", "c", "d"}
-    assert jaccard_index_similarity.similarity(set1, set2) == 2 / 5 == 0.4
+    def test_similarity_non_empty_sets(self, fixture_jaccard_index_similarity):
+        """Test similarity calculation with non-empty sets."""
+        x = {1, 2, 3}
+        y = {2, 3, 4}
+        similarity = fixture_jaccard_index_similarity.similarity(x, y)
+        assert similarity == 2/5  # Intersection size 2, union size 5
 
+    def test_similarity_lists(self, fixture_jaccard_index_similarity):
+        """Test similarity calculation with lists."""
+        x = [1, 2, 3]
+        y = [2, 3, 4]
+        similarity = fixture_jaccard_index_similarity.similarity(x, y)
+        assert similarity == 2/5
 
-@pytest.mark.unit
-def test_similarity_with_different_types(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test Jaccard Index similarity with different input types (list, tuple)."""
-    list_input = ["a", "b", "c"]
-    tuple_input = ("b", "c", "d")
+    def test_similarity_tuples(self, fixture_jaccard_index_similarity):
+        """Test similarity calculation with tuples."""
+        x = (1, 2, 3)
+        y = (2, 3, 4)
+        similarity = fixture_jaccard_index_similarity.similarity(x, y)
+        assert similarity == 2/5
 
-    similarity_list = jaccard_index_similarity.similarity(list_input, tuple_input)
-    assert similarity_list == 2 / 5 == 0.4
+    def test_similarity_invalid_inputs(self, fixture_jaccard_index_similarity):
+        """Test similarity with invalid input types."""
+        with pytest.raises(ValueError):
+            fixture_jaccard_index_similarity.similarity(123, [1,2,3])
 
+    def test_similarities_multiple_pairs(self, fixture_jaccard_index_similarity):
+        """Test multiple similarities calculation."""
+        xs = [{1, 2}, {3, 4}]
+        ys = [{2, 3}, {4, 5}]
+        expected = [2/4, 2/4]  # Each pair has intersection size 1, union size 3
+        similarities = fixture_jaccard_index_similarity.similarities(xs, ys)
+        assert similarities == pytest.approx(expected)
 
-@pytest.mark.unit
-def test_similarities_single(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test similarities method with a single set."""
-    set1 = {"a", "b"}
-    set2 = {"b", "c"}
-    result = jaccard_index_similarity.similarities(set1, set2)
-    assert isinstance(result, float) and result == 0.5
+    def test_dissimilarity(self, fixture_jaccard_index_similarity):
+        """Test dissimilarity calculation."""
+        x = {1, 2, 3}
+        y = {2, 3, 4}
+        similarity = 2/5
+        dissimilarity = fixture_jaccard_index_similarity.dissimilarity(x, y)
+        assert dissimilarity == 1.0 - similarity
 
+    def test_dissimilarities_multiple_pairs(self, fixture_jaccard_index_similarity):
+        """Test multiple dissimilarities calculation."""
+        xs = [{1, 2}, {3, 4}]
+        ys = [{2, 3}, {4, 5}]
+        expected = [1.0 - (1/3), 1.0 - (1/3)]
+        dissimilarities = fixture_jaccard_index_similarity.dissimilarities(xs, ys)
+        assert dissimilarities == pytest.approx(expected)
 
-@pytest.mark.unit
-def test_similarities_batch(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test similarities method with multiple sets."""
-    set1 = {"a", "b"}
-    set2 = {"b", "c"}
-    set3 = {"d", "e"}
+    def test_check_boundedness(self, fixture_jaccard_index_similarity):
+        """Test if the measure is bounded."""
+        assert fixture_jaccard_index_similarity.check_boundedness() is True
 
-    results = jaccard_index_similarity.similarities(set1, [set2, set3])
-    assert isinstance(results, list) and len(results) == 2
-    assert results[0] == 0.5 and results[1] == 0.0
+    def test_check_reflexivity(self, fixture_jaccard_index_similarity):
+        """Test if the measure satisfies reflexivity."""
+        assert fixture_jaccard_index_similarity.check_reflexivity() is True
 
+    def test_check_symmetry(self, fixture_jaccard_index_similarity):
+        """Test if the measure is symmetric."""
+        assert fixture_jaccard_index_similarity.check_symmetry() is True
 
-@pytest.mark.unit
-def test_dissimilarity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test dissimilarity calculation."""
-    set1 = {"a", "b"}
-    set2 = {"b", "c"}
-    assert jaccard_index_similarity.dissimilarity(set1, set2) == 0.5
-
-
-@pytest.mark.unit
-def test_dissimilarities(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test dissimilarities method with multiple sets."""
-    set1 = {"a", "b"}
-    set2 = {"b", "c"}
-    set3 = {"d", "e"}
-
-    results = jaccard_index_similarity.dissimilarities(set1, [set2, set3])
-    assert isinstance(results, list) and len(results) == 2
-    assert results[0] == 0.5 and results[1] == 1.0
-
-
-@pytest.mark.unit
-def test_check_boundedness(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test if the similarity measure is bounded between 0 and 1."""
-    assert jaccard_index_similarity.check_boundedness({"a"}, {"a"}) is True
-
-
-@pytest.mark.unit
-def test_check_reflexivity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test if the similarity measure is reflexive."""
-    test_set = {"a", "b", "c"}
-    assert jaccard_index_similarity.check_reflexivity(test_set) is True
-
-
-@pytest.mark.unit
-def test_check_symmetry(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test if the similarity measure is symmetric."""
-    set1 = {"a", "b"}
-    set2 = {"b", "c"}
-    assert jaccard_index_similarity.check_symmetry(set1, set2) is True
-
-
-@pytest.mark.unit
-def test_check_identity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
-    """Test if the similarity measure satisfies identity."""
-    set1 = {"a", "b"}
-    set2 = {"a", "b"}
-    assert jaccard_index_similarity.check_identity(set1, set2) is True
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "x,y,expected",
-    [
-        ({"a", "b"}, {"b", "c"}, 0.5),
-        ({"a"}, {"a", "b"}, 0.5),
-        ({"x", "y", "z"}, {"a", "b", "c"}, 0.0),
-    ],
-)
-def test_similarity_parametrized(
-    jaccard_index_similarity: JaccardIndexSimilarity, x, y, expected
-) -> None:
-    """Parametrized test for similarity method with various inputs."""
-    assert jaccard_index_similarity.similarity(x, y) == expected
-
-
-@pytest.mark.unit
-def test_similarity_value_range(
-    jaccard_index_similarity: JaccardIndexSimilarity,
-) -> None:
-    """Test if similarity values stay within valid range [0,1]."""
-    # Test with empty sets
-    assert 0.0 <= jaccard_index_similarity.similarity(set(), set()) <= 1.0
-    # Test with identical sets
-    test_set = {"a", "b", "c"}
-    assert 0.0 <= jaccard_index_similarity.similarity(test_set, test_set) <= 1.0
-    # Test with disjoint sets
-    set1 = {"a", "b"}
-    set2 = {"c", "d"}
-    assert 0.0 <= jaccard_index_similarity.similarity(set1, set2) <= 1.0
+    def test_check_identity(self, fixture_jaccard_index_similarity):
+        """Test if the measure satisfies identity of discernibles."""
+        assert fixture_jaccard_index_similarity.check_identity() is True

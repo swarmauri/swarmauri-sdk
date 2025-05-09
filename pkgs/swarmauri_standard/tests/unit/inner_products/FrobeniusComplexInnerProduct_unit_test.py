@@ -2,106 +2,129 @@ import pytest
 import numpy as np
 import logging
 
-from swarmauri_standard.swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import (
-    FrobeniusComplexInnerProduct,
-)
+from swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import FrobeniusComplexInnerProduct
 
-
-@pytest.fixture
-def inner_product():
-    """Fixture to provide an instance of FrobeniusComplexInnerProduct"""
-    return FrobeniusComplexInnerProduct()
-
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_compute(inner_product):
-    """Test computation of Frobenius inner product with complex matrices"""
-    # Test with 2x2 complex matrices
-    a = np.array([[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j]])
-    b = np.array([[9 + 10j, 11 + 12j], [13 + 14j, 15 + 16j]])
+class TestFrobeniusComplexInnerProduct:
+    """Unit tests for FrobeniusComplexInnerProduct class."""
 
-    # Expected result from manual calculation
-    expected = 70 + 90j
+    def test_compute(self):
+        """Test computation of Frobenius inner product for complex matrices."""
+        # Generate random complex matrices
+        a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        b = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
 
-    result = inner_product.compute(a, b)
-    assert np.isclose(result, expected)
+        # Compute using class method
+        inner_product = FrobeniusComplexInnerProduct()
+        result = inner_product.compute(a, b)
 
+        # Manual computation for verification
+        b_conj_transpose = b.conj().T
+        product = np.multiply(a, b_conj_transpose)
+        expected_result = np.trace(product)
+
+        # Assert results are close (floating point comparison)
+        assert np.isclose(result, expected_result, rtol=1e-4)
+
+    def test_check_conjugate_symmetry(self):
+        """Test conjugate symmetry property."""
+        a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        b = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+
+        inner_product = FrobeniusComplexInnerProduct()
+        inner_ab = inner_product.compute(a, b)
+        inner_ba = inner_product.compute(b, a)
+
+        # Check if inner_ab is close to the conjugate of inner_ba
+        assert np.isclose(inner_ab, inner_ba.conjugate(), rtol=1e-4)
+
+    def test_check_linearity_first_argument(self):
+        """Test linearity in the first argument."""
+        a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        b = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        c = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+
+        inner_product = FrobeniusComplexInnerProduct()
+
+        # Test linearity: <a + b, c> = <a, c> + <b, c>
+        ab = a + b
+        inner_ab_c = inner_product.compute(ab, c)
+        inner_a_c = inner_product.compute(a, c)
+        inner_b_c = inner_product.compute(b, c)
+
+        assert np.isclose(inner_ab_c, inner_a_c + inner_b_c, rtol=1e-4)
+
+        # Test homogeneity: <αa, c> = α <a, c>
+        alpha = 2.0
+        a_scaled = alpha * a
+        inner_scaled = inner_product.compute(a_scaled, c)
+        expected = alpha * inner_a_c
+
+        assert np.isclose(inner_scaled, expected, rtol=1e-4)
+
+    def test_check_positivity(self):
+        """Test positivity property."""
+        a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        a = a @ a.conj().T  # Ensure a is positive definite
+
+        inner_product = FrobeniusComplexInnerProduct()
+        inner_aa = inner_product.compute(a, a)
+
+        assert inner_aa > 0
+
+    @pytest.mark.parametrize("matrix_size", [(2, 2), (3, 3)])
+    def test_compute_parameterized(self, matrix_size):
+        """Parameterized test for compute method with different matrix sizes."""
+        a = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
+        b = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
+
+        inner_product = FrobeniusComplexInnerProduct()
+        result = inner_product.compute(a, b)
+
+        b_conj_transpose = b.conj().T
+        product = np.multiply(a, b_conj_transpose)
+        expected_result = np.trace(product)
+
+        assert np.isclose(result, expected_result, rtol=1e-4)
+
+    @pytest.mark.parametrize("matrix_type", ['complex', 'real'])
+    def test_compute_different_types(self, matrix_type):
+        """Test compute method with different matrix types."""
+        if matrix_type == 'complex':
+            a = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+            b = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        else:
+            a = np.random.rand(2, 2)
+            b = np.random.rand(2, 2)
+
+        inner_product = FrobeniusComplexInnerProduct()
+        result = inner_product.compute(a, b)
+
+        b_conj_transpose = b.conj().T
+        product = np.multiply(a, b_conj_transpose)
+        expected_result = np.trace(product)
+
+        assert np.isclose(result, expected_result, rtol=1e-4)
+
+def _generate_random_matrices():
+    """Fixture to generate random matrices for testing."""
+    matrix_size = (2, 2)
+    a = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
+    b = np.random.rand(*matrix_size) + 1j * np.random.rand(*matrix_size)
+    return a, b
 
 @pytest.mark.unit
-def test_conjugate_symmetry(inner_product):
-    """Test conjugate symmetry property"""
-    a = np.array([[1 + 2j], [3 + 4j]])
-    b = np.array([[5 + 6j], [7 + 8j]])
-
-    inner_product_ab = inner_product.compute(a, b)
-    inner_product_ba = inner_product.compute(b, a)
-
-    # Check conjugate symmetry
-    assert np.isclose(inner_product_ab, np.conj(inner_product_ba))
-
-
-@pytest.mark.unit
-def test_linearity_first_argument(inner_product):
-    """Test linearity in the first argument"""
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6], [7, 8]])
-    c = np.array([[9, 10], [11, 12]])
-
-    # Test additivity: <a + c, b> = <a, b> + <c, b>
-    add_result = inner_product.compute(a + c, b)
-    expected_add = inner_product.compute(a, b) + inner_product.compute(c, b)
-    assert np.isclose(add_result, expected_add)
-
-    # Test homogeneity: <2.0*a, b> = 2.0*<a, b>
-    k = 2.0
-    homo_result = inner_product.compute(k * a, b)
-    expected_homo = k * inner_product.compute(a, b)
-    assert np.isclose(homo_result, expected_homo)
-
-
-@pytest.mark.unit
-def test_positivity(inner_product):
-    """Test positive definiteness"""
-    a = np.array([[1, 2], [3, 4]])
-    result = inner_product.check_positivity(a)
-    assert result > 0
-
-    # Test with zero matrix
-    zero_matrix = np.zeros((2, 2))
-    zero_result = inner_product.check_positivity(zero_matrix)
-    assert zero_result == 0
-
-
-@pytest.mark.unit
-def test_type():
-    """Test type identifier"""
-    assert FrobeniusComplexInnerProduct.type == "FrobeniusComplexInnerProduct"
-
-
-@pytest.mark.unit
-def test_compute_complex_matrices():
-    """Test compute method with different complex matrices"""
-    a = np.array([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]])
-    b = np.array([[5 + 5j, 6 + 6j], [7 + 7j, 8 + 8j]])
+def test_compute_with_fixture(_generate_random_matrices):
+    """Test compute method using fixture-generated matrices."""
+    a, b = _generate_random_matrices
 
     inner_product = FrobeniusComplexInnerProduct()
     result = inner_product.compute(a, b)
 
-    # Expected result from manual calculation
-    expected = 70 + 70j
-    assert np.isclose(result, expected)
+    b_conj_transpose = b.conj().T
+    product = np.multiply(a, b_conj_transpose)
+    expected_result = np.trace(product)
 
-
-@pytest.mark.unit
-def test_compute_random_matrices():
-    """Test compute method with random complex matrices"""
-    np.random.seed(42)
-    a = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
-    b = np.random.rand(3, 3) + 1j * np.random.rand(3, 3)
-
-    inner_product = FrobeniusComplexInnerProduct()
-    result = inner_product.compute(a, b)
-
-    # Verify the result is a complex number
-    assert isinstance(result, (float, complex))
-    assert not np.isnan(result)
+    assert np.isclose(result, expected_result, rtol=1e-4)

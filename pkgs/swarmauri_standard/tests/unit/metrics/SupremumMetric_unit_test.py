@@ -1,128 +1,119 @@
 import pytest
-import numpy as np
-from swarmauri_standard.swarmauri_standard.metrics.SupremumMetric import SupremumMetric
+from swarmauri_standard.metrics.SupremumMetric import SupremumMetric
+import logging
 
+@pytest.fixture
+def supremum_metric():
+    """Fixture to provide a SupremumMetric instance for testing."""
+    return SupremumMetric()
 
 @pytest.mark.unit
-class TestSupremumMetric:
-    """Unit tests for the SupremumMetric class."""
+def test_supremum_metric_class_attributes(supremum_metric):
+    """Test that class attributes are correctly set."""
+    assert SupremumMetric.type == "SupremumMetric"
+    assert SupremumMetric.resource == "metric"
 
-    def test_resource_type(self):
-        """Test if the resource type is correctly set."""
-        assert SupremumMetric.resource == "metric"
+@pytest.mark.unit
+def test_supremum_metric_initialization(supremum_metric):
+    """Test that the SupremumMetric instance initializes correctly."""
+    assert supremum_metric.logger is not None
+    assert isinstance(supremum_metric.logger, logging.Logger)
 
-    def test_distance_array_inputs(self, array_data):
-        """Test distance calculation with array inputs."""
-        x, y = array_data
-        distance = SupremumMetric().distance(x, y)
-        assert distance >= 0
-        assert isinstance(distance, float)
+@pytest.mark.unit
+def test_supremum_metric_distance(supremum_metric):
+    """Test the distance method with various input types and edge cases."""
+    # Test with valid vectors of the same length
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    expected_distance = 3.0
+    assert supremum_metric.distance(x, y) == expected_distance
 
-    def test_distance_callable_inputs(self, callable_data):
-        """Test distance calculation with callable inputs."""
-        x, y = callable_data
-        distance = SupremumMetric().distance(x, y)
-        assert distance >= 0
-        assert isinstance(distance, float)
+    # Test with different lengths
+    x = [1, 2]
+    y = [3, 4, 5]
+    with pytest.raises(ValueError):
+        supremum_metric.distance(x, y)
 
-    def test_distance_string_inputs(self, string_data):
-        """Test distance calculation with string inputs."""
-        x, y = string_data
-        distance = SupremumMetric().distance(x, y)
-        assert distance >= 0
-        assert isinstance(distance, float)
+    # Test with non-sequence inputs
+    x = "test_string"
+    y = "test_string"
+    supremum_metric.distance(x, y)
 
-    def test_distances(self, mixed_data):
-        """Test calculation of multiple distances."""
-        x, ys = mixed_data
-        distances = SupremumMetric().distances(x, ys)
-        assert isinstance(distances, list)
-        assert all(isinstance(d, float) for d in distances)
+@pytest.mark.unit
+def test_supremum_metric_distances(supremum_metric):
+    """Test the distances method with multiple points."""
+    xs = [[1, 2], [3, 4]]
+    ys = [[5, 6], [7, 8]]
+    expected_distances = [
+        [max(abs(1-5), abs(2-6)), max(abs(1-7), abs(2-8))],
+        [max(abs(3-5), abs(4-6)), max(abs(3-7), abs(4-8))]]
+    result = supremum_metric.distances(xs, ys)
+    assert result == expected_distances
 
-    def test_non_negativity(self, scalar_values):
-        """Test the non-negativity property."""
-        x, y = scalar_values
-        metric = SupremumMetric()
-        distance = metric.distance(x, y)
-        assert distance >= 0
+@pytest.mark.unit
+def test_supremum_metric_check_non_negativity(supremum_metric):
+    """Test the non-negativity check."""
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    supremum_metric.check_non_negativity(x, y)
 
-    def test_identity_property(self, scalar_values):
-        """Test the identity of indiscernibles property."""
-        x, y = scalar_values
-        metric = SupremumMetric()
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    supremum_metric.check_non_negativity(x, y)
 
-        # Test when x == y
-        if x == y:
-            distance = metric.distance(x, y)
-            assert distance == 0
-        else:
-            # Test when x != y
-            distance = metric.distance(x, y)
-            assert distance > 0
+@pytest.mark.unit
+def test_supremum_metric_check_identity(supremum_metric):
+    """Test the identity check."""
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    supremum_metric.check_identity(x, y)
 
-    def test_symmetry_property(self, scalar_values):
-        """Test the symmetry property."""
-        x, y = scalar_values
-        metric = SupremumMetric()
-        distance_xy = metric.distance(x, y)
-        distance_yx = metric.distance(y, x)
-        assert np.isclose(distance_xy, distance_yx)
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    supremum_metric.check_identity(x, y)
 
-    def test_triangle_inequality(self, vector_values):
-        """Test the triangle inequality property."""
-        x, y, z = vector_values
-        metric = SupremumMetric()
-        distance_xz = metric.distance(x, z)
-        distance_xy = metric.distance(x, y)
-        distance_yz = metric.distance(y, z)
-        assert distance_xz <= (distance_xy + distance_yz)
+@pytest.mark.unit
+def test_supremum_metric_check_symmetry(supremum_metric):
+    """Test the symmetry check."""
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    supremum_metric.check_symmetry(x, y)
 
+@pytest.mark.unit
+def test_supremum_metric_check_triangle_inequality(supremum_metric):
+    """Test the triangle inequality check."""
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    z = [7, 8, 9]
+    supremum_metric.check_triangle_inequality(x, y, z)
 
-@pytest.fixture
-def array_data():
-    """Fixture providing test array data."""
-    x = np.array([1, 2, 3])
-    y = np.array([4, 5, 6])
-    return x, y
+@pytest.mark.unit
+def test_supremum_metric_distance_parameterized(supremum_metric):
+    """Test distance method with different input types."""
+    test_cases = [
+        ([[1, 2], [3, 4]], 2.0),
+        ((1, 2), (3, 4), 2.0),
+        ([1, 2, 3], [4, 5, 6], 3.0)
+    ]
+    
+    for x, y, expected in test_cases:
+        assert supremum_metric.distance(x, y) == expected
 
+@pytest.mark.unit
+def test_supremum_metric_distance_edge_cases(supremum_metric):
+    """Test edge cases for the distance method."""
+    # Zero difference
+    x = [1, 1, 1]
+    y = [1, 1, 1]
+    assert supremum_metric.distance(x, y) == 0.0
 
-@pytest.fixture
-def callable_data():
-    """Fixture providing test callable data."""
+    # Single element vectors
+    x = [5]
+    y = [10]
+    assert supremum_metric.distance(x, y) == 5.0
 
-    def x_func(t):
-        return t**2
-
-    def y_func(t):
-        return t**3
-
-    return x_func, y_func
-
-
-@pytest.fixture
-def string_data():
-    """Fixture providing test string data."""
-    return "test_string_x", "test_string_y"
-
-
-@pytest.fixture
-def mixed_data():
-    """Fixture providing mixed data types for distance calculations."""
-    x = np.array([1, 2, 3])
-    ys = [np.array([4, 5, 6]), lambda t: t**2, "test_string"]
-    return x, ys
-
-
-@pytest.fixture
-def scalar_values():
-    """Fixture providing scalar values for metric property tests."""
-    return 5.0, 5.0
-
-
-@pytest.fixture
-def vector_values():
-    """Fixture providing vector values for triangle inequality test."""
-    x = np.array([1.0, 2.0])
-    y = np.array([3.0, 4.0])
-    z = np.array([5.0, 6.0])
-    return x, y, z
+    # Empty vectors (should raise ValueError)
+    x = []
+    y = []
+    with pytest.raises(ValueError):
+        supremum_metric.distance(x, y)

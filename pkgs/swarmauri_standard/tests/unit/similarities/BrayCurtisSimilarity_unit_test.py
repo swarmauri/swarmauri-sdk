@@ -1,110 +1,91 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import (
-    BrayCurtisSimilarity,
-)
+import numpy as np
+from swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
 import logging
 
+@pytest.mark.unit
+def test_braycurtis_similarity_type():
+    """Test that BrayCurtisSimilarity type is correctly set."""
+    assert BrayCurtisSimilarity.type == "BrayCurtisSimilarity"
 
 @pytest.mark.unit
-class TestBrayCurtisSimilarity:
-    @pytest.fixture
-    def braycurtis_instance(self):
-        """Fixture to create an instance of BrayCurtisSimilarity."""
-        return BrayCurtisSimilarity()
+def test_braycurtis_similarity_resource():
+    """Test that BrayCurtisSimilarity resource is correctly set."""
+    assert BrayCurtisSimilarity.resource == "SIMILARITY"
 
-    @pytest.mark.unit
-    def test_similarity_with_identical_vectors(self, braycurtis_instance):
-        """Test similarity with identical vectors."""
-        x = (1, 2, 3)
-        y = (1, 2, 3)
-        result = braycurtis_instance.similarity(x, y)
-        assert result == 1.0
+@pytest.mark.unit
+def test_braycurtis_similarity_init(mocker):
+    """Test that BrayCurtisSimilarity initializes correctly."""
+    mock_logger = mocker.patch.object(logging.getLogger(__name__), 'debug')
+    braycurtis = BrayCurtisSimilarity()
+    mock_logger.assert_called_once_with("BrayCurtisSimilarity instance initialized")
 
-    @pytest.mark.unit
-    def test_similarity_with_different_vectors(self, braycurtis_instance):
-        """Test similarity with different vectors."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        result = braycurtis_instance.similarity(x, y)
-        assert result < 1.0
+@pytest.mark.unit
+def test_braycurtis_similarity_valid_vectors():
+    """Test BrayCurtisSimilarity with valid input vectors."""
+    braycurtis = BrayCurtisSimilarity()
+    
+    # Test with identical vectors
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    similarity = braycurtis.similarity(x, y)
+    assert similarity == 1.0
+    
+    # Test with different vectors
+    x = [1, 0]
+    y = [0, 1]
+    similarity = braycurtis.similarity(x, y)
+    assert 0 <= similarity <= 1
 
-    @pytest.mark.unit
-    def test_similarity_with_empty_vectors(self, braycurtis_instance):
-        """Test similarity with empty vectors."""
-        x = ()
-        y = ()
-        result = braycurtis_instance.similarity(x, y)
-        assert result == 1.0
+@pytest.mark.unit
+def test_braycurtis_similarity_zero_vectors():
+    """Test BrayCurtisSimilarity with zero vectors."""
+    braycurtis = BrayCurtisSimilarity()
+    x = [0, 0]
+    y = [0, 0]
+    similarity = braycurtis.similarity(x, y)
+    assert similarity == 1.0
 
-    @pytest.mark.unit
-    def test_similarity_with_negative_values(self, braycurtis_instance):
-        """Test similarity with negative values."""
-        x = (1, -2, 3)
-        y = (4, 5, 6)
-        with pytest.raises(ValueError):
-            braycurtis_instance.similarity(x, y)
+@pytest.mark.unit
+def test_braycurtis_similarity_error_handling():
+    """Test that invalid input raises ValueError."""
+    braycurtis = BrayCurtisSimilarity()
+    
+    # Test vectors of different lengths
+    x = [1, 2]
+    y = [1]
+    with pytest.raises(ValueError):
+        braycurtis.similarity(x, y)
+    
+    # Test negative values
+    x = [1, -2]
+    y = [1, 2]
+    with pytest.raises(ValueError):
+        braycurtis.similarity(x, y)
 
-    @pytest.mark.unit
-    def test_similarities_with_multiple_vectors(self, braycurtis_instance):
-        """Test similarities with multiple vectors."""
-        x = (1, 2, 3)
-        ys = [(4, 5, 6), (7, 8, 9)]
-        results = braycurtis_instance.similarities(x, ys)
-        assert len(results) == 2
+@pytest.mark.unit
+def test_braycurtis_dissimilarity():
+    """Test BrayCurtis dissimilarity calculation."""
+    braycurtis = BrayCurtisSimilarity()
+    x = [1, 0]
+    y = [0, 1]
+    similarity = braycurtis.similarity(x, y)
+    dissimilarity = braycurtis.dissimilarity(x, y)
+    assert dissimilarity == 1.0 - similarity
 
-    @pytest.mark.unit
-    def test_dissimilarity(self, braycurtis_instance):
-        """Test dissimilarity calculation."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        similarity = braycurtis_instance.similarity(x, y)
-        dissimilarity = braycurtis_instance.dissimilarity(x, y)
-        assert dissimilarity == 1 - similarity
-
-    @pytest.mark.unit
-    def test_check_boundedness(self, braycurtis_instance):
-        """Test boundedness check."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        result = braycurtis_instance.check_boundedness(x, y)
-        assert result is True
-
-    @pytest.mark.unit
-    def test_check_reflexivity(self, braycurtis_instance):
-        """Test reflexivity check."""
-        x = (1, 2, 3)
-        result = braycurtis_instance.check_reflexivity(x)
-        assert result is True
-
-    @pytest.mark.unit
-    def test_check_symmetry(self, braycurtis_instance):
-        """Test symmetry check."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        result = braycurtis_instance.check_symmetry(x, y)
-        assert result is True
-
-    @pytest.mark.unit
-    def test_check_identity(self, braycurtis_instance):
-        """Test identity check."""
-        x = (1, 2, 3)
-        y = (1, 2, 3)
-        result = braycurtis_instance.check_identity(x, y)
-        assert result is True
-
-    @pytest.mark.unit
-    def test_check_identity_with_different_vectors(self, braycurtis_instance):
-        """Test identity check with different vectors."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        result = braycurtis_instance.check_identity(x, y)
-        assert result is False
-
-    @pytest.mark.unit
-    def test_logging(self, braycurtis_instance, caplog):
-        """Test logging in similarity method."""
-        x = (1, 2, 3)
-        y = (4, 5, 6)
-        with caplog.at_level(logging.DEBUG):
-            braycurtis_instance.similarity(x, y)
-            assert "Bray-Curtis similarity calculated" in caplog.text
+@pytest.mark.unit
+def test_braycurtis_similarity_properties():
+    """Test BrayCurtis similarity properties."""
+    braycurtis = BrayCurtisSimilarity()
+    
+    # Test boundedness
+    assert braycurtis.check_boundedness() is True
+    
+    # Test reflexivity
+    assert braycurtis.check_reflexivity() is True
+    
+    # Test symmetry
+    assert braycurtis.check_symmetry() is True
+    
+    # Test identity of discernibles
+    assert braycurtis.check_identity() is True

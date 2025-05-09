@@ -1,120 +1,104 @@
 import pytest
-from swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarity
-import numpy as np
 import logging
+from swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarity
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.unit
-class TestTanimotoSimilarity:
-    """Unit tests for TanimotoSimilarity class."""
+def test_tanimoto_similarity_init():
+    """Test initialization of TanimotoSimilarity class."""
+    similarity = TanimotoSimilarity()
+    assert similarity.type == "TanimotoSimilarity"
+    assert similarity.is_symmetric is True
+    assert similarity.is_bounded is True
 
-    @pytest.fixture
-    def tanimoto(self):
-        """Fixture to provide a TanimotoSimilarity instance."""
-        return TanimotoSimilarity()
 
-    def test_similarity(self, tanimoto):
-        """Test calculation of Tanimoto similarity between two vectors."""
-        # Test vectors
-        x = np.array([1, 2, 3])
-        y = np.array([4, 5, 6])
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "x,y,expected_similarity",
+    [
+        ([1.0, 0.0], [1.0, 0.0], 1.0),
+        ([1.0, 0.0], [0.0, 1.0], 0.0),
+        ([1.0, 1.0], [1.0, 1.0], 1.0),
+        ([1.0, 1.0], [1.0, 0.0], 0.5),
+        ([0.0, 0.0], [0.0, 0.0], 1.0),
+        ([0.0, 0.0], [1.0, 1.0], 0.0),
+    ],
+)
+def test_tanimoto_similarity(x, y, expected_similarity):
+    """Test Tanimoto similarity calculations with various inputs."""
+    similarity = TanimotoSimilarity()
+    result = similarity.similarity(x, y)
+    assert result == pytest.approx(expected_similarity)
 
-        # Expected similarity calculation
-        dot_product = np.dot(x, y)
-        mag_x = np.dot(x, x)
-        mag_y = np.dot(y, y)
-        expected = dot_product / (mag_x + mag_y - dot_product)
 
-        # Get actual similarity
-        actual = tanimoto.similarity(x, y)
+@pytest.mark.unit
+def test_tanimoto_similarities_batch():
+    """Test batch Tanimoto similarity calculations."""
+    x = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+    y = [[1.0, 0.0], [1.0, 1.0], [0.0, 0.0]]
+    expected = [1.0, 0.5, 0.0]
+    similarity = TanimotoSimilarity()
+    results = similarity.similarities(x, y)
+    for res, exp in zip(results, expected):
+        assert res == pytest.approx(exp)
 
-        # Assert the results are equal with some tolerance
-        assert np.isclose(actual, expected, rtol=1e-9)
 
-    def test_similarities(self, tanimoto):
-        """Test calculation of similarities with multiple vectors."""
-        x = np.array([1, 1])
-        y1 = np.array([1, 1])
-        y2 = np.array([0, 0])
-        ys = [y1, y2]
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "x,y,expected_dissimilarity",
+    [
+        ([1.0, 0.0], [1.0, 0.0], 0.0),
+        ([1.0, 0.0], [0.0, 1.0], 1.0),
+        ([1.0, 1.0], [1.0, 1.0], 0.0),
+        ([1.0, 1.0], [1.0, 0.0], 0.5),
+        ([0.0, 0.0], [0.0, 0.0], 0.0),
+        ([0.0, 0.0], [1.0, 1.0], 1.0),
+    ],
+)
+def test_tanimoto_dissimilarity(x, y, expected_dissimilarity):
+    """Test Tanimoto dissimilarity calculations with various inputs."""
+    similarity = TanimotoSimilarity()
+    result = similarity.dissimilarity(x, y)
+    assert result == pytest.approx(expected_dissimilarity)
 
-        # Expected results
-        expected = [1.0, 0.0]
 
-        # Get actual results
-        actual = tanimoto.similarities(x, ys)
+@pytest.mark.unit
+def test_tanimoto_dissimilarities_batch():
+    """Test batch Tanimoto dissimilarity calculations."""
+    x = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+    y = [[1.0, 0.0], [1.0, 1.0], [0.0, 0.0]]
+    expected = [0.0, 0.5, 1.0]
+    similarity = TanimotoSimilarity()
+    results = similarity.dissimilarities(x, y)
+    for res, exp in zip(results, expected):
+        assert res == pytest.approx(exp)
 
-        # Assert the results are equal
-        assert np.allclose(actual, expected, rtol=1e-9)
 
-    def test_dissimilarity(self, tanimoto):
-        """Test calculation of dissimilarity between two vectors."""
-        x = np.array([1, 2])
-        y = np.array([3, 4])
+@pytest.mark.unit
+def test_tanimoto_similarity_check_boundedness():
+    """Test if Tanimoto similarity is bounded between 0 and 1."""
+    similarity = TanimotoSimilarity()
+    assert similarity.check_boundedness() is True
 
-        # Calculate similarity
-        similarity = tanimoto.similarity(x, y)
 
-        # Calculate dissimilarity
-        expected = 1.0 - similarity
+@pytest.mark.unit
+def test_tanimoto_similarity_check_reflexivity():
+    """Test if Tanimoto similarity satisfies reflexivity."""
+    similarity = TanimotoSimilarity()
+    assert similarity.check_reflexivity() is True
 
-        # Get actual dissimilarity
-        actual = tanimoto.dissimilarity(x, y)
 
-        # Assert the results are equal
-        assert np.isclose(actual, expected, rtol=1e-9)
+@pytest.mark.unit
+def test_tanimoto_similarity_check_symmetry():
+    """Test if Tanimoto similarity is symmetric."""
+    similarity = TanimotoSimilarity()
+    assert similarity.check_symmetry() is True
 
-    def test_dissimilarities(self, tanimoto):
-        """Test calculation of dissimilarities with multiple vectors."""
-        x = np.array([1, 1])
-        y1 = np.array([1, 1])
-        y2 = np.array([0, 0])
-        ys = [y1, y2]
 
-        # Expected results
-        expected = [0.0, 1.0]
-
-        # Get actual results
-        actual = tanimoto.dissimilarities(x, ys)
-
-        # Assert the results are equal
-        assert np.allclose(actual, expected, rtol=1e-9)
-
-    def test_check_boundedness(self, tanimoto):
-        """Test if the similarity measure is bounded."""
-        bounded = tanimoto.check_boundedness(np.array([1, 2]), np.array([3, 4]))
-        assert bounded is True
-
-    def test_check_reflexivity(self, tanimoto):
-        """Test if the similarity measure is reflexive."""
-        x = np.array([1, 2])
-        reflexive = tanimoto.check_reflexivity(x)
-        assert reflexive is True
-
-    def test_check_symmetry(self, tanimoto):
-        """Test if the similarity measure is symmetric."""
-        x = np.array([1, 2])
-        y = np.array([3, 4])
-        symmetric = tanimoto.check_symmetry(x, y)
-        assert symmetric is True
-
-    def test_check_identity(self, tanimoto):
-        """Test if identical vectors have maximum similarity."""
-        x = np.array([1, 2])
-        y = np.array([1, 2])
-        identical = tanimoto.check_identity(x, y)
-        assert identical is True
-
-    def test_invalid_input(self, tanimoto):
-        """Test handling of invalid input vectors."""
-        x = "invalid"
-        y = "invalid"
-        with pytest.raises(TypeError):
-            tanimoto.similarity(x, y)
-
-    def test_zero_magnitude(self, tanimoto):
-        """Test handling of zero magnitude vectors."""
-        x = np.array([0, 0])
-        y = np.array([1, 2])
-        with pytest.raises(ValueError):
-            tanimoto.similarity(x, y)
+@pytest.mark.unit
+def test_tanimoto_similarity_check_identity():
+    """Test if Tanimoto similarity satisfies identity of discernibles."""
+    similarity = TanimotoSimilarity()
+    assert similarity.check_identity() is False

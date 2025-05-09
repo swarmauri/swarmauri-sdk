@@ -1,229 +1,173 @@
+from typing import Union, List, Sequence, Callable, Optional
+import math
 import logging
-from typing import Union, Sequence, Optional, Literal, List
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_standard.swarmauri_standard.norms.L2EuclideanNorm import L2EuclideanNorm
+
+from swarmauri_base.metrics import MetricBase
+from swarmauri_standard.norms import L2EuclideanNorm
 
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_model()
+@MetricBase.register_type(MetricBase, "EuclideanMetric")
 class EuclideanMetric(MetricBase):
     """
-    Concrete implementation of the MetricBase class for computing the Euclidean distance.
+    A concrete implementation of the MetricBase class that computes the standard
+    Euclidean (L2) distance between vectors.
 
-    The Euclidean distance is the straight-line distance between two points in Euclidean space.
-    It is calculated as the square root of the sum of the squared differences between corresponding
-    elements of the vectors. This implementation provides the core functionality for distance
-    computation while enforcing the metric properties.
-
-    Inherits From:
-        MetricBase: Base class for metric space implementations
+    Inherits from:
+        MetricBase: Base class providing template logic for metric computations.
 
     Attributes:
-        type: Type identifier for the metric implementation
-        resource: Type of resource this component represents
-    """
+        type: String identifier for the metric type.
 
-    type: Literal["EuclideanMetric"] = "EuclideanMetric"
-    resource: Optional[str] = "metric"
+    Methods:
+        distance: Computes the Euclidean distance between two vectors.
+        distances: Computes pairwise distances between two lists of vectors.
+        check_non_negativity: Verifies the non-negativity axiom.
+        check_identity: Verifies the identity of indiscernibles axiom.
+        check_symmetry: Verifies the symmetry axiom.
+        check_triangle_inequality: Verifies the triangle inequality axiom.
+    """
+    type: str = "EuclideanMetric"
 
     def __init__(self):
         """
-        Initialize the EuclideanMetric instance.
-
-        Initializes the base class and sets up the L2 norm for distance calculations.
+        Initializes the EuclideanMetric instance with the L2 norm.
         """
-        super().__init__()
         self.norm = L2EuclideanNorm()
 
-    def distance(
-        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
-    ) -> float:
+    def distance(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> float:
         """
-        Compute the Euclidean distance between two vectors.
-
-        The computation follows the formula:
-        d(x, y) = ||x - y||_2 = sqrt((x1 - y1)^2 + (x2 - y2)^2 + ... + (xn - yn)^2)
+        Computes the Euclidean (L2) distance between two vectors.
 
         Args:
-            x: The first vector. Can be a sequence, string, or callable.
-            y: The second vector. Can be a sequence, string, or callable.
+            x: First vector
+            y: Second vector
 
         Returns:
-            float: The computed Euclidean distance between x and y.
+            float: The Euclidean distance between x and y
 
         Raises:
-            ValueError: If the input vectors have different dimensions.
+            ValueError: If the input vectors have different dimensions
         """
-        try:
-            # Ensure both vectors are of the same dimension
-            if len(x) != len(y):
-                raise ValueError(
-                    "Vectors must be of the same dimension for Euclidean distance"
-                )
+        logger.debug(f"Calculating Euclidean distance between {x} and {y}")
 
-            # Compute the element-wise difference
-            difference = [x_i - y_i for x_i, y_i in zip(x, y)]
+        # Ensure vectors are of the same dimension
+        if len(x) != len(y):
+            raise ValueError("Input vectors must have the same dimension")
 
-            # Compute the L2 norm of the difference
-            distance = self.norm.compute(difference)
+        # Compute the difference vector
+        difference = [x[i] - y[i] for i in range(len(x))]
+        
+        # Compute the L2 norm of the difference vector
+        return self.norm.compute(difference)
 
-            logger.info(f"Computed Euclidean distance: {distance}")
-            return distance
-
-        except Exception as e:
-            logger.error(f"Failed to compute Euclidean distance: {str(e)}")
-            raise
-
-    def distances(
-        self,
-        x: Union[Sequence, str, callable],
-        ys: List[Union[Sequence, str, callable]],
-    ) -> List[float]:
+    def distances(self, xs: List[Union[Sequence[float], Callable]], ys: List[Union[Sequence[float], Callable]]) -> List[List[float]]:
         """
-        Compute distances from a single point to multiple points.
+        Computes pairwise Euclidean distances between two lists of vectors.
 
         Args:
-            x: The reference point. Can be a sequence, string, or callable.
-            ys: List of points to compute distances to. Each can be a sequence, string, or callable.
+            xs: List of first vectors
+            ys: List of second vectors
 
         Returns:
-            List[float]: List of distances from x to each point in ys.
+            List[List[float]]: Matrix of pairwise distances where distances[i][j] is the distance between xs[i] and ys[j]
 
         Raises:
-            ValueError: If any input vector has different dimension than x.
+            ValueError: If any pair of vectors have different dimensions
         """
-        try:
-            distances = []
+        logger.debug(f"Calculating pairwise distances between {len(xs)} vectors and {len(ys)} vectors")
+
+        distances = []
+        for x in xs:
+            row = []
             for y in ys:
-                distances.append(self.distance(x, y))
+                if len(x) != len(y):
+                    raise ValueError("All input vectors must have the same dimension")
+                row.append(self.distance(x, y))
+            distances.append(row)
+        return distances
 
-            logger.info(f"Computed distances: {distances}")
-            return distances
-
-        except Exception as e:
-            logger.error(f"Failed to compute distances: {str(e)}")
-            raise
-
-    def check_non_negativity(
-        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
-    ) -> Literal[True]:
+    def check_non_negativity(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
         """
-        Verify the non-negativity property: d(x, y) ≥ 0.
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
         Args:
-            x: The first point. Can be a sequence, string, or callable.
-            y: The second point. Can be a sequence, string, or callable.
-
-        Returns:
-            Literal[True]: True if the non-negativity property holds.
+            x: First vector
+            y: Second vector
 
         Raises:
-            AssertionError: If the non-negativity property is violated.
+            ValueError: If the distance is negative
         """
-        try:
-            distance = self.distance(x, y)
-            assert distance >= 0, "Non-negativity violated: Distance is negative"
+        logger.debug("Checking non-negativity axiom")
+        distance = self.distance(x, y)
+        if distance < 0:
+            raise ValueError(f"Non-negativity violation: distance was {distance}")
 
-            logger.info("Non-negativity property verified")
-            return True
-
-        except AssertionError as e:
-            logger.error(f"Non-negativity check failed: {str(e)}")
-            raise
-
-    def check_identity(
-        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
-    ) -> Literal[True]:
+    def check_identity(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
         """
-        Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
         Args:
-            x: The first point. Can be a sequence, string, or callable.
-            y: The second point. Can be a sequence, string, or callable.
-
-        Returns:
-            Literal[True]: True if the identity property holds.
+            x: First vector
+            y: Second vector
 
         Raises:
-            AssertionError: If the identity property is violated.
+            ValueError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y
         """
-        try:
-            distance = self.distance(x, y)
-            if distance != 0:
-                assert x == y, (
-                    "Identity violated: Distance is zero but vectors are not identical"
-                )
+        logger.debug("Checking identity of indiscernibles axiom")
+        distance = self.distance(x, y)
+        if distance == 0:
+            if x != y:
+                raise ValueError("Identity violation: d(x,y) = 0 but x ≠ y")
+        else:
+            if x == y:
+                raise ValueError("Identity violation: d(x,y) ≠ 0 but x = y")
 
-            logger.info("Identity property verified")
-            return True
-
-        except AssertionError as e:
-            logger.error(f"Identity check failed: {str(e)}")
-            raise
-
-    def check_symmetry(
-        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
-    ) -> Literal[True]:
+    def check_symmetry(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]) -> None:
         """
-        Verify the symmetry property: d(x, y) = d(y, x).
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
 
         Args:
-            x: The first point. Can be a sequence, string, or callable.
-            y: The second point. Can be a sequence, string, or callable.
-
-        Returns:
-            Literal[True]: True if the symmetry property holds.
+            x: First vector
+            y: Second vector
 
         Raises:
-            AssertionError: If the symmetry property is violated.
+            ValueError: If d(x,y) ≠ d(y,x)
         """
-        try:
-            d_xy = self.distance(x, y)
-            d_yx = self.distance(y, x)
+        logger.debug("Checking symmetry axiom")
+        d_xy = self.distance(x, y)
+        d_yx = self.distance(y, x)
+        if d_xy != d_yx:
+            raise ValueError(f"Symmetry violation: d(x,y) = {d_xy}, d(y,x) = {d_yx}")
 
-            assert abs(d_xy - d_yx) < 1e-9, "Symmetry violated: d(x, y) != d(y, x)"
-
-            logger.info("Symmetry property verified")
-            return True
-
-        except AssertionError as e:
-            logger.error(f"Symmetry check failed: {str(e)}")
-            raise
-
-    def check_triangle_inequality(
-        self,
-        x: Union[Sequence, str, callable],
-        y: Union[Sequence, str, callable],
-        z: Union[Sequence, str, callable],
-    ) -> Literal[True]:
+    def check_triangle_inequality(self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable], z: Union[Sequence[float], Callable]) -> None:
         """
-        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 
         Args:
-            x: The first point. Can be a sequence, string, or callable.
-            y: The second point. Can be a sequence, string, or callable.
-            z: The third point. Can be a sequence, string, or callable.
-
-        Returns:
-            Literal[True]: True if the triangle inequality property holds.
+            x: First vector
+            y: Second vector
+            z: Third vector
 
         Raises:
-            AssertionError: If the triangle inequality is violated.
+            ValueError: If d(x,z) > d(x,y) + d(y,z)
         """
-        try:
-            d_xz = self.distance(x, z)
-            d_xy = self.distance(x, y)
-            d_yz = self.distance(y, z)
+        logger.debug("Checking triangle inequality axiom")
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+        if d_xz > d_xy + d_yz:
+            raise ValueError(f"Triangle inequality violation: {d_xz} > {d_xy} + {d_yz}")
 
-            assert d_xz <= d_xy + d_yz, (
-                "Triangle inequality violated: d(x, z) > d(x, y) + d(y, z)"
-            )
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the EuclideanMetric instance.
+        """
+        return f"EuclideanMetric()"
 
-            logger.info("Triangle inequality property verified")
-            return True
-
-        except AssertionError as e:
-            logger.error(f"Triangle inequality check failed: {str(e)}")
-            raise
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the EuclideanMetric instance.
+        """
+        return f"EuclideanMetric()"

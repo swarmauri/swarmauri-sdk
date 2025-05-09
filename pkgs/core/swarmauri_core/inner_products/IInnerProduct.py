@@ -1,116 +1,122 @@
 from abc import ABC, abstractmethod
-from typing import Union, Optional
+from typing import Union
+import numpy as np
+from typing import Callable
 import logging
 
-# Define logger
+from swarmauri_core.vectors.IVector import IVector
+
 logger = logging.getLogger(__name__)
 
-# Type alias for vector types
-IVector = "IVector"
-
-# Type alias for matrix types
-Matrix = "Matrix"
-
-# Type alias for callable types
-Callable = "Callable"
 
 class IInnerProduct(ABC):
     """
-    Defines the interface for computing inner products between vectors, matrices, and callables.
-    This interface enforces implementation of core inner product properties and checks.
+    Defines the contract for inner product operations. This abstract base class
+    specifies the interface that must be implemented by any concrete inner product
+    implementation.
+
+    The inner product operation is a fundamental operation in various numerical
+    and machine learning applications, particularly in the context of vector spaces.
+    Implementations of this interface must provide the compute method which
+    calculates the inner product of two vectors, matrices or callables.
+
+    The interface also specifies methods for checking the mathematical properties
+    of the inner product implementation:
+    - Conjugate Symmetry: <a, b> = conjugate(<b, a>)
+    - Linearity in the First Argument
+    - Positivity: <a, a> > 0 for non-zero vectors
     """
 
     @abstractmethod
-    def compute(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable]) -> Union[float, complex]:
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
         """
         Computes the inner product between two vectors, matrices, or callables.
 
         Args:
-            a: The first element in the inner product operation. Can be a vector, matrix, or callable.
-            b: The second element in the inner product operation. Can be a vector, matrix, or callable.
+            a: The first element in the inner product operation. Can be a vector,
+               matrix, or callable.
+            b: The second element in the inner product operation. Can be a vector,
+               matrix, or callable.
 
         Returns:
-            Union[float, complex]: The result of the inner product computation.
+            float: The result of the inner product operation.
+
+        Raises:
+            ValueError: If the input types are not supported or dimensions are incompatible
+            ZeroDivisionError: If any operation leads to division by zero
         """
         pass
 
-    def check_conjugate_symmetry(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable]) -> bool:
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation satisfies conjugate symmetry.
-        For any elements a and b, the inner product of a and b should equal the conjugate of the inner product of b and a.
+        Verifies the conjugate symmetry property of the inner product implementation.
+
+        The inner product <a, b> should be equal to the conjugate of <b, a>.
 
         Args:
-            a: The first element to check
-            b: The second element to check
+            a: The first element in the inner product operation
+            b: The second element in the inner product operation
 
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise
+        Raises:
+            ValueError: If the conjugate symmetry property is not satisfied
         """
-        logger.info("Checking conjugate symmetry")
-        result_ab = self.compute(a, b)
-        result_ba = self.compute(b, a)
+        inner_product_ab = self.compute(a, b)
+        inner_product_ba = self.compute(b, a)
         
-        # Check if result_ab equals the conjugate of result_ba
-        if result_ab == result_ba.conjugate():
-            logger.info("Conjugate symmetry check passed")
-            return True
-        else:
-            logger.warning("Conjugate symmetry check failed")
-            return False
+        if not np.isclose(inner_product_ab, np.conj(inner_product_ba)):
+            logger.error("Conjugate symmetry check failed")
+            raise ValueError("Conjugate symmetry property not satisfied")
 
-    def check_linearity_first_argument(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable], c: Union[IVector, Matrix, Callable]) -> bool:
+    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation is linear in the first argument.
-        For any elements a, b, and scalar s, the inner product of (a + b) with c should equal the sum of the inner products of a and b with c.
-        Similarly, the inner product of (s * a) with b should equal s times the inner product of a and b.
+        Verifies the linearity property in the first argument of the inner product implementation.
+
+        For vectors a, b, c and scalar α:
+        - Linearity: <a + b, c> = <a, c> + <b, c>
+        - Homogeneity: <αa, c> = α <a, c>
 
         Args:
-            a: The first element for linearity check
-            b: The second element for linearity check
-            c: The third element for linearity check
+            a: The first vector for linearity check
+            b: The second vector for linearity check
+            c: The vector against which the inner product is computed
 
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise
+        Raises:
+            ValueError: If the linearity property in the first argument is not satisfied
         """
-        logger.info("Checking linearity in first argument")
+        # Test additivity
+        inner_product_sum = self.compute(a + b, c)
+        inner_product_a = self.compute(a, c)
+        inner_product_b = self.compute(b, c)
         
-        # Check additivity
-        result_add = self.compute(a + b, c)
-        result_split = self.compute(a, c) + self.compute(b, c)
+        if not np.isclose(inner_product_sum, inner_product_a + inner_product_b):
+            logger.error("Additivity check failed")
+            raise ValueError("Additivity property not satisfied")
+
+        # Test homogeneity
+        alpha = np.random.rand() + 1  # Random scalar > 0
+        scaled_a = alpha * a
+        inner_product_scaled = self.compute(scaled_a, c)
+        expected = alpha * self.compute(a, c)
         
-        if result_add != result_split:
-            logger.warning("Additivity check failed")
-            return False
+        if not np.isclose(inner_product_scaled, expected):
+            logger.error("Homogeneity check failed")
+            raise ValueError("Homogeneity property not satisfied")
 
-        # Check homogeneity
-        scalar = 2.0
-        result_scale = self.compute(scalar * a, c)
-        result_scaled = scalar * self.compute(a, c)
-        
-        if result_scale != result_scaled:
-            logger.warning("Homogeneity check failed")
-            return False
-
-        logger.info("Linearity check passed")
-        return True
-
-    def check_positivity(self, a: Union[IVector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation satisfies positive definiteness.
-        For any non-zero element a, the inner product of a with itself should be positive.
+        Verifies the positivity property of the inner product implementation.
+
+        For any non-zero vector a:
+        - <a, a> > 0
 
         Args:
-            a: The element to check for positivity
+            a: The vector to check for positivity
 
-        Returns:
-            bool: True if positivity holds, False otherwise
+        Raises:
+            ValueError: If the positivity property is not satisfied
         """
-        logger.info("Checking positivity")
-        result = self.compute(a, a)
+        inner_product_aa = self.compute(a, a)
         
-        if result > 0:
-            logger.info("Positivity check passed")
-            return True
-        else:
-            logger.warning("Positivity check failed")
-            return False
+        if inner_product_aa <= 0:
+            logger.error("Positivity check failed")
+            raise ValueError("Positivity property not satisfied")

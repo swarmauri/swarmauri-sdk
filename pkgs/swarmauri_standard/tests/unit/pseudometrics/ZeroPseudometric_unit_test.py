@@ -1,86 +1,107 @@
 import pytest
-from typing import Union, List, Any, Literal, ABC
-from swarmauri_standard.pseudometrics.ZeroPseudometric import ZeroPseudometric
 import logging
+from swarmauri_standard.pseudometrics.ZeroPseudometric import ZeroPseudometric
 
 logger = logging.getLogger(__name__)
 
+@pytest.mark.unit
+def test_zero_pseudometric_resource():
+    """Test that the resource type is correctly set."""
+    assert ZeroPseudometric.resource == "PSEUDOMETRIC"
 
 @pytest.mark.unit
-class TestZeroPseudometric:
-    """Unit tests for ZeroPseudometric class implementation."""
+def test_zero_pseudometric_type():
+    """Test that the type is correctly set to 'ZeroPseudometric'."""
+    assert ZeroPseudometric.type == "ZeroPseudometric"
 
-    @pytest.fixture
-    def zero_pseudometric(self):
-        """Fixture providing an instance of ZeroPseudometric."""
-        return ZeroPseudometric()
+@pytest.mark.unit
+def test_zero_distance():
+    """Test that the distance between any two elements is zero."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    # Test with vectors
+    assert zero_pseudometric.distance([1, 2, 3], [4, 5, 6]) == 0.0
+    
+    # Test with matrices
+    assert zero_pseudometric.distance([[1, 2], [3, 4]], [[5, 6], [7, 8]]) == 0.0
+    
+    # Test with strings
+    assert zero_pseudometric.distance("test1", "test2") == 0.0
+    
+    # Test with callables
+    assert zero_pseudometric.distance(lambda x: x, lambda x: x) == 0.0
 
-    def setup_method(self):
-        """Set up logging for test methods."""
-        logger.debug("Initializing ZeroPseudometric unit tests")
+@pytest.mark.unit
+def test_zero_distances():
+    """Test that distances to multiple elements are all zero."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    reference = "test"
+    elements = ["a", "b", "c"]
+    
+    distances = zero_pseudometric.distances(reference, elements)
+    assert all(d == 0.0 for d in distances)
+    assert len(distances) == len(elements)
 
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            (None, None),
-            ("test", "test"),
-            (1, 2),
-            (True, False),
-            ({"a": 1}, {"a": 1}),
-            ([1, 2, 3], [1, 2, 3]),
-        ],
-    )
-    def test_distance(self, zero_pseudometric, x, y):
-        """Test that distance between any two points is zero."""
-        assert zero_pseudometric.distance(x, y) == 0.0
+@pytest.mark.unit
+def test_non_negativity():
+    """Test that non-negativity property holds."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    # Test with vectors
+    assert zero_pseudometric.check_non_negativity([1, 2], [3, 4]) is True
+    
+    # Test with strings
+    assert zero_pseudometric.check_non_negativity("a", "b") is True
+    
+    # Test with mixed types
+    assert zero_pseudometric.check_non_negativity(123, "test") is True
 
-    @pytest.mark.parametrize(
-        "x, y_list",
-        [
-            ("test", ["test1", "test2", "test3"]),
-            (1, [2, 3, 4]),
-            (True, [False, True, False]),
-            ({"a": 1}, [{"a": 1}, {"a": 2}, {"b": 3}]),
-            ([1, 2, 3], [[1, 2, 3], [4, 5, 6]]),
-        ],
-    )
-    def test_distances(self, zero_pseudometric, x, y_list):
-        """Test that distances to multiple points return all zeros."""
-        distances = zero_pseudometric.distances(x, y_list)
-        assert all(d == 0.0 for d in distances)
+@pytest.mark.unit
+def test_symmetry():
+    """Test that symmetry property holds."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    # Test with vectors
+    assert zero_pseudometric.check_symmetry([1, 2], [3, 4]) is True
+    
+    # Test with matrices
+    assert zero_pseudometric.check_symmetry([[1, 2], [3, 4]], [[5, 6], [7, 8]]) is True
+    
+    # Test with different types
+    assert zero_pseudometric.check_symmetry("a", 123) is True
 
-    def test_check_non_negativity(self, zero_pseudometric):
-        """Test that non-negativity condition is always satisfied."""
-        assert zero_pseudometric.check_non_negativity("test", "test") is True
+@pytest.mark.unit
+def test_triangle_inequality():
+    """Test that triangle inequality property holds."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    # Test with vectors
+    assert zero_pseudometric.check_triangle_inequality([1], [2], [3]) is True
+    
+    # Test with strings
+    assert zero_pseudometric.check_triangle_inequality("a", "b", "c") is True
+    
+    # Test with mixed types
+    assert zero_pseudometric.check_triangle_inequality(123, "test", [1, 2]) is True
 
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            ("test", "test"),
-            (1, 2),
-            (True, False),
-            ({"a": 1}, {"a": 1}),
-            ([1, 2, 3], [1, 2, 3]),
-        ],
-    )
-    def test_check_symmetry(self, zero_pseudometric, x, y):
-        """Test that symmetry condition is always satisfied."""
-        assert zero_pseudometric.check_symmetry(x, y) is True
+@pytest.mark.unit
+def test_weak_identity():
+    """Test that weak identity property holds."""
+    zero_pseudometric = ZeroPseudometric()
+    
+    # Test with identical elements
+    assert zero_pseudometric.check_weak_identity("a", "a") is True
+    
+    # Test with different elements
+    assert zero_pseudometric.check_weak_identity(123, "test") is True
+    
+    # Test with mixed types
+    assert zero_pseudometric.check_weak_identity([1, 2], "test") is True
 
-    @pytest.mark.parametrize(
-        "x,y,z",
-        [
-            ("test", "test", "test"),
-            (1, 2, 3),
-            (True, False, True),
-            ({"a": 1}, {"a": 1}, {"a": 2}),
-            ([1, 2, 3], [4, 5, 6], [7, 8, 9]),
-        ],
-    )
-    def test_check_triangle_inequality(self, zero_pseudometric, x, y, z):
-        """Test that triangle inequality condition is always satisfied."""
-        assert zero_pseudometric.check_triangle_inequality(x, y, z) is True
-
-    def test_check_weak_identity(self, zero_pseudometric):
-        """Test that weak identity condition is always satisfied."""
-        assert zero_pseudometric.check_weak_identity("test", "test") is True
+@pytest.mark.unit
+def test_serialization():
+    """Test that serialization works correctly."""
+    zero_pseudometric = ZeroPseudometric()
+    dumped_json = zero_pseudometric.model_dump_json()
+    assert zero_pseudometric.model_validate_json(dumped_json) == ZeroPseudometric.id

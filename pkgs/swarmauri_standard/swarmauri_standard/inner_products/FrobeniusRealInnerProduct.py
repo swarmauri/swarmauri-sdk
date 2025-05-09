@@ -1,155 +1,98 @@
-import logging
+from abc import ABC
+from typing import Union, Literal
 import numpy as np
+import logging
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
-# Define logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "FrobeniusRealInnerProduct")
 class FrobeniusRealInnerProduct(InnerProductBase):
     """
-    A concrete implementation of the InnerProductBase class for computing the Frobenius inner product
-    for real matrices. The Frobenius inner product is defined as the sum of the element-wise products
-    of the matrices, which is equivalent to the trace of the matrix product of the transpose of the
-    first matrix and the second matrix.
+    Provides a concrete implementation of the Frobenius inner product for real-valued matrices.
 
-    Attributes:
-        type (Literal["FrobeniusRealInnerProduct"]): The type identifier for this inner product implementation.
+    This class implements the InnerProductBase interface to compute the inner product
+    between two real matrices using the Frobenius inner product, which is equivalent
+    to the trace of the matrix product of the transpose of the first matrix with
+    the second matrix.
+
+    Inherits From:
+        InnerProductBase: The base class for all inner product implementations.
     """
 
     type: Literal["FrobeniusRealInnerProduct"] = "FrobeniusRealInnerProduct"
 
-    def __init__(self) -> None:
+    def __init__(self):
         """
         Initializes the FrobeniusRealInnerProduct instance.
         """
         super().__init__()
-        logger.debug("FrobeniusRealInnerProduct instance initialized")
 
-    def compute(self, a: np.ndarray, b: np.ndarray) -> float:
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
         """
         Computes the Frobenius inner product between two real matrices.
 
+        The Frobenius inner product is computed as the sum of the element-wise
+        products of the two matrices. This is equivalent to the trace of the
+        product of the transpose of the first matrix and the second matrix.
+
         Args:
-            a: The first real matrix
-            b: The second real matrix
+            a: The first real matrix.
+            b: The second real matrix.
 
         Returns:
-            float: The result of the Frobenius inner product computation
+            float: The result of the Frobenius inner product.
 
         Raises:
-            ValueError: If the input matrices are not real or have different shapes
+            ValueError: If the input matrices are not of the same shape.
         """
-        if not (isinstance(a, np.ndarray) and isinstance(b, np.ndarray)):
-            raise ValueError("Inputs must be numpy arrays")
-        if a.dtype.kind not in ("f", "i") or b.dtype.kind not in ("f", "i"):
-            raise ValueError("Matrices must be real")
+        logger.debug("Starting computation of Frobenius inner product")
+
+        # Convert inputs to numpy arrays if they are not already
+        a = np.asarray(a)
+        b = np.asarray(b)
+
+        # Check if matrices have the same shape
         if a.shape != b.shape:
-            raise ValueError("Matrices must have the same shape")
+            raise ValueError("Input matrices must have the same shape")
 
         # Compute element-wise product and sum all elements
         inner_product = np.sum(a * b)
-        logger.debug(f"Computed Frobenius inner product: {inner_product}")
-        return inner_product
 
-    def check_conjugate_symmetry(self, a: np.ndarray, b: np.ndarray) -> bool:
+        logger.debug(f"Frobenius inner product result: {inner_product}")
+        return float(inner_product)
+
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Checks if the inner product implementation satisfies conjugate symmetry.
+        Verifies the conjugate symmetry property for the Frobenius inner product.
 
         For real matrices, the Frobenius inner product is symmetric, meaning
-        <a, b> = <b, a>.
+        <a, b> = <b, a>. This method checks that property.
 
         Args:
-            a: The first matrix
-            b: The second matrix
+            a: The first matrix.
+            b: The second matrix.
 
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise
+        Raises:
+            ValueError: If the conjugate symmetry property is not satisfied.
         """
-        return self.compute(a, b) == self.compute(b, a)
+        # Convert inputs to numpy arrays if they are not already
+        a = np.asarray(a)
+        b = np.asarray(b)
 
-    def check_linearity_first_argument(
-        self, a: np.ndarray, b: np.ndarray, c: np.ndarray
-    ) -> bool:
+        # Compute inner products
+        inner_ab = self.compute(a, b)
+        inner_ba = self.compute(b, a)
+
+        # Check symmetry
+        if not np.isclose(inner_ab, inner_ba):
+            raise ValueError("Conjugate symmetry property not satisfied")
+
+    def __repr__(self) -> str:
         """
-        Checks if the inner product implementation is linear in the first argument.
-
-        This method verifies that for any matrices a, b, c and scalar k:
-        <a + c, b> = <a, b> + <c, b>
-        <k*a, b> = k*<a, b>
-
-        Args:
-            a: The first matrix
-            b: The second matrix
-            c: The third matrix
-
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise
+        Returns a string representation of the class instance.
         """
-        # Check linearity for addition
-        add_result = self.compute(a + c, b)
-        linear_add = self.compute(a, b) + self.compute(c, b)
-        if not np.isclose(add_result, linear_add):
-            return False
-
-        # Check linearity for scalar multiplication
-        scalar = 2.0
-        scaled_a = scalar * a
-        mult_result = self.compute(scaled_a, b)
-        linear_mult = scalar * self.compute(a, b)
-        if not np.isclose(mult_result, linear_mult):
-            return False
-
-        return True
-
-    def check_linearity_second_argument(
-        self, a: np.ndarray, b: np.ndarray, c: np.ndarray
-    ) -> bool:
-        """
-        Checks if the inner product implementation is linear in the second argument.
-
-        This method verifies that for any matrices a, b, c and scalar k:
-        <a, b + c> = <a, b> + <a, c>
-        <a, k*b> = k*<a, b>
-
-        Args:
-            a: The first matrix
-            b: The second matrix
-            c: The third matrix
-
-        Returns:
-            bool: True if linearity in the second argument holds, False otherwise
-        """
-        # Check linearity for addition
-        add_result = self.compute(a, b + c)
-        linear_add = self.compute(a, b) + self.compute(a, c)
-        if not np.isclose(add_result, linear_add):
-            return False
-
-        # Check linearity for scalar multiplication
-        scalar = 2.0
-        scaled_b = scalar * b
-        mult_result = self.compute(a, scaled_b)
-        linear_mult = scalar * self.compute(a, b)
-        if not np.isclose(mult_result, linear_mult):
-            return False
-
-        return True
-
-    def check_positivity(self, a: np.ndarray) -> bool:
-        """
-        Checks if the inner product implementation satisfies positive definiteness.
-
-        For the Frobenius inner product, this is true if the result of compute(a, a)
-        is positive for all non-zero matrices a.
-
-        Args:
-            a: The matrix to check for positivity
-
-        Returns:
-            bool: True if the inner product is positive definite, False otherwise
-        """
-        value = self.compute(a, a)
-        return value > 0
+        return f"FrobeniusRealInnerProduct()"

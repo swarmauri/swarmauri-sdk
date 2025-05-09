@@ -1,130 +1,138 @@
 from typing import Union, Literal
-import logging
 import numpy as np
+import logging
 
-from swarmauri_base.ComponentBase import ComponentBase
-from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
-# Define logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "HermitianInnerProduct")
 class HermitianInnerProduct(InnerProductBase):
-    """A concrete implementation of InnerProductBase for Hermitian inner products.
-
-    This class handles complex inner products with Hermitian symmetry. It supports
-    conjugate symmetry and L2 structure for complex vectors.
     """
+    Provides a concrete implementation of an inner product for complex vectors with
+    Hermitian symmetry. This class handles inner product operations for complex
+    vector spaces, ensuring conjugate symmetry and L2 structure.
 
+    Inherits from:
+        InnerProductBase: The base class for all inner product implementations.
+
+    Implements:
+        IInnerProduct: Interface for inner product operations.
+
+    Properties:
+        type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
+    """
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
 
-    def __init__(self):
-        """Initializes the HermitianInnerProduct instance."""
+    def __init__(self) -> None:
+        """
+        Initializes the HermitianInnerProduct instance.
+        """
         super().__init__()
-        self._vector_type = Union[np.ndarray, complex]
+        logger.debug("HermitianInnerProduct instance initialized")
 
-    def compute(
-        self, a: Union[np.ndarray, complex], b: Union[np.ndarray, complex]
-    ) -> Union[float, complex]:
-        """Computes the Hermitian inner product between two complex vectors.
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
+        """
+        Computes the Hermitian inner product of two complex vectors.
 
-        The Hermitian inner product is defined as the conjugate of the transpose of
-        the first vector multiplied by the second vector.
+        The Hermitian inner product is defined as:
+            ⟨a, b⟩ = conjugate(a) · b
 
         Args:
-            a: The first complex vector
-            b: The second complex vector
+            a: The first complex vector or callable producing a complex vector
+            b: The second complex vector or callable producing a complex vector
 
         Returns:
-            Union[float, complex]: The result of the Hermitian inner product computation
+            float: The result of the inner product operation
 
         Raises:
-            ValueError: If the input vectors are not of the correct type
+            ValueError: If input vectors are not complex or dimensions don't match
         """
         logger.debug("Computing Hermitian inner product")
 
-        if not isinstance(a, (np.ndarray, complex)) or not isinstance(
-            b, (np.ndarray, complex)
-        ):
-            logger.error("Input vectors must be complex or numpy arrays")
-            raise ValueError("Input vectors must be complex or numpy arrays")
+        # Evaluate callables if necessary
+        if callable(a):
+            a = a()
+        if callable(b):
+            b = b()
 
-        # Compute the Hermitian inner product using numpy's vdot
-        result = np.vdot(a, b)
+        # Ensure inputs are complex vectors
+        if not (isinstance(a, (np.ndarray)) and isinstance(b, (np.ndarray))):
+            raise ValueError("Inputs must be complex vectors or callable producing complex vectors")
+        if a.dtype != np.complex_ or b.dtype != np.complex_:
+            raise ValueError("Inputs must be complex vectors")
+
+        # Ensure compatible dimensions
+        if a.shape != b.shape:
+            raise ValueError("Vector dimensions must match for inner product")
+
+        # Compute the inner product with conjugate symmetry
+        result = np.sum(np.conj(a) * b)
 
         logger.debug(f"Inner product result: {result}")
         return result
 
-    def check_conjugate_symmetry(
-        self, a: Union[np.ndarray, complex], b: Union[np.ndarray, complex]
-    ) -> bool:
-        """Checks if the inner product implementation satisfies conjugate symmetry.
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
+        """
+        Verifies the conjugate symmetry property of the inner product.
 
-        Conjugate symmetry means that <a, b> = conjugate(<b, a>).
+        For Hermitian inner product, we should have:
+            ⟨a, b⟩ = conjugate(⟨b, a⟩)
 
         Args:
-            a: The first complex vector
-            b: The second complex vector
+            a: The first vector for symmetry check
+            b: The second vector for symmetry check
 
-        Returns:
-            bool: True if conjugate symmetry holds, False otherwise
+        Raises:
+            ValueError: If conjugate symmetry is not satisfied
         """
         logger.debug("Checking conjugate symmetry")
+        super().check_conjugate_symmetry(a, b)
 
-        inner_product_ab = self.compute(a, b)
-        inner_product_ba = self.compute(b, a)
+    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
+        """
+        Verifies the linearity property in the first argument.
 
-        # Check if inner_product_ab is equal to the conjugate of inner_product_ba
-        return np.isclose(inner_product_ab, np.conj(inner_product_ba))
-
-    def check_linearity_first_argument(
-        self,
-        a: Union[np.ndarray, complex],
-        b: Union[np.ndarray, complex],
-        c: Union[np.ndarray, complex],
-    ) -> bool:
-        """Checks if the inner product is linear in the first argument.
-
-        Linearity in the first argument means that the inner product of (c * a + b)
-        with another vector should equal c * <a, vector> + <b, vector>.
+        For vectors a, b, c and scalar α:
+            ⟨a + b, c⟩ = ⟨a, c⟩ + ⟨b, c⟩
+            ⟨αa, c⟩ = α ⟨a, c⟩
 
         Args:
-            a: The first complex vector
-            b: The second complex vector
-            c: The scalar coefficient
+            a: First vector for linearity check
+            b: Second vector for linearity check
+            c: Vector against which the inner product is computed
 
-        Returns:
-            bool: True if linearity in the first argument holds, False otherwise
+        Raises:
+            ValueError: If linearity in the first argument is not satisfied
         """
         logger.debug("Checking linearity in first argument")
+        super().check_linearity_first_argument(a, b, c)
 
-        # Compute <c*a + b, a>
-        left_side = self.compute(c * a + b, a)
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+        """
+        Verifies the positivity property.
 
-        # Compute c*<a, a> + <b, a>
-        right_side = c * self.compute(a, a) + self.compute(b, a)
-
-        return np.isclose(left_side, right_side)
-
-    def check_positivity(self, a: Union[np.ndarray, complex]) -> bool:
-        """Checks if the inner product satisfies positive definiteness.
-
-        Positive definiteness means that the inner product of a vector with itself
-        is positive and only zero if the vector is the zero vector.
+        For any non-zero vector a:
+            ⟨a, a⟩ > 0
 
         Args:
-            a: The complex vector to check
+            a: Vector to check for positivity
 
-        Returns:
-            bool: True if positive definiteness holds, False otherwise
+        Raises:
+            ValueError: If positivity property is not satisfied
         """
         logger.debug("Checking positivity")
+        super().check_positivity(a)
 
-        inner_product = self.compute(a, a)
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the HermitianInnerProduct instance.
+        """
+        return f"HermitianInnerProduct()"
 
-        # Ensure the result is a real positive number
-        if not np.isscalar(inner_product) or inner_product.dtype != np.float64:
-            return False
-
-        return inner_product > 0
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the HermitianInnerProduct instance.
+        """
+        return self.__str__()

@@ -1,239 +1,135 @@
-from typing import Union, Sequence, Callable, Optional
-import numpy as np
-import math
+from typing import TypeVar, Union, Optional, Callable
 import logging
+from swarmauri_base.norms.NormBase import NormBase
+from swarmauri_base.ComponentBase import ComponentBase
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from base.swarmauri_base.norms.NormBase import NormBase
+# Define a TypeVar to represent supported input types
+T = TypeVar('T', Union[Callable, list, float])
 
-logger = logging.getLogger(__name__)
-
-
-@ComponentBase.register_model()
+@ComponentBase.register_type(NormBase, "SobolevNorm")
 class SobolevNorm(NormBase):
     """
-    Implementation of the Sobolev norm, which combines the L2 norm of a function and its derivatives.
+    A class implementing the Sobolev norm, which combines the L2 norms of a function and its derivatives.
 
-    Inherits From:
-        NormBase: Base implementation for norm computations
+    The Sobolev norm is particularly useful for measuring the smoothness of functions by considering both the function and its derivatives up to a specified order. This norm is defined as the sum of the squares of the L2 norms of the function and its derivatives, raised to the power of 1/2.
 
     Attributes:
-        resource: Type of resource this component represents
+        order: The highest order of derivatives to include in the norm computation. Defaults to 1.
+        
+    Methods:
+        compute: Computes the Sobolev norm of the given input.
+        _compute_l2_norm: Helper method to compute the L2 norm of a function or its derivative.
     """
-
-    resource: Optional[str] = ResourceTypes.NORM.value
-
-    def compute(self, x: Union[Callable, Sequence, np.ndarray, str]) -> float:
+    type: str = "SobolevNorm"
+    order: int
+    
+    def __init__(self, order: int = 1, **kwargs):
         """
-        Compute the Sobolev norm of the input, combining function and derivative norms.
-
+        Initializes the SobolevNorm instance with the specified order of derivatives.
+        
         Args:
-            x: The input to compute the norm of. Can be a callable function, a sequence of values,
-                a numpy array, or a string representation.
-
+            order: The highest order of derivatives to include in the norm computation.
+            **kwargs: Additional keyword arguments passed to the base class.
+        """
+        super().__init__(**kwargs)
+        self.order = order
+        
+    def compute(self, x: T) -> float:
+        """
+        Computes the Sobolev norm of the given input.
+        
+        The Sobolev norm is calculated as the square root of the sum of the squared L2 norms of the function and its derivatives up to the specified order.
+        
+        Args:
+            x: The input function or vector to compute the norm of. Must be a callable or list.
+            
         Returns:
             float: The computed Sobolev norm value.
-
-        Raises:
-            ValueError: If the input type is not supported or invalid.
         """
-        logger.debug("Computing Sobolev norm")
-
-        # Convert to numpy array for consistent processing
-        if isinstance(x, Callable):
-            # For callable function, evaluate at multiple points
-            # Here we assume evaluation at a set of points, perhaps using quadrature
-            # For simplicity, let's evaluate at 10 random points
-            points = np.random.uniform(0, 1, 10)
-            fx = np.array([x(p) for p in points])
-            # Compute L2 norm of function
-            func_norm = np.linalg.norm(fx, 2)
-            # For derivatives, need to compute numerically or assume provided
-            # For this example, we'll assume no higher derivatives
-            deriv_norm = 0.0
-            total_norm = func_norm + deriv_norm
-        elif isinstance(x, (Sequence, np.ndarray)):
-            # Assume x contains function and derivative values
-            # Split into function and derivatives
-            if len(x) < 2:
-                # Only function value provided
-                func = np.array(x)
-                func_norm = np.linalg.norm(func, 2)
-                deriv_norm = 0.0
-                total_norm = func_norm + deriv_norm
-            else:
-                # First part is function, rest are derivatives
-                func = x[0]
-                func_norm = np.linalg.norm(func, 2)
-                derivs = x[1:]
-                deriv_norm = sum(np.linalg.norm(d, 2) for d in derivs)
-                total_norm = func_norm + deriv_norm
-        elif isinstance(x, str):
-            # Try to evaluate string as function
-            # For simplicity, assume it's a constant function
-            try:
-                value = float(x)
-                func_norm = abs(value)
-                deriv_norm = 0.0
-                total_norm = func_norm + deriv_norm
-            except ValueError:
-                raise ValueError(f"Could not evaluate string '{x}' as a function")
-        else:
-            raise ValueError(f"Unsupported input type: {type(x)}")
-
-        logger.debug(f"Computed Sobolev norm: {total_norm}")
-        return total_norm
-
-    def check_non_negativity(
-        self, x: Union[Callable, Sequence, np.ndarray, str]
-    ) -> None:
+        logger.debug(f"Computing Sobolev norm of order {self.order} for input type {type(x)}")
+        
+        total_norm = 0.0
+        
+        # Add the norm of the function itself (0th derivative)
+        f_norm = self._compute_l2_norm(x, 0)
+        total_norm += f_norm ** 2
+        
+        # Add the norms of the derivatives up to the specified order
+        for derivative_order in range(1, self.order + 1):
+            derivative_norm = self._compute_l2_norm(x, derivative_order)
+            total_norm += derivative_norm ** 2
+            
+        return total_norm ** 0.5
+    
+    def _compute_l2_norm(self, x: T, derivative_order: int = 0) -> float:
         """
-        Verify the non-negativity property of the Sobolev norm.
-
-        The norm must satisfy ||x|| >= 0 for all x, and ||x|| = 0 if and only if x = 0.
-
+        Helper method to compute the L2 norm of a function or its derivative.
+        
         Args:
-            x: The input to verify non-negativity for.
-
-        Raises:
-            AssertionError: If non-negativity is not satisfied.
-        """
-        logger.debug("Checking non-negativity")
-        norm = self.compute(x)
-        if norm < 0:
-            raise AssertionError("Norm is negative, violating non-negativity")
-        logger.debug("Non-negativity check passed")
-
-    def check_triangle_inequality(
-        self,
-        x: Union[Callable, Sequence, np.ndarray, str],
-        y: Union[Callable, Sequence, np.ndarray, str],
-    ) -> None:
-        """
-        Verify the triangle inequality property of the Sobolev norm.
-
-        The norm must satisfy ||x + y|| <= ||x|| + ||y|| for all x, y.
-
-        Args:
-            x: The first input vector.
-            y: The second input vector.
-
-        Raises:
-            AssertionError: If triangle inequality is not satisfied.
-        """
-        logger.debug("Checking triangle inequality")
-
-        # Convert to numpy arrays
-        if isinstance(x, Callable):
-            x_vals = np.array([x(p) for p in np.random.uniform(0, 1, 10)])
-        else:
-            x_vals = np.array(x)
-
-        if isinstance(y, Callable):
-            y_vals = np.array([y(p) for p in np.random.uniform(0, 1, 10)])
-        else:
-            y_vals = np.array(y)
-
-        sum_norm = self.compute(x_vals + y_vals)
-        x_norm = self.compute(x_vals)
-        y_norm = self.compute(y_vals)
-
-        if (
-            sum_norm > x_norm + y_norm + 1e-9
-        ):  # Adding small epsilon for floating point errors
-            raise AssertionError(
-                f"Triangle inequality failed: {sum_norm} > {x_norm} + {y_norm}"
-            )
-        logger.debug("Triangle inequality check passed")
-
-    def check_absolute_homogeneity(
-        self, x: Union[Callable, Sequence, np.ndarray, str], alpha: float
-    ) -> None:
-        """
-        Verify the absolute homogeneity property of the Sobolev norm.
-
-        The norm must satisfy ||αx|| = |α| ||x|| for all scalars α and vectors x.
-
-        Args:
-            x: The input vector.
-            alpha: The scalar to scale the vector by.
-
-        Raises:
-            AssertionError: If absolute homogeneity is not satisfied.
-        """
-        logger.debug("Checking absolute homogeneity")
-
-        # Compute norm of scaled x
-        scaled_x = self._scale_input(x, alpha)
-        scaled_norm = self.compute(scaled_x)
-
-        # Compute |alpha| * ||x||
-        x_norm = self.compute(x)
-        expected_norm = abs(alpha) * x_norm
-
-        if not np.isclose(scaled_norm, expected_norm, atol=1e-9):
-            raise AssertionError(
-                f"Absolute homogeneity failed: {scaled_norm} != {expected_norm}"
-            )
-        logger.debug("Absolute homogeneity check passed")
-
-    def check_definiteness(self, x: Union[Callable, Sequence, np.ndarray, str]) -> None:
-        """
-        Verify the definiteness property of the Sobolev norm.
-
-        The norm must satisfy ||x|| = 0 if and only if x = 0.
-
-        Args:
-            x: The input to verify definiteness for.
-
-        Raises:
-            AssertionError: If definiteness is not satisfied.
-        """
-        logger.debug("Checking definiteness")
-        norm = self.compute(x)
-
-        if norm == 0:
-            # Check if x is the zero vector
-            if isinstance(x, (Sequence, np.ndarray)):
-                if not all(v == 0 for v in x):
-                    raise AssertionError(
-                        "Norm is zero but input is not the zero vector"
-                    )
-            elif isinstance(x, Callable):
-                # Check if function is identically zero
-                points = np.random.uniform(0, 1, 10)
-                if not all(abs(x(p)) < 1e-9 for p in points):
-                    raise AssertionError(
-                        "Norm is zero but function is not identically zero"
-                    )
-            else:
-                # Handle other types if necessary
-                pass
-        logger.debug("Definiteness check passed")
-
-    def _scale_input(
-        self, x: Union[Callable, Sequence, np.ndarray, str], alpha: float
-    ) -> Union[Callable, Sequence, np.ndarray, str]:
-        """
-        Helper method to scale the input by a factor alpha.
-
-        Args:
-            x: The input to scale.
-            alpha: The scaling factor.
-
+            x: The input function or vector.
+            derivative_order: The order of the derivative to compute. Defaults to 0 (the function itself).
+            
         Returns:
-            Scaled input.
+            float: The L2 norm of the function or its derivative.
         """
-        if isinstance(x, Callable):
-            return lambda p: alpha * x(p)
-        elif isinstance(x, (Sequence, np.ndarray)):
-            return alpha * np.array(x)
-        elif isinstance(x, str):
-            # Handle string scaling - assumes it's a constant function
-            try:
-                value = float(x)
-                return str(alpha * value)
-            except ValueError:
-                raise ValueError(f"Cannot scale string '{x}'")
+        logger.debug(f"Computing L2 norm for derivative order {derivative_order}")
+        
+        # Get the function or its derivative based on the order
+        if callable(x):
+            func = self._get_derivative(x, derivative_order)
         else:
-            raise ValueError(f"Unsupported type for scaling: {type(x)}")
+            func = x  # Assume x is already the appropriate derivative for non-callable input
+            
+        # Compute the L2 norm
+        if isinstance(func, list):
+            norm = sum(x**2 for x in func) ** 0.5
+        else:
+            # For callable functions, integrate over the domain or compute vector norm
+            # This is a simplified version - actual implementation would depend on the function type
+            norm = abs(func)  # Placeholder for actual L2 norm computation
+            
+        return norm
+    
+    def _get_derivative(self, func: Callable, order: int) -> Callable:
+        """
+        Helper method to compute the nth derivative of a function.
+        
+        Args:
+            func: The function to differentiate.
+            order: The order of the derivative to compute.
+            
+        Returns:
+            Callable: The nth derivative of the input function.
+        """
+        logger.debug(f"Computing {order}th derivative of function")
+        
+        if order == 0:
+            return func
+        elif order == 1:
+            return self._first_derivative(func)
+        else:
+            # This is a simplified version - actual implementation would need proper numerical differentiation
+            derivative_func = func
+            for _ in range(order):
+                derivative_func = self._first_derivative(derivative_func)
+            return derivative_func
+    
+    def _first_derivative(self, func: Callable) -> Callable:
+        """
+        Helper method to compute the first derivative of a function using finite differences.
+        
+        Args:
+            func: The function to differentiate.
+            
+        Returns:
+            Callable: The first derivative of the input function.
+        """
+        logger.debug("Computing first derivative using finite differences")
+        
+        def derivative(x):
+            h = 1e-8  # Small step size
+            return (func(x + h) - func(x - h)) / (2 * h)
+        
+        return derivative
+
+logger = logging.getLogger(__name__)

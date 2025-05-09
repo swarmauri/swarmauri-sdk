@@ -1,89 +1,140 @@
 import pytest
+import numpy as np
+from swarmauri_standard.inner_products.SobolevH1InnerProduct import SobolevH1InnerProduct
+from swarmauri_core.vectors.IVector import IVector
 import logging
-from unittest.mock import Mock
-from swarmauri_standard.swarmauri_standard.inner_products.SobolevH1InnerProduct import (
-    SobolevH1InnerProduct,
-)
 
+logger = logging.getLogger(__name__)
 
-@pytest.fixture
-def sobolev_h1_inner_product():
-    """Fixture providing an instance of SobolevH1InnerProduct for testing."""
-    return SobolevH1InnerProduct()
+class TestSobolevH1InnerProduct:
+    """Unit tests for SobolevH1InnerProduct class."""
 
+    @pytest.fixture
+    def base_class(self):
+        """Fixture providing the base class for testing."""
+        return SobolevH1InnerProduct()
 
+    @pytest.mark.unit
+    def test_compute_callable_inputs(self, base_class):
+        """
+        Tests compute method with callable inputs.
+        
+        Verify that the compute method correctly handles callable functions
+        and computes the Sobolev H1 inner product.
+        """
+        # Define test functions
+        def f(x):
+            return x
+        
+        def g(x):
+            return x
+        
+        # Compute inner product
+        result = base_class.compute(f, g)
+        
+        # Verify result is a float
+        assert isinstance(result, float)
+
+    @pytest.mark.unit
+    def test_compute_array_inputs(self, base_class):
+        """
+        Tests compute method with numpy array inputs.
+        
+        Verify that the compute method correctly handles numpy array inputs
+        and computes the Sobolev H1 inner product.
+        """
+        # Generate test arrays
+        a = np.linspace(0, 1, 100)
+        b = np.linspace(0, 1, 100)
+        
+        # Compute inner product
+        result = base_class.compute(a, b)
+        
+        # Verify result is a float
+        assert isinstance(result, float)
+
+    @pytest.mark.unit
+    def test_compute_vector_inputs(self, base_class):
+        """
+        Tests compute method with vector inputs.
+        
+        Verify that the compute method correctly handles vector inputs
+        and computes the Sobolev H1 inner product.
+        """
+        # Create mock vector objects
+        class MockVector(IVector):
+            def __init__(self, data):
+                self.data = data
+                self.grad = np.zeros_like(data)
+        
+        a = MockVector(np.linspace(0, 1, 100))
+        b = MockVector(np.linspace(0, 1, 100))
+        
+        # Compute inner product
+        result = base_class.compute(a, b)
+        
+        # Verify result is a float
+        assert isinstance(result, float)
+
+    @pytest.mark.unit
+    def test_class_attributes(self, base_class):
+        """
+        Tests class attributes.
+        
+        Verify that the class has the correct type and resource attributes.
+        """
+        assert base_class.type == "SobolevH1InnerProduct"
+        assert base_class.resource == "Inner_product"
+
+    @pytest.mark.unit
+    def test_invalid_input_types(self, base_class):
+        """
+        Tests handling of invalid input types.
+        
+        Verify that the compute method raises ValueError
+        when given unsupported input types.
+        """
+        with pytest.raises(ValueError):
+            base_class.compute(123, 456)
+
+    @pytest.mark.unit
+    def test_mismatched_dimensions(self, base_class):
+        """
+        Tests handling of mismatched dimensions.
+        
+        Verify that the compute method raises ValueError
+        when input arrays have mismatched dimensions.
+        """
+        a = np.linspace(0, 1, 100)
+        b = np.linspace(0, 1, 200)
+        
+        with pytest.raises(ValueError):
+            base_class.compute(a, b)
+
+    @pytest.mark.unit
+    def test_logging(self, base_class, caplog):
+        """
+        Tests logging functionality.
+        
+        Verify that the compute method logs debug messages
+        during execution.
+        """
+        with caplog.at_level(logging.DEBUG):
+            base_class.compute(lambda x: x, lambda x: x)
+            
+        assert "Computing Sobolev H1 inner product" in caplog.text
+
+@pytest.mark.parametrize("a,b,expected", [
+    (lambda x: x, lambda x: x, 2.0),
+    (np.array([1, 2]), np.array([3, 4]), 2.5),
+])
 @pytest.mark.unit
-def test_sobolev_h1_inner_product_initialization(sobolev_h1_inner_product):
-    """Tests the initialization of the SobolevH1InnerProduct class."""
-    assert isinstance(sobolev_h1_inner_product, SobolevH1InnerProduct)
-    assert sobolev_h1_inner_product.type == "SobolevH1InnerProduct"
-    assert hasattr(sobolev_h1_inner_product, "compute")
-    assert hasattr(sobolev_h1_inner_product, "check_conjugate_symmetry")
-    assert hasattr(sobolev_h1_inner_product, "check_linearity_first_argument")
-    assert hasattr(sobolev_h1_inner_product, "check_positivity")
-
-
-@pytest.mark.unit
-def test_compute(sobolev_h1_inner_product):
-    """Tests the compute method of the SobolevH1InnerProduct class."""
-    # Setup mock elements with required methods
-    a = Mock()
-    b = Mock()
-
-    # Mock return values for L2 inner product and derivatives
-    a.l2_inner_product.return_value = 2.0
-    b.l2_inner_product.return_value = 2.0
-
-    a.first_derivative.return_value.l2_inner_product.return_value = 1.0
-    b.first_derivative.return_value.l2_inner_product.return_value = 1.0
-
-    # Compute H1 inner product
-    result = sobolev_h1_inner_product.compute(a, b)
-
-    # Verify the result
-    assert result == 4.0
-    a.l2_inner_product.assert_called_once_with(b)
-    a.first_derivative.assert_called_once()
-    b.first_derivative.assert_called_once()
-
-
-@pytest.mark.unit
-def test_check_conjugate_symmetry(sobolev_h1_inner_product):
-    """Tests the check_conjugate_symmetry method of the SobolevH1InnerProduct class."""
-    a = Mock()
-    b = Mock()
-
-    # Mock compute method to return different values for a,b and b,a
-    sobolev_h1_inner_product.compute.side_effect = [5.0, 5.0]
-
-    # Test symmetry
-    is_symmetric = sobolev_h1_inner_product.check_conjugate_symmetry(a, b)
-    assert is_symmetric is True
-
-
-@pytest.mark.unit
-def test_check_linearity_first_argument(sobolev_h1_inner_product):
-    """Tests the check_linearity_first_argument method of the SobolevH1InnerProduct class."""
-    a = Mock()
-    b = Mock()
-    c = Mock()
-
-    # Mock compute method to return specific values
-    sobolev_h1_inner_product.compute.side_effect = [2.0, 3.0, 1.0]
-
-    # Test linearity
-    is_linear = sobolev_h1_inner_product.check_linearity_first_argument(a, b, c)
-    assert is_linear is True
-
-
-@pytest.mark.unit
-def test_check_positivity(sobolev_h1_inner_product):
-    """Tests the check_positivity method of the SobolevH1InnerProduct class."""
-    a = Mock()
-
-    # Mock compute method to return a positive value
-    sobolev_h1_inner_product.compute.side_effect = [4.0]
-
-    # Test positivity
-    is_positive = sobolev_h1_inner_product.check_positivity(a)
-    assert is_positive is True
+def test_compute_multiple_cases(a, b, expected, base_class):
+    """
+    Tests compute method with multiple input types and expected results.
+    
+    Parameterized test to verify compute method with different combinations
+    of input types and expected results.
+    """
+    result = base_class.compute(a, b)
+    assert result == expected

@@ -1,237 +1,183 @@
-from typing import Union, List, Literal, Sequence, Optional
-from pydantic import Field
+from typing import Union, List, Sequence, Optional, Literal
+import logging
+import math
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_standard.norms.GeneralLpNorm import GeneralLpNorm
-import logging
+
+T = TypeVar('T', Sequence[float], Union[float, Sequence[float]])
 
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_model()
+@ComponentBase.register_type(MetricBase, "LpMetric")
 class LpMetric(MetricBase):
     """
-    Implementation of the Lp metric for vector spaces.
-
-    This class provides a concrete implementation of the MetricBase class for
-    computing distances using the Lp norm. The Lp norm is parameterized by p,
-    where p must be greater than 1.
-
-    Inherits From:
-        MetricBase: Base class for all metric implementations
+    A concrete implementation of the MetricBase class for computing distances 
+    using the Lp norm. This class provides the functionality to compute 
+    distances between vectors or sequences using any Lp norm where p > 1.
 
     Attributes:
-        p (float): The parameter for the Lp norm, must be > 1 and finite
-        type (Literal["LpMetric"]): Type identifier for the component
+        p: The parameter of the Lp norm. Must be finite and greater than 1.
     """
-
     type: Literal["LpMetric"] = "LpMetric"
-    p: float = Field(default=2.0)
+    p: float
 
     def __init__(self, p: float = 2.0):
         """
-        Initialize the LpMetric instance.
+        Initializes the LpMetric instance with specified p value.
 
         Args:
-            p (float): The parameter for the Lp norm, must be > 1 and finite
+            p: The parameter of the Lp norm. Must be finite and greater than 1.
 
         Raises:
-            ValueError: If p is not greater than 1 or is not finite
+            ValueError: If p is not finite or p <= 1.
         """
-        if not (isinstance(p, (float, int)) and p > 1 and p != float("inf")):
-            raise ValueError("p must be a finite float greater than 1")
-
-        self.p = p
         super().__init__()
+        if not (math.isfinite(p) and p > 1):
+            raise ValueError(f"p must be finite and greater than 1, got {p}")
+        self.p = p
+        self.norm = GeneralLpNorm(p=p)
 
-    def distance(
-        self, x: Union[Sequence, Callable, str], y: Union[Sequence, Callable, str]
-    ) -> float:
+    def distance(self, x: Union[Sequence[float], float], y: Union[Sequence[float], float]) -> float:
         """
-        Compute the Lp distance between two points.
-
-        The Lp distance is defined as:
-
-        For vectors x and y:
-        distance(x, y) = ||x - y||_p
-
-        For matrices X and Y:
-        distance(X, Y) = max(||X[i] - Y[i]||_p for all rows i)
+        Computes the Lp distance between two points x and y.
 
         Args:
-            x: The first point. Can be a vector, matrix, string, or callable.
-            y: The second point. Can be a vector, matrix, string, or callable.
+            x: First point (vector or scalar)
+            y: Second point (vector or scalar)
 
         Returns:
-            float: The computed Lp distance between x and y.
+            float: The Lp distance between x and y
 
         Raises:
-            ValueError: If the input types are not supported
+            ValueError: If inputs are invalid or cannot be processed.
         """
-        try:
-            # Convert callables or strings to their representation
-            if callable(x):
-                x = x()
-            if callable(y):
-                y = y()
+        logger.debug(f"Calculating L{self.p} distance between {x} and {y}")
+        
+        # Ensure inputs are sequences
+        if not isinstance(x, Sequence):
+            x = [x]
+        if not isinstance(y, Sequence):
+            y = [y]
+            
+        # Check equal length
+        if len(x) != len(y):
+            raise ValueError("Vectors must have the same length")
+            
+        difference = [x_i - y_i for x_i, y_i in zip(x, y)]
+        return self.norm.compute(difference)
 
-            # Handle string representations
-            if isinstance(x, str):
-                x = eval(x)
-            if isinstance(y, str):
-                y = eval(y)
-
-            # Compute the difference
-            diff = [xi - yi for xi, yi in zip(x, y)]
-
-            # Compute the Lp norm of the difference
-            norm = GeneralLpNorm(self.p)
-            distance = norm.compute(diff)
-
-            return distance
-
-        except Exception as e:
-            logger.error(f"Failed to compute Lp distance: {str(e)}")
-            raise ValueError(f"Failed to compute Lp distance: {str(e)}")
-
-    def distances(
-        self,
-        x: Union[Sequence, Callable, str],
-        ys: List[Union[Sequence, Callable, str]],
-    ) -> List[float]:
+    def distances(self, xs: List[Union[Sequence[float], float]], 
+                  ys: List[Union[Sequence[float], float]]) -> List[List[float]]:
         """
-        Compute distances from a single point to multiple points.
+        Computes pairwise distances between two lists of points using Lp norm.
 
         Args:
-            x: The reference point. Can be a vector, matrix, string, or callable.
-            ys: List of points to compute distances to. Each can be a vector,
-                matrix, string, or callable.
+            xs: First list of points
+            ys: Second list of points
 
         Returns:
-            List[float]: List of distances from x to each point in ys.
+            List[List[float]]: Matrix of pairwise distances between points in xs and ys
 
         Raises:
-            ValueError: If any input type is not supported
+            ValueError: If inputs are invalid or cannot be processed.
         """
-        try:
-            distances = []
+        logger.debug(f"Calculating pairwise L{self.p} distances")
+        
+        if not isinstance(xs, list) or not isinstance(ys, list):
+            raise ValueError("Inputs must be lists of points")
+            
+        distance_matrix = []
+        for x in xs:
+            row = []
             for y in ys:
-                distances.append(self.distance(x, y))
-            return distances
-        except Exception as e:
-            logger.error(f"Failed to compute distances: {str(e)}")
-            raise ValueError(f"Failed to compute distances: {str(e)}")
+                row.append(self.distance(x, y))
+            distance_matrix.append(row)
+            
+        return distance_matrix
 
-    def check_non_negativity(
-        self, x: Union[Sequence, Callable, str], y: Union[Sequence, Callable, str]
-    ) -> Literal[True]:
+    def check_non_negativity(self, x: Union[Sequence[float], float], 
+                            y: Union[Sequence[float], float]) -> None:
         """
-        Verify the non-negativity property: d(x, y) ≥ 0.
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
 
         Args:
-            x: The first point. Can be a vector, matrix, string, or callable.
-            y: The second point. Can be a vector, matrix, string, or callable.
-
-        Returns:
-            Literal[True]: True if the non-negativity property holds.
+            x: First point
+            y: Second point
 
         Raises:
-            AssertionError: If the non-negativity property is violated
+            MetricViolationError: If d(x,y) < 0
         """
+        logger.debug("Checking non-negativity axiom for LpMetric")
         distance = self.distance(x, y)
         if distance < 0:
-            logger.error("Non-negativity violation: Negative distance found")
-            raise AssertionError("Non-negativity violation: Negative distance found")
-        return True
+            raise MetricViolationError(f"Non-negativity violated: distance = {distance}")
 
-    def check_identity(
-        self, x: Union[Sequence, Callable, str], y: Union[Sequence, Callable, str]
-    ) -> Literal[True]:
+    def check_identity(self, x: Union[Sequence[float], float], 
+                      y: Union[Sequence[float], float]) -> None:
         """
-        Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
 
         Args:
-            x: The first point. Can be a vector, matrix, string, or callable.
-            y: The second point. Can be a vector, matrix, string, or callable.
-
-        Returns:
-            Literal[True]: True if the identity property holds.
+            x: First point
+            y: Second point
 
         Raises:
-            AssertionError: If the identity property is violated
+            MetricViolationError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y
         """
+        logger.debug("Checking identity of indiscernibles axiom for LpMetric")
         distance = self.distance(x, y)
         if distance == 0:
-            try:
-                if x != y:
-                    logger.error(
-                        "Identity violation: Different points have zero distance"
-                    )
-                    raise AssertionError(
-                        "Identity violation: Different points have zero distance"
-                    )
-            except Exception as e:
-                raise AssertionError(
-                    "Identity violation: Different points have zero distance"
-                ) from e
+            if x != y:
+                raise MetricViolationError(f"Identity violation: d(x,y)=0 but x≠y")
         else:
             if x == y:
-                logger.error(
-                    "Identity violation: Identical points have non-zero distance"
-                )
-                raise AssertionError(
-                    "Identity violation: Identical points have non-zero distance"
-                )
-        return True
+                raise MetricViolationError(f"Identity violation: d(x,y)≠0 but x=y")
 
-    def check_symmetry(
-        self, x: Union[Sequence, Callable, str], y: Union[Sequence, Callable, str]
-    ) -> Literal[True]:
+    def check_symmetry(self, x: Union[Sequence[float], float], 
+                     y: Union[Sequence[float], float]) -> None:
         """
-        Verify the symmetry property: d(x, y) = d(y, x).
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
 
         Args:
-            x: The first point. Can be a vector, matrix, string, or callable.
-            y: The second point. Can be a vector, matrix, string, or callable.
-
-        Returns:
-            Literal[True]: True if the symmetry property holds.
+            x: First point
+            y: Second point
 
         Raises:
-            AssertionError: If the symmetry property is violated
+            MetricViolationError: If d(x,y) ≠ d(y,x)
         """
-        distance_xy = self.distance(x, y)
-        distance_yx = self.distance(y, x)
+        logger.debug("Checking symmetry axiom for LpMetric")
+        if self.distance(x, y) != self.distance(y, x):
+            raise MetricViolationError(f"Symmetry violation: d(x,y)={self.distance(x,y)} ≠ d(y,x)={self.distance(y,x)}")
 
-        if not (distance_xy == distance_yx):
-            logger.error("Symmetry violation: d(x, y) != d(y, x)")
-            raise AssertionError("Symmetry violation: d(x, y) != d(y, x)")
-        return True
-
-    def check_triangle_inequality(
-        self,
-        x: Union[Sequence, Callable, str],
-        y: Union[Sequence, Callable, str],
-        z: Union[Sequence, Callable, str],
-    ) -> Literal[True]:
+    def check_triangle_inequality(self, x: Union[Sequence[float], float], 
+                                   y: Union[Sequence[float], float], 
+                                   z: Union[Sequence[float], float]) -> None:
         """
-        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
 
         Args:
-            x: The first point. Can be a vector, matrix, string, or callable.
-            y: The second point. Can be a vector, matrix, string, or callable.
-            z: The third point. Can be a vector, matrix, string, or callable.
-
-        Returns:
-            Literal[True]: True if the triangle inequality property holds.
+            x: First point
+            y: Second point
+            z: Third point
 
         Raises:
-            AssertionError: If the triangle inequality is violated
+            MetricViolationError: If d(x,z) > d(x,y) + d(y,z)
         """
-        distance_xz = self.distance(x, z)
-        distance_xy = self.distance(x, y)
-        distance_yz = self.distance(y, z)
+        logger.debug("Checking triangle inequality axiom for LpMetric")
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+        
+        if d_xz > d_xy + d_yz:
+            raise MetricViolationError(f"Triangle inequality violation: {d_xz} > {d_xy} + {d_yz}")
 
-        if distance_xz > distance_xy + distance_yz:
-            logger.error("Triangle inequality violation")
-            raise AssertionError("Triangle inequality violation")
-        return True
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the LpMetric instance.
+        
+        Returns:
+            str: String representation showing the class name and p value.
+        """
+        return f"LpMetric(p={self.p})"
