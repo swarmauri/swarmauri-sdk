@@ -1,5 +1,6 @@
-from typing import Union, Sequence, Iterable
+from typing import Literal, Sequence, Iterable
 import logging
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase, T
 
 logger = logging.getLogger(__name__)

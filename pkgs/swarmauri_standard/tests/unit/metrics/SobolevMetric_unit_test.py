@@ -1,6 +1,5 @@
 import pytest
 from swarmauri_standard.metrics.SobolevMetric import SobolevMetric
-from swarmauri_base.exceptions.MetricViolationError import MetricViolationError
 
 
 @pytest.fixture

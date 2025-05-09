@@ -1,5 +1,4 @@
 import pytest
-import math
 from jaml import loads
 
 @pytest.mark.unit

@@ -1,5 +1,4 @@
 import pytest
-import logging
 from swarmauri_standard.metrics.LpMetric import LpMetric
 from swarmauri_base.exceptions import MetricViolationError
 

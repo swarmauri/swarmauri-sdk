@@ -1,12 +1,9 @@
 import pytest
-from copy import deepcopy
 
-from jaml import (
-    round_trip_loads
-)
+from jaml import round_trip_loads
 
 # The input JML content (as a multi-line string)
-JML_INPUT = r'''
+JML_INPUT = r"""
 rootDir = "src"
 packages = ${packages}
 
@@ -19,7 +16,7 @@ type = "python"
 extras = [k = v for k, v in %{module.extras.items} if k != "secret"]
 test_conf = { testFramework = "pytest", tests = %{module.tests} }
 
-'''
+"""
 
 # The base external context used during rendering.
 BASE_CONTEXT = {
@@ -47,7 +44,7 @@ BASE_CONTEXT = {
     ],
 }
 
-expected_result = r'''
+expected_result = r"""
 [file.auth.login.source]
 name = "login.py"
 path = "src/auth/login.py"
@@ -62,7 +59,8 @@ type = "python"
 extras = { "owner" = "teamB" }
 extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
 
-'''
+"""
+
 
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Pending proper implementation")
@@ -77,9 +75,9 @@ def test_assignment_in_list_compr():
     resolved_config = data.resolve()
     assert resolved_config["rootDir"] == '"new_src"'
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render(context=BASE_CONTEXT)
     final_out = data.dumps(rendered_data)
-    
+
     assert rendered_data["rootDir"] == "new_src"
     assert "src/auth" in final_out

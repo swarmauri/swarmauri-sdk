@@ -1,7 +1,6 @@
 # jaml/_comprehension.py
 from __future__ import annotations
-from typing import Dict, Iterator, Optional, Union, List, Any
-from ._eval import safe_eval
+from typing import Iterator, Any
 import re
 
 import logging

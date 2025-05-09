@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
 import logging
-from swarmauri_standard.inner_products import WeightedL2InnerProduct
+
+import numpy as np
+import pytest
 from swarmauri_core.vectors import IVector
+
+from swarmauri_standard.inner_products import WeightedL2InnerProduct
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +20,10 @@ class TestWeightedL2InnerProduct:
 
     def test_init_with_valid_weight_function(self):
         """Test initialization with a valid weight function."""
+
         # Arrange
-        weight_func = lambda x: x**2 + 1  # Positive function
+        def weight_func(x):
+            return x**2 + 1  # Positive function
 
         # Act
         weighted_l2 = WeightedL2InnerProduct(weight_func)
@@ -30,8 +34,10 @@ class TestWeightedL2InnerProduct:
 
     def test_init_with_invalid_weight_function(self):
         """Test initialization with a weight function that can be zero or negative."""
+
         # Arrange
-        weight_func = lambda x: x**2 - 1  # Can be zero or negative
+        def weight_func(x):
+            return x**2 - 1  # Can be zero or negative
 
         # Act and Assert
         with pytest.raises(ValueError):
@@ -71,9 +77,14 @@ class TestWeightedL2InnerProduct:
 
     def test_compute_with_callables(self):
         """Test compute method with callable functions."""
+
         # Arrange
-        a = lambda x: x
-        b = lambda x: x**2
+        def a(x):
+            return x
+
+        def b(x):
+            return x**2
+
         sample_x = np.linspace(0, 1, 100)
         a_values = a(sample_x)
         b_values = b(sample_x)

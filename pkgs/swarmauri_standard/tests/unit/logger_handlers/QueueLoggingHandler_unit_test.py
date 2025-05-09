@@ -1,9 +1,7 @@
 import pytest
 import logging
-import threading
 import time
 from queue import Queue
-from typing import Any, List, Optional, Union
 from unittest.mock import MagicMock, patch
 
 from swarmauri_standard.logger_handlers.QueueLoggingHandler import QueueLoggingHandler
@@ -116,7 +114,7 @@ def test_prepare_queue_listener():
     mock_handlers = [MagicMock(spec=logging.Handler), MagicMock(spec=logging.Handler)]
 
     with patch("logging.handlers.QueueListener") as mock_queue_listener:
-        queue_listener = queue_handler.prepare_queue_listener(mock_handlers)
+        queue_handler.prepare_queue_listener(mock_handlers)
 
         # Check that QueueListener was created with the right parameters
         mock_queue_listener.assert_called_once_with(

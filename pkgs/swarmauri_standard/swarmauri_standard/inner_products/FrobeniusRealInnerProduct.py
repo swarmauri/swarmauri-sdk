@@ -1,10 +1,10 @@
-from abc import ABC
-from typing import Union, Literal
+from typing import Callable, Union, Literal
 import numpy as np
 import logging
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 
@@ -103,4 +103,4 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         """
         Returns a string representation of the class instance.
         """
-        return f"FrobeniusRealInnerProduct()"
+        return "FrobeniusRealInnerProduct()"

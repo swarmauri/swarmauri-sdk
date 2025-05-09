@@ -1,5 +1,7 @@
 I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". 
-This file provides a concrete implementation of the base class "{{ FILE.EXTRAS.BASE_CLASS }}" for the "{{ PKG.NAME }}" package.
+{%- if FILE.EXTRAS.BASE_CLASS %}
+This file provides a concrete implementation of the base class "{{ FILE.EXTRAS.BASE_CLASS }}" for the "swarmauri_standard" package.
+{%- endif %}
 
 Below are the details and requirements for this task:
 

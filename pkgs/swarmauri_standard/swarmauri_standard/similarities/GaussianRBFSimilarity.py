@@ -1,8 +1,10 @@
-from typing import Union, Sequence, Optional
+from typing import Callable, Literal, Union, Sequence
 import numpy as np
 import logging
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 logger = logging.getLogger(__name__)
 

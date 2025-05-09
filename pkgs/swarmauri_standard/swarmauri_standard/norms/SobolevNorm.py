@@ -1,4 +1,4 @@
-from typing import TypeVar, Union, Optional, Callable
+from typing import TypeVar, Union, Callable
 import logging
 from swarmauri_base.norms.NormBase import NormBase
 from swarmauri_base.ComponentBase import ComponentBase

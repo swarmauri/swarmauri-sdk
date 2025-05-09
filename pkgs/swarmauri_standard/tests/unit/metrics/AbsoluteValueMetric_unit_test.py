@@ -1,5 +1,4 @@
 import pytest
-import logging
 from swarmauri_standard.metrics.AbsoluteValueMetric import AbsoluteValueMetric
 
 

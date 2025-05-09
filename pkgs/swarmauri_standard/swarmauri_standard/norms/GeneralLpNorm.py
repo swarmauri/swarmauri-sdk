@@ -1,4 +1,4 @@
-from typing import TypeVar, Union, Sequence, Optional, Literal
+from typing import TypeVar, Union, Sequence, Literal
 import logging
 import math
 from swarmauri_base.ComponentBase import ComponentBase

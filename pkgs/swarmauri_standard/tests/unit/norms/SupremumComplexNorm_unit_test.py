@@ -1,8 +1,12 @@
-import pytest
 import logging
 from unittest.mock import MagicMock
-from typing import Sequence, Callable
+
+import pytest
+
 from swarmauri_standard.norms.SupremumComplexNorm import SupremumComplexNorm
+
+# Move the logger to the top of the file
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.unit
@@ -42,11 +46,11 @@ class TestSupremumComplexNorm:
         norm = SupremumComplexNorm()
         # Test with zero vector
         zero_vector = [0j, 0j]
-        assert norm.check_non_negativity(zero_vector) == True
+        assert norm.check_non_negativity(zero_vector) is True
 
         # Test with non-zero vector
         non_zero = [1j, 2j]
-        assert norm.check_non_negativity(non_zero) == True
+        assert norm.check_non_negativity(non_zero) is True
 
     def test_check_triangle_inequality(self):
         """
@@ -58,9 +62,9 @@ class TestSupremumComplexNorm:
         y = [3j, 4j]
         x_plus_y = [4j, 6j]
 
-        norm_x = norm.compute(x)
-        norm_y = norm.compute(y)
-        norm_xy = norm.compute(x_plus_y)
+        norm.compute(x)
+        norm.compute(y)
+        norm.compute(x_plus_y)
 
         assert norm.check_triangle_inequality(x, y)
 
@@ -72,19 +76,19 @@ class TestSupremumComplexNorm:
         # Test with alpha = 2.0
         x = [1j, 2j]
         alpha = 2.0
-        norm_x = norm.compute(x)
-        norm_alpha_x = norm.compute([alpha * val for val in x])
+        norm.compute(x)
+        norm.compute([alpha * val for val in x])
 
         assert norm.check_absolute_homogeneity(x, alpha)
 
         # Test with alpha = -1.0
         alpha = -1.0
-        norm_alpha_x = norm.compute([alpha * val for val in x])
+        norm.compute([alpha * val for val in x])
         assert norm.check_absolute_homogeneity(x, alpha)
 
         # Test with alpha = 0.0
         alpha = 0.0
-        norm_alpha_x = norm.compute([alpha * val for val in x])
+        norm.compute([alpha * val for val in x])
         assert norm.check_absolute_homogeneity(x, alpha)
 
     def test_check_definiteness(self):
@@ -94,11 +98,8 @@ class TestSupremumComplexNorm:
         norm = SupremumComplexNorm()
         # Test with zero vector
         zero_vector = [0j, 0j]
-        assert norm.check_definiteness(zero_vector) == True
+        assert norm.check_definiteness(zero_vector) is True
 
         # Test with non-zero vector
         non_zero = [1j, 2j]
-        assert norm.check_definiteness(non_zero) == True
-
-
-logger = logging.getLogger(__name__)
+        assert norm.check_definiteness(non_zero) is True

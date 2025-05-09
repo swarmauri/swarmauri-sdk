@@ -43,7 +43,7 @@ windows_path = "C:\\Users\\Alice\\My Docs"
 @pytest.mark.unit
 def test_rt_loads_multiline_string():
     # Test a multiline string (embedded newlines).
-    jml = f'''
+    jml = '''
 [section]
 description = """
 This is line 1

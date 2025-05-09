@@ -1,6 +1,5 @@
 import pytest
 from lark import Token
-from pprint import pprint
 
 # Import the tokenization functions.
 from jaml import parser
