@@ -10,6 +10,7 @@ Now adding an optional --agent-prompt-template-file parameter on process.
 """
 
 import json
+import time
 import typer
 from pprint import pformat
 from pydantic import FilePath
@@ -74,6 +75,9 @@ def process(
 
     If --agent-prompt-template-file is used, it is passed along to the agent_env.
     """
+    # Start timing
+    start_time = time.time()
+
     if start_idx and start_file:
         typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
         raise typer.Exit(code=1)
@@ -82,9 +86,7 @@ def process(
         raise typer.Exit(code=1)
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
-    additional_dirs_list = (
-        additional_package_dirs.split(",") if additional_package_dirs else []
-    )
+    additional_dirs_list = additional_package_dirs.split(",") if additional_package_dirs else []
     additional_dirs_list = [FilePath(_d) for _d in additional_dirs_list]
 
     # Include swarmauri-sdk if requested
@@ -97,7 +99,7 @@ def process(
     _config["truncate"] = trunc
     _config["revise"] = False
     _config["transitive"] = transitive
-    _config["workers"] = workers  # <-- wire the new flag into config
+    _config["workers"] = workers  # wire the new flag into config
 
     # Resolve API key and build agent_env
     resolved_key = _resolve_api_key(provider, api_key, env)
@@ -131,14 +133,23 @@ def process(
             if project is None:
                 pea.logger.error(f"Project '{project_name}' not found.")
                 raise typer.Exit(code=1)
+
             if start_file:
                 pea.process_single_project(project, start_file=start_file)
             else:
                 pea.process_single_project(project, start_idx=start_idx or 0)
+
             pea.logger.info(f"Processed project '{project_name}' successfully.")
+            # Log total duration
+            duration = time.time() - start_time
+            pea.logger.info(f"Total execution time: {duration:.2f} seconds")
+
         else:
             pea.process_all_projects()
             pea.logger.info("Processed all projects successfully.")
+            # Log total duration
+            duration = time.time() - start_time
+            pea.logger.info(f"Total execution time: {duration:.2f} seconds")
 
     except KeyboardInterrupt:
         typer.echo("\n  Interrupted... exited.")
