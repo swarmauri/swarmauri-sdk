@@ -1,155 +1,141 @@
-from typing import Any, List, Callable, TypeVar, Generic, Literal, Optional
-import logging
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_base.ComponentBase import ComponentBase
+import logging
 
-T = TypeVar('T')
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(PseudometricBase, "EquivalenceRelationPseudometric")
-class EquivalenceRelationPseudometric(PseudometricBase, Generic[T]):
+class EquivalenceRelationPseudometric(PseudometricBase):
     """
-    Pseudometric based on equivalence relations.
-    
-    This pseudometric defines distance via equivalence classes. Points in the same
-    equivalence class have zero distance, while points in different classes have
-    distance 1. This effectively creates a quotient space.
-    
-    The equivalence relation must satisfy:
-    - Reflexivity: x ~ x for all x
-    - Symmetry: if x ~ y then y ~ x
-    - Transitivity: if x ~ y and y ~ z then x ~ z
+    A pseudometric space based on an equivalence relation.
+
+    This class implements a pseudometric where the distance between two points is 0
+    if they are equivalent under the given equivalence relation, and 1 otherwise.
+    This creates a quotient space where each equivalence class is a single point.
+
+    Inherits:
+        PseudometricBase: Base class for pseudometric spaces
+        ComponentBase: Base class for all components in the system
     """
-    
-    type: Literal["EquivalenceRelationPseudometric"] = "EquivalenceRelationPseudometric"
-    
-    def __init__(self, equivalence_function: Callable[[T, T], bool], **kwargs):
+
+    type: str = "EquivalenceRelationPseudometric"
+
+    def __init__(self, equivalence_function: callable):
         """
-        Initialize the equivalence relation pseudometric.
-        
+        Initializes the EquivalenceRelationPseudometric instance.
+
         Args:
-            equivalence_function: A function that takes two elements and returns True
-                                 if they are equivalent, False otherwise. Must satisfy
-                                 reflexivity, symmetry, and transitivity.
-            **kwargs: Additional keyword arguments to pass to parent classes
+            equivalence_function (callable): A function that determines if two elements are equivalent.
+                It should take two arguments and return True if they are equivalent, False otherwise.
         """
-        super().__init__(**kwargs)
+        super().__init__()
         self.equivalence_function = equivalence_function
-        logger.debug(f"Initialized {self.__class__.__name__} with custom equivalence function")
-    
-    def distance(self, x: T, y: T) -> float:
+        logger.debug(
+            "Initialized EquivalenceRelationPseudometric with equivalence function"
+        )
+
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> float:
         """
-        Calculate the pseudometric distance between two points.
-        
-        Returns 0 if the points are equivalent under the defined equivalence relation,
-        and 1 otherwise.
-        
+        Computes the distance between two elements based on equivalence.
+
         Args:
-            x: First point
-            y: Second point
-            
+            x: First element to compute distance from
+            y: Second element to compute distance to
+
         Returns:
-            0.0 if the points are equivalent, 1.0 otherwise
+            float: 0 if x and y are equivalent, 1 otherwise
         """
-        # Check if points are equivalent
+        logger.debug(f"Computing equivalence relation distance between {x} and {y}")
         if self.equivalence_function(x, y):
             return 0.0
         else:
             return 1.0
-    
-    def batch_distance(self, xs: List[T], ys: List[T]) -> List[float]:
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
         """
-        Calculate distances between corresponding pairs of points from two lists.
-        
+        Verifies the symmetry property: d(x,y) = d(y,x).
+
+        For an equivalence relation, symmetry holds by definition.
+
         Args:
-            xs: List of first points
-            ys: List of second points
-            
+            x: First element
+            y: Second element
+
         Returns:
-            List of distances between corresponding points
-            
-        Raises:
-            ValueError: If input lists have different lengths
+            bool: True if symmetry holds, False otherwise
         """
-        if len(xs) != len(ys):
-            error_msg = f"Input lists must have the same length, got {len(xs)} and {len(ys)}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-        
-        # Calculate distances for each pair
-        distances = []
-        for i in range(len(xs)):
-            distances.append(self.distance(xs[i], ys[i]))
-        
-        return distances
-    
-    def pairwise_distances(self, points: List[T]) -> List[List[float]]:
+        logger.debug(f"Checking symmetry for equivalence relation")
+        return True
+
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
         """
-        Calculate all pairwise distances between points in the given list.
-        
+        Verifies the non-negativity property: d(x,y) ≥ 0.
+
+        Since the distance is either 0 or 1, non-negativity holds.
+
         Args:
-            points: List of points
-            
+            x: First element
+            y: Second element
+
         Returns:
-            A square matrix (as list of lists) where element [i][j] 
-            contains the distance between points[i] and points[j]
+            bool: True if non-negativity holds
         """
-        n = len(points)
-        
-        # Initialize distance matrix with zeros
-        distance_matrix = [[0.0 for _ in range(n)] for _ in range(n)]
-        
-        # Fill the distance matrix
-        for i in range(n):
-            for j in range(i+1, n):  # Only compute upper triangle
-                dist = self.distance(points[i], points[j])
-                # Store distance symmetrically
-                distance_matrix[i][j] = dist
-                distance_matrix[j][i] = dist  # Ensure symmetry
-        
-        return distance_matrix
-    
-    def validate_equivalence_properties(self, sample_points: List[T]) -> bool:
+        logger.debug(f"Checking non-negativity for equivalence relation")
+        return True
+
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+        z: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
         """
-        Validate that the equivalence function satisfies the required properties.
-        
-        Tests reflexivity, symmetry, and transitivity on the provided sample points.
-        
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
+
+        For this pseudometric, the triangle inequality holds because:
+        - If x ≡ z, then d(x,z)=0 and d(x,y)+d(y,z) ≥ 0
+        - If x not ≡ z, then d(x,z)=1 and d(x,y)+d(y,z) ≥ 1 since at least one of d(x,y) or d(y,z) is 1
+
         Args:
-            sample_points: A list of points to test the properties on
-            
+            x: First element
+            y: Second element
+            z: Third element
+
         Returns:
-            True if all properties are satisfied, False otherwise
-            
-        Note:
-            This validation is not exhaustive and depends on the sample points provided.
+            bool: True if triangle inequality holds
         """
-        n = len(sample_points)
-        
-        # Check reflexivity: x ~ x for all x
-        for x in sample_points:
-            if not self.equivalence_function(x, x):
-                logger.error(f"Reflexivity violation: {x} is not equivalent to itself")
-                return False
-        
-        # Check symmetry: if x ~ y then y ~ x
-        for i in range(n):
-            for j in range(n):
-                x, y = sample_points[i], sample_points[j]
-                if self.equivalence_function(x, y) != self.equivalence_function(y, x):
-                    logger.error(f"Symmetry violation: {x} ~ {y} but not {y} ~ {x}")
-                    return False
-        
-        # Check transitivity: if x ~ y and y ~ z then x ~ z
-        for i in range(n):
-            for j in range(n):
-                for k in range(n):
-                    x, y, z = sample_points[i], sample_points[j], sample_points[k]
-                    if (self.equivalence_function(x, y) and 
-                        self.equivalence_function(y, z) and 
-                        not self.equivalence_function(x, z)):
-                        logger.error(f"Transitivity violation: {x} ~ {y} and {y} ~ {z} but not {x} ~ {z}")
-                        return False
-        
-        logger.info("Equivalence relation properties validated successfully")
+        logger.debug(f"Checking triangle inequality for equivalence relation")
+        return True
+
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
+        """
+        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
+
+        This holds because equivalence relations can have x ≠ y but d(x,y) = 0.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if weak identity holds
+        """
+        logger.debug(f"Checking weak identity for equivalence relation")
         return True

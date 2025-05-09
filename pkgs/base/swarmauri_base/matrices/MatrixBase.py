@@ -1,257 +1,220 @@
-from typing import Any, List, Tuple, Union, Iterator, Optional
+from abc import ABC, abstractmethod
+from typing import Union, Tuple, List, Optional, Any
 import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.matrices.IMatrix import IMatrix, T
 
-# Set up logging
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+
 logger = logging.getLogger(__name__)
 
-@ComponentBase.register_model()
-class MatrixBase(IMatrix[T], ComponentBase):
+
+class MatrixBase(IMatrix, ABC):
     """
-    Base implementation for matrix operations.
+    Base implementation for matrix operations. This class provides a basic 
+    structure for implementing matrix functionality, including element-wise 
+    operations and matrix transformations.
     
-    This class provides a concrete implementation of the IMatrix interface,
-    serving as a base class for specific matrix implementations.
-    It abstracts common matrix operations such as multiplication, transposition,
-    and element access.
+    Attributes:
+        shape (Tuple[int, int]): The shape of the matrix (rows, columns)
+        dtype (type): The data type of the elements in the matrix
+        
+    Methods:
+        __getitem__: Gets elements using row and column indices or slices
+        __setitem__: Sets elements using row and column indices or slices
+        shape: Returns the shape of the matrix
+        reshape: Reshapes the matrix to a new shape
+        tolist: Converts the matrix to a list of lists
+        __add__: Element-wise addition with another matrix
+        __sub__: Element-wise subtraction with another matrix
+        __mul__: Element-wise multiplication with another matrix
+        __truediv__: Element-wise division with another matrix
     """
     
-    resource: Optional[str] = ResourceTypes.MATRICE.value
-    
-    def __getitem__(self, key: Union[int, Tuple[int, int]]) -> Union[T, List[T]]:
+    def __init__(self):
+        super().__init__()
+        logger.debug("Initialized MatrixBase")
+
+    def __getitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice]) -> Union[float, IMatrix, List[List[float]]]:
         """
-        Get an element or a row from the matrix.
+        Gets elements using row and column indices or slices.
         
-        Parameters
-        ----------
-        key : Union[int, Tuple[int, int]]
-            Index or tuple of indices for accessing the matrix elements.
-            If key is an integer, return the entire row.
-            If key is a tuple of integers, return the specific element.
-        
-        Returns
-        -------
-        Union[T, List[T]]
-            The element or row at the specified position.
-        
-        Raises
-        ------
-        IndexError
-            If the indices are out of bounds.
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Args:
+            index: Tuple of indices or slices for row and column access
+            
+        Returns:
+            Either a single element, a row vector, or a submatrix based on the index
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
-        logger.debug(f"Accessing matrix element at {key}")
-        raise NotImplementedError("__getitem__ method must be implemented by subclasses")
-    
-    def __setitem__(self, key: Union[int, Tuple[int, int]], value: Union[T, List[T]]) -> None:
+        logger.debug(f"Getting item with index {index}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __setitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice], value: Union[float, IMatrix, List[List[float]]]):
         """
-        Set an element or a row in the matrix.
+        Sets elements using row and column indices or slices.
         
-        Parameters
-        ----------
-        key : Union[int, Tuple[int, int]]
-            Index or tuple of indices for accessing the matrix elements.
-            If key is an integer, set the entire row.
-            If key is a tuple of integers, set the specific element.
-        value : Union[T, List[T]]
-            The value to set at the specified position.
-        
-        Raises
-        ------
-        IndexError
-            If the indices are out of bounds.
-        ValueError
-            If the value type or dimensions don't match the matrix requirements.
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Args:
+            index: Tuple of indices or slices for row and column access
+            value: Value or values to set at the specified index
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
-        logger.debug(f"Setting matrix element at {key} to {value}")
-        raise NotImplementedError("__setitem__ method must be implemented by subclasses")
-    
-    def __matmul__(self, other: 'IMatrix[T]') -> 'IMatrix[T]':
-        """
-        Perform matrix multiplication with another matrix.
-        
-        Parameters
-        ----------
-        other : IMatrix[T]
-            The matrix to multiply with.
-        
-        Returns
-        -------
-        IMatrix[T]
-            The result of the matrix multiplication.
-        
-        Raises
-        ------
-        ValueError
-            If the matrices have incompatible dimensions for multiplication.
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        logger.debug(f"Performing matrix multiplication with {other}")
-        raise NotImplementedError("__matmul__ method must be implemented by subclasses")
-    
-    def get_row(self, row_index: int) -> List[T]:
-        """
-        Get a specific row from the matrix.
-        
-        Parameters
-        ----------
-        row_index : int
-            The index of the row to retrieve.
-        
-        Returns
-        -------
-        List[T]
-            The row at the specified index.
-        
-        Raises
-        ------
-        IndexError
-            If the row index is out of bounds.
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        logger.debug(f"Getting row at index {row_index}")
-        raise NotImplementedError("get_row method must be implemented by subclasses")
-    
-    def get_column(self, col_index: int) -> List[T]:
-        """
-        Get a specific column from the matrix.
-        
-        Parameters
-        ----------
-        col_index : int
-            The index of the column to retrieve.
-        
-        Returns
-        -------
-        List[T]
-            The column at the specified index.
-        
-        Raises
-        ------
-        IndexError
-            If the column index is out of bounds.
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        logger.debug(f"Getting column at index {col_index}")
-        raise NotImplementedError("get_column method must be implemented by subclasses")
-    
-    def set_row(self, row_index: int, values: List[T]) -> None:
-        """
-        Set values for a specific row in the matrix.
-        
-        Parameters
-        ----------
-        row_index : int
-            The index of the row to set.
-        values : List[T]
-            The values to set for the row.
-        
-        Raises
-        ------
-        IndexError
-            If the row index is out of bounds.
-        ValueError
-            If the length of values doesn't match the matrix width.
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        logger.debug(f"Setting row at index {row_index} to {values}")
-        raise NotImplementedError("set_row method must be implemented by subclasses")
-    
-    def set_column(self, col_index: int, values: List[T]) -> None:
-        """
-        Set values for a specific column in the matrix.
-        
-        Parameters
-        ----------
-        col_index : int
-            The index of the column to set.
-        values : List[T]
-            The values to set for the column.
-        
-        Raises
-        ------
-        IndexError
-            If the column index is out of bounds.
-        ValueError
-            If the length of values doesn't match the matrix height.
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        logger.debug(f"Setting column at index {col_index} to {values}")
-        raise NotImplementedError("set_column method must be implemented by subclasses")
-    
+        logger.debug(f"Setting item at index {index} with value {value}")
+        raise NotImplementedError("Method not implemented in base class")
+
     def shape(self) -> Tuple[int, int]:
         """
-        Get the dimensions of the matrix.
+        Returns the shape of the matrix as a tuple (rows, columns)
         
-        Returns
-        -------
-        Tuple[int, int]
-            A tuple containing the number of rows and columns (height, width).
-        
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            Tuple[int, int]: Shape of the matrix
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
         logger.debug("Getting matrix shape")
-        raise NotImplementedError("shape method must be implemented by subclasses")
-    
-    def transpose(self) -> 'IMatrix[T]':
+        raise NotImplementedError("Method not implemented in base class")
+
+    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
         """
-        Transpose the matrix.
+        Reshapes the matrix to a new shape.
         
-        Returns
-        -------
-        IMatrix[T]
-            A new matrix that is the transpose of the current matrix.
+        Args:
+            new_shape: New shape as a tuple (new_rows, new_cols)
         
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            Reshaped matrix
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
-        logger.debug("Transposing matrix")
-        raise NotImplementedError("transpose method must be implemented by subclasses")
-    
-    def __iter__(self) -> Iterator[List[T]]:
+        logger.debug(f"Reshaping matrix to {new_shape}")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def dtype(self) -> type:
         """
-        Iterate through the rows of the matrix.
+        Returns the data type of the elements in the matrix
         
-        Returns
-        -------
-        Iterator[List[T]]
-            An iterator that yields each row of the matrix.
-        
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            type: Data type of the matrix elements
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
-        logger.debug("Iterating through matrix rows")
-        raise NotImplementedError("__iter__ method must be implemented by subclasses")
-    
-    def __len__(self) -> int:
+        logger.debug("Getting matrix dtype")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def tolist(self) -> List[List[float]]:
         """
-        Get the number of rows in the matrix.
+        Converts the matrix to a list of lists of floats
         
-        Returns
-        -------
-        int
-            The number of rows in the matrix.
-        
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            List[List[float]]: Matrix as a list of lists
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
         """
-        logger.debug("Getting matrix length")
-        raise NotImplementedError("__len__ method must be implemented by subclasses")
+        logger.debug("Converting matrix to list")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __add__(self, other: 'IMatrix') -> 'IMatrix':
+        """
+        Element-wise addition with another matrix
+        
+        Args:
+            other: Another matrix to add
+            
+        Returns:
+            Resulting matrix after addition
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
+        """
+        logger.debug("Performing matrix addition")
+        if not isinstance(other, IMatrix):
+            raise TypeError("Can only add another IMatrix instance")
+        if self.shape() != other.shape():
+            raise ValueError("Matrices must have the same shape for addition")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __sub__(self, other: 'IMatrix') -> 'IMatrix':
+        """
+        Element-wise subtraction with another matrix
+        
+        Args:
+            other: Another matrix to subtract
+            
+        Returns:
+            Resulting matrix after subtraction
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
+        """
+        logger.debug("Performing matrix subtraction")
+        if not isinstance(other, IMatrix):
+            raise TypeError("Can only subtract another IMatrix instance")
+        if self.shape() != other.shape():
+            raise ValueError("Matrices must have the same shape for subtraction")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __mul__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
+        """
+        Element-wise multiplication with another matrix or scalar
+        
+        Args:
+            other: Either a scalar or another matrix to multiply
+            
+        Returns:
+            Resulting matrix after multiplication
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
+        """
+        logger.debug(f"Performing matrix multiplication with {other}")
+        if isinstance(other, IMatrix):
+            if self.shape()[1] != other.shape()[0]:
+                raise ValueError("Incompatible shapes for matrix multiplication")
+        elif not isinstance(other, (float, int)):
+            raise TypeError("Can only multiply by a scalar or another IMatrix")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __truediv__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
+        """
+        Element-wise division with another matrix or scalar
+        
+        Args:
+            other: Either a scalar or another matrix to divide by
+            
+        Returns:
+            Resulting matrix after division
+            
+        Raises:
+            NotImplementedError: Always raised as this is a base implementation
+        """
+        logger.debug(f"Performing matrix division by {other}")
+        if isinstance(other, IMatrix):
+            if self.shape() != other.shape():
+                raise ValueError("Matrices must have the same shape for division")
+        elif not isinstance(other, (float, int)):
+            raise TypeError("Can only divide by a scalar or another IMatrix")
+        raise NotImplementedError("Method not implemented in base class")
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the matrix
+        
+        Returns:
+            str: String representation of the matrix
+        """
+        return f"MatrixBase(shape={self.shape()}, dtype={self.dtype()})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the matrix
+        
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

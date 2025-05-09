@@ -1,93 +1,156 @@
-from typing import Any, List, Literal, Optional, TypeVar
+from typing import Union, List, Literal, Optional
+from abc import ABC
 import logging
-from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-T = TypeVar('T')
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(PseudometricBase, "ZeroPseudometric")
-class ZeroPseudometric(PseudometricBase[T]):
+class ZeroPseudometric(PseudometricBase):
     """
-    Zero pseudometric implementation that returns zero for all input pairs.
-    
-    This is a trivial pseudometric that assigns zero distance between all points.
-    Despite its simplicity, it satisfies all pseudometric axioms:
-    - Non-negativity: 0 ≥ 0
-    - Symmetry: 0 = 0
-    - Triangle inequality: 0 ≤ 0 + 0
-    
-    This pseudometric can be useful as a baseline or in scenarios where you want
-    to effectively ignore distance calculations.
+    A trivial pseudometric where all distances are zero.
+
+    This class implements a pseudometric space where the distance between any two
+    points is always zero. It satisfies all pseudometric axioms trivially.
+
+    Attributes:
+        resource: str - The resource type identifier for this component
+        type: Literal["ZeroPseudometric"] - The type identifier for this pseudometric
+
+    Methods:
+        distance: Computes the distance between two elements
+        distances: Computes distances from a single element to multiple elements
+        check_non_negativity: Verifies the non-negativity property
+        check_symmetry: Verifies the symmetry property
+        check_triangle_inequality: Verifies the triangle inequality property
+        check_weak_identity: Verifies the weak identity property
     """
-    
+
     type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
-    
-    def __init__(self, **kwargs):
+    resource: str = "PSEUDOMETRIC"
+
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> float:
         """
-        Initialize the zero pseudometric.
-        
+        Computes the distance between two elements.
+
+        Since this is a trivial pseudometric, the distance is always 0.0.
+
         Args:
-            **kwargs: Additional keyword arguments to pass to parent classes
-        """
-        super().__init__(**kwargs)
-        logger.debug(f"Initialized {self.__class__.__name__}")
-    
-    def distance(self, x: T, y: T) -> float:
-        """
-        Calculate the pseudometric distance between two points.
-        
-        For ZeroPseudometric, this always returns 0 regardless of input values.
-        
-        Args:
-            x: First point of any type
-            y: Second point of any type
-            
+            x: First element to compute distance from
+            y: Second element to compute distance to
+
         Returns:
-            0.0: Always returns zero
+            float: Distance between x and y (always 0.0)
         """
-        logger.debug(f"Calculating zero distance between {x} and {y}")
+        logger.debug(f"Computing zero distance between {x} and {y}")
         return 0.0
-    
-    def batch_distance(self, xs: List[T], ys: List[T]) -> List[float]:
+
+    def distances(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]],
+    ) -> List[float]:
         """
-        Calculate distances between corresponding pairs of points from two lists.
-        
-        For ZeroPseudometric, this returns a list of zeros with the same length
-        as the input lists.
-        
+        Computes distances from a single element to multiple elements.
+
+        Since this is a trivial pseudometric, all distances will be 0.0.
+
         Args:
-            xs: List of first points
-            ys: List of second points
-            
+            x: Reference element
+            y_list: List of elements to compute distances to
+
         Returns:
-            List of zeros with the same length as the input lists
-            
-        Raises:
-            ValueError: If input lists have different lengths
+            List[float]: List of distances from x to each element in y_list (all zeros)
         """
-        if len(xs) != len(ys):
-            logger.error(f"Input lists have different lengths: {len(xs)} vs {len(ys)}")
-            raise ValueError("Input lists must have the same length")
-        
-        logger.debug(f"Calculating batch distances for {len(xs)} pairs")
-        return [0.0] * len(xs)
-    
-    def pairwise_distances(self, points: List[T]) -> List[List[float]]:
+        logger.debug(f"Computing zero distances from {x} to {y_list}")
+        return [0.0] * len(y_list)
+
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
         """
-        Calculate all pairwise distances between points in the given list.
-        
-        For ZeroPseudometric, this returns a square matrix of zeros.
-        
+        Verifies the non-negativity property: d(x,y) ≥ 0.
+
+        Since the distance is always 0, this property trivially holds.
+
         Args:
-            points: List of points
-            
+            x: First element
+            y: Second element
+
         Returns:
-            A square matrix (as list of lists) of zeros with dimensions len(points) × len(points)
+            bool: True if non-negativity holds, False otherwise
         """
-        n = len(points)
-        logger.debug(f"Calculating pairwise distances for {n} points")
-        
-        # Create a square matrix of zeros
-        return [[0.0 for _ in range(n)] for _ in range(n)]
+        logger.debug(f"Checking non-negativity for {x} and {y}")
+        return True
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
+        """
+        Verifies the symmetry property: d(x,y) = d(y,x).
+
+        Since all distances are 0, this property trivially holds.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if symmetry holds, False otherwise
+        """
+        logger.debug(f"Checking symmetry for {x} and {y}")
+        return True
+
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+        z: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
+        """
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Since all distances are 0, this property trivially holds.
+
+        Args:
+            x: First element
+            y: Second element
+            z: Third element
+
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
+        """
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
+        return True
+
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+    ) -> bool:
+        """
+        Verifies weak identity property: d(x,y) = 0 does not imply x = y.
+
+        This property holds for this pseudometric since the distance being zero
+        does not provide any information about the equality of x and y.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if weak identity holds, False otherwise
+        """
+        logger.debug(f"Checking weak identity for {x} and {y}")
+        return True

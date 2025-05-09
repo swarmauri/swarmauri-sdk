@@ -1,74 +1,148 @@
-from typing import TypeVar, Any, Literal, Hashable
+from typing import Union, List, Optional
+from abc import ABC
 import logging
 
-from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_core.ComponentBase import ComponentBase
 
-# Type variable for generic implementation
-T = TypeVar('T', bound=Hashable)
-
-# Configure logger
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(MetricBase, "DiscreteMetric")
 class DiscreteMetric(MetricBase):
     """
-    Discrete metric implementation.
-    
-    This metric defines distance as:
-    - 0 if two elements are equal
-    - 1 if two elements are different
-    
-    This is a valid metric space that satisfies all four metric axioms.
-    Works with any hashable types.
+    A basic binary metric implementation that returns 1 if two points are different
+    and 0 if they are the same. This metric works with any hashable types.
     """
-    type: Literal["DiscreteMetric"] = "DiscreteMetric"
-    
-    def distance(self, x: T, y: T) -> float:
+
+    type: str = "DiscreteMetric"
+    resource: Optional[str] = "DiscreteMetric"
+
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> float:
         """
-        Calculate the discrete distance between two points.
-        
-        Parameters
-        ----------
-        x : T
-            First point (any hashable type)
-        y : T
-            Second point (any hashable type)
-            
-        Returns
-        -------
-        float
-            0.0 if x equals y, 1.0 otherwise
+        Computes the distance between two points x and y. Returns 1 if x and y are different,
+        and 0 if they are the same.
+
+        Args:
+            x: The first point to measure distance from
+            y: The second point to measure distance to
+
+        Returns:
+            float: 0 if x == y, 1 otherwise
         """
-        try:
-            # The discrete metric returns 0 if points are equal, 1 otherwise
-            return 0.0 if x == y else 1.0
-        except Exception as e:
-            logger.error(f"Error calculating discrete distance between {x} and {y}: {str(e)}")
-            # Re-raise the exception to maintain transparent error handling
-            raise
-    
-    def are_identical(self, x: T, y: T) -> bool:
+        logger.debug(f"Calculating discrete distance between {x} and {y}")
+        return 0.0 if x == y else 1.0
+
+    def distances(
+        self,
+        xs: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+        ys: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+    ) -> List[List[float]]:
         """
-        Check if two points are identical according to the discrete metric.
-        
-        Parameters
-        ----------
-        x : T
-            First point (any hashable type)
-        y : T
-            Second point (any hashable type)
-            
-        Returns
-        -------
-        bool
-            True if x equals y, False otherwise
+        Computes pairwise distances between two lists of points.
+
+        Args:
+            xs: First list of points
+            ys: Second list of points
+
+        Returns:
+            List[List[float]]: Matrix where each element [i][j] is 0 if xs[i] == ys[j], otherwise 1
         """
-        try:
-            # Points are identical if they are equal
-            return x == y
-        except Exception as e:
-            logger.error(f"Error checking identity between {x} and {y}: {str(e)}")
-            # Re-raise the exception to maintain transparent error handling
-            raise
+        logger.debug(
+            f"Calculating pairwise discrete distances between {len(xs)} points and {len(ys)} points"
+        )
+        return [[0.0 if x == y else 1.0 for y in ys] for x in xs]
+
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If distance is negative
+        """
+        distance = self.distance(x, y)
+        if distance < 0:
+            raise MetricViolationError(
+                f"Non-negativity violated: distance({x}, {y}) = {distance}"
+            )
+
+    def check_identity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If axiom is violated
+        """
+        distance = self.distance(x, y)
+        if (x == y and distance != 0) or (x != y and distance == 0):
+            raise MetricViolationError(
+                f"Identity axiom violated: {x} and {y} have distance {distance}"
+            )
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If d(x,y) ≠ d(y,x)
+        """
+        distance_xy = self.distance(x, y)
+        distance_yx = self.distance(y, x)
+        if distance_xy != distance_yx:
+            raise MetricViolationError(
+                f"Symmetry violated: d({x}, {y}) = {distance_xy}, d({y}, {x}) = {distance_yx}"
+            )
+
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+        z: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: First point
+            y: Second point
+            z: Third point
+
+        Raises:
+            MetricViolationError: If d(x,z) > d(x,y) + d(y,z)
+        """
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+
+        if d_xz > d_xy + d_yz:
+            raise MetricViolationError(
+                f"Triangle inequality violated: d({x}, {z}) = {d_xz}, d({x}, {y}) + d({y}, {z}) = {d_xy + d_yz}"
+            )

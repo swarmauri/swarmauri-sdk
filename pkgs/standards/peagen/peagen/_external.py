@@ -81,26 +81,32 @@ def call_external_agent(
     provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
     api_key = os.getenv(f"{provider.upper()}_API_KEY") or agent_env.get("api_key")
     model_name = agent_env.get("model_name")
-    max_tokens = int(agent_env.get("max_tokens", 3000))
+    max_tokens = int(agent_env.get("max_tokens", 8192))
 
     # Initialize the generic LLM manager
     llm_manager = GenericLLM()
 
     # Special case for LlamaCpp which doesn't need an API key
     if provider.lower() == "llamacpp":
-        llm = llm_manager.get_llm(
-            provider=provider,
-            api_key=api_key,
-            model_name="localhost",
-            allowed_models=["localhost"],
-        )
+        try:
+            llm = llm_manager.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name="localhost",
+                allowed_models=["localhost"],
+            )
+        except Exception as e:
+            logger.error(str(e))
     else:
-        # Get an instance of the requested LLM
-        llm = llm_manager.get_llm(
-            provider=provider,
-            api_key=api_key,
-            model_name=model_name,
-        )
+        try:
+            # Get an instance of the requested LLM
+            llm = llm_manager.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name=model_name,
+            )
+        except Exception as e:
+            logger.error(str(e))
 
     # Create QAAgent with the configured LLM
     system_context = "You are a software developer."
@@ -140,10 +146,16 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
         chunker = MdSnippetChunker()
         chunks = chunker.chunk_text(cleaned_text)
         if len(chunks) > 1:
-            return cleaned_text
+            logger.warning(
+                f"MdSnippetChunker found more than one snippet, took the first."
+                )
+            return chunks[0][2]
         try:
             return chunks[0][2]
         except IndexError:
+            logger.warning(
+                f"MdSnippetChunker found no chunks, using cleaned_text."
+                )
             return cleaned_text
     except ImportError:
         if logger:

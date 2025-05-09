@@ -1,136 +1,149 @@
-from typing import Any, Optional, TypeVar, Generic
-import logging
-from pydantic import Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from typing import Union, Sequence, Optional
+from abc import ABC
 from swarmauri_core.similarities.ISimilarity import ISimilarity
+from swarmauri_base.ComponentBase import ComponentBase
+import logging
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
 
 @ComponentBase.register_model()
-class SimilarityBase(ISimilarity[T], ComponentBase):
+class SimilarityBase(ISimilarity, ComponentBase):
     """
-    Base class for implementing similarity measures.
+    Base implementation for similarity measures. This class provides a concrete
+    foundation for directional or feature-based similarity calculations.
+    It implements bounds, reflexivity, and optional symmetry for similarity
+    scoring while leaving specific implementation details to subclasses.
     
-    Provides a foundation for directional or feature-based similarity
-    with implementation of bounds, reflexivity and optional symmetry
-    for similarity scoring.
-    
-    Attributes
-    ----------
-    resource : str
-        Resource type identifier
-    is_bounded : bool
-        Indicates if the similarity measure is bounded within a specific range
-    lower_bound : float
-        The lower bound of the similarity measure if bounded
-    upper_bound : float
-        The upper bound of the similarity measure if bounded
+    The class inherits from ComponentBase and implements the ISimilarity
+    interface. It provides basic structures and raises appropriate exceptions
+    for methods that require implementation in derived classes.
     """
-    
-    resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
-    
-    def __init__(self, is_bounded: bool = True, lower_bound: float = 0.0, 
-                 upper_bound: float = 1.0, **kwargs):
+    resource: Optional[str] = "SIMILARITY"
+
+    def similarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                    y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Initialize the similarity base class.
+        Calculates the similarity between two elements.
         
-        Parameters
-        ----------
-        is_bounded : bool, optional
-            Whether the similarity measure is bounded, by default True
-        lower_bound : float, optional
-            Lower bound of similarity if bounded, by default 0.0
-        upper_bound : float, optional
-            Upper bound of similarity if bounded, by default 1.0
-        **kwargs : dict
-            Additional keyword arguments to pass to parent classes
-        """
-        ISimilarity.__init__(self, is_bounded=is_bounded, 
-                             lower_bound=lower_bound, 
-                             upper_bound=upper_bound)
-        ComponentBase.__init__(self, **kwargs)
-        logger.debug(f"Initialized {self.__class__.__name__}")
-    
-    def calculate(self, a: T, b: T) -> float:
-        """
-        Calculate similarity between two objects.
-        
-        Parameters
-        ----------
-        a : T
-            First object to compare
-        b : T
-            Second object to compare
+        Args:
+            x: First element to compare
+            y: Second element to compare
             
-        Returns
-        -------
-        float
-            Similarity score between objects
+        Returns:
+            float: Similarity score between x and y
             
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses
+        Raises:
+            NotImplementedError: Method not implemented in base class
         """
-        logger.error(f"{self.__class__.__name__}.calculate() not implemented")
-        raise NotImplementedError(
-            f"Method 'calculate' must be implemented by {self.__class__.__name__} subclasses"
-        )
-    
-    def is_reflexive(self) -> bool:
+        logger.debug(f"Calculating similarity between {x} and {y}")
+        raise NotImplementedError("similarity method must be implemented in a subclass")
+
+    def similarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                     ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
         """
-        Check if the similarity measure is reflexive.
+        Calculates similarities for multiple pairs of elements.
         
-        A similarity measure is reflexive if sim(x, x) = max_similarity for all x.
-        
-        Returns
-        -------
-        bool
-            True if the similarity measure is reflexive, False otherwise
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
             
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses
-        """
-        logger.error(f"{self.__class__.__name__}.is_reflexive() not implemented")
-        raise NotImplementedError(
-            f"Method 'is_reflexive' must be implemented by {self.__class__.__name__} subclasses"
-        )
-    
-    def is_symmetric(self) -> bool:
-        """
-        Check if the similarity measure is symmetric.
-        
-        A similarity measure is symmetric if sim(a, b) = sim(b, a) for all a, b.
-        
-        Returns
-        -------
-        bool
-            True if the similarity measure is symmetric, False otherwise
+        Returns:
+            Union[float, Sequence[float]]: Similarity scores for the pairs
             
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses
+        Raises:
+            NotImplementedError: Method not implemented in base class
         """
-        logger.error(f"{self.__class__.__name__}.is_symmetric() not implemented")
-        raise NotImplementedError(
-            f"Method 'is_symmetric' must be implemented by {self.__class__.__name__} subclasses"
-        )
-    
-    def __str__(self) -> str:
+        logger.debug(f"Calculating similarities between {xs} and {ys}")
+        raise NotImplementedError("similarities method must be implemented in a subclass")
+
+    def dissimilarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                      y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Get string representation of the similarity measure.
+        Calculates the dissimilarity between two elements.
         
-        Returns
-        -------
-        str
-            String representation including bounds information
+        Args:
+            x: First element to compare
+            y: Second element to compare
+            
+        Returns:
+            float: Dissimilarity score between x and y
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
         """
-        bounds_str = f"[{self.lower_bound}, {self.upper_bound}]" if self.is_bounded else "unbounded"
-        return f"{self.__class__.__name__} (bounds: {bounds_str})"
+        logger.debug(f"Calculating dissimilarity between {x} and {y}")
+        raise NotImplementedError("dissimilarity method must be implemented in a subclass")
+
+    def dissimilarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                       ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
+        """
+        Calculates dissimilarities for multiple pairs of elements.
+        
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+            
+        Returns:
+            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
+        """
+        logger.debug(f"Calculating dissimilarities between {xs} and {ys}")
+        raise NotImplementedError("dissimilarities method must be implemented in a subclass")
+
+    def check_boundedness(self) -> bool:
+        """
+        Checks if the similarity measure is bounded.
+        
+        Returns:
+            bool: True if the measure is bounded, False otherwise
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
+        """
+        logger.debug("Checking boundedness")
+        raise NotImplementedError("check_boundedness method must be implemented in a subclass")
+
+    def check_reflexivity(self) -> bool:
+        """
+        Checks if the similarity measure satisfies reflexivity.
+        A measure is reflexive if s(x, x) = 1 for all x.
+        
+        Returns:
+            bool: True if the measure is reflexive, False otherwise
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
+        """
+        logger.debug("Checking reflexivity")
+        raise NotImplementedError("check_reflexivity method must be implemented in a subclass")
+
+    def check_symmetry(self) -> bool:
+        """
+        Checks if the similarity measure is symmetric.
+        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
+        
+        Returns:
+            bool: True if the measure is symmetric, False otherwise
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
+        """
+        logger.debug("Checking symmetry")
+        raise NotImplementedError("check_symmetry method must be implemented in a subclass")
+
+    def check_identity(self) -> bool:
+        """
+        Checks if the similarity measure satisfies identity of discernibles.
+        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
+        
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise
+            
+        Raises:
+            NotImplementedError: Method not implemented in base class
+        """
+        logger.debug("Checking identity of discernibles")
+        raise NotImplementedError("check_identity method must be implemented in a subclass")

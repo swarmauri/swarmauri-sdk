@@ -1,193 +1,209 @@
-from typing import List, Tuple, Literal, Optional, Union
+from typing import Union, List, Optional, Tuple, Literal
 import logging
-import numpy as np
-from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(PseudometricBase, "ProjectionPseudometricR2")
 class ProjectionPseudometricR2(PseudometricBase):
     """
-    Implements a pseudometric based on projection in R2 space.
-    
-    This pseudometric projects points onto a selected coordinate axis (x or y)
-    and measures the distance along that axis only, ignoring the other dimension.
-    
-    This satisfies the pseudometric properties:
-    - Non-negativity: d(x,y) ≥ 0
-    - Symmetry: d(x,y) = d(y,x)
-    - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
-    
-    But it does not satisfy the identity of indiscernibles (d(x,y)=0 iff x=y),
-    making it a pseudometric rather than a metric. Points with the same projected
-    coordinate will have zero distance regardless of their other coordinate.
+    A class implementing a pseudometric space by projecting ℝ² vectors onto a specified axis.
+
+    This class provides a concrete implementation of the PseudometricBase class for ℝ² space.
+    It computes distances by projecting vectors onto a specified coordinate axis (either x or y)
+    and calculating the absolute difference between the projected values.
+
+    Inherits:
+        PseudometricBase: Base class for pseudometric space implementations
+        ComponentBase: Base class for all components in the system
+
+    Attributes:
+        projection_axis: Literal["x", "y"] - The coordinate axis to use for projection
+        resource: str - Resource type identifier
     """
-    
-    type: Literal["ProjectionPseudometricR2"] = "ProjectionPseudometricR2"
-    
-    def __init__(self, projection_axis: int = 0, **kwargs):
+
+    projection_axis: Literal["x", "y"]
+    resource: str = ResourceTypes.PSEUDOMETRIC.value
+
+    def __init__(self, projection_axis: Literal["x", "y"] = "x"):
         """
-        Initialize the projection pseudometric.
-        
+        Initializes the ProjectionPseudometricR2 instance.
+
         Args:
-            projection_axis: The axis to project onto (0 for x-axis, 1 for y-axis)
-            **kwargs: Additional keyword arguments to pass to parent classes
-        
-        Raises:
-            ValueError: If projection_axis is not 0 or 1
+            projection_axis: The coordinate axis to use for projection. Defaults to "x".
         """
-        super().__init__(**kwargs)
-        
-        if projection_axis not in [0, 1]:
-            logger.error(f"Invalid projection_axis: {projection_axis}. Must be 0 (x-axis) or 1 (y-axis).")
-            raise ValueError(f"projection_axis must be 0 (x-axis) or 1 (y-axis), got {projection_axis}")
-        
+        super().__init__()
+        if projection_axis not in ("x", "y"):
+            raise ValueError("projection_axis must be either 'x' or 'y'")
         self.projection_axis = projection_axis
-        logger.debug(f"Initialized {self.__class__.__name__} with projection on {'x' if projection_axis == 0 else 'y'}-axis")
-    
-    def _validate_point(self, point: Union[List, Tuple, np.ndarray]) -> np.ndarray:
+        logger.debug(
+            f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}"
+        )
+
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> float:
         """
-        Validate and convert a point to a numpy array.
-        
+        Computes the pseudometric distance between two points in ℝ² by projecting onto the specified axis.
+
         Args:
-            point: A point in R2 as a list, tuple, or numpy array
-            
+            x: First point in ℝ²
+            y: Second point in ℝ²
+
         Returns:
-            The point as a numpy array
-            
+            float: The absolute difference between the projected coordinates
+
         Raises:
-            ValueError: If the point is not 2-dimensional
+            ValueError: If input points are not 2D vectors
         """
-        point_array = np.asarray(point)
-        if point_array.shape != (2,):
-            logger.error(f"Invalid point: {point}. Must be a 2D point.")
-            raise ValueError(f"Points must be 2-dimensional, got shape {point_array.shape}")
-        return point_array
-    
-    def distance(self, x: Union[List, Tuple, np.ndarray], y: Union[List, Tuple, np.ndarray]) -> float:
+        logger.debug(f"Computing distance between {x} and {y}")
+
+        # Extract coordinates based on projection axis
+        x_coord = self._get_projection(x)
+        y_coord = self._get_projection(y)
+
+        return abs(x_coord - y_coord)
+
+    def distances(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y_list: List[Union[IVector, IMatrix, List[float], Tuple[float, ...]]],
+    ) -> List[float]:
         """
-        Calculate the pseudometric distance between two points in R2 using projection.
-        
+        Computes distances from a single point to multiple points in ℝ².
+
         Args:
-            x: First point in R2
-            y: Second point in R2
-            
+            x: Reference point in ℝ²
+            y_list: List of points in ℝ²
+
         Returns:
-            The absolute difference between the projected coordinates
-            
-        Raises:
-            ValueError: If inputs are not 2D points
+            List[float]: List of distances from x to each point in y_list
         """
-        # Validate and convert points
-        x_array = self._validate_point(x)
-        y_array = self._validate_point(y)
-        
-        # Calculate the distance along the projection axis
-        distance = abs(x_array[self.projection_axis] - y_array[self.projection_axis])
-        
-        # Validate non-negativity (should always be true due to abs function)
-        self._validate_non_negativity(distance, x, y)
-        
-        logger.debug(f"Distance between {x} and {y} along {'x' if self.projection_axis == 0 else 'y'}-axis: {distance}")
-        return distance
-    
-    def batch_distance(self, xs: List[Union[List, Tuple, np.ndarray]], 
-                      ys: List[Union[List, Tuple, np.ndarray]]) -> List[float]:
+        logger.debug(f"Computing distances from {x} to {y_list}")
+        return [self.distance(x, y) for y in y_list]
+
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
         """
-        Calculate distances between corresponding pairs of points from two lists.
-        
+        Verifies the non-negativity property: d(x,y) ≥ 0.
+
         Args:
-            xs: List of first points in R2
-            ys: List of second points in R2
-            
+            x: First point in ℝ²
+            y: Second point in ℝ²
+
         Returns:
-            List of distances between corresponding points
-            
-        Raises:
-            ValueError: If input lists have different lengths or points are not 2D
+            bool: True if non-negativity holds, False otherwise
         """
-        if len(xs) != len(ys):
-            logger.error(f"Input lists have different lengths: {len(xs)} vs {len(ys)}")
-            raise ValueError(f"Input lists must have the same length, got {len(xs)} and {len(ys)}")
-        
-        distances = []
-        for i, (x, y) in enumerate(zip(xs, ys)):
-            try:
-                distances.append(self.distance(x, y))
-            except ValueError as e:
-                logger.error(f"Error calculating distance for pair at index {i}: {e}")
-                raise
-        
-        return distances
-    
-    def pairwise_distances(self, points: List[Union[List, Tuple, np.ndarray]]) -> List[List[float]]:
+        logger.debug(f"Checking non-negativity for {x} and {y}")
+        return self.distance(x, y) >= 0
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
         """
-        Calculate all pairwise distances between points in the given list.
-        
+        Verifies the symmetry property: d(x,y) = d(y,x).
+
         Args:
-            points: List of points in R2
-            
+            x: First point in ℝ²
+            y: Second point in ℝ²
+
         Returns:
-            A square matrix (as list of lists) where element [i][j] 
-            contains the distance between points[i] and points[j]
-            
-        Raises:
-            ValueError: If points are not 2D
+            bool: True if symmetry holds, False otherwise
         """
-        n = len(points)
-        # Pre-validate all points
-        validated_points = [self._validate_point(p) for p in points]
-        
-        # Initialize the distance matrix
-        distance_matrix = [[0.0 for _ in range(n)] for _ in range(n)]
-        
-        # Calculate distances
-        for i in range(n):
-            for j in range(i+1, n):  # Only calculate upper triangle (due to symmetry)
-                dist = abs(validated_points[i][self.projection_axis] - 
-                          validated_points[j][self.projection_axis])
-                # Store distance in both positions (symmetry)
-                distance_matrix[i][j] = dist
-                distance_matrix[j][i] = dist
-        
-        # Check a sample of triangle inequalities (for debugging/validation)
-        if n >= 3:
-            # Sample a few triplets to check triangle inequality
-            for _ in range(min(5, n)):
-                i, j, k = np.random.choice(n, 3, replace=False)
-                self._validate_triangle_inequality(
-                    distance_matrix[i][k], 
-                    distance_matrix[i][j], 
-                    distance_matrix[j][k],
-                    points[i], points[j], points[k]
-                )
-        
-        logger.debug(f"Calculated pairwise distances for {n} points")
-        return distance_matrix
-    
-    def get_projection_axis_name(self) -> str:
+        logger.debug(f"Checking symmetry for {x} and {y}")
+        return self.distance(x, y) == self.distance(y, x)
+
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        z: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
         """
-        Get the name of the currently used projection axis.
-        
-        Returns:
-            String indicating which axis is being used ('x' or 'y')
-        """
-        return 'x' if self.projection_axis == 0 else 'y'
-    
-    def set_projection_axis(self, axis: int) -> None:
-        """
-        Change the projection axis.
-        
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
+
         Args:
-            axis: The axis to project onto (0 for x-axis, 1 for y-axis)
-            
-        Raises:
-            ValueError: If axis is not 0 or 1
+            x: First point in ℝ²
+            y: Second point in ℝ²
+            z: Third point in ℝ²
+
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
         """
-        if axis not in [0, 1]:
-            logger.error(f"Invalid projection_axis: {axis}. Must be 0 (x-axis) or 1 (y-axis).")
-            raise ValueError(f"projection_axis must be 0 (x-axis) or 1 (y-axis), got {axis}")
-        
-        self.projection_axis = axis
-        logger.info(f"Changed projection axis to {'x' if axis == 0 else 'y'}-axis")
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
+        return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
+
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        y: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
+        """
+        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
+
+        Args:
+            x: First point in ℝ²
+            y: Second point in ℝ²
+
+        Returns:
+            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
+        """
+        logger.debug(f"Checking weak identity for {x} and {y}")
+        # In projection pseudometric, different points can have the same projected value
+        return True
+
+    def _get_projection(
+        self, point: Union[IVector, IMatrix, List[float], Tuple[float, ...]]
+    ) -> float:
+        """
+        Helper method to get the projected coordinate of a point based on the projection axis.
+
+        Args:
+            point: Point in ℝ²
+
+        Returns:
+            float: Projected coordinate value
+
+        Raises:
+            ValueError: If point is not a 2D vector-like structure
+        """
+        if isinstance(point, (IVector, IMatrix)):
+            data = point.data()
+        elif isinstance(point, (list, tuple)):
+            data = point
+        else:
+            raise ValueError("Unsupported point type for projection")
+
+        if len(data) != 2:
+            raise ValueError("Points must be 2-dimensional")
+
+        return data[0] if self.projection_axis == "x" else data[1]
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the ProjectionPseudometricR2 instance.
+
+        Returns:
+            str: String representation
+        """
+        return f"ProjectionPseudometricR2(projection_axis={self.projection_axis})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the ProjectionPseudometricR2 instance.
+
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

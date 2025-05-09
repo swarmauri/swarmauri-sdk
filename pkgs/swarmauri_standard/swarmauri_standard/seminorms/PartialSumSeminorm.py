@@ -1,201 +1,154 @@
+from typing import Union, Optional, List, Tuple
 import logging
-import numpy as np
-from typing import Any, TypeVar, Generic, Optional, Literal, List, Union
-from pydantic import Field, validator
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.seminorms.ISeminorm import ISeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
-from swarmauri_core.ComponentBase import ComponentBase
-
-# Set up logging
 logger = logging.getLogger(__name__)
 
-# Type variable for generic typing
-T = TypeVar('T')
 
 @ComponentBase.register_model()
 class PartialSumSeminorm(SeminormBase):
     """
-    Seminorm computed via summing only part of the vector.
-    
-    This seminorm evaluates a norm on a partial segment of the input,
-    ignoring the rest. It is useful for cases where only certain 
-    components of a vector are relevant for the norm calculation.
-    
-    Attributes
-    ----------
-    type : Literal["PartialSumSeminorm"]
-        The type identifier for this seminorm.
-    start_index : int
-        The starting index of the segment to consider (inclusive).
-    end_index : Optional[int]
-        The ending index of the segment to consider (exclusive).
-        If None, the end of the vector is used.
+    A class providing implementation for computing seminorms on partial segments of vectors.
+
+    Inherits from SeminormBase and implements the ISeminorm interface. This class
+    computes the seminorm by summing only a specified part of the input vector.
+
+    Attributes:
+        _start_index: int - Starting index for partial sum (inclusive)
+        _end_index: int - Ending index for partial sum (exclusive)
+        resource: str - Resource type identifier
+
+    Methods:
+        compute: Computes the seminorm by summing elements from start_index to end_index
+        check_triangle_inequality: Verifies the triangle inequality property
+        check_scalar_homogeneity: Verifies the scalar homogeneity property
     """
-    
-    type: Literal["PartialSumSeminorm"] = "PartialSumSeminorm"
-    start_index: int = Field(0, description="Starting index (inclusive) of the segment to consider")
-    end_index: Optional[int] = Field(None, description="Ending index (exclusive) of the segment to consider")
-    
-    @validator('start_index')
-    def validate_start_index(cls, v):
-        """Validate that start_index is non-negative."""
-        if v < 0:
-            raise ValueError("start_index must be non-negative")
-        return v
-    
-    @validator('end_index')
-    def validate_end_index(cls, v, values):
-        """Validate that end_index is greater than start_index if provided."""
-        if v is not None:
-            if 'start_index' in values and v <= values['start_index']:
-                raise ValueError("end_index must be greater than start_index")
-        return v
-    
-    def evaluate(self, x: Union[List[float], np.ndarray]) -> float:
+
+    _start_index: int
+    _end_index: int
+    resource: str = ResourceTypes.SEMINORM.value
+
+    def __init__(self, start_index: int = 0, end_index: int = None):
         """
-        Evaluate the seminorm by summing absolute values of a segment of the input vector.
-        
-        Parameters
-        ----------
-        x : Union[List[float], np.ndarray]
-            The input vector to evaluate the seminorm on.
-            
-        Returns
-        -------
-        float
-            The seminorm value, which is the sum of absolute values of the specified segment.
-            
-        Raises
-        ------
-        ValueError
-            If the input is not a list or numpy array, or if indices are out of bounds.
+        Initializes the PartialSumSeminorm instance.
+
+        Args:
+            start_index: Starting index for the partial sum (inclusive)
+            end_index: Ending index for the partial sum (exclusive). If None, defaults to the end of the vector.
         """
-        logger.debug("Evaluating PartialSumSeminorm on input of type %s", type(x).__name__)
-        
-        # Convert to numpy array if it's a list
-        if isinstance(x, list):
-            x = np.array(x)
-        elif not isinstance(x, np.ndarray):
-            raise ValueError(f"Input must be a list or numpy array, got {type(x).__name__}")
-        
-        # Determine end index if not provided
-        end = self.end_index if self.end_index is not None else len(x)
-        
+        super().__init__()
+        self._start_index = start_index
+        self._end_index = end_index
+        logger.debug(
+            f"Initialized PartialSumSeminorm with start_index={start_index}, end_index={end_index}"
+        )
+
+    def compute(
+        self,
+        input: Union[IVector, IMatrix, List[float], Tuple[float, ...], str, Callable],
+    ) -> float:
+        """
+        Computes the seminorm by summing the elements from start_index to end_index.
+
+        Args:
+            input: The input vector-like structure to compute the seminorm for.
+                   Supported types: IVector, IMatrix, list, tuple, and others.
+
+        Returns:
+            float: The computed seminorm value
+
+        Raises:
+            ValueError: If indices are out of bounds
+            TypeError: If input type is not supported
+        """
+        logger.debug(
+            f"Computing partial sum seminorm for input of type {type(input).__name__}"
+        )
+
+        if self._is_vector(input):
+            vector = input.data()
+        elif self._is_matrix(input):
+            vector = input.data()[0]  # Assuming first row for matrices
+        elif isinstance(input, (list, tuple)):
+            vector = list(input)
+        else:
+            raise TypeError(f"Unsupported input type: {type(input).__name__}")
+
         # Validate indices
-        if self.start_index >= len(x):
-            raise ValueError(f"start_index {self.start_index} is out of bounds for input of length {len(x)}")
-        if end > len(x):
-            raise ValueError(f"end_index {end} is out of bounds for input of length {len(x)}")
-        
-        # Extract the segment and compute the sum of absolute values
-        segment = x[self.start_index:end]
-        result = np.sum(np.abs(segment))
-        
-        logger.debug("PartialSumSeminorm result: %f", result)
-        return float(result)
-    
-    def scale(self, x: Union[List[float], np.ndarray], alpha: float) -> float:
+        if self._end_index is None:
+            self._end_index = len(vector)
+
+        if self._start_index >= len(vector):
+            raise ValueError("Start index out of bounds")
+        if self._end_index > len(vector):
+            raise ValueError("End index out of bounds")
+
+        # Compute partial sum
+        return sum(vector[self._start_index : self._end_index])
+
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        b: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+    ) -> bool:
         """
-        Evaluate the seminorm of a scaled input.
-        
-        This method satisfies scalar homogeneity: p(αx) = |α|p(x)
-        
-        Parameters
-        ----------
-        x : Union[List[float], np.ndarray]
-            The input vector to evaluate the seminorm on.
-        alpha : float
-            The scaling factor.
-            
-        Returns
-        -------
-        float
-            The seminorm value of the scaled input.
-        """
-        logger.debug("Scaling input by factor %f", alpha)
-        return abs(alpha) * self.evaluate(x)
-    
-    def triangle_inequality(self, x: Union[List[float], np.ndarray], y: Union[List[float], np.ndarray]) -> bool:
-        """
-        Verify that the triangle inequality holds for the given inputs.
-        
-        Checks if p(x + y) <= p(x) + p(y).
-        
-        Parameters
-        ----------
-        x : Union[List[float], np.ndarray]
-            First input vector.
-        y : Union[List[float], np.ndarray]
-            Second input vector.
-            
-        Returns
-        -------
-        bool
-            True if the triangle inequality holds, False otherwise.
-            
-        Raises
-        ------
-        ValueError
-            If inputs have different lengths or are not compatible types.
+        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
+
+        Args:
+            a: First element to check
+            b: Second element to check
+
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
         """
         logger.debug("Checking triangle inequality for PartialSumSeminorm")
-        
-        # Convert to numpy arrays if they're lists
-        if isinstance(x, list):
-            x = np.array(x)
-        if isinstance(y, list):
-            y = np.array(y)
-        
-        # Check if inputs have the same length
-        if len(x) != len(y):
-            raise ValueError(f"Inputs must have the same length, got {len(x)} and {len(y)}")
-        
-        # Calculate the sum vector
-        sum_vector = x + y
-        
-        # Evaluate the seminorm on all vectors
-        p_x = self.evaluate(x)
-        p_y = self.evaluate(y)
-        p_sum = self.evaluate(sum_vector)
-        
-        # Check the triangle inequality
-        result = p_sum <= p_x + p_y + 1e-10  # Add small tolerance for floating-point errors
-        
-        logger.debug("Triangle inequality check result: %s", result)
-        return result
-    
-    def is_zero(self, x: Union[List[float], np.ndarray], tolerance: float = 1e-10) -> bool:
+
+        seminorm_ab = self.compute(a + b)
+        seminorm_a = self.compute(a)
+        seminorm_b = self.compute(b)
+
+        return seminorm_ab <= seminorm_a + seminorm_b
+
+    def check_scalar_homogeneity(
+        self,
+        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
+        scalar: Union[int, float],
+    ) -> bool:
         """
-        Check if the seminorm evaluates to zero (within a tolerance).
-        
-        Parameters
-        ----------
-        x : Union[List[float], np.ndarray]
-            The input vector to check.
-        tolerance : float, optional
-            The numerical tolerance for considering a value as zero.
-            
-        Returns
-        -------
-        bool
-            True if the seminorm of x is zero (within tolerance), False otherwise.
+        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
+
+        Args:
+            a: Element to check
+            scalar: Scalar value to scale with
+
+        Returns:
+            bool: True if scalar homogeneity holds, False otherwise
         """
-        logger.debug("Checking if seminorm is zero with tolerance %f", tolerance)
-        return self.evaluate(x) < tolerance
-    
-    def is_definite(self) -> bool:
+        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
+
+        scaled_a = a * scalar
+        seminorm_scaled = self.compute(scaled_a)
+        seminorm_original = self.compute(a)
+
+        return seminorm_scaled == abs(scalar) * seminorm_original
+
+    def __str__(self) -> str:
         """
-        Check if this seminorm is actually a norm (i.e., it has the definiteness property).
-        
-        A partial sum seminorm is not definite unless it considers the entire vector.
-        
-        Returns
-        -------
-        bool
-            True if the seminorm is definite (and thus a norm), False otherwise.
+        Returns a string representation of the PartialSumSeminorm instance.
+
+        Returns:
+            str: String representation
         """
-        logger.debug("Checking if PartialSumSeminorm is definite")
-        # This seminorm is only definite if it considers the entire vector
-        # Since we can't know the length of vectors it will be applied to,
-        # we conservatively return False
-        return False
+        return f"PartialSumSeminorm(start_index={self._start_index}, end_index={self._end_index})"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the PartialSumSeminorm instance.
+
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

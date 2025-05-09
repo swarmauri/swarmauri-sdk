@@ -21,7 +21,7 @@ def _clone_swarmauri_repo(use_dev_branch: bool = False) -> Path:
             ["git", "clone", "--depth=1", "--branch", branch, repo_url, str(tmp_dir)]
         )
         typer.echo("")
-        return os.path.join(tmp_dir, "pkgs")
+        return tmp_dir
     except subprocess.CalledProcessError as e:
         typer.echo(f"[ERROR] Cloning swarmauri-sdk failed: {e}")
         raise typer.Exit(code=1)

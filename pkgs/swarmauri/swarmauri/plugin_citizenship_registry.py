@@ -112,6 +112,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.AI21StudioModel": "swarmauri_standard.llms.AI21StudioModel",
         "swarmauri.llms.AnthropicModel": "swarmauri_standard.llms.AnthropicModel",
         "swarmauri.llms.AnthropicToolModel": "swarmauri_standard.llms.AnthropicToolModel",
+        "swarmauri.llms.CerebrasModel": "swarmauri_standard.llms.CerebrasModel",
         "swarmauri.llms.CohereModel": "swarmauri_standard.llms.CohereModel",
         "swarmauri.llms.CohereToolModel": "swarmauri_standard.llms.CohereToolModel",
         "swarmauri.llms.DeepInfraModel": "swarmauri_standard.llms.DeepInfraModel",

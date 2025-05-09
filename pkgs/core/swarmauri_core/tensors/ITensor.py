@@ -1,220 +1,209 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Union, List, Any, TypeVar, Generic
+from typing import Any, Tuple, Union, List, Optional
 import logging
 
-# Set up logging
+from swarmauri_core.vectors.IVector import IVector
+
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', bound='ITensor')
 
 class ITensor(ABC):
     """
-    Core interface for tensorial algebra components.
-    
-    This abstract base class defines the essential operations and properties
-    that all tensor implementations must support. It provides a standard
-    interface for tensor manipulation regardless of the underlying implementation.
+    Core interface for tensor operations. This class provides the foundation for
+    implementing various tensor operations, including element-wise access,
+    slicing, reshaping, and basic tensor transformations.
+
+    Attributes:
+        shape (Tuple[int, ...]): The shape of the tensor
+        dtype (type): The data type of the elements in the tensor
+
+    Methods:
+        __getitem__: Gets elements using tensor indices or slices
+        __setitem__: Sets elements using tensor indices or slices
+        shape: Returns the shape of the tensor
+        reshape: Reshapes the tensor to a new shape
+        dtype: Returns the data type of the tensor elements
+        tolist: Converts the tensor to a list of lists (if 2D) or nested lists
+        __add__: Element-wise addition with another tensor or scalar
+        __sub__: Element-wise subtraction with another tensor or scalar
+        __mul__: Element-wise multiplication with another tensor or scalar
+        __truediv__: Element-wise division with another tensor or scalar
+        transpose: Transposes the tensor
+        broadcast: Broadcasts the tensor to a new shape
     """
-    
+
+    def __init__(self):
+        super().__init__()
+        logger.debug("Initialized ITensor")
+
     @abstractmethod
     def shape(self) -> Tuple[int, ...]:
         """
-        Get the shape of the tensor.
+        Returns the shape of the tensor as a tuple of integers.
         
-        Returns
-        -------
-        Tuple[int, ...]
-            The dimensions of the tensor.
+        Returns:
+            Tuple[int, ...]: Shape of the tensor
         """
-        pass
-    
+        logger.debug("Getting tensor shape")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def ndim(self) -> int:
+    def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
         """
-        Get the number of dimensions of the tensor.
+        Reshapes the tensor to a new shape.
         
-        Returns
-        -------
-        int
-            The number of dimensions.
-        """
-        pass
-    
-    @abstractmethod
-    def dtype(self) -> Any:
-        """
-        Get the data type of the tensor elements.
-        
-        Returns
-        -------
-        Any
-            The data type of the tensor.
-        """
-        pass
-    
-    @abstractmethod
-    def device(self) -> str:
-        """
-        Get the device where the tensor is stored.
-        
-        Returns
-        -------
-        str
-            The device information (e.g., "cpu", "cuda:0").
-        """
-        pass
-    
-    @abstractmethod
-    def reshape(self: T, shape: Tuple[int, ...]) -> T:
-        """
-        Reshape the tensor to the specified dimensions.
-        
-        Parameters
-        ----------
-        shape : Tuple[int, ...]
-            The new shape for the tensor.
+        Args:
+            new_shape: New shape as a tuple of integers
             
-        Returns
-        -------
-        T
-            A new tensor with the specified shape.
+        Returns:
+            Reshaped tensor
+        """
+        logger.debug(f"Reshaping tensor to {new_shape}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def dtype(self) -> type:
+        """
+        Returns the data type of the elements in the tensor.
+        
+        Returns:
+            type: Data type of the tensor elements
+        """
+        logger.debug("Getting tensor dtype")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def __getitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice]) -> Union[float, IVector, 'ITensor']:
+        """
+        Gets elements using tensor indices or slices.
+        
+        Args:
+            index: Tuple of indices or slices for multi-dimensional access
             
-        Raises
-        ------
-        ValueError
-            If the new shape is not compatible with the tensor's size.
+        Returns:
+            Either a single element, a vector, or a subtensor based on the index
         """
-        pass
-    
+        logger.debug(f"Getting item with index {index}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def transpose(self: T, dims: Optional[Tuple[int, ...]] = None) -> T:
+    def __setitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice], value: Union[float, IVector, 'ITensor']):
         """
-        Transpose the tensor dimensions.
+        Sets elements using tensor indices or slices.
         
-        Parameters
-        ----------
-        dims : Optional[Tuple[int, ...]], default=None
-            The desired ordering of dimensions.
-            If None, reverse the dimensions.
+        Args:
+            index: Tuple of indices or slices for multi-dimensional access
+            value: Value or values to set at the specified index
+        """
+        logger.debug(f"Setting item at index {index} with value {value}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def tolist(self) -> Union[List[float], List[List[float]], ...]:
+        """
+        Converts the tensor to a nested list structure.
+        
+        Returns:
+            Union[List[float], List[List[float]], ...]: Tensor as a nested list
+        """
+        logger.debug("Converting tensor to list")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def __add__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
+        """
+        Element-wise addition with another tensor or scalar.
+        
+        Args:
+            other: Another tensor or scalar to add
             
-        Returns
-        -------
-        T
-            A new tensor with transposed dimensions.
+        Returns:
+            Resulting tensor after addition
         """
-        pass
-    
+        logger.debug(f"Performing tensor addition with {other}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def contract(self: T, other: T, dims_self: Tuple[int, ...], dims_other: Tuple[int, ...]) -> T:
+    def __sub__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
         """
-        Contract this tensor with another tensor along specified dimensions.
+        Element-wise subtraction with another tensor or scalar.
         
-        Parameters
-        ----------
-        other : T
-            The tensor to contract with.
-        dims_self : Tuple[int, ...]
-            The dimensions of this tensor to contract.
-        dims_other : Tuple[int, ...]
-            The dimensions of the other tensor to contract.
+        Args:
+            other: Another tensor or scalar to subtract
             
-        Returns
-        -------
-        T
-            The result of the contraction.
+        Returns:
+            Resulting tensor after subtraction
+        """
+        logger.debug(f"Performing tensor subtraction with {other}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def __mul__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
+        """
+        Element-wise multiplication with another tensor or scalar.
+        
+        Args:
+            other: Another tensor or scalar to multiply
             
-        Raises
-        ------
-        ValueError
-            If the dimensions to contract don't match in size.
+        Returns:
+            Resulting tensor after multiplication
         """
-        pass
-    
+        logger.debug(f"Performing tensor multiplication with {other}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def to_numpy(self) -> Any:
+    def __truediv__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
         """
-        Convert the tensor to a numpy array.
+        Element-wise division with another tensor or scalar.
         
-        Returns
-        -------
-        Any
-            The tensor as a numpy array.
-        """
-        pass
-    
-    @abstractmethod
-    def clone(self: T) -> T:
-        """
-        Create a deep copy of the tensor.
-        
-        Returns
-        -------
-        T
-            A new tensor with the same data.
-        """
-        pass
-    
-    @abstractmethod
-    def __add__(self: T, other: Union[T, float, int]) -> T:
-        """
-        Add another tensor or scalar to this tensor.
-        
-        Parameters
-        ----------
-        other : Union[T, float, int]
-            The tensor or scalar to add.
+        Args:
+            other: Another tensor or scalar to divide by
             
-        Returns
-        -------
-        T
-            The result of the addition.
+        Returns:
+            Resulting tensor after division
         """
-        pass
-    
+        logger.debug(f"Performing tensor division by {other}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def __mul__(self: T, other: Union[T, float, int]) -> T:
+    def transpose(self) -> 'ITensor':
         """
-        Multiply this tensor by another tensor or scalar.
+        Transposes the tensor.
         
-        Parameters
-        ----------
-        other : Union[T, float, int]
-            The tensor or scalar to multiply by.
+        Returns:
+            Transposed tensor
+        """
+        logger.debug("Transposing tensor")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def broadcast(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+        """
+        Broadcasts the tensor to a new shape.
+        
+        Args:
+            new_shape: New shape as a tuple of integers
             
-        Returns
-        -------
-        T
-            The result of the multiplication.
+        Returns:
+            Broadcasted tensor
         """
-        pass
-    
-    @abstractmethod
-    def __getitem__(self: T, key: Any) -> Union[T, float, int]:
+        logger.debug(f"Broadcasting tensor to {new_shape}")
+        raise NotImplementedError("Method not implemented")
+
+    def __str__(self) -> str:
         """
-        Get a slice or element of the tensor.
+        Returns a string representation of the tensor.
         
-        Parameters
-        ----------
-        key : Any
-            The indexing key.
-            
-        Returns
-        -------
-        Union[T, float, int]
-            The selected portion of the tensor.
+        Returns:
+            str: String representation of the tensor
         """
-        pass
-    
-    @abstractmethod
-    def __setitem__(self: T, key: Any, value: Union[T, float, int]) -> None:
+        return f"ITensor(shape={self.shape()}, dtype={self.dtype()})"
+
+    def __repr__(self) -> str:
         """
-        Set a slice or element of the tensor.
+        Returns the official string representation of the tensor.
         
-        Parameters
-        ----------
-        key : Any
-            The indexing key.
-        value : Union[T, float, int]
-            The value to set.
+        Returns:
+            str: Official string representation
         """
-        pass
+        return self.__str__()

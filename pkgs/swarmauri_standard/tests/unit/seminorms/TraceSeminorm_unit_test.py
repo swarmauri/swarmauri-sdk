@@ -1,197 +1,118 @@
-import logging
 import pytest
-import numpy as np
-from typing import Any, List, Tuple
+from swarmauri_standard.seminorms import TraceSeminorm
+from swarmauri_core.vectors import IVector
+from swarmauri_core.matrices import IMatrix
 
-from swarmauri_standard.seminorms.TraceSeminorm import TraceSeminorm
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 @pytest.fixture
-def trace_seminorm() -> TraceSeminorm:
-    """
-    Fixture that provides a TraceSeminorm instance.
-    
-    Returns
-    -------
-    TraceSeminorm
-        An instance of the TraceSeminorm class.
-    """
+def trace_seminorm_instance():
+    """Fixture providing a TraceSeminorm instance for testing."""
     return TraceSeminorm()
 
+
 @pytest.mark.unit
-def test_initialization() -> None:
-    """Test that TraceSeminorm initializes correctly."""
+def test_trace_seminorm_init(trace_seminorm_instance):
+    """Test initialization of TraceSeminorm instance."""
+    assert isinstance(trace_seminorm_instance, TraceSeminorm)
+    assert trace_seminorm_instance.type == "TraceSeminorm"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "input_vector,expected_result",
+    [(IVector([1, 2, 3]), 6.0), (IVector([]), 0.0), (IVector([0.5, -1.5]), -1.0)],
+)
+def test_compute_vector(input_vector, expected_result):
+    """Test compute method with vector input."""
     seminorm = TraceSeminorm()
-    assert seminorm.type == "TraceSeminorm"
-    assert seminorm.resource == "Seminorm"
+    result = seminorm.compute(input_vector)
+    assert result == expected_result
+
 
 @pytest.mark.unit
-def test_type_attribute() -> None:
-    """Test that the type attribute is correctly set."""
+@pytest.mark.parametrize(
+    "input_matrix,expected_result",
+    [
+        (IMatrix([[1, 0], [0, 1]]), 2.0),
+        (IMatrix([[2, 1], [1, 2]]), 4.0),
+        (IMatrix([[0, 0], [0, 0]]), 0.0),
+    ],
+)
+def test_compute_matrix(input_matrix, expected_result):
+    """Test compute method with matrix input."""
     seminorm = TraceSeminorm()
-    assert seminorm.type == "TraceSeminorm"
-    
-@pytest.mark.unit
-def test_serialization(trace_seminorm: TraceSeminorm) -> None:
-    """
-    Test that TraceSeminorm can be serialized and deserialized correctly.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    """
-    json_data = trace_seminorm.model_dump_json()
-    deserialized = TraceSeminorm.model_validate_json(json_data)
-    assert deserialized.type == trace_seminorm.type
-    assert deserialized.resource == trace_seminorm.resource
+    result = seminorm.compute(input_matrix)
+    assert result == expected_result
+
 
 @pytest.mark.unit
-@pytest.mark.parametrize("matrix, expected", [
-    (np.array([[1, 0], [0, 1]]), 2.0),  # Identity matrix, trace = 2
-    (np.array([[3, 1], [2, 5]]), 8.0),  # Random matrix, trace = 8
-    (np.array([[0, 1], [1, 0]]), 0.0),  # Off-diagonal matrix, trace = 0
-    (np.array([[-2, 0], [0, -3]]), 5.0),  # Negative diagonal, trace = -5, abs(trace) = 5
-    (np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 15.0),  # 3x3 matrix, trace = 15
-])
-def test_evaluate(trace_seminorm: TraceSeminorm, matrix: np.ndarray, expected: float) -> None:
-    """
-    Test the evaluate method with various matrices.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    matrix : np.ndarray
-        The input matrix to evaluate.
-    expected : float
-        The expected result of the seminorm evaluation.
-    """
-    result = trace_seminorm.evaluate(matrix)
-    assert np.isclose(result, expected)
+@pytest.mark.parametrize(
+    "input_str,expected_result",
+    [
+        ("abc", 97 + 98 + 99),
+        ("", 0.0),
+        ("hello world", 104 + 101 + 108 + 108 + 111 + 32 + 119 + 111 + 114 + 108 + 100),
+    ],
+)
+def test_compute_string(input_str, expected_result):
+    """Test compute method with string input."""
+    seminorm = TraceSeminorm()
+    result = seminorm.compute(input_str)
+    assert result == float(expected_result)
+
 
 @pytest.mark.unit
-def test_evaluate_non_square_matrix(trace_seminorm: TraceSeminorm) -> None:
-    """
-    Test that evaluate raises ValueError for non-square matrices.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    """
-    non_square_matrix = np.array([[1, 2, 3], [4, 5, 6]])
-    with pytest.raises(ValueError, match="Input must be a square matrix"):
-        trace_seminorm.evaluate(non_square_matrix)
+def test_compute_callable(trace_seminorm_instance):
+    """Test compute method with callable input."""
+
+    def test_callable():
+        return IVector([1, 2, 3])
+
+    result = trace_seminorm_instance.compute(test_callable)
+    assert result == 6.0
+
 
 @pytest.mark.unit
-@pytest.mark.parametrize("matrix, alpha, expected", [
-    (np.array([[1, 0], [0, 1]]), 2.0, 4.0),  # Identity matrix, trace = 2, scaled by 2
-    (np.array([[3, 1], [2, 5]]), -1.0, 8.0),  # Random matrix, trace = 8, scaled by -1
-    (np.array([[0, 1], [1, 0]]), 5.0, 0.0),  # Off-diagonal matrix, trace = 0, scaled by 5
-])
-def test_scale(trace_seminorm: TraceSeminorm, matrix: np.ndarray, alpha: float, expected: float) -> None:
-    """
-    Test the scale method with various matrices and scaling factors.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    matrix : np.ndarray
-        The input matrix to scale.
-    alpha : float
-        The scaling factor.
-    expected : float
-        The expected result of the scaled seminorm.
-    """
-    result = trace_seminorm.scale(matrix, alpha)
-    assert np.isclose(result, expected)
+@pytest.mark.parametrize(
+    "input_list,expected_result", [([1, 2, 3], 6.0), ([], 0.0), ([1.5, -2.5], -1.0)]
+)
+def test_compute_list(input_list, expected_result):
+    """Test compute method with list input."""
+    seminorm = TraceSeminorm()
+    result = seminorm.compute(input_list)
+    assert result == expected_result
+
 
 @pytest.mark.unit
-@pytest.mark.parametrize("matrix_x, matrix_y", [
-    (np.array([[1, 0], [0, 1]]), np.array([[2, 1], [1, 3]])),
-    (np.array([[3, 1], [2, 5]]), np.array([[1, 2], [2, 1]])),
-    (np.array([[0, 1], [1, 0]]), np.array([[0, -1], [-1, 0]])),
-])
-def test_triangle_inequality(trace_seminorm: TraceSeminorm, matrix_x: np.ndarray, matrix_y: np.ndarray) -> None:
-    """
-    Test that the triangle inequality holds for the trace seminorm.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    matrix_x : np.ndarray
-        The first input matrix.
-    matrix_y : np.ndarray
-        The second input matrix.
-    """
-    # Triangle inequality: p(x + y) <= p(x) + p(y)
-    assert trace_seminorm.triangle_inequality(matrix_x, matrix_y)
-    
-    # Manually verify
-    sum_norm = trace_seminorm.evaluate(matrix_x + matrix_y)
-    individual_norms_sum = trace_seminorm.evaluate(matrix_x) + trace_seminorm.evaluate(matrix_y)
-    assert sum_norm <= individual_norms_sum + 1e-10  # Adding small tolerance
+def test_check_triangle_inequality(trace_seminorm_instance):
+    """Test triangle inequality check."""
+    a = IVector([1, 2])
+    b = IVector([2, 3])
+
+    seminorm_a = trace_seminorm_instance.compute(a)
+    seminorm_b = trace_seminorm_instance.compute(b)
+
+    a_plus_b = a + b
+    seminorm_a_plus_b = trace_seminorm_instance.compute(a_plus_b)
+
+    assert seminorm_a_plus_b <= seminorm_a + seminorm_b
+
 
 @pytest.mark.unit
-def test_triangle_inequality_mismatched_dimensions(trace_seminorm: TraceSeminorm) -> None:
-    """
-    Test that triangle_inequality raises ValueError for matrices with mismatched dimensions.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    """
-    matrix_x = np.array([[1, 0], [0, 1]])
-    matrix_y = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    
-    with pytest.raises(ValueError, match="Matrices must have the same dimensions"):
-        trace_seminorm.triangle_inequality(matrix_x, matrix_y)
+def test_check_scalar_homogeneity(trace_seminorm_instance):
+    """Test scalar homogeneity check."""
+    a = IVector([1, 2])
+    scalar = 2.0
+
+    scaled_a = scalar * a
+    seminorm_scaled = trace_seminorm_instance.compute(scaled_a)
+    seminorm_a = trace_seminorm_instance.compute(a)
+
+    assert seminorm_scaled == abs(scalar) * seminorm_a
+
 
 @pytest.mark.unit
-@pytest.mark.parametrize("matrix, tolerance, expected", [
-    (np.array([[0, 0], [0, 0]]), 1e-10, True),  # Zero matrix
-    (np.array([[0, 1], [1, 0]]), 1e-10, True),  # Trace-zero matrix
-    (np.array([[1e-11, 0], [0, 0]]), 1e-10, True),  # Almost zero trace
-    (np.array([[1, 0], [0, 1]]), 1e-10, False),  # Non-zero trace
-])
-def test_is_zero(trace_seminorm: TraceSeminorm, matrix: np.ndarray, tolerance: float, expected: bool) -> None:
-    """
-    Test the is_zero method with various matrices.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    matrix : np.ndarray
-        The input matrix to check.
-    tolerance : float
-        The tolerance for considering a value as zero.
-    expected : bool
-        The expected result of the is_zero check.
-    """
-    result = trace_seminorm.is_zero(matrix, tolerance)
-    assert result == expected
-
-@pytest.mark.unit
-def test_is_definite(trace_seminorm: TraceSeminorm) -> None:
-    """
-    Test that the trace seminorm is not definite.
-    
-    Parameters
-    ----------
-    trace_seminorm : TraceSeminorm
-        The trace seminorm fixture.
-    """
-    # The trace seminorm is not definite because there are non-zero matrices with trace zero
-    assert not trace_seminorm.is_definite()
-    
-    # Verify with a concrete example: a traceless matrix
-    traceless_matrix = np.array([[0, 1], [1, 0]])
-    assert not np.array_equal(traceless_matrix, np.zeros_like(traceless_matrix))  # Matrix is not zero
-    assert trace_seminorm.evaluate(traceless_matrix) == 0  # But its seminorm is zero
+def test_string_representation(trace_seminorm_instance):
+    """Test string representation of TraceSeminorm instance."""
+    assert str(trace_seminorm_instance) == "TraceSeminorm()"
+    assert repr(trace_seminorm_instance) == "TraceSeminorm()"

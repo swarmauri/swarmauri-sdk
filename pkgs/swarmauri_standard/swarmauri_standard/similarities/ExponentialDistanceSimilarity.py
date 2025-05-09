@@ -1,156 +1,176 @@
-from typing import Any, Callable, Generic, Literal, Optional, TypeVar, Union
+from typing import Union, Sequence, Optional, Callable, Literal
+import numpy as np
 import logging
-import math
-from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
-
-# Set up logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
 
-@SimilarityBase.register_type()
-class ExponentialDistanceSimilarity(SimilarityBase, Generic[T]):
+@ComponentBase.register_type(SimilarityBase, "ExponentialDistanceSimilarity")
+class ExponentialDistanceSimilarity(SimilarityBase):
     """
-    Implements similarity that exponentially decays with distance.
-    
-    This similarity measure uses the formula: sim(a, b) = e^(-lambda * distance(a, b))
-    where lambda is a decay factor that controls how quickly similarity decreases
-    with distance. Supports arbitrary distance functions.
-    
-    Attributes
-    ----------
-    type : Literal["ExponentialDistanceSimilarity"]
-        Type identifier for this similarity measure
-    distance_function : Callable[[T, T], float]
-        Function that calculates distance between two objects
-    decay_factor : float
-        Controls how quickly similarity decays with distance (lambda)
+    Implements an exponentially decaying similarity measure based on distance.
+
+    The similarity score is calculated as:
+    s(x, y) = exp(-distance(x, y) / scale)
+
+    Where:
+    - distance(x, y) is the distance between elements x and y
+    - scale is a positive scaling factor that controls the decay rate
+
+    This implementation supports arbitrary distance measures and provides
+    both similarity and dissimilarity calculations.
     """
-    
+
     type: Literal["ExponentialDistanceSimilarity"] = "ExponentialDistanceSimilarity"
-    distance_function: Callable[[T, T], float] = Field(
-        ..., description="Function to calculate distance between two objects"
-    )
-    decay_factor: float = Field(
-        default=1.0, 
-        description="Decay factor (lambda) that controls decay rate",
-        gt=0.0
-    )
-    
-    def __init__(
-        self, 
-        distance_function: Callable[[T, T], float],
-        decay_factor: float = 1.0,
-        is_bounded: bool = True, 
-        lower_bound: float = 0.0, 
-        upper_bound: float = 1.0, 
-        **kwargs
-    ):
+
+    def __init__(self, scale: float = 1.0, distance_fn: Optional[Callable] = None):
         """
-        Initialize the exponential distance similarity measure.
-        
-        Parameters
-        ----------
-        distance_function : Callable[[T, T], float]
-            Function that calculates distance between two objects
-        decay_factor : float, optional
-            Controls how quickly similarity decays with distance, by default 1.0
-        is_bounded : bool, optional
-            Whether the similarity measure is bounded, by default True
-        lower_bound : float, optional
-            Lower bound of similarity if bounded, by default 0.0
-        upper_bound : float, optional
-            Upper bound of similarity if bounded, by default 1.0
-        **kwargs : dict
-            Additional keyword arguments to pass to parent classes
+        Initializes the ExponentialDistanceSimilarity instance.
+
+        Args:
+            scale: Positive scaling factor controlling the exponential decay
+            distance_fn: Optional custom distance function. If not provided,
+                uses Euclidean distance by default.
         """
-        super().__init__(
-            is_bounded=is_bounded, 
-            lower_bound=lower_bound, 
-            upper_bound=upper_bound, 
-            **kwargs
-        )
-        self.distance_function = distance_function
-        self.decay_factor = decay_factor
-        logger.debug(f"Initialized {self.__class__.__name__} with decay factor {decay_factor}")
-    
-    def calculate(self, a: T, b: T) -> float:
+        super().__init__()
+        self.scale = scale
+        self.distance_fn = distance_fn if distance_fn else self._default_distance
+
+    def _default_distance(
+        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
+    ) -> float:
         """
-        Calculate similarity between two objects based on exponential decay of distance.
-        
-        Parameters
-        ----------
-        a : T
-            First object to compare
-        b : T
-            Second object to compare
-            
-        Returns
-        -------
-        float
-            Similarity score between objects, with e^(-lambda * distance(a, b))
+        Default distance function using Euclidean distance.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            float: Euclidean distance between x and y
         """
-        try:
-            # Calculate distance between objects
-            distance = self.distance_function(a, b)
-            
-            # Ensure distance is non-negative
-            if distance < 0:
-                logger.warning(f"Distance function returned negative value: {distance}. Using absolute value.")
-                distance = abs(distance)
-            
-            # Calculate similarity using exponential decay
-            similarity = math.exp(-self.decay_factor * distance)
-            
-            logger.debug(f"Calculated similarity {similarity} for distance {distance}")
-            return similarity
-        except Exception as e:
-            logger.error(f"Error calculating similarity: {str(e)}")
-            raise
-    
-    def is_reflexive(self) -> bool:
+        return np.sqrt(np.sum((np.asarray(x) - np.asarray(y)) ** 2))
+
+    def similarity(
+        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
+    ) -> float:
         """
-        Check if the similarity measure is reflexive.
-        
-        For exponential distance similarity, it is reflexive if the distance
-        function returns 0 for identical objects, which results in a similarity of 1.
-        
-        Returns
-        -------
-        bool
-            True, as this similarity measure is reflexive when distance(x, x) = 0
+        Calculates the similarity between two elements using exponential decay.
+
+        Args:
+            x: First element to compare
+            y: Second element to compare
+
+        Returns:
+            float: Similarity score between x and y in [0, 1]
         """
-        # Exponential similarity is reflexive if distance(x, x) = 0
-        # which gives e^0 = 1, the maximum similarity
+        distance = self.distance_fn(x, y)
+        similarity_score = np.exp(-distance / self.scale)
+        logger.debug(f"Similarity between {x} and {y}: {similarity_score}")
+        return similarity_score
+
+    def similarities(
+        self, xs: Union[Sequence, np.ndarray], ys: Union[Sequence, np.ndarray]
+    ) -> Union[float, Sequence[float]]:
+        """
+        Calculates similarities for multiple pairs of elements.
+
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+
+        Returns:
+            Union[float, Sequence[float]]: Similarity scores for the pairs
+        """
+        if len(xs) != len(ys):
+            raise ValueError("Number of elements in xs and ys must match")
+
+        scores = [self.similarity(x, y) for x, y in zip(xs, ys)]
+        logger.debug(f"Similarities for multiple pairs: {scores}")
+        return scores
+
+    def dissimilarity(
+        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
+    ) -> float:
+        """
+        Calculates the dissimilarity between two elements.
+
+        Args:
+            x: First element to compare
+            y: Second element to compare
+
+        Returns:
+            float: Dissimilarity score between x and y in [0, 1]
+        """
+        similarity = self.similarity(x, y)
+        dissimilarity_score = 1.0 - similarity
+        logger.debug(f"Dissimilarity between {x} and {y}: {dissimilarity_score}")
+        return dissimilarity_score
+
+    def dissimilarities(
+        self, xs: Union[Sequence, np.ndarray], ys: Union[Sequence, np.ndarray]
+    ) -> Union[float, Sequence[float]]:
+        """
+        Calculates dissimilarity scores for multiple pairs of elements.
+
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+
+        Returns:
+            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
+        """
+        if len(xs) != len(ys):
+            raise ValueError("Number of elements in xs and ys must match")
+
+        scores = [self.dissimilarity(x, y) for x, y in zip(xs, ys)]
+        logger.debug(f"Dissimilarities for multiple pairs: {scores}")
+        return scores
+
+    def check_boundedness(self) -> bool:
+        """
+        Checks if the similarity measure is bounded.
+
+        The exponential distance similarity is bounded between 0 and 1.
+
+        Returns:
+            bool: True if the measure is bounded, False otherwise
+        """
         return True
-    
-    def is_symmetric(self) -> bool:
+
+    def check_reflexivity(self) -> bool:
         """
-        Check if the similarity measure is symmetric.
-        
-        For exponential distance similarity, it is symmetric if the underlying
-        distance function is symmetric.
-        
-        Returns
-        -------
-        bool
-            True, assuming the distance function is symmetric
+        Checks if the similarity measure satisfies reflexivity.
+
+        For all x, s(x, x) = 1 since distance(x, x) = 0.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise
         """
-        # Exponential similarity is symmetric if the distance function is symmetric
-        # Most distance functions are symmetric, so we return True by default
-        # Note: This might not be true for all distance functions
         return True
-    
-    def __str__(self) -> str:
+
+    def check_symmetry(self) -> bool:
         """
-        Get string representation of the similarity measure.
-        
-        Returns
-        -------
-        str
-            String representation including decay factor and bounds information
+        Checks if the similarity measure is symmetric.
+
+        Since distance measures are symmetric, this similarity measure
+        is symmetric as well.
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise
         """
-        bounds_str = f"[{self.lower_bound}, {self.upper_bound}]" if self.is_bounded else "unbounded"
-        return f"{self.__class__.__name__} (decay factor: {self.decay_factor}, bounds: {bounds_str})"
+        return True
+
+    def check_identity(self) -> bool:
+        """
+        Checks if the similarity measure satisfies identity of discernibles.
+
+        For distinct x and y, s(x, y) < 1 if they are different.
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise
+        """
+        return True

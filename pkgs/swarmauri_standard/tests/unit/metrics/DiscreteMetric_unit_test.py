@@ -1,185 +1,114 @@
 import pytest
 import logging
-from typing import Any, List, Tuple
-
 from swarmauri_standard.metrics.DiscreteMetric import DiscreteMetric
-
-# Configure logger
-logger = logging.getLogger(__name__)
+from unittest.mock import patch
 
 
 @pytest.fixture
-def discrete_metric() -> DiscreteMetric:
-    """
-    Fixture that returns a DiscreteMetric instance.
-    
-    Returns
-    -------
-    DiscreteMetric
-        A new instance of the DiscreteMetric class
-    """
+def discrete_metric():
+    """Fixture to provide a DiscreteMetric instance for testing."""
     return DiscreteMetric()
 
 
 @pytest.mark.unit
-def test_type():
-    """
-    Test that the type attribute is correctly set.
-    """
-    assert DiscreteMetric.type == "DiscreteMetric"
+def test_distance(discrete_metric):
+    """Test the distance method with various inputs."""
+    # Test with same inputs
+    assert discrete_metric.distance(1, 1) == 0.0
+    assert discrete_metric.distance("test", "test") == 0.0
+    assert discrete_metric.distance([1, 2], [1, 2]) == 0.0
+
+    # Test with different inputs
+    assert discrete_metric.distance(1, 2) == 1.0
+    assert discrete_metric.distance("test", "different") == 1.0
+    assert discrete_metric.distance([1, 2], [2, 3]) == 1.0
 
 
 @pytest.mark.unit
-def test_resource():
-    """
-    Test that the resource attribute is correctly inherited from MetricBase.
-    """
-    assert DiscreteMetric.resource == "Metric"
+def test_distances(discrete_metric):
+    """Test the distances method with various input combinations."""
+    # Test with empty lists
+    assert discrete_metric.distances([], []) == []
+
+    # Test with single elements
+    assert discrete_metric.distances([1], [1]) == [[0.0]]
+    assert discrete_metric.distances([1], [2]) == [[1.0]]
+
+    # Test with multiple elements
+    xs = [1, 2, 3]
+    ys = [1, 2, 4]
+    expected = [[0.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]]
+    assert discrete_metric.distances(xs, ys) == expected
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    (1, 1, 0.0),
-    (1, 2, 1.0),
-    ("a", "a", 0.0),
-    ("a", "b", 1.0),
-    (True, True, 0.0),
-    (True, False, 1.0),
-    ((1, 2), (1, 2), 0.0),
-    ((1, 2), (2, 1), 1.0),
-    ([1, 2], [1, 2], 0.0),  # Lists with same elements in same order
-    ([1, 2], [2, 1], 1.0),  # Lists with same elements in different order
-])
-def test_distance(discrete_metric: DiscreteMetric, x: Any, y: Any, expected: float):
-    """
-    Test the distance method with various inputs.
-    
-    Parameters
-    ----------
-    discrete_metric : DiscreteMetric
-        The discrete metric instance
-    x : Any
-        First input value
-    y : Any
-        Second input value
-    expected : float
-        Expected distance value
-    """
-    assert discrete_metric.distance(x, y) == expected
+def test_check_non_negativity(discrete_metric):
+    """Test the non-negativity check."""
+    # Test with valid distance
+    discrete_metric.check_non_negativity(1, 1)
+    discrete_metric.check_non_negativity(1, 2)
+
+    # Test with negative distance (should raise exception)
+    with patch.object(discrete_metric, "distance", return_value=-1.0):
+        with pytest.raises(MetricViolationError):
+            discrete_metric.check_non_negativity(1, 2)
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    (1, 1, True),
-    (1, 2, False),
-    ("a", "a", True),
-    ("a", "b", False),
-    (True, True, True),
-    (True, False, False),
-    ((1, 2), (1, 2), True),
-    ((1, 2), (2, 1), False),
-    ([1, 2], [1, 2], True),
-    ([1, 2], [2, 1], False),
-])
-def test_are_identical(discrete_metric: DiscreteMetric, x: Any, y: Any, expected: bool):
-    """
-    Test the are_identical method with various inputs.
-    
-    Parameters
-    ----------
-    discrete_metric : DiscreteMetric
-        The discrete metric instance
-    x : Any
-        First input value
-    y : Any
-        Second input value
-    expected : bool
-        Expected result
-    """
-    assert discrete_metric.are_identical(x, y) == expected
+def test_check_identity(discrete_metric):
+    """Test the identity axiom check."""
+    # Test with identical inputs
+    discrete_metric.check_identity(1, 1)
+    discrete_metric.check_identity("test", "test")
+
+    # Test with different inputs
+    with pytest.raises(MetricViolationError):
+        discrete_metric.check_identity(1, 2)
+
+    with pytest.raises(MetricViolationError):
+        discrete_metric.check_identity(1, 1)  # Shouldn't raise
+        discrete_metric.distance = lambda x, y: 1.0
+        with pytest.raises(MetricViolationError):
+            discrete_metric.check_identity(1, 1)
 
 
 @pytest.mark.unit
-def test_error_handling(discrete_metric: DiscreteMetric):
-    """
-    Test error handling in the discrete metric.
-    
-    Parameters
-    ----------
-    discrete_metric : DiscreteMetric
-        The discrete metric instance
-    """
-    # Test with unhashable type (mutable dictionary)
-    with pytest.raises(Exception):
-        discrete_metric.distance({1: 2}, {1: 2})
-    
-    with pytest.raises(Exception):
-        discrete_metric.are_identical({1: 2}, {1: 2})
+def test_check_symmetry(discrete_metric):
+    """Test the symmetry axiom check."""
+    # Test symmetric distances
+    discrete_metric.check_symmetry(1, 2)
+    discrete_metric.check_symmetry("a", "b")
+
+    # Test asymmetric distances (should raise exception)
+    with patch.object(discrete_metric, "distance", side_effect=[1.0, 2.0]):
+        with pytest.raises(MetricViolationError):
+            discrete_metric.check_symmetry(1, 2)
 
 
 @pytest.mark.unit
-def test_serialization():
-    """
-    Test serialization and deserialization of DiscreteMetric.
-    """
-    # Create an instance
-    original = DiscreteMetric()
-    
-    # Serialize to JSON
-    json_data = original.model_dump_json()
-    
-    # Deserialize from JSON
-    deserialized = DiscreteMetric.model_validate_json(json_data)
-    
-    # Check that the deserialized instance has the same type
-    assert deserialized.type == original.type
-    
-    # Test the functionality of the deserialized instance
-    assert deserialized.distance(1, 1) == 0.0
-    assert deserialized.distance(1, 2) == 1.0
+def test_check_triangle_inequality(discrete_metric):
+    """Test the triangle inequality check."""
+    # Test valid triangle inequality
+    discrete_metric.check_triangle_inequality(1, 2, 3)
+
+    # Test violation of triangle inequality
+    with patch.object(discrete_metric, "distance", side_effect=[0.0, 0.0, 2.0]):
+        with pytest.raises(MetricViolationError):
+            discrete_metric.check_triangle_inequality(1, 2, 3)
 
 
 @pytest.mark.unit
-def test_triangle_inequality(discrete_metric: DiscreteMetric):
-    """
-    Test that the discrete metric satisfies the triangle inequality.
-    
-    For any three points x, y, z, the distance from x to z should be less than
-    or equal to the sum of the distance from x to y and the distance from y to z.
-    
-    Parameters
-    ----------
-    discrete_metric : DiscreteMetric
-        The discrete metric instance
-    """
-    test_points = [1, 2, 3, "a", "b", True, False]
-    
-    for x in test_points:
-        for y in test_points:
-            for z in test_points:
-                d_xz = discrete_metric.distance(x, z)
-                d_xy = discrete_metric.distance(x, y)
-                d_yz = discrete_metric.distance(y, z)
-                
-                # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
-                assert d_xz <= d_xy + d_yz, f"Triangle inequality failed for {x}, {y}, {z}"
+def test_logging(discrete_metric):
+    """Test if logging is properly implemented."""
+    with patch("logging.Logger.debug") as mock_debug:
+        # Test distance method logging
+        discrete_metric.distance(1, 2)
+        mock_debug.assert_called_once()
 
+        # Test distances method logging
+        discrete_metric.distances([1], [2])
+        mock_debug.assert_called_again()
 
-@pytest.mark.unit
-def test_symmetry(discrete_metric: DiscreteMetric):
-    """
-    Test that the discrete metric is symmetric.
-    
-    For any two points x and y, the distance from x to y should equal
-    the distance from y to x.
-    
-    Parameters
-    ----------
-    discrete_metric : DiscreteMetric
-        The discrete metric instance
-    """
-    test_points = [1, 2, "a", "b", True, False, (1, 2)]
-    
-    for x in test_points:
-        for y in test_points:
-            assert discrete_metric.distance(x, y) == discrete_metric.distance(y, x)
+        # Test check methods logging
+        discrete_metric.check_non_negativity(1, 2)
+        mock_debug.assert_called_again()

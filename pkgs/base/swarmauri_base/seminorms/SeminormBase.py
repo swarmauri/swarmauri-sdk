@@ -1,150 +1,159 @@
+from typing import Union, Callable, Optional
+from abc import ABC
 import logging
-from typing import Any, TypeVar, Generic, Optional
-
-from swarmauri_core.seminorms.ISeminorm import ISeminorm
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.seminorms.ISeminorm import ISeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
-# Type variable for generic typing
-T = TypeVar('T')
 
 @ComponentBase.register_model()
-class SeminormBase(ISeminorm[T], ComponentBase):
+class SeminormBase(ISeminorm, ComponentBase):
     """
     Base class providing tools for evaluating seminorms in partial vector spaces.
     
-    This class implements the ISeminorm interface and provides base functionality 
-    for defining seminorms. It serves as a foundation for concrete seminorm 
-    implementations.
+    This class serves as a reusable implementation for defining seminorm structures.
+    It implements the core interface defined by ISeminorm and provides basic functionality
+    that can be extended by specific seminorm implementations.
     
-    A seminorm is a function that satisfies:
-    1. Non-negativity: p(x) >= 0 for all x
-    2. Scalar homogeneity: p(αx) = |α|p(x) for all x and scalar α
-    3. Triangle inequality: p(x + y) <= p(x) + p(y) for all x, y
-    
-    Attributes
-    ----------
-    resource : Optional[str]
-        The resource type identifier for this component.
+    Attributes:
+        resource: Optional[str] - The resource type identifier for this component
+        
+    Methods:
+        compute: Abstract method for computing the seminorm value
+        check_triangle_inequality: Verifies the triangle inequality property
+        check_scalar_homogeneity: Verifies the scalar homogeneity property
+        _is_vector: Helper method to check if input is an IVector instance
+        _is_matrix: Helper method to check if input is an IMatrix instance
+        _is_sequence: Helper method to check if input is a sequence
+        _is_callable: Helper method to check if input is callable
     """
+    resource: Optional[str] = Field(default=ResourceTypes.SEMINORM.value)
     
-    resource: Optional[str] = ResourceTypes.SEMINORM.value
-    
-    def evaluate(self, x: T) -> float:
+    def __init__(self):
         """
-        Evaluate the seminorm for a given input.
+        Initializes the SeminormBase instance.
+        """
+        super().__init__()
+        logger.debug("Initialized SeminormBase")
+
+    def compute(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> float:
+        """
+        Computes the seminorm value of the input.
         
-        Parameters
-        ----------
-        x : T
-            The input to evaluate the seminorm on.
+        Args:
+            input: The input to compute the seminorm for. Supported types are:
+                - IVector: High-dimensional vector
+                - IMatrix: Matrix structure
+                - str: String input
+                - Callable: Callable function
+                - list: List of elements
+                - tuple: Tuple of elements
+                
+        Returns:
+            float: The computed seminorm value
             
-        Returns
-        -------
-        float
-            The seminorm value, which must be non-negative.
-            
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Raises:
+            NotImplementedError: Method not implemented by the base class
+            TypeError: If input type is not supported
         """
-        logger.debug("Calling evaluate method in SeminormBase")
-        raise NotImplementedError("The evaluate method must be implemented by subclasses")
-    
-    def scale(self, x: T, alpha: float) -> float:
+        logger.debug(f"Computing seminorm for input of type {type(input).__name__}")
+        raise NotImplementedError("Method not implemented")
+
+    def check_triangle_inequality(self, a: Union[IVector, IMatrix, str, Callable, list, tuple],
+                                  b: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
         """
-        Evaluate the seminorm of a scaled input.
+        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
         
-        This method should satisfy scalar homogeneity: p(αx) = |α|p(x)
+        Args:
+            a: First element to check
+            b: Second element to check
+            
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
+        """
+        logger.debug("Checking triangle inequality")
+        raise NotImplementedError("Method not implemented")
+
+    def check_scalar_homogeneity(self, a: Union[IVector, IMatrix, str, Callable, list, tuple],
+                               scalar: Union[int, float]) -> bool:
+        """
+        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
         
-        Parameters
-        ----------
-        x : T
-            The input to evaluate the seminorm on.
-        alpha : float
-            The scaling factor.
+        Args:
+            a: Element to check
+            scalar: Scalar value to scale with
             
-        Returns
-        -------
-        float
-            The seminorm value of the scaled input.
-            
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            bool: True if scalar homogeneity holds, False otherwise
         """
-        logger.debug("Calling scale method in SeminormBase")
-        raise NotImplementedError("The scale method must be implemented by subclasses")
-    
-    def triangle_inequality(self, x: T, y: T) -> bool:
+        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
+        raise NotImplementedError("Method not implemented")
+
+    def _is_vector(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
         """
-        Verify that the triangle inequality holds for the given inputs.
+        Helper method to check if input is an IVector instance.
         
-        This method should check if p(x + y) <= p(x) + p(y).
+        Args:
+            input: Input to check
+            
+        Returns:
+            bool: True if input is an IVector, False otherwise
+        """
+        return isinstance(input, IVector)
+
+    def _is_matrix(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
+        """
+        Helper method to check if input is an IMatrix instance.
         
-        Parameters
-        ----------
-        x : T
-            First input.
-        y : T
-            Second input.
+        Args:
+            input: Input to check
             
-        Returns
-        -------
-        bool
-            True if the triangle inequality holds, False otherwise.
-            
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            bool: True if input is an IMatrix, False otherwise
         """
-        logger.debug("Calling triangle_inequality method in SeminormBase")
-        raise NotImplementedError("The triangle_inequality method must be implemented by subclasses")
-    
-    def is_zero(self, x: T, tolerance: float = 1e-10) -> bool:
+        return isinstance(input, IMatrix)
+
+    def _is_sequence(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
         """
-        Check if the seminorm evaluates to zero (within a tolerance).
+        Helper method to check if input is a sequence (list or tuple).
         
-        Parameters
-        ----------
-        x : T
-            The input to check.
-        tolerance : float, optional
-            The numerical tolerance for considering a value as zero.
+        Args:
+            input: Input to check
             
-        Returns
-        -------
-        bool
-            True if the seminorm of x is zero (within tolerance), False otherwise.
-            
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            bool: True if input is a sequence, False otherwise
         """
-        logger.debug("Calling is_zero method in SeminormBase")
-        raise NotImplementedError("The is_zero method must be implemented by subclasses")
-    
-    def is_definite(self) -> bool:
+        return isinstance(input, (list, tuple))
+
+    def _is_callable(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
         """
-        Check if this seminorm is actually a norm (i.e., it has the definiteness property).
+        Helper method to check if input is a callable function.
         
-        A seminorm is definite if p(x) = 0 implies x = 0.
-        
-        Returns
-        -------
-        bool
-            True if the seminorm is definite (and thus a norm), False otherwise.
+        Args:
+            input: Input to check
             
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
+        Returns:
+            bool: True if input is callable, False otherwise
         """
-        logger.debug("Calling is_definite method in SeminormBase")
-        raise NotImplementedError("The is_definite method must be implemented by subclasses")
+        return isinstance(input, Callable)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the seminorm instance.
+        
+        Returns:
+            str: String representation
+        """
+        return f"SeminormBase()"
+
+    def __repr__(self) -> str:
+        """
+        Returns the official string representation of the seminorm instance.
+        
+        Returns:
+            str: Official string representation
+        """
+        return self.__str__()

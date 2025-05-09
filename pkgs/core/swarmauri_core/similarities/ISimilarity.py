@@ -1,136 +1,141 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeVar, Generic
+from typing import Union, Sequence, Callable
 import logging
 
-# Set up logging
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
 
-class ISimilarity(ABC, Generic[T]):
+class ISimilarity(ABC):
     """
-    Abstract base class for similarity measures.
+    Interface for similarity measures. This abstract base class defines the core
+    methods for calculating similarities and dissimilarities between various
+    types of data, including vectors, matrices, sequences, strings, and callables.
     
-    Defines the interface for calculating similarity between objects.
-    Similarity measures can be directional or bounded, supporting
-    various comparison methods like cosine similarity.
+    The interface provides methods for both single pair comparisons and batch
+    comparisons. Additionally, it includes checks for important properties of
+    similarity measures like boundedness, reflexivity, symmetry, and identity.
     
-    Attributes
-    ----------
-    is_bounded : bool
-        Indicates if the similarity measure is bounded within a specific range.
-    lower_bound : float
-        The lower bound of the similarity measure if bounded.
-    upper_bound : float
-        The upper bound of the similarity measure if bounded.
+    Methods:
+        similarity: Calculates the similarity between two elements
+        similarities: Calculates similarities for multiple pairs
+        dissimilarity: Calculates the dissimilarity between two elements
+        dissimilarities: Calculates dissimilarities for multiple pairs
+        check_boundedness: Verifies if the similarity measure is bounded
+        check_reflexivity: Checks if the measure satisfies reflexivity
+        check_symmetry: Verifies if the measure is symmetric
+        check_identity: Checks if the measure satisfies identity of discernibles
     """
-    
-    def __init__(self, is_bounded: bool = True, lower_bound: float = 0.0, upper_bound: float = 1.0):
-        """
-        Initialize a similarity measure.
-        
-        Parameters
-        ----------
-        is_bounded : bool, optional
-            Whether the similarity measure is bounded, by default True
-        lower_bound : float, optional
-            Lower bound of similarity if bounded, by default 0.0
-        upper_bound : float, optional
-            Upper bound of similarity if bounded, by default 1.0
-        """
-        self.is_bounded = is_bounded
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
-        
-        # Validate bounds if similarity is bounded
-        if is_bounded and lower_bound >= upper_bound:
-            logger.error("Lower bound must be less than upper bound")
-            raise ValueError("Lower bound must be less than upper bound")
-        
-        logger.debug(f"Initialized {self.__class__.__name__} with bounds: "
-                    f"[{lower_bound}, {upper_bound}], is_bounded={is_bounded}")
-    
+
     @abstractmethod
-    def calculate(self, a: T, b: T) -> float:
+    def similarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                    y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Calculate similarity between two objects.
+        Calculates the similarity between two elements.
         
-        Parameters
-        ----------
-        a : T
-            First object to compare
-        b : T
-            Second object to compare
+        Args:
+            x: First element to compare
+            y: Second element to compare
             
-        Returns
-        -------
-        float
-            Similarity score between objects
+        Returns:
+            float: Similarity score between x and y
         """
-        pass
-    
+        logger.debug(f"Calculating similarity between {x} and {y}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def is_reflexive(self) -> bool:
+    def similarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                     ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
         """
-        Check if the similarity measure is reflexive.
+        Calculates similarities for multiple pairs of elements.
         
-        A similarity measure is reflexive if sim(x, x) = max_similarity for all x.
-        
-        Returns
-        -------
-        bool
-            True if the similarity measure is reflexive, False otherwise
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
+            
+        Returns:
+            Union[float, Sequence[float]]: Similarity scores for the pairs
         """
-        pass
-    
+        logger.debug(f"Calculating similarities between {xs} and {ys}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def is_symmetric(self) -> bool:
+    def dissimilarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
+                      y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Check if the similarity measure is symmetric.
+        Calculates the dissimilarity between two elements.
         
-        A similarity measure is symmetric if sim(a, b) = sim(b, a) for all a, b.
-        
-        Returns
-        -------
-        bool
-            True if the similarity measure is symmetric, False otherwise
-        """
-        pass
-    
-    def normalize(self, value: float) -> float:
-        """
-        Normalize a similarity value to fit within the defined bounds.
-        
-        Parameters
-        ----------
-        value : float
-            Raw similarity value to normalize
+        Args:
+            x: First element to compare
+            y: Second element to compare
             
-        Returns
-        -------
-        float
-            Normalized similarity value within bounds
+        Returns:
+            float: Dissimilarity score between x and y
         """
-        if not self.is_bounded:
-            logger.debug(f"Value {value} not normalized (unbounded similarity)")
-            return value
+        logger.debug(f"Calculating dissimilarity between {x} and {y}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def dissimilarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
+                       ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
+        """
+        Calculates dissimilarities for multiple pairs of elements.
         
-        # Clip the value to be within bounds
-        normalized = max(min(value, self.upper_bound), self.lower_bound)
-        
-        if normalized != value:
-            logger.debug(f"Normalized value from {value} to {normalized}")
+        Args:
+            xs: First set of elements to compare
+            ys: Second set of elements to compare
             
-        return normalized
-    
-    def __str__(self) -> str:
+        Returns:
+            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
         """
-        Get string representation of the similarity measure.
+        logger.debug(f"Calculating dissimilarities between {xs} and {ys}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_boundedness(self) -> bool:
+        """
+        Checks if the similarity measure is bounded.
         
-        Returns
-        -------
-        str
-            String representation
+        Returns:
+            bool: True if the measure is bounded, False otherwise
         """
-        bounds_str = f"[{self.lower_bound}, {self.upper_bound}]" if self.is_bounded else "unbounded"
-        return f"{self.__class__.__name__} (bounds: {bounds_str})"
+        logger.debug("Checking boundedness")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_reflexivity(self) -> bool:
+        """
+        Checks if the similarity measure satisfies reflexivity.
+        A measure is reflexive if s(x, x) = 1 for all x.
+        
+        Returns:
+            bool: True if the measure is reflexive, False otherwise
+        """
+        logger.debug("Checking reflexivity")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_symmetry(self) -> bool:
+        """
+        Checks if the similarity measure is symmetric.
+        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
+        
+        Returns:
+            bool: True if the measure is symmetric, False otherwise
+        """
+        logger.debug("Checking symmetry")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_identity(self) -> bool:
+        """
+        Checks if the similarity measure satisfies identity of discernibles.
+        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
+        
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise
+        """
+        logger.debug("Checking identity of discernibles")
+        raise NotImplementedError("Method not implemented")

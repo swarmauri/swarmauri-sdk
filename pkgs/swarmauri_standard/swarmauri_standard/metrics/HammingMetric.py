@@ -1,156 +1,203 @@
-from typing import Any, List, Sequence, Literal, Union, TypeVar, Optional
+from typing import Union, List, Optional, Literal
+from abc import ABC
 import logging
-import numpy as np
-from pydantic import Field, validator
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase, ResourceTypes
+from swarmauri_core.metrics.IMetric import IMetric
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_core.ComponentBase import ComponentBase
-
-# Configure logger
 logger = logging.getLogger(__name__)
 
-# Type variable for sequence types
-T = TypeVar('T')
 
 @ComponentBase.register_type(MetricBase, "HammingMetric")
 class HammingMetric(MetricBase):
     """
-    Implementation of the Hamming distance metric.
-    
+    A concrete implementation of the MetricBase class that computes the Hamming distance.
     The Hamming distance between two sequences of equal length is the number of positions
-    at which the corresponding elements are different. It is particularly useful for
-    measuring the distance between binary strings, categorical vectors, or any sequences
-    where the notion of equality between elements is well-defined.
-    
-    Attributes
-    ----------
-    type : Literal["HammingMetric"]
-        The type identifier for this metric
-    normalize : bool
-        If True, the distance is normalized by the sequence length to range [0, 1]
+    at which the corresponding symbols are different. This metric is suitable for binary
+    data, bitwise operations, and categorical vectors.
+
+    Inherits From:
+        MetricBase: The base class for all metric implementations in the swarmauri framework.
+
+    Attributes:
+        type: Literal["HammingMetric"] = "HammingMetric": The type identifier for this metric.
+        resource: Optional[str] = ResourceTypes.METRIC.value: The resource type identifier.
+
+    Methods:
+        distance: Computes the Hamming distance between two points.
+        distances: Computes pairwise Hamming distances between two lists of points.
+        check_non_negativity: Verifies the non-negativity axiom for the computed distances.
+        check_identity: Verifies the identity of indiscernibles axiom for the computed distances.
+        check_symmetry: Verifies the symmetry axiom for the computed distances.
+        check_triangle_inequality: Verifies the triangle inequality axiom for the computed distances.
     """
+
     type: Literal["HammingMetric"] = "HammingMetric"
-    normalize: bool = Field(default=False, description="Whether to normalize the distance to [0, 1]")
-    
-    def distance(self, x: Union[Sequence[T], np.ndarray], y: Union[Sequence[T], np.ndarray]) -> float:
+    resource: Optional[str] = ResourceTypes.METRIC.value
+
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> float:
         """
-        Calculate the Hamming distance between two sequences.
-        
-        The Hamming distance counts the number of positions at which the corresponding
-        elements in the two sequences are different.
-        
-        Parameters
-        ----------
-        x : Union[Sequence[T], np.ndarray]
-            First sequence
-        y : Union[Sequence[T], np.ndarray]
-            Second sequence
-            
-        Returns
-        -------
-        float
-            The Hamming distance between x and y. If normalize=True, the result is
-            divided by the sequence length to get a value in the range [0, 1].
-            
-        Raises
-        ------
-        ValueError
-            If the sequences have different lengths
+        Computes the Hamming distance between two points x and y.
+
+        Args:
+            x: The first point to measure distance from
+            y: The second point to measure distance to
+
+        Returns:
+            float: The Hamming distance between x and y
+
+        Raises:
+            ValueError: If the input sequences are not of equal length
         """
-        # Convert inputs to numpy arrays for efficient processing
-        x_array = np.asarray(x)
-        y_array = np.asarray(y)
-        
-        # Check if sequences have equal length
-        if len(x_array) != len(y_array):
-            error_msg = f"Sequences must have equal length, got {len(x_array)} and {len(y_array)}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-        
-        # Count positions where elements differ
-        # The != operation creates a boolean array, and sum() counts the True values
-        mismatches = np.sum(x_array != y_array)
-        
-        # Normalize if requested
-        if self.normalize and len(x_array) > 0:
-            return float(mismatches) / len(x_array)
-        
-        return float(mismatches)
-    
-    def are_identical(self, x: Union[Sequence[T], np.ndarray], y: Union[Sequence[T], np.ndarray]) -> bool:
+        logger.debug(f"Calculating Hamming distance between {x} and {y}")
+
+        # Ensure inputs are of the same length
+        if len(x) != len(y):
+            raise ValueError("Input sequences must be of equal length")
+
+        # Initialize distance counter
+        distance = 0
+
+        # Iterate through each pair of elements and count mismatches
+        for x_elem, y_elem in zip(x, y):
+            if x_elem != y_elem:
+                distance += 1
+
+        return distance
+
+    def distances(
+        self,
+        xs: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+        ys: List[Union[IVector, IMatrix, Sequence, str, Callable]],
+    ) -> List[List[float]]:
         """
-        Check if two sequences are identical according to the Hamming metric.
-        
-        Two sequences are identical if their Hamming distance is zero,
-        meaning they have the same elements in the same positions.
-        
-        Parameters
-        ----------
-        x : Union[Sequence[T], np.ndarray]
-            First sequence
-        y : Union[Sequence[T], np.ndarray]
-            Second sequence
-            
-        Returns
-        -------
-        bool
-            True if the sequences are identical (distance is zero), False otherwise
-            
-        Raises
-        ------
-        ValueError
-            If the sequences have different lengths
+        Computes pairwise Hamming distances between two lists of points.
+
+        Args:
+            xs: First list of points
+            ys: Second list of points
+
+        Returns:
+            List[List[float]]: Matrix of pairwise Hamming distances between points in xs and ys
+
+        Raises:
+            ValueError: If any pair of points has different lengths
         """
-        try:
-            # Two sequences are identical if their Hamming distance is zero
-            return self.distance(x, y) == 0
-        except ValueError as e:
-            # If sequences have different lengths, they cannot be identical
-            logger.warning(f"Cannot determine if sequences are identical: {str(e)}")
-            return False
-    
-    @validator('normalize')
-    def validate_normalize(cls, v: bool) -> bool:
+        logger.debug(
+            f"Calculating pairwise Hamming distances between {len(xs)} points and {len(ys)} points"
+        )
+
+        # Initialize the distance matrix
+        distance_matrix = []
+
+        # Iterate through each pair of points in xs and ys
+        for x in xs:
+            row = []
+            for y in ys:
+                # Calculate the distance for each pair
+                row.append(self.distance(x, y))
+            distance_matrix.append(row)
+
+        return distance_matrix
+
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
-        Validate the normalize parameter.
-        
-        Parameters
-        ----------
-        v : bool
-            The normalize value to validate
-            
-        Returns
-        -------
-        bool
-            The validated normalize value
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If d(x,y) < 0 (unlikely for Hamming distance)
         """
-        if not isinstance(v, bool):
-            logger.warning(f"normalize must be a boolean, got {type(v)}. Converting to bool.")
-            return bool(v)
-        return v
-    
-    def batch_distance(self, x: Union[Sequence[T], np.ndarray], 
-                       points: List[Union[Sequence[T], np.ndarray]]) -> List[float]:
+        logger.debug("Checking non-negativity axiom for Hamming metric")
+        distance = self.distance(x, y)
+        if distance < 0:
+            raise MetricViolationError(
+                f"Non-negativity violation: d({x}, {y}) = {distance} < 0"
+            )
+
+    def check_identity(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
         """
-        Calculate the Hamming distance between one sequence and multiple other sequences.
-        
-        This is an optimized version for computing distances to multiple points.
-        
-        Parameters
-        ----------
-        x : Union[Sequence[T], np.ndarray]
-            Reference sequence
-        points : List[Union[Sequence[T], np.ndarray]]
-            List of sequences to compare against the reference
-            
-        Returns
-        -------
-        List[float]
-            List of Hamming distances between x and each sequence in points
-            
-        Raises
-        ------
-        ValueError
-            If any sequence has a different length from x
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y
         """
-        return [self.distance(x, y) for y in points]
+        logger.debug("Checking identity of indiscernibles axiom for Hamming metric")
+        distance = self.distance(x, y)
+        if distance == 0 and x != y:
+            raise MetricViolationError(
+                f"Identity violation: d({x}, {y}) = 0 but {x} != {y}"
+            )
+        elif distance != 0 and x == y:
+            raise MetricViolationError(
+                f"Identity violation: d({x}, {y}) = {distance} but {x} == {y}"
+            )
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
+
+        Args:
+            x: First point
+            y: Second point
+
+        Raises:
+            MetricViolationError: If d(x,y) ≠ d(y,x)
+        """
+        logger.debug("Checking symmetry axiom for Hamming metric")
+        if self.distance(x, y) != self.distance(y, x):
+            raise MetricViolationError(
+                f"Symmetry violation: d({x}, {y}) = {self.distance(x, y)} ≠ {self.distance(y, x)} = d({y}, {x})"
+            )
+
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, Sequence, str, Callable],
+        y: Union[IVector, IMatrix, Sequence, str, Callable],
+        z: Union[IVector, IMatrix, Sequence, str, Callable],
+    ) -> None:
+        """
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: First point
+            y: Second point
+            z: Third point
+
+        Raises:
+            MetricViolationError: If d(x,z) > d(x,y) + d(y,z)
+        """
+        logger.debug("Checking triangle inequality axiom for Hamming metric")
+        d_xz = self.distance(x, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+
+        if d_xz > d_xy + d_yz:
+            raise MetricViolationError(
+                f"Triangle inequality violation: d({x}, {z}) = {d_xz} > {d_xy} + {d_yz} = d({x}, {y}) + d({y}, {z})"
+            )

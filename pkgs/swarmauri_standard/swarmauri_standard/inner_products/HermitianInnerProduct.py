@@ -1,124 +1,154 @@
-from typing import Any, List, Union, Literal, Optional
-import logging
+from typing import Union, Literal
 import numpy as np
-from numpy.typing import NDArray
+import logging
 
-from swarmauri_core.inner_products.IInnerProduct import T
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.ComponentBase import ComponentBase
+
+logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(InnerProductBase, "HermitianInnerProduct")
 class HermitianInnerProduct(InnerProductBase):
     """
-    Hermitian inner product implementation for complex vectors.
-    
-    This class provides a concrete implementation of the inner product for complex vectors,
-    ensuring Hermitian (conjugate) symmetry. The inner product is defined as <x,y> = y^H * x,
-    where y^H is the conjugate transpose of y.
-    
-    Attributes
-    ----------
-    type : Literal["HermitianInnerProduct"]
-        The type identifier for this component
+    Provides a concrete implementation of an inner product for complex vectors with
+    Hermitian symmetry. This class handles inner product operations for complex
+    vector spaces, ensuring conjugate symmetry and L2 structure.
+
+    Inherits from:
+        InnerProductBase: The base class for all inner product implementations.
+
+    Implements:
+        IInnerProduct: Interface for inner product operations.
+
+    Properties:
+        type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
     """
-    
+
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
-    
+
     def __init__(self) -> None:
         """
-        Initialize the Hermitian inner product implementation.
-        
-        Sets up logging and initializes the base class.
+        Initializes the HermitianInnerProduct instance.
         """
         super().__init__()
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug("Initializing HermitianInnerProduct")
-    
-    def compute(self, vec1: Union[List[complex], NDArray[np.complex_], complex], 
-                vec2: Union[List[complex], NDArray[np.complex_], complex]) -> complex:
+        logger.debug("HermitianInnerProduct instance initialized")
+
+    def compute(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> float:
         """
-        Compute the Hermitian inner product between two complex vectors.
-        
-        The Hermitian inner product is defined as <x,y> = y^H * x, where y^H is the 
-        conjugate transpose of y. This ensures conjugate symmetry: <x,y> = <y,x>*.
-        
-        Parameters
-        ----------
-        vec1 : Union[List[complex], NDArray[np.complex_], complex]
-            First complex vector (or scalar) in the inner product
-        vec2 : Union[List[complex], NDArray[np.complex_], complex]
-            Second complex vector (or scalar) in the inner product
-            
-        Returns
-        -------
-        complex
-            The resulting inner product value
-            
-        Raises
-        ------
-        ValueError
-            If the vectors are incompatible for inner product calculation
-        TypeError
-            If the vectors are not of complex type
+        Computes the Hermitian inner product of two complex vectors.
+
+        The Hermitian inner product is defined as:
+            ⟨a, b⟩ = conjugate(a) · b
+
+        Args:
+            a: The first complex vector or callable producing a complex vector
+            b: The second complex vector or callable producing a complex vector
+
+        Returns:
+            float: The result of the inner product operation
+
+        Raises:
+            ValueError: If input vectors are not complex or dimensions don't match
         """
-        if not self.is_compatible(vec1, vec2):
-            self.logger.error("Incompatible vectors for inner product calculation")
-            raise ValueError("Vectors must have the same dimensions for inner product calculation")
-        
-        # Convert inputs to numpy arrays if they aren't already
-        if not isinstance(vec1, np.ndarray):
-            vec1 = np.array(vec1, dtype=complex)
-        if not isinstance(vec2, np.ndarray):
-            vec2 = np.array(vec2, dtype=complex)
-        
-        # Ensure arrays are complex
-        if not np.issubdtype(vec1.dtype, np.complexfloating) or not np.issubdtype(vec2.dtype, np.complexfloating):
-            vec1 = vec1.astype(complex)
-            vec2 = vec2.astype(complex)
-        
-        # Compute the Hermitian inner product: <x,y> = y^H * x
-        # For vectors, this is the conjugate transpose of vec2 multiplied by vec1
-        if vec1.ndim == 0 and vec2.ndim == 0:
-            # For scalars, just multiply
-            result = np.conj(vec2) * vec1
-        else:
-            # For vectors, use dot product with conjugate
-            result = np.vdot(vec2, vec1)  # vdot computes the conjugate dot product
-        
-        self.logger.debug(f"Computed inner product: {result}")
+        logger.debug("Computing Hermitian inner product")
+
+        # Evaluate callables if necessary
+        if callable(a):
+            a = a()
+        if callable(b):
+            b = b()
+
+        # Ensure inputs are complex vectors
+        if not (isinstance(a, (np.ndarray)) and isinstance(b, (np.ndarray))):
+            raise ValueError(
+                "Inputs must be complex vectors or callable producing complex vectors"
+            )
+        if a.dtype != np.complex_ or b.dtype != np.complex_:
+            raise ValueError("Inputs must be complex vectors")
+
+        # Ensure compatible dimensions
+        if a.shape != b.shape:
+            raise ValueError("Vector dimensions must match for inner product")
+
+        # Compute the inner product with conjugate symmetry
+        result = np.sum(np.conj(a) * b)
+
+        logger.debug(f"Inner product result: {result}")
         return result
-    
-    def is_compatible(self, vec1: Any, vec2: Any) -> bool:
+
+    def check_conjugate_symmetry(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+    ) -> None:
         """
-        Check if two vectors are compatible for Hermitian inner product calculation.
-        
-        Vectors are compatible if they have the same shape or can be cast to the same shape.
-        
-        Parameters
-        ----------
-        vec1 : Any
-            First vector to check
-        vec2 : Any
-            Second vector to check
-            
-        Returns
-        -------
-        bool
-            True if the vectors are compatible, False otherwise
+        Verifies the conjugate symmetry property of the inner product.
+
+        For Hermitian inner product, we should have:
+            ⟨a, b⟩ = conjugate(⟨b, a⟩)
+
+        Args:
+            a: The first vector for symmetry check
+            b: The second vector for symmetry check
+
+        Raises:
+            ValueError: If conjugate symmetry is not satisfied
         """
-        try:
-            # Try to convert to numpy arrays
-            if not isinstance(vec1, np.ndarray):
-                vec1 = np.array(vec1, dtype=complex)
-            if not isinstance(vec2, np.ndarray):
-                vec2 = np.array(vec2, dtype=complex)
-            
-            # Check if shapes are compatible
-            return vec1.shape == vec2.shape
-        except (TypeError, ValueError) as e:
-            self.logger.error(f"Error checking compatibility: {e}")
-            return False
-        except Exception as e:
-            self.logger.error(f"Unexpected error checking compatibility: {e}")
-            return False
+        logger.debug("Checking conjugate symmetry")
+        super().check_conjugate_symmetry(a, b)
+
+    def check_linearity_first_argument(
+        self,
+        a: Union[IVector, np.ndarray, Callable],
+        b: Union[IVector, np.ndarray, Callable],
+        c: Union[IVector, np.ndarray, Callable],
+    ) -> None:
+        """
+        Verifies the linearity property in the first argument.
+
+        For vectors a, b, c and scalar α:
+            ⟨a + b, c⟩ = ⟨a, c⟩ + ⟨b, c⟩
+            ⟨αa, c⟩ = α ⟨a, c⟩
+
+        Args:
+            a: First vector for linearity check
+            b: Second vector for linearity check
+            c: Vector against which the inner product is computed
+
+        Raises:
+            ValueError: If linearity in the first argument is not satisfied
+        """
+        logger.debug("Checking linearity in first argument")
+        super().check_linearity_first_argument(a, b, c)
+
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+        """
+        Verifies the positivity property.
+
+        For any non-zero vector a:
+            ⟨a, a⟩ > 0
+
+        Args:
+            a: Vector to check for positivity
+
+        Raises:
+            ValueError: If positivity property is not satisfied
+        """
+        logger.debug("Checking positivity")
+        super().check_positivity(a)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the HermitianInnerProduct instance.
+        """
+        return f"HermitianInnerProduct()"
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the HermitianInnerProduct instance.
+        """
+        return self.__str__()

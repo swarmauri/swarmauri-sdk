@@ -1,72 +1,143 @@
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar, Generic
+from typing import Any, List, Optional, Tuple, Union, Callable
+import logging
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-T = TypeVar('T')
+logger = logging.getLogger(__name__)
 
-class IPseudometric(Generic[T], ABC):
+
+class IPseudometric(ABC):
     """
-    Interface for pseudometric distance functions.
-    
-    A pseudometric is a distance function that satisfies non-negativity,
-    symmetry, and triangle inequality, but may not distinguish distinct points.
-    
-    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, which means
-    distinct points may have zero distance between them.
-    
-    Requirements:
+    Interface for pseudometric space. Defines a distance structure that satisfies:
     - Non-negativity: d(x,y) ≥ 0
     - Symmetry: d(x,y) = d(y,x)
     - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
+    - Weak identity: d(x,y) = 0 does not necessarily imply x = y
+
+    This interface provides methods for computing distances and validating the pseudometric properties.
     """
-    
+
     @abstractmethod
-    def distance(self, x: T, y: T) -> float:
+    def distance(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> float:
         """
-        Calculate the pseudometric distance between two points.
-        
+        Computes the distance between two elements.
+
         Args:
-            x: First point
-            y: Second point
-            
+            x: First element to compute distance from
+            y: Second element to compute distance to
+
         Returns:
-            The non-negative distance value between the points
-            
-        Note:
-            This method must satisfy the pseudometric properties:
-            - Return value must be non-negative
-            - d(x,y) must equal d(y,x) (symmetry)
-            - d(x,z) must be ≤ d(x,y) + d(y,z) (triangle inequality)
-            - May return 0 even if x ≠ y
-        """
-        pass
-    
-    @abstractmethod
-    def batch_distance(self, xs: list[T], ys: list[T]) -> list[float]:
-        """
-        Calculate distances between corresponding pairs of points from two lists.
-        
-        Args:
-            xs: List of first points
-            ys: List of second points
-            
-        Returns:
-            List of distances between corresponding points
-            
+            float: Distance between x and y
+
         Raises:
-            ValueError: If input lists have different lengths
+            TypeError: If input types are not supported
         """
-        pass
-    
+        logger.debug(f"Computing distance between {x} and {y}")
+        raise NotImplementedError("Method not implemented")
+
     @abstractmethod
-    def pairwise_distances(self, points: list[T]) -> list[list[float]]:
+    def distances(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
+    ) -> List[float]:
         """
-        Calculate all pairwise distances between points in the given list.
-        
+        Computes distances from a single element to multiple elements.
+
         Args:
-            points: List of points
-            
+            x: Reference element
+            y_list: List of elements to compute distances to
+
         Returns:
-            A square matrix (as list of lists) where element [i][j] 
-            contains the distance between points[i] and points[j]
+            List[float]: List of distances from x to each element in y_list
+
+        Raises:
+            TypeError: If input types are not supported
         """
-        pass
+        logger.debug(f"Computing distances from {x} to {y_list}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_non_negativity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies the non-negativity property: d(x,y) ≥ 0.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if non-negativity holds, False otherwise
+        """
+        logger.debug(f"Checking non-negativity for {x} and {y}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies the symmetry property: d(x,y) = d(y,x).
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if symmetry holds, False otherwise
+        """
+        logger.debug(f"Checking symmetry for {x} and {y}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_triangle_inequality(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable],
+        z: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: First element
+            y: Second element
+            z: Third element
+
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
+        """
+        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
+        raise NotImplementedError("Method not implemented")
+
+    @abstractmethod
+    def check_weak_identity(
+        self,
+        x: Union[IVector, IMatrix, List[float], str, Callable],
+        y: Union[IVector, IMatrix, List[float], str, Callable]
+    ) -> bool:
+        """
+        Verifies weak identity property: d(x,y) = 0 does not necessarily imply x = y.
+
+        This method should be implemented to check if the space maintains weak identity.
+
+        Args:
+            x: First element
+            y: Second element
+
+        Returns:
+            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
+        """
+        logger.debug(f"Checking weak identity for {x} and {y}")
+        raise NotImplementedError("Method not implemented")

@@ -164,6 +164,7 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
+
     def process_single_project(
         self,
         project: Dict[str, Any],
@@ -181,9 +182,7 @@ class Peagen(ComponentBase):
         5) Skip start_idx files.
         6) Process the remaining files.
         """
-
         all_file_records = []
-
         packages = project.get("PACKAGES", [])
         project_name = project.get("NAME", "UnnamedProject")
 
@@ -191,8 +190,7 @@ class Peagen(ComponentBase):
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------
         for pkg in packages:
-            project_only_context = {}
-            project_only_context["PROJ"] = project.copy()
+            project_only_context = {"PROJ": project.copy()}
             project_only_context["PROJ"]["PKGS"] = [pkg]
 
             pkg_template_set = (
@@ -263,8 +261,6 @@ class Peagen(ComponentBase):
 
         try:
             if transitive:
-                # If transitive is True and a specific file is given,
-                # return only the transitive closure for that file.
                 if start_file:
                     sorted_records = _transitive_dependency_sort(
                         all_file_records, start_file
@@ -274,14 +270,12 @@ class Peagen(ComponentBase):
                         f"yielding {len(sorted_records)} files."
                     )
                 else:
-                    # Otherwise, do a full topological sort
                     sorted_records = _topological_sort(all_file_records)
                     self.logger.info(
                         f"Full transitive sort ({len(sorted_records)} files) "
                         f"on project '{project_name}'."
                     )
             else:
-                # transitive=False => always a full topological sort
                 sorted_records = _topological_sort(all_file_records)
                 self.logger.info(
                     f"Non-transitive sort ({len(sorted_records)} files) "
@@ -290,10 +284,8 @@ class Peagen(ComponentBase):
 
             # ------------------------------------------------------
             # PHASE 3: HANDLE start_file EVEN IF NOT TRANSITIVE
-            # (i.e., skip up to that file in the sorted list)
             # ------------------------------------------------------
             if start_file and not transitive:
-                # Find the first occurrence of `start_file` by name in the sorted list
                 found_index = next(
                     (
                         i
@@ -317,20 +309,18 @@ class Peagen(ComponentBase):
             # PHASE 4: SKIP start_idx FILES
             # ------------------------------------------------------
             if start_idx > 0:
-                # Make sure we do not exceed length
                 to_process_count = max(0, len(sorted_records) - start_idx)
                 self.logger.info(
                     f"Skipping first {start_idx} file(s). "
                     f"Processing {to_process_count} remaining files for '{project_name}'."
                 )
                 sorted_records = sorted_records[start_idx:]
-
         except Exception as e:
             self.logger.error(f"[{project_name}] Failed to topologically sort: {e}")
             return ([], 0)
 
         # ------------------------------------------------------
-        # PHASE 5: PROCESS THE SORTED FILES
+        # PHASE 5: PROCESS THE SORTED FILES (propagate original start_idx)
         # ------------------------------------------------------
         if not self.dry_run and sorted_records:
             _process_project_files(
@@ -339,7 +329,7 @@ class Peagen(ComponentBase):
                 template_dir=template_dir,  # Each record has its own TEMPLATE_SET
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=0,
+                start_idx=start_idx,  # <-- use the original start_idx here
             )
             self.logger.info(f"Completed file generation workflow on '{project_name}'.")
 

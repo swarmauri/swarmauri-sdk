@@ -1,282 +1,182 @@
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Union, List, Optional, Callable
 import logging
-import numpy as np
-from pydantic import Field, validator
-
 from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.norms.SobolevNorm import SobolevNorm
 
-# Configure logger
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(MetricBase, "SobolevMetric")
 class SobolevMetric(MetricBase):
     """
-    Metric derived from the Sobolev norm, accounting for both function values and derivatives.
-    
-    The Sobolev metric measures the distance between functions by considering both
-    their values and the smoothness of their variations through derivatives.
-    This is particularly useful for comparing functions where the rate of change
-    is as important as the actual values.
-    
-    Attributes
-    ----------
-    type : Literal["SobolevMetric"]
-        Type identifier for the metric
-    weights : Dict[int, float]
-        Weights for each derivative order. Key 0 represents the function value itself.
-    norm_type : int
-        The order of the norm to use (1 for L1, 2 for L2, etc.)
+    A class implementing the Sobolev metric, which measures the distance between functions
+    by considering both their values and derivatives up to a specified order.
+
+    The Sobolev metric combines the L2 norms of a function and its derivatives, providing
+    a comprehensive measure of both the function's value and its smoothness.
+
+    Attributes:
+        order: The highest order of derivatives to include in the metric computation.
+            Defaults to 1.
+
+    Methods:
+        distance: Computes the distance between two functions using the Sobolev norm.
+        distances: Computes pairwise distances between two lists of functions.
+        check_non_negativity: Verifies the non-negativity axiom of the metric.
+        check_identity: Verifies the identity of indiscernibles axiom of the metric.
+        check_symmetry: Verifies the symmetry axiom of the metric.
+        check_triangle_inequality: Verifies the triangle inequality axiom of the metric.
     """
+
     type: Literal["SobolevMetric"] = "SobolevMetric"
-    weights: Dict[int, float] = Field(
-        default_factory=lambda: {0: 1.0, 1: 0.5},
-        description="Weights for each derivative order (0 = function value)"
-    )
-    norm_type: int = Field(
-        default=2,
-        description="Order of the norm (1 for L1, 2 for L2, etc.)",
-        ge=1
-    )
-    
-    @validator('weights')
-    def validate_weights(cls, weights):
+    order: int
+
+    def __init__(self, order: int = 1, **kwargs):
         """
-        Validate that weights dictionary contains at least the zero-order term
-        and that all weights are non-negative.
-        
-        Parameters
-        ----------
-        weights : Dict[int, float]
-            Dictionary of weights for each derivative order
-            
-        Returns
-        -------
-        Dict[int, float]
-            Validated weights dictionary
-            
-        Raises
-        ------
-        ValueError
-            If weights dictionary is invalid
+        Initializes the SobolevMetric instance with the specified order of derivatives.
+
+        Args:
+            order: The highest order of derivatives to include in the metric computation.
+            **kwargs: Additional keyword arguments passed to the base class.
         """
-        if 0 not in weights:
-            raise ValueError("Weights must include at least the zero-order term (key 0)")
-        
-        for order, weight in weights.items():
-            if weight < 0:
-                raise ValueError(f"Weight for order {order} must be non-negative")
-            
-        return weights
-    
-    def distance(self, x: Any, y: Any) -> float:
+        super().__init__(**kwargs)
+        self.order = order
+
+    def distance(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> float:
         """
-        Calculate the Sobolev distance between two functions or arrays.
-        
-        Parameters
-        ----------
-        x : Any
-            First function or array. Should support derivatives if weights include higher orders.
-        y : Any
-            Second function or array. Should support derivatives if weights include higher orders.
-            
-        Returns
-        -------
-        float
-            The Sobolev distance between x and y
-            
-        Notes
-        -----
-        If x and y are functions, they should have a 'derivative' method or attribute 
-        that returns the derivative of the specified order.
-        If x and y are arrays, they should represent function values at sample points,
-        and finite differences will be used to approximate derivatives.
+        Computes the distance between two functions using the Sobolev norm.
+
+        The distance is calculated as the Sobolev norm of the difference between the two functions.
+
+        Args:
+            x: The first function or point.
+            y: The second function or point.
+
+        Returns:
+            float: The computed distance between x and y.
+
+        Raises:
+            MetricViolationError: If any metric axiom is violated.
         """
-        try:
-            # Calculate the weighted sum of norms of function and its derivatives
-            total_distance = 0.0
-            
-            for order, weight in self.weights.items():
-                if weight == 0:
-                    continue  # Skip terms with zero weight
-                
-                # Get the appropriate derivative or function value
-                x_deriv = self._get_derivative(x, order)
-                y_deriv = self._get_derivative(y, order)
-                
-                # Calculate the norm of the difference
-                diff = self._compute_difference(x_deriv, y_deriv)
-                norm_diff = self._compute_norm(diff)
-                
-                # Add the weighted norm to the total distance
-                total_distance += weight * norm_diff
-            
-            return total_distance
-            
-        except Exception as e:
-            logger.error(f"Error calculating Sobolev distance: {str(e)}")
-            raise ValueError(f"Failed to calculate Sobolev distance: {str(e)}")
-    
-    def are_identical(self, x: Any, y: Any) -> bool:
-        """
-        Check if two functions are identical according to the Sobolev metric.
-        
-        Parameters
-        ----------
-        x : Any
-            First function or array
-        y : Any
-            Second function or array
-            
-        Returns
-        -------
-        bool
-            True if the functions are identical (distance is zero), False otherwise
-        """
-        try:
-            # Two functions are identical if their Sobolev distance is zero
-            distance_value = self.distance(x, y)
-            return abs(distance_value) < 1e-10  # Using epsilon for float comparison
-        except Exception as e:
-            logger.error(f"Error checking if functions are identical: {str(e)}")
-            return False
-    
-    def _get_derivative(self, func: Any, order: int) -> Any:
-        """
-        Get the derivative of the specified order from a function or array.
-        
-        Parameters
-        ----------
-        func : Any
-            Function or array
-        order : int
-            Order of the derivative
-            
-        Returns
-        -------
-        Any
-            The derivative of the specified order
-            
-        Notes
-        -----
-        This method handles different input types:
-        - If func is a callable with a 'derivative' method, it uses that
-        - If func is a numpy array, it uses finite differences
-        - If func is a dictionary with derivatives, it looks for the right key
-        """
-        if order == 0:
-            return func  # Return the function itself for order 0
-        
-        # Case 1: Function object with a derivative method
-        if hasattr(func, 'derivative') and callable(getattr(func, 'derivative')):
-            return func.derivative(order)
-        
-        # Case 2: Function object with derivatives as attributes
-        derivative_attr = f"derivative_{order}"
-        if hasattr(func, derivative_attr):
-            return getattr(func, derivative_attr)
-        
-        # Case 3: Dictionary with derivatives as keys
-        if isinstance(func, dict) and order in func:
-            return func[order]
-        
-        # Case 4: Numpy array - use finite differences
-        if isinstance(func, np.ndarray):
-            return self._compute_finite_difference(func, order)
-        
-        # Case 5: If func is callable, try to evaluate it on a grid and compute derivatives
-        if callable(func):
-            try:
-                # Create a simple grid for evaluation
-                x = np.linspace(0, 1, 100)
-                values = np.array([func(xi) for xi in x])
-                return self._compute_finite_difference(values, order)
-            except Exception as e:
-                logger.error(f"Failed to compute derivative for callable: {str(e)}")
-        
-        raise ValueError(f"Cannot compute derivative of order {order} for the given input type")
-    
-    def _compute_finite_difference(self, values: np.ndarray, order: int) -> np.ndarray:
-        """
-        Compute finite difference approximation of derivatives.
-        
-        Parameters
-        ----------
-        values : np.ndarray
-            Array of function values
-        order : int
-            Order of the derivative
-            
-        Returns
-        -------
-        np.ndarray
-            Array of derivative values
-        """
-        # Simple implementation using numpy's diff function
-        result = values.copy()
-        for _ in range(order):
-            result = np.diff(result, n=1, axis=0)
-            # Pad the result to maintain the same size
-            if len(result) < len(values):
-                result = np.pad(result, (0, 1), mode='edge')
-        
-        return result
-    
-    def _compute_difference(self, x: Any, y: Any) -> np.ndarray:
-        """
-        Compute the difference between two functions or arrays.
-        
-        Parameters
-        ----------
-        x : Any
-            First function or array
-        y : Any
-            Second function or array
-            
-        Returns
-        -------
-        np.ndarray
-            The difference between x and y
-        """
-        # Handle different input types
-        if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
-            # Ensure the arrays have the same shape
-            if x.shape != y.shape:
-                raise ValueError(f"Arrays must have the same shape: {x.shape} vs {y.shape}")
-            return x - y
-        
-        # If both are callable, evaluate them on a grid
+        logger.debug(f"Calculating Sobolev distance between {x} and {y}")
+
+        # Compute the difference between the two functions
         if callable(x) and callable(y):
-            grid = np.linspace(0, 1, 100)  # Default grid
-            x_values = np.array([x(t) for t in grid])
-            y_values = np.array([y(t) for t in grid])
-            return x_values - y_values
-        
-        # Try direct subtraction for other types
-        try:
-            return x - y
-        except Exception as e:
-            logger.error(f"Failed to compute difference: {str(e)}")
-            raise ValueError(f"Cannot compute difference for the given input types")
-    
-    def _compute_norm(self, values: np.ndarray) -> float:
-        """
-        Compute the norm of the given values.
-        
-        Parameters
-        ----------
-        values : np.ndarray
-            Array of values
-            
-        Returns
-        -------
-        float
-            The norm of the values
-        """
-        # Handle different norm types
-        if self.norm_type == 1:
-            return np.sum(np.abs(values))
-        elif self.norm_type == 2:
-            return np.sqrt(np.sum(np.square(values)))
+
+            def difference_func(*args):
+                return x(*args) - y(*args)
         else:
-            return np.power(np.sum(np.power(np.abs(values), self.norm_type)), 1.0/self.norm_type)
+            difference_func = x - y
+
+        # Compute the Sobolev norm of the difference
+        sobolev_norm = SobolevNorm(order=self.order)
+        distance = sobolev_norm.compute(difference_func)
+
+        return distance
+
+    def distances(
+        self,
+        xs: List[Union[Callable, list, float]],
+        ys: List[Union[Callable, list, float]],
+    ) -> List[List[float]]:
+        """
+        Computes pairwise distances between two lists of functions.
+
+        Args:
+            xs: First list of functions or points.
+            ys: Second list of functions or points.
+
+        Returns:
+            List[List[float]]: Matrix of pairwise distances between points in xs and ys.
+        """
+        logger.debug(
+            f"Calculating pairwise Sobolev distances between {len(xs)} points and {len(ys)} points"
+        )
+
+        return [[self.distance(x, y) for y in ys] for x in xs]
+
+    def check_non_negativity(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
+        """
+        Verifies the non-negativity axiom: d(x,y) ≥ 0.
+
+        Args:
+            x: First point.
+            y: Second point.
+
+        Raises:
+            MetricViolationError: If d(x,y) < 0.
+        """
+        logger.debug("Checking non-negativity axiom")
+        distance = self.distance(x, y)
+        if distance < 0:
+            raise MetricViolationError("Non-negativity axiom violated: d(x,y) < 0")
+
+    def check_identity(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
+        """
+        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
+
+        Args:
+            x: First point.
+            y: Second point.
+
+        Raises:
+            MetricViolationError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y.
+        """
+        logger.debug("Checking identity of indiscernibles axiom")
+        distance = self.distance(x, y)
+        if x == y and distance != 0:
+            raise MetricViolationError("Identity axiom violated: x = y but d(x,y) ≠ 0")
+        if x != y and distance == 0:
+            raise MetricViolationError("Identity axiom violated: x ≠ y but d(x,y) = 0")
+
+    def check_symmetry(
+        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
+    ) -> None:
+        """
+        Verifies the symmetry axiom: d(x,y) = d(y,x).
+
+        Args:
+            x: First point.
+            y: Second point.
+
+        Raises:
+            MetricViolationError: If d(x,y) ≠ d(y,x).
+        """
+        logger.debug("Checking symmetry axiom")
+        distance_xy = self.distance(x, y)
+        distance_yx = self.distance(y, x)
+        if distance_xy != distance_yx:
+            raise MetricViolationError("Symmetry axiom violated: d(x,y) ≠ d(y,x)")
+
+    def check_triangle_inequality(
+        self,
+        x: Union[Callable, list, float],
+        y: Union[Callable, list, float],
+        z: Union[Callable, list, float],
+    ) -> None:
+        """
+        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+
+        Args:
+            x: First point.
+            y: Second point.
+            z: Third point.
+
+        Raises:
+            MetricViolationError: If d(x,z) > d(x,y) + d(y,z).
+        """
+        logger.debug("Checking triangle inequality axiom")
+        distance_xz = self.distance(x, z)
+        distance_xy = self.distance(x, y)
+        distance_yz = self.distance(y, z)
+
+        if distance_xz > distance_xy + distance_yz:
+            raise MetricViolationError(
+                "Triangle inequality violated: d(x,z) > d(x,y) + d(y,z)"
+            )

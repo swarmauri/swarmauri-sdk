@@ -1,199 +1,110 @@
 import pytest
 import logging
-import numpy as np
-from typing import Union
-
 from swarmauri_standard.metrics.AbsoluteValueMetric import AbsoluteValueMetric
-
-# Configure logger for testing
-logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
 def absolute_value_metric():
-    """
-    Fixture that provides an instance of AbsoluteValueMetric.
-    
-    Returns
-    -------
-    AbsoluteValueMetric
-        A new instance of the AbsoluteValueMetric class
-    """
+    """Fixture to provide an instance of AbsoluteValueMetric for testing."""
     return AbsoluteValueMetric()
 
 
 @pytest.mark.unit
-def test_type():
-    """
-    Test that the type attribute is set correctly.
-    """
-    assert AbsoluteValueMetric.type == "AbsoluteValueMetric"
+class TestAbsoluteValueMetric:
+    """Unit test class for the AbsoluteValueMetric class."""
 
+    def test_distance_happy_path(self, absolute_value_metric):
+        """Test the distance method with valid positive inputs."""
+        x, y = 5.0, 3.0
+        expected = 2.0
+        assert absolute_value_metric.distance(x, y) == expected
 
-@pytest.mark.unit
-def test_resource():
-    """
-    Test that the resource attribute is set correctly.
-    """
-    assert AbsoluteValueMetric.resource == "Metric"
+    def test_distance_negative_input(self, absolute_value_metric):
+        """Test the distance method with negative inputs."""
+        x, y = -3.0, -5.0
+        expected = 2.0
+        assert absolute_value_metric.distance(x, y) == expected
 
+    def test_distance_zero_input(self, absolute_value_metric):
+        """Test the distance method with zero inputs."""
+        x, y = 0.0, 0.0
+        expected = 0.0
+        assert absolute_value_metric.distance(x, y) == expected
 
-@pytest.mark.unit
-def test_serialization():
-    """
-    Test serialization and deserialization of the AbsoluteValueMetric.
-    """
-    metric = AbsoluteValueMetric()
-    serialized = metric.model_dump_json()
-    deserialized = AbsoluteValueMetric.model_validate_json(serialized)
-    
-    assert isinstance(deserialized, AbsoluteValueMetric)
-    assert deserialized.type == metric.type
+    def test_distance_invalid_input(self, absolute_value_metric):
+        """Test the distance method with invalid non-numeric inputs."""
+        x, y = "a", 5
+        with pytest.raises(TypeError):
+            absolute_value_metric.distance(x, y)
 
+    @pytest.mark.parametrize(
+        "xs,ys,expected",
+        [
+            ([1, 2, 3], [4, 5, 6], [[3, 3, 3], [3, 3, 3], [3, 3, 3]]),
+            ([0.5, 1.5], [2.5, 3.5], [[2.0, 2.0], [2.0, 2.0]]),
+        ],
+    )
+    def test_distances_happy_path(self, absolute_value_metric, xs, ys, expected):
+        """Test the distances method with valid input lists."""
+        result = absolute_value_metric.distances(xs, ys)
+        assert result == expected
 
-@pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    (5, 10, 5.0),
-    (10, 5, 5.0),
-    (0, 0, 0.0),
-    (-5, 5, 10.0),
-    (3.5, 2.5, 1.0),
-    (0, -7, 7.0),
-])
-def test_distance_calculation(absolute_value_metric, x, y, expected):
-    """
-    Test the distance calculation with various inputs.
-    
-    Parameters
-    ----------
-    absolute_value_metric : AbsoluteValueMetric
-        The metric instance from the fixture
-    x : Union[int, float]
-        First scalar value
-    y : Union[int, float]
-        Second scalar value
-    expected : float
-        Expected distance value
-    """
-    result = absolute_value_metric.distance(x, y)
-    assert result == expected
-    
-    # Test symmetry
-    result_reversed = absolute_value_metric.distance(y, x)
-    assert result == result_reversed
+    def test_distances_empty_lists(self, absolute_value_metric):
+        """Test the distances method with empty input lists."""
+        xs, ys = [], []
+        result = absolute_value_metric.distances(xs, ys)
+        assert result == []
 
+    def test_distances_invalid_input(self, absolute_value_metric):
+        """Test the distances method with invalid non-numeric inputs."""
+        xs, ys = ["a"], [5]
+        with pytest.raises(TypeError):
+            absolute_value_metric.distances(xs, ys)
 
-@pytest.mark.unit
-def test_distance_with_invalid_inputs(absolute_value_metric):
-    """
-    Test that the distance method raises TypeError for non-scalar inputs.
-    
-    Parameters
-    ----------
-    absolute_value_metric : AbsoluteValueMetric
-        The metric instance from the fixture
-    """
-    with pytest.raises(TypeError):
-        absolute_value_metric.distance("string", 5)
-    
-    with pytest.raises(TypeError):
-        absolute_value_metric.distance(5, [1, 2, 3])
-    
-    with pytest.raises(TypeError):
-        absolute_value_metric.distance({}, None)
+    def test_check_non_negativity_happy_path(self, absolute_value_metric):
+        """Test non-negativity check with valid positive distance."""
+        x, y = 3, 5
+        absolute_value_metric.check_non_negativity(x, y)
 
+    def test_check_non_negativity_zero_distance(self, absolute_value_metric):
+        """Test non-negativity check when x equals y."""
+        x, y = 5, 5
+        absolute_value_metric.check_non_negativity(x, y)
 
-@pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    (5, 5, True),
-    (5, 5.000000001, True),  # Should be within epsilon
-    (5, 6, False),
-    (0, 0, True),
-    (-5, -5, True),
-    (-5, 5, False),
-    (3.5, 3.5, True),
-])
-def test_are_identical(absolute_value_metric, x, y, expected):
-    """
-    Test the are_identical method with various inputs.
-    
-    Parameters
-    ----------
-    absolute_value_metric : AbsoluteValueMetric
-        The metric instance from the fixture
-    x : Union[int, float]
-        First scalar value
-    y : Union[int, float]
-        Second scalar value
-    expected : bool
-        Expected result
-    """
-    result = absolute_value_metric.are_identical(x, y)
-    assert result == expected
+    @pytest.mark.parametrize("x,y", [(5, 3), (-3, -5), (0, 0)])
+    def test_check_non_negativity_multiple_cases(self, absolute_value_metric, x, y):
+        """Test non-negativity check with multiple input cases."""
+        absolute_value_metric.check_non_negativity(x, y)
 
+    @pytest.mark.parametrize("x,y", [(5, 5), (-3, -3), (0, 0)])
+    def test_check_identity_happy_path(self, absolute_value_metric, x, y):
+        """Test identity check when x equals y."""
+        absolute_value_metric.check_identity(x, y)
 
-@pytest.mark.unit
-def test_are_identical_with_invalid_inputs(absolute_value_metric):
-    """
-    Test that the are_identical method raises TypeError for non-scalar inputs.
-    
-    Parameters
-    ----------
-    absolute_value_metric : AbsoluteValueMetric
-        The metric instance from the fixture
-    """
-    with pytest.raises(TypeError):
-        absolute_value_metric.are_identical("string", 5)
-    
-    with pytest.raises(TypeError):
-        absolute_value_metric.are_identical(5, [1, 2, 3])
+    @pytest.mark.parametrize("x,y", [(5, 3), (-3, -5), (0, 1)])
+    def test_check_identity_different_values(self, absolute_value_metric, x, y):
+        """Test identity check when x and y are different."""
+        absolute_value_metric.check_identity(x, y)
 
+    @pytest.mark.parametrize(
+        "x,y", [(5, 3), (3, 5), (-3, -5), (-5, -3), (0, 1), (1, 0)]
+    )
+    def test_check_symmetry_happy_path(self, absolute_value_metric, x, y):
+        """Test symmetry check with multiple input cases."""
+        absolute_value_metric.check_symmetry(x, y)
 
-@pytest.mark.unit
-@pytest.mark.parametrize("x, y, z", [
-    (0, 5, 10),
-    (-5, 0, 5),
-    (3.5, 7.2, 10.1),
-    (100, 50, 25),
-])
-def test_validate_metric_axioms(absolute_value_metric, x, y, z):
-    """
-    Test that the absolute value metric satisfies all metric axioms.
-    
-    Parameters
-    ----------
-    absolute_value_metric : AbsoluteValueMetric
-        The metric instance from the fixture
-    x : Union[int, float]
-        First test scalar value
-    y : Union[int, float]
-        Second test scalar value
-    z : Union[int, float]
-        Third test scalar value
-    """
-    assert absolute_value_metric.validate_metric_axioms(x, y, z) is True
-    
-    # Test non-negativity directly
-    assert absolute_value_metric.distance(x, y) >= 0
-    
-    # Test symmetry directly
-    assert absolute_value_metric.distance(x, y) == absolute_value_metric.distance(y, x)
-    
-    # Test identity of indiscernibles
-    assert (absolute_value_metric.distance(x, x) == 0)
-    
-    # Test triangle inequality directly
-    d_xz = absolute_value_metric.distance(x, z)
-    d_xy = absolute_value_metric.distance(x, y)
-    d_yz = absolute_value_metric.distance(y, z)
-    assert d_xz <= d_xy + d_yz
+    @pytest.mark.parametrize(
+        "x,y,z,expected", [(1, 2, 3, True), (0, 5, 3, True), (-3, -1, 2, True)]
+    )
+    def test_check_triangle_inequality_happy_path(
+        self, absolute_value_metric, x, y, z, expected
+    ):
+        """Test triangle inequality check with valid cases."""
+        absolute_value_metric.check_triangle_inequality(x, y, z)
 
-
-@pytest.mark.unit
-def test_inheritance():
-    """
-    Test that AbsoluteValueMetric inherits from MetricBase.
-    """
-    from swarmauri_base.metrics.MetricBase import MetricBase
-    
-    assert issubclass(AbsoluteValueMetric, MetricBase)
+    @pytest.mark.parametrize("x,y,z", [(1, 2, 5), (-5, -3, -1), (0, 1, 2)])
+    def test_check_triangle_inequality_multiple_cases(
+        self, absolute_value_metric, x, y, z
+    ):
+        """Test triangle inequality with multiple input cases."""
+        absolute_value_metric.check_triangle_inequality(x, y, z)

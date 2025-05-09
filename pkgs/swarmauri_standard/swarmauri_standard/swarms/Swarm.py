@@ -16,4 +16,3 @@ class Swarm(SwarmBase):
     def _create_agent(self) -> Any:
         """Create new agent instance"""
         return self.agent_class()
-

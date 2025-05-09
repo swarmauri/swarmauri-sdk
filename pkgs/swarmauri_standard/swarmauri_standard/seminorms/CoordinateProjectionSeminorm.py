@@ -1,211 +1,127 @@
+from typing import Union, Optional, List
 import logging
 import numpy as np
-from typing import List, Set, Union, Literal, TypeVar, Optional
-from swarmauri_core.seminorms.ISeminorm import ISeminorm
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
-from swarmauri_core.ComponentBase import ComponentBase
 
-# Set up logging
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.seminorms import SeminormBase
+from swarmauri_core.vectors.IVector import IVector
+
 logger = logging.getLogger(__name__)
 
-# Type variable for generic typing
-T = TypeVar('T')
 
 @ComponentBase.register_type(SeminormBase, "CoordinateProjectionSeminorm")
 class CoordinateProjectionSeminorm(SeminormBase):
     """
-    Seminorm via projection onto a subset of coordinates.
-    
-    This class implements a seminorm that ignores certain components of the vector,
-    resulting in possible degeneracy. It projects the input vector onto a subspace
-    defined by the specified coordinate indices before evaluating the seminorm.
-    
-    Attributes
-    ----------
-    type : Literal["CoordinateProjectionSeminorm"]
-        The type identifier for this component.
-    projection_indices : Set[int]
-        The set of indices to project onto. Only these components will be considered
-        when evaluating the seminorm.
+    A seminorm implementation that computes the seminorm by projecting onto a specified subset of coordinates.
+
+    This class provides functionality to ignore certain components of the vector, potentially leading to a degenerate seminorm.
+
+    Attributes:
+        projection_indices: List[int] - The indices of the coordinates to project onto
     """
-    
-    type: Literal["CoordinateProjectionSeminorm"] = "CoordinateProjectionSeminorm"
-    projection_indices: Set[int]
-    
-    def __init__(self, projection_indices: Union[List[int], Set[int]]):
+
+    def __init__(self, projection_indices: List[int] = None):
         """
-        Initialize the CoordinateProjectionSeminorm.
-        
-        Parameters
-        ----------
-        projection_indices : Union[List[int], Set[int]]
-            The indices of the coordinates to project onto. These are the only
-            coordinates that will be considered when evaluating the seminorm.
+        Initializes the CoordinateProjectionSeminorm instance with specified projection indices.
+
+        Args:
+            projection_indices: List[int] - Optional list of indices to project onto. If None, all coordinates are used.
         """
         super().__init__()
-        self.projection_indices = set(projection_indices)
-        logger.info(f"Initialized CoordinateProjectionSeminorm with projection indices: {self.projection_indices}")
-    
-    def _project(self, x: np.ndarray) -> np.ndarray:
+        self.projection_indices = (
+            projection_indices if projection_indices is not None else []
+        )
+        logger.debug(
+            f"Initialized CoordinateProjectionSeminorm with projection indices {self.projection_indices}"
+        )
+
+    def compute(self, input: Union[IVector, str, Callable, list, tuple]) -> float:
         """
-        Project the input vector onto the subspace defined by projection_indices.
-        
-        Parameters
-        ----------
-        x : np.ndarray
-            The input vector to project.
-            
-        Returns
-        -------
-        np.ndarray
-            The projected vector, with zeros in the positions not in projection_indices.
+        Computes the seminorm value of the input by projecting onto the specified coordinates.
+
+        Args:
+            input: The input to compute the seminorm for. Currently supports IVector and other types are forwarded to base class.
+
+        Returns:
+            float: The computed seminorm value
+
+        Raises:
+            NotImplementedError: If input type is not supported
         """
-        # Create a copy to avoid modifying the original
-        projected = np.zeros_like(x)
-        
-        # Only keep the components specified in projection_indices
-        for idx in self.projection_indices:
-            if idx < len(x):
-                projected[idx] = x[idx]
-        
-        return projected
-    
-    def evaluate(self, x: np.ndarray) -> float:
+        logger.debug(f"Computing seminorm for input of type {type(input).__name__}")
+
+        if isinstance(input, IVector):
+            if not self.projection_indices:
+                # If no projection indices are specified, use all coordinates
+                vector = input.data
+            else:
+                # Project the vector onto the specified coordinates
+                vector = input.data[self.projection_indices]
+
+            # Compute the L2 norm of the projected vector
+            return np.linalg.norm(vector)
+
+        # For other input types, defer to base class implementation
+        return super().compute(input)
+
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, str, Callable, list, tuple],
+        b: Union[IVector, str, Callable, list, tuple],
+    ) -> bool:
         """
-        Evaluate the seminorm for a given input by projecting it onto the specified coordinates.
-        
-        Parameters
-        ----------
-        x : np.ndarray
-            The input vector to evaluate the seminorm on.
-            
-        Returns
-        -------
-        float
-            The seminorm value, which is the Euclidean norm of the projected vector.
+        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
+
+        Args:
+            a: First element to check
+            b: Second element to check
+
+        Returns:
+            bool: True if triangle inequality holds, False otherwise
         """
-        logger.debug(f"Evaluating CoordinateProjectionSeminorm on vector of shape {x.shape}")
-        
-        # Project the vector onto the specified coordinates
-        projected = self._project(x)
-        
-        # Compute the Euclidean norm of the projected vector
-        norm_value = np.linalg.norm(projected)
-        
-        logger.debug(f"CoordinateProjectionSeminorm evaluated to {norm_value}")
-        return float(norm_value)
-    
-    def scale(self, x: np.ndarray, alpha: float) -> float:
+        logger.debug("Checking triangle inequality")
+
+        seminorm_a = self.compute(a)
+        seminorm_b = self.compute(b)
+        seminorm_a_plus_b = self.compute(a + b)
+
+        return seminorm_a_plus_b <= seminorm_a + seminorm_b
+
+    def check_scalar_homogeneity(
+        self, a: Union[IVector, str, Callable, list, tuple], scalar: Union[int, float]
+    ) -> bool:
         """
-        Evaluate the seminorm of a scaled input.
-        
-        This method satisfies scalar homogeneity: p(αx) = |α|p(x)
-        
-        Parameters
-        ----------
-        x : np.ndarray
-            The input vector to evaluate the seminorm on.
-        alpha : float
-            The scaling factor.
-            
-        Returns
-        -------
-        float
-            The seminorm value of the scaled input.
+        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
+
+        Args:
+            a: Element to check
+            scalar: Scalar value to scale with
+
+        Returns:
+            bool: True if scalar homogeneity holds, False otherwise
         """
-        logger.debug(f"Scaling vector by {alpha} before evaluating CoordinateProjectionSeminorm")
-        
-        # Scale the vector
-        scaled_x = alpha * x
-        
-        # Evaluate the seminorm on the scaled vector
-        return self.evaluate(scaled_x)
-    
-    def triangle_inequality(self, x: np.ndarray, y: np.ndarray) -> bool:
+        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
+
+        scaled_a = scalar * a
+        seminorm_scaled = self.compute(scaled_a)
+        seminorm_original = self.compute(a)
+
+        return np.isclose(seminorm_scaled, abs(scalar) * seminorm_original)
+
+    def __str__(self) -> str:
         """
-        Verify that the triangle inequality holds for the given inputs.
-        
-        This method checks if p(x + y) <= p(x) + p(y).
-        
-        Parameters
-        ----------
-        x : np.ndarray
-            First input vector.
-        y : np.ndarray
-            Second input vector.
-            
-        Returns
-        -------
-        bool
-            True if the triangle inequality holds, False otherwise.
+        Returns a string representation of the CoordinateProjectionSeminorm instance.
+
+        Returns:
+            str: String representation
         """
-        logger.debug("Checking triangle inequality for CoordinateProjectionSeminorm")
-        
-        # Compute p(x + y)
-        sum_norm = self.evaluate(x + y)
-        
-        # Compute p(x) + p(y)
-        x_norm = self.evaluate(x)
-        y_norm = self.evaluate(y)
-        sum_of_norms = x_norm + y_norm
-        
-        # Check if p(x + y) <= p(x) + p(y)
-        result = sum_norm <= sum_of_norms + 1e-10  # Adding small tolerance for numerical stability
-        
-        logger.debug(f"Triangle inequality check: {sum_norm} <= {sum_of_norms}: {result}")
-        return result
-    
-    def is_zero(self, x: np.ndarray, tolerance: float = 1e-10) -> bool:
+        return f"CoordinateProjectionSeminorm(projection_indices={self.projection_indices})"
+
+    def __repr__(self) -> str:
         """
-        Check if the seminorm evaluates to zero (within a tolerance).
-        
-        Parameters
-        ----------
-        x : np.ndarray
-            The input vector to check.
-        tolerance : float, optional
-            The numerical tolerance for considering a value as zero.
-            
-        Returns
-        -------
-        bool
-            True if the seminorm of x is zero (within tolerance), False otherwise.
+        Returns the official string representation of the CoordinateProjectionSeminorm instance.
+
+        Returns:
+            str: Official string representation
         """
-        logger.debug(f"Checking if CoordinateProjectionSeminorm is zero with tolerance {tolerance}")
-        
-        # Compute the seminorm
-        norm_value = self.evaluate(x)
-        
-        # Check if it's close to zero
-        result = norm_value < tolerance
-        
-        logger.debug(f"Is zero check: {norm_value} < {tolerance}: {result}")
-        return result
-    
-    def is_definite(self) -> bool:
-        """
-        Check if this seminorm is actually a norm (i.e., it has the definiteness property).
-        
-        A seminorm is definite if p(x) = 0 implies x = 0. For a coordinate projection
-        seminorm, this is true if and only if all coordinates are included in the projection.
-        
-        Returns
-        -------
-        bool
-            True if the seminorm is definite (and thus a norm), False otherwise.
-        """
-        logger.debug("Checking if CoordinateProjectionSeminorm is definite")
-        
-        # This seminorm is definite if and only if all coordinates are included
-        # Since we don't know the dimension of the space, we can't determine this
-        # in the general case. However, if projection_indices is empty, it's definitely
-        # not definite.
-        
-        if not self.projection_indices:
-            logger.debug("CoordinateProjectionSeminorm is not definite (empty projection indices)")
-            return False
-        
-        # In practice, this would require knowledge of the space dimension
-        # For now, we'll return False unless explicitly instructed otherwise
-        logger.debug("CoordinateProjectionSeminorm might be definite depending on the space dimension")
-        return False
+        return self.__str__()

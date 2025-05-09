@@ -1,91 +1,89 @@
-from typing import TypeVar, Generic, Any
+from abc import ABC, abstractmethod
+from typing import Union
+import numpy as np
 import logging
-from abc import ABC
 
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct, T
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.vectors.IVector import IVector
 
-@ComponentBase.register_model()
-class InnerProductBase(IInnerProduct[T], ComponentBase):
+logger = logging.getLogger(__name__)
+
+
+class InnerProductBase(ABC, IInnerProduct):
     """
-    Abstract base class implementing partial methods for inner product calculation.
-    
-    This class provides reusable logic for inner product implementations and serves
-    as a foundation for specific inner product implementations. It inherits from
-    IInnerProduct and implements the required abstract methods, raising
-    NotImplementedError to indicate that concrete subclasses must provide
-    the actual implementation.
-    
-    Attributes
-    ----------
-    resource : str
-        The resource type identifier for this component
+    Provides a base implementation for inner product operations. This class serves as
+    a foundation for various inner product implementations and defines the common
+    interface and functionality according to the IInnerProduct contract.
+
+    This class should be subclassed by specific inner product implementations.
     """
-    
-    resource: str = ResourceTypes.INNER_PRODUCT.value
-    
-    def __init__(self) -> None:
+
+    @abstractmethod
+    def compute(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> float:
         """
-        Initialize the inner product base implementation.
-        
-        Sets up logging and initializes the base class.
+        Computes the inner product between two vectors, matrices, or callables.
+
+        Args:
+            a: The first element in the inner product operation. Can be a vector,
+               matrix, or callable.
+            b: The second element in the inner product operation. Can be a vector,
+               matrix, or callable.
+
+        Returns:
+            float: The result of the inner product operation.
+
+        Raises:
+            NotImplementedError: This method must be implemented by subclasses
+            ValueError: If the input types are not supported or dimensions are incompatible
+            ZeroDivisionError: If any operation leads to division by zero
         """
-        super().__init__()
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug("Initializing InnerProductBase")
-    
-    def compute(self, vec1: T, vec2: T) -> float:
+        logger.error("compute() method not implemented in subclass")
+        raise NotImplementedError("Subclasses must implement the compute() method")
+
+    def check_conjugate_symmetry(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Compute the inner product between two vectors.
-        
-        This is an abstract method that must be implemented by concrete subclasses.
-        
-        Parameters
-        ----------
-        vec1 : T
-            First vector in the inner product
-        vec2 : T
-            Second vector in the inner product
-            
-        Returns
-        -------
-        float
-            The resulting inner product value
-            
-        Raises
-        ------
-        NotImplementedError
-            This base method must be overridden by subclasses
-        ValueError
-            If the vectors are incompatible for inner product calculation
-        TypeError
-            If the vectors are of unsupported types
+        Verifies the conjugate symmetry property of the inner product implementation.
+
+        The inner product <a, b> should be equal to the conjugate of <b, a>.
+
+        Args:
+            a: The first element in the inner product operation
+            b: The second element in the inner product operation
+
+        Raises:
+            ValueError: If the conjugate symmetry property is not satisfied
         """
-        self.logger.error("compute method not implemented")
-        raise NotImplementedError("compute method must be implemented by subclasses")
-    
-    def is_compatible(self, vec1: T, vec2: T) -> bool:
+        super().check_conjugate_symmetry(a, b)
+
+    def check_linearity_first_argument(self, a: Union[IVector, np.ndarray, Callable], b: Union[IVector, np.ndarray, Callable], c: Union[IVector, np.ndarray, Callable]) -> None:
         """
-        Check if two vectors are compatible for inner product calculation.
-        
-        This is an abstract method that must be implemented by concrete subclasses.
-        
-        Parameters
-        ----------
-        vec1 : T
-            First vector to check
-        vec2 : T
-            Second vector to check
-            
-        Returns
-        -------
-        bool
-            True if the vectors are compatible, False otherwise
-            
-        Raises
-        ------
-        NotImplementedError
-            This base method must be overridden by subclasses
+        Verifies the linearity property in the first argument of the inner product implementation.
+
+        For vectors a, b, c and scalar α:
+        - Linearity: <a + b, c> = <a, c> + <b, c>
+        - Homogeneity: <αa, c> = α <a, c>
+
+        Args:
+            a: The first vector for linearity check
+            b: The second vector for linearity check
+            c: The vector against which the inner product is computed
+
+        Raises:
+            ValueError: If the linearity property in the first argument is not satisfied
         """
-        self.logger.error("is_compatible method not implemented")
-        raise NotImplementedError("is_compatible method must be implemented by subclasses")
+        super().check_linearity_first_argument(a, b, c)
+
+    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+        """
+        Verifies the positivity property of the inner product implementation.
+
+        For any non-zero vector a:
+        - <a, a> > 0
+
+        Args:
+            a: The vector to check for positivity
+
+        Raises:
+            ValueError: If the positivity property is not satisfied
+        """
+        super().check_positivity(a)

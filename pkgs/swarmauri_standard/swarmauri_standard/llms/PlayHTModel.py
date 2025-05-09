@@ -40,7 +40,12 @@ class PlayHTModel(LLMBase):
     Provider resourses: https://docs.play.ht/reference/api-getting-started
     """
 
-    allowed_models: List[str] = ["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
+    allowed_models: List[str] = [
+        "Play3.0-mini",
+        "PlayHT2.0-turbo",
+        "PlayHT1.0",
+        "PlayHT2.0",
+    ]
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
     api_key: SecretStr

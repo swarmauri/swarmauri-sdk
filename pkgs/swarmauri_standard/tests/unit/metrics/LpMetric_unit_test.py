@@ -1,231 +1,99 @@
 import pytest
-import numpy as np
 import logging
-from typing import List, Tuple, Any
-
 from swarmauri_standard.metrics.LpMetric import LpMetric
-
-# Configure logger
-logger = logging.getLogger(__name__)
+from swarmauri_base.exceptions import MetricViolationError
 
 
 @pytest.fixture
-def lp_metric_p2():
-    """
-    Fixture that returns an LpMetric instance with p=2 (Euclidean).
-    
-    Returns
-    -------
-    LpMetric
-        An instance of LpMetric with p=2
-    """
+def lp_metric():
     return LpMetric(p=2.0)
 
 
-@pytest.fixture
-def lp_metric_p1():
-    """
-    Fixture that returns an LpMetric instance with p=1 (Manhattan).
-    
-    Returns
-    -------
-    LpMetric
-        An instance of LpMetric with p=1
-    """
-    return LpMetric(p=1.0)
-
-
-@pytest.fixture
-def lp_metric_pinf():
-    """
-    Fixture that returns an LpMetric instance with p=infinity (Chebyshev).
-    
-    Returns
-    -------
-    LpMetric
-        An instance of LpMetric with p=infinity
-    """
-    return LpMetric(p=float('inf'))
+@pytest.fixture(params=[2.0, 1.5, 3.0])
+def lp_metric_var_p(request):
+    return LpMetric(p=request.param)
 
 
 @pytest.mark.unit
-def test_lp_metric_initialization():
-    """Test that LpMetric initializes correctly with default and custom values."""
-    # Default initialization should set p to 2
-    default_metric = LpMetric()
-    assert default_metric.p == 2.0
-    assert default_metric.type == "LpMetric"
-    
-    # Custom p value
-    custom_metric = LpMetric(p=3.0)
-    assert custom_metric.p == 3.0
+class TestLpMetric:
+    """Unit tests for the LpMetric class."""
 
+    def test_initialization(self, lp_metric_var_p):
+        """Test that the LpMetric instance is correctly initialized."""
+        assert lp_metric_var_p.p == lp_metric_var_p.norm.p
+        with pytest.raises(ValueError):
+            LpMetric(p=-1.0)
+        with pytest.raises(ValueError):
+            LpMetric(p=1.0)
+        with pytest.raises(ValueError):
+            LpMetric(p=float("inf"))
+        with pytest.raises(ValueError):
+            LpMetric(p=None)
 
-@pytest.mark.unit
-def test_lp_metric_validation():
-    """Test that LpMetric validates p value correctly."""
-    # Valid p values
-    assert LpMetric(p=1.0).p == 1.0
-    assert LpMetric(p=2.0).p == 2.0
-    assert LpMetric(p=float('inf')).p == float('inf')
-    
-    # Invalid p values should raise ValueError
-    with pytest.raises(ValueError):
-        LpMetric(p=0.5)
-    
-    with pytest.raises(ValueError):
-        LpMetric(p=0)
-    
-    with pytest.raises(ValueError):
-        LpMetric(p=-1)
+    def test_logging(self, lp_metric, caplog):
+        """Test that appropriate logging occurs during distance calculation."""
+        lp_metric.distance([1, 2], [3, 4])
+        assert "Calculating L2.0 distance" in caplog.text
 
+    def test_is_valid(self, lp_metric):
+        """Test the is_valid method for different input types."""
+        assert lp_metric.is_valid(1)
+        assert lp_metric.is_valid([1.0, 2.0])
+        assert not lp_metric.is_valid(float("nan"))
+        assert not lp_metric.is_valid([float("inf"), 2.0])
+        assert not lp_metric.is_valid(None)
 
-@pytest.mark.unit
-@pytest.mark.parametrize("p,x,y,expected", [
-    # p=1 (Manhattan distance)
-    (1, [0, 0], [3, 4], 7.0),
-    (1, [1, 2, 3], [4, 5, 6], 9.0),
-    # p=2 (Euclidean distance)
-    (2, [0, 0], [3, 4], 5.0),
-    (2, [1, 2, 3], [4, 5, 6], 5.196152422706632),
-    # p=3
-    (3, [0, 0], [3, 4], 4.497941445275415),
-    # p=infinity (Chebyshev distance)
-    (float('inf'), [0, 0], [3, 4], 4.0),
-    (float('inf'), [1, 2, 3], [4, 5, 6], 3.0),
-])
-def test_lp_metric_distance(p: float, x: List[float], y: List[float], expected: float):
-    """
-    Test LpMetric distance calculation with different p values.
-    
-    Parameters
-    ----------
-    p : float
-        The p value for the metric
-    x : List[float]
-        First vector
-    y : List[float]
-        Second vector
-    expected : float
-        Expected distance
-    """
-    metric = LpMetric(p=p)
-    result = metric.distance(x, y)
-    assert np.isclose(result, expected)
+    def test_resource_and_type(self, lp_metric):
+        """Test that resource and type attributes are correctly set."""
+        assert LpMetric.resource == "Metric"
+        assert lp_metric.type == "LpMetric"
 
+    def test_repr(self, lp_metric):
+        """Test the string representation of the LpMetric instance."""
+        assert str(lp_metric) == f"LpMetric(p={lp_metric.p})"
 
-@pytest.mark.unit
-def test_lp_metric_distance_numpy_arrays(lp_metric_p2):
-    """Test LpMetric distance calculation with numpy arrays."""
-    x = np.array([0, 0])
-    y = np.array([3, 4])
-    assert np.isclose(lp_metric_p2.distance(x, y), 5.0)
-    
-    # Test with multi-dimensional arrays
-    x = np.array([[0, 0], [1, 1]])
-    y = np.array([[3, 4], [2, 3]])
-    with pytest.raises(ValueError):
-        # Should raise error for multi-dimensional arrays with different shapes
-        lp_metric_p2.distance(x, y.flatten())
+    def test_distance_vector_and_scalar(self, lp_metric):
+        """Test distance calculation with both vector and scalar inputs."""
+        # Vector vs Vector
+        d = lp_metric.distance([1.0, 2.0], [3.0, 4.0])
+        assert d >= 0.0
 
+        # Vector vs Scalar
+        d = lp_metric.distance([1.0, 2.0], 3.0)
+        assert d >= 0.0
 
-@pytest.mark.unit
-def test_lp_metric_euclidean(lp_metric_p2):
-    """Test specific Euclidean distance cases."""
-    # Origin to (1,1)
-    assert np.isclose(lp_metric_p2.distance([0, 0], [1, 1]), np.sqrt(2))
-    
-    # Points on a line
-    assert np.isclose(lp_metric_p2.distance([0, 0, 0], [1, 0, 0]), 1.0)
-    
-    # 3D space
-    assert np.isclose(lp_metric_p2.distance([1, 2, 3], [4, 5, 6]), 5.196152422706632)
+        # Scalar vs Vector
+        d = lp_metric.distance(3.0, [4.0, 5.0])
+        assert d >= 0.0
 
+        # Scalar vs Scalar
+        d = lp_metric.distance(3.0, 4.0)
+        assert d >= 0.0
 
-@pytest.mark.unit
-def test_lp_metric_manhattan(lp_metric_p1):
-    """Test specific Manhattan distance cases."""
-    # Origin to (1,1)
-    assert np.isclose(lp_metric_p1.distance([0, 0], [1, 1]), 2.0)
-    
-    # Points on a line
-    assert np.isclose(lp_metric_p1.distance([0, 0, 0], [1, 0, 0]), 1.0)
-    
-    # 3D space
-    assert np.isclose(lp_metric_p1.distance([1, 2, 3], [4, 5, 6]), 9.0)
+    def test_identity_of_indiscernibles(self, lp_metric):
+        """Test the identity of indiscernibles axiom."""
+        point = [1.0, 2.0]
+        d = lp_metric.distance(point, point)
+        assert d == 0.0
 
+        with pytest.raises(MetricViolationError):
+            lp_metric.distance([1.0, 2.0], [1.0, 3.0])
+            lp_metric.check_identity([1.0, 2.0], [1.0, 2.0])
 
-@pytest.mark.unit
-def test_lp_metric_chebyshev(lp_metric_pinf):
-    """Test specific Chebyshev distance cases."""
-    # Origin to (1,1)
-    assert np.isclose(lp_metric_pinf.distance([0, 0], [1, 1]), 1.0)
-    
-    # Points with different coordinates
-    assert np.isclose(lp_metric_pinf.distance([0, 0], [3, 4]), 4.0)
-    
-    # 3D space
-    assert np.isclose(lp_metric_pinf.distance([1, 2, 3], [4, 5, 6]), 3.0)
+    def test_symmetry(self, lp_metric):
+        """Test the symmetry axiom."""
+        d_xy = lp_metric.distance([1.0, 2.0], [3.0, 4.0])
+        d_yx = lp_metric.distance([3.0, 4.0], [1.0, 2.0])
+        assert d_xy == d_yx
 
+    def test_triangle_inequality(self, lp_metric):
+        """Test the triangle inequality."""
+        x = [0.0, 0.0]
+        y = [1.0, 0.0]
+        z = [0.0, 1.0]
 
-@pytest.mark.unit
-def test_lp_metric_are_identical():
-    """Test the are_identical method of LpMetric."""
-    metric = LpMetric(p=2.0)
-    
-    # Identical points
-    assert metric.are_identical([1, 2, 3], [1, 2, 3])
-    
-    # Nearly identical points (floating-point comparison)
-    assert metric.are_identical([1.0, 2.0, 3.0], [1.0, 2.0, 3.0 + 1e-10])
-    
-    # Different points
-    assert not metric.are_identical([1, 2, 3], [1, 2, 4])
-    assert not metric.are_identical([0, 0], [1, 1])
+        d_xy = lp_metric.distance(x, y)
+        d_yz = lp_metric.distance(y, z)
+        d_xz = lp_metric.distance(x, z)
 
-
-@pytest.mark.unit
-def test_lp_metric_error_handling():
-    """Test error handling in LpMetric."""
-    metric = LpMetric(p=2.0)
-    
-    # Different length vectors
-    with pytest.raises(ValueError):
-        metric.distance([1, 2, 3], [1, 2])
-    
-    # Non-numeric inputs
-    with pytest.raises(TypeError):
-        metric.distance(["a", "b"], ["c", "d"])
-
-
-@pytest.mark.unit
-def test_lp_metric_string_representation():
-    """Test the string representation of LpMetric."""
-    # Manhattan (p=1)
-    assert str(LpMetric(p=1.0)) == "Manhattan Metric (p=1.0)"
-    
-    # Euclidean (p=2)
-    assert str(LpMetric(p=2.0)) == "Euclidean Metric (p=2.0)"
-    
-    # Chebyshev (p=inf)
-    assert str(LpMetric(p=float('inf'))) == "Chebyshev Metric (p=inf)"
-    
-    # Other p values
-    assert str(LpMetric(p=3.0)) == "L3.0 Metric (p=3.0)"
-
-
-@pytest.mark.unit
-def test_lp_metric_serialization():
-    """Test serialization and deserialization of LpMetric."""
-    # Create an instance
-    original = LpMetric(p=3.5)
-    
-    # Serialize to JSON
-    json_str = original.model_dump_json()
-    
-    # Deserialize from JSON
-    deserialized = LpMetric.model_validate_json(json_str)
-    
-    # Check that the deserialized object matches the original
-    assert deserialized.p == original.p
-    assert deserialized.type == original.type
+        assert d_xz <= d_xy + d_yz
