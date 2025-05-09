@@ -13,11 +13,11 @@ from swarmauri_core.ComponentBase import ComponentBase
 class TimedRotatingFileLoggingHandler(HandlerBase):
     """
     A handler that extends FileHandler to rollover log files based on time intervals.
-    
+
     This handler rotates the log file at certain timed intervals using Python's built-in
     TimedRotatingFileHandler. For example, you can set it to rotate logs daily at midnight,
     hourly, or at any other time interval.
-    
+
     Attributes
     ----------
     type : Literal["TimedRotatingFileLoggingHandler"]
@@ -44,7 +44,7 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
     atTime : Optional[Any]
         The time of day when rollover occurs, for 'midnight' or 'W0'-'W6'.
     """
-    
+
     type: Literal["TimedRotatingFileLoggingHandler"] = "TimedRotatingFileLoggingHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
@@ -60,10 +60,10 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
     def compile_handler(self) -> logging.Handler:
         """
         Compiles a TimedRotatingFileHandler using the specified configuration.
-        
+
         This method creates a new TimedRotatingFileHandler instance with the configured
         parameters, sets the appropriate logging level, and applies the formatter.
-        
+
         Returns
         -------
         logging.Handler
@@ -73,7 +73,7 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
         log_dir = os.path.dirname(self.filename)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
-        
+
         # Create the timed rotating file handler
         handler = TimedRotatingFileHandler(
             filename=self.filename,
@@ -83,12 +83,12 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
             encoding=self.encoding,
             delay=self.delay,
             utc=self.utc,
-            atTime=self.atTime
+            atTime=self.atTime,
         )
-        
+
         # Set the logging level
         handler.setLevel(self.level)
-        
+
         # Apply formatter
         if self.formatter:
             if isinstance(self.formatter, str):
@@ -99,8 +99,8 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
             # Use a default formatter if none is specified
             default_formatter = logging.Formatter(
                 "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
-                "%Y-%m-%d %H:%M:%S"
+                "%Y-%m-%d %H:%M:%S",
             )
             handler.setFormatter(default_formatter)
-        
+
         return handler
