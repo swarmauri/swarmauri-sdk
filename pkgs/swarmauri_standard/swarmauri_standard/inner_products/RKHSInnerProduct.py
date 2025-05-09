@@ -55,7 +55,7 @@ class RKHSInnerProduct(InnerProductBase):
         if self.kernel is None:
             raise ValueError("Kernel must be set before computing the inner product")
 
-        if isinstance(a, (IVector, np.ndarray) and isinstance(b, (IVector, np.ndarray)):
+        if isinstance(a, (IVector, np.ndarray)) and isinstance(b, (IVector, np.ndarray)):
             # For vectors, compute the kernel evaluation
             return self.kernel(a, b)
         elif callable(a) and callable(b):

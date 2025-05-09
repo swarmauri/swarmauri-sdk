@@ -1,7 +1,7 @@
 from typing import Union, Sequence, Optional
 import numpy as np
 import logging
-from swarmauri_base ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 
 logger = logging.getLogger(__name__)
