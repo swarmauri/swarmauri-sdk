@@ -212,7 +212,7 @@ def test_integration_with_logger():
 def test_model_post_init_called():
     """Test that model_post_init is called during initialization."""
     with patch.object(
-        IndentedFormatter, "model_post_init", wraps=IndentedFormatter.model_post_init
+        IndentedFormatter, "model_post_init", autospec=True
     ) as mock_post_init:
         formatter = IndentedFormatter(indent_width=3)
         mock_post_init.assert_called_once()
