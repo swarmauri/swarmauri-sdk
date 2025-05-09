@@ -25,6 +25,8 @@ Below are the details and requirements for this task:
 5. **File and Code Preferences**:
    - Provide the abstract class and abstractmethods only.
    - All methods must have type annotations.
+   - When importing another swarmauri module, use absolute imports from the package root (e.g., `from swarmauri_core.resource.IResource import IResource` and `from swarmauri_core.another_resource.IAnotherResource import IAnotherResource`).
+   - Never use Any for type annotations.
 
 ### Desired Output
 Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 
