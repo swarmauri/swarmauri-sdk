@@ -16,13 +16,16 @@ class TestTraceSeminorm:
         """Test that the type attribute is correctly set."""
         assert TraceSeminorm.type == "TraceSeminorm"
 
-    @pytest.mark.parametrize("input,expected_type", [
-        (TraceSeminorm(), IMatrix),
-        (TraceSeminorm(), IVector),
-        (TraceSeminorm(), Sequence),
-        (TraceSeminorm(), str),
-        (TraceSeminorm(), Callable)
-    ])
+    @pytest.mark.parametrize(
+        "input,expected_type",
+        [
+            (TraceSeminorm(), IMatrix),
+            (TraceSeminorm(), IVector),
+            (TraceSeminorm(), Sequence),
+            (TraceSeminorm(), str),
+            (TraceSeminorm(), Callable),
+        ],
+    )
     def test_compute_input_types(self, input, expected_type):
         """Test compute method with different input types."""
         try:
@@ -70,7 +73,9 @@ class TestTraceSeminorm:
     def test_triangle_inequality(self, input_a_fixture, input_b_fixture):
         """Test triangle inequality check."""
         try:
-            result = TraceSeminorm().check_triangle_inequality(input_a_fixture, input_b_fixture)
+            result = TraceSeminorm().check_triangle_inequality(
+                input_a_fixture, input_b_fixture
+            )
             assert isinstance(result, bool)
         except Exception as e:
             logger.error(f"Triangle inequality test failed: {str(e)}")
@@ -79,7 +84,9 @@ class TestTraceSeminorm:
     def test_scalar_homogeneity(self, input_fixture, scalar_fixture):
         """Test scalar homogeneity check."""
         try:
-            result = TraceSeminorm().check_scalar_homogeneity(input_fixture, scalar_fixture)
+            result = TraceSeminorm().check_scalar_homogeneity(
+                input_fixture, scalar_fixture
+            )
             assert isinstance(result, bool)
         except Exception as e:
             logger.error(f"Scalar homogeneity test failed: {str(e)}")
@@ -93,11 +100,13 @@ class TestTraceSeminorm:
         except (TypeError, ValueError):
             pass
 
+
 @pytest.fixture
 def matrix_input_fixture():
     """Fixture providing a matrix input for tests."""
     # Example matrix input
     return np.array([[1, 2], [3, 4]])
+
 
 @pytest.fixture
 def vector_input_fixture():
@@ -105,11 +114,13 @@ def vector_input_fixture():
     # Example vector input
     return np.array([5])
 
+
 @pytest.fixture
 def sequence_input_fixture():
     """Fixture providing a sequence input for tests."""
     # Example sequence input
     return [1, 2, 3]
+
 
 @pytest.fixture
 def string_input_fixture():
@@ -117,33 +128,41 @@ def string_input_fixture():
     # Example string input
     return "test_string"
 
+
 @pytest.fixture
 def callable_input_fixture():
     """Fixture providing a callable input for tests."""
+
     # Example callable input
     def matrix_generator():
         return np.array([[1, 2], [3, 4]])
+
     return matrix_generator
+
 
 @pytest.fixture
 def input_a_fixture():
     """Fixture providing first input for triangle inequality test."""
     return np.array([1, 2])
 
+
 @pytest.fixture
 def input_b_fixture():
     """Fixture providing second input for triangle inequality test."""
     return np.array([3, 4])
+
 
 @pytest.fixture
 def input_fixture():
     """Fixture providing input for general tests."""
     return np.array([5])
 
+
 @pytest.fixture
 def scalar_fixture():
     """Fixture providing scalar value for tests."""
     return 2.5
+
 
 @pytest.fixture
 def invalid_input_fixture():

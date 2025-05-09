@@ -3,10 +3,11 @@ from swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarit
 import numpy as np
 import logging
 
+
 @pytest.mark.unit
 class TestTanimotoSimilarity:
     """Unit tests for TanimotoSimilarity class."""
-    
+
     @pytest.fixture
     def tanimoto(self):
         """Fixture to provide a TanimotoSimilarity instance."""
@@ -17,16 +18,16 @@ class TestTanimotoSimilarity:
         # Test vectors
         x = np.array([1, 2, 3])
         y = np.array([4, 5, 6])
-        
+
         # Expected similarity calculation
         dot_product = np.dot(x, y)
         mag_x = np.dot(x, x)
         mag_y = np.dot(y, y)
         expected = dot_product / (mag_x + mag_y - dot_product)
-        
+
         # Get actual similarity
         actual = tanimoto.similarity(x, y)
-        
+
         # Assert the results are equal with some tolerance
         assert np.isclose(actual, expected, rtol=1e-9)
 
@@ -36,13 +37,13 @@ class TestTanimotoSimilarity:
         y1 = np.array([1, 1])
         y2 = np.array([0, 0])
         ys = [y1, y2]
-        
+
         # Expected results
         expected = [1.0, 0.0]
-        
+
         # Get actual results
         actual = tanimoto.similarities(x, ys)
-        
+
         # Assert the results are equal
         assert np.allclose(actual, expected, rtol=1e-9)
 
@@ -50,16 +51,16 @@ class TestTanimotoSimilarity:
         """Test calculation of dissimilarity between two vectors."""
         x = np.array([1, 2])
         y = np.array([3, 4])
-        
+
         # Calculate similarity
         similarity = tanimoto.similarity(x, y)
-        
+
         # Calculate dissimilarity
         expected = 1.0 - similarity
-        
+
         # Get actual dissimilarity
         actual = tanimoto.dissimilarity(x, y)
-        
+
         # Assert the results are equal
         assert np.isclose(actual, expected, rtol=1e-9)
 
@@ -69,13 +70,13 @@ class TestTanimotoSimilarity:
         y1 = np.array([1, 1])
         y2 = np.array([0, 0])
         ys = [y1, y2]
-        
+
         # Expected results
         expected = [0.0, 1.0]
-        
+
         # Get actual results
         actual = tanimoto.dissimilarities(x, ys)
-        
+
         # Assert the results are equal
         assert np.allclose(actual, expected, rtol=1e-9)
 

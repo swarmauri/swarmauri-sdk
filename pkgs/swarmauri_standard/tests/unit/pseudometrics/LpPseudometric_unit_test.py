@@ -1,9 +1,12 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.pseudometrics.LpPseudometric import LpPseudometric
+from swarmauri_standard.swarmauri_standard.pseudometrics.LpPseudometric import (
+    LpPseudometric,
+)
 import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
 
 @pytest.mark.unit
 def test_LpPseudometric_initialization():
@@ -24,13 +27,14 @@ def test_LpPseudometric_initialization():
     with pytest.raises(ValueError):
         LpPseudometric(p=0.5)
 
+
 @pytest.mark.unit
 def test_LpPseudometric_distance():
     """
     Test the distance calculation between vectors.
     """
     pseudometric = LpPseudometric(p=2)
-    
+
     # Test with identical vectors
     x = np.array([1, 2, 3])
     y = np.array([1, 2, 3])
@@ -52,6 +56,7 @@ def test_LpPseudometric_distance():
         distance = pseudometric.distance(x, y)
         assert distance >= 0.0
 
+
 @pytest.mark.unit
 def test_LpPseudometric_distances():
     """
@@ -60,11 +65,12 @@ def test_LpPseudometric_distances():
     pseudometric = LpPseudometric(p=2)
     x = np.array([1, 2, 3])
     y_list = [np.array([1, 2, 3]), np.array([4, 5, 6]), np.array([7, 8, 9])]
-    
+
     distances = pseudometric.distances(x, y_list)
     assert isinstance(distances, list)
     assert len(distances) == 3
     assert all(isinstance(d, float) for d in distances)
+
 
 @pytest.mark.unit
 def test_LpPseudometric_check_non_negativity():
@@ -74,9 +80,10 @@ def test_LpPseudometric_check_non_negativity():
     pseudometric = LpPseudometric(p=2)
     x = np.array([1, 2, 3])
     y = np.array([4, 5, 6])
-    
+
     is_non_negative = pseudometric.check_non_negativity(x, y)
     assert is_non_negative is True
+
 
 @pytest.mark.unit
 def test_LpPseudometric_check_symmetry():
@@ -86,9 +93,10 @@ def test_LpPseudometric_check_symmetry():
     pseudometric = LpPseudometric(p=2)
     x = np.array([1, 2, 3])
     y = np.array([4, 5, 6])
-    
+
     is_symmetric = pseudometric.check_symmetry(x, y)
     assert is_symmetric is True
+
 
 @pytest.mark.unit
 def test_LpPseudometric_check_triangle_inequality():
@@ -99,9 +107,10 @@ def test_LpPseudometric_check_triangle_inequality():
     x = np.array([1, 2, 3])
     y = np.array([4, 5, 6])
     z = np.array([7, 8, 9])
-    
+
     is_triangle_valid = pseudometric.check_triangle_inequality(x, y, z)
     assert is_triangle_valid is True
+
 
 @pytest.mark.unit
 def test_LpPseudometric_check_weak_identity():
@@ -111,15 +120,19 @@ def test_LpPseudometric_check_weak_identity():
     pseudometric = LpPseudometric(p=2)
     x = np.array([1, 2, 3])
     y = np.array([1, 2, 3])
-    
+
     is_weak_identity = pseudometric.check_weak_identity(x, y)
     assert is_weak_identity is True
 
+
 @pytest.mark.unit
-@pytest.mark.parametrize("x,y,expected", [
-    (np.array([1, 2, 3]), np.array([1, 2, 3]), True),
-    (np.array([1, 2, 3]), np.array([4, 5, 6]), False),
-])
+@pytest.mark.parametrize(
+    "x,y,expected",
+    [
+        (np.array([1, 2, 3]), np.array([1, 2, 3]), True),
+        (np.array([1, 2, 3]), np.array([4, 5, 6]), False),
+    ],
+)
 def test_LpPseudometric_check_compatibility(x, y, expected):
     """
     Test the compatibility check between different vector types.
@@ -127,6 +140,7 @@ def test_LpPseudometric_check_compatibility(x, y, expected):
     pseudometric = LpPseudometric(p=2)
     is_compatible = pseudometric._check_compatibility(x, y)
     assert is_compatible == expected
+
 
 @pytest.mark.unit
 def test_LpPseudometric_compute_lp_norm():

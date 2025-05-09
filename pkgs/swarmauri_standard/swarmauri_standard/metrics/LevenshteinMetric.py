@@ -10,27 +10,24 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(MetricBase, "LevenshteinMetric")
 class LevenshteinMetric(MetricBase):
     """
-    Implementation of the Levenshtein metric for calculating the minimum number of 
-    single-character edits (insertions, deletions or substitutions) required to 
+    Implementation of the Levenshtein metric for calculating the minimum number of
+    single-character edits (insertions, deletions or substitutions) required to
     change one string into the other.
 
-    Inherits from MetricBase and implements the distance calculation between two 
-    strings. This metric is particularly useful in NLP and bioinformatics for 
+    Inherits from MetricBase and implements the distance calculation between two
+    strings. This metric is particularly useful in NLP and bioinformatics for
     measuring string similarity.
     """
+
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
     type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
 
-    def distance(
-        self, 
-        x: Union[str, List[str]], 
-        y: Union[str, List[str]]
-    ) -> float:
+    def distance(self, x: Union[str, List[str]], y: Union[str, List[str]]) -> float:
         """
         Compute the Levenshtein distance between two strings.
 
-        The Levenshtein distance is a measure of the minimum number of single-character 
-        edits (insertions, deletions or substitutions) required to change one string 
+        The Levenshtein distance is a measure of the minimum number of single-character
+        edits (insertions, deletions or substitutions) required to change one string
         into the other.
 
         Args:
@@ -46,10 +43,10 @@ class LevenshteinMetric(MetricBase):
             Substitute 's' for 'k', substitute 'i' for 'e', append 'g'.
         """
         logger.debug("Calculating Levenshtein distance between strings")
-        
+
         # Convert lists to strings if necessary
-        x_str = ''.join(x) if isinstance(x, list) else x
-        y_str = ''.join(y) if isinstance(y, list) else y
+        x_str = "".join(x) if isinstance(x, list) else x
+        y_str = "".join(y) if isinstance(y, list) else y
 
         # Handle edge cases
         if not x_str and not y_str:
@@ -71,19 +68,17 @@ class LevenshteinMetric(MetricBase):
         # Fill the table
         for i in range(1, len(x_str) + 1):
             for j in range(1, len(y_str) + 1):
-                cost = 0 if x_str[i-1] == y_str[j-1] else 1
+                cost = 0 if x_str[i - 1] == y_str[j - 1] else 1
                 dp[i][j] = min(
-                    dp[i-1][j] + 1,      # Deletion
-                    dp[i][j-1] + 1,      # Insertion
-                    dp[i-1][j-1] + cost  # Substitution
+                    dp[i - 1][j] + 1,  # Deletion
+                    dp[i][j - 1] + 1,  # Insertion
+                    dp[i - 1][j - 1] + cost,  # Substitution
                 )
 
         return float(dp[len(x_str)][len(y_str)])
 
     def distances(
-        self, 
-        x: Union[str, List[str]], 
-        ys: List[Union[str, List[str]]]
+        self, x: Union[str, List[str]], ys: List[Union[str, List[str]]]
     ) -> List[float]:
         """
         Compute distances from a reference string to multiple strings.
@@ -98,9 +93,7 @@ class LevenshteinMetric(MetricBase):
         return [self.distance(x, y) for y in ys]
 
     def check_non_negativity(
-        self, 
-        x: Union[str, List[str]], 
-        y: Union[str, List[str]]
+        self, x: Union[str, List[str]], y: Union[str, List[str]]
     ) -> Literal[True]:
         """
         Verify the non-negativity property: d(x, y) ≥ 0.
@@ -109,9 +102,7 @@ class LevenshteinMetric(MetricBase):
         return Literal[True](distance >= 0)
 
     def check_identity(
-        self, 
-        x: Union[str, List[str]], 
-        y: Union[str, List[str]]
+        self, x: Union[str, List[str]], y: Union[str, List[str]]
     ) -> Literal[True]:
         """
         Verify the identity property: d(x, y) = 0 if and only if x = y.
@@ -119,9 +110,7 @@ class LevenshteinMetric(MetricBase):
         return Literal[True](self.distance(x, y) == 0 if x == y else True)
 
     def check_symmetry(
-        self, 
-        x: Union[str, List[str]], 
-        y: Union[str, List[str]]
+        self, x: Union[str, List[str]], y: Union[str, List[str]]
     ) -> Literal[True]:
         """
         Verify the symmetry property: d(x, y) = d(y, x).
@@ -129,10 +118,10 @@ class LevenshteinMetric(MetricBase):
         return Literal[True](self.distance(x, y) == self.distance(y, x))
 
     def check_triangle_inequality(
-        self, 
-        x: Union[str, List[str]], 
-        y: Union[str, List[str]], 
-        z: Union[str, List[str]]
+        self,
+        x: Union[str, List[str]],
+        y: Union[str, List[str]],
+        z: Union[str, List[str]],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).

@@ -24,22 +24,21 @@ class EuclideanMetric(MetricBase):
         type: Type identifier for the metric implementation
         resource: Type of resource this component represents
     """
+
     type: Literal["EuclideanMetric"] = "EuclideanMetric"
     resource: Optional[str] = "metric"
 
     def __init__(self):
         """
         Initialize the EuclideanMetric instance.
-        
+
         Initializes the base class and sets up the L2 norm for distance calculations.
         """
         super().__init__()
         self.norm = L2EuclideanNorm()
 
     def distance(
-        self,
-        x: Union[Sequence, str, callable],
-        y: Union[Sequence, str, callable]
+        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
     ) -> float:
         """
         Compute the Euclidean distance between two vectors.
@@ -60,17 +59,19 @@ class EuclideanMetric(MetricBase):
         try:
             # Ensure both vectors are of the same dimension
             if len(x) != len(y):
-                raise ValueError("Vectors must be of the same dimension for Euclidean distance")
+                raise ValueError(
+                    "Vectors must be of the same dimension for Euclidean distance"
+                )
 
             # Compute the element-wise difference
             difference = [x_i - y_i for x_i, y_i in zip(x, y)]
-            
+
             # Compute the L2 norm of the difference
             distance = self.norm.compute(difference)
-            
+
             logger.info(f"Computed Euclidean distance: {distance}")
             return distance
-            
+
         except Exception as e:
             logger.error(f"Failed to compute Euclidean distance: {str(e)}")
             raise
@@ -78,7 +79,7 @@ class EuclideanMetric(MetricBase):
     def distances(
         self,
         x: Union[Sequence, str, callable],
-        ys: List[Union[Sequence, str, callable]]
+        ys: List[Union[Sequence, str, callable]],
     ) -> List[float]:
         """
         Compute distances from a single point to multiple points.
@@ -97,18 +98,16 @@ class EuclideanMetric(MetricBase):
             distances = []
             for y in ys:
                 distances.append(self.distance(x, y))
-            
+
             logger.info(f"Computed distances: {distances}")
             return distances
-            
+
         except Exception as e:
             logger.error(f"Failed to compute distances: {str(e)}")
             raise
 
     def check_non_negativity(
-        self,
-        x: Union[Sequence, str, callable],
-        y: Union[Sequence, str, callable]
+        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
     ) -> Literal[True]:
         """
         Verify the non-negativity property: d(x, y) ≥ 0.
@@ -126,18 +125,16 @@ class EuclideanMetric(MetricBase):
         try:
             distance = self.distance(x, y)
             assert distance >= 0, "Non-negativity violated: Distance is negative"
-            
+
             logger.info("Non-negativity property verified")
             return True
-            
+
         except AssertionError as e:
             logger.error(f"Non-negativity check failed: {str(e)}")
             raise
 
     def check_identity(
-        self,
-        x: Union[Sequence, str, callable],
-        y: Union[Sequence, str, callable]
+        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
     ) -> Literal[True]:
         """
         Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
@@ -155,19 +152,19 @@ class EuclideanMetric(MetricBase):
         try:
             distance = self.distance(x, y)
             if distance != 0:
-                assert x == y, "Identity violated: Distance is zero but vectors are not identical"
-            
+                assert x == y, (
+                    "Identity violated: Distance is zero but vectors are not identical"
+                )
+
             logger.info("Identity property verified")
             return True
-            
+
         except AssertionError as e:
             logger.error(f"Identity check failed: {str(e)}")
             raise
 
     def check_symmetry(
-        self,
-        x: Union[Sequence, str, callable],
-        y: Union[Sequence, str, callable]
+        self, x: Union[Sequence, str, callable], y: Union[Sequence, str, callable]
     ) -> Literal[True]:
         """
         Verify the symmetry property: d(x, y) = d(y, x).
@@ -185,12 +182,12 @@ class EuclideanMetric(MetricBase):
         try:
             d_xy = self.distance(x, y)
             d_yx = self.distance(y, x)
-            
+
             assert abs(d_xy - d_yx) < 1e-9, "Symmetry violated: d(x, y) != d(y, x)"
-            
+
             logger.info("Symmetry property verified")
             return True
-            
+
         except AssertionError as e:
             logger.error(f"Symmetry check failed: {str(e)}")
             raise
@@ -199,7 +196,7 @@ class EuclideanMetric(MetricBase):
         self,
         x: Union[Sequence, str, callable],
         y: Union[Sequence, str, callable],
-        z: Union[Sequence, str, callable]
+        z: Union[Sequence, str, callable],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
@@ -219,12 +216,14 @@ class EuclideanMetric(MetricBase):
             d_xz = self.distance(x, z)
             d_xy = self.distance(x, y)
             d_yz = self.distance(y, z)
-            
-            assert d_xz <= d_xy + d_yz, "Triangle inequality violated: d(x, z) > d(x, y) + d(y, z)"
-            
+
+            assert d_xz <= d_xy + d_yz, (
+                "Triangle inequality violated: d(x, z) > d(x, y) + d(y, z)"
+            )
+
             logger.info("Triangle inequality property verified")
             return True
-            
+
         except AssertionError as e:
             logger.error(f"Triangle inequality check failed: {str(e)}")
             raise

@@ -31,6 +31,7 @@ class LpPseudometric(PseudometricBase):
             which to compute the pseudometric. If not specified, the entire
             domain is used.
     """
+
     type: Literal["LpPseudometric"] = "LpPseudometric"
 
     def __init__(self, p: float = 2.0, domain: Optional[Union[Tuple, List]] = None):
@@ -65,7 +66,7 @@ class LpPseudometric(PseudometricBase):
             float: The non-negative distance between x and y
         """
         logger.debug("Computing Lp pseudometric distance between %s and %s", x, y)
-        
+
         # Ensure the inputs are compatible
         if not self._check_compatibility(x, y):
             raise ValueError("Inputs must be compatible for distance computation")
@@ -82,7 +83,9 @@ class LpPseudometric(PseudometricBase):
         else:
             raise TypeError("Unsupported input type for distance computation")
 
-    def distances(self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]) -> List[float]:
+    def distances(
+        self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]
+    ) -> List[float]:
         """
         Calculate distances from a single element to a list of elements.
 
@@ -94,7 +97,7 @@ class LpPseudometric(PseudometricBase):
             List[float]: List of distances from x to each element in y_list
         """
         logger.debug("Computing Lp pseudometric distances from %s to list", x)
-        
+
         return [self.distance(x, y) for y in y_list]
 
     def check_non_negativity(self, x: Union[Any], y: Union[Any]) -> bool:
@@ -109,7 +112,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if distance is non-negative, False otherwise
         """
         logger.debug("Checking non-negativity for LpPseudometric")
-        
+
         distance = self.distance(x, y)
         return distance >= 0
 
@@ -125,10 +128,12 @@ class LpPseudometric(PseudometricBase):
             bool: True if distance is symmetric, False otherwise
         """
         logger.debug("Checking symmetry for LpPseudometric")
-        
+
         return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(self, x: Union[Any], y: Union[Any], z: Union[Any]) -> bool:
+    def check_triangle_inequality(
+        self, x: Union[Any], y: Union[Any], z: Union[Any]
+    ) -> bool:
         """
         Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
 
@@ -141,7 +146,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if triangle inequality holds, False otherwise
         """
         logger.debug("Checking triangle inequality for LpPseudometric")
-        
+
         d_xz = self.distance(x, z)
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
@@ -160,7 +165,7 @@ class LpPseudometric(PseudometricBase):
             bool: True if weak identity holds, False otherwise
         """
         logger.debug("Checking weak identity for LpPseudometric")
-        
+
         return self.distance(x, y) == 0
 
     def _check_compatibility(self, x: Any, y: Any) -> bool:
@@ -175,13 +180,15 @@ class LpPseudometric(PseudometricBase):
             bool: True if inputs are compatible, False otherwise
         """
         logger.debug("Checking compatibility for distance computation")
-        
+
         if not isinstance(x, type(y)):
             logger.warning("Inputs are of different types: %s and %s", type(x), type(y))
             return False
         return True
 
-    def _compute_lp_norm(self, vector: np.ndarray, domain: Optional[Union[Tuple, List]] = None) -> float:
+    def _compute_lp_norm(
+        self, vector: np.ndarray, domain: Optional[Union[Tuple, List]] = None
+    ) -> float:
         """
         Compute the Lp norm of a vector.
 
@@ -193,8 +200,8 @@ class LpPseudometric(PseudometricBase):
             float: The Lp norm of the vector
         """
         logger.debug("Computing Lp norm for vector with p=%s", self.p)
-        
+
         if domain is not None:
             vector = vector[domain]
-            
+
         return np.power(np.sum(np.abs(vector) ** self.p), 1.0 / self.p)

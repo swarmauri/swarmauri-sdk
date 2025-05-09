@@ -20,6 +20,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
         distance_fn: Callable to compute distance between elements.
         gamma: Scaling factor for exponential decay. Defaults to 1.0.
     """
+
     type: Literal["ExponentialDistanceSimilarity"] = "ExponentialDistanceSimilarity"
     resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
@@ -37,7 +38,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     def similarity(
         self,
         x: Union[IVector, IMatrix, Tuple, str, Callable],
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> float:
         """
         Compute the similarity between two elements using exponential decay.
@@ -72,7 +73,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     def dissimilarity(
         self,
         x: Union[IVector, IMatrix, Tuple, str, Callable],
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> float:
         """
         Compute the dissimilarity between two elements.
@@ -91,7 +92,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     def check_boundedness(
         self,
         x: Union[IVector, IMatrix, Tuple, str, Callable],
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is bounded.
@@ -106,8 +107,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
         return True  # Exponential similarity is always bounded between 0 and 1
 
     def check_reflexivity(
-        self,
-        x: Union[IVector, IMatrix, Tuple, str, Callable]
+        self, x: Union[IVector, IMatrix, Tuple, str, Callable]
     ) -> bool:
         """
         Check if the similarity measure is reflexive.
@@ -129,7 +129,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     def check_symmetry(
         self,
         x: Union[IVector, IMatrix, Tuple, str, Callable],
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is symmetric.
@@ -153,7 +153,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     def check_identity(
         self,
         x: Union[IVector, IMatrix, Tuple, str, Callable],
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure satisfies identity.

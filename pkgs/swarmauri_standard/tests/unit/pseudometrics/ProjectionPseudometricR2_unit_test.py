@@ -1,13 +1,16 @@
 import pytest
 import logging
-from swarmauri_standard.swarmauri_standard.pseudometrics.ProjectionPseudometricR2 import ProjectionPseudometricR2
+from swarmauri_standard.swarmauri_standard.pseudometrics.ProjectionPseudometricR2 import (
+    ProjectionPseudometricR2,
+)
+
 
 @pytest.mark.unit
 class TestProjectionPseudometricR2:
     """
     Unit tests for the ProjectionPseudometricR2 class.
     """
-    
+
     @pytest.fixture
     def logger(self):
         """
@@ -22,17 +25,17 @@ class TestProjectionPseudometricR2:
         """
         # Test default initialization
         p = ProjectionPseudometricR2()
-        assert p.axis == 'x'
+        assert p.axis == "x"
         logger.debug("Test default initialization passed")
 
         # Test initialization with 'y' axis
-        p = ProjectionPseudometricR2(axis='y')
-        assert p.axis == 'y'
+        p = ProjectionPseudometricR2(axis="y")
+        assert p.axis == "y"
         logger.debug("Test initialization with 'y' axis passed")
 
         # Test invalid axis value
         with pytest.raises(ValueError):
-            ProjectionPseudometricR2(axis='z')
+            ProjectionPseudometricR2(axis="z")
         logger.debug("Test invalid axis value passed")
 
     @pytest.mark.unit
@@ -40,8 +43,8 @@ class TestProjectionPseudometricR2:
         """
         Test the distance calculation for various input types and scenarios.
         """
-        p_x = ProjectionPseudometricR2(axis='x')
-        p_y = ProjectionPseudometricR2(axis='y')
+        p_x = ProjectionPseudometricR2(axis="x")
+        p_y = ProjectionPseudometricR2(axis="y")
 
         # Test with tuples
         assert p_x.distance((1, 2), (3, 4)) == 2
@@ -64,7 +67,7 @@ class TestProjectionPseudometricR2:
         Test the distances method with multiple points.
         """
         p = ProjectionPseudometricR2()
-        
+
         # Test with list of tuples
         points = [(1, 2), (3, 4), (5, 6)]
         distances = p.distances((0, 0), points)
@@ -113,10 +116,7 @@ class TestProjectionPseudometricR2:
         logger.debug("Test weak identity passed")
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("axis,expected_distance", [
-        ('x', 2),
-        ('y', 1)
-    ])
+    @pytest.mark.parametrize("axis,expected_distance", [("x", 2), ("y", 1)])
     def test_parameterized_distance(self, axis, expected_distance, logger):
         """
         Parameterized test for distance calculation with different axes.

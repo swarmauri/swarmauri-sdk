@@ -18,15 +18,21 @@ class PartialSumSeminorm(SeminormBase):
     This implementation allows for specifying a range of indices to be
     included in the summation process. The indices can be specified
     either by start and end indices or by a list of specific indices.
-    
+
     Attributes:
         start: The starting index of the range to be summed (inclusive)
         end: The ending index of the range to be summed (exclusive)
         indices: Optional list of specific indices to be summed
     """
+
     type: Literal["PartialSumSeminorm"] = "PartialSumSeminorm"
-    
-    def __init__(self, start: int = 0, end: Optional[int] = None, indices: Optional[Sequence[int]] = None):
+
+    def __init__(
+        self,
+        start: int = 0,
+        end: Optional[int] = None,
+        indices: Optional[Sequence[int]] = None,
+    ):
         """
         Initialize the PartialSumSeminorm object.
 
@@ -34,23 +40,24 @@ class PartialSumSeminorm(SeminormBase):
             start: The starting index of the range to be summed (inclusive)
             end: The ending index of the range to be summed (exclusive)
             indices: Optional list of specific indices to be summed
-            
+
         Raises:
             ValueError: If both end and indices are specified or if neither is specified
         """
         super().__init__()
-        
-        if (end is not None and indices is not None) or (end is None and indices is None):
-            raise ValueError("Either specify end or indices, but not both and not neither")
-            
+
+        if (end is not None and indices is not None) or (
+            end is None and indices is None
+        ):
+            raise ValueError(
+                "Either specify end or indices, but not both and not neither"
+            )
+
         self.start = start
         self.end = end
         self.indices = indices
 
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable]
-    ) -> float:
+    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
         Compute the seminorm of the given input.
 
@@ -69,24 +76,24 @@ class PartialSumSeminorm(SeminormBase):
             ValueError: If the input is of incorrect type
         """
         logger.debug("Computing partial sum seminorm")
-        
+
         if isinstance(input, (IVector, Sequence, str)):
             vector = list(input)
-            
+
             if self.end is not None:
                 # Slice from start to end
-                elements = vector[self.start:self.end]
+                elements = vector[self.start : self.end]
             else:
                 # Use specified indices
                 elements = [vector[i] for i in self.indices]
-            
+
             return abs(sum(elements))
-            
+
         elif isinstance(input, IMatrix):
             raise NotImplementedError("Matrix support not implemented")
-            
+
         elif isinstance(input, Callable):
             raise NotImplementedError("Callable support not implemented")
-            
+
         else:
             raise ValueError(f"Unsupported input type: {type(input)}")

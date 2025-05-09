@@ -33,7 +33,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         self.weight_matrix = weight_matrix
         self.dtype = None  # Will be set based on input matrices
 
-    def compute(self, a: Union[object, object], b: Union[object, object]) -> Union[float, complex]:
+    def compute(
+        self, a: Union[object, object], b: Union[object, object]
+    ) -> Union[float, complex]:
         """
         Computes the inner product using the trace of the matrix product
         modulated by the weight matrix.
@@ -78,7 +80,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
         return trace_value
 
-    def check_conjugate_symmetry(self, a: Union[object, object], b: Union[object, object]) -> bool:
+    def check_conjugate_symmetry(
+        self, a: Union[object, object], b: Union[object, object]
+    ) -> bool:
         """
         Checks if the inner product implementation satisfies conjugate symmetry.
 
@@ -98,7 +102,12 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         # Check if <a, b> is the conjugate of <b, a>
         return np.isclose(inner_product_ab, np.conj(inner_product_ba))
 
-    def check_linearity_first_argument(self, a: Union[object, object], b: Union[object, object], c: Union[object, object]) -> bool:
+    def check_linearity_first_argument(
+        self,
+        a: Union[object, object],
+        b: Union[object, object],
+        c: Union[object, object],
+    ) -> bool:
         """
         Checks if the inner product implementation is linear in the first argument.
 
@@ -114,7 +123,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         inner_product_ac_b = self.compute(a + c, b)
         inner_product_a_b = self.compute(a, b)
         inner_product_c_b = self.compute(c, b)
-        linearity_add = np.isclose(inner_product_ac_b, inner_product_a_b + inner_product_c_b)
+        linearity_add = np.isclose(
+            inner_product_ac_b, inner_product_a_b + inner_product_c_b
+        )
 
         # Test scalar multiplication: <k*a, b> == k*<a, b>
         k = 2.0

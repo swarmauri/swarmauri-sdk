@@ -15,6 +15,7 @@ class ZeroPseudometric(PseudometricBase):
     Inherits:
         PseudometricBase: Base class for pseudometric implementations
     """
+
     type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
 
     def distance(self, x: Union[Any], y: Union[Any]) -> float:
@@ -34,7 +35,9 @@ class ZeroPseudometric(PseudometricBase):
         logger.debug("Calculating zero distance between two points")
         return 0.0
 
-    def distances(self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]) -> List[float]:
+    def distances(
+        self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]
+    ) -> List[float]:
         """
         Calculate distances from a single element to a list of elements.
 
@@ -84,7 +87,9 @@ class ZeroPseudometric(PseudometricBase):
         logger.debug("Checking symmetry condition")
         return True
 
-    def check_triangle_inequality(self, x: Union[Any], y: Union[Any], z: Union[Any]) -> bool:
+    def check_triangle_inequality(
+        self, x: Union[Any], y: Union[Any], z: Union[Any]
+    ) -> bool:
         """
         Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
 

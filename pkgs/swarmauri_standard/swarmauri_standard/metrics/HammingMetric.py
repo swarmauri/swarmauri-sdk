@@ -10,20 +10,17 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(MetricBase, "HammingMetric")
 class HammingMetric(MetricBase):
     """
-    Implementation of the Hamming metric. This class provides a way to compute 
-    the Hamming distance between two sequences. The Hamming distance is the 
+    Implementation of the Hamming metric. This class provides a way to compute
+    the Hamming distance between two sequences. The Hamming distance is the
     number of positions at which the corresponding symbols are different.
-    
-    Inherits from MetricBase and implements the required distance 
+
+    Inherits from MetricBase and implements the required distance
     computation methods while satisfying the metric axioms.
     """
+
     type: Literal["HammingMetric"] = "HammingMetric"
-    
-    def distance(
-        self, 
-        x: Union[List, str, bytes], 
-        y: Union[List, str, bytes]
-    ) -> float:
+
+    def distance(self, x: Union[List, str, bytes], y: Union[List, str, bytes]) -> float:
         """
         Compute the Hamming distance between two sequences.
 
@@ -38,19 +35,17 @@ class HammingMetric(MetricBase):
             ValueError: If the input sequences are not of the same length.
         """
         logger.debug("Computing Hamming distance between two sequences")
-        
+
         if len(x) != len(y):
             raise ValueError("Input sequences must be of the same length")
-            
+
         # Count mismatched positions
         mismatches = sum(1 for a, b in zip(x, y) if a != b)
-        
+
         return float(mismatches)
 
     def distances(
-        self, 
-        x: Union[List, str, bytes], 
-        ys: List[Union[List, str, bytes]]
+        self, x: Union[List, str, bytes], ys: List[Union[List, str, bytes]]
     ) -> List[float]:
         """
         Compute the Hamming distances from a single point to multiple points.
@@ -63,13 +58,11 @@ class HammingMetric(MetricBase):
             List[float]: List of Hamming distances from x to each sequence in ys.
         """
         logger.debug("Computing multiple Hamming distances from a reference sequence")
-        
+
         return [self.distance(x, y) for y in ys]
 
     def check_non_negativity(
-        self, 
-        x: Union[List, str, bytes], 
-        y: Union[List, str, bytes]
+        self, x: Union[List, str, bytes], y: Union[List, str, bytes]
     ) -> Literal[True]:
         """
         Verify the non-negativity property: d(x, y) ≥ 0.
@@ -85,9 +78,7 @@ class HammingMetric(MetricBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[List, str, bytes], 
-        y: Union[List, str, bytes]
+        self, x: Union[List, str, bytes], y: Union[List, str, bytes]
     ) -> Literal[True]:
         """
         Verify the identity property: d(x, y) = 0 if and only if x = y.
@@ -103,9 +94,7 @@ class HammingMetric(MetricBase):
         return self.distance(x, y) == 0.0
 
     def check_symmetry(
-        self, 
-        x: Union[List, str, bytes], 
-        y: Union[List, str, bytes]
+        self, x: Union[List, str, bytes], y: Union[List, str, bytes]
     ) -> Literal[True]:
         """
         Verify the symmetry property: d(x, y) = d(y, x).
@@ -121,10 +110,10 @@ class HammingMetric(MetricBase):
         return self.distance(x, y) == self.distance(y, x)
 
     def check_triangle_inequality(
-        self, 
-        x: Union[List, str, bytes], 
-        y: Union[List, str, bytes], 
-        z: Union[List, str, bytes]
+        self,
+        x: Union[List, str, bytes],
+        y: Union[List, str, bytes],
+        z: Union[List, str, bytes],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
@@ -138,9 +127,9 @@ class HammingMetric(MetricBase):
             Literal[True]: True if the triangle inequality holds.
         """
         logger.debug("Verifying triangle inequality property")
-        
+
         d_xz = self.distance(x, z)
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
-        
+
         return d_xz <= d_xy + d_yz

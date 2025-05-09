@@ -6,6 +6,7 @@ from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 # Define logger
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(InnerProductBase, "FrobeniusRealInnerProduct")
 class FrobeniusRealInnerProduct(InnerProductBase):
     """
@@ -43,7 +44,7 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         """
         if not (isinstance(a, np.ndarray) and isinstance(b, np.ndarray)):
             raise ValueError("Inputs must be numpy arrays")
-        if a.dtype.kind not in ('f', 'i') or b.dtype.kind not in ('f', 'i'):
+        if a.dtype.kind not in ("f", "i") or b.dtype.kind not in ("f", "i"):
             raise ValueError("Matrices must be real")
         if a.shape != b.shape:
             raise ValueError("Matrices must have the same shape")
@@ -69,7 +70,9 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         """
         return self.compute(a, b) == self.compute(b, a)
 
-    def check_linearity_first_argument(self, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
+    def check_linearity_first_argument(
+        self, a: np.ndarray, b: np.ndarray, c: np.ndarray
+    ) -> bool:
         """
         Checks if the inner product implementation is linear in the first argument.
 
@@ -101,7 +104,9 @@ class FrobeniusRealInnerProduct(InnerProductBase):
 
         return True
 
-    def check_linearity_second_argument(self, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
+    def check_linearity_second_argument(
+        self, a: np.ndarray, b: np.ndarray, c: np.ndarray
+    ) -> bool:
         """
         Checks if the inner product implementation is linear in the second argument.
 

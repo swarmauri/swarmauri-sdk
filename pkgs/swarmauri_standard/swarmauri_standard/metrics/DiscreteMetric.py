@@ -10,16 +10,17 @@ class DiscreteMetric(MetricBase):
     """
     A basic discrete metric implementation that returns 1 if two points are different
     and 0 if they are the same. This metric satisfies all metric axioms.
-    
+
     Inherits from:
     - MetricBase: The base class for all metric implementations.
     """
+
     type: Literal["DiscreteMetric"] = "DiscreteMetric"
 
     def distance(
-        self, 
-        x: Union[object, List, str, callable], 
-        y: Union[object, List, str, callable]
+        self,
+        x: Union[object, List, str, callable],
+        y: Union[object, List, str, callable],
     ) -> float:
         """
         Compute the discrete distance between two points.
@@ -41,9 +42,9 @@ class DiscreteMetric(MetricBase):
         return 0 if x == y else 1
 
     def distances(
-        self, 
-        x: Union[object, List, str, callable], 
-        ys: List[Union[object, List, str, callable]]
+        self,
+        x: Union[object, List, str, callable],
+        ys: List[Union[object, List, str, callable]],
     ) -> List[float]:
         """
         Compute the discrete distances from a single point to multiple points.
@@ -63,9 +64,9 @@ class DiscreteMetric(MetricBase):
         return [self.distance(x, y) for y in ys]
 
     def check_non_negativity(
-        self, 
-        x: Union[object, List, str, callable], 
-        y: Union[object, List, str, callable]
+        self,
+        x: Union[object, List, str, callable],
+        y: Union[object, List, str, callable],
     ) -> Literal[True]:
         """
         Verify the non-negativity property: d(x, y) ≥ 0.
@@ -81,9 +82,9 @@ class DiscreteMetric(MetricBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[object, List, str, callable], 
-        y: Union[object, List, str, callable]
+        self,
+        x: Union[object, List, str, callable],
+        y: Union[object, List, str, callable],
     ) -> Literal[True]:
         """
         Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
@@ -100,9 +101,9 @@ class DiscreteMetric(MetricBase):
         return Literal[True](distance == 0 if x == y else False)
 
     def check_symmetry(
-        self, 
-        x: Union[object, List, str, callable], 
-        y: Union[object, List, str, callable]
+        self,
+        x: Union[object, List, str, callable],
+        y: Union[object, List, str, callable],
     ) -> Literal[True]:
         """
         Verify the symmetry property: d(x, y) = d(y, x).
@@ -118,10 +119,10 @@ class DiscreteMetric(MetricBase):
         return Literal[True](self.distance(x, y) == self.distance(y, x))
 
     def check_triangle_inequality(
-        self, 
-        x: Union[object, List, str, callable], 
-        y: Union[object, List, str, callable], 
-        z: Union[object, List, str, callable]
+        self,
+        x: Union[object, List, str, callable],
+        y: Union[object, List, str, callable],
+        z: Union[object, List, str, callable],
     ) -> Literal[True]:
         """
         Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
@@ -135,4 +136,6 @@ class DiscreteMetric(MetricBase):
             Literal[True]: Always True since discrete metric satisfies triangle inequality.
         """
         logger.debug("Checking triangle inequality property")
-        return Literal[True]((self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)))
+        return Literal[True](
+            (self.distance(x, z) <= self.distance(x, y) + self.distance(y, z))
+        )

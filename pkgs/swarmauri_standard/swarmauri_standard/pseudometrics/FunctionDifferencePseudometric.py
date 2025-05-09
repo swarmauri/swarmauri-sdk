@@ -27,13 +27,14 @@ class FunctionDifferencePseudometric(PseudometricBase):
     - check_triangle_inequality()
     - check_weak_identity()
     """
+
     type: Literal["FunctionDifferencePseudometric"] = "FunctionDifferencePseudometric"
-    
+
     def __init__(
         self,
         points: Optional[Union[List[float], Tuple[float]]] = None,
         num_sample_points: int = 1000,
-        random_seed: Optional[int] = None
+        random_seed: Optional[int] = None,
     ):
         """
         Initialize the FunctionDifferencePseudometric instance.
@@ -45,19 +46,20 @@ class FunctionDifferencePseudometric(PseudometricBase):
             random_seed: Seed for random number generation. Ensures reproducibility.
         """
         super().__init__()
-        self.points = points if points is not None else self._generate_sample_points(
-            num_sample_points,
-            random_seed
+        self.points = (
+            points
+            if points is not None
+            else self._generate_sample_points(num_sample_points, random_seed)
         )
         self.num_sample_points = num_sample_points
         self.random_seed = random_seed
-        logger.debug("Initialized FunctionDifferencePseudometric with %d points",
-                   len(self.points))
+        logger.debug(
+            "Initialized FunctionDifferencePseudometric with %d points",
+            len(self.points),
+        )
 
     def _generate_sample_points(
-        self,
-        num_points: int,
-        random_seed: Optional[int]
+        self, num_points: int, random_seed: Optional[int]
     ) -> np.ndarray:
         """
         Generate random sample points for function evaluation.
@@ -87,14 +89,16 @@ class FunctionDifferencePseudometric(PseudometricBase):
             ValueError: If the functions are not callable or not defined on the same domain.
         """
         logger.debug("Computing function distance")
-        
+
         if not callable(x) or not callable(y):
             raise ValueError("Both inputs must be callable functions")
-            
+
         differences = [abs(x(point) - y(point)) for point in self.points]
         return float(np.mean(differences))
 
-    def distances(self, x: Callable, y_list: Union[List[Callable], Tuple[Callable]]) -> List[float]:
+    def distances(
+        self, x: Callable, y_list: Union[List[Callable], Tuple[Callable]]
+    ) -> List[float]:
         """
         Calculate distances from a reference function to a list of functions.
 

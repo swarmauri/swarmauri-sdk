@@ -6,6 +6,7 @@ from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(SimilarityBase, "BhattacharyyaCoefficientSimilarity")
 class BhattacharyyaCoefficientSimilarity(SimilarityBase):
     """
@@ -19,6 +20,7 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
     Attributes:
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     resource: Literal[str] = ResourceTypes.SIMILARITY.value
 
     def __init__(self):
@@ -29,9 +31,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         self._name = "BhattacharyyaCoefficientSimilarity"
 
     def similarity(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
-        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
     ) -> float:
         """
         Calculates the similarity between two probability distributions using the
@@ -61,9 +63,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         return bc
 
     def dissimilarity(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
-        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
     ) -> float:
         """
         Calculates the dissimilarity between two probability distributions using the
@@ -80,12 +82,14 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         return 1.0 - similarity
 
     def similarities(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
         ys: Union[
-            List[Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]], 
-            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
-        ]
+            List[
+                Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+            ],
+            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculates similarity scores between a reference distribution and multiple
@@ -104,12 +108,14 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             return self.similarity(x, ys)
 
     def dissimilarities(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
         ys: Union[
-            List[Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]], 
-            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
-        ]
+            List[
+                Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+            ],
+            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculates dissimilarity scores between a reference distribution and multiple
@@ -128,9 +134,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             return self.dissimilarity(x, ys)
 
     def check_boundedness(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
-        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
     ) -> bool:
         """
         Checks if the similarity measure is bounded.
@@ -147,8 +153,7 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         return True
 
     def check_reflexivity(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self, x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
     ) -> bool:
         """
         Checks if the similarity measure is reflexive.
@@ -164,9 +169,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
-        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
     ) -> bool:
         """
         Checks if the similarity measure is symmetric.
@@ -183,9 +188,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
-        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        self,
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable],
     ) -> bool:
         """
         Checks if the similarity measure satisfies identity.
@@ -201,7 +206,10 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         """
         return self.similarity(x, y) == 1.0
 
-    def _validate_distribution(self, distribution: Union[List[float], np.ndarray, Tuple[float, ...], str, callable]) -> np.ndarray:
+    def _validate_distribution(
+        self,
+        distribution: Union[List[float], np.ndarray, Tuple[float, ...], str, callable],
+    ) -> np.ndarray:
         """
         Validates and normalizes a probability distribution.
 
@@ -215,14 +223,22 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             ValueError: If the distribution is invalid or cannot be normalized.
         """
         if isinstance(distribution, str) or callable(distribution):
-            raise ValueError("Distribution must be provided as a list, array, or tuple of floats")
+            raise ValueError(
+                "Distribution must be provided as a list, array, or tuple of floats"
+            )
 
         if not isinstance(distribution, (list, np.ndarray, tuple)):
             raise ValueError("Invalid distribution type")
 
         dist_array = np.asarray(distribution)
-        if np.any(np.isnan(dist_array)) or np.any(np.isinf(dist_array)) or np.any(dist_array < 0):
-            raise ValueError("Distribution contains invalid values (NaN, Inf, or negative values)")
+        if (
+            np.any(np.isnan(dist_array))
+            or np.any(np.isinf(dist_array))
+            or np.any(dist_array < 0)
+        ):
+            raise ValueError(
+                "Distribution contains invalid values (NaN, Inf, or negative values)"
+            )
 
         sum_dist = np.sum(dist_array)
         if sum_dist == 0:

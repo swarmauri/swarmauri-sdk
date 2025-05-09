@@ -1,10 +1,12 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
+from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import (
+    BrayCurtisSimilarity,
+)
 import logging
+
 
 @pytest.mark.unit
 class TestBrayCurtisSimilarity:
-
     @pytest.fixture
     def braycurtis_instance(self):
         """Fixture to create an instance of BrayCurtisSimilarity."""

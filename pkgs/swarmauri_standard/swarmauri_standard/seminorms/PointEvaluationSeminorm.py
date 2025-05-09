@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SeminormBase, "PointEvaluationSeminorm")
 class PointEvaluationSeminorm(SeminormBase):
     type: Literal["PointEvaluationSeminorm"] = "PointEvaluationSeminorm"
-    
+
     def __init__(self, point: float = 0.0):
         """
         Initialize the PointEvaluationSeminorm instance.
@@ -23,10 +23,7 @@ class PointEvaluationSeminorm(SeminormBase):
         super().__init__()
         self.point = point
 
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable]
-    ) -> float:
+    def compute(self, input: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
         Compute the seminorm of the given input by evaluating it at a fixed point.
 
@@ -43,7 +40,7 @@ class PointEvaluationSeminorm(SeminormBase):
             IndexError: If the point index is out of bounds for the input.
         """
         logger.debug("Computing seminorm by evaluating at point %s", self.point)
-        
+
         if callable(input):
             result = input(self.point)
         elif isinstance(input, (IVector, Sequence, str)):
@@ -54,13 +51,13 @@ class PointEvaluationSeminorm(SeminormBase):
             raise NotImplementedError("Matrix support not implemented")
         else:
             raise ValueError(f"Unsupported input type: {type(input)}")
-            
+
         return float(result)
-        
+
     def check_triangle_inequality(
         self,
         a: Union[IVector, IMatrix, Sequence, str, Callable],
-        b: Union[IVector, IMatrix, Sequence, str, Callable]
+        b: Union[IVector, IMatrix, Sequence, str, Callable],
     ) -> bool:
         """
         Check if the triangle inequality holds for the given inputs.
@@ -79,9 +76,7 @@ class PointEvaluationSeminorm(SeminormBase):
         return True
 
     def check_scalar_homogeneity(
-        self,
-        input: Union[IVector, IMatrix, Sequence, str, Callable],
-        scalar: float
+        self, input: Union[IVector, IMatrix, Sequence, str, Callable], scalar: float
     ) -> bool:
         """
         Check if the seminorm satisfies scalar homogeneity.

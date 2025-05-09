@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_model()
 class GaussianRBFSimilarity(ISimilarity, ComponentBase):
     """
@@ -20,9 +21,10 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         gamma: Inverse kernel width parameter. Must be greater than 0.
         resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+
     resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
     gamma: float
-    
+
     def __init__(self, gamma: float = 1.0):
         """
         Initialize the Gaussian RBF similarity measure.
@@ -38,9 +40,9 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         logger.info("GaussianRBFSimilarity initialized with gamma = %s", self.gamma)
 
     def similarity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> float:
         """
         Calculate the Gaussian RBF similarity between two elements.
@@ -58,30 +60,30 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         try:
             x_arr = np.asarray(x)
             y_arr = np.asarray(y)
-            
+
             if x_arr.size == 1 and y_arr.size == 1:
                 # Handle scalar inputs
                 dist_sq = (x_arr.item() - y_arr.item()) ** 2
             else:
                 # Calculate squared Euclidean distance between vectors
                 dist_sq = distance.squared_euclidean(x_arr, y_arr)
-            
+
             # Compute RBF similarity
             similarity = np.exp(-self.gamma * dist_sq)
             logger.debug("Similarity calculated: %s", similarity)
             return similarity.item()
-            
+
         except Exception as e:
             logger.error("Error calculating similarity: %s", str(e))
             raise ValueError("Failed to calculate similarity") from e
 
     def similarities(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
         ys: Union[
-            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
-            Union[IVector, IMatrix, Tuple, str, Callable]
-        ]
+            List[Union[IVector, IMatrix, Tuple, str, Callable]],
+            Union[IVector, IMatrix, Tuple, str, Callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculate Gaussian RBF similarities between an element and multiple elements.
@@ -100,28 +102,28 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
             # Handle single element case
             if not isinstance(ys, list):
                 return self.similarity(x, ys)
-            
+
             # Convert inputs to numpy arrays
             x_arr = np.asarray(x)
             ys_arr = [np.asarray(y) for y in ys]
-            
+
             # Calculate pairwise squared distances
-            dist_sq_matrix = distance.cdist([x_arr], ys_arr, metric='sqeuclidean')
-            
+            dist_sq_matrix = distance.cdist([x_arr], ys_arr, metric="sqeuclidean")
+
             # Compute RBF similarities for all pairs
             similarities = np.exp(-self.gamma * dist_sq_matrix.flatten())
             logger.debug("Similarities calculated: %s", similarities)
-            
+
             return similarities.tolist()
-            
+
         except Exception as e:
             logger.error("Error calculating similarities: %s", str(e))
             raise ValueError("Failed to calculate similarities") from e
 
     def dissimilarity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> float:
         """
         Calculate the dissimilarity using Gaussian RBF similarity.
@@ -142,12 +144,12 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         return dissimilarity
 
     def dissimilarities(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
         ys: Union[
-            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
-            Union[IVector, IMatrix, Tuple, str, Callable]
-        ]
+            List[Union[IVector, IMatrix, Tuple, str, Callable]],
+            Union[IVector, IMatrix, Tuple, str, Callable],
+        ],
     ) -> Union[float, List[float]]:
         """
         Calculate Gaussian RBF dissimilarities between an element and multiple elements.
@@ -169,9 +171,9 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
             return [1.0 - s for s in similarities]
 
     def check_boundedness(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is bounded.
@@ -189,8 +191,7 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         return True
 
     def check_reflexivity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable]
+        self, x: Union[IVector, IMatrix, Tuple, str, Callable]
     ) -> bool:
         """
         Check if the similarity measure is reflexive.
@@ -206,9 +207,9 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         return True
 
     def check_symmetry(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure is symmetric.
@@ -226,9 +227,9 @@ class GaussianRBFSimilarity(ISimilarity, ComponentBase):
         return True
 
     def check_identity(
-        self, 
-        x: Union[IVector, IMatrix, Tuple, str, Callable], 
-        y: Union[IVector, IMatrix, Tuple, str, Callable]
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable],
     ) -> bool:
         """
         Check if the similarity measure satisfies identity.

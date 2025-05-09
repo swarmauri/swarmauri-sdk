@@ -2,12 +2,15 @@ import pytest
 import logging
 import numpy as np
 
-from swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import TraceFormWeightedInnerProduct
+from swarmauri_standard.inner_products.TraceFormWeightedInnerProduct import (
+    TraceFormWeightedInnerProduct,
+)
+
 
 @pytest.mark.unit
 class TestTraceFormWeightedInnerProduct:
     """Unit tests for TraceFormWeightedInnerProduct class."""
-    
+
     @pytest.fixture
     def valid_matrices(self):
         """Fixture providing valid matrix pairs for testing."""
@@ -25,8 +28,8 @@ class TestTraceFormWeightedInnerProduct:
     @pytest.fixture
     def complex_matrices(self):
         """Fixture providing complex matrix pairs for testing."""
-        a = np.array([[1+1j, 2-1j], [3+2j, 4-3j]])
-        b = np.array([[5+6j, 7-8j], [9+10j, 11-12j]])
+        a = np.array([[1 + 1j, 2 - 1j], [3 + 2j, 4 - 3j]])
+        b = np.array([[5 + 6j, 7 - 8j], [9 + 10j, 11 - 12j]])
         return a, b
 
     @pytest.mark.unit
@@ -60,7 +63,7 @@ class TestTraceFormWeightedInnerProduct:
         """Test conjugate symmetry check."""
         a, b = valid_matrices
         ip = TraceFormWeightedInnerProduct()
-        
+
         # Test with real matrices
         ab = ip.compute(a, b)
         ba = ip.compute(b, a)
@@ -106,6 +109,6 @@ class TestTraceFormWeightedInnerProduct:
             a = np.array([[1, 2], [3, 4]])
             b = np.array([[5, 6], [7, 8]])
             result = ip.compute(a, b)
-            
+
             assert "Computing inner product" in caplog.text
             assert "Inner product result" in caplog.text

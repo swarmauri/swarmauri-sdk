@@ -4,10 +4,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.unit
 class TestHammingMetric:
     """Unit tests for HammingMetric class."""
-    
+
     @pytest.fixture
     def hamming_metric(self):
         """Fixture to provide a HammingMetric instance for testing."""

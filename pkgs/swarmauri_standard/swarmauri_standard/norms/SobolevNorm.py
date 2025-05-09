@@ -20,6 +20,7 @@ class SobolevNorm(NormBase):
     Attributes:
         resource: Type of resource this component represents
     """
+
     resource: Optional[str] = ResourceTypes.NORM.value
 
     def compute(self, x: Union[Callable, Sequence, np.ndarray, str]) -> float:
@@ -37,7 +38,7 @@ class SobolevNorm(NormBase):
             ValueError: If the input type is not supported or invalid.
         """
         logger.debug("Computing Sobolev norm")
-        
+
         # Convert to numpy array for consistent processing
         if isinstance(x, Callable):
             # For callable function, evaluate at multiple points
@@ -83,7 +84,9 @@ class SobolevNorm(NormBase):
         logger.debug(f"Computed Sobolev norm: {total_norm}")
         return total_norm
 
-    def check_non_negativity(self, x: Union[Callable, Sequence, np.ndarray, str]) -> None:
+    def check_non_negativity(
+        self, x: Union[Callable, Sequence, np.ndarray, str]
+    ) -> None:
         """
         Verify the non-negativity property of the Sobolev norm.
 
@@ -101,8 +104,11 @@ class SobolevNorm(NormBase):
             raise AssertionError("Norm is negative, violating non-negativity")
         logger.debug("Non-negativity check passed")
 
-    def check_triangle_inequality(self, x: Union[Callable, Sequence, np.ndarray, str],
-                                    y: Union[Callable, Sequence, np.ndarray, str]) -> None:
+    def check_triangle_inequality(
+        self,
+        x: Union[Callable, Sequence, np.ndarray, str],
+        y: Union[Callable, Sequence, np.ndarray, str],
+    ) -> None:
         """
         Verify the triangle inequality property of the Sobolev norm.
 
@@ -116,28 +122,33 @@ class SobolevNorm(NormBase):
             AssertionError: If triangle inequality is not satisfied.
         """
         logger.debug("Checking triangle inequality")
-        
+
         # Convert to numpy arrays
         if isinstance(x, Callable):
             x_vals = np.array([x(p) for p in np.random.uniform(0, 1, 10)])
         else:
             x_vals = np.array(x)
-            
+
         if isinstance(y, Callable):
             y_vals = np.array([y(p) for p in np.random.uniform(0, 1, 10)])
         else:
             y_vals = np.array(y)
-            
+
         sum_norm = self.compute(x_vals + y_vals)
         x_norm = self.compute(x_vals)
         y_norm = self.compute(y_vals)
-        
-        if sum_norm > x_norm + y_norm + 1e-9:  # Adding small epsilon for floating point errors
-            raise AssertionError(f"Triangle inequality failed: {sum_norm} > {x_norm} + {y_norm}")
+
+        if (
+            sum_norm > x_norm + y_norm + 1e-9
+        ):  # Adding small epsilon for floating point errors
+            raise AssertionError(
+                f"Triangle inequality failed: {sum_norm} > {x_norm} + {y_norm}"
+            )
         logger.debug("Triangle inequality check passed")
 
-    def check_absolute_homogeneity(self, x: Union[Callable, Sequence, np.ndarray, str],
-                                    alpha: float) -> None:
+    def check_absolute_homogeneity(
+        self, x: Union[Callable, Sequence, np.ndarray, str], alpha: float
+    ) -> None:
         """
         Verify the absolute homogeneity property of the Sobolev norm.
 
@@ -151,17 +162,19 @@ class SobolevNorm(NormBase):
             AssertionError: If absolute homogeneity is not satisfied.
         """
         logger.debug("Checking absolute homogeneity")
-        
+
         # Compute norm of scaled x
         scaled_x = self._scale_input(x, alpha)
         scaled_norm = self.compute(scaled_x)
-        
+
         # Compute |alpha| * ||x||
         x_norm = self.compute(x)
         expected_norm = abs(alpha) * x_norm
-        
+
         if not np.isclose(scaled_norm, expected_norm, atol=1e-9):
-            raise AssertionError(f"Absolute homogeneity failed: {scaled_norm} != {expected_norm}")
+            raise AssertionError(
+                f"Absolute homogeneity failed: {scaled_norm} != {expected_norm}"
+            )
         logger.debug("Absolute homogeneity check passed")
 
     def check_definiteness(self, x: Union[Callable, Sequence, np.ndarray, str]) -> None:
@@ -178,30 +191,36 @@ class SobolevNorm(NormBase):
         """
         logger.debug("Checking definiteness")
         norm = self.compute(x)
-        
+
         if norm == 0:
             # Check if x is the zero vector
             if isinstance(x, (Sequence, np.ndarray)):
                 if not all(v == 0 for v in x):
-                    raise AssertionError("Norm is zero but input is not the zero vector")
+                    raise AssertionError(
+                        "Norm is zero but input is not the zero vector"
+                    )
             elif isinstance(x, Callable):
                 # Check if function is identically zero
                 points = np.random.uniform(0, 1, 10)
                 if not all(abs(x(p)) < 1e-9 for p in points):
-                    raise AssertionError("Norm is zero but function is not identically zero")
+                    raise AssertionError(
+                        "Norm is zero but function is not identically zero"
+                    )
             else:
                 # Handle other types if necessary
                 pass
         logger.debug("Definiteness check passed")
 
-    def _scale_input(self, x: Union[Callable, Sequence, np.ndarray, str], alpha: float) -> Union[Callable, Sequence, np.ndarray, str]:
+    def _scale_input(
+        self, x: Union[Callable, Sequence, np.ndarray, str], alpha: float
+    ) -> Union[Callable, Sequence, np.ndarray, str]:
         """
         Helper method to scale the input by a factor alpha.
-        
+
         Args:
             x: The input to scale.
             alpha: The scaling factor.
-            
+
         Returns:
             Scaled input.
         """
