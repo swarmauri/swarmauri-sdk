@@ -1,11 +1,14 @@
 import pytest
 import numpy as np
-from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
+from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import (
+    BrayCurtisSimilarity,
+)
+
 
 @pytest.mark.unit
 class TestBrayCurtisSimilarity:
     """Unit test class for BrayCurtisSimilarity class."""
-    
+
     def test_similarity_basic_case(self):
         """Test basic functionality of similarity method."""
         bray_curtis = BrayCurtisSimilarity()
@@ -49,12 +52,12 @@ class TestBrayCurtisSimilarity:
         pairs = [
             (np.array([1, 2]), np.array([4, 5])),
             (np.array([0, 0]), np.array([0, 0])),
-            (np.array([3, 3]), np.array([3, 3]))
+            (np.array([3, 3]), np.array([3, 3])),
         ]
         expected = [
-            1 - (np.sum(np.abs([1-4, 2-5])) / (np.sum([1,2]) + np.sum([4,5]))),
+            1 - (np.sum(np.abs([1 - 4, 2 - 5])) / (np.sum([1, 2]) + np.sum([4, 5]))),
             1.0,
-            1.0
+            1.0,
         ]
         similarities = bray_curtis.similarities(pairs)
         for s, e in zip(similarities, expected):
@@ -103,12 +106,12 @@ class TestBrayCurtisSimilarity:
         pairs = [
             (np.array([1, 2]), np.array([4, 5])),
             (np.array([0, 0]), np.array([0, 0])),
-            (np.array([3, 3]), np.array([3, 3]))
+            (np.array([3, 3]), np.array([3, 3])),
         ]
         expected = [
-            np.sum(np.abs([1-4, 2-5])) / (np.sum([1,2]) + np.sum([4,5])),
+            np.sum(np.abs([1 - 4, 2 - 5])) / (np.sum([1, 2]) + np.sum([4, 5])),
             0.0,
-            0.0
+            0.0,
         ]
         dissimilarities = bray_curtis.dissimilarities(pairs)
         for d, e in zip(dissimilarities, expected):

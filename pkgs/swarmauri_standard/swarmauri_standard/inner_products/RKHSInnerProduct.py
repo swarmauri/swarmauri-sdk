@@ -48,12 +48,16 @@ class RKHSInnerProduct(InnerProductBase):
         Raises:
             ValueError: If the kernel is not positive-definite
         """
-        logger.debug(f"Computing inner product using kernel {self.kernel.__class__.__name__}")
-        
+        logger.debug(
+            f"Computing inner product using kernel {self.kernel.__class__.__name__}"
+        )
+
         # Evaluate the kernel at x and y
         return self.kernel.evaluate(x, y)
 
-    def check_conjugate_symmetry(self, x: IInnerProduct.IVector, y: IInnerProduct.IVector) -> bool:
+    def check_conjugate_symmetry(
+        self, x: IInnerProduct.IVector, y: IInnerProduct.IVector
+    ) -> bool:
         """Check if the inner product satisfies conjugate symmetry.
 
         For the RKHS inner product, this requires that:
@@ -67,20 +71,22 @@ class RKHSInnerProduct(InnerProductBase):
             True if conjugate symmetry holds, False otherwise.
         """
         logger.debug("Checking conjugate symmetry")
-        
+
         # Compute both directions
         k_xy = self.compute(x, y)
         k_yx = self.compute(y, x)
-        
+
         # Check if they are conjugate symmetric
         return k_xy == k_yx.conjugate()
 
-    def check_linearity_first_argument(self, 
-                                      x: IInnerProduct.IVector, 
-                                      y: IInnerProduct.IVector, 
-                                      z: IInnerProduct.IVector,
-                                      a: float = 1.0, 
-                                      b: float = 1.0) -> bool:
+    def check_linearity_first_argument(
+        self,
+        x: IInnerProduct.IVector,
+        y: IInnerProduct.IVector,
+        z: IInnerProduct.IVector,
+        a: float = 1.0,
+        b: float = 1.0,
+    ) -> bool:
         """Check if the inner product is linear in the first argument.
 
         Linearity requires that:
@@ -97,13 +103,13 @@ class RKHSInnerProduct(InnerProductBase):
             True if linearity holds, False otherwise.
         """
         logger.debug("Checking linearity in first argument")
-        
+
         # Compute left-hand side: <a*x + b*y, z>
         lhs = self.compute(x * a + y * b, z)
-        
+
         # Compute right-hand side: a*<x, z> + b*<y, z>
         rhs = a * self.compute(x, z) + b * self.compute(y, z)
-        
+
         # Compare with some tolerance for floating point errors
         return abs(lhs - rhs) < 1e-12
 
@@ -120,9 +126,9 @@ class RKHSInnerProduct(InnerProductBase):
             True if positive definite, False otherwise.
         """
         logger.debug("Checking positive definiteness")
-        
+
         # Compute the inner product of x with itself
         value = self.compute(x, x)
-        
+
         # Check if it's positive and x is non-zero
         return value > 0 and x.norm() > 0

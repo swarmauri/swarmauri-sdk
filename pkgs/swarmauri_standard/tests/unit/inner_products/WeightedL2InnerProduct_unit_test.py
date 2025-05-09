@@ -1,10 +1,13 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.inner_products.WeightedL2InnerProduct import WeightedL2InnerProduct
+from swarmauri_standard.swarmauri_standard.inner_products.WeightedL2InnerProduct import (
+    WeightedL2InnerProduct,
+)
 import logging
 from swarmauri_core.types import IVector
 from typing import Callable, Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
+
 
 @pytest.mark.unit
 class TestWeightedL2InnerProduct:
@@ -13,8 +16,10 @@ class TestWeightedL2InnerProduct:
     @pytest.fixture
     def default_weight_function(self) -> Callable[[IVector], IVector]:
         """Fixture providing a default weight function that returns 1 for all vectors."""
+
         def weight_function(x: IVector) -> IVector:
             return x.ones_like()
+
         return weight_function
 
     @pytest.fixture
@@ -26,8 +31,10 @@ class TestWeightedL2InnerProduct:
     @pytest.fixture
     def invalid_weight_function(self) -> Callable[[IVector], IVector]:
         """Fixture providing a weight function that may return zero or negative weights."""
+
         def weight_function(x: IVector) -> IVector:
             return x.zeros_like()
+
         return weight_function
 
     def test_compute(self, default_weight_function, test_vector):
@@ -56,10 +63,10 @@ class TestWeightedL2InnerProduct:
         z = test_vector
         a = 2.0
         b = 3.0
-        
+
         lhs = weighted_l2.compute(a * x + b * y, z)
         rhs = a * weighted_l2.compute(x, z) + b * weighted_l2.compute(y, z)
-        
+
         assert lhs == rhs
 
     def test_check_positivity(self, default_weight_function, test_vector):
@@ -68,14 +75,20 @@ class TestWeightedL2InnerProduct:
         is_positive = weighted_l2.check_positivity(test_vector)
         assert is_positive
 
-    @pytest.mark.parametrize("weight_parameters,expected_result", [
-        (None, None),
-        ({"scale": 2.0}, {"scale": 2.0}),
-        ({"offset": 1.0}, {"offset": 1.0}),
-    ])
-    def test_weight_parameters(self, default_weight_function, weight_parameters, expected_result):
+    @pytest.mark.parametrize(
+        "weight_parameters,expected_result",
+        [
+            (None, None),
+            ({"scale": 2.0}, {"scale": 2.0}),
+            ({"offset": 1.0}, {"offset": 1.0}),
+        ],
+    )
+    def test_weight_parameters(
+        self, default_weight_function, weight_parameters, expected_result
+    ):
         """Test that weight parameters are stored correctly."""
         weighted_l2 = WeightedL2InnerProduct(default_weight_function, weight_parameters)
         assert weighted_l2.weight_parameters == expected_result
+
 
 __all__ = ["TestWeightedL2InnerProduct"]

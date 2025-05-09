@@ -9,8 +9,11 @@ from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 logger = logging.getLogger(__name__)
 
 # Define type variables for input types
-InputTypes = TypeVar('InputTypes', Sequence[float], Sequence[Sequence[float]], str, callable)
-DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
+InputTypes = TypeVar(
+    "InputTypes", Sequence[float], Sequence[Sequence[float]], str, callable
+)
+DistanceInput = TypeVar("DistanceInput", InputTypes, Iterable[InputTypes])
+
 
 @ComponentBase.register_model()
 class LpPseudometric(IPseudometric, ComponentBase):
@@ -29,10 +32,15 @@ class LpPseudometric(IPseudometric, ComponentBase):
         resource: str = ResourceTypes.PSEUDOMETRIC.value
             The resource type identifier for this component.
     """
+
     resource: str = ComponentBase.ResourceTypes.PSEUDOMETRIC.value
     type: Literal["LpPseudometric"] = "LpPseudometric"
 
-    def __init__(self, p: float, domain: Optional[Union[int, float, Sequence[int], Sequence[float]]] = None):
+    def __init__(
+        self,
+        p: float,
+        domain: Optional[Union[int, float, Sequence[int], Sequence[float]]] = None,
+    ):
         """
         Initialize the LpPseudometric instance.
 
@@ -71,23 +79,27 @@ class LpPseudometric(IPseudometric, ComponentBase):
             ValueError:
                 If inputs cannot be processed
         """
-        logger.debug("Computing Lp pseudometric distance between inputs of types %s and %s", type(x), type(y))
-        
+        logger.debug(
+            "Computing Lp pseudometric distance between inputs of types %s and %s",
+            type(x),
+            type(y),
+        )
+
         try:
             # Convert inputs to numpy arrays if they're not already
             if not isinstance(x, np.ndarray):
                 x = np.asarray(x)
             if not isinstance(y, np.ndarray):
                 y = np.asarray(y)
-            
+
             # Handle domain specification
             if self.domain is not None:
                 x = x[self.domain]
                 y = y[self.domain]
-            
+
             # Compute absolute difference
             difference = np.abs(x - y)
-            
+
             # Compute Lp norm of the difference
             if self.p == np.inf:
                 distance = np.max(difference)
@@ -100,12 +112,12 @@ class LpPseudometric(IPseudometric, ComponentBase):
                 else:
                     # Flatten and sum
                     sum_diff = np.sum(powered_diff)
-                
+
                 # Take the p-root
                 distance = np.power(sum_diff, 1.0 / self.p)
-            
+
             return float(distance)
-            
+
         except Exception as e:
             logger.error("Failed to compute Lp pseudometric distance: %s", str(e))
             raise ValueError(f"Failed to compute Lp pseudometric distance: {str(e)}")
@@ -128,11 +140,15 @@ class LpPseudometric(IPseudometric, ComponentBase):
             ValueError:
                 If any input cannot be processed
         """
-        logger.debug("Computing distances from input of type %s to %d other inputs", type(x), len(ys))
-        
+        logger.debug(
+            "Computing distances from input of type %s to %d other inputs",
+            type(x),
+            len(ys),
+        )
+
         try:
             return [self.distance(x, y) for y in ys]
-            
+
         except Exception as e:
             logger.error("Failed to compute distances: %s", str(e))
             raise ValueError(f"Failed to compute distances: {str(e)}")
@@ -172,7 +188,9 @@ class LpPseudometric(IPseudometric, ComponentBase):
         logger.debug("Checking symmetry between %s and %s", x, y)
         return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
+    def check_triangle_inequality(
+        self, x: InputTypes, y: InputTypes, z: InputTypes
+    ) -> bool:
         """
         Check if the distance satisfies the triangle inequality.
 

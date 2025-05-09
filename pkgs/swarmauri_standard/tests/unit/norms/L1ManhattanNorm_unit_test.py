@@ -2,10 +2,11 @@ import pytest
 from swarmauri_standard.norms.L1ManhattanNorm import L1ManhattanNorm
 import logging
 
+
 @pytest.mark.unit
 class TestL1ManhattanNorm:
     """Unit test class for the L1ManhattanNorm class."""
-    
+
     @pytest.fixture
     def l1_norm(self):
         """Fixture to provide an instance of L1ManhattanNorm for testing."""
@@ -14,7 +15,7 @@ class TestL1ManhattanNorm:
     def test_compute(self, l1_norm):
         """
         Tests the compute method of the L1ManhattanNorm class.
-        
+
         Tests various input types and values to ensure correct L1 norm calculation.
         """
         # Test with list of numbers
@@ -30,7 +31,7 @@ class TestL1ManhattanNorm:
     def test_non_negativity(self, l1_norm):
         """
         Tests the non-negativity property of the L1 norm.
-        
+
         Ensures that the norm is always non-negative for various inputs.
         """
         # Test with positive values
@@ -43,7 +44,7 @@ class TestL1ManhattanNorm:
     def test_triangle_inequality(self, l1_norm):
         """
         Tests the triangle inequality property of the L1 norm.
-        
+
         Verifies that ||x + y|| <= ||x|| + ||y|| for various vectors.
         """
         x = [1, 2]
@@ -53,7 +54,7 @@ class TestL1ManhattanNorm:
     def test_absolute_homogeneity(self, l1_norm):
         """
         Tests the absolute homogeneity property of the L1 norm.
-        
+
         Verifies that ||c * x|| = |c| * ||x|| for various scalars.
         """
         x = [1, 2]
@@ -67,7 +68,7 @@ class TestL1ManhattanNorm:
     def test_definiteness(self, l1_norm):
         """
         Tests the definiteness property of the L1 norm.
-        
+
         Ensures that norm(x) = 0 if and only if x = 0.
         """
         # Test with zero vector

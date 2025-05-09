@@ -6,7 +6,8 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', str, Sequence[str])
+T = TypeVar("T", str, Sequence[str])
+
 
 @ComponentBase.register_type(MetricBase, "LevenshteinMetric")
 class LevenshteinMetric(MetricBase):
@@ -25,11 +26,11 @@ class LevenshteinMetric(MetricBase):
         - Type hints and docstrings
         - PEP 8 and PEP 484 compliance
     """
-    
+
     def __init__(self):
         """
         Initialize the LevenshteinMetric instance.
-        
+
         Initializes the base class and sets up logging.
         """
         super().__init__()
@@ -77,15 +78,19 @@ class LevenshteinMetric(MetricBase):
         # Fill in the rest of the matrix
         for i in range(1, m + 1):
             for j in range(1, n + 1):
-                cost = 0 if x[i-1] == y[j-1] else 1
-                dp[i][j] = min(dp[i-1][j] + 1,   # Deletion
-                              dp[i][j-1] + 1,   # Insertion
-                              dp[i-1][j-1] + cost)  # Substitution or no cost
+                cost = 0 if x[i - 1] == y[j - 1] else 1
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,  # Deletion
+                    dp[i][j - 1] + 1,  # Insertion
+                    dp[i - 1][j - 1] + cost,
+                )  # Substitution or no cost
 
         # The bottom-right cell contains the result
         return float(dp[m][n])
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the Levenshtein distance(s) between a string and one or more strings.
 
@@ -106,7 +111,7 @@ class LevenshteinMetric(MetricBase):
         """
         if not isinstance(x, str):
             raise ValueError("Reference input must be a string")
-            
+
         if isinstance(y_list, str):
             return self.distance(x, y_list)
         elif isinstance(y_list, Sequence):

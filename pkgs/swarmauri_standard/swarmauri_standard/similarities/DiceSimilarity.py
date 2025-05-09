@@ -6,25 +6,27 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "DiceSimilarity")
 class DiceSimilarity(SimilarityBase):
     """
     Concrete implementation of the Dice similarity measure for sets or multisets.
 
-    This class implements the Dice coefficient, which is a measure of similarity 
-    between two sets or multisets. The coefficient is calculated as twice the 
+    This class implements the Dice coefficient, which is a measure of similarity
+    between two sets or multisets. The coefficient is calculated as twice the
     intersection divided by the sum of the sizes of both sets.
 
-    The implementation supports both sets and multisets, with the similarity 
+    The implementation supports both sets and multisets, with the similarity
     ranging between 0 (completely dissimilar) and 1 (identical).
 
     Attributes:
         type: Literal["DiceSimilarity"] = "DiceSimilarity"
             The type identifier for this similarity measure.
     """
+
     type: Literal["DiceSimilarity"] = "DiceSimilarity"
 
     def __init__(self):
@@ -58,7 +60,7 @@ class DiceSimilarity(SimilarityBase):
                 If the input types are not supported
         """
         logger.debug("Calculating Dice similarity between two elements")
-        
+
         try:
             # Convert inputs to Counter objects to handle multisets
             x_counter = Counter(x) if x else Counter()
@@ -88,7 +90,9 @@ class DiceSimilarity(SimilarityBase):
             logger.error(f"Error calculating Dice similarity: {str(e)}")
             raise
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Dice similarities for multiple pairs of elements.
 
@@ -105,7 +109,7 @@ class DiceSimilarity(SimilarityBase):
                 If the input pairs are not in the correct format
         """
         logger.debug("Calculating Dice similarities for multiple pairs")
-        
+
         try:
             results = []
             for pair in pairs:
@@ -113,7 +117,7 @@ class DiceSimilarity(SimilarityBase):
                     raise ValueError("Each pair must contain exactly two elements")
                 similarity = self.similarity(pair[0], pair[1])
                 results.append(similarity)
-            
+
             logger.debug(f"Dice similarities results: {results}")
             return results
 
@@ -138,7 +142,7 @@ class DiceSimilarity(SimilarityBase):
                 A float between 0 and 1 representing the dissimilarity between x and y.
         """
         logger.debug("Calculating Dice dissimilarity between two elements")
-        
+
         try:
             similarity = self.similarity(x, y)
             dissimilarity = 1.0 - similarity
@@ -149,7 +153,9 @@ class DiceSimilarity(SimilarityBase):
             logger.error(f"Error calculating Dice dissimilarity: {str(e)}")
             raise
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Dice dissimilarities for multiple pairs of elements.
 
@@ -162,7 +168,7 @@ class DiceSimilarity(SimilarityBase):
                 A sequence of dissimilarity scores corresponding to each pair.
         """
         logger.debug("Calculating Dice dissimilarities for multiple pairs")
-        
+
         try:
             results = []
             for pair in pairs:
@@ -170,7 +176,7 @@ class DiceSimilarity(SimilarityBase):
                     raise ValueError("Each pair must contain exactly two elements")
                 dissimilarity = self.dissimilarity(pair[0], pair[1])
                 results.append(dissimilarity)
-            
+
             logger.debug(f"Dice dissimilarities results: {results}")
             return results
 

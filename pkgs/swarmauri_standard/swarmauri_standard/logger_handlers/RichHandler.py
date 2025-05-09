@@ -11,11 +11,12 @@ from swarmauri_core.ComponentBase import ComponentBase
 class RichHandler(HandlerBase):
     """
     A handler that uses Rich library to provide colorized, formatted log output.
-    
+
     This handler leverages the Rich library's RichHandler to produce visually appealing
     and informative log messages in the console with syntax highlighting, formatting,
     and other rich text features.
     """
+
     type: Literal["RichHandler"] = "RichHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
@@ -35,10 +36,10 @@ class RichHandler(HandlerBase):
     def compile_handler(self) -> logging.Handler:
         """
         Compiles a Rich logging handler with the specified configuration.
-        
+
         The handler is configured with visual enhancements and formatting options
         based on the instance attributes.
-        
+
         Returns:
             logging.Handler: A configured Rich logging handler
         """
@@ -58,7 +59,7 @@ class RichHandler(HandlerBase):
             highlighter=self.highlighter,
             keywords=self.keywords or {},
         )
-        
+
         # Apply formatter if specified
         if self.formatter:
             if isinstance(self.formatter, str):
@@ -67,16 +68,16 @@ class RichHandler(HandlerBase):
             else:
                 # If formatter is a FormatterBase instance, compile and use it
                 rich_handler.setFormatter(self.formatter.compile_formatter())
-        
+
         # Note: Rich has its own default formatting, so we don't need to set a default formatter
         # if one isn't specified
-        
+
         return rich_handler
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Converts the handler configuration to a dictionary.
-        
+
         Returns:
             Dict[str, Any]: Dictionary representation of the handler
         """
@@ -92,12 +93,12 @@ class RichHandler(HandlerBase):
             "markup": self.markup,
             "highlighter": self.highlighter,
         }
-        
+
         # Only include non-None values
         if self.tracebacks_theme:
             rich_dict["tracebacks_theme"] = self.tracebacks_theme
         if self.keywords:
             rich_dict["keywords"] = self.keywords
-            
+
         base_dict.update(rich_dict)
         return base_dict

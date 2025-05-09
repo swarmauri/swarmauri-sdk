@@ -6,8 +6,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', Set, frozenset)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", Set, frozenset)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "JaccardIndexSimilarity")
 class JaccardIndexSimilarity(SimilarityBase):
@@ -25,6 +26,7 @@ class JaccardIndexSimilarity(SimilarityBase):
         type: Literal["JaccardIndexSimilarity"]
             Type identifier for the similarity measure
     """
+
     type: Literal["JaccardIndexSimilarity"] = "JaccardIndexSimilarity"
 
     def __init__(self):
@@ -69,7 +71,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         logger.debug(f"Similarity between {x} and {y}: {jaccard_index}")
         return jaccard_index
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[OutputType]:
         """
         Calculate Jaccard Index similarities for multiple pairs of sets.
 
@@ -102,7 +106,9 @@ class JaccardIndexSimilarity(SimilarityBase):
         """
         return 1.0 - self.similarity(x, y)
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[OutputType]:
         """
         Calculate dissimilarities for multiple pairs of sets.
 

@@ -6,7 +6,8 @@ from swarmauri_core.seminorms.ISeminorm import ISeminorm
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[Sequence[float], Sequence[Sequence[float]], str, callable])
+T = TypeVar("T", Union[Sequence[float], Sequence[Sequence[float]], str, callable])
+
 
 @ComponentBase.register_type(SeminormBase, "PartialSumSeminorm")
 class PartialSumSeminorm(SeminormBase):
@@ -22,8 +23,9 @@ class PartialSumSeminorm(SeminormBase):
         resource: str
             The resource type identifier for this component.
     """
+
     resource: str = ResourceTypes.SEMINORM.value
-    
+
     def __init__(self, start: int = 0, end: Optional[int] = None):
         """
         Initialize the PartialSumSeminorm instance.
@@ -39,8 +41,11 @@ class PartialSumSeminorm(SeminormBase):
         super().__init__()
         self.start = start
         self.end = end
-        logger.debug("Initialized PartialSumSeminorm with start=%d, end=%s",
-                    start, end if end is not None else "None")
+        logger.debug(
+            "Initialized PartialSumSeminorm with start=%d, end=%s",
+            start,
+            end if end is not None else "None",
+        )
 
     def compute(self, input: T) -> float:
         """
@@ -62,22 +67,26 @@ class PartialSumSeminorm(SeminormBase):
         try:
             # Convert input to list for indexing operations
             input_list = list(input)
-            
+
             # Get the actual end index, defaulting to the length of the input
             actual_end = self.end if self.end is not None else len(input_list)
-            
+
             # Validate indices
             if self.start >= len(input_list):
-                raise ValueError(f"Start index {self.start} exceeds input length {len(input_list)}")
+                raise ValueError(
+                    f"Start index {self.start} exceeds input length {len(input_list)}"
+                )
             if actual_end > len(input_list):
-                raise ValueError(f"End index {actual_end} exceeds input length {len(input_list)}")
-            
+                raise ValueError(
+                    f"End index {actual_end} exceeds input length {len(input_list)}"
+                )
+
             # Slice the input based on start and end indices
-            segment = input_list[self.start:actual_end]
-            
+            segment = input_list[self.start : actual_end]
+
             # Compute the sum of absolute values
             return sum(abs(x) for x in segment)
-            
+
         except Exception as e:
             logger.error("Error during compute: %s", str(e))
             raise
@@ -104,10 +113,10 @@ class PartialSumSeminorm(SeminormBase):
             seminorm_a = self.compute(a)
             seminorm_b = self.compute(b)
             seminorm_ab = self.compute([a[i] + b[i] for i in range(len(a))])
-            
+
             # Check inequality
             return seminorm_ab <= seminorm_a + seminorm_b
-            
+
         except Exception as e:
             logger.error("Error during triangle inequality check: %s", str(e))
             return False
@@ -132,16 +141,16 @@ class PartialSumSeminorm(SeminormBase):
         try:
             if scalar < 0:
                 raise ValueError("Scalar must be non-negative")
-            
+
             # Compute original seminorm
             original = self.compute(a)
-            
+
             # Compute scaled seminorm
             scaled = self.compute([scalar * x for x in a])
-            
+
             # Check homogeneity
             return scaled == scalar * original
-            
+
         except Exception as e:
             logger.error("Error during scalar homogeneity check: %s", str(e))
             return False

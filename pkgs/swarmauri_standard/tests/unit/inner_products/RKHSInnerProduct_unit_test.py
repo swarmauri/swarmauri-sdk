@@ -1,4 +1,5 @@
 """Unit tests for the RKHSInnerProduct class in the swarmauri_standard package."""
+
 import pytest
 import numpy as np
 from swarmauri_standard.swarmauri_standard.inner_products.RKHSInnerProduct import (
@@ -7,15 +8,18 @@ from swarmauri_standard.swarmauri_standard.inner_products.RKHSInnerProduct impor
 from base.swarmauri_standard.kernels import LinearKernel
 from base.swarmauri_core.inner_products.IInnerProduct import IVector
 
+
 @pytest.fixture
 def rkhsinnerproduct() -> RKHSInnerProduct:
     """Fixture to create an RKHSInnerProduct instance with a linear kernel."""
     return RKHSInnerProduct(kernel=LinearKernel())
 
+
 @pytest.fixture
 def kernel_vector() -> IVector:
     """Fixture to create a sample vector for testing."""
     return np.random.randn(5)
+
 
 @pytest.mark.unit
 def test_compute(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):
@@ -24,6 +28,7 @@ def test_compute(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):
     y = kernel_vector
     result = rkhsinnerproduct.compute(x, y)
     assert result == pytest.approx(np.dot(x, y))
+
 
 @pytest.mark.unit
 def test_conjugate_symmetry(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):
@@ -34,6 +39,7 @@ def test_conjugate_symmetry(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: I
     k_yx = rkhsinnerproduct.compute(y, x)
     assert k_xy == k_yx
 
+
 @pytest.mark.unit
 def test_linearity(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):
     """Test the linearity property in the first argument."""
@@ -42,11 +48,12 @@ def test_linearity(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):
     z = kernel_vector
     a = 2.0
     b = 3.0
-    
+
     lhs = rkhsinnerproduct.compute((a * x) + (b * y), z)
     rhs = a * rkhsinnerproduct.compute(x, z) + b * rkhsinnerproduct.compute(y, z)
-    
+
     assert lhs == pytest.approx(rhs)
+
 
 @pytest.mark.unit
 def test_positivity(rkhsinnerproduct: RKHSInnerProduct, kernel_vector: IVector):

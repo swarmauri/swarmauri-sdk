@@ -3,8 +3,8 @@ from swarmauri_base.metrics.MetricBase import MetricBase
 import logging
 from typing import Any, Union, Sequence, TypeVar
 
-T = TypeVar('T', bound=Any)
-S = TypeVar('S', int, float, bool, str)
+T = TypeVar("T", bound=Any)
+S = TypeVar("S", int, float, bool, str)
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class DiscreteMetric(MetricBase):
         - Comprehensive logging for debugging purposes
         - Full compliance with the metric axioms
     """
-    
+
     def __init__(self):
         """
         Initialize the DiscreteMetric instance.
@@ -66,7 +66,9 @@ class DiscreteMetric(MetricBase):
             logger.error(f"Unsupported type comparison: {str(e)}")
             raise TypeError(f"Unsupported type comparison: {str(e)}")
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the distance(s) between a point and one or more points.
 
@@ -115,10 +117,14 @@ class DiscreteMetric(MetricBase):
         try:
             distance = self.distance(x, y)
             if distance >= 0:
-                logger.debug(f"Non-negativity satisfied: {x} and {y}, distance={distance}")
+                logger.debug(
+                    f"Non-negativity satisfied: {x} and {y}, distance={distance}"
+                )
                 return True
             else:
-                logger.error(f"Non-negativity violation: {x} and {y}, distance={distance}")
+                logger.error(
+                    f"Non-negativity violation: {x} and {y}, distance={distance}"
+                )
                 return False
         except Exception as e:
             logger.error(f"Non-negativity check failed: {str(e)}")
@@ -178,7 +184,9 @@ class DiscreteMetric(MetricBase):
                 logger.debug(f"Symmetry satisfied: d({x}, {y}) = d({y}, {x}) = {d_xy}")
                 return True
             else:
-                logger.error(f"Symmetry violation: d({x}, {y}) = {d_xy}, d({y}, {x}) = {d_yx}")
+                logger.error(
+                    f"Symmetry violation: d({x}, {y}) = {d_xy}, d({y}, {x}) = {d_yx}"
+                )
                 return False
         except Exception as e:
             logger.error(f"Symmetry check failed: {str(e)}")

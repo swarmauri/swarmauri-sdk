@@ -7,8 +7,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "BrayCurtisSimilarity")
 class BrayCurtisSimilarity(SimilarityBase):
@@ -22,8 +23,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         type: Literal["BrayCurtisSimilarity"]
             The type identifier for this similarity measure
     """
+
     type: Literal["BrayCurtisSimilarity"] = "BrayCurtisSimilarity"
-    
+
     def __init__(self):
         """
         Initialize the BrayCurtisSimilarity instance.
@@ -52,7 +54,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         Raises:
             ValueError: If input vectors contain negative values
         """
-        if not (isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))):
+        if not (
+            isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))
+        ):
             x = np.array(x)
             y = np.array(y)
 
@@ -72,7 +76,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         logger.debug(f"Similarity calculation result: {similarity}")
         return similarity
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Bray-Curtis similarities for multiple pairs of vectors.
 
@@ -112,7 +118,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         Raises:
             ValueError: If input vectors contain negative values
         """
-        if not (isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))):
+        if not (
+            isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))
+        ):
             x = np.array(x)
             y = np.array(y)
 
@@ -132,7 +140,9 @@ class BrayCurtisSimilarity(SimilarityBase):
         logger.debug(f"Dissimilarity calculation result: {dissimilarity}")
         return dissimilarity
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Bray-Curtis dissimilarities for multiple pairs of vectors.
 
@@ -148,5 +158,7 @@ class BrayCurtisSimilarity(SimilarityBase):
         for pair in pairs:
             x, y = pair
             dissimilarities.append(self.dissimilarity(x, y))
-        logger.debug(f"Dissimilarities for multiple pairs calculated: {dissimilarities}")
+        logger.debug(
+            f"Dissimilarities for multiple pairs calculated: {dissimilarities}"
+        )
         return dissimilarities

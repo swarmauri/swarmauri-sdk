@@ -9,7 +9,8 @@ from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 logger = logging.getLogger(__name__)
 
 # Define type variables for input types
-InputTypes = TypeVar('InputTypes', Callable, Iterable[float])
+InputTypes = TypeVar("InputTypes", Callable, Iterable[float])
+
 
 @ComponentBase.register_type(PseudometricBase, "FunctionDifferencePseudometric")
 class FunctionDifferencePseudometric(PseudometricBase):
@@ -34,7 +35,11 @@ class FunctionDifferencePseudometric(PseudometricBase):
     evaluation_points: Optional[Iterable[float]] = None
     sample_count: int = 10
 
-    def __init__(self, evaluation_points: Optional[Iterable[float]] = None, sample_count: int = 10) -> None:
+    def __init__(
+        self,
+        evaluation_points: Optional[Iterable[float]] = None,
+        sample_count: int = 10,
+    ) -> None:
         """
         Initializes the FunctionDifferencePseudometric instance.
 
@@ -61,7 +66,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
         """
         domain_start = 0.0
         domain_end = 1.0
-        self.evaluation_points = np.linspace(domain_start, domain_end, self.sample_count)
+        self.evaluation_points = np.linspace(
+            domain_start, domain_end, self.sample_count
+        )
 
     def distance(self, x: Callable, y: Callable) -> float:
         """
@@ -128,7 +135,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
             if not callable(y):
                 raise TypeError(f"Function {y} is not callable")
             distances.append(self.distance(x, y))
-            
+
         return distances
 
     def check_non_negativity(self, x: Callable, y: Callable) -> bool:

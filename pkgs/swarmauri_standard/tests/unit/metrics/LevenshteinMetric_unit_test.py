@@ -2,6 +2,7 @@ import pytest
 from swarmauri_standard.metrics import LevenshteinMetric
 import logging
 
+
 @pytest.mark.unit
 def test_levenshteinmetric_distance():
     """
@@ -29,6 +30,7 @@ def test_levenshteinmetric_distance():
     # Test case with different lengths and substitutions
     assert levenshtein.distance("abc", "def") == 3.0
 
+
 @pytest.mark.unit
 def test_levenshteinmetric_distances():
     """
@@ -50,6 +52,7 @@ def test_levenshteinmetric_distances():
     with pytest.raises(ValueError):
         levenshtein.distances(123, "test")
 
+
 @pytest.mark.unit
 def test_levenshteinmetric_initialization():
     """
@@ -61,6 +64,7 @@ def test_levenshteinmetric_initialization():
     assert isinstance(levenshtein, LevenshteinMetric)
     assert levenshtein.resource == "Metric"
     assert levenshtein.type == "LevenshteinMetric"
+
 
 @pytest.mark.unit
 def test_levenshteinmetric_value_error():
@@ -85,6 +89,7 @@ def test_levenshteinmetric_value_error():
         levenshtein.distances("test", 456)
         levenshtein.distances("test", ["test", 456])
 
+
 @pytest.mark.unit
 def test_levenshteinmetric_logging():
     """
@@ -93,7 +98,7 @@ def test_levenshteinmetric_logging():
     This test case verifies that appropriate debug messages are logged.
     """
     levenshtein = LevenshteinMetric()
-    
+
     # Capture logging messages
     logger = logging.getLogger(__name__)
     with pytest.raises(AssertionError):

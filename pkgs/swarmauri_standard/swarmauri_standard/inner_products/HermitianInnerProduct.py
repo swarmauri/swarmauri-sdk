@@ -16,6 +16,7 @@ class HermitianInnerProduct(InnerProductBase):
     definition where the inner product of vectors x and y is defined as the
     conjugate transpose of x multiplied by y.
     """
+
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
 
     def compute(self, x: "IVector", y: "IVector") -> float:
@@ -36,14 +37,14 @@ class HermitianInnerProduct(InnerProductBase):
             ValueError: If the input vectors are not of complex type
         """
         logger.debug("Computing Hermitian inner product")
-        
+
         # Ensure input vectors are complex
         if not x.is_complex or not y.is_complex:
             raise ValueError("HermitianInnerProduct requires complex vectors")
 
         # Compute conjugate transpose of x and dot product with y
         product = x.conj().dot(y)
-        
+
         # Return real part to ensure scalar output
         return float(product.real)
 
@@ -60,20 +61,17 @@ class HermitianInnerProduct(InnerProductBase):
             True if conjugate symmetry holds, False otherwise
         """
         logger.debug("Checking conjugate symmetry")
-        
+
         # Compute inner products
         inner_xy = self.compute(x, y)
         inner_yx = self.compute(y, x)
-        
+
         # Check if inner_xy is the conjugate of inner_yx
         return inner_xy == inner_yx.conjugate()
 
-    def check_linearity_first_argument(self, 
-                                      x: "IVector", 
-                                      y: "IVector", 
-                                      z: "IVector",
-                                      a: float = 1.0, 
-                                      b: float = 1.0) -> bool:
+    def check_linearity_first_argument(
+        self, x: "IVector", y: "IVector", z: "IVector", a: float = 1.0, b: float = 1.0
+    ) -> bool:
         """Verify linearity in the first argument.
 
         Checks if a<x,z> + b<y,z> equals <ax + by, z>.
@@ -89,14 +87,14 @@ class HermitianInnerProduct(InnerProductBase):
             True if linearity holds, False otherwise
         """
         logger.debug("Checking linearity in first argument")
-        
+
         # Compute left side: a<x,z> + b<y,z>
         left = a * self.compute(x, z) + b * self.compute(y, z)
-        
+
         # Compute right side: <ax + by, z>
         ax_by = a * x + b * y
         right = self.compute(ax_by, z)
-        
+
         # Compare with tolerance for floating point precision
         return abs(left - right) < 1e-12
 
@@ -112,9 +110,9 @@ class HermitianInnerProduct(InnerProductBase):
             True if the inner product is positive, False otherwise
         """
         logger.debug("Checking positivity")
-        
+
         # Compute inner product of x with itself
         inner = self.compute(x, x)
-        
+
         # Ensure result is a positive real number
         return inner > 0.0

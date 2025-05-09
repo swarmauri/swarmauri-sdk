@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 InputType = Any
 OutputType = float
 
+
 @ComponentBase.register_model()
 class GaussianRBFSimilarity(SimilarityBase):
     """
@@ -17,7 +18,7 @@ class GaussianRBFSimilarity(SimilarityBase):
     This class implements the Gaussian radial basis function (RBF) similarity,
     which measures the exponential decay of similarity with squared Euclidean distance.
     The similarity is calculated as:
-    
+
     similarity(x, y) = exp(-γ ||x - y||²)
 
     where γ is a positive parameter controlling the bandwidth of the RBF.
@@ -26,6 +27,7 @@ class GaussianRBFSimilarity(SimilarityBase):
         gamma: float
             The bandwidth parameter of the RBF kernel. Must be greater than 0.
     """
+
     type: str = "GaussianRBFSimilarity"
 
     def __init__(self, gamma: float = 1.0):
@@ -66,21 +68,23 @@ class GaussianRBFSimilarity(SimilarityBase):
             # Convert inputs to numpy arrays if they aren't already
             x_array = np.asarray(x)
             y_array = np.asarray(y)
-            
+
             # Compute squared Euclidean distance
             distance_sq = np.linalg.norm(x_array - y_array) ** 2
-            
+
             # Compute RBF similarity
             similarity = np.exp(-self.gamma * distance_sq)
-            
+
             logger.debug("Computed similarity: %s", similarity)
             return similarity
-            
+
         except Exception as e:
             logger.error("Error computing similarity", exc_info=e)
             raise
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[OutputType]:
         """
         Calculate Gaussian RBF similarities for multiple pairs of elements.
 
@@ -121,7 +125,9 @@ class GaussianRBFSimilarity(SimilarityBase):
             logger.error("Error computing dissimilarity", exc_info=e)
             raise
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[OutputType]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[OutputType]:
         """
         Calculate Gaussian RBF dissimilarities for multiple pairs of elements.
 

@@ -5,7 +5,8 @@ from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 
-T = TypeVar('T', Union['IVector', 'IMatrix', Sequence, Tuple, np.ndarray, Any])
+T = TypeVar("T", Union["IVector", "IMatrix", Sequence, Tuple, np.ndarray, Any])
+
 
 @ComponentBase.register_type(MetricBase, "SupremumMetric")
 class SupremumMetric(MetricBase):
@@ -26,6 +27,7 @@ class SupremumMetric(MetricBase):
         type: Literal["SupremumMetric"] = "SupremumMetric"
             Type identifier for the metric class
     """
+
     type: Literal["SupremumMetric"] = "SupremumMetric"
     resource: Optional[str] = Field(default="Metric")
 
@@ -63,27 +65,29 @@ class SupremumMetric(MetricBase):
                 If the input types are not supported
         """
         self.logger.debug("Computing L∞ distance between points")
-        
+
         try:
             # Convert inputs to numpy arrays if they're not already
             x_arr = np.asarray(x)
             y_arr = np.asarray(y)
-            
+
             # Ensure same shape
             if x_arr.shape != y_arr.shape:
                 raise ValueError("Input shapes must match for distance computation")
-                
+
             # Compute element-wise absolute differences
             differences = np.abs(x_arr - y_arr)
-            
+
             # Return the maximum difference
             return float(np.amax(differences))
-            
+
         except Exception as e:
             self.logger.error(f"Error computing distance: {str(e)}")
             raise e
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Computes the L∞ distances from a reference point to one or more points.
 
@@ -105,7 +109,7 @@ class SupremumMetric(MetricBase):
                 If input types are not supported
         """
         self.logger.debug("Computing L∞ distances to reference point")
-        
+
         if isinstance(y_list, Sequence):
             try:
                 return [self.distance(x, y) for y in y_list]

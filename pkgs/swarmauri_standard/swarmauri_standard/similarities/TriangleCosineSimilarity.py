@@ -6,8 +6,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "TriangleCosineSimilarity")
 class TriangleCosineSimilarity(SimilarityBase):
@@ -20,7 +21,7 @@ class TriangleCosineSimilarity(SimilarityBase):
 
     The implementation follows the spherical law of cosines for tighter bounding of similarity scores.
     """
-    
+
     type: str = "TriangleCosineSimilarity"
 
     def __init__(self):
@@ -63,8 +64,8 @@ class TriangleCosineSimilarity(SimilarityBase):
             dot_product = sum(a * b for a, b in zip(x, y))
 
             # Calculate magnitudes
-            magnitude_x = math.sqrt(sum(a ** 2 for a in x))
-            magnitude_y = math.sqrt(sum(b ** 2 for b in y))
+            magnitude_x = math.sqrt(sum(a**2 for a in x))
+            magnitude_y = math.sqrt(sum(b**2 for b in y))
 
             # Check for zero vectors
             if magnitude_x == 0 or magnitude_y == 0:
@@ -80,7 +81,9 @@ class TriangleCosineSimilarity(SimilarityBase):
             logger.error(f"Error calculating cosine similarity: {str(e)}")
             raise
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate cosine similarities for multiple pairs of vectors.
 
@@ -101,7 +104,9 @@ class TriangleCosineSimilarity(SimilarityBase):
                 sim = self.similarity(pair[0], pair[1])
                 similarities.append(sim)
             except Exception as e:
-                logger.warning(f"Error calculating similarity for pair {pair}: {str(e)}")
+                logger.warning(
+                    f"Error calculating similarity for pair {pair}: {str(e)}"
+                )
                 similarities.append(0.0)  # or handle as needed
         return similarities
 
@@ -126,7 +131,9 @@ class TriangleCosineSimilarity(SimilarityBase):
             logger.error(f"Error calculating dissimilarity: {str(e)}")
             raise
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate dissimilarities for multiple pairs of vectors.
 

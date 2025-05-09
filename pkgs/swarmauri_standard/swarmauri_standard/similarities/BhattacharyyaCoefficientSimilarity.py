@@ -7,8 +7,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', Sequence[float], Tuple[float, ...])
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", Sequence[float], Tuple[float, ...])
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "BhattacharyyaCoefficientSimilarity")
 class BhattacharyyaCoefficientSimilarity(SimilarityBase):
@@ -27,8 +28,10 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         similarity: Calculates the similarity between two distributions.
         similarities: Calculates similarities for multiple pairs of distributions.
     """
-    
-    type: Literal["BhattacharyyaCoefficientSimilarity"] = "BhattacharyyaCoefficientSimilarity"
+
+    type: Literal["BhattacharyyaCoefficientSimilarity"] = (
+        "BhattacharyyaCoefficientSimilarity"
+    )
     resource: str = "SIMILARITY"
 
     def __init__(self):
@@ -80,7 +83,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
 
         return bc
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Bhattacharyya Coefficient Similarities for multiple pairs of distributions.
 
@@ -92,5 +97,7 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             Sequence[float]:
                 A sequence of Bhattacharyya Coefficient Similarity values corresponding to each pair
         """
-        logger.debug("Calculating Bhattacharyya Coefficient Similarities for multiple pairs")
+        logger.debug(
+            "Calculating Bhattacharyya Coefficient Similarities for multiple pairs"
+        )
         return [self.similarity(x, y) for x, y in pairs]

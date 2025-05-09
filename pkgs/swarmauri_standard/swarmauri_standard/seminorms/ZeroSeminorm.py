@@ -7,7 +7,8 @@ from swarmauri_core.seminorms.ISeminorm import ISeminorm
 logger = logging.getLogger(__name__)
 
 # Define type variable for input types
-T = TypeVar('T', Union[str, callable, Sequence[float], Sequence[Sequence[float]]])
+T = TypeVar("T", Union[str, callable, Sequence[float], Sequence[Sequence[float]]])
+
 
 @ComponentBase.register_type(SeminormBase, "ZeroSeminorm")
 class ZeroSeminorm(SeminormBase):
@@ -22,16 +23,17 @@ class ZeroSeminorm(SeminormBase):
         resource: str = ResourceTypes.SEMINORM.value
             The resource type identifier for this component.
     """
+
     resource: str = ResourceTypes.SEMINORM.value
-    
+
     def __init__(self):
         """
         Initialize the ZeroSeminorm instance.
-        
+
         Initializes the base class and sets up the component.
         """
         super().__init__()
-        
+
     def compute(self, input: T) -> float:
         """
         Compute the seminorm of the given input.

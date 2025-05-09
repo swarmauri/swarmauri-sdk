@@ -39,7 +39,10 @@ class GroqVisionModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"]
+    allowed_models: List[str] = [
+        "llama-3.2-90b-vision-preview",
+        "llama-3.2-11b-vision-preview",
+    ]
     name: str = "llama-3.2-90b-vision-preview"
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
     _client: httpx.Client = PrivateAttr(default=None)

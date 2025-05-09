@@ -4,8 +4,9 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.metrics.IMetric import IMetric
 
-T = TypeVar('T', np.ndarray, Sequence, list)
+T = TypeVar("T", np.ndarray, Sequence, list)
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(MetricBase, "FrobeniusMetric")
 class FrobeniusMetric(MetricBase):
@@ -24,7 +25,7 @@ class FrobeniusMetric(MetricBase):
         Implementations for checking metric properties like non-negativity,
         identity, symmetry, and triangle inequality
     """
-    
+
     def __init__(self):
         """
         Initializes the FrobeniusMetric instance.
@@ -56,38 +57,40 @@ class FrobeniusMetric(MetricBase):
                 If the input matrices are of unsupported types
         """
         logger.debug("Starting Frobenius distance computation")
-        
+
         try:
             # Ensure inputs are numpy arrays
             if not isinstance(x, np.ndarray):
                 x = np.asarray(x)
             if not isinstance(y, np.ndarray):
                 y = np.asarray(y)
-            
+
             # Check if shapes match
             if x.shape != y.shape:
                 raise ValueError("Input matrices must have the same shape")
-            
+
             # Compute element-wise differences
             difference = x - y
-            
+
             # Square the differences
             squared_diff = np.square(difference)
-            
+
             # Sum the squared differences
             sum_of_squares = np.sum(squared_diff)
-            
+
             # Take square root to get Frobenius norm
             distance = np.sqrt(sum_of_squares)
-            
+
             logger.debug(f"Frobenius distance computed successfully: {distance}")
             return float(distance)
-            
+
         except Exception as e:
             logger.error(f"Error computing Frobenius distance: {str(e)}")
             raise ValueError(f"Failed to compute Frobenius distance: {str(e)}")
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the distance(s) between a matrix and one or more matrices.
 
@@ -109,16 +112,18 @@ class FrobeniusMetric(MetricBase):
                 If the input matrices are of unsupported types
         """
         logger.debug("Starting multiple Frobenius distance computations")
-        
+
         try:
             if isinstance(y_list, Sequence):
                 return [self.distance(x, y) for y in y_list]
             else:
                 return self.distance(x, y_list)
-            
+
         except Exception as e:
             logger.error(f"Error computing multiple Frobenius distances: {str(e)}")
-            raise ValueError(f"Failed to compute multiple Frobenius distances: {str(e)}")
+            raise ValueError(
+                f"Failed to compute multiple Frobenius distances: {str(e)}"
+            )
 
     def check_non_negativity(self, x: T, y: T) -> bool:
         """
@@ -192,9 +197,9 @@ class FrobeniusMetric(MetricBase):
                 True if the triangle inequality condition holds, False otherwise
         """
         logger.debug("Checking triangle inequality of Frobenius metric")
-        
+
         distance_xz = self.distance(x, z)
         distance_xy = self.distance(x, y)
         distance_yz = self.distance(y, z)
-        
+
         return distance_xz <= (distance_xy + distance_yz)

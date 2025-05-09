@@ -6,7 +6,9 @@ import logging
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import TimedRotatingFileLoggingHandler
+from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (
+    TimedRotatingFileLoggingHandler,
+)
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 
@@ -14,7 +16,7 @@ from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 def temp_log_dir():
     """
     Creates a temporary directory for log files.
-    
+
     Returns
     -------
     str
@@ -62,9 +64,9 @@ def test_custom_values():
         backupCount=10,
         encoding="utf-8",
         delay=True,
-        utc=True
+        utc=True,
     )
-    
+
     assert handler.level == logging.DEBUG
     assert handler.filename == "custom.log"
     assert handler.when == "H"
@@ -79,7 +81,7 @@ def test_custom_values():
 def test_compile_handler_creates_directory(temp_log_dir):
     """
     Tests if the compile_handler method creates the directory for the log file.
-    
+
     Parameters
     ----------
     temp_log_dir : str
@@ -87,18 +89,18 @@ def test_compile_handler_creates_directory(temp_log_dir):
     """
     log_subdir = os.path.join(temp_log_dir, "logs")
     log_file = os.path.join(log_subdir, "test.log")
-    
+
     handler = TimedRotatingFileLoggingHandler(filename=log_file)
-    
+
     # Directory should not exist yet
     assert not os.path.exists(log_subdir)
-    
+
     # Compile the handler
     compiled_handler = handler.compile_handler()
-    
+
     # Directory should now exist
     assert os.path.exists(log_subdir)
-    
+
     # Cleanup
     compiled_handler.close()
 
@@ -110,9 +112,9 @@ def test_compile_handler_returns_correct_type():
     """
     handler = TimedRotatingFileLoggingHandler()
     compiled_handler = handler.compile_handler()
-    
+
     assert isinstance(compiled_handler, logging.handlers.TimedRotatingFileHandler)
-    
+
     # Cleanup
     compiled_handler.close()
 
@@ -124,9 +126,9 @@ def test_compile_handler_sets_level():
     """
     handler = TimedRotatingFileLoggingHandler(level=logging.WARNING)
     compiled_handler = handler.compile_handler()
-    
+
     assert compiled_handler.level == logging.WARNING
-    
+
     # Cleanup
     compiled_handler.close()
 
@@ -139,10 +141,10 @@ def test_compile_handler_with_string_formatter():
     format_string = "%(levelname)s - %(message)s"
     handler = TimedRotatingFileLoggingHandler(formatter=format_string)
     compiled_handler = handler.compile_handler()
-    
+
     assert isinstance(compiled_handler.formatter, logging.Formatter)
     assert compiled_handler.formatter._fmt == format_string
-    
+
     # Cleanup
     compiled_handler.close()
 
@@ -154,13 +156,13 @@ def test_compile_handler_with_formatter_object():
     """
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.compile_formatter.return_value = logging.Formatter("%(message)s")
-    
+
     handler = TimedRotatingFileLoggingHandler(formatter=mock_formatter)
     compiled_handler = handler.compile_handler()
-    
+
     # Check if the formatter's compile_formatter method was called
     mock_formatter.compile_formatter.assert_called_once()
-    
+
     # Cleanup
     compiled_handler.close()
 
@@ -172,20 +174,23 @@ def test_compile_handler_with_default_formatter():
     """
     handler = TimedRotatingFileLoggingHandler(formatter=None)
     compiled_handler = handler.compile_handler()
-    
+
     assert isinstance(compiled_handler.formatter, logging.Formatter)
-    assert "[%(asctime)s][%(name)s][%(levelname)s] %(message)s" in compiled_handler.formatter._fmt
-    
+    assert (
+        "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
+        in compiled_handler.formatter._fmt
+    )
+
     # Cleanup
     compiled_handler.close()
 
 
 @pytest.mark.unit
-@patch('logging.handlers.TimedRotatingFileHandler')
+@patch("logging.handlers.TimedRotatingFileHandler")
 def test_compile_handler_passes_correct_parameters(mock_handler_class):
     """
     Tests if compile_handler passes the correct parameters to TimedRotatingFileHandler.
-    
+
     Parameters
     ----------
     mock_handler_class : MagicMock
@@ -199,11 +204,11 @@ def test_compile_handler_passes_correct_parameters(mock_handler_class):
         encoding="utf-8",
         delay=True,
         utc=True,
-        atTime=datetime(2023, 1, 1, 12, 0).time()
+        atTime=datetime(2023, 1, 1, 12, 0).time(),
     )
-    
+
     handler.compile_handler()
-    
+
     # Check if TimedRotatingFileHandler was called with the correct parameters
     mock_handler_class.assert_called_once_with(
         filename="test.log",
@@ -213,7 +218,7 @@ def test_compile_handler_passes_correct_parameters(mock_handler_class):
         encoding="utf-8",
         delay=True,
         utc=True,
-        atTime=datetime(2023, 1, 1, 12, 0).time()
+        atTime=datetime(2023, 1, 1, 12, 0).time(),
     )
 
 
@@ -230,15 +235,17 @@ def test_serialization_deserialization():
         backupCount=10,
         encoding="utf-8",
         delay=True,
-        utc=True
+        utc=True,
     )
-    
+
     # Serialize to JSON
     json_data = original_handler.model_dump_json()
-    
+
     # Deserialize from JSON
-    deserialized_handler = TimedRotatingFileLoggingHandler.model_validate_json(json_data)
-    
+    deserialized_handler = TimedRotatingFileLoggingHandler.model_validate_json(
+        json_data
+    )
+
     # Check if all attributes match
     assert deserialized_handler.level == original_handler.level
     assert deserialized_handler.filename == original_handler.filename

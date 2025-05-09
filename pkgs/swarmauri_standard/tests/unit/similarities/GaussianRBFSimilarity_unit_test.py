@@ -3,10 +3,11 @@ import numpy as np
 from swarmauri_standard.similarities import GaussianRBFSimilarity
 from swarmauri_standard.tests.unit.test_base import BaseTestCase
 
+
 @pytest.mark.unit
 class TestGaussianRBFSimilarity(BaseTestCase):
     """Unit tests for GaussianRBFSimilarity class implementation."""
-    
+
     @pytest.fixture
     def gaussian_rbf_similarity(self):
         """Fixture to provide a GaussianRBFSimilarity instance."""
@@ -55,7 +56,7 @@ class TestGaussianRBFSimilarity(BaseTestCase):
         """Test batch similarity calculation."""
         pairs = [
             (np.array([1, 2]), np.array([1, 2])),
-            (np.array([3, 4]), np.array([5, 6]))
+            (np.array([3, 4]), np.array([5, 6])),
         ]
         results = gaussian_rbf_similarity.similarities(pairs)
         assert len(results) == 2
@@ -74,7 +75,7 @@ class TestGaussianRBFSimilarity(BaseTestCase):
         """Test batch dissimilarity calculation."""
         pairs = [
             (np.array([1, 2]), np.array([1, 2])),
-            (np.array([3, 4]), np.array([5, 6]))
+            (np.array([3, 4]), np.array([5, 6])),
         ]
         results = gaussian_rbf_similarity.dissimilarities(pairs)
         assert len(results) == 2

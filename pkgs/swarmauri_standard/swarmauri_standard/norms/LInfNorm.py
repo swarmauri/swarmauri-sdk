@@ -3,14 +3,15 @@ from typing import TypeVar, Union, Callable, Sequence, Literal
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
 
-T = TypeVar('T', Union[Callable, Sequence, str, bytes])
+T = TypeVar("T", Union[Callable, Sequence, str, bytes])
 
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(NormBase, "LInfNorm")
 class LInfNorm(NormBase):
     type: Literal["LInfNorm"] = "LInfNorm"
-    
+
     def __init__(self):
         super().__init__()
         logger.debug("LInfNorm instance initialized")

@@ -6,8 +6,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "OverlapCoefficientSimilarity")
 class OverlapCoefficientSimilarity(SimilarityBase):
@@ -21,6 +22,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         type: Literal["OverlapCoefficientSimilarity"]
             Type identifier for the similarity measure
     """
+
     type: Literal["OverlapCoefficientSimilarity"] = "OverlapCoefficientSimilarity"
     resource: str = ResourceTypes.SIMILARITY.value
 
@@ -71,7 +73,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         logger.debug(f"Calculated overlap coefficient similarity: {overlap}")
         return overlap
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate overlap coefficient similarities for multiple pairs of sets.
 
@@ -107,7 +111,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         logger.debug(f"Calculated dissimilarity: {dissimilarity}")
         return dissimilarity
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate dissimilarities for multiple pairs of sets.
 

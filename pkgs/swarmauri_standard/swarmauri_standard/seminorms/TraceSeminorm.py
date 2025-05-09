@@ -7,7 +7,8 @@ from swarmauri_core.seminorms.ISeminorm import ISeminorm
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[np.ndarray, np.matrix, str, callable])
+T = TypeVar("T", Union[np.ndarray, np.matrix, str, callable])
+
 
 @ComponentBase.register_model()
 class TraceSeminorm(SeminormBase):
@@ -23,15 +24,16 @@ class TraceSeminorm(SeminormBase):
         resource: Optional[str] = ResourceTypes.SEMINORM.value
             The resource type identifier for this component.
     """
+
     resource: str = ComponentBase.ResourceTypes.SEMINORM.value
-    
+
     def __init__(self):
         """
         Initialize the TraceSeminorm instance.
         """
         super().__init__()
         self._name = "TraceSeminorm"
-        
+
     def compute(self, input: T) -> float:
         """
         Compute the trace seminorm of the given input.
@@ -52,23 +54,25 @@ class TraceSeminorm(SeminormBase):
                 If the input is neither a matrix nor a callable that returns a matrix.
         """
         logger.debug("Computing trace seminorm")
-        
+
         # Check if the input is a callable
         if callable(input):
             matrix = input()
         else:
             matrix = input
-            
+
         # Verify that the input is a matrix
         if not isinstance(matrix, (np.ndarray, np.matrix)):
-            raise ValueError("Input must be a matrix or a callable that returns a matrix")
-            
+            raise ValueError(
+                "Input must be a matrix or a callable that returns a matrix"
+            )
+
         # Compute the trace
         trace = np.trace(matrix)
-        
+
         # The trace seminorm is the absolute value of the trace
         seminorm_value = abs(trace)
-        
+
         logger.debug(f"Computed trace seminorm: {seminorm_value}")
         return seminorm_value
 
@@ -90,11 +94,11 @@ class TraceSeminorm(SeminormBase):
                 True if the triangle inequality holds, False otherwise.
         """
         logger.debug("Checking triangle inequality")
-        
+
         # Compute seminorms
         seminorm_a = self.compute(a)
         seminorm_b = self.compute(b)
-        
+
         # Compute a + b if they are matrices
         if not callable(a) and not callable(b):
             a_matrix = a
@@ -105,12 +109,12 @@ class TraceSeminorm(SeminormBase):
             a_matrix = a() if callable(a) else a
             b_matrix = b() if callable(b) else b
             a_plus_b = a_matrix + b_matrix
-            
+
         seminorm_a_plus_b = self.compute(a_plus_b)
-        
+
         # Check inequality
         holds = seminorm_a_plus_b <= (seminorm_a + seminorm_b)
-        
+
         logger.debug(f"Triangle inequality holds: {holds}")
         return holds
 
@@ -132,21 +136,21 @@ class TraceSeminorm(SeminormBase):
                 True if scalar homogeneity holds, False otherwise.
         """
         logger.debug("Checking scalar homogeneity")
-        
+
         # Compute original seminorm
         original_seminorm = self.compute(a)
-        
+
         # Compute scaled matrix
         if callable(a):
             scaled_matrix = scalar * a()
         else:
             scaled_matrix = scalar * a
-        
+
         # Compute seminorm of scaled matrix
         scaled_seminorm = self.compute(scaled_matrix)
-        
+
         # Check homogeneity
         homogeneous = np.isclose(scaled_seminorm, scalar * original_seminorm)
-        
+
         logger.debug(f"Scalar homogeneity holds: {homogeneous}")
         return homogeneous

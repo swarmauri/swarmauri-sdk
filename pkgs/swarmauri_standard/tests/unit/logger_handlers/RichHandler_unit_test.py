@@ -13,20 +13,20 @@ from rich.logging import RichHandler as RichHandlerLib
 class TestRichHandler(unittest.TestCase):
     """
     Unit tests for the RichHandler class.
-    
+
     Tests the functionality of the RichHandler class, including initialization,
     handler compilation, and dictionary conversion.
     """
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.handler = RichHandler()
-    
+
     @pytest.mark.unit
     def test_inheritance(self):
         """Test that RichHandler inherits from HandlerBase."""
         self.assertIsInstance(self.handler, HandlerBase)
-    
+
     @pytest.mark.unit
     def test_default_attributes(self):
         """Test the default attribute values of RichHandler."""
@@ -45,16 +45,16 @@ class TestRichHandler(unittest.TestCase):
         self.assertTrue(self.handler.markup)
         self.assertTrue(self.handler.highlighter)
         self.assertIsNone(self.handler.keywords)
-    
+
     @pytest.mark.unit
-    @patch('swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib')
+    @patch("swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib")
     def test_compile_handler_with_default_values(self, mock_rich_handler_lib):
         """Test that compile_handler creates a RichHandler with default values."""
         mock_instance = MagicMock()
         mock_rich_handler_lib.return_value = mock_instance
-        
+
         result = self.handler.compile_handler()
-        
+
         mock_rich_handler_lib.assert_called_once_with(
             level=logging.INFO,
             show_time=True,
@@ -71,14 +71,14 @@ class TestRichHandler(unittest.TestCase):
             keywords={},
         )
         self.assertEqual(result, mock_instance)
-    
+
     @pytest.mark.unit
-    @patch('swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib')
+    @patch("swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib")
     def test_compile_handler_with_custom_values(self, mock_rich_handler_lib):
         """Test that compile_handler creates a RichHandler with custom values."""
         mock_instance = MagicMock()
         mock_rich_handler_lib.return_value = mock_instance
-        
+
         custom_handler = RichHandler(
             level=logging.DEBUG,
             show_time=False,
@@ -92,11 +92,11 @@ class TestRichHandler(unittest.TestCase):
             omit_repeated_times=False,
             markup=False,
             highlighter=False,
-            keywords={"error": "red"}
+            keywords={"error": "red"},
         )
-        
+
         result = custom_handler.compile_handler()
-        
+
         mock_rich_handler_lib.assert_called_once_with(
             level=logging.DEBUG,
             show_time=False,
@@ -110,61 +110,74 @@ class TestRichHandler(unittest.TestCase):
             omit_repeated_times=False,
             markup=False,
             highlighter=False,
-            keywords={"error": "red"}
+            keywords={"error": "red"},
         )
         self.assertEqual(result, mock_instance)
-    
+
     @pytest.mark.unit
-    @patch('swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib')
-    @patch('swarmauri_standard.logger_handlers.RichHandler.logging.Formatter')
-    def test_compile_handler_with_string_formatter(self, mock_formatter, mock_rich_handler_lib):
+    @patch("swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib")
+    @patch("swarmauri_standard.logger_handlers.RichHandler.logging.Formatter")
+    def test_compile_handler_with_string_formatter(
+        self, mock_formatter, mock_rich_handler_lib
+    ):
         """Test that compile_handler correctly applies a string formatter."""
         mock_handler = MagicMock()
         mock_rich_handler_lib.return_value = mock_handler
         mock_formatter_instance = MagicMock()
         mock_formatter.return_value = mock_formatter_instance
-        
-        handler_with_formatter = RichHandler(formatter="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        handler_with_formatter = RichHandler(
+            formatter="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         handler_with_formatter.compile_handler()
-        
-        mock_formatter.assert_called_once_with("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        mock_formatter.assert_called_once_with(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         mock_handler.setFormatter.assert_called_once_with(mock_formatter_instance)
-    
+
     @pytest.mark.unit
-    @patch('swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib')
+    @patch("swarmauri_standard.logger_handlers.RichHandler.RichHandlerLib")
     def test_compile_handler_with_formatter_object(self, mock_rich_handler_lib):
         """Test that compile_handler correctly applies a FormatterBase object."""
         mock_handler = MagicMock()
         mock_rich_handler_lib.return_value = mock_handler
-        
+
         mock_formatter = MagicMock()
         mock_formatter_instance = MagicMock()
         mock_formatter.compile_formatter.return_value = mock_formatter_instance
-        
+
         handler_with_formatter = RichHandler(formatter=mock_formatter)
         handler_with_formatter.compile_handler()
-        
+
         mock_formatter.compile_formatter.assert_called_once()
         mock_handler.setFormatter.assert_called_once_with(mock_formatter_instance)
-    
+
     @pytest.mark.unit
     def test_to_dict_with_default_values(self):
         """Test that to_dict returns the correct dictionary with default values."""
         result = self.handler.to_dict()
-        
+
         # Check that all required keys are present
         expected_keys = [
-            "type", "level", "show_time", "show_path", "show_level", 
-            "rich_tracebacks", "tracebacks_extra_lines", "omit_repeated_times",
-            "markup", "highlighter"
+            "type",
+            "level",
+            "show_time",
+            "show_path",
+            "show_level",
+            "rich_tracebacks",
+            "tracebacks_extra_lines",
+            "omit_repeated_times",
+            "markup",
+            "highlighter",
         ]
         for key in expected_keys:
             self.assertIn(key, result)
-        
+
         # Check that optional keys with None values are not included
         self.assertNotIn("tracebacks_theme", result)
         self.assertNotIn("keywords", result)
-        
+
         # Check specific values
         self.assertEqual(result["type"], "RichHandler")
         self.assertEqual(result["level"], logging.INFO)
@@ -176,7 +189,7 @@ class TestRichHandler(unittest.TestCase):
         self.assertTrue(result["omit_repeated_times"])
         self.assertTrue(result["markup"])
         self.assertTrue(result["highlighter"])
-    
+
     @pytest.mark.unit
     def test_to_dict_with_custom_values(self):
         """Test that to_dict returns the correct dictionary with custom values."""
@@ -193,18 +206,18 @@ class TestRichHandler(unittest.TestCase):
             omit_repeated_times=False,
             markup=False,
             highlighter=False,
-            keywords={"error": "red"}
+            keywords={"error": "red"},
         )
-        
+
         result = custom_handler.to_dict()
-        
+
         # Check that optional keys with non-None values are included
         self.assertIn("tracebacks_theme", result)
         self.assertEqual(result["tracebacks_theme"], "monokai")
-        
+
         self.assertIn("keywords", result)
         self.assertEqual(result["keywords"], {"error": "red"})
-        
+
         # Check specific custom values
         self.assertEqual(result["level"], logging.DEBUG)
         self.assertFalse(result["show_time"])
@@ -219,7 +232,8 @@ class TestRichHandler(unittest.TestCase):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "attribute,value,expected", [
+    "attribute,value,expected",
+    [
         ("level", logging.DEBUG, logging.DEBUG),
         ("show_time", False, False),
         ("show_path", False, False),
@@ -233,12 +247,12 @@ class TestRichHandler(unittest.TestCase):
         ("markup", False, False),
         ("highlighter", False, False),
         ("keywords", {"warning": "yellow"}, {"warning": "yellow"}),
-    ]
+    ],
 )
 def test_attribute_setting(attribute: str, value: Any, expected: Any):
     """
     Test that attributes can be correctly set and retrieved.
-    
+
     Args:
         attribute: The attribute name to test
         value: The value to set

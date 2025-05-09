@@ -9,13 +9,14 @@ from swarmauri_standard.swarmauri_standard.norms.GeneralLpNorm import GeneralLpN
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', int, float, Sequence, str, bytes)
+T = TypeVar("T", int, float, Sequence, str, bytes)
+
 
 @ComponentBase.register_type(MetricBase, "LpMetric")
 class LpMetric(MetricBase):
     """
-    Provides a concrete implementation of the MetricBase class for computing 
-    distances using the Lp norm. This class allows for parameterized 
+    Provides a concrete implementation of the MetricBase class for computing
+    distances using the Lp norm. This class allows for parameterized
     distance calculations across vector spaces and sequences.
 
     Inherits From:
@@ -33,6 +34,7 @@ class LpMetric(MetricBase):
         - Parameterized distance calculations
         - Validation of input types and parameters
     """
+
     p: float = Field(..., gt=1, le=math.inf)
     norm: GeneralLpNorm
     type: Literal["LpMetric"] = "LpMetric"
@@ -78,18 +80,20 @@ class LpMetric(MetricBase):
         try:
             if isinstance(x, (int, float) and isinstance(y, (int, float))):
                 return abs(x - y) ** self.p ** (1.0 / self.p)
-            
+
             if len(x) != len(y):
                 raise ValueError("Input vectors must have the same length")
-            
+
             differences = (abs(a - b) for a, b in zip(x, y))
             return self.norm.compute(differences)
-            
+
         except Exception as e:
             logger.error("Failed to compute Lp distance: %s", str(e))
             raise ValueError("Failed to compute Lp distance") from e
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the distance(s) between a point and one or more points.
 
@@ -114,9 +118,9 @@ class LpMetric(MetricBase):
         try:
             if not isinstance(y_list, Sequence):
                 return self.distance(x, y_list)
-            
+
             return [self.distance(x, y) for y in y_list]
-            
+
         except Exception as e:
             logger.error("Failed to compute Lp distances: %s", str(e))
             raise ValueError("Failed to compute Lp distances") from e

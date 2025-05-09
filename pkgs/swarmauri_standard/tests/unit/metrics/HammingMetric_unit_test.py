@@ -2,21 +2,22 @@ import pytest
 import logging
 from swarmauri_standard.swarmauri_standard.metrics.HammingMetric import HammingMetric
 
+
 @pytest.mark.unit
 class TestHammingMetric:
     """Unit test class for HammingMetric class."""
-    
+
     def test_distance_basic(self):
         """Test basic functionality of the distance method."""
         hamming = HammingMetric()
         x = "abc"
         y = "abc"
         assert hamming.distance(x, y) == 0.0
-        
+
         x = "abc"
         y = "abd"
         assert hamming.distance(x, y) == 1.0
-        
+
         x = b"abc"
         y = b"abd"
         assert hamming.distance(x, y) == 1.0
@@ -59,11 +60,11 @@ class TestHammingMetric:
         x = "abc"
         y = "abc"
         assert hamming.check_identity(x, y) is True
-        
+
         x = "abc"
         y = "abd"
         assert hamming.check_identity(x, y) is False
-        
+
         x = "abc"
         y = "abcd"
         with pytest.raises(ValueError):
@@ -75,7 +76,7 @@ class TestHammingMetric:
         x = "abc"
         y = "abd"
         assert hamming.check_symmetry(x, y) is True
-        
+
         x = "abc"
         y = "cba"
         assert hamming.check_symmetry(x, y) is True
@@ -91,17 +92,17 @@ class TestHammingMetric:
     def test_edge_cases(self):
         """Test various edge cases."""
         hamming = HammingMetric()
-        
+
         # Empty strings
         x = ""
         y = ""
         assert hamming.distance(x, y) == 0.0
-        
+
         # Single character
         x = "a"
         y = "b"
         assert hamming.distance(x, y) == 1.0
-        
+
         # Different types (str vs bytes)
         x = "a"
         y = b"a"
@@ -114,5 +115,5 @@ class TestHammingMetric:
         x = "abc"
         y = "abd"
         hamming.distance(x, y)
-        
+
         assert "Calculated Hamming distance: 1" in caplog.text

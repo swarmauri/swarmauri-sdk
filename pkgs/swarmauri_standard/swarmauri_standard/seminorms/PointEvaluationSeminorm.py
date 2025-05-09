@@ -6,7 +6,8 @@ from swarmauri_core.seminorms.ISeminorm import ISeminorm
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[str, callable, Tuple[float, ...], Sequence[float]])
+T = TypeVar("T", Union[str, callable, Tuple[float, ...], Sequence[float]])
+
 
 @ComponentBase.register_type(SeminormBase, "PointEvaluationSeminorm")
 class PointEvaluationSeminorm(SeminormBase):
@@ -35,7 +36,9 @@ class PointEvaluationSeminorm(SeminormBase):
                 The point at which to evaluate the function. Defaults to (0.0,).
         """
         super().__init__()
-        if not isinstance(evaluation_point, tuple) or not all(isinstance(x, (int, float)) for x in evaluation_point):
+        if not isinstance(evaluation_point, tuple) or not all(
+            isinstance(x, (int, float)) for x in evaluation_point
+        ):
             raise ValueError("evaluation_point must be a tuple of numeric values")
         self_evaluation_point = evaluation_point
 
@@ -56,7 +59,7 @@ class PointEvaluationSeminorm(SeminormBase):
                 If the input type is not supported or the evaluation point is invalid.
         """
         logger.debug(f"Computing seminorm at point {self_evaluation_point}")
-        
+
         try:
             if callable(input):
                 # If input is callable, evaluate it at the point
@@ -69,7 +72,9 @@ class PointEvaluationSeminorm(SeminormBase):
                 raise TypeError(f"Unsupported input type: {type(input)}")
         except Exception as e:
             logger.error(f"Error during point evaluation: {str(e)}")
-            raise ValueError(f"Failed to evaluate input at point {self_evaluation_point}") from e
+            raise ValueError(
+                f"Failed to evaluate input at point {self_evaluation_point}"
+            ) from e
 
     def check_triangle_inequality(self, a: T, b: T) -> bool:
         """

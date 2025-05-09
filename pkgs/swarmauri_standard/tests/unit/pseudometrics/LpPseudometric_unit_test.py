@@ -1,21 +1,27 @@
 import pytest
 import numpy as np
-from swarmauri_standard.swarmauri_standard.pseudometrics.LpPseudometric import LpPseudometric
+from swarmauri_standard.swarmauri_standard.pseudometrics.LpPseudometric import (
+    LpPseudometric,
+)
+
 
 @pytest.fixture
 def lp_pseudometric():
     """Fixture to create an LpPseudometric instance with default parameters"""
     return LpPseudometric(p=2)
 
+
 @pytest.mark.unit
 def test_resource(lp_pseudometric):
     """Test that the resource attribute is correctly set"""
     assert lp_pseudometric.resource == "PSEUDOMETRIC"
 
+
 @pytest.mark.unit
 def test_type(lp_pseudometric):
     """Test that the type attribute is correctly set"""
     assert lp_pseudometric.type == "LpPseudometric"
+
 
 @pytest.mark.unit
 def test_initialization():
@@ -28,6 +34,7 @@ def test_initialization():
     # Test with invalid p
     with pytest.raises(ValueError):
         LpPseudometric(p=0)
+
 
 @pytest.mark.unit
 def test_distance(lp_pseudometric):
@@ -60,6 +67,7 @@ def test_distance(lp_pseudometric):
     y = [4, 5, 6]
     assert pseudometric_domain.distance(x, y) == 2.0
 
+
 @pytest.mark.unit
 def test_distances(lp_pseudometric):
     """Test the distances method"""
@@ -69,6 +77,7 @@ def test_distances(lp_pseudometric):
     assert isinstance(distances, list)
     assert len(distances) == 2
     assert all(isinstance(d, float) for d in distances)
+
 
 @pytest.mark.unit
 def test_distance_non_numeric_input(lp_pseudometric):

@@ -3,7 +3,7 @@ import logging
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 
-T = TypeVar('T', Sequence, str)
+T = TypeVar("T", Sequence, str)
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +22,7 @@ class HammingMetric(MetricBase):
         - Logging functionality
         - Comprehensive error handling
     """
+
     resource: Optional[str] = "metric"
 
     def __init__(self):
@@ -61,7 +62,9 @@ class HammingMetric(MetricBase):
         logger.debug(f"Calculated Hamming distance: {mismatches}")
         return float(mismatches)
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the Hamming distances from a reference sequence to one or more sequences.
 

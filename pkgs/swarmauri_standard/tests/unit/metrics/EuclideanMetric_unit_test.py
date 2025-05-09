@@ -1,11 +1,14 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.metrics.EuclideanMetric import EuclideanMetric
+from swarmauri_standard.swarmauri_standard.metrics.EuclideanMetric import (
+    EuclideanMetric,
+)
 import logging
+
 
 @pytest.mark.unit
 class TestEuclideanMetric:
     """Unit tests for the EuclideanMetric class."""
-    
+
     @pytest.fixture
     def euclidean_metric(self):
         """Fixture to provide a EuclideanMetric instance."""
@@ -25,7 +28,7 @@ class TestEuclideanMetric:
     def test_init(euclidean_metric):
         """Test the initialization of EuclideanMetric."""
         assert isinstance(euclidean_metric, EuclideanMetric)
-        assert hasattr(euclidean_metric, 'norm')
+        assert hasattr(euclidean_metric, "norm")
 
     @pytest.mark.unit
     def test_distance(euclidean_metric):

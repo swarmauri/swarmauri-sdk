@@ -8,6 +8,7 @@ from swarmauri_base.seminorms.SeminormBase import SeminormBase
 # Configure logging
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(SeminormBase, "CoordinateProjectionSeminorm")
 class CoordinateProjectionSeminorm(SeminormBase):
     """
@@ -72,7 +73,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
             # Convert input to numpy array if not already
             if not isinstance(input, np.ndarray):
                 input = np.asarray(input)
-            
+
             # Check if projection indices are valid
             if max(self.projection_indices) >= input.size:
                 raise ValueError("Projection indices exceed input dimensions")
@@ -87,7 +88,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
             logger.error(f"Error in compute method: {str(e)}")
             raise
 
-    def check_triangle_inequality(self, a: Union[np.ndarray, list], b: Union[np.ndarray, list]) -> bool:
+    def check_triangle_inequality(
+        self, a: Union[np.ndarray, list], b: Union[np.ndarray, list]
+    ) -> bool:
         """
         Checks if the triangle inequality holds for the projected seminorm.
 
@@ -110,7 +113,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         try:
             a_np = np.asarray(a)
             b_np = np.asarray(b)
-            
+
             seminorm_a = self.compute(a_np)
             seminorm_b = self.compute(b_np)
             seminorm_a_plus_b = self.compute(a_np + b_np)
@@ -121,7 +124,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
             logger.error(f"Error in check_triangle_inequality: {str(e)}")
             raise
 
-    def check_scalar_homogeneity(self, a: Union[np.ndarray, list], scalar: float) -> bool:
+    def check_scalar_homogeneity(
+        self, a: Union[np.ndarray, list], scalar: float
+    ) -> bool:
         """
         Checks if scalar homogeneity holds for the projected seminorm.
 
@@ -142,7 +147,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         """
         try:
             a_np = np.asarray(a)
-            
+
             scaled_a = scalar * a_np
             seminorm_scaled = self.compute(scaled_a)
             scalar_times_seminorm = scalar * self.compute(a_np)

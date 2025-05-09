@@ -8,8 +8,9 @@ from swarmauri_core.similarities.ISimilarity import ISimilarity
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Union[float, int])
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Union[float, int])
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_model()
 class HellingerAffinitySimilarity(SimilarityBase):
@@ -25,7 +26,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
     in the range [0, 1], where 1 indicates identical distributions and 0 indicates complete
     dissimilarity.
     """
-    
+
     resource: str = ResourceTypes.SIMILARITY.value
     type: Literal["HellingerAffinitySimilarity"] = "HellingerAffinitySimilarity"
 
@@ -56,19 +57,23 @@ class HellingerAffinitySimilarity(SimilarityBase):
         logger.debug("Calculating Hellinger affinity similarity")
 
         # Validate input vectors
-        if not self._is_valid_probability_vector(x) or not self._is_valid_probability_vector(y):
+        if not self._is_valid_probability_vector(
+            x
+        ) or not self._is_valid_probability_vector(y):
             raise ValueError("Invalid probability vectors")
 
         # Calculate element-wise product and square root
         sqrt_products = [math.sqrt(x_i * y_i) for x_i, y_i in zip(x, y)]
-        
+
         # Sum the square roots
         affinity = sum(sqrt_products)
-        
+
         logger.debug(f"Hellinger affinity similarity score: {affinity}")
         return affinity
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Hellinger affinity similarities for multiple pairs of probability vectors.
 
@@ -99,11 +104,11 @@ class HellingerAffinitySimilarity(SimilarityBase):
         if any(value < 0 for value in vector):
             logger.error("Probability vector contains negative values")
             return False
-        
+
         # Check if elements sum to 1 (allowing for floating point precision)
         total = sum(vector)
         if not math.isclose(total, 1.0, rel_tol=1e-9, abs_tol=1e-9):
             logger.error(f"Probability vector sums to {total}, not 1")
             return False
-            
+
         return True

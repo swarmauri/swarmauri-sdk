@@ -6,8 +6,9 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "ExponentialDistanceSimilarity")
 class ExponentialDistanceSimilarity(SimilarityBase):
@@ -22,7 +23,7 @@ class ExponentialDistanceSimilarity(SimilarityBase):
         distance_function: Callable[[InputType, InputType], float]
             A function that computes the distance between two elements
     """
-    
+
     type: Literal["ExponentialDistanceSimilarity"] = "ExponentialDistanceSimilarity"
     resource: str = ResourceTypes.SIMILARITY.value
 
@@ -62,7 +63,9 @@ class ExponentialDistanceSimilarity(SimilarityBase):
         logger.debug(f"Similarity: {similarity}")
         return similarity
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate similarities for multiple pairs of elements.
 
@@ -101,7 +104,9 @@ class ExponentialDistanceSimilarity(SimilarityBase):
         logger.debug(f"Dissimilarity: {dissimilarity}")
         return dissimilarity
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate dissimilarities for multiple pairs of elements.
 

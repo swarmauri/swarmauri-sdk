@@ -1,11 +1,14 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.norms.SupremumComplexNorm import SupremumComplexNorm
+from swarmauri_standard.swarmauri_standard.norms.SupremumComplexNorm import (
+    SupremumComplexNorm,
+)
 import logging
+
 
 @pytest.mark.unit
 class TestSupremumComplexNorm:
     """Unit tests for the SupremumComplexNorm class."""
-    
+
     @pytest.fixture
     def supremum_complex_norm(self):
         """Fixture to provide a SupremumComplexNorm instance."""
@@ -23,7 +26,7 @@ class TestSupremumComplexNorm:
         test_func = lambda t: 2 + t
         result = supremum_complex_norm.compute(test_func)
         assert result >= 2.0 and result <= 3.0
-        
+
         # Test with invalid input
         with pytest.raises(ValueError):
             supremum_complex_norm.compute("not_a_callable")

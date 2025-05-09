@@ -7,8 +7,9 @@ from ..SimilarityBase import SimilarityBase
 # Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
+InputType = TypeVar("InputType", str, bytes, Any)
+OutputType = TypeVar("OutputType", float)
+
 
 @ComponentBase.register_type(SimilarityBase, "TanimotoSimilarity")
 class TanimotoSimilarity(SimilarityBase):
@@ -30,7 +31,7 @@ class TanimotoSimilarity(SimilarityBase):
     efficient computation of similarities for both individual pairs
     and batches of pairs.
     """
-    
+
     type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
     resource: str = ResourceTypes.SIMILARITY.value
 
@@ -63,15 +64,15 @@ class TanimotoSimilarity(SimilarityBase):
         # Ensure inputs are valid
         if not x or not y:
             raise ValueError("Vectors must be non-zero")
-            
+
         if len(x) != len(y):
             raise ValueError("Vectors must be of the same length")
 
         # Calculate dot product
         dot_product = sum(a * b for a, b in zip(x, y))
         # Calculate squared magnitudes
-        mag_x_sq = sum(a ** 2 for a in x)
-        mag_y_sq = sum(b ** 2 for b in y)
+        mag_x_sq = sum(a**2 for a in x)
+        mag_y_sq = sum(b**2 for b in y)
 
         # Compute denominator
         denominator = mag_x_sq + mag_y_sq - dot_product
@@ -85,7 +86,9 @@ class TanimotoSimilarity(SimilarityBase):
         logger.debug(f"Calculated Tanimoto similarity: {similarity}")
         return similarity
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Tanimoto similarities for multiple pairs of vectors.
 
@@ -118,11 +121,13 @@ class TanimotoSimilarity(SimilarityBase):
         """
         similarity = self.similarity(x, y)
         dissimilarity = 1.0 - similarity
-        
+
         logger.debug(f"Calculated Tanimoto dissimilarity: {dissimilarity}")
         return dissimilarity
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, pairs: Sequence[Tuple[InputType, InputType]]
+    ) -> Sequence[float]:
         """
         Calculate Tanimoto dissimilarities for multiple pairs of vectors.
 

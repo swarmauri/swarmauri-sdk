@@ -1,12 +1,14 @@
 import pytest
 from swarmauri_standard.swarmauri_standard.pseudometrics import ZeroPseudometric
 
+
 @pytest.fixture
 def zero_pseudometric():
     """
     Fixture to provide a ZeroPseudometric instance for testing.
     """
     return ZeroPseudometric()
+
 
 @pytest.mark.unit
 def test_distance(zero_pseudometric):
@@ -19,11 +21,12 @@ def test_distance(zero_pseudometric):
         (b"bytes1", b"bytes2"),
         (1, 2),
         ("test", 1),
-        (None, None)
+        (None, None),
     ]
-    
+
     for x, y in params:
         assert zero_pseudometric.distance(x, y) == 0.0
+
 
 @pytest.mark.unit
 def test_distances(zero_pseudometric):
@@ -35,10 +38,11 @@ def test_distances(zero_pseudometric):
     ys = ["test1", "test2", "test3"]
     results = zero_pseudometric.distances(x, ys)
     assert all(r == 0.0 for r in results)
-    
+
     # Test with None for ys
     results = zero_pseudometric.distances(x)
     assert results[0] == 0.0
+
 
 @pytest.mark.unit
 def test_check_non_negativity(zero_pseudometric):
@@ -50,11 +54,12 @@ def test_check_non_negativity(zero_pseudometric):
         (b"bytes1", b"bytes2"),
         (1, 2),
         ("test", 1),
-        (None, None)
+        (None, None),
     ]
-    
+
     for x, y in params:
         assert zero_pseudometric.check_non_negativity(x, y) is True
+
 
 @pytest.mark.unit
 def test_check_symmetry(zero_pseudometric):
@@ -66,11 +71,12 @@ def test_check_symmetry(zero_pseudometric):
         (b"bytes1", b"bytes2"),
         (1, 2),
         ("test", 1),
-        (None, None)
+        (None, None),
     ]
-    
+
     for x, y in params:
         assert zero_pseudometric.check_symmetry(x, y) is True
+
 
 @pytest.mark.unit
 def test_check_triangle_inequality(zero_pseudometric):
@@ -82,11 +88,12 @@ def test_check_triangle_inequality(zero_pseudometric):
         (b"bytes1", b"bytes2", b"bytes3"),
         (1, 2, 3),
         ("test", 1, 2),
-        (None, None, None)
+        (None, None, None),
     ]
-    
+
     for x, y, z in params:
         assert zero_pseudometric.check_triangle_inequality(x, y, z) is True
+
 
 @pytest.mark.unit
 def test_check_weak_identity(zero_pseudometric):
@@ -96,12 +103,12 @@ def test_check_weak_identity(zero_pseudometric):
     # Test when x == y
     x = y = "test"
     assert zero_pseudometric.check_weak_identity(x, y) is True
-    
+
     # Test when x != y
     x = "test1"
     y = "test2"
     assert zero_pseudometric.check_weak_identity(x, y) is False
-    
+
     # Test with different types
     x = "test"
     y = 1

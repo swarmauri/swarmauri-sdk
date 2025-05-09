@@ -8,8 +8,9 @@ from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 logger = logging.getLogger(__name__)
 
 # Define type variables for input types
-InputTypes = TypeVar('InputTypes', list, tuple, Iterable)
-DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
+InputTypes = TypeVar("InputTypes", list, tuple, Iterable)
+DistanceInput = TypeVar("DistanceInput", InputTypes, Iterable[InputTypes])
+
 
 @ComponentBase.register_type(PseudometricBase, "ProjectionPseudometricR2")
 class ProjectionPseudometricR2(PseudometricBase):
@@ -25,6 +26,7 @@ class ProjectionPseudometricR2(PseudometricBase):
         resource: str
             The resource type identifier for this component.
     """
+
     resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
     axis: str = Field(default="x")
 
@@ -42,7 +44,7 @@ class ProjectionPseudometricR2(PseudometricBase):
                 If the specified axis is neither 'x' nor 'y'.
         """
         super().__init__()
-        if axis not in ('x', 'y'):
+        if axis not in ("x", "y"):
             raise ValueError("Axis must be either 'x' or 'y'")
         self.axis = axis
         logger.debug(f"Initialized ProjectionPseudometricR2 with axis={self.axis}")
@@ -67,12 +69,12 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         try:
             # Extract the appropriate coordinate based on the axis
-            x_coord = x[0] if self.axis == 'x' else x[1]
-            y_coord = y[0] if self.axis == 'x' else y[1]
-            
+            x_coord = x[0] if self.axis == "x" else x[1]
+            y_coord = y[0] if self.axis == "x" else y[1]
+
             # Compute the absolute difference
             return abs(x_coord - y_coord)
-            
+
         except (TypeError, IndexError) as e:
             logger.error("Invalid input types for distance calculation: %s", str(e))
             raise ValueError("Inputs must be 2D points or vectors")
@@ -93,11 +95,11 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         try:
             # Extract the appropriate coordinate for x
-            x_coord = x[0] if self.axis == 'x' else x[1]
-            
+            x_coord = x[0] if self.axis == "x" else x[1]
+
             # Compute distances for each point in ys
-            return (abs(x_coord - (y[0] if self.axis == 'x' else y[1])) for y in ys)
-            
+            return (abs(x_coord - (y[0] if self.axis == "x" else y[1])) for y in ys)
+
         except (TypeError, IndexError) as e:
             logger.error("Invalid input types for distances calculation: %s", str(e))
             raise ValueError("Inputs must be 2D points or vectors")
@@ -134,7 +136,9 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         return True  # Absolute value difference is symmetric
 
-    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
+    def check_triangle_inequality(
+        self, x: InputTypes, y: InputTypes, z: InputTypes
+    ) -> bool:
         """
         Check if the distance satisfies the triangle inequality.
 
@@ -155,7 +159,7 @@ class ProjectionPseudometricR2(PseudometricBase):
             d_xy = self.distance(x, y)
             d_yz = self.distance(y, z)
             return d_xz <= d_xy + d_yz
-            
+
         except Exception as e:
             logger.error("Error during triangle inequality check: %s", str(e))
             return False
@@ -176,11 +180,11 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         try:
             # Extract coordinates
-            x_coord = x[0] if self.axis == 'x' else x[1]
-            y_coord = y[0] if self.axis == 'x' else y[1]
-            
+            x_coord = x[0] if self.axis == "x" else x[1]
+            y_coord = y[0] if self.axis == "x" else y[1]
+
             return x_coord == y_coord
-            
+
         except (TypeError, IndexError) as e:
             logger.error("Error during weak identity check: %s", str(e))
             return False

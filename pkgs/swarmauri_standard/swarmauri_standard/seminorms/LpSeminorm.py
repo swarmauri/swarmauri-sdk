@@ -7,7 +7,8 @@ from swarmauri_core.seminorms.ISeminorm import ISeminorm
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[Sequence[float], Sequence[Sequence[float]], str, callable])
+T = TypeVar("T", Union[Sequence[float], Sequence[Sequence[float]], str, callable])
+
 
 @ComponentBase.register_model()
 class LpSeminorm(SeminormBase):
@@ -28,6 +29,7 @@ class LpSeminorm(SeminormBase):
             The axis along which to compute the seminorm for array-like inputs.
             If None, the input is flattened before computation.
     """
+
     resource: str = ComponentBase.ResourceTypes.SEMINORM.value
     type: Literal["LpSeminorm"] = "LpSeminorm"
 
@@ -70,36 +72,35 @@ class LpSeminorm(SeminormBase):
                 If the input cannot be processed.
         """
         logger.debug("Computing Lp seminorm for input of type %s", type(input))
-        
+
         try:
             if isinstance(input, (str, callable)):
                 # Handle string or callable input
                 input = np.asarray(input)
-            
+
             input_array = np.asarray(input)
-            
+
             if input_array.ndim == 0:
                 # Handle scalar input
                 return 0.0
-            
+
             if self.axis is not None:
                 # Compute along specified axis
                 return np.power(
                     np.sum(np.power(np.abs(input_array), self.p), axis=self.axis),
-                    1.0 / self.p
+                    1.0 / self.p,
                 )
             else:
                 # Flatten the array and compute
                 flattened = input_array.ravel()
                 return np.power(
-                    np.sum(np.power(np.abs(flattened), self.p)),
-                    1.0 / self.p
+                    np.sum(np.power(np.abs(flattened), self.p)), 1.0 / self.p
                 )
-            
+
         except Exception as e:
             logger.error("Failed to compute Lp seminorm: %s", str(e))
             raise ValueError(f"Failed to compute Lp seminorm: {str(e)}")
-        
+
         return 0.0
 
     def check_triangle_inequality(self, a: T, b: T) -> bool:
@@ -120,16 +121,16 @@ class LpSeminorm(SeminormBase):
                 True if the triangle inequality holds, False otherwise.
         """
         logger.debug("Checking triangle inequality for Lp seminorm")
-        
+
         try:
             # Compute seminorms
             seminorm_a = self.compute(a)
             seminorm_b = self.compute(b)
             seminorm_ab = self.compute(a + b)
-            
+
             # Check inequality
             return seminorm_ab <= seminorm_a + seminorm_b
-            
+
         except Exception as e:
             logger.error("Failed to check triangle inequality: %s", str(e))
             return False
@@ -152,24 +153,24 @@ class LpSeminorm(SeminormBase):
                 True if scalar homogeneity holds, False otherwise.
         """
         logger.debug("Checking scalar homogeneity for Lp seminorm")
-        
+
         try:
             if scalar < 0:
                 raise ValueError("Scalar must be non-negative")
-                
+
             # Compute original seminorm
             seminorm_a = self.compute(a)
-            
+
             # Compute scaled seminorm
             scaled_a = scalar * a
             seminorm_scaled = self.compute(scaled_a)
-            
+
             # Compute expected value
             expected_seminorm = scalar ** (1.0 / self.p) * seminorm_a
-            
+
             # Check if values are close (allowing for floating point errors)
             return np.isclose(seminorm_scaled, expected_seminorm)
-            
+
         except Exception as e:
             logger.error("Failed to check scalar homogeneity: %s", str(e))
             return False

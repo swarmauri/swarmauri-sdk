@@ -1,6 +1,9 @@
 import pytest
 import logging
-from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import OverlapCoefficientSimilarity
+from swarmauri_standard.swarmauri_standard.similarities.OverlapCoefficientSimilarity import (
+    OverlapCoefficientSimilarity,
+)
+
 
 @pytest.fixture
 def overlap_coefficient_similarity():
@@ -11,6 +14,7 @@ def overlap_coefficient_similarity():
     logging.debug("OverlapCoefficientSimilarity instance created for testing")
     return instance
 
+
 @pytest.mark.unit
 def test_similarity_initialization(overlap_coefficient_similarity):
     """
@@ -19,6 +23,7 @@ def test_similarity_initialization(overlap_coefficient_similarity):
     assert isinstance(overlap_coefficient_similarity, OverlapCoefficientSimilarity)
     assert overlap_coefficient_similarity.type == "OverlapCoefficientSimilarity"
     assert overlap_coefficient_similarity.resource == "Similarity"
+
 
 @pytest.mark.unit
 def test_similarity(overlap_coefficient_similarity):
@@ -50,6 +55,7 @@ def test_similarity(overlap_coefficient_similarity):
     set_j = set()
     assert overlap_coefficient_similarity.similarity(set_i, set_j) == 0.0
 
+
 @pytest.mark.unit
 def test_dissimilarity(overlap_coefficient_similarity):
     """
@@ -80,6 +86,7 @@ def test_dissimilarity(overlap_coefficient_similarity):
     set_j = set()
     assert overlap_coefficient_similarity.dissimilarity(set_i, set_j) == 0.0
 
+
 @pytest.mark.unit
 def test_similarities(overlap_coefficient_similarity):
     """
@@ -90,15 +97,16 @@ def test_similarities(overlap_coefficient_similarity):
         ({3, 4}, {4, 5}),
         ({5, 6}, {6, 7}),
         (set(), {1, 2}),
-        ({1, 2}, set())
+        ({1, 2}, set()),
     ]
-    
+
     expected_results = [0.5, 0.5, 0.5, 0.0, 0.0]
-    
+
     results = overlap_coefficient_similarity.similarities(pairs)
     assert len(results) == len(pairs)
     for result, expected in zip(results, expected_results):
         assert result == expected
+
 
 @pytest.mark.unit
 def test_dissimilarities(overlap_coefficient_similarity):
@@ -110,15 +118,16 @@ def test_dissimilarities(overlap_coefficient_similarity):
         ({3, 4}, {4, 5}),
         ({5, 6}, {6, 7}),
         (set(), {1, 2}),
-        ({1, 2}, set())
+        ({1, 2}, set()),
     ]
-    
+
     expected_results = [0.5, 0.5, 0.5, 1.0, 1.0]
-    
+
     results = overlap_coefficient_similarity.dissimilarities(pairs)
     assert len(results) == len(pairs)
     for result, expected in zip(results, expected_results):
         assert result == expected
+
 
 @pytest.mark.unit
 def test_invalid_inputs(overlap_coefficient_similarity):
@@ -128,7 +137,7 @@ def test_invalid_inputs(overlap_coefficient_similarity):
     # Test non-set inputs
     with pytest.raises(ValueError):
         overlap_coefficient_similarity.similarity([1, 2], [3, 4])
-    
+
     # Test empty sets
     with pytest.raises(ValueError):
         overlap_coefficient_similarity.similarity(set(), set())

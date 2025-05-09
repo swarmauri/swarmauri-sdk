@@ -4,10 +4,11 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.metrics.IMetric import IMetric
 
-T = TypeVar('T', np.ndarray, Sequence, str)
-S = TypeVar('S', int, float, bool, str)
+T = TypeVar("T", np.ndarray, Sequence, str)
+S = TypeVar("S", int, float, bool, str)
 
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(MetricBase, "EuclideanMetric")
 class EuclideanMetric(MetricBase):
@@ -27,6 +28,7 @@ class EuclideanMetric(MetricBase):
           symmetry, triangle inequality)
         - Logging functionality
     """
+
     resource: Optional[str] = "metric"
 
     def __init__(self):
@@ -60,36 +62,38 @@ class EuclideanMetric(MetricBase):
                 If inputs are not of compatible types
         """
         logger.debug("Starting Euclidean distance computation")
-        
+
         try:
             # Convert inputs to numpy arrays if not already
             x = np.asarray(x)
             y = np.asarray(y)
-            
+
             # Ensure vectors have the same dimension
             if x.shape != y.shape:
                 raise ValueError("Input vectors must have the same dimensions")
-                
+
             # Compute element-wise differences
             difference = x - y
-            
+
             # Compute squared differences
             squared_diff = np.square(difference)
-            
+
             # Sum of squares
             sum_of_squares = np.sum(squared_diff)
-            
+
             # Square root gives the Euclidean distance
             distance = np.sqrt(sum_of_squares)
-            
+
             logger.debug(f"Euclidean distance computed successfully: {distance}")
             return float(distance)
-            
+
         except Exception as e:
             logger.error(f"Error computing Euclidean distance: {str(e)}")
             raise ValueError(f"Failed to compute Euclidean distance: {str(e)}")
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, x: T, y_list: Union[T, Sequence[T]]
+    ) -> Union[float, Sequence[float]]:
         """
         Compute the distance(s) between a vector and one or more vectors.
 
@@ -111,13 +115,13 @@ class EuclideanMetric(MetricBase):
                 If input types are invalid
         """
         logger.debug("Starting multiple distance computations")
-        
+
         try:
             if isinstance(y_list, Sequence):
                 return [self.distance(x, y) for y in y_list]
             else:
                 return self.distance(x, y_list)
-            
+
         except Exception as e:
             logger.error(f"Error computing multiple distances: {str(e)}")
             raise ValueError(f"Failed to compute distances: {str(e)}")

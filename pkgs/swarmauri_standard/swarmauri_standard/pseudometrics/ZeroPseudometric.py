@@ -8,8 +8,9 @@ from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 logger = logging.getLogger(__name__)
 
 # Define type variables for input types
-InputTypes = TypeVar('InputTypes', Iterable, str, bytes, memoryview, Callable)
-DistanceInput = TypeVar('DistanceInput', InputTypes, Iterable[InputTypes])
+InputTypes = TypeVar("InputTypes", Iterable, str, bytes, memoryview, Callable)
+DistanceInput = TypeVar("DistanceInput", InputTypes, Iterable[InputTypes])
+
 
 @ComponentBase.register_model()
 class ZeroPseudometric(PseudometricBase):
@@ -24,8 +25,9 @@ class ZeroPseudometric(PseudometricBase):
         resource: str = ResourceTypes.PSEUDOMETRIC.value
             The resource type identifier for this component.
     """
+
     resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
-    
+
     def distance(self, x: InputTypes, y: InputTypes) -> float:
         """
         Compute the distance between two points x and y.
@@ -43,10 +45,16 @@ class ZeroPseudometric(PseudometricBase):
             float:
                 The computed distance, which will always be 0.0
         """
-        logger.debug("Computing zero distance between inputs of types {} and {}".format(type(x), type(y)))
+        logger.debug(
+            "Computing zero distance between inputs of types {} and {}".format(
+                type(x), type(y)
+            )
+        )
         return 0.0
 
-    def distances(self, x: InputTypes, ys: Optional[Iterable[InputTypes]] = None) -> Iterable[float]:
+    def distances(
+        self, x: InputTypes, ys: Optional[Iterable[InputTypes]] = None
+    ) -> Iterable[float]:
         """
         Compute distances from point x to multiple points ys.
 
@@ -109,7 +117,9 @@ class ZeroPseudometric(PseudometricBase):
         logger.debug("Checking symmetry constraint")
         return True
 
-    def check_triangle_inequality(self, x: InputTypes, y: InputTypes, z: InputTypes) -> bool:
+    def check_triangle_inequality(
+        self, x: InputTypes, y: InputTypes, z: InputTypes
+    ) -> bool:
         """
         Check if the distance satisfies the triangle inequality.
 
