@@ -1,23 +1,25 @@
-import pytest
-import os
 import logging
+import os
+import shutil
 import tempfile
-from unittest.mock import patch
-from typing import Dict, Any
+from logging.handlers import RotatingFileHandler
+from unittest.mock import MagicMock, patch
+
+import pytest
+from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 from swarmauri_standard.logger_handlers.FileLoggingHandler import FileLoggingHandler
-from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 
 @pytest.fixture
 def temp_log_file():
     """
-    Fixture providing a temporary log file path.
+    Creates a temporary file for testing logging.
 
     Returns:
-        str: Path to a temporary log file.
+        str: Path to the temporary log file.
     """
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_path = temp_file.name
 
     yield temp_path
@@ -27,250 +29,233 @@ def temp_log_file():
         os.remove(temp_path)
 
 
-@pytest.fixture
-def simple_handler(temp_log_file):
-    """
-    Fixture providing a basic FileLoggingHandler instance.
-
-    Args:
-        temp_log_file: Temporary log file path from fixture.
-
-    Returns:
-        FileLoggingHandler: A configured handler instance.
-    """
-    return FileLoggingHandler(filepath=temp_log_file, level="INFO")
-
-
-@pytest.fixture
-def rotating_handler(temp_log_file):
-    """
-    Fixture providing a rotating FileLoggingHandler instance.
-
-    Args:
-        temp_log_file: Temporary log file path from fixture.
-
-    Returns:
-        FileLoggingHandler: A configured rotating handler instance.
-    """
-    return FileLoggingHandler(
-        filepath=temp_log_file, level="DEBUG", max_bytes=1024, backup_count=3
-    )
-
-
-class MockFormatter(FormatterBase):
-    """Mock formatter for testing."""
-
-    type = "MockFormatter"
-
-    def compile_formatter(self):
-        """Return a mock formatter."""
-        return logging.Formatter("[TEST] %(message)s")
-
-    def get_config(self) -> Dict[str, Any]:
-        """Get mock formatter config."""
-        return {"type": self.type}
-
-
 @pytest.mark.unit
-def test_handler_initialization():
-    """Test that the handler initializes with correct attributes."""
-    handler = FileLoggingHandler(
-        filepath="/tmp/test.log",
-        mode="w",
-        encoding="latin-1",
-        delay=True,
-        max_bytes=1024,
-        backup_count=5,
-        level="DEBUG",
-    )
+def test_file_logging_handler_default_values():
+    """Tests that FileLoggingHandler initializes with correct default values."""
+    handler = FileLoggingHandler()
 
     assert handler.type == "FileLoggingHandler"
-    assert handler.filepath == "/tmp/test.log"
-    assert handler.mode == "w"
-    assert handler.encoding == "latin-1"
-    assert handler.delay is True
-    assert handler.max_bytes == 1024
-    assert handler.backup_count == 5
-    assert handler.level == "DEBUG"
+    assert handler.level == logging.INFO
+    assert handler.formatter is None
+    assert handler.file_path == "logs/app.log"
+    assert handler.file_mode == "a"
+    assert handler.encoding == "utf-8"
+    assert handler.max_bytes == 0
+    assert handler.backup_count == 0
 
 
 @pytest.mark.unit
-def test_directory_creation():
-    """Test that the handler creates the directory for the log file if it doesn't exist."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        log_dir = os.path.join(temp_dir, "logs")
-        log_file = os.path.join(log_dir, "test.log")
+def test_compile_handler_creates_directory(temp_log_file):
+    """Tests that compile_handler creates the log directory if it doesn't exist."""
+    # Create a path in a non-existent directory
+    log_dir = os.path.join(os.path.dirname(temp_log_file), "test_logs")
+    log_path = os.path.join(log_dir, "test.log")
 
-        # Directory shouldn't exist yet
-        assert not os.path.exists(log_dir)
+    # Make sure directory doesn't exist before test
+    if os.path.exists(log_dir):
+        shutil.rmtree(log_dir)  # Remove directory and all contents
 
-        # Creating the handler should create the directory
-        FileLoggingHandler(filepath=log_file)
+    handler = FileLoggingHandler(file_path=log_path)
 
-        # Directory should now exist
-        assert os.path.exists(log_dir)
+    # Directory should not exist yet
+    assert not os.path.exists(log_dir)
 
+    # Compile handler should create the directory
+    compiled_handler = handler.compile_handler()
 
-@pytest.mark.unit
-def test_compile_handler_standard(simple_handler):
-    """Test compiling a standard file handler."""
-    compiled = simple_handler.compile_handler()
+    # Directory should now exist
+    assert os.path.exists(log_dir)
 
-    assert isinstance(compiled, logging.FileHandler)
-    assert compiled.level == logging.INFO
-    assert compiled.baseFilename == simple_handler.filepath
-
-
-@pytest.mark.unit
-def test_compile_handler_rotating(rotating_handler):
-    """Test compiling a rotating file handler."""
-    compiled = rotating_handler.compile_handler()
-
-    assert isinstance(compiled, logging.handlers.RotatingFileHandler)
-    assert compiled.level == logging.DEBUG
-    assert compiled.baseFilename == rotating_handler.filepath
-    assert compiled.maxBytes == 1024
-    assert compiled.backupCount == 3
+    # Clean up
+    compiled_handler.close()
+    # And use rmtree again for cleanup to handle any files created by the handler
+    shutil.rmtree(log_dir)
 
 
 @pytest.mark.unit
-def test_formatter_string():
-    """Test handler with string formatter."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as temp_file:
-        handler = FileLoggingHandler(
-            filepath=temp_file.name, formatter="%(levelname)s: %(message)s"
+def test_compile_handler_creates_file_handler():
+    """Tests that compile_handler creates a FileHandler when max_bytes is 0."""
+    handler = FileLoggingHandler(max_bytes=0)
+
+    with patch("logging.FileHandler") as mock_file_handler:
+        mock_instance = MagicMock()
+        mock_file_handler.return_value = mock_instance
+
+        compiled_handler = handler.compile_handler()
+
+        mock_file_handler.assert_called_once_with(
+            filename="logs/app.log", mode="a", encoding="utf-8"
         )
 
-        compiled = handler.compile_handler()
-        assert isinstance(compiled.formatter, logging.Formatter)
-
-        # Clean up
-        os.remove(temp_file.name)
+        assert compiled_handler == mock_instance
 
 
 @pytest.mark.unit
-def test_formatter_object():
-    """Test handler with formatter object."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as temp_file:
-        mock_formatter = MockFormatter()
+def test_compile_handler_creates_rotating_file_handler():
+    """Tests that compile_handler creates a RotatingFileHandler when max_bytes > 0."""
+    handler = FileLoggingHandler(max_bytes=1024, backup_count=3)
 
-        handler = FileLoggingHandler(filepath=temp_file.name, formatter=mock_formatter)
+    # Fix the patch to match how RotatingFileHandler is imported in the implementation
+    with patch(
+        "swarmauri_standard.logger_handlers.FileLoggingHandler.RotatingFileHandler"
+    ) as mock_rotating_handler:
+        mock_instance = MagicMock()
+        mock_rotating_handler.return_value = mock_instance
 
-        compiled = handler.compile_handler()
-        assert isinstance(compiled.formatter, logging.Formatter)
+        compiled_handler = handler.compile_handler()
 
-        # Clean up
-        os.remove(temp_file.name)
+        mock_rotating_handler.assert_called_once_with(
+            filename="logs/app.log",
+            mode="a",
+            maxBytes=1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
 
-
-@pytest.mark.unit
-def test_default_formatter():
-    """Test that a default formatter is applied when none is provided."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as temp_file:
-        handler = FileLoggingHandler(filepath=temp_file.name)
-
-        compiled = handler.compile_handler()
-        assert compiled.formatter is not None
-
-        # Clean up
-        os.remove(temp_file.name)
+        assert compiled_handler == mock_instance
 
 
 @pytest.mark.unit
-def test_actual_logging(simple_handler):
-    """Test that the handler actually writes to the log file."""
-    # Get the compiled handler
-    handler = simple_handler.compile_handler()
+def test_handler_sets_level():
+    """Tests that the handler sets the correct logging level."""
+    handler = FileLoggingHandler(level=logging.DEBUG)
+
+    with patch("logging.FileHandler") as mock_file_handler:
+        mock_instance = MagicMock()
+        mock_file_handler.return_value = mock_instance
+
+        handler.compile_handler()
+
+        mock_instance.setLevel.assert_called_once_with(logging.DEBUG)
+
+
+@pytest.mark.unit
+def test_handler_with_string_formatter():
+    """Tests that the handler correctly applies a string formatter."""
+    format_string = "%(levelname)s: %(message)s"
+    handler = FileLoggingHandler(formatter=format_string)
+
+    with patch("logging.FileHandler") as mock_file_handler:
+        mock_instance = MagicMock()
+        mock_file_handler.return_value = mock_instance
+
+        with patch("logging.Formatter") as mock_formatter:
+            formatter_instance = MagicMock()
+            mock_formatter.return_value = formatter_instance
+
+            handler.compile_handler()
+
+            mock_formatter.assert_called_with(format_string)
+            mock_instance.setFormatter.assert_called_with(formatter_instance)
+
+
+@pytest.mark.unit
+def test_handler_with_formatter_object():
+    """Tests that the handler correctly applies a FormatterBase object."""
+    mock_formatter = MagicMock(spec=FormatterBase)
+    mock_formatter.type = "FormatterBase"  # Add type for Pydantic validation
+    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    compiled_formatter = MagicMock()
+    mock_formatter.compile_formatter.return_value = compiled_formatter
+
+    handler = FileLoggingHandler(formatter=mock_formatter)
+
+    with patch("logging.FileHandler") as mock_file_handler:
+        mock_instance = MagicMock()
+        mock_file_handler.return_value = mock_instance
+
+        handler.compile_handler()
+
+        mock_formatter.compile_formatter.assert_called_once()
+        mock_instance.setFormatter.assert_called_with(compiled_formatter)
+
+
+@pytest.mark.unit
+def test_handler_with_default_formatter():
+    """Tests that the handler applies a default formatter when none is specified."""
+    handler = FileLoggingHandler(formatter=None)
+
+    with patch("logging.FileHandler") as mock_file_handler:
+        mock_instance = MagicMock()
+        mock_file_handler.return_value = mock_instance
+
+        with patch("logging.Formatter") as mock_formatter:
+            formatter_instance = MagicMock()
+            mock_formatter.return_value = formatter_instance
+
+            handler.compile_handler()
+
+            mock_formatter.assert_called_with(
+                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                "%Y-%m-%d %H:%M:%S",
+            )
+            mock_instance.setFormatter.assert_called_with(formatter_instance)
+
+
+@pytest.mark.unit
+def test_functional_file_handler(temp_log_file):
+    """Functional test that verifies the handler actually writes to a file."""
+    # Create handler with the temp file
+    handler = FileLoggingHandler(file_path=temp_log_file, level=logging.DEBUG)
+
+    # Compile the handler
+    compiled_handler = handler.compile_handler()
 
     # Create a logger and add the handler
     logger = logging.getLogger("test_logger")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(compiled_handler)
 
-    # Log a message
+    # Log a test message
     test_message = "This is a test log message"
-    logger.info(test_message)
+    logger.debug(test_message)
 
     # Close the handler to ensure the message is written
-    handler.close()
+    compiled_handler.close()
 
-    # Read the log file and check the content
-    with open(simple_handler.filepath, "r") as log_file:
-        content = log_file.read()
-        assert test_message in content
+    # Verify the message was written to the file
+    with open(temp_log_file, "r") as f:
+        log_content = f.read()
+
+    assert test_message in log_content
 
 
 @pytest.mark.unit
-def test_get_config_with_string_formatter():
-    """Test get_config with string formatter."""
+def test_functional_rotating_file_handler(temp_log_file):
+    """Functional test that verifies the rotating handler works correctly."""
+    # Create a rotating handler with small max_bytes to trigger rotation
     handler = FileLoggingHandler(
-        filepath="/tmp/test.log",
-        formatter="%(levelname)s: %(message)s",
-        level="WARNING",
+        file_path=temp_log_file,
+        level=logging.DEBUG,
+        max_bytes=50,
+        backup_count=2,
     )
-
-    config = handler.get_config()
-
-    assert config["type"] == "FileLoggingHandler"
-    assert config["filepath"] == "/tmp/test.log"
-    assert config["formatter"] == "%(levelname)s: %(message)s"
-    assert config["level"] == "WARNING"
-
-
-@pytest.mark.unit
-def test_get_config_with_object_formatter():
-    """Test get_config with formatter object."""
-    mock_formatter = MockFormatter()
-
-    handler = FileLoggingHandler(filepath="/tmp/test.log", formatter=mock_formatter)
-
-    config = handler.get_config()
-
-    assert config["type"] == "FileLoggingHandler"
-    assert config["filepath"] == "/tmp/test.log"
-    assert config["formatter"]["type"] == "MockFormatter"
-
-
-@pytest.mark.unit
-def test_get_config_complete():
-    """Test get_config returns all configuration parameters."""
-    handler = FileLoggingHandler(
-        filepath="/tmp/test.log",
-        mode="w",
-        encoding="latin-1",
-        delay=True,
-        max_bytes=1024,
-        backup_count=5,
-        level="DEBUG",
-    )
-
-    config = handler.get_config()
-
-    assert config["type"] == "FileLoggingHandler"
-    assert config["filepath"] == "/tmp/test.log"
-    assert config["mode"] == "w"
-    assert config["encoding"] == "latin-1"
-    assert config["delay"] is True
-    assert config["max_bytes"] == 1024
-    assert config["backup_count"] == 5
-    assert config["level"] == "DEBUG"
-
-
-@pytest.mark.unit
-@patch("os.makedirs")
-def test_directory_creation_on_compile(mock_makedirs, temp_log_file):
-    """Test directory creation when compiling the handler."""
-    # Create a handler with a path in a non-existent directory
-    test_dir = "/nonexistent/dir"
-    test_path = f"{test_dir}/test.log"
-
-    handler = FileLoggingHandler(filepath=test_path)
-
-    # Reset the mock to clear the call from initialization
-    mock_makedirs.reset_mock()
 
     # Compile the handler
-    handler.compile_handler()
+    compiled_handler = handler.compile_handler()
 
-    # Check that makedirs was called with the directory path
-    mock_makedirs.assert_called_once_with(test_dir, exist_ok=True)
+    # Verify it's a RotatingFileHandler
+    assert isinstance(compiled_handler, RotatingFileHandler)
+
+    # Create a logger and add the handler
+    logger = logging.getLogger("test_rotating_logger")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(compiled_handler)
+
+    # Log multiple messages to trigger rotation
+    for i in range(10):
+        logger.debug(f"Test log message {i} that should cause rotation")
+
+    # Close the handler to ensure all messages are written
+    compiled_handler.close()
+
+    # Verify the log file exists
+    assert os.path.exists(temp_log_file)
+
+    # Check if backup files were created (at least one)
+    backup_file = f"{temp_log_file}.1"
+    assert os.path.exists(backup_file)
+
+    # Clean up backup file
+    if os.path.exists(backup_file):
+        os.remove(backup_file)

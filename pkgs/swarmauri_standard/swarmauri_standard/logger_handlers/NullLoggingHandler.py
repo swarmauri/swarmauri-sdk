@@ -1,36 +1,51 @@
-from logging import NullHandler
+import logging
 from typing import Literal
 
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "NullLoggingHandler")
+@ObserveBase.register_model()
 class NullLoggingHandler(HandlerBase):
     """
-    A no-op handler that silently discards all logging records.
+    A no-op handler that silently ignores all logging records.
 
-    This handler uses Python's built-in NullHandler to ignore all logging messages,
-    which is useful for disabling logging in libraries or when logging output is not needed.
+    This handler is useful for disabling logging in libraries or specific components
+    of an application. It uses Python's built-in NullHandler to discard all log
+    messages without any processing.
+
+    Attributes
+    ----------
+    type : Literal["NullLoggingHandler"]
+        The type identifier for this handler.
+    level : int
+        The logging level threshold (inherited from HandlerBase).
+    formatter : Optional[Union[str, FullUnion[FormatterBase]]]
+        The formatter to use (inherited from HandlerBase, but not used in this handler).
     """
 
     type: Literal["NullLoggingHandler"] = "NullLoggingHandler"
 
-    def compile_handler(self) -> NullHandler:
+    def compile_handler(self) -> logging.Handler:
         """
-        Creates and configures a NullHandler that ignores all log records.
+        Compiles a NullHandler that discards all logging records.
 
-        Returns:
-            NullHandler: A configured logging handler that discards all messages.
+        The NullHandler is a special handler in the Python logging module that
+        silently discards all log records without any formatting or output.
+
+        Returns
+        -------
+        logging.Handler
+            A configured NullHandler instance.
         """
-        # Create a NullHandler instance which will discard all log records
-        handler = NullHandler()
+        # Create a NullHandler which discards all logging records
+        handler = logging.NullHandler()
 
-        # Even though this handler discards messages, we still set the level
-        # to maintain consistency with the base class interface
+        # Although this handler discards all messages, we still set the level
+        # to maintain consistent behavior with the base class
         handler.setLevel(self.level)
 
-        # No need to set a formatter since messages are discarded,
-        # but we could set one for consistency if needed
+        # No formatter is needed since messages are discarded,
+        # but we could add one for consistency if required
 
         return handler
