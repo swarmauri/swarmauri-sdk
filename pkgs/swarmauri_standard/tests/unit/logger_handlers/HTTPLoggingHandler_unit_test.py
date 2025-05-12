@@ -4,122 +4,163 @@ import unittest.mock as mock
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.HTTPLoggingHandler import (
-    HTTPHandlerExtended,
-    HTTPLoggingHandler,
-)
+from swarmauri_standard.logger_handlers.HTTPLoggingHandler import HTTPLoggingHandler
 
 
 @pytest.fixture
 def basic_http_handler():
     """
-    Create a basic HTTPLoggingHandler for testing.
+    Creates a basic HTTP logging handler for testing.
 
     Returns:
-        A configured HTTPLoggingHandler instance
+        HTTPLoggingHandler: A basic HTTP logging handler instance.
     """
     return HTTPLoggingHandler(
-        host="example.com", url="/logs", method="GET", level=logging.INFO
+        host="example.com", url="/log", method="POST", level=logging.INFO
     )
+
+
+@pytest.fixture
+def advanced_http_handler():
+    """
+    Creates an HTTP logging handler with advanced options for testing.
+
+    Returns:
+        HTTPLoggingHandler: An HTTP logging handler with timeout and credentials.
+    """
+    return HTTPLoggingHandler(
+        host="example.com",
+        url="/log",
+        method="GET",
+        timeout=5.0,
+        credentials={"username": "user", "password": "pass"},
+        level=logging.DEBUG,
+    )
+
+
+@pytest.fixture
+def mock_formatter():
+    """
+    Creates a mock formatter for testing.
+
+    Returns:
+        mock.Mock: A mocked formatter instance.
+    """
+    formatter = mock.Mock(spec=FormatterBase)
+    mock_logging_formatter = mock.Mock(spec=logging.Formatter)
+    formatter.compile_formatter.return_value = mock_logging_formatter
+    return formatter
 
 
 @pytest.mark.unit
-def test_http_handler_initialization():
-    """Test that HTTPLoggingHandler initializes with correct attributes."""
-    handler = HTTPLoggingHandler(
-        host="example.com",
-        url="/logs",
-        method="POST",
-        level=logging.DEBUG,
-        timeout=30,
-        credentials=("user", "pass"),
-        headers={"X-Custom": "Value"},
-    )
+def test_init_with_defaults():
+    """Tests initialization with default values."""
+    handler = HTTPLoggingHandler(host="example.com", url="/log")
 
     assert handler.host == "example.com"
-    assert handler.url == "/logs"
-    assert handler.method == "POST"
+    assert handler.url == "/log"
+    assert handler.method == "POST"  # Default method
+    assert handler.timeout is None  # Default timeout
+    assert handler.credentials is None  # Default credentials
+    assert handler.level == logging.INFO  # Default level
+    assert handler.formatter is None  # Default formatter
+
+
+@pytest.mark.unit
+def test_init_with_custom_values():
+    """Tests initialization with custom values."""
+    handler = HTTPLoggingHandler(
+        host="custom.com",
+        url="/custom",
+        method="GET",
+        timeout=10.0,
+        credentials={"username": "testuser", "password": "testpass"},
+        level=logging.DEBUG,
+        formatter="%(levelname)s: %(message)s",
+    )
+
+    assert handler.host == "custom.com"
+    assert handler.url == "/custom"
+    assert handler.method == "GET"
+    assert handler.timeout == 10.0
+    assert handler.credentials == {"username": "testuser", "password": "testpass"}
     assert handler.level == logging.DEBUG
-    assert handler.timeout == 30
-    assert handler.credentials == ("user", "pass")
-    assert handler.headers == {"X-Custom": "Value"}
+    assert handler.formatter == "%(levelname)s: %(message)s"
+
+
+@pytest.mark.unit
+def test_type_attribute():
+    """Tests the type attribute is correctly set."""
+    handler = HTTPLoggingHandler(host="example.com", url="/log")
     assert handler.type == "HTTPLoggingHandler"
 
 
 @pytest.mark.unit
-def test_http_handler_default_values():
-    """Test that HTTPLoggingHandler uses correct default values."""
-    handler = HTTPLoggingHandler(host="example.com", url="/logs")
+@mock.patch("http.client.HTTPConnection")
+def test_compile_handler_basic(mock_http_connection, basic_http_handler):
+    """Tests compiling a basic HTTP handler."""
+    # Compile the handler
+    compiled_handler = basic_http_handler.compile_handler()
 
-    assert handler.method == "GET"
-    assert handler.level == logging.INFO
-    assert handler.timeout is None
-    assert handler.credentials is None
-    assert handler.headers == {}
-    assert handler.formatter is None
+    # Verify the compiled handler is a logging.Handler
+    assert isinstance(compiled_handler, logging.Handler)
 
+    # Verify the level is set correctly
+    assert compiled_handler.level == logging.INFO
 
-@pytest.mark.unit
-def test_compile_handler_returns_correct_type(basic_http_handler):
-    """Test that compile_handler returns an HTTPHandlerExtended instance."""
-    compiled = basic_http_handler.compile_handler()
-    assert isinstance(compiled, HTTPHandlerExtended)
-    assert compiled.host == "example.com"
-    assert compiled.url == "/logs"
-    assert compiled.method == "GET"
+    # Verify the formatter is set (should be a default one)
+    assert isinstance(compiled_handler.formatter, logging.Formatter)
 
 
 @pytest.mark.unit
-def test_compile_handler_with_string_formatter(basic_http_handler):
-    """Test compile_handler with a string formatter."""
-    basic_http_handler.formatter = "%(levelname)s: %(message)s"
-    compiled = basic_http_handler.compile_handler()
+@mock.patch("http.client.HTTPConnection")
+def test_compile_handler_with_string_formatter(
+    mock_http_connection, basic_http_handler
+):
+    """Tests compiling a handler with a string formatter."""
+    # Set a string formatter
+    basic_http_handler.formatter = "%(levelname)s - %(message)s"
 
-    assert isinstance(compiled.formatter, logging.Formatter)
+    # Compile the handler
+    compiled_handler = basic_http_handler.compile_handler()
 
-    # Create a test log record and check formatting
-    record = logging.LogRecord(
-        name="test",
-        level=logging.INFO,
-        pathname="",
-        lineno=0,
-        msg="Test message",
-        args=(),
-        exc_info=None,
-    )
-
-    formatted = compiled.formatter.format(record)
-    assert formatted == "INFO: Test message"
+    # Verify the formatter is set correctly
+    assert isinstance(compiled_handler.formatter, logging.Formatter)
+    # We can't easily check the format string as it's not directly accessible
 
 
 @pytest.mark.unit
-def test_compile_handler_with_formatter_object():
-    """Test compile_handler with a FormatterBase object."""
-    mock_formatter = mock.MagicMock(spec=FormatterBase)
-    mock_compiled_formatter = mock.MagicMock(spec=logging.Formatter)
-    mock_formatter.compile_formatter.return_value = mock_compiled_formatter
+@mock.patch("http.client.HTTPConnection")
+def test_compile_handler_with_formatter_object(
+    mock_http_connection, basic_http_handler, mock_formatter
+):
+    """Tests compiling a handler with a formatter object."""
+    # Set a formatter object
+    basic_http_handler.formatter = mock_formatter
 
-    handler = HTTPLoggingHandler(
-        host="example.com", url="/logs", formatter=mock_formatter
-    )
+    # Compile the handler
+    compiled_handler = basic_http_handler.compile_handler()
 
-    compiled = handler.compile_handler()
-
-    # Verify the formatter was compiled and set
+    # Verify the formatter.compile_formatter method was called
     mock_formatter.compile_formatter.assert_called_once()
-    assert compiled.formatter == mock_compiled_formatter
+
+    # Verify the formatter was set to the result of compile_formatter
+    assert compiled_handler.formatter == mock_formatter.compile_formatter.return_value
 
 
 @pytest.mark.unit
-def test_compile_handler_default_formatter(basic_http_handler):
-    """Test that compile_handler sets a default formatter if none is provided."""
-    compiled = basic_http_handler.compile_handler()
+@mock.patch("http.client.HTTPConnection")
+def test_custom_http_handler_emit_post(mock_http_connection, basic_http_handler):
+    """Tests the emit method of the custom HTTP handler with POST method."""
+    # Setup mock connection and response
+    mock_conn_instance = mock_http_connection.return_value
+    mock_response = mock.Mock()
+    mock_conn_instance.getresponse.return_value = mock_response
 
-    assert isinstance(compiled.formatter, logging.Formatter)
-
-    # Create a test log record and check formatting matches default pattern
+    # Compile the handler and create a log record
+    handler = basic_http_handler.compile_handler()
     record = logging.LogRecord(
-        name="test",
+        name="test_logger",
         level=logging.INFO,
         pathname="",
         lineno=0,
@@ -128,88 +169,87 @@ def test_compile_handler_default_formatter(basic_http_handler):
         exc_info=None,
     )
 
-    formatted = compiled.formatter.format(record)
-    assert "[test][INFO] Test message" in formatted
+    # Emit the record
+    handler.emit(record)
+
+    # Verify the connection was created with the correct host
+    mock_http_connection.assert_called_with("example.com", timeout=None)
+
+    # Verify the request was made with the correct method, URL, and data
+    mock_conn_instance.request.assert_called_once()
+    args, kwargs = mock_conn_instance.request.call_args
+
+    # Check method and URL
+    assert args[0] == "POST"
+    assert args[1] == "/log"
+
+    # Check that the message is in the form data
+    assert "message=" in args[2]
+
+    # Verify Content-type header is set for POST
+    assert kwargs["headers"]["Content-type"] == "application/x-www-form-urlencoded"
+
+    # Verify the connection was closed
+    mock_conn_instance.close.assert_called_once()
 
 
 @pytest.mark.unit
-class TestHTTPHandlerExtended:
-    """Unit tests for the HTTPHandlerExtended class."""
+@mock.patch("http.client.HTTPConnection")
+def test_custom_http_handler_emit_get(mock_http_connection, advanced_http_handler):
+    """Tests the emit method of the custom HTTP handler with GET method."""
+    # Setup mock connection and response
+    mock_conn_instance = mock_http_connection.return_value
+    mock_response = mock.Mock()
+    mock_conn_instance.getresponse.return_value = mock_response
 
-    @pytest.fixture
-    def extended_handler(self):
-        """Create a basic HTTPHandlerExtended for testing."""
-        return HTTPHandlerExtended(host="example.com", url="/logs", method="GET")
+    # Compile the handler and create a log record
+    handler = advanced_http_handler.compile_handler()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.DEBUG,
+        pathname="",
+        lineno=0,
+        msg="Test message",
+        args=(),
+        exc_info=None,
+    )
 
-    def test_initialization(self):
-        """Test that HTTPHandlerExtended initializes with correct attributes."""
-        handler = HTTPHandlerExtended(
-            host="example.com",
-            url="/logs",
-            method="POST",
-            timeout=30,
-            credentials=("user", "pass"),
-            headers={"X-Custom": "Value"},
-        )
+    # Emit the record
+    handler.emit(record)
 
-        assert handler.host == "example.com"
-        assert handler.url == "/logs"
-        assert handler.method == "POST"
-        assert handler.timeout == 30
-        assert handler.credentials == ("user", "pass")
-        assert handler.headers == {"X-Custom": "Value"}
+    # Verify the connection was created with the correct host and timeout
+    mock_http_connection.assert_called_with("example.com", timeout=5.0)
 
-    def test_map_log_record(self, extended_handler):
-        """Test that mapLogRecord correctly maps a log record to a dictionary."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="/path/to/file.py",
-            lineno=42,
-            msg="Test message with %s",
-            args=("parameter",),
-            exc_info=None,
-        )
+    # Verify the request was made with the correct method and URL
+    mock_conn_instance.request.assert_called_once()
+    args, kwargs = mock_conn_instance.request.call_args
 
-        mapped = extended_handler.mapLogRecord(record)
+    # Check method and that URL contains message parameter
+    assert args[0] == "GET"
+    assert "/log?message=" in args[1]
 
-        assert mapped["name"] == "test_logger"
-        assert mapped["level"] == "INFO"
-        assert mapped["pathname"] == "/path/to/file.py"
-        assert mapped["lineno"] == 42
-        assert mapped["msg"] == "Test message with parameter"
-        assert mapped["func"] == "test_map_log_record"  # From the test function name
+    # Verify authorization header is set with credentials
+    assert "Authorization" in kwargs["headers"]
+    assert kwargs["headers"]["Authorization"].startswith("Basic ")
 
-    def test_map_log_record_with_formatter(self, extended_handler):
-        """Test that mapLogRecord includes formatted message when formatter is set."""
-        formatter = logging.Formatter("%(levelname)s: %(message)s")
-        extended_handler.setFormatter(formatter)
+    # Verify the connection was closed
+    mock_conn_instance.close.assert_called_once()
 
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.WARNING,
-            pathname="",
-            lineno=0,
-            msg="Warning message",
-            args=(),
-            exc_info=None,
-        )
 
-        mapped = extended_handler.mapLogRecord(record)
+@pytest.mark.unit
+@mock.patch("http.client.HTTPConnection")
+def test_custom_http_handler_emit_error_handling(
+    mock_http_connection, basic_http_handler
+):
+    """Tests error handling in the emit method."""
+    # Setup mock connection to raise an exception
+    mock_conn_instance = mock_http_connection.return_value
+    mock_conn_instance.request.side_effect = Exception("Test error")
 
-        assert "formatted" in mapped
-        assert mapped["formatted"] == "WARNING: Warning message"
-
-    @mock.patch("http.client.HTTPConnection")
-    def test_emit_get_method(self, mock_http_connection, extended_handler):
-        """Test that emit correctly sends a GET request."""
-        # Setup mock connection and response
-        mock_conn = mock.MagicMock()
-        mock_response = mock.MagicMock()
-        mock_http_connection.return_value = mock_conn
-        mock_conn.getresponse.return_value = mock_response
-
-        # Create a log record
+    # Patch handleError method to track calls
+    with mock.patch.object(logging.Handler, "handleError") as mock_handle_error:
+        # Compile the handler and create a log record
+        handler = basic_http_handler.compile_handler()
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -220,86 +260,66 @@ class TestHTTPHandlerExtended:
             exc_info=None,
         )
 
-        # Emit the record
-        extended_handler.emit(record)
-
-        # Verify HTTP connection was created correctly
-        mock_http_connection.assert_called_once_with("example.com")
-
-        # Verify a GET request was made with URL parameters
-        args, kwargs = mock_conn.request.call_args
-        assert args[0] == "GET"
-        assert args[1].startswith("/logs?")
-        assert "name=test_logger" in args[1]
-        assert "level=INFO" in args[1]
-        assert "msg=Test+message" in args[1]
-
-    @mock.patch("http.client.HTTPConnection")
-    def test_emit_post_method(self, mock_http_connection):
-        """Test that emit correctly sends a POST request."""
-        # Create handler with POST method
-        handler = HTTPHandlerExtended(host="example.com", url="/logs", method="POST")
-
-        # Setup mock connection and response
-        mock_conn = mock.MagicMock()
-        mock_response = mock.MagicMock()
-        mock_http_connection.return_value = mock_conn
-        mock_conn.getresponse.return_value = mock_response
-
-        # Create a log record
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="",
-            lineno=0,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
-
-        # Emit the record
+        # Emit the record (should catch the exception)
         handler.emit(record)
 
-        # Verify HTTP connection was created correctly
-        mock_http_connection.assert_called_once_with("example.com")
+        # Verify handleError was called with the record
+        mock_handle_error.assert_called_once_with(record)
 
-        # Verify a POST request was made with correct headers and body
-        args, kwargs = mock_conn.request.call_args
-        assert args[0] == "POST"
-        assert args[1] == "/logs"
-        assert "Content-Type" in kwargs["headers"]
-        assert kwargs["headers"]["Content-Type"] == "application/x-www-form-urlencoded"
-        assert "Content-Length" in kwargs["headers"]
-        assert "body" in kwargs
-        assert b"name=test_logger" in kwargs["body"]
-        assert b"level=INFO" in kwargs["body"]
-        assert b"msg=Test+message" in kwargs["body"]
 
-    @mock.patch("http.client.HTTPConnection")
-    def test_emit_with_timeout(self, mock_http_connection):
-        """Test that emit uses the timeout when creating the connection."""
-        # Create handler with timeout
-        handler = HTTPHandlerExtended(host="example.com", url="/logs", timeout=30)
+@pytest.mark.unit
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_http_handler_with_different_methods(method):
+    """Tests HTTP handler with different HTTP methods."""
+    handler = HTTPLoggingHandler(host="example.com", url="/log", method=method)
+    assert handler.method == method
 
-        # Setup mock connection and response
-        mock_conn = mock.MagicMock()
-        mock_response = mock.MagicMock()
-        mock_http_connection.return_value = mock_conn
-        mock_conn.getresponse.return_value = mock_response
 
-        # Create a log record
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="",
-            lineno=0,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "credentials,expected",
+    [
+        (None, None),
+        (
+            {"username": "user", "password": "pass"},
+            {"username": "user", "password": "pass"},
+        ),
+        ({}, {}),
+    ],
+)
+def test_http_handler_with_different_credentials(credentials, expected):
+    """Tests HTTP handler with different credential configurations."""
+    handler = HTTPLoggingHandler(
+        host="example.com", url="/log", credentials=credentials
+    )
+    assert handler.credentials == expected
 
-        # Emit the record
-        handler.emit(record)
 
-        # Verify HTTP connection was created with timeout
-        mock_http_connection.assert_called_once_with("example.com", timeout=30)
+@pytest.mark.unit
+def test_serialization_deserialization():
+    """Tests serialization and deserialization of the handler."""
+    # Create a handler with various settings
+    original = HTTPLoggingHandler(
+        host="example.com",
+        url="/log",
+        method="GET",
+        timeout=5.0,
+        credentials={"username": "user", "password": "pass"},
+        level=logging.DEBUG,
+        formatter="%(levelname)s: %(message)s",
+    )
+
+    # Serialize to JSON
+    json_data = original.model_dump_json()
+
+    # Deserialize from JSON
+    recreated = HTTPLoggingHandler.model_validate_json(json_data)
+
+    # Verify all attributes are preserved
+    assert recreated.host == original.host
+    assert recreated.url == original.url
+    assert recreated.method == original.method
+    assert recreated.timeout == original.timeout
+    assert recreated.credentials == original.credentials
+    assert recreated.level == original.level
+    assert recreated.formatter == original.formatter

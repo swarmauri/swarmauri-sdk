@@ -1,146 +1,52 @@
 import logging
 import socket
 from logging.handlers import SysLogHandler
-from typing import Optional, Union, Literal, Dict, Tuple
+from typing import Literal, Optional, Tuple, Union
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "SysLogLoggingHandler")
+@ObserveBase.register_model()
+@HandlerBase.register_type(HandlerBase, "SysLogLoggingHandler")
 class SysLogLoggingHandler(HandlerBase):
     """
-    Handler that forwards logging records to a remote or local syslog daemon.
+    SysLog handler for forwarding logs to a local or remote syslog daemon.
 
-    This handler uses Python's SysLogHandler to send logs to a syslog server,
-    which can be either local or remote, configurable by address and facility.
-
-    Attributes
-    ----------
-    type : Literal["SysLogLoggingHandler"]
-        Type identifier for the handler.
-    level : int
-        The logging level threshold.
-    formatter : Optional[Union[str, FullUnion[FormatterBase]]]
-        The formatter to use for formatting log messages.
-    address : Union[str, Tuple[str, int]]
-        Either a string containing a Unix domain socket path or a tuple with host and port.
-    facility : str
-        The syslog facility to use. Must be one of the predefined SysLogHandler facility names.
-    socktype : Optional[str]
-        Socket type, either 'udp' or 'tcp'. Defaults to 'udp' if not specified.
+    This handler uses the SysLogHandler from Python's logging module to send logs
+    to a syslog server. It can be configured with different addresses, facilities,
+    and socket types.
     """
 
     type: Literal["SysLogLoggingHandler"] = "SysLogLoggingHandler"
-    level: int = logging.INFO
+
+    # The address can be a tuple of (host, port) for remote syslog servers
+    # or a string representing a Unix domain socket path for local servers
+    address: Union[Tuple[str, int], str] = ("localhost", 514)
+
+    # Syslog facility code (defaults to LOG_USER)
+    facility: int = SysLogHandler.LOG_USER
+
+    # Socket type: SOCK_DGRAM for UDP (default) or SOCK_STREAM for TCP
+    socktype: int = socket.SOCK_DGRAM
+
+    # Optional formatter for the logs
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
-    address: Union[str, Tuple[str, int]] = "/dev/log"  # Default Unix socket on Linux
-    facility: str = "user"  # Default facility
-    socktype: Optional[str] = None  # Default is UDP
-
-    # Mapping of facility names to their corresponding values
-    _FACILITY_MAP: Dict[str, int] = {
-        "kern": SysLogHandler.LOG_KERN,
-        "user": SysLogHandler.LOG_USER,
-        "mail": SysLogHandler.LOG_MAIL,
-        "daemon": SysLogHandler.LOG_DAEMON,
-        "auth": SysLogHandler.LOG_AUTH,
-        "syslog": SysLogHandler.LOG_SYSLOG,
-        "lpr": SysLogHandler.LOG_LPR,
-        "news": SysLogHandler.LOG_NEWS,
-        "uucp": SysLogHandler.LOG_UUCP,
-        "cron": SysLogHandler.LOG_CRON,
-        "local0": SysLogHandler.LOG_LOCAL0,
-        "local1": SysLogHandler.LOG_LOCAL1,
-        "local2": SysLogHandler.LOG_LOCAL2,
-        "local3": SysLogHandler.LOG_LOCAL3,
-        "local4": SysLogHandler.LOG_LOCAL4,
-        "local5": SysLogHandler.LOG_LOCAL5,
-        "local6": SysLogHandler.LOG_LOCAL6,
-        "local7": SysLogHandler.LOG_LOCAL7,
-    }
-
-    def _get_facility_value(self) -> int:
-        """
-        Convert the facility name to its corresponding integer value.
-
-        Returns
-        -------
-        int
-            The facility value as defined in SysLogHandler.
-
-        Raises
-        ------
-        ValueError
-            If the facility name is not recognized.
-        """
-        if self.facility not in self._FACILITY_MAP:
-            valid_facilities = ", ".join(self._FACILITY_MAP.keys())
-            raise ValueError(
-                f"Invalid facility: {self.facility}. Must be one of: {valid_facilities}"
-            )
-        return self._FACILITY_MAP[self.facility]
-
-    def _parse_address(self) -> Union[str, Tuple[str, int]]:
-        """
-        Parse the address attribute to ensure it's in the correct format.
-
-        Returns
-        -------
-        Union[str, Tuple[str, int]]
-            The parsed address, either a Unix socket path or (host, port) tuple.
-        """
-        if isinstance(self.address, str):
-            # Check if the address is in host:port format
-            if ":" in self.address:
-                host, port_str = self.address.split(":", 1)
-                try:
-                    port = int(port_str)
-                    return (host, port)
-                except ValueError:
-                    # If port is not an integer, assume it's a Unix socket path
-                    return self.address
-            return self.address
-        return self.address
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compile a SysLogHandler with the configured parameters.
+        Compiles a SysLogHandler with the specified configuration.
 
-        This method creates a SysLogHandler instance using the specified address
-        and facility, and configures it with the appropriate log level and formatter.
-
-        Returns
-        -------
-        logging.Handler
-            A configured SysLogHandler instance.
+        Returns:
+            logging.Handler: Configured SysLogHandler instance
         """
-        address = self._parse_address()
-        facility = self._get_facility_value()
-
-        # Determine socket type if specified
-        socket_type = None
-        if self.socktype:
-            if self.socktype.lower() == "tcp":
-                socket_type = socket.SOCK_STREAM
-            elif self.socktype.lower() == "udp":
-                socket_type = socket.SOCK_DGRAM
-            else:
-                raise ValueError(
-                    f"Invalid socket type: {self.socktype}. Must be 'tcp' or 'udp'."
-                )
-
         try:
-            # Create the handler with the appropriate parameters
-            if socket_type is not None and isinstance(address, tuple):
-                # Only use socket_type if address is a network address (host, port)
-                handler = SysLogHandler(
-                    address=address, facility=facility, socktype=socket_type
-                )
-            else:
-                handler = SysLogHandler(address=address, facility=facility)
+            # Create the SysLogHandler with the specified address and facility
+            handler = SysLogHandler(
+                address=self.address, facility=self.facility, socktype=self.socktype
+            )
 
             # Set the log level
             handler.setLevel(self.level)
@@ -152,23 +58,33 @@ class SysLogLoggingHandler(HandlerBase):
                 else:
                     handler.setFormatter(self.formatter.compile_formatter())
             else:
-                # Default formatter for syslog (typically simpler than console output)
+                # Default formatter for syslog that includes the logger name and level
                 default_formatter = logging.Formatter(
-                    "%(name)s[%(process)d]: %(levelname)s %(message)s"
+                    "%(name)s[%(process)d]: %(levelname)s - %(message)s"
                 )
                 handler.setFormatter(default_formatter)
 
             return handler
-        except (socket.error, OSError) as e:
-            # Handle connection errors gracefully
-            # Fall back to a StreamHandler to avoid breaking the application
-            import sys
 
-            fallback_handler = logging.StreamHandler(sys.stderr)
-            fallback_handler.setLevel(self.level)
-            fallback_handler.setFormatter(
-                logging.Formatter(
-                    f"[SYSLOG ERROR: {str(e)}] %(name)s: %(levelname)s %(message)s"
-                )
-            )
-            return fallback_handler
+        except (socket.error, OSError) as e:
+            # Log error and fallback to a NullHandler if syslog connection fails
+            logging.error(f"Failed to connect to syslog server at {self.address}: {e}")
+            return logging.NullHandler()
+        except Exception as e:
+            # Catch any other unexpected errors
+            logging.error(f"Error setting up SysLogHandler: {e}")
+            return logging.NullHandler()
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the handler.
+
+        Returns:
+            str: String representation
+        """
+        addr_str = (
+            f"{self.address[0]}:{self.address[1]}"
+            if isinstance(self.address, tuple)
+            else self.address
+        )
+        return f"SysLogLoggingHandler(address={addr_str}, facility={self.facility}, level={logging.getLevelName(self.level)})"

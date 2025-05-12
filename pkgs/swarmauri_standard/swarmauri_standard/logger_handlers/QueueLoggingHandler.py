@@ -1,112 +1,82 @@
-from queue import Queue
 import logging
-from typing import Optional, Union, Literal, Any
+import queue
+from logging.handlers import QueueHandler
+from typing import Any, Literal, Optional, Union
 
+from pydantic import Field
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "QueueLoggingHandler")
+@ObserveBase.register_model()
 class QueueLoggingHandler(HandlerBase):
     """
-    A handler that puts logging records onto a queue for processing by a listener.
+    A logging handler that puts log records onto a queue for asynchronous processing.
 
-    This handler is designed to be used with QueueListener for asynchronous logging.
-    It allows log records to be processed in a separate thread or process, which can
-    prevent logging from blocking the main application.
+    This handler uses Python's QueueHandler to enqueue log records for processing by a
+    separate listener thread, allowing the logging operation to be non-blocking.
+
+    Attributes:
+        type: The type identifier for this handler.
+        queue: The queue instance where log records will be placed.
+        level: The logging level for this handler.
+        formatter: Optional formatter for formatting log records.
+        respect_handler_level: Whether to respect the handler's level when enqueuing records.
     """
 
     type: Literal["QueueLoggingHandler"] = "QueueLoggingHandler"
-    queue: Optional[Queue] = None
+    queue: Any = Field(default_factory=queue.Queue, exclude=True)
+    level: int = logging.INFO
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
     respect_handler_level: bool = True
-
-    def __init__(
-        self,
-        queue: Optional[Queue] = None,
-        level: int = logging.INFO,
-        formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None,
-        respect_handler_level: bool = True,
-    ):
-        """
-        Initialize the QueueLoggingHandler.
-
-        Args:
-            queue: The queue to use for logging records. Must support put() method.
-            level: The logging level to use for this handler.
-            formatter: The formatter to use for formatting log messages.
-            respect_handler_level: Whether to respect the handler's level when processing records.
-        """
-        super().__init__(level=level, formatter=formatter)
-        self.queue = queue if queue is not None else Queue()
-        self.respect_handler_level = respect_handler_level
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compile and return a QueueHandler instance for logging.
+        Compiles a QueueHandler using the specified queue, level, and formatter.
 
         Returns:
-            A configured QueueHandler instance.
+            logging.Handler: A configured QueueHandler instance.
         """
-
-        # Create a custom QueueHandler that respects our configuration
-        class CustomQueueHandler(logging.handlers.QueueHandler):
-            def __init__(self, queue, respect_handler_level, parent_handler):
-                super().__init__(queue)
-                self.respect_handler_level = respect_handler_level
-                self.parent_handler = parent_handler
-
-            def emit(self, record):
-                # Respect the handler level if configured to do so
-                if self.respect_handler_level and not self.filter(record):
-                    return
-                # Use the standard queue handler emit logic
-                super().emit(record)
-
-        # Import here to avoid circular imports
-
-        # Create and configure the handler
-        handler = CustomQueueHandler(self.queue, self.respect_handler_level, self)
+        # Create a QueueHandler with the specified queue
+        handler = QueueHandler(self.queue)
         handler.setLevel(self.level)
 
-        # Set the formatter
+        # Configure the formatter
         if self.formatter:
             if isinstance(self.formatter, str):
                 handler.setFormatter(logging.Formatter(self.formatter))
             else:
                 handler.setFormatter(self.formatter.compile_formatter())
         else:
+            # Use a default formatter if none is specified
             default_formatter = logging.Formatter(
                 "[%(name)s][%(levelname)s] %(message)s"
             )
             handler.setFormatter(default_formatter)
 
+        # Configure the handler to respect level or not
+        handler.respect_handler_level = self.respect_handler_level
+
         return handler
 
-    def prepare_queue_listener(self, handlers: list[logging.Handler]) -> Any:
-        """
-        Create and return a QueueListener for processing log records.
-
-        Args:
-            handlers: List of handlers to process the log records.
-
-        Returns:
-            A configured QueueListener instance.
-        """
-        # Import here to avoid circular imports
-        from logging.handlers import QueueListener
-
-        # Create and return a queue listener
-        return QueueListener(
-            self.queue, *handlers, respect_handler_level=self.respect_handler_level
-        )
-
-    def get_queue(self) -> Queue:
+    def get_queue(self) -> Any:
         """
         Get the queue used by this handler.
 
+        This is useful when setting up a QueueListener to process the log records.
+
         Returns:
-            The queue instance.
+            Any: The queue instance used by this handler.
         """
         return self.queue
+
+    def set_queue(self, new_queue: Any) -> None:
+        """
+        Set a new queue for this handler.
+
+        Args:
+            new_queue: A queue-like object with a put() method.
+        """
+        self.queue = new_queue
