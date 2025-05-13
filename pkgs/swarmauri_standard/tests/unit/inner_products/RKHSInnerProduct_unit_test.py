@@ -20,7 +20,8 @@ def rkhs_inner_product():
 @pytest.mark.unit
 def test_type():
     """Tests that the type attribute is correctly set."""
-    assert RKHSInnerProduct.type == "RKHSInnerProduct"
+    instance = RKHSInnerProduct()
+    assert instance.type == "RKHSInnerProduct"
 
 
 @pytest.mark.unit

@@ -4,7 +4,7 @@ import logging
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
+from swarmauri_standard.vectors.Vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,8 @@ class HermitianInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> float:
         """
         Computes the Hermitian inner product of two complex vectors.
@@ -84,8 +84,8 @@ class HermitianInnerProduct(InnerProductBase):
 
     def check_conjugate_symmetry(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the conjugate symmetry property of the inner product.
@@ -105,9 +105,9 @@ class HermitianInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
-        c: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
+        c: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the linearity property in the first argument.
@@ -127,7 +127,7 @@ class HermitianInnerProduct(InnerProductBase):
         logger.debug("Checking linearity in first argument")
         super().check_linearity_first_argument(a, b, c)
 
-    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_positivity(self, a: Union[Vector, np.ndarray, Callable]) -> None:
         """
         Verifies the positivity property.
 

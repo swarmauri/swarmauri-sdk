@@ -89,3 +89,4 @@ class ResourceTypes(Enum):
     TTS = "TTS"
     STT = "STT"
     OCR = "OCR"
+    INNER_PRODUCT = "InnerProduct"

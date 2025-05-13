@@ -1,10 +1,11 @@
-from typing import Union, Callable, Optional
-import numpy as np
 import logging
+from typing import Callable, Optional, Union
 
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
-from base.swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
+from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+
+from swarmauri_standard.vectors.Vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +37,8 @@ class RKHSInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> float:
         """Computes the inner product using the kernel evaluation.
 
@@ -58,19 +59,15 @@ class RKHSInnerProduct(InnerProductBase):
         if self.kernel is None:
             raise ValueError("Kernel must be set before computing the inner product")
 
-        if isinstance(a, (IVector, np.ndarray)) and isinstance(
-            b, (IVector, np.ndarray)
-        ):
-            # For vectors, compute the kernel evaluation
-            return self.kernel(a, b)
-        elif callable(a) and callable(b):
-            # For callables, directly evaluate the kernel
-            return self.kernel(a, b)
-        else:
-            raise ValueError("Invalid input types for inner product computation")
+        # Convert callables to actual vectors
+        a_val = a() if callable(a) else a
+        b_val = b() if callable(b) else b
+
+        # Apply the kernel to the values
+        return self.kernel(a_val, b_val)
 
     def check_positive_definite(
-        self, vector: Union[IVector, np.ndarray, Callable]
+        self, vector: Union[Vector, np.ndarray, Callable]
     ) -> None:
         """Checks if the kernel induces a positive-definite inner product.
 

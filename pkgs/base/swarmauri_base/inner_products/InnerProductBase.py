@@ -1,15 +1,19 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Callable, Union
+from abc import abstractmethod
+from typing import Callable, Literal, Optional, Union
 
 import numpy as np
+from pydantic import ConfigDict, Field
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
-from swarmauri_core.vectors.IVector import IVector
+from swarmauri_standard.vectors.Vector import Vector
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 logger = logging.getLogger(__name__)
 
 
-class InnerProductBase(ABC, IInnerProduct):
+@ComponentBase.register_model()
+class InnerProductBase(IInnerProduct, ComponentBase):
     """
     Provides a base implementation for inner product operations. This class serves as
     a foundation for various inner product implementations and defines the common
@@ -18,11 +22,14 @@ class InnerProductBase(ABC, IInnerProduct):
     This class should be subclassed by specific inner product implementations.
     """
 
+    type: Literal["InnerProductBase"] = "InnerProductBase"
+    resource: Optional[str] = Field(default=ResourceTypes.INNER_PRODUCT.value)
+
     @abstractmethod
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> float:
         """
         Computes the inner product between two vectors, matrices, or callables.
@@ -46,8 +53,8 @@ class InnerProductBase(ABC, IInnerProduct):
 
     def check_conjugate_symmetry(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the conjugate symmetry property of the inner product implementation.
@@ -65,9 +72,9 @@ class InnerProductBase(ABC, IInnerProduct):
 
     def check_linearity_first_argument(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
-        c: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
+        c: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the linearity property in the first argument of the inner product implementation.
@@ -86,7 +93,7 @@ class InnerProductBase(ABC, IInnerProduct):
         """
         super().check_linearity_first_argument(a, b, c)
 
-    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_positivity(self, a: Union[Vector, np.ndarray, Callable]) -> None:
         """
         Verifies the positivity property of the inner product implementation.
 

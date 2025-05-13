@@ -1,10 +1,11 @@
-from typing import Callable, Union, Literal
-import numpy as np
 import logging
+from typing import Callable, Literal, Union
 
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
+
+from swarmauri_standard.vectors.Vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +37,8 @@ class SobolevH1InnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> float:
         """
         Computes the Sobolev H1 inner product between two elements.
@@ -85,7 +86,7 @@ class SobolevH1InnerProduct(InnerProductBase):
 
             return float(func_inner + grad_inner)
 
-        elif isinstance(a, IVector) and isinstance(b, IVector):
+        elif isinstance(a, Vector) and isinstance(b, Vector):
             # Handle vector input case
             if a.shape != b.shape:
                 raise ValueError(

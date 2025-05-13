@@ -1,6 +1,7 @@
-import pytest
-import numpy as np
 import logging
+
+import numpy as np
+import pytest
 
 from swarmauri_standard.inner_products.FrobeniusComplexInnerProduct import (
     FrobeniusComplexInnerProduct,
@@ -112,6 +113,7 @@ class TestFrobeniusComplexInnerProduct:
         assert np.isclose(result, expected_result, rtol=1e-4)
 
 
+@pytest.fixture
 def _generate_random_matrices():
     """Fixture to generate random matrices for testing."""
     matrix_size = (2, 2)

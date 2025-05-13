@@ -1,6 +1,8 @@
-import pytest
-import numpy as np
 import logging
+
+import numpy as np
+import pytest
+
 from swarmauri_standard.inner_products.EuclideanInnerProduct import (
     EuclideanInnerProduct,
 )
@@ -90,20 +92,22 @@ class TestEuclideanInnerProduct:
 
     def test_resource(self):
         """Test the resource property."""
-        assert EuclideanInnerProduct.resource == "Inner_product"
+        # Create an instance first
+        instance = EuclideanInnerProduct()
+        assert instance.resource == "InnerProduct"
 
     def test_type(self):
         """Test the type property."""
-        assert EuclideanInnerProduct.type == "EuclideanInnerProduct"
+        # Create an instance first
+        instance = EuclideanInnerProduct()
+        assert instance.type == "EuclideanInnerProduct"
 
     def test_serialization(self):
         """Test model serialization and deserialization."""
         instance = EuclideanInnerProduct()
-        # Get the model ID
-        model_id = EuclideanInnerProduct.id
         # Serialize the model to JSON
         json_data = instance.model_dump_json()
         # Deserialize the JSON back
-        deserialized_id = EuclideanInnerProduct.model_validate_json(json_data)
-        # Assert the IDs match
-        assert model_id == deserialized_id
+        deserialized = EuclideanInnerProduct.model_validate_json(json_data)
+        # Assert the instances match
+        assert deserialized == instance

@@ -69,7 +69,7 @@ def test_check_linearity_first_argument():
     scalar = 2 + 1j
     scaled_a = scalar * a
     ip_scaled_a_c = hermitianip.compute(scaled_a, c)
-    assert np.isclose(ip_scaled_a_c, scalar * ip_a_c)
+    assert np.isclose(ip_scaled_a_c, np.conj(scalar) * ip_a_c)
 
 
 @pytest.mark.unit
@@ -96,4 +96,4 @@ def test_type_property():
 def test_resource_property():
     """Test the resource property of HermitianInnerProduct."""
     hermitianip = HermitianInnerProduct()
-    assert hermitianip.resource == "Inner_product"
+    assert hermitianip.resource == "InnerProduct"

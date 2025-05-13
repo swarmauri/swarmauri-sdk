@@ -4,7 +4,7 @@ import logging
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
+from swarmauri_standard.vectors.Vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +32,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
-    ) -> float:
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
+    ) -> complex:
         """
         Computes the Frobenius inner product between two complex matrices.
 
@@ -43,8 +43,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         where B^H is the conjugate transpose of B.
 
         Args:
-            a: The first complex matrix (numpy.ndarray or IVector)
-            b: The second complex matrix (numpy.ndarray or IVector)
+            a: The first complex matrix (numpy.ndarray or Vector)
+            b: The second complex matrix (numpy.ndarray or Vector)
 
         Returns:
             float: The result of the Frobenius inner product operation.
@@ -72,12 +72,12 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         product = np.multiply(a, b_conj_transpose)
         trace = np.trace(product)
 
-        return float(trace)
+        return trace
 
     def check_conjugate_symmetry(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the conjugate symmetry property for the Frobenius inner product.
@@ -104,9 +104,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
-        c: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
+        c: Union[Vector, np.ndarray, Callable],
     ) -> None:
         """
         Verifies the linearity property in the first argument of the inner product.
@@ -143,7 +143,7 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         if not np.isclose(inner_scaled, expected, rtol=1e-4):
             raise ValueError("Homogeneity in first argument not satisfied")
 
-    def check_positivity(self, a: Union[IVector, np.ndarray, Callable]) -> None:
+    def check_positivity(self, a: Union[Vector, np.ndarray, Callable]) -> None:
         """
         Verifies the positivity property of the inner product.
 

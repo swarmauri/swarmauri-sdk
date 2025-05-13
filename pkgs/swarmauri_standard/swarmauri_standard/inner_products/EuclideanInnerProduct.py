@@ -23,10 +23,6 @@ class EuclideanInnerProduct(InnerProductBase):
     and real-valued before performing the computation.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.type = "EuclideanInnerProduct"
-
     def compute(
         self,
         a: Union[IVector, np.ndarray, Callable],

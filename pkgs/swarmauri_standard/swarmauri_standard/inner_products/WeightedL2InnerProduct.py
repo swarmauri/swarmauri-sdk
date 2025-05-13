@@ -1,10 +1,11 @@
-from typing import Union, Callable
-import numpy as np
 import logging
+from typing import Callable, Union
 
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
+
+from swarmauri_standard.vectors.Vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class WeightedL2InnerProduct(InnerProductBase):
         InnerProductBase: The base class for inner product implementations
     """
 
-    type: str = "WeightedL2InnerProduct"
+    # type: str = "WeightedL2InnerProduct"
 
     def __init__(self, weight_function: Callable):
         """
@@ -51,7 +52,7 @@ class WeightedL2InnerProduct(InnerProductBase):
         # Validate weight function by sampling points
         # For demonstration, we sample at a few points
         sample_points = np.linspace(0, 1, 10)
-        weights = self.weight_function(sample_points)
+        weights = self._weight_function(sample_points)
 
         if np.any(weights <= 0):
             raise ValueError("Weight function must be strictly positive")
@@ -70,19 +71,14 @@ class WeightedL2InnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[IVector, np.ndarray, Callable],
-        b: Union[IVector, np.ndarray, Callable],
+        a: Union[Vector, np.ndarray, Callable],
+        b: Union[Vector, np.ndarray, Callable],
     ) -> float:
         """
         Computes the weighted L2 inner product of two functions/vectors.
 
         The computation is performed as:
             <a, b>_w = ∫ a(x) * conj(b(x)) * w(x) dx
-
-        Where:
-            - a and b are functions/vectors
-            - w(x) is the weight function
-            - conj denotes complex conjugation
 
         Args:
             a: The first element in the inner product operation
@@ -95,19 +91,42 @@ class WeightedL2InnerProduct(InnerProductBase):
             ValueError: If the input types are not supported or dimensions are incompatible
         """
         try:
-            # Convert inputs to numpy arrays if they're not already
-            a_array = np.asarray(a)
-            b_array = np.asarray(b)
+            # Handle different input types for 'a'
+            if isinstance(a, Vector):
+                a_array = a.to_numpy()
+            elif callable(a):
+                # Evaluate the callable on a grid
+                x_grid = np.linspace(0, 1, 100)  # Example grid
+                a_array = np.array([a(x) for x in x_grid])
+            elif isinstance(a, np.ndarray):
+                a_array = a
+            else:
+                raise ValueError(f"Unsupported input type for 'a': {type(a)}")
+
+            # Handle different input types for 'b'
+            if isinstance(b, Vector):
+                b_array = b.to_numpy()
+            elif callable(b):
+                # Evaluate the callable on the same grid
+                x_grid = np.linspace(0, 1, 100)
+                b_array = np.array([b(x) for x in x_grid])
+            elif isinstance(b, np.ndarray):
+                b_array = b
+            else:
+                raise ValueError(f"Unsupported input type for 'b': {type(b)}")
+
+            # Ensure compatible dimensions
+            if a_array.shape != b_array.shape:
+                raise ValueError(
+                    f"Incompatible dimensions: {a_array.shape} vs {b_array.shape}"
+                )
 
             # Apply weight function to both arrays element-wise
-            # Multiply each element by sqrt(weight) to avoid applying weight twice
             weighted_a = a_array * np.sqrt(self.weight_function(a_array))
             weighted_b = b_array * np.sqrt(self.weight_function(b_array))
 
             # Compute element-wise product and sum to get L2 norm
-            product = np.elementwise_weighted_sum(
-                np.abs(weighted_a), np.abs(weighted_b)
-            )
+            product = np.dot(weighted_a, weighted_b)
 
             return float(product)
 
