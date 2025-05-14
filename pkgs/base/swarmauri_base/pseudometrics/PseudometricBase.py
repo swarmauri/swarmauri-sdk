@@ -1,157 +1,209 @@
-from typing import List, Optional, Union, Callable
+from typing import Callable, List, Literal, Sequence, TypeVar, Union
 import logging
-from swarmauri_core.matrices.IMatrix import IMatrix
-from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.vectors.IVector import IVector
+from abc import ABC
+from pydantic import Field
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+# Set up logging
 logger = logging.getLogger(__name__)
 
+# Type variables
+T = TypeVar('T')
+
+# Type literals for IVector and IMatrix
+VectorType = Literal[IVector]
+MatrixType = Literal[IMatrix]
 
 @ComponentBase.register_model()
 class PseudometricBase(IPseudometric, ComponentBase):
     """
-    Base implementation for pseudometric spaces.
-
-    This class provides a concrete implementation of the IPseudometric interface,
-    serving as a foundation for various pseudometric space implementations.
-    It implements the base structure and logging functionality while deferring
-    specific metric calculations to subclasses.
-
-    Inherits:
-        IPseudometric: Interface defining pseudometric space properties
-        ComponentBase: Base class for all components in the system
+    Abstract base class implementing pseudometric behavior.
+    
+    A pseudometric satisfies:
+    1. Non-negativity: d(x,y) ≥ 0
+    2. Symmetry: d(x,y) = d(y,x)
+    3. Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
+    
+    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, meaning it may not
+    distinguish between distinct points.
+    
+    This base class provides skeleton implementations for all required methods
+    of the IPseudometric interface. Derived classes should override these methods
+    with actual implementations.
     """
-    resource: Optional[str] = ResourceTypes.PSEUDOMETRIC.value
-
-    def distance(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
-    ) -> float:
+    
+    resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
+    
+    def distance(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable], 
+                y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> float:
         """
-        Computes the distance between two elements.
-
-        Args:
-            x: First element to compute distance from
-            y: Second element to compute distance to
-
-        Returns:
-            float: Distance between x and y
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-            TypeError: If input types are not supported
+        Calculate the pseudometric distance between two objects.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        float
+            The distance between x and y
+            
+        Raises
+        ------
+        TypeError
+            If inputs are of incompatible types
+        ValueError
+            If inputs have incompatible dimensions
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Computing distance between {x} and {y}")
-        raise NotImplementedError("Distance calculation not implemented in base class")
-
-    def distances(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y_list: List[Union[IVector, IMatrix, List[float], str, Callable]]
-    ) -> List[float]:
+        logger.error("distance method not implemented")
+        raise NotImplementedError("The distance method must be implemented by derived classes")
+    
+    def distances(self, xs: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]], 
+                 ys: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]) -> List[List[float]]:
         """
-        Computes distances from a single element to multiple elements.
-
-        Args:
-            x: Reference element
-            y_list: List of elements to compute distances to
-
-        Returns:
-            List[float]: List of distances from x to each element in y_list
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-            TypeError: If input types are not supported
+        Calculate the pairwise distances between two collections of objects.
+        
+        Parameters
+        ----------
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+            The first collection of objects
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+            The second collection of objects
+            
+        Returns
+        -------
+        List[List[float]]
+            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            
+        Raises
+        ------
+        TypeError
+            If inputs contain incompatible types
+        ValueError
+            If inputs have incompatible dimensions
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Computing distances from {x} to {y_list}")
-        raise NotImplementedError("Distances calculation not implemented in base class")
-
-    def check_non_negativity(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
-    ) -> bool:
+        logger.error("distances method not implemented")
+        raise NotImplementedError("The distances method must be implemented by derived classes")
+    
+    def check_non_negativity(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                           y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> bool:
         """
-        Verifies the non-negativity property: d(x,y) ≥ 0.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if non-negativity holds, False otherwise
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
+        Check if the distance function satisfies the non-negativity property.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        bool
+            True if d(x,y) ≥ 0, False otherwise
+            
+        Raises
+        ------
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Checking non-negativity for {x} and {y}")
-        raise NotImplementedError("Non-negativity check not implemented in base class")
-
-    def check_symmetry(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
-    ) -> bool:
+        logger.error("check_non_negativity method not implemented")
+        raise NotImplementedError("The check_non_negativity method must be implemented by derived classes")
+    
+    def check_symmetry(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                     y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                     tolerance: float = 1e-10) -> bool:
         """
-        Verifies the symmetry property: d(x,y) = d(y,x).
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if symmetry holds, False otherwise
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
+        Check if the distance function satisfies the symmetry property.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+        tolerance : float, optional
+            The tolerance for floating-point comparisons, by default 1e-10
+            
+        Returns
+        -------
+        bool
+            True if d(x,y) = d(y,x) within tolerance, False otherwise
+            
+        Raises
+        ------
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Checking symmetry for {x} and {y}")
-        raise NotImplementedError("Symmetry check not implemented in base class")
-
-    def check_triangle_inequality(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-        z: Union[IVector, IMatrix, List[float], str, Callable]
-    ) -> bool:
+        logger.error("check_symmetry method not implemented")
+        raise NotImplementedError("The check_symmetry method must be implemented by derived classes")
+    
+    def check_triangle_inequality(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               tolerance: float = 1e-10) -> bool:
         """
-        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
-
-        Args:
-            x: First element
-            y: Second element
-            z: Third element
-
-        Returns:
-            bool: True if triangle inequality holds, False otherwise
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
+        Check if the distance function satisfies the triangle inequality.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+        z : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The third object
+        tolerance : float, optional
+            The tolerance for floating-point comparisons, by default 1e-10
+            
+        Returns
+        -------
+        bool
+            True if d(x,z) ≤ d(x,y) + d(y,z) within tolerance, False otherwise
+            
+        Raises
+        ------
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Checking triangle inequality for {x}, {y}, {z}")
-        raise NotImplementedError("Triangle inequality check not implemented in base class")
-
-    def check_weak_identity(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable]
-    ) -> bool:
+        logger.error("check_triangle_inequality method not implemented")
+        raise NotImplementedError("The check_triangle_inequality method must be implemented by derived classes")
+    
+    def check_weak_identity(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                          y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> bool:
         """
-        Verifies weak identity property: d(x,y) = 0 does not necessarily imply x = y.
-
-        This method should be implemented to check if the space maintains weak identity.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if weak identity holds (d(x,y)=0 does not imply x=y), False otherwise
-
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
+        Check if the distance function satisfies the weak identity property.
+        
+        In a pseudometric, d(x,y) = 0 is allowed even when x ≠ y.
+        This method verifies that this property is properly handled.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        bool
+            True if the pseudometric properly handles the weak identity property
+            
+        Raises
+        ------
+        NotImplementedError
+            If the method is not implemented by a derived class
         """
-        logger.debug(f"Checking weak identity for {x} and {y}")
-        raise NotImplementedError("Weak identity check not implemented in base class")
+        logger.error("check_weak_identity method not implemented")
+        raise NotImplementedError("The check_weak_identity method must be implemented by derived classes")

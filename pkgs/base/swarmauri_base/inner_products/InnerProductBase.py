@@ -1,109 +1,161 @@
 import logging
-from abc import abstractmethod
-from typing import Callable, Literal, Optional, Union
+from typing import Callable, Literal, TypeVar, Union
 
 import numpy as np
-from pydantic import ConfigDict, Field
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
-from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_core.vectors.IVector import IVector
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
+Vector = TypeVar("Vector", bound="IVector")
+Matrix = TypeVar("Matrix", bound=np.ndarray)
 
 
 @ComponentBase.register_model()
 class InnerProductBase(IInnerProduct, ComponentBase):
     """
-    Provides a base implementation for inner product operations. This class serves as
-    a foundation for various inner product implementations and defines the common
-    interface and functionality according to the IInnerProduct contract.
+    Abstract base class implementing partial methods for inner product calculations.
 
-    This class should be subclassed by specific inner product implementations.
+    This class provides a base implementation of all abstract methods defined in
+    the IInnerProduct interface. It serves as a foundation for specific inner
+    product implementations, offering common functionality and ensuring
+    adherence to the interface contract.
+
+    Attributes
+    ----------
+    resource : str
+        The resource type identifier, defaulting to INNER_PRODUCT
     """
 
+    resource: str = ResourceTypes.INNER_PRODUCT.value
     type: Literal["InnerProductBase"] = "InnerProductBase"
-    resource: Optional[str] = Field(default=ResourceTypes.INNER_PRODUCT.value)
 
-    @abstractmethod
     def compute(
-        self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
+        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
     ) -> float:
         """
-        Computes the inner product between two vectors, matrices, or callables.
+        Compute the inner product between two objects.
 
-        Args:
-            a: The first element in the inner product operation. Can be a vector,
-               matrix, or callable.
-            b: The second element in the inner product operation. Can be a vector,
-               matrix, or callable.
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The first object for inner product calculation
+        b : Union[Vector, Matrix, Callable]
+            The second object for inner product calculation
 
-        Returns:
-            float: The result of the inner product operation.
+        Returns
+        -------
+        float
+            The inner product value
 
-        Raises:
-            NotImplementedError: This method must be implemented by subclasses
-            ValueError: If the input types are not supported or dimensions are incompatible
-            ZeroDivisionError: If any operation leads to division by zero
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        logger.error("compute() method not implemented in subclass")
-        raise NotImplementedError("Subclasses must implement the compute() method")
+        logger.debug(
+            f"Attempting to compute inner product between {type(a)} and {type(b)}"
+        )
+        raise NotImplementedError("Method 'compute' must be implemented by subclasses")
 
     def check_conjugate_symmetry(
-        self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
-    ) -> None:
+        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+    ) -> bool:
         """
-        Verifies the conjugate symmetry property of the inner product implementation.
+        Check if the inner product satisfies the conjugate symmetry property:
+        <a, b> = <b, a>* (complex conjugate).
 
-        The inner product <a, b> should be equal to the conjugate of <b, a>.
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The first object
+        b : Union[Vector, Matrix, Callable]
+            The second object
 
-        Args:
-            a: The first element in the inner product operation
-            b: The second element in the inner product operation
+        Returns
+        -------
+        bool
+            True if conjugate symmetry holds, False otherwise
 
-        Raises:
-            ValueError: If the conjugate symmetry property is not satisfied
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        super().check_conjugate_symmetry(a, b)
+        logger.debug(
+            f"Attempting to check conjugate symmetry for {type(a)} and {type(b)}"
+        )
+        raise NotImplementedError(
+            "Method 'check_conjugate_symmetry' must be implemented by subclasses"
+        )
 
     def check_linearity_first_argument(
         self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
-        c: Union[Vector, np.ndarray, Callable],
-    ) -> None:
+        a1: Union[Vector, Matrix, Callable],
+        a2: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
+        alpha: float,
+        beta: float,
+    ) -> bool:
         """
-        Verifies the linearity property in the first argument of the inner product implementation.
+        Check if the inner product satisfies linearity in the first argument:
+        <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>.
 
-        For vectors a, b, c and scalar α:
-        - Linearity: <a + b, c> = <a, c> + <b, c>
-        - Homogeneity: <αa, c> = α <a, c>
+        Parameters
+        ----------
+        a1 : Union[Vector, Matrix, Callable]
+            First component of the first argument
+        a2 : Union[Vector, Matrix, Callable]
+            Second component of the first argument
+        b : Union[Vector, Matrix, Callable]
+            The second object
+        alpha : float
+            Scalar multiplier for a1
+        beta : float
+            Scalar multiplier for a2
 
-        Args:
-            a: The first vector for linearity check
-            b: The second vector for linearity check
-            c: The vector against which the inner product is computed
+        Returns
+        -------
+        bool
+            True if linearity in the first argument holds, False otherwise
 
-        Raises:
-            ValueError: If the linearity property in the first argument is not satisfied
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        super().check_linearity_first_argument(a, b, c)
+        logger.debug(
+            f"Attempting to check linearity in first argument with alpha={alpha}, beta={beta}"
+        )
+        raise NotImplementedError(
+            "Method 'check_linearity_first_argument' must be implemented by subclasses"
+        )
 
-    def check_positivity(self, a: Union[Vector, np.ndarray, Callable]) -> None:
+    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
         """
-        Verifies the positivity property of the inner product implementation.
+        Check if the inner product satisfies the positivity property:
+        <a, a> >= 0 and <a, a> = 0 iff a = 0.
 
-        For any non-zero vector a:
-        - <a, a> > 0
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The object to check positivity for
 
-        Args:
-            a: The vector to check for positivity
+        Returns
+        -------
+        bool
+            True if positivity holds, False otherwise
 
-        Raises:
-            ValueError: If the positivity property is not satisfied
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        super().check_positivity(a)
+        logger.debug(f"Attempting to check positivity for {type(a)}")
+        raise NotImplementedError(
+            "Method 'check_positivity' must be implemented by subclasses"
+        )

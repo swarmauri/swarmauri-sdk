@@ -1,141 +1,156 @@
-from abc import ABC, abstractmethod
-from typing import Union, List, Sequence, Callable
 import logging
+from abc import ABC, abstractmethod
+from typing import Any, List, Union
 
-from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
+# Logger configuration
 logger = logging.getLogger(__name__)
-
-
-class MetricViolationError(Exception):
-    """Raised when a metric space axiom is violated."""
-    pass
 
 
 class IMetric(ABC):
     """
-    Interface for metric spaces. This class defines the contract for proper metric spaces
-    by enforcing the four main metric axioms: point separation, symmetry, triangle
-    inequality, and non-negativity.
+    Interface for proper metric spaces.
 
-    Methods:
-        distance: Computes the distance between two points
-        distances: Computes pairwise distances between two lists of points
-        check_non_negativity: Verifies the non-negativity axiom
-        check_identity: Verifies the identity of indiscernibles axiom
-        check_symmetry: Verifies the symmetry axiom
-        check_triangle_inequality: Verifies the triangle inequality axiom
+    This interface defines the contract enforcing the full metric axioms:
+    - Non-negativity: d(x,y) ≥ 0
+    - Identity of indiscernibles (point separation): d(x,y) = 0 if and only if x = y
+    - Symmetry: d(x,y) = d(y,x)
+    - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
+
+    Implementations must support various input types including vectors, matrices,
+    sequences, strings, and callables.
     """
 
     @abstractmethod
-    def distance(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def distance(self, x: Any, y: Any) -> float:
         """
-        Computes the distance between two points x and y.
+        Calculate the distance between two points.
 
-        Args:
-            x: The first point to measure distance from
-            y: The second point to measure distance to
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
 
-        Returns:
-            float: The distance between x and y
+        Returns
+        -------
+        float
+            The distance between x and y
 
-        Raises:
-            MetricViolationError: If any metric axiom is violated
+        Raises
+        ------
+        ValueError
+            If inputs are incompatible with the metric
+        TypeError
+            If input types are not supported
         """
-        logger.debug(f"Calculating distance between {x} and {y}")
-        raise NotImplementedError("Method not implemented")
+        pass
 
     @abstractmethod
-    def distances(self, xs: List[Union[IVector, IMatrix, Sequence, str, Callable]], ys: List[Union[IVector, IMatrix, Sequence, str, Callable]]) -> List[List[float]]:
+    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
         """
-        Computes pairwise distances between two lists of points.
+        Calculate distances between collections of points.
 
-        Args:
-            xs: First list of points
-            ys: Second list of points
+        Parameters
+        ----------
+        x : Any
+            First collection of points
+        y : Any
+            Second collection of points
 
-        Returns:
-            List[List[float]]: Matrix of pairwise distances between points in xs and ys
+        Returns
+        -------
+        Union[List[float], IVector, IMatrix]
+            Matrix or vector of distances between points in x and y
 
-        Raises:
-            MetricViolationError: If any metric axiom is violated
+        Raises
+        ------
+        ValueError
+            If inputs are incompatible with the metric
+        TypeError
+            If input types are not supported
         """
-        logger.debug(f"Calculating pairwise distances between {len(xs)} points and {len(ys)} points")
-        raise NotImplementedError("Method not implemented")
+        pass
 
     @abstractmethod
-    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_non_negativity(self, x: Any, y: Any) -> bool:
         """
-        Verifies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
-        Args:
-            x: First point
-            y: Second point
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
 
-        Raises:
-            MetricViolationError: If d(x,y) < 0
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        d = self.distance(x, y)
-        if d < 0:
-            logger.error(f"Non-negativity violated: d({x}, {y}) = {d}")
-            raise MetricViolationError(f"Non-negativity violation: d({x}, {y}) = {d}")
+        pass
 
     @abstractmethod
-    def check_identity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
         """
-        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
+        Check if the metric satisfies the identity of indiscernibles axiom:
+        d(x,y) = 0 if and only if x = y.
 
-        Args:
-            x: First point
-            y: Second point
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
 
-        Raises:
-            MetricViolationError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        d = self.distance(x, y)
-        if d == 0 and x != y:
-            logger.error(f"Identity violation: d({x}, {y}) = 0 but x ≠ y")
-            raise MetricViolationError(f"Identity violation: d({x}, {y}) = 0 but x ≠ y")
-        elif d != 0 and x == y:
-            logger.error(f"Identity violation: d({x}, {y}) ≠ 0 but x = y")
-            raise MetricViolationError(f"Identity violation: d({x}, {y}) ≠ 0 but x = y")
+        pass
 
     @abstractmethod
-    def check_symmetry(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_symmetry(self, x: Any, y: Any) -> bool:
         """
-        Verifies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
-        Args:
-            x: First point
-            y: Second point
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
 
-        Raises:
-            MetricViolationError: If d(x,y) ≠ d(y,x)
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        d_xy = self.distance(x, y)
-        d_yx = self.distance(y, x)
-        if d_xy != d_yx:
-            logger.error(f"Symmetry violation: d({x}, {y}) = {d_xy} ≠ {d_yx} = d({y}, {x})")
-            raise MetricViolationError(f"Symmetry violation: d({x}, {y}) ≠ d({y}, {x})")
+        pass
 
     @abstractmethod
-    def check_triangle_inequality(self, x: Union[IVector, IMatrix, Sequence, str, Callable], y: Union[IVector, IMatrix, Sequence, str, Callable], z: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
+    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
         """
-        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+        Check if the metric satisfies the triangle inequality axiom:
+        d(x,z) ≤ d(x,y) + d(y,z).
 
-        Args:
-            x: First point
-            y: Second point
-            z: Third point
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
+        z : Any
+            Third point
 
-        Raises:
-            MetricViolationError: If d(x,z) > d(x,y) + d(y,z)
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        
-        if d_xz > d_xy + d_yz:
-            logger.error(f"Triangle inequality violation: d({x}, {z}) = {d_xz} > {d_xy} + {d_yz} = d({x}, {y}) + d({y}, {z})")
-            raise MetricViolationError(f"Triangle inequality violation: d({x}, {z}) > d({x}, {y}) + d({y}, {z})")
+        pass

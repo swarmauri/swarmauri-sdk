@@ -1,123 +1,123 @@
-from typing import Callable, Union, Literal
+from typing import TypeVar, Union, Callable, Sequence, Literal, Any
 import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
+import numpy as np
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_base.seminorms.SeminormBase import SeminormBase, InputType
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=Union[int, float, complex])
 
 
 @ComponentBase.register_type(SeminormBase, "ZeroSeminorm")
 class ZeroSeminorm(SeminormBase):
     """
-    A degenerate seminorm that assigns zero to all inputs.
-
-    This class implements a trivial seminorm that always returns 0 regardless of the input.
-    It does not satisfy the separation property (i.e., it does not separate points) and is
-    primarily used for degenerate cases or as a placeholder.
-
-    Attributes:
-        resource: str - The resource type identifier for this component
-        type: Literal["ZeroSeminorm"] - The type identifier for this seminorm
-
-    Methods:
-        compute: Computes the seminorm value of the input
-        check_triangle_inequality: Verifies the triangle inequality property
-        check_scalar_homogeneity: Verifies the scalar homogeneity property
+    Trivial seminorm that assigns zero to all inputs.
+    
+    This class implements a degenerate seminorm that returns 0 for any input.
+    While it satisfies the formal requirements of a seminorm (non-negativity,
+    triangle inequality, and scalar homogeneity), it does not separate points
+    and is therefore not useful for most practical applications.
+    
+    Attributes
+    ----------
+    type : Literal["ZeroSeminorm"]
+        The type identifier for this class
     """
-
+    
     type: Literal["ZeroSeminorm"] = "ZeroSeminorm"
-    resource: str = ResourceTypes.SEMINORM.value
-
+    
     def __init__(self):
         """
-        Initializes the ZeroSeminorm instance.
+        Initialize a new ZeroSeminorm instance.
         """
-        super().__init__()
-        logger.debug("Initialized ZeroSeminorm")
-
-    def compute(
-        self, input: Union[IVector, IMatrix, str, Callable, list, tuple]
-    ) -> float:
+        logger.debug("Initializing ZeroSeminorm")
+    
+    def compute(self, x: InputType) -> float:
         """
-        Computes the seminorm value of the input.
-
-        Since this is a trivial implementation, the result will always be 0.0.
-
-        Args:
-            input: The input to compute the seminorm for. Supported types are:
-                - IVector: High-dimensional vector
-                - IMatrix: Matrix structure
-                - str: String input
-                - Callable: Callable function
-                - list: List of elements
-                - tuple: Tuple of elements
-
-        Returns:
-            float: The computed seminorm value (always 0.0)
+        Compute the seminorm of the input, which is always 0.
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to compute the seminorm for. Can be a vector, matrix,
+            sequence, string, or callable.
+            
+        Returns
+        -------
+        float
+            Always returns 0.0
         """
-        logger.debug(
-            f"Computing zero seminorm for input of type {type(input).__name__}"
-        )
+        logger.debug(f"Computing ZeroSeminorm for input of type {type(x)}")
         return 0.0
-
-    def check_triangle_inequality(
-        self,
-        a: Union[IVector, IMatrix, str, Callable, list, tuple],
-        b: Union[IVector, IMatrix, str, Callable, list, tuple],
-    ) -> bool:
+    
+    def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
         """
-        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
-
-        For the zero seminorm, this property trivially holds because all seminorm values are 0.
-
-        Args:
-            a: First element to check
-            b: Second element to check
-
-        Returns:
-            bool: True if triangle inequality holds, False otherwise
+        Check if the triangle inequality property holds for the given inputs.
+        
+        For ZeroSeminorm, the triangle inequality is always satisfied since:
+        ||x + y|| = 0 ≤ ||x|| + ||y|| = 0 + 0 = 0
+        
+        Parameters
+        ----------
+        x : InputType
+            First input to check
+        y : InputType
+            Second input to check
+            
+        Returns
+        -------
+        bool
+            Always returns True as the triangle inequality is trivially satisfied
         """
-        logger.debug("Checking triangle inequality for zero seminorm")
+        logger.debug(f"Checking triangle inequality for ZeroSeminorm with inputs of types {type(x)} and {type(y)}")
+        # Triangle inequality is always satisfied for the zero seminorm
         return True
-
-    def check_scalar_homogeneity(
-        self,
-        a: Union[IVector, IMatrix, str, Callable, list, tuple],
-        scalar: Union[int, float],
-    ) -> bool:
+    
+    def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
-
-        For the zero seminorm, this property trivially holds because all seminorm values are 0.
-
-        Args:
-            a: Element to check
-            scalar: Scalar value to scale with
-
-        Returns:
-            bool: True if scalar homogeneity holds, False otherwise
+        Check if the scalar homogeneity property holds for the given input and scalar.
+        
+        For ZeroSeminorm, scalar homogeneity is always satisfied since:
+        ||αx|| = 0 = |α|·||x|| = |α|·0 = 0
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to check
+        alpha : T
+            The scalar to multiply by
+            
+        Returns
+        -------
+        bool
+            Always returns True as scalar homogeneity is trivially satisfied
         """
-        logger.debug(
-            f"Checking scalar homogeneity for zero seminorm with scalar {scalar}"
-        )
+        logger.debug(f"Checking scalar homogeneity for ZeroSeminorm with input of type {type(x)} and scalar {alpha}")
+        # Scalar homogeneity is always satisfied for the zero seminorm
         return True
-
+    
     def __str__(self) -> str:
         """
-        Returns a string representation of the seminorm instance.
-
-        Returns:
-            str: String representation
+        Return a string representation of the ZeroSeminorm.
+        
+        Returns
+        -------
+        str
+            A string describing this seminorm
         """
-        return "ZeroSeminorm()"
-
+        return "ZeroSeminorm (trivial seminorm that returns 0 for all inputs)"
+    
     def __repr__(self) -> str:
         """
-        Returns the official string representation of the seminorm instance.
-
-        Returns:
-            str: Official string representation
+        Return a developer string representation of the ZeroSeminorm.
+        
+        Returns
+        -------
+        str
+            A string representation suitable for debugging
         """
-        return self.__str__()
+        return f"ZeroSeminorm()"

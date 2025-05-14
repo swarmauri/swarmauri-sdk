@@ -1,184 +1,398 @@
-from typing import Literal, Union, List, Callable
 import logging
+from typing import Any, Callable, Dict, List, Literal, Sequence, TypeVar, Union
+
+import numpy as np
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
-from swarmauri_core.metrics.IMetric import MetricViolationError
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
+
 from swarmauri_standard.norms.SobolevNorm import SobolevNorm
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+VectorType = TypeVar("VectorType", bound=IVector)
+MatrixType = TypeVar("MatrixType", bound=IMatrix)
+SequenceType = TypeVar("SequenceType", bound=Sequence)
+CallableType = TypeVar("CallableType", bound=Callable)
 
 
 @ComponentBase.register_type(MetricBase, "SobolevMetric")
 class SobolevMetric(MetricBase):
     """
-    A class implementing the Sobolev metric, which measures the distance between functions
-    by considering both their values and derivatives up to a specified order.
+    A metric derived from the Sobolev norm.
 
-    The Sobolev metric combines the L2 norms of a function and its derivatives, providing
-    a comprehensive measure of both the function's value and its smoothness.
+    This metric accounts for both the differences in function values and their
+    derivatives, making it suitable for measuring distance between functions
+    where smoothness is important.
 
-    Attributes:
-        order: The highest order of derivatives to include in the metric computation.
-            Defaults to 1.
-
-    Methods:
-        distance: Computes the distance between two functions using the Sobolev norm.
-        distances: Computes pairwise distances between two lists of functions.
-        check_non_negativity: Verifies the non-negativity axiom of the metric.
-        check_identity: Verifies the identity of indiscernibles axiom of the metric.
-        check_symmetry: Verifies the symmetry axiom of the metric.
-        check_triangle_inequality: Verifies the triangle inequality axiom of the metric.
+    Attributes
+    ----------
+    type : Literal["SobolevMetric"]
+        The type identifier for this metric.
+    order : int
+        The highest derivative order to consider in the metric computation.
+    weights : Dict[int, float]
+        Weights for each derivative order in the metric computation.
     """
 
     type: Literal["SobolevMetric"] = "SobolevMetric"
-    order: int
+    order: int = Field(default=1, description="Highest derivative order to consider")
+    weights: Dict[int, float] = Field(
+        default_factory=lambda: {0: 1.0, 1: 1.0},
+        description="Weights for each derivative order",
+    )
 
-    def __init__(self, order: int = 1, **kwargs):
+    def __init__(self, **kwargs):
         """
-        Initializes the SobolevMetric instance with the specified order of derivatives.
+        Initialize the Sobolev metric with specified parameters.
 
-        Args:
-            order: The highest order of derivatives to include in the metric computation.
-            **kwargs: Additional keyword arguments passed to the base class.
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to pass to the parent class constructor.
+            May include 'order' and 'weights' to customize the metric.
         """
         super().__init__(**kwargs)
-        self.order = order
-
-    def distance(
-        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
-    ) -> float:
-        """
-        Computes the distance between two functions using the Sobolev norm.
-
-        The distance is calculated as the Sobolev norm of the difference between the two functions.
-
-        Args:
-            x: The first function or point.
-            y: The second function or point.
-
-        Returns:
-            float: The computed distance between x and y.
-
-        Raises:
-            MetricViolationError: If any metric axiom is violated.
-        """
-        logger.debug(f"Calculating Sobolev distance between {x} and {y}")
-
-        # Compute the difference between the two functions
-        if callable(x) and callable(y):
-
-            def difference_func(*args):
-                return x(*args) - y(*args)
-        else:
-            difference_func = x - y
-
-        # Compute the Sobolev norm of the difference
-        sobolev_norm = SobolevNorm(order=self.order)
-        distance = sobolev_norm.compute(difference_func)
-
-        return distance
-
-    def distances(
-        self,
-        xs: List[Union[Callable, list, float]],
-        ys: List[Union[Callable, list, float]],
-    ) -> List[List[float]]:
-        """
-        Computes pairwise distances between two lists of functions.
-
-        Args:
-            xs: First list of functions or points.
-            ys: Second list of functions or points.
-
-        Returns:
-            List[List[float]]: Matrix of pairwise distances between points in xs and ys.
-        """
+        # Create a SobolevNorm instance to handle the norm calculations
+        self.norm = SobolevNorm(order=self.order, weights=self.weights)
         logger.debug(
-            f"Calculating pairwise Sobolev distances between {len(xs)} points and {len(ys)} points"
+            f"Initialized SobolevMetric with order {self.order} and weights {self.weights}"
         )
 
-        return [[self.distance(x, y) for y in ys] for x in xs]
-
-    def check_non_negativity(
-        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
-    ) -> None:
+    def distance(self, x: Any, y: Any) -> float:
         """
-        Verifies the non-negativity axiom: d(x,y) ≥ 0.
+        Calculate the Sobolev distance between two functions or vectors.
 
-        Args:
-            x: First point.
-            y: Second point.
+        The Sobolev distance is defined as the Sobolev norm of the difference
+        between the two inputs, taking into account both values and derivatives.
 
-        Raises:
-            MetricViolationError: If d(x,y) < 0.
+        Parameters
+        ----------
+        x : Any
+            First input (function or vector)
+        y : Any
+            Second input (function or vector)
+
+        Returns
+        -------
+        float
+            The Sobolev distance between x and y
+
+        Raises
+        ------
+        ValueError
+            If inputs are incompatible or the distance cannot be computed
+        TypeError
+            If input types are not supported
         """
-        logger.debug("Checking non-negativity axiom")
-        distance = self.distance(x, y)
-        if distance < 0:
-            raise MetricViolationError("Non-negativity axiom violated: d(x,y) < 0")
+        logger.debug(
+            f"Calculating Sobolev distance between {type(x).__name__} and {type(y).__name__}"
+        )
 
-    def check_identity(
-        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
-    ) -> None:
+        try:
+            # Ensure x and y are of the same type
+            if not isinstance(y, type(x)) and not (callable(x) and callable(y)):
+                raise TypeError(
+                    f"Inputs must be of the same type, got {type(x).__name__} and {type(y).__name__}"
+                )
+
+            # For callable functions
+            if callable(x) and callable(y):
+                # Create a new function representing x - y
+                def diff_func(t):
+                    return x(t) - y(t)
+
+                # For functions with derivatives
+                if hasattr(x, "derivative") and hasattr(y, "derivative"):
+                    # Add derivative method to diff_func
+                    def create_derivative(func_x, func_y):
+                        def derivative_func(t):
+                            return func_x.derivative()(t) - func_y.derivative()(t)
+
+                        return derivative_func
+
+                    diff_func.derivative = lambda: create_derivative(x, y)
+
+                return self.norm.compute(diff_func)
+
+            # For vector-like objects
+            elif isinstance(x, IVector) and isinstance(y, IVector):
+                from swarmauri_standard.vectors.Vector import Vector
+
+                x_array = x.to_numpy()
+                y_array = y.to_numpy()
+                diff_values = [x_array[i] - y_array[i] for i in range(len(x_array))]
+                diff_vector = Vector(value=diff_values)
+                return self.norm.compute(diff_vector)
+
+            # For sequences
+            elif isinstance(x, Sequence) and isinstance(y, Sequence):
+                if len(x) != len(y):
+                    raise ValueError(
+                        "Sequences must have the same length for distance calculation"
+                    )
+                diff_xy = [x[i] - y[i] for i in range(len(x))]
+                return self.norm.compute(diff_xy)
+
+            else:
+                raise TypeError(
+                    f"Cannot compute difference for type {type(x).__name__}"
+                )
+        except TypeError as e:
+            # Re-raise TypeError directly
+            logger.error(f"Error calculating Sobolev distance: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"Error calculating Sobolev distance: {str(e)}")
+            raise ValueError(f"Failed to calculate Sobolev distance: {str(e)}")
+
+    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
         """
-        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
+        Calculate Sobolev distances between collections of functions or vectors.
 
-        Args:
-            x: First point.
-            y: Second point.
+        Parameters
+        ----------
+        x : Any
+            First collection of inputs
+        y : Any
+            Second collection of inputs
 
-        Raises:
-            MetricViolationError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y.
+        Returns
+        -------
+        Union[List[float], IVector, IMatrix]
+            Matrix or vector of Sobolev distances between inputs in x and y
+
+        Raises
+        ------
+        ValueError
+            If inputs are incompatible or distances cannot be computed
+        TypeError
+            If input types are not supported
         """
-        logger.debug("Checking identity of indiscernibles axiom")
-        distance = self.distance(x, y)
-        if x == y and distance != 0:
-            raise MetricViolationError("Identity axiom violated: x = y but d(x,y) ≠ 0")
-        if x != y and distance == 0:
-            raise MetricViolationError("Identity axiom violated: x ≠ y but d(x,y) = 0")
+        logger.debug("Calculating Sobolev distances between collections")
 
-    def check_symmetry(
-        self, x: Union[Callable, list, float], y: Union[Callable, list, float]
-    ) -> None:
+        try:
+            # Handle different collection types
+            if isinstance(x, IMatrix) and isinstance(y, IMatrix):
+                # Return distance matrix between rows of x and y
+                result = x.zeros((x.shape[0], y.shape[0]))
+                for i in range(x.shape[0]):
+                    for j in range(y.shape[0]):
+                        result[i, j] = self.distance(x[i], y[j])
+                return result
+
+            elif isinstance(x, IVector) and isinstance(y, IVector):
+                # Return vector of distances between corresponding elements
+                if x.shape[0] != y.shape[0]:
+                    raise ValueError(
+                        "Vectors must have the same length for element-wise distances"
+                    )
+                result = x.zeros(x.shape[0])
+                for i in range(x.shape[0]):
+                    result[i] = self.distance(x[i], y[i])
+                return result
+
+            elif isinstance(x, list) and isinstance(y, list):
+                # Return a distance matrix even for same-length lists if they contain Vector objects
+                if len(x) > 0 and isinstance(x[0], IVector):
+                    result = [[0.0 for _ in range(len(y))] for _ in range(len(x))]
+                    for i in range(len(x)):
+                        for j in range(len(y)):
+                            result[i][j] = self.distance(x[i], y[j])
+                    return result
+                elif len(x) != len(y):
+                    # Return distance matrix for different length lists
+                    result = [[0.0 for _ in range(len(y))] for _ in range(len(x))]
+                    for i in range(len(x)):
+                        for j in range(len(y)):
+                            result[i][j] = self.distance(x[i], y[j])
+                    return result
+                else:
+                    # Return list of distances for same-length lists of non-Vector objects
+                    return [self.distance(x[i], y[i]) for i in range(len(x))]
+
+            elif hasattr(x, "shape") and hasattr(y, "shape") and hasattr(x, "zeros"):
+                # Handle matrix-like objects, including mocks
+                result = x.zeros((x.shape[0], y.shape[0]))
+                for i in range(x.shape[0]):
+                    for j in range(y.shape[0]):
+                        result[i, j] = self.distance(x[i], y[j])
+                return result
+
+            else:
+                raise TypeError(
+                    f"Unsupported collection types: {type(x).__name__} and {type(y).__name__}"
+                )
+
+        except Exception as e:
+            logger.error(f"Error calculating Sobolev distances: {str(e)}")
+            raise ValueError(f"Failed to calculate Sobolev distances: {str(e)}")
+
+    def check_non_negativity(self, x: Any, y: Any) -> bool:
         """
-        Verifies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
-        Args:
-            x: First point.
-            y: Second point.
+        Parameters
+        ----------
+        x : Any
+            First input
+        y : Any
+            Second input
 
-        Raises:
-            MetricViolationError: If d(x,y) ≠ d(y,x).
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        logger.debug("Checking symmetry axiom")
-        distance_xy = self.distance(x, y)
-        distance_yx = self.distance(y, x)
-        if distance_xy != distance_yx:
-            raise MetricViolationError("Symmetry axiom violated: d(x,y) ≠ d(y,x)")
+        logger.debug("Checking non-negativity axiom for Sobolev metric")
+        try:
+            dist = self.distance(x, y)
+            return dist >= 0
+        except Exception as e:
+            logger.error(f"Error checking non-negativity: {str(e)}")
+            return False
 
-    def check_triangle_inequality(
-        self,
-        x: Union[Callable, list, float],
-        y: Union[Callable, list, float],
-        z: Union[Callable, list, float],
-    ) -> None:
+    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
         """
-        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+        Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
+        d(x,y) = 0 if and only if x = y.
 
-        Args:
-            x: First point.
-            y: Second point.
-            z: Third point.
+        Parameters
+        ----------
+        x : Any
+            First input
+        y : Any
+            Second input
 
-        Raises:
-            MetricViolationError: If d(x,z) > d(x,y) + d(y,z).
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
         """
-        logger.debug("Checking triangle inequality axiom")
-        distance_xz = self.distance(x, z)
-        distance_xy = self.distance(x, y)
-        distance_yz = self.distance(y, z)
+        logger.debug("Checking identity of indiscernibles axiom for Sobolev metric")
+        try:
+            dist = self.distance(x, y)
 
-        if distance_xz > distance_xy + distance_yz:
-            raise MetricViolationError(
-                "Triangle inequality violated: d(x,z) > d(x,y) + d(y,z)"
-            )
+            # Check if distance is 0
+            if abs(dist) < 1e-10:
+                # If distance is 0, check if x and y are effectively equal
+                return self._are_effectively_equal(x, y)
+            else:
+                # If distance is not 0, x and y should be different
+                return not self._are_effectively_equal(x, y)
+        except Exception as e:
+            logger.error(f"Error checking identity of indiscernibles: {str(e)}")
+            return False
+
+    def check_symmetry(self, x: Any, y: Any) -> bool:
+        """
+        Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+
+        Parameters
+        ----------
+        x : Any
+            First input
+        y : Any
+            Second input
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
+        """
+        logger.debug("Checking symmetry axiom for Sobolev metric")
+        try:
+            dist_xy = self.distance(x, y)
+            dist_yx = self.distance(y, x)
+            # Allow for small numerical differences
+            return abs(dist_xy - dist_yx) < 1e-3 * (1 + abs(dist_xy))
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            return False
+
+    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+        """
+        Check if the Sobolev metric satisfies the triangle inequality axiom:
+        d(x,z) ≤ d(x,y) + d(y,z).
+
+        Parameters
+        ----------
+        x : Any
+            First input
+        y : Any
+            Second input
+        z : Any
+            Third input
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, False otherwise
+        """
+        logger.debug("Checking triangle inequality axiom for Sobolev metric")
+        try:
+            dist_xy = self.distance(x, y)
+            dist_yz = self.distance(y, z)
+            dist_xz = self.distance(x, z)
+
+            # Check the triangle inequality with a small tolerance for numerical issues
+            return dist_xz <= dist_xy + dist_yz + 1e-10 * (1 + dist_xy + dist_yz)
+        except Exception as e:
+            logger.error(f"Error checking triangle inequality: {str(e)}")
+            return False
+
+    def _are_effectively_equal(self, x: Any, y: Any) -> bool:
+        """
+        Check if two inputs are effectively equal for the purposes of the metric.
+
+        Parameters
+        ----------
+        x : Any
+            First input
+        y : Any
+            Second input
+
+        Returns
+        -------
+        bool
+            True if the inputs are effectively equal, False otherwise
+        """
+        try:
+            if callable(x) and callable(y):
+                # Sample the functions at several points to check if they're equal
+                test_points = np.linspace(0, 1, 20)
+
+                # Check function values
+                for t in test_points:
+                    if abs(x(t) - y(t)) > 1e-10:
+                        return False
+
+                # Check derivatives if available
+                if hasattr(x, "derivative") and hasattr(y, "derivative"):
+                    x_deriv = x.derivative()
+                    y_deriv = y.derivative()
+
+                    for t in test_points:
+                        if abs(x_deriv(t) - y_deriv(t)) > 1e-10:
+                            return False
+
+                return True
+
+            elif hasattr(x, "__eq__"):
+                return x == y
+
+            elif isinstance(x, Sequence) and isinstance(y, Sequence):
+                if len(x) != len(y):
+                    return False
+                return all(abs(float(x[i]) - float(y[i])) < 1e-7 for i in range(len(x)))
+
+            else:
+                # Default case
+                return x == y
+
+        except Exception as e:
+            logger.error(f"Error checking if inputs are equal: {str(e)}")
+            return False

@@ -1,109 +1,284 @@
+import logging
 import pytest
-from unittest.mock import patch
-from swarmauri_standard.similarities.TriangleCosineSimilarity import (
-    TriangleCosineSimilarity,
-)
+import numpy as np
+import math
+from typing import List, Tuple, Any
 
+from swarmauri_standard.similarities.TriangleCosineSimilarity import TriangleCosineSimilarity
+
+# Set up logger
+logger = logging.getLogger(__name__)
+
+@pytest.fixture
+def triangle_cosine_similarity():
+    """
+    Fixture that provides a TriangleCosineSimilarity instance.
+    
+    Returns
+    -------
+    TriangleCosineSimilarity
+        An instance of the TriangleCosineSimilarity class
+    """
+    return TriangleCosineSimilarity()
 
 @pytest.mark.unit
-class TestTriangleCosineSimilarity:
-    """Unit tests for TriangleCosineSimilarity class."""
+def test_initialization():
+    """
+    Test the initialization of TriangleCosineSimilarity.
+    """
+    similarity = TriangleCosineSimilarity()
+    assert similarity.type == "TriangleCosineSimilarity"
+    assert similarity.resource == "Similarity"
 
-    @pytest.fixture
-    def triangle_cosine_similarity(self):
-        """Fixture providing an instance of TriangleCosineSimilarity."""
-        return TriangleCosineSimilarity()
+@pytest.mark.unit
+def test_serialization(triangle_cosine_similarity):
+    """
+    Test serialization and deserialization of TriangleCosineSimilarity.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    json_data = triangle_cosine_similarity.model_dump_json()
+    deserialized = TriangleCosineSimilarity.model_validate_json(json_data)
+    assert deserialized.type == triangle_cosine_similarity.type
+    assert deserialized.resource == triangle_cosine_similarity.resource
 
-    def test_resource(self):
-        """Test the resource attribute."""
-        assert TriangleCosineSimilarity.resource == "Similarity"
+@pytest.mark.unit
+@pytest.mark.parametrize("x, y, expected", [
+    (np.array([1, 0, 0]), np.array([1, 0, 0]), 1.0),  # Same vector
+    (np.array([1, 0, 0]), np.array([0, 1, 0]), 0.5),  # Orthogonal vectors (90 degrees)
+    (np.array([1, 0, 0]), np.array([-1, 0, 0]), 0.0),  # Opposite vectors (180 degrees)
+    (np.array([1, 1, 0]), np.array([1, 0, 0]), 0.75),  # 45 degree angle
+    (np.array([1, 2, 3]), np.array([4, 5, 6]), 0.9743),  # Arbitrary vectors
+])
+def test_similarity(triangle_cosine_similarity, x, y, expected):
+    """
+    Test the similarity method with various vector pairs.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    x : np.ndarray
+        First vector
+    y : np.ndarray
+        Second vector
+    expected : float
+        Expected similarity value
+    """
+    result = triangle_cosine_similarity.similarity(x, y)
+    assert pytest.approx(result, abs=1e-4) == expected
 
-    def test_type(self):
-        """Test the type attribute."""
-        assert TriangleCosineSimilarity.type == "TriangleCosineSimilarity"
+@pytest.mark.unit
+def test_similarity_with_lists(triangle_cosine_similarity):
+    """
+    Test the similarity method with list inputs.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    result = triangle_cosine_similarity.similarity([1, 0, 0], [0, 1, 0])
+    assert pytest.approx(result, abs=1e-10) == 0.5
 
-    def test_serialization(self, triangle_cosine_similarity):
-        """Test model serialization and validation."""
-        model_json = triangle_cosine_similarity.model_dump_json()
-        assert (
-            TriangleCosineSimilarity.model_validate_json(model_json)
-            == TriangleCosineSimilarity.id
-        )
+@pytest.mark.unit
+def test_similarities(triangle_cosine_similarity):
+    """
+    Test the similarities method with multiple vectors.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 0, 0])
+    ys = [
+        np.array([1, 0, 0]),  # Same vector
+        np.array([0, 1, 0]),  # Orthogonal
+        np.array([-1, 0, 0])  # Opposite
+    ]
+    expected = [1.0, 0.5, 0.0]
+    
+    results = triangle_cosine_similarity.similarities(x, ys)
+    assert len(results) == len(expected)
+    for res, exp in zip(results, expected):
+        assert pytest.approx(res, abs=1e-10) == exp
 
-    def test_similarity_identical_vectors(self, triangle_cosine_similarity):
-        """Test similarity calculation with identical vectors."""
-        x = [1.0, 2.0, 3.0]
-        y = [1.0, 2.0, 3.0]
-        similarity = triangle_cosine_similarity.similarity(x, y)
-        assert pytest.approx(similarity, 1.0)
+@pytest.mark.unit
+def test_dissimilarity(triangle_cosine_similarity):
+    """
+    Test the dissimilarity method.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 0, 0])
+    y = np.array([0, 1, 0])
+    
+    similarity = triangle_cosine_similarity.similarity(x, y)
+    dissimilarity = triangle_cosine_similarity.dissimilarity(x, y)
+    
+    assert pytest.approx(dissimilarity, abs=1e-10) == 1.0 - similarity
+    assert pytest.approx(dissimilarity, abs=1e-10) == 0.5
 
-    def test_similarity_opposite_vectors(self, triangle_cosine_similarity):
-        """Test similarity calculation with opposite vectors."""
-        x = [1.0, 2.0, 3.0]
-        y = [-1.0, -2.0, -3.0]
-        similarity = triangle_cosine_similarity.similarity(x, y)
-        assert pytest.approx(similarity, -1.0)
+@pytest.mark.unit
+def test_check_bounded(triangle_cosine_similarity):
+    """
+    Test the check_bounded method.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    assert triangle_cosine_similarity.check_bounded() is True
 
-    def test_similarity_non_zero_vectors(self, triangle_cosine_similarity):
-        """Test similarity calculation with non-zero vectors."""
-        x = [1.0, 0.0]
-        y = [0.0, 1.0]
-        similarity = triangle_cosine_similarity.similarity(x, y)
-        assert pytest.approx(similarity, 0.0)
+@pytest.mark.unit
+def test_check_reflexivity(triangle_cosine_similarity):
+    """
+    Test the check_reflexivity method.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 2, 3])
+    assert triangle_cosine_similarity.check_reflexivity(x) is True
 
-    def test_similarity_zero_vector_raises_error(self, triangle_cosine_similarity):
-        """Test that similarity raises ValueError for zero vectors."""
-        x = [0.0, 0.0]
-        y = [1.0, 2.0]
-        with pytest.raises(ValueError):
-            triangle_cosine_similarity.similarity(x, y)
+@pytest.mark.unit
+def test_check_symmetry(triangle_cosine_similarity):
+    """
+    Test the check_symmetry method.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 2, 3])
+    y = np.array([4, 5, 6])
+    assert triangle_cosine_similarity.check_symmetry(x, y) is True
 
-    def test_dissimilarity(self, triangle_cosine_similarity):
-        """Test dissimilarity calculation."""
-        x = [1.0, 2.0, 3.0]
-        y = [1.0, 2.0, 3.0]
-        dissimilarity = triangle_cosine_similarity.dissimilarity(x, y)
-        assert pytest.approx(dissimilarity, 0.0)
+@pytest.mark.unit
+def test_validate_vector_with_valid_input(triangle_cosine_similarity):
+    """
+    Test the _validate_vector method with valid input.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 2, 3])
+    validated = triangle_cosine_similarity._validate_vector(x)
+    assert np.array_equal(validated, x)
 
-    def test_dissimilarity_opposite_vectors(self, triangle_cosine_similarity):
-        """Test dissimilarity calculation with opposite vectors."""
-        x = [1.0, 2.0, 3.0]
-        y = [-1.0, -2.0, -3.0]
-        dissimilarity = triangle_cosine_similarity.dissimilarity(x, y)
-        assert pytest.approx(dissimilarity, 2.0)
+@pytest.mark.unit
+def test_validate_vector_with_zero_vector(triangle_cosine_similarity):
+    """
+    Test the _validate_vector method with a zero vector.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    with pytest.raises(ValueError, match="Zero vectors are not allowed"):
+        triangle_cosine_similarity._validate_vector(np.array([0, 0, 0]))
 
-    def test_check_boundedness(self, triangle_cosine_similarity):
-        """Test check_boundedness method."""
-        assert triangle_cosine_similarity.check_boundedness()
+@pytest.mark.unit
+def test_validate_vector_with_scalar(triangle_cosine_similarity):
+    """
+    Test the _validate_vector method with a scalar.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    with pytest.raises(ValueError, match="Input must be a vector, not a scalar"):
+        triangle_cosine_similarity._validate_vector(np.array(5))
 
-    def test_check_reflexivity(self, triangle_cosine_similarity):
-        """Test check_reflexivity method."""
-        assert triangle_cosine_similarity.check_reflexivity()
-
-    def test_check_symmetry(self, triangle_cosine_similarity):
-        """Test check_symmetry method."""
-        assert triangle_cosine_similarity.check_symmetry()
-
-    def test_check_identity(self, triangle_cosine_similarity):
-        """Test check_identity method."""
-        assert not triangle_cosine_similarity.check_identity()
-
-    @patch("logging.debug")
-    def test_logging_similarity(self, mock_logging, triangle_cosine_similarity):
-        """Test logging in similarity method."""
-        x = [1.0, 2.0, 3.0]
-        y = [1.0, 2.0, 3.0]
+@pytest.mark.unit
+def test_similarity_with_incompatible_dimensions(triangle_cosine_similarity):
+    """
+    Test the similarity method with vectors of incompatible dimensions.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 2, 3])
+    y = np.array([1, 2])
+    
+    with pytest.raises(ValueError, match="Incompatible dimensions"):
         triangle_cosine_similarity.similarity(x, y)
-        mock_logging.assert_called_with(
-            f"Calculating cosine similarity between vectors {x} and {y}"
-        )
 
-    @patch("logging.debug")
-    def test_logging_dissimilarity(self, mock_logging, triangle_cosine_similarity):
-        """Test logging in dissimilarity method."""
-        x = [1.0, 2.0, 3.0]
-        y = [1.0, 2.0, 3.0]
-        triangle_cosine_similarity.dissimilarity(x, y)
-        mock_logging.assert_called_with(
-            f"Calculating dissimilarity between vectors {x} and {y}"
-        )
+@pytest.mark.unit
+def test_angle_calculation():
+    """
+    Test that the angle calculation in the similarity method is correct.
+    """
+    similarity = TriangleCosineSimilarity()
+    
+    # Test vectors with a known angle (45 degrees)
+    x = np.array([1, 0])
+    y = np.array([1, 1])
+    
+    # Calculate expected similarity
+    angle_rad = math.pi / 4  # 45 degrees in radians
+    expected_similarity = 1.0 - (angle_rad / math.pi)
+    
+    result = similarity.similarity(x, y)
+    assert pytest.approx(result, abs=1e-10) == expected_similarity
+
+@pytest.mark.unit
+def test_similarity_edge_cases(triangle_cosine_similarity):
+    """
+    Test similarity method with edge cases.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    # Almost parallel vectors
+    x = np.array([1, 0, 0])
+    y = np.array([0.9999, 0.0001, 0])
+    result = triangle_cosine_similarity.similarity(x, y)
+    assert result > 0.99
+    
+    # Almost opposite vectors
+    y = np.array([-0.9999, -0.0001, 0])
+    result = triangle_cosine_similarity.similarity(x, y)
+    assert result < 0.01
+
+@pytest.mark.unit
+def test_similarities_with_errors(triangle_cosine_similarity):
+    """
+    Test the similarities method when some comparisons raise errors.
+    
+    Parameters
+    ----------
+    triangle_cosine_similarity : TriangleCosineSimilarity
+        Fixture providing a TriangleCosineSimilarity instance
+    """
+    x = np.array([1, 0, 0])
+    ys = [
+        np.array([1, 0, 0]),          # Valid
+        np.array([0, 0, 0]),          # Zero vector (invalid)
+        np.array([0, 1])              # Incompatible dimensions (invalid)
+    ]
+    
+    results = triangle_cosine_similarity.similarities(x, ys)
+    assert len(results) == 3
+    assert pytest.approx(results[0], abs=1e-10) == 1.0
+    assert math.isnan(results[1])
+    assert math.isnan(results[2])

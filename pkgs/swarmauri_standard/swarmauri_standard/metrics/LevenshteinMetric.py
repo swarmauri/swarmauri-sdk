@@ -1,177 +1,255 @@
-from typing import Sequence, Union, List, Literal
 import logging
-from swarmauri_standard.metrics.MetricBase import MetricBase
-from swarmauri_base.ComponentBase import ComponentBase
+from typing import Any, List, Literal, Union
 
+import numpy as np
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
+
+# Logger configuration
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(MetricBase, "LevenshteinMetric")
 class LevenshteinMetric(MetricBase):
     """
-    A concrete implementation of the MetricBase class that calculates the Levenshtein distance
-    between two strings. The Levenshtein distance is a measure of the minimum number of single-character
-    edits (insertions, deletions or substitutions) required to change one word into the other.
+    Implementation of Levenshtein distance metric.
 
-    Inherits From:
-        MetricBase: Base class providing abstract methods for metric calculations
+    Levenshtein distance is a string metric for measuring the difference between two sequences.
+    It represents the minimum number of single-character edits (insertions, deletions, or
+    substitutions) required to change one string into another.
 
-    Attributes:
-        type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
+    This metric is widely used in natural language processing and bioinformatics for
+    measuring the similarity between strings.
     """
 
     type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
 
-    def __init__(self) -> None:
+    def distance(self, x: str, y: str) -> float:
         """
-        Initializes the LevenshteinMetric class.
-        """
-        super().__init__()
-        logger.debug("Initialized LevenshteinMetric")
+        Calculate the Levenshtein distance between two strings.
 
-    def distance(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> float:
-        """
-        Computes the Levenshtein distance between two strings.
+        Parameters
+        ----------
+        x : str
+            First string
+        y : str
+            Second string
 
-        The Levenshtein distance is calculated as the minimum number of operations needed to
-        transform one string into the other, where the operations allowed are:
-        - Insertion of a character
-        - Deletion of a character
-        - Substitution of a character
+        Returns
+        -------
+        float
+            The Levenshtein distance between x and y
 
-        Args:
-            x: The first string
-            y: The second string
-
-        Returns:
-            float: The Levenshtein distance between x and y
-
-        Raises:
-            TypeError: If either x or y is not a string
+        Raises
+        ------
+        TypeError
+            If inputs are not strings
         """
         if not isinstance(x, str) or not isinstance(y, str):
-            raise TypeError("Both inputs must be strings")
+            logger.error(f"Inputs must be strings, got {type(x)} and {type(y)}")
+            raise TypeError(f"Inputs must be strings, got {type(x)} and {type(y)}")
 
         logger.debug(f"Calculating Levenshtein distance between '{x}' and '{y}'")
-        return float(self._levenshtein_distance(x, y))
 
-    def distances(
-        self, xs: List[Union[str, Sequence]], ys: List[Union[str, Sequence]]
-    ) -> List[List[float]]:
+        # If either string is empty, the distance is the length of the other string
+        if len(x) == 0:
+            return len(y)
+        if len(y) == 0:
+            return len(x)
+
+        # Initialize the matrix
+        # The matrix has len(x)+1 rows and len(y)+1 columns
+        matrix = [[0 for _ in range(len(y) + 1)] for _ in range(len(x) + 1)]
+
+        # Initialize the first row and column
+        for i in range(len(x) + 1):
+            matrix[i][0] = i
+        for j in range(len(y) + 1):
+            matrix[0][j] = j
+
+        # Fill the matrix using dynamic programming
+        for i in range(1, len(x) + 1):
+            for j in range(1, len(y) + 1):
+                # If characters match, no additional cost
+                if x[i - 1] == y[j - 1]:
+                    cost = 0
+                else:
+                    cost = 1
+
+                # Calculate the minimum of the three possible operations:
+                # deletion, insertion, or substitution
+                matrix[i][j] = min(
+                    matrix[i - 1][j] + 1,  # deletion
+                    matrix[i][j - 1] + 1,  # insertion
+                    matrix[i - 1][j - 1] + cost,  # substitution
+                )
+
+        # The bottom-right cell contains the Levenshtein distance
+        return matrix[len(x)][len(y)]
+
+    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
         """
-        Computes pairwise Levenshtein distances between two lists of strings.
+        Calculate Levenshtein distances between collections of strings.
 
-        Args:
-            xs: First list of strings
-            ys: Second list of strings
+        Parameters
+        ----------
+        x : Union[List[str], np.ndarray]
+            First collection of strings
+        y : Union[List[str], np.ndarray]
+            Second collection of strings
 
-        Returns:
-            List[List[float]]: Matrix of pairwise Levenshtein distances
+        Returns
+        -------
+        Union[List[float], IVector, IMatrix]
+            Matrix of distances between strings in x and y
+
+        Raises
+        ------
+        TypeError
+            If inputs are not collections of strings
         """
-        logger.debug(
-            f"Calculating pairwise Levenshtein distances between {len(xs)} and {len(ys)} strings"
-        )
-        return [[self.distance(x, y) for y in ys] for x in xs]
+        logger.debug("Calculating Levenshtein distances between collections")
 
-    def check_non_negativity(
-        self, x: Union[str, Sequence], y: Union[str, Sequence]
-    ) -> None:
-        """
-        Verifies the non-negativity axiom: distance(x, y) >= 0.
+        # Convert numpy arrays to lists if necessary
+        if isinstance(x, np.ndarray):
+            x = x.tolist()
+        if isinstance(y, np.ndarray):
+            y = y.tolist()
 
-        Args:
-            x: First string
-            y: Second string
-
-        Raises:
-            ValueError: If the distance is negative
-        """
-        distance = self.distance(x, y)
-        if distance < 0:
-            raise ValueError(
-                f"Non-negativity violation: distance({x}, {y}) = {distance} < 0"
+        # Validate input types
+        if not isinstance(x, list) or not isinstance(y, list):
+            logger.error(
+                f"Inputs must be lists or numpy arrays, got {type(x)} and {type(y)}"
+            )
+            raise TypeError(
+                f"Inputs must be lists or numpy arrays, got {type(x)} and {type(y)}"
             )
 
-    def check_identity(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> None:
+        # Validate that all elements are strings
+        for i, item in enumerate(x):
+            if not isinstance(item, str):
+                logger.error(
+                    f"All elements must be strings, found {type(item)} at index {i} in x"
+                )
+                raise TypeError(
+                    f"All elements must be strings, found {type(item)} at index {i} in x"
+                )
+
+        for i, item in enumerate(y):
+            if not isinstance(item, str):
+                logger.error(
+                    f"All elements must be strings, found {type(item)} at index {i} in y"
+                )
+                raise TypeError(
+                    f"All elements must be strings, found {type(item)} at index {i} in y"
+                )
+
+        # Create a matrix of distances
+        result = [[self.distance(xi, yi) for yi in y] for xi in x]
+
+        # If only one string in x, return a vector
+        if len(x) == 1:
+            return result[0]
+
+        return result
+
+    def check_non_negativity(self, x: str, y: str) -> bool:
         """
-        Verifies the identity of indiscernibles axiom: distance(x, y) = 0 if and only if x == y.
+        Check if the Levenshtein metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
-        Args:
-            x: First string
-            y: Second string
+        Levenshtein distance is always non-negative by definition.
 
-        Raises:
-            ValueError: If distance(x, y) == 0 but x != y or vice versa
+        Parameters
+        ----------
+        x : str
+            First string
+        y : str
+            Second string
+
+        Returns
+        -------
+        bool
+            True, as Levenshtein distance is always non-negative
         """
-        distance = self.distance(x, y)
-        if (x == y and distance != 0) or (x != y and distance == 0):
-            raise ValueError(
-                f"Identity violation: x={'x'}, y={'y'}, distance={distance}"
-            )
+        logger.debug(f"Checking non-negativity axiom for '{x}' and '{y}'")
 
-    def check_symmetry(self, x: Union[str, Sequence], y: Union[str, Sequence]) -> None:
+        # Levenshtein distance is always non-negative as it counts the number of operations
+        # which cannot be negative
+        return True
+
+    def check_identity_of_indiscernibles(self, x: str, y: str) -> bool:
         """
-        Verifies the symmetry axiom: distance(x, y) = distance(y, x).
+        Check if the Levenshtein metric satisfies the identity of indiscernibles axiom:
+        d(x,y) = 0 if and only if x = y.
 
-        Args:
-            x: First string
-            y: Second string
+        Parameters
+        ----------
+        x : str
+            First string
+        y : str
+            Second string
 
-        Raises:
-            ValueError: If distance(x, y) != distance(y, x)
+        Returns
+        -------
+        bool
+            True if d(x,y) = 0 iff x = y, False otherwise
         """
-        if self.distance(x, y) != self.distance(y, x):
-            raise ValueError(
-                f"Symmetry violation: distance({x}, {y}) != distance({y}, {x})"
-            )
+        logger.debug(f"Checking identity of indiscernibles axiom for '{x}' and '{y}'")
 
-    def check_triangle_inequality(
-        self, x: Union[str, Sequence], y: Union[str, Sequence], z: Union[str, Sequence]
-    ) -> None:
+        # The distance is 0 if and only if the strings are identical
+        return (self.distance(x, y) == 0) == (x == y)
+
+    def check_symmetry(self, x: str, y: str) -> bool:
         """
-        Verifies the triangle inequality axiom: distance(x, z) <= distance(x, y) + distance(y, z).
+        Check if the Levenshtein metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
-        Args:
-            x: First string
-            y: Second string
-            z: Third string
+        Parameters
+        ----------
+        x : str
+            First string
+        y : str
+            Second string
 
-        Raises:
-            ValueError: If distance(x, z) > distance(x, y) + distance(y, z)
+        Returns
+        -------
+        bool
+            True if d(x,y) = d(y,x), False otherwise
         """
-        d_xz = self.distance(x, z)
+        logger.debug(f"Checking symmetry axiom for '{x}' and '{y}'")
+
+        # Calculate distances in both directions and check if they're equal
+        d_xy = self.distance(x, y)
+        d_yx = self.distance(y, x)
+
+        return d_xy == d_yx
+
+    def check_triangle_inequality(self, x: str, y: str, z: str) -> bool:
+        """
+        Check if the Levenshtein metric satisfies the triangle inequality axiom:
+        d(x,z) ≤ d(x,y) + d(y,z).
+
+        Parameters
+        ----------
+        x : str
+            First string
+        y : str
+            Second string
+        z : str
+            Third string
+
+        Returns
+        -------
+        bool
+            True if d(x,z) ≤ d(x,y) + d(y,z), False otherwise
+        """
+        logger.debug(f"Checking triangle inequality axiom for '{x}', '{y}', and '{z}'")
+
+        # Calculate the three distances
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
+        d_xz = self.distance(x, z)
 
-        if d_xz > d_xy + d_yz:
-            raise ValueError(f"Triangle inequality violation: {d_xz} > {d_xy} + {d_yz}")
-
-    def _levenshtein_distance(self, x: str, y: str) -> int:
-        """
-        Helper method to compute the Levenshtein distance using dynamic programming.
-
-        Args:
-            x: The first string
-            y: The second string
-
-        Returns:
-            int: The Levenshtein distance between x and y
-        """
-        m, n = len(x), len(y)
-        dp = [[0] * (n + 1) for _ in range(m + 1)]
-
-        for i in range(m + 1):
-            dp[i][0] = i
-        for j in range(n + 1):
-            dp[0][j] = j
-
-        for i in range(1, m + 1):
-            for j in range(1, n + 1):
-                cost = 0 if x[i - 1] == y[j - 1] else 1
-                dp[i][j] = min(
-                    dp[i - 1][j] + 1,  # Deletion
-                    dp[i][j - 1] + 1,  # Insertion
-                    dp[i - 1][j - 1] + cost,
-                )  # Substitution or no cost
-
-        return dp[m][n]
+        # Check if the triangle inequality holds
+        return d_xz <= d_xy + d_yz

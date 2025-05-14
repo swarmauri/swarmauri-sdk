@@ -1,113 +1,270 @@
 import pytest
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
+import logging
+import numpy as np
+from typing import Any, Tuple, List
 from swarmauri_standard.seminorms.LpSeminorm import LpSeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Mock classes for testing
+class MockVector(IVector):
+    def __init__(self, data):
+        self._data = data
+    
+    def to_array(self):
+        return self._data
+    
+    def dimension(self) -> int:
+        return len(self._data)
+
+class MockMatrix(IMatrix):
+    def __init__(self, data):
+        self._data = data
+    
+    def to_array(self):
+        return self._data
+    
+    def shape(self) -> Tuple[int, int]:
+        return (len(self._data), len(self._data[0]) if self._data else 0)
+
+
+@pytest.fixture
+def lp_seminorm_default():
+    """Fixture for default LpSeminorm instance with p=2."""
+    return LpSeminorm()
+
+
+@pytest.fixture
+def lp_seminorm_p1():
+    """Fixture for LpSeminorm instance with p=1."""
+    return LpSeminorm(p=1.0)
+
+
+@pytest.fixture
+def lp_seminorm_p3():
+    """Fixture for LpSeminorm instance with p=3."""
+    return LpSeminorm(p=3.0)
+
+
+@pytest.fixture
+def test_data():
+    """Fixture providing various test data formats."""
+    return {
+        "array": np.array([1.0, 2.0, 3.0]),
+        "list": [1.0, 2.0, 3.0],
+        "tuple": (1.0, 2.0, 3.0),
+        "vector": MockVector([1.0, 2.0, 3.0]),
+        "matrix": MockMatrix([[1.0, 2.0], [3.0, 4.0]]),
+        "string": "abc",
+        "zero_array": np.zeros(3),
+    }
 
 
 @pytest.mark.unit
-class TestLpSeminorm:
-    """Unit tests for the LpSeminorm class."""
+def test_initialization():
+    """Test initialization of LpSeminorm with different parameters."""
+    # Test default initialization
+    lp = LpSeminorm()
+    assert lp.p == 2.0
+    assert lp.epsilon == 1e-10
+    
+    # Test custom initialization
+    lp = LpSeminorm(p=3.0, epsilon=1e-8)
+    assert lp.p == 3.0
+    assert lp.epsilon == 1e-8
+    
+    # Test initialization with invalid p
+    with pytest.raises(ValueError):
+        LpSeminorm(p=0)
+    
+    with pytest.raises(ValueError):
+        LpSeminorm(p=-1)
 
-    def test_init_valid(self):
-        """Test valid initialization of LpSeminorm."""
-        # Valid p values
-        p_values = [1.0, 2.0, float("inf")]
 
-        for p in p_values:
-            lp = LpSeminorm(p)
-            assert lp.p == p
-            assert isinstance(lp, SeminormBase)
+@pytest.mark.unit
+def test_type_attribute():
+    """Test that the type attribute is correctly set."""
+    lp = LpSeminorm()
+    assert lp.type == "LpSeminorm"
 
-    def test_init_invalid(self):
-        """Test invalid initialization of LpSeminorm."""
-        # Invalid p values
-        p_values = [-1.0, 0.0, -2.0]
 
-        for p in p_values:
-            with pytest.raises(ValueError):
-                LpSeminorm(p)
+@pytest.mark.unit
+@pytest.mark.parametrize("p,input_data,expected", [
+    (1.0, [1.0, 2.0, 3.0], 6.0),              # L1 norm: sum of absolute values
+    (2.0, [1.0, 2.0, 3.0], 3.7416573867739413),  # L2 norm: sqrt(sum of squares)
+    (3.0, [1.0, 2.0, 3.0], 3.3019272488946263),  # L3 norm: (sum of cubes)^(1/3)
+    (1.0, [0.0, 0.0, 0.0], 0.0),              # Zero vector
+    (2.0, [-1.0, -2.0, -3.0], 3.7416573867739413),  # Negative values
+])
+def test_compute_with_different_p(p, input_data, expected):
+    """Test compute method with different p values and input data."""
+    lp = LpSeminorm(p=p)
+    result = lp.compute(input_data)
+    assert pytest.approx(result, abs=1e-10) == expected
 
-    @pytest.mark.parametrize(
-        "input,expected",
-        [
-            ([1.0, 2.0], 1.0),
-            ([3.0, 4.0], (3**2 + 4**2) ** 0.5),
-            ("5.0", 5.0),
-            ([], 0.0),
-            ([0.0, 0.0], 0.0),
-        ],
-    )
-    def test_compute_list(self, input, expected):
-        """Test compute method with list input."""
-        lp = LpSeminorm(1.0 if len(input) < 2 else 2.0)
-        result = lp.compute(input)
-        assert result == expected
 
-    def test_compute_str(self):
-        """Test compute method with string input."""
-        lp = LpSeminorm(1.0)
-        result = lp.compute("5.0")
-        assert result == 5.0
+@pytest.mark.unit
+def test_compute_with_different_input_types(test_data, lp_seminorm_default):
+    """Test compute method with different input types."""
+    # Calculate expected result for the reference array
+    expected = np.sqrt(np.sum(np.array([1.0, 2.0, 3.0]) ** 2))
+    
+    # Test with array
+    result = lp_seminorm_default.compute(test_data["array"])
+    assert pytest.approx(result, abs=1e-10) == expected
+    
+    # Test with list
+    result = lp_seminorm_default.compute(test_data["list"])
+    assert pytest.approx(result, abs=1e-10) == expected
+    
+    # Test with tuple
+    result = lp_seminorm_default.compute(test_data["tuple"])
+    assert pytest.approx(result, abs=1e-10) == expected
+    
+    # Test with vector
+    result = lp_seminorm_default.compute(test_data["vector"])
+    assert pytest.approx(result, abs=1e-10) == expected
+    
+    # Test with zero array
+    result = lp_seminorm_default.compute(test_data["zero_array"])
+    assert pytest.approx(result, abs=1e-10) == 0.0
+    
+    # Test with string
+    # We expect the sum of character codes
+    char_codes = np.array([ord(c) for c in "abc"])
+    expected_str = np.sqrt(np.sum(char_codes ** 2))
+    result = lp_seminorm_default.compute(test_data["string"])
+    assert pytest.approx(result, abs=1e-10) == expected_str
+    
+    # Test with matrix
+    # For a matrix, it should flatten and compute the norm
+    matrix_array = np.array([[1.0, 2.0], [3.0, 4.0]])
+    expected_matrix = np.sqrt(np.sum(matrix_array ** 2))
+    result = lp_seminorm_default.compute(test_data["matrix"])
+    assert pytest.approx(result, abs=1e-10) == expected_matrix
 
-    def test_compute_callable(self):
-        """Test compute method with callable input."""
-        lp = LpSeminorm(1.0)
-        result = lp.compute(lambda: 5.0)
-        assert result == 0.0
 
-    def test_triangle_inequality_vector(self):
-        """Test triangle inequality with vector input."""
-        v1 = [1.0, 2.0]
-        v2 = [2.0, 3.0]
-        lp = LpSeminorm(2.0)
+@pytest.mark.unit
+def test_compute_with_unsupported_types(lp_seminorm_default):
+    """Test compute method with unsupported input types."""
+    # Test with a callable
+    with pytest.raises(TypeError):
+        lp_seminorm_default.compute(lambda x: x)
+    
+    # Test with a complex object that cannot be converted to array
+    class ComplexObject:
+        pass
+    
+    with pytest.raises(TypeError):
+        lp_seminorm_default.compute(ComplexObject())
 
-        seminorm_v1 = lp.compute(v1)
-        seminorm_v2 = lp.compute(v2)
-        seminorm_v1_plus_v2 = lp.compute([3.0, 5.0])
 
-        assert seminorm_v1_plus_v2 <= seminorm_v1 + seminorm_v2
+@pytest.mark.unit
+def test_triangle_inequality(lp_seminorm_default):
+    """Test the triangle inequality property."""
+    x = np.array([1.0, 2.0, 3.0])
+    y = np.array([4.0, 5.0, 6.0])
+    
+    # Verify that ||x + y|| <= ||x|| + ||y||
+    assert lp_seminorm_default.check_triangle_inequality(x, y)
+    
+    # Test with different input types
+    x_list = [1.0, 2.0, 3.0]
+    y_list = [4.0, 5.0, 6.0]
+    assert lp_seminorm_default.check_triangle_inequality(x_list, y_list)
+    
+    x_vector = MockVector([1.0, 2.0, 3.0])
+    y_vector = MockVector([4.0, 5.0, 6.0])
+    assert lp_seminorm_default.check_triangle_inequality(x_vector, y_vector)
+    
+    # Test with incompatible shapes
+    with pytest.raises(ValueError):
+        lp_seminorm_default.check_triangle_inequality([1.0, 2.0], [1.0, 2.0, 3.0])
 
-    def test_triangle_inequality_matrix(self):
-        """Test triangle inequality with matrix input."""
-        m1 = [[1.0, 2.0], [3.0, 4.0]]
-        m2 = [[2.0, 3.0], [4.0, 5.0]]
-        lp = LpSeminorm(2.0)
 
-        seminorm_m1 = lp.compute(m1)
-        seminorm_m2 = lp.compute(m2)
-        seminorm_m1_plus_m2 = lp.compute([[3.0, 5.0], [7.0, 9.0]])
+@pytest.mark.unit
+def test_scalar_homogeneity(lp_seminorm_default):
+    """Test the scalar homogeneity property."""
+    x = np.array([1.0, 2.0, 3.0])
+    
+    # Test with positive scalar
+    alpha = 2.0
+    assert lp_seminorm_default.check_scalar_homogeneity(x, alpha)
+    
+    # Test with negative scalar
+    alpha = -3.0
+    assert lp_seminorm_default.check_scalar_homogeneity(x, alpha)
+    
+    # Test with zero scalar
+    alpha = 0.0
+    assert lp_seminorm_default.check_scalar_homogeneity(x, alpha)
+    
+    # Test with complex scalar
+    alpha = complex(2.0, 3.0)
+    assert lp_seminorm_default.check_scalar_homogeneity(x, alpha)
+    
+    # Test with different input types
+    x_list = [1.0, 2.0, 3.0]
+    assert lp_seminorm_default.check_scalar_homogeneity(x_list, 2.0)
+    
+    x_vector = MockVector([1.0, 2.0, 3.0])
+    assert lp_seminorm_default.check_scalar_homogeneity(x_vector, 2.0)
 
-        assert seminorm_m1_plus_m2 <= seminorm_m1 + seminorm_m2
 
-    def test_scalar_homogeneity_vector(self):
-        """Test scalar homogeneity with vector input."""
-        v = [1.0, 2.0]
-        scalar = 2.0
-        lp = LpSeminorm(2.0)
+@pytest.mark.unit
+def test_string_representation():
+    """Test string representation methods."""
+    lp = LpSeminorm(p=3.0, epsilon=1e-8)
+    
+    # Test __str__
+    assert str(lp) == "LpSeminorm(p=3.0)"
+    
+    # Test __repr__
+    assert repr(lp) == "LpSeminorm(p=3.0, epsilon=1e-8)"
 
-        seminorm_v = lp.compute(v)
-        scaled_v = [2.0, 4.0]
-        seminorm_scaled_v = lp.compute(scaled_v)
 
-        assert seminorm_scaled_v == scalar * seminorm_v
+@pytest.mark.unit
+@pytest.mark.parametrize("p", [1.0, 2.0, 3.0])
+def test_special_case_optimization(p, test_data):
+    """Test that special case optimizations for p=1 and p=2 give correct results."""
+    lp_special = LpSeminorm(p=p)
+    
+    # Calculate using the general formula for comparison
+    x_arr = np.array(test_data["list"])
+    expected = float(np.sum(np.abs(x_arr) ** p) ** (1.0 / p))
+    
+    # Calculate using the LpSeminorm
+    result = lp_special.compute(test_data["list"])
+    
+    # The results should be very close
+    assert pytest.approx(result, abs=1e-10) == expected
 
-    def test_scalar_homogeneity_matrix(self):
-        """Test scalar homogeneity with matrix input."""
-        m = [[1.0, 2.0], [3.0, 4.0]]
-        scalar = 2.0
-        lp = LpSeminorm(2.0)
 
-        seminorm_m = lp.compute(m)
-        scaled_m = [[2.0, 4.0], [6.0, 8.0]]
-        seminorm_scaled_m = lp.compute(scaled_m)
+@pytest.mark.unit
+def test_numerical_stability():
+    """Test numerical stability with very small and very large values."""
+    lp = LpSeminorm(p=2.0)
+    
+    # Test with very small values
+    small_values = [1e-15, 2e-15, 3e-15]
+    result = lp.compute(small_values)
+    expected = np.sqrt(np.sum(np.array(small_values) ** 2))
+    assert pytest.approx(result, abs=1e-25) == expected
+    
+    # Test with very large values
+    large_values = [1e15, 2e15, 3e15]
+    result = lp.compute(large_values)
+    expected = np.sqrt(np.sum(np.array(large_values) ** 2))
+    assert pytest.approx(result / expected, abs=1e-10) == 1.0  # Compare ratio for large numbers
 
-        assert seminorm_scaled_m == scalar * seminorm_m
 
-    def test_str_repr(self):
-        """Test string representation of LpSeminorm."""
-        lp = LpSeminorm(2.0)
-        assert str(lp) == f"LpSeminorm(p={lp.p})"
-
-    def test_repr(self):
-        """Test official string representation of LpSeminorm."""
-        lp = LpSeminorm(2.0)
-        assert lp.__repr__() == lp.__str__()
+@pytest.mark.unit
+def test_zero_norm():
+    """Test that zero vectors have zero norm regardless of p value."""
+    for p in [1.0, 2.0, 3.0, 10.0]:
+        lp = LpSeminorm(p=p)
+        zero_vector = np.zeros(5)
+        assert pytest.approx(lp.compute(zero_vector), abs=1e-10) == 0.0

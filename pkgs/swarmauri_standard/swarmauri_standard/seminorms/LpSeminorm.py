@@ -1,187 +1,258 @@
-from typing import Callable, Union
+from typing import TypeVar, Union, Callable, Sequence, Literal, Any, Optional
 import logging
+import math
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.seminorms.SeminormBase import SeminormBase
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
+from swarmauri_core.seminorms.ISeminorm import InputType
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=Union[int, float, complex])
 
 
 @ComponentBase.register_type(SeminormBase, "LpSeminorm")
 class LpSeminorm(SeminormBase):
     """
-    A concrete implementation of the SeminormBase class for the Lp seminorm.
-
-    This class provides functionality to compute the Lp seminorm for different types of inputs.
-    The Lp seminorm is defined as the p-th root of the sum of the absolute values of the elements
-    raised to the power of p. It is a non-point-separating seminorm, meaning it might not distinguish
-    all vectors.
-
-    Attributes:
-        p: float
-            The order of the Lp seminorm. Must be in the range (0, ∞).
-
-    Methods:
-        compute: Computes the Lp seminorm for the given input.
-        check_triangle_inequality: Checks if the triangle inequality holds for the given elements.
-        check_scalar_homogeneity: Checks if the scalar homogeneity property holds.
+    Non-point-separating variant of Lp norm.
+    
+    Computes an Lp-like seminorm that might not distinguish all vectors.
+    Unlike a true norm, a seminorm can assign zero to non-zero vectors.
+    
+    The Lp seminorm is defined as:
+    ||x||_p = (sum_i |x_i|^p)^(1/p) for p in (0, ∞)
+    
+    Attributes
+    ----------
+    type : Literal["LpSeminorm"]
+        The type identifier for this component
+    p : float
+        The parameter p for the Lp seminorm (must be in (0, ∞))
+    epsilon : float
+        Small value used for numerical stability
     """
-
-    def __init__(self, p: float):
+    
+    type: Literal["LpSeminorm"] = "LpSeminorm"
+    
+    def __init__(self, p: float = 2.0, epsilon: float = 1e-10):
         """
-        Initializes the LpSeminorm instance with the given order p.
-
-        Args:
-            p: float - The order of the Lp seminorm. Must be greater than 0.
-
-        Raises:
-            ValueError: If p is not in the range (0, ∞)
+        Initialize an Lp seminorm with the given p value.
+        
+        Parameters
+        ----------
+        p : float, optional
+            The parameter p for the Lp seminorm, by default 2.0
+        epsilon : float, optional
+            Small value used for numerical stability, by default 1e-10
+            
+        Raises
+        ------
+        ValueError
+            If p is not in the range (0, ∞)
         """
-        super().__init__()
-        if not (0 < p < float("inf")):
-            raise ValueError("p must be in the range (0, ∞)")
+        if p <= 0:
+            raise ValueError(f"Parameter p must be positive, got {p}")
+        
         self.p = p
-        logger.debug(f"Initialized LpSeminorm with p={p}")
-
-    def compute(
-        self, input: Union[IVector, IMatrix, str, Callable, list, tuple]
-    ) -> float:
+        self.epsilon = epsilon
+        logger.info(f"Initialized LpSeminorm with p={p}")
+    
+    def _convert_to_array(self, x: InputType) -> np.ndarray:
         """
-        Computes the Lp seminorm for the given input.
-
-        Args:
-            input: Union[IVector, IMatrix, str, Callable, list, tuple] - The input to compute the seminorm for.
-                Supported types are:
-                - IVector: High-dimensional vector
-                - IMatrix: Matrix structure
-                - str: String input
-                - Callable: Callable function
-                - list: List of elements
-                - tuple: Tuple of elements
-
-        Returns:
-            float: The computed Lp seminorm value.
-
-        Raises:
-            TypeError: If input type is not supported
-            ValueError: If the input cannot be processed
+        Convert input to a numpy array for computation.
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to convert
+            
+        Returns
+        -------
+        np.ndarray
+            The converted input as a numpy array
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
         """
-        logger.debug(f"Computing Lp seminorm for input of type {type(input).__name__}")
-
-        if self._is_vector(input):
-            vector = input
-            elements = vector.get_elements()
-        elif self._is_matrix(input):
-            matrix = input
-            elements = matrix.flatten()
-        elif self._is_sequence(input):
-            elements = list(input)
-        elif isinstance(input, str):
-            try:
-                elements = [float(input)]
-            except ValueError:
-                raise ValueError(f"Cannot convert string '{input}' to float")
-        elif self._is_callable(input):
-            # For callables, we would need to define how to compute the seminorm
-            # For example, integrate over a domain. This is a placeholder.
-            logger.warning("Callable input type is not fully implemented")
-            return 0.0
+        if isinstance(x, IVector):
+            return np.array(x.to_array())
+        elif isinstance(x, IMatrix):
+            return np.array(x.to_array())
+        elif isinstance(x, (list, tuple, np.ndarray)):
+            return np.array(x, dtype=float)
+        elif isinstance(x, str):
+            # Convert string to array of character codes
+            return np.array([ord(c) for c in x], dtype=float)
+        elif callable(x):
+            # For callable objects, we cannot compute a seminorm directly
+            raise TypeError("Cannot compute Lp seminorm for callable objects")
         else:
-            raise TypeError(f"Unsupported input type: {type(input).__name__}")
-
-        if not elements:
-            return 0.0
-
-        sum_powers = sum(abs(e) ** self.p for e in elements)
-        if sum_powers == 0:
-            return 0.0
-        return sum_powers ** (1.0 / self.p)
-
-    def check_triangle_inequality(
-        self,
-        a: Union[IVector, IMatrix, str, Callable, list, tuple],
-        b: Union[IVector, IMatrix, str, Callable, list, tuple],
-    ) -> bool:
+            try:
+                # Try to convert to array as a last resort
+                return np.array(x, dtype=float)
+            except:
+                raise TypeError(f"Unsupported input type for LpSeminorm: {type(x)}")
+    
+    def compute(self, x: InputType) -> float:
         """
-        Checks if the triangle inequality holds for the given elements a and b.
-
+        Compute the Lp seminorm of the input.
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to compute the seminorm for
+            
+        Returns
+        -------
+        float
+            The Lp seminorm value
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the computation cannot be performed on the given input
+        """
+        logger.debug(f"Computing Lp seminorm with p={self.p} for input of type {type(x)}")
+        
+        try:
+            arr = self._convert_to_array(x)
+            
+            # Handle special cases for common p values
+            if math.isclose(self.p, 1.0):
+                return float(np.sum(np.abs(arr)))
+            elif math.isclose(self.p, 2.0):
+                return float(np.sqrt(np.sum(np.abs(arr) ** 2)))
+            else:
+                # General case for any p
+                return float(np.sum(np.abs(arr) ** self.p) ** (1.0 / self.p))
+        
+        except Exception as e:
+            logger.error(f"Error computing Lp seminorm: {str(e)}")
+            raise
+    
+    def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
+        """
+        Check if the triangle inequality property holds for the given inputs.
+        
         The triangle inequality states that:
-        seminorm(a + b) <= seminorm(a) + seminorm(b)
-
-        Args:
-            a: Union[IVector, IMatrix, str, Callable, list, tuple] - First element to check
-            b: Union[IVector, IMatrix, str, Callable, list, tuple] - Second element to check
-
-        Returns:
-            bool: True if the triangle inequality holds, False otherwise
+        ||x + y|| ≤ ||x|| + ||y||
+        
+        Parameters
+        ----------
+        x : InputType
+            First input to check
+        y : InputType
+            Second input to check
+            
+        Returns
+        -------
+        bool
+            True if the triangle inequality holds, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input types are not supported or compatible
+        ValueError
+            If the check cannot be performed on the given inputs
         """
-        logger.debug("Checking triangle inequality")
-
-        seminorm_a = self.compute(a)
-        seminorm_b = self.compute(b)
-        if seminorm_a == 0 and seminorm_b == 0:
-            return True
-
+        logger.debug(f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}")
+        
         try:
-            a_plus_b = a + b
-        except TypeError:
-            logger.warning("Could not add elements a and b")
-            return False
-
-        seminorm_a_plus_b = self.compute(a_plus_b)
-
-        return seminorm_a_plus_b <= seminorm_a + seminorm_b
-
-    def check_scalar_homogeneity(
-        self,
-        a: Union[IVector, IMatrix, str, Callable, list, tuple],
-        scalar: Union[int, float],
-    ) -> bool:
+            x_arr = self._convert_to_array(x)
+            y_arr = self._convert_to_array(y)
+            
+            if x_arr.shape != y_arr.shape:
+                raise ValueError(f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}")
+            
+            # Compute the seminorm of x + y
+            sum_seminorm = self.compute(x_arr + y_arr)
+            
+            # Compute the seminorm of x and y separately
+            x_seminorm = self.compute(x_arr)
+            y_seminorm = self.compute(y_arr)
+            
+            # Check the triangle inequality with a small epsilon for numerical stability
+            return sum_seminorm <= x_seminorm + y_seminorm + self.epsilon
+            
+        except Exception as e:
+            logger.error(f"Error checking triangle inequality: {str(e)}")
+            raise
+    
+    def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Checks if the scalar homogeneity property holds for the given element a and scalar.
-
-        The scalar homogeneity property states that:
-        seminorm(s * a) = |s| * seminorm(a)
-
-        Args:
-            a: Union[IVector, IMatrix, str, Callable, list, tuple] - Element to check
-            scalar: Union[int, float] - Scalar value to scale with
-
-        Returns:
-            bool: True if the scalar homogeneity holds, False otherwise
+        Check if the scalar homogeneity property holds for the given input and scalar.
+        
+        The scalar homogeneity states that:
+        ||αx|| = |α|·||x||
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to check
+        alpha : T
+            The scalar to multiply by
+            
+        Returns
+        -------
+        bool
+            True if scalar homogeneity holds, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the check cannot be performed on the given input
         """
-        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
-
-        seminorm_a = self.compute(a)
-        if seminorm_a == 0:
-            return True
-
+        logger.debug(f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}")
+        
         try:
-            scaled_a = scalar * a
-        except TypeError:
-            logger.warning(f"Could not scale element a with scalar {scalar}")
-            return False
-
-        seminorm_scaled_a = self.compute(scaled_a)
-        expected = abs(scalar) * seminorm_a
-
-        return seminorm_scaled_a == expected
-
+            x_arr = self._convert_to_array(x)
+            
+            # Convert alpha to a complex number to handle different types
+            alpha_complex = complex(alpha)
+            alpha_abs = abs(alpha_complex)
+            
+            # Compute ||αx||
+            scaled_seminorm = self.compute(alpha_complex * x_arr)
+            
+            # Compute |α|·||x||
+            x_seminorm = self.compute(x_arr)
+            expected_scaled_seminorm = alpha_abs * x_seminorm
+            
+            # Check scalar homogeneity with a small epsilon for numerical stability
+            return abs(scaled_seminorm - expected_scaled_seminorm) <= self.epsilon * (1 + expected_scaled_seminorm)
+            
+        except Exception as e:
+            logger.error(f"Error checking scalar homogeneity: {str(e)}")
+            raise
+    
     def __str__(self) -> str:
         """
-        Returns a string representation of the LpSeminorm instance.
-
-        Returns:
-            str: String representation
+        Return a string representation of the LpSeminorm.
+        
+        Returns
+        -------
+        str
+            String representation
         """
         return f"LpSeminorm(p={self.p})"
-
+    
     def __repr__(self) -> str:
         """
-        Returns the official string representation of the LpSeminorm instance.
-
-        Returns:
-            str: Official string representation
+        Return a detailed string representation of the LpSeminorm.
+        
+        Returns
+        -------
+        str
+            Detailed string representation
         """
-        return self.__str__()
+        return f"LpSeminorm(p={self.p}, epsilon={self.epsilon})"

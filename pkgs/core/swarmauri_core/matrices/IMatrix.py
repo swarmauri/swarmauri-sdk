@@ -1,178 +1,351 @@
-from abc import ABC
-from typing import Tuple, Union, List
-import logging
+from abc import ABC, abstractmethod
+from typing import Tuple, List, TypeVar, Literal, Union, Iterator, overload, Sequence, Protocol
 
-from swarmauri_core.vectors.IVector import IVector
+T = TypeVar('T', bound=Union[int, float, complex])
+Shape = Tuple[int, ...]
+Index = Union[int, slice, Tuple[Union[int, slice], ...]]
 
-logger = logging.getLogger(__name__)
+
+class SupportsArray(Protocol):
+    """Protocol for objects that support array-like behavior."""
+    
+    @abstractmethod
+    def __array__(self) -> 'IMatrix': ...
+
+
+# Define a type for IVector to avoid circular imports
+IVector = TypeVar('IVector')
 
 
 class IMatrix(ABC):
     """
-    Interface for matrix operations. This class provides the foundation for 
-    implementing various matrix operations, including element-wise access, 
-    slicing, and basic matrix transformations.
+    Interface abstraction for matrix operations.
     
-    Attributes:
-        shape (Tuple[int, int]): The shape of the matrix (rows, columns)
-        dtype (type): The data type of the elements in the matrix
-        
-    Methods:
-        __getitem__: Gets elements using row and column indices or slices
-        __setitem__: Sets elements using row and column indices or slices
-        shape: Returns the shape of the matrix
-        reshape: Reshapes the matrix to a new shape
-        tolist: Converts the matrix to a list of lists
-        __add__: Element-wise addition with another matrix
-        __sub__: Element-wise subtraction with another matrix
-        __mul__: Element-wise multiplication with another matrix
-        __truediv__: Element-wise division with another matrix
+    This interface defines the standard operations and properties that all matrix
+    implementations must support, providing a common API for linear operators and 
+    2D structures.
     """
-
-    def __init__(self):
-        super().__init__()
-        logger.debug("Initialized IMatrix")
-
-    def __getitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice]) -> Union[float, IVector, 'IMatrix']:
+    
+    @abstractmethod
+    def __getitem__(self, key: Index) -> Union['IMatrix', IVector, T]:
         """
-        Gets elements using row and column indices or slices.
+        Get an element, row, column, or submatrix using indexing/slicing.
         
-        Args:
-            index: Tuple of indices or slices for row and column access
+        Parameters
+        ----------
+        key : Index
+            The index or slice to access
             
-        Returns:
-            Either a single element, a row vector, or a submatrix based on the index
-        """
-        logger.debug(f"Getting item with index {index}")
-        # Implementation would parse index and return appropriate data
-        raise NotImplementedError("Method not implemented")
-
-    def __setitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice], value: Union[float, IVector, 'IMatrix']):
-        """
-        Sets elements using row and column indices or slices.
+        Returns
+        -------
+        Union[IMatrix, IVector, T]
+            The requested element, vector, or submatrix
         
-        Args:
-            index: Tuple of indices or slices for row and column access
-            value: Value or values to set at the specified index
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
         """
-        logger.debug(f"Setting item at index {index} with value {value}")
-        # Implementation would parse index and set the value(s)
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
+    @abstractmethod
+    def __setitem__(self, key: Index, value: Union['IMatrix', IVector, T, Sequence[Sequence[T]]]) -> None:
+        """
+        Set an element, row, column, or submatrix using indexing/slicing.
+        
+        Parameters
+        ----------
+        key : Index
+            The index or slice to modify
+        value : Union[IMatrix, IVector, T, Sequence[Sequence[T]]]
+            The value to set
+            
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
+        ValueError
+            If the value has incompatible dimensions
+        """
+        pass
+    
+    @property
+    @abstractmethod
     def shape(self) -> Tuple[int, int]:
         """
-        Returns the shape of the matrix as a tuple (rows, columns)
+        Get the shape of the matrix.
         
-        Returns:
-            Tuple[int, int]: Shape of the matrix
+        Returns
+        -------
+        Tuple[int, int]
+            The dimensions of the matrix as (rows, columns)
         """
-        logger.debug("Getting matrix shape")
-        raise NotImplementedError("Method not implemented")
-
-    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
+        pass
+    
+    @abstractmethod
+    def reshape(self, shape: Tuple[int, int]) -> 'IMatrix':
         """
-        Reshapes the matrix to a new shape.
+        Reshape the matrix to the specified dimensions.
         
-        Args:
-            new_shape: New shape as a tuple (new_rows, new_cols)
-        
-        Returns:
-            Reshaped matrix
+        Parameters
+        ----------
+        shape : Tuple[int, int]
+            The new dimensions as (rows, columns)
+            
+        Returns
+        -------
+        IMatrix
+            A reshaped matrix
+            
+        Raises
+        ------
+        ValueError
+            If the new shape is incompatible with the total number of elements
         """
-        logger.debug(f"Reshaping matrix to {new_shape}")
-        # Implementation would verify new shape compatibility and reshape data
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
+    @property
+    @abstractmethod
     def dtype(self) -> type:
         """
-        Returns the data type of the elements in the matrix
+        Get the data type of the matrix elements.
         
-        Returns:
-            type: Data type of the matrix elements
+        Returns
+        -------
+        type
+            The data type of the elements
         """
-        logger.debug("Getting matrix dtype")
-        raise NotImplementedError("Method not implemented")
-
-    def tolist(self) -> List[List[float]]:
+        pass
+    
+    @abstractmethod
+    def tolist(self) -> List[List[T]]:
         """
-        Converts the matrix to a list of lists of floats
+        Convert the matrix to a nested list.
         
-        Returns:
-            List[List[float]]: Matrix as a list of lists
+        Returns
+        -------
+        List[List[T]]
+            A list of lists representing the matrix
         """
-        logger.debug("Converting matrix to list")
-        raise NotImplementedError("Method not implemented")
-
-    def __add__(self, other: 'IMatrix') -> 'IMatrix':
+        pass
+    
+    @abstractmethod
+    def row(self, index: int) -> IVector:
         """
-        Element-wise addition with another matrix
+        Get a specific row of the matrix.
         
-        Args:
-            other: Another matrix to add
+        Parameters
+        ----------
+        index : int
+            The row index
             
-        Returns:
-            Resulting matrix after addition
-        """
-        logger.debug("Performing matrix addition")
-        # Implementation would perform element-wise addition
-        raise NotImplementedError("Method not implemented")
-
-    def __sub__(self, other: 'IMatrix') -> 'IMatrix':
-        """
-        Element-wise subtraction with another matrix
-        
-        Args:
-            other: Another matrix to subtract
+        Returns
+        -------
+        IVector
+            The specified row as a vector
             
-        Returns:
-            Resulting matrix after subtraction
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
         """
-        logger.debug("Performing matrix subtraction")
-        # Implementation would perform element-wise subtraction
-        raise NotImplementedError("Method not implemented")
-
-    def __mul__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
+        pass
+    
+    @abstractmethod
+    def column(self, index: int) -> IVector:
         """
-        Element-wise multiplication with another matrix or scalar
+        Get a specific column of the matrix.
         
-        Args:
-            other: Either a scalar or another matrix to multiply
+        Parameters
+        ----------
+        index : int
+            The column index
             
-        Returns:
-            Resulting matrix after multiplication
-        """
-        logger.debug(f"Performing matrix multiplication with {other}")
-        # Implementation would perform element-wise multiplication
-        raise NotImplementedError("Method not implemented")
-
-    def __truediv__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
-        """
-        Element-wise division with another matrix or scalar
-        
-        Args:
-            other: Either a scalar or another matrix to divide by
+        Returns
+        -------
+        IVector
+            The specified column as a vector
             
-        Returns:
-            Resulting matrix after division
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
         """
-        logger.debug(f"Performing matrix division by {other}")
-        # Implementation would perform element-wise division
-        raise NotImplementedError("Method not implemented")
-
-    def __str__(self) -> str:
+        pass
+    
+    @abstractmethod
+    def __add__(self, other: Union['IMatrix', T]) -> 'IMatrix':
         """
-        Returns a string representation of the matrix
+        Add another matrix or scalar to this matrix.
         
-        Returns:
-            str: String representation of the matrix
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to add
+            
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+            
+        Raises
+        ------
+        ValueError
+            If the matrices have incompatible dimensions
         """
-        return f"IMatrix(shape={self.shape()}, dtype={self.dtype()})"
-
-    def __repr__(self) -> str:
+        pass
+    
+    @abstractmethod
+    def __sub__(self, other: Union['IMatrix', T]) -> 'IMatrix':
         """
-        Returns the official string representation of the matrix
+        Subtract another matrix or scalar from this matrix.
         
-        Returns:
-            str: Official string representation
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to subtract
+            
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+            
+        Raises
+        ------
+        ValueError
+            If the matrices have incompatible dimensions
         """
-        return self.__str__()
+        pass
+    
+    @abstractmethod
+    def __mul__(self, other: Union['IMatrix', T]) -> 'IMatrix':
+        """
+        Element-wise multiply this matrix by another matrix or scalar.
+        
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to multiply by
+            
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+            
+        Raises
+        ------
+        ValueError
+            If the matrices have incompatible dimensions
+        """
+        pass
+    
+    @abstractmethod
+    def __matmul__(self, other: 'IMatrix') -> 'IMatrix':
+        """
+        Perform matrix multiplication with another matrix.
+        
+        Parameters
+        ----------
+        other : IMatrix
+            The matrix to multiply with
+            
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+            
+        Raises
+        ------
+        ValueError
+            If the matrices have incompatible dimensions for multiplication
+        """
+        pass
+    
+    @abstractmethod
+    def __truediv__(self, other: Union['IMatrix', T]) -> 'IMatrix':
+        """
+        Element-wise divide this matrix by another matrix or scalar.
+        
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to divide by
+            
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+            
+        Raises
+        ------
+        ValueError
+            If the matrices have incompatible dimensions
+        ZeroDivisionError
+            If dividing by zero
+        """
+        pass
+    
+    @abstractmethod
+    def __neg__(self) -> 'IMatrix':
+        """
+        Negate all elements in the matrix.
+        
+        Returns
+        -------
+        IMatrix
+            The negated matrix
+        """
+        pass
+    
+    @abstractmethod
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if this matrix is equal to another matrix.
+        
+        Parameters
+        ----------
+        other : object
+            The object to compare with
+            
+        Returns
+        -------
+        bool
+            True if the matrices are equal, False otherwise
+        """
+        pass
+    
+    @abstractmethod
+    def __iter__(self) -> Iterator[IVector]:
+        """
+        Iterate over the rows of the matrix.
+        
+        Returns
+        -------
+        Iterator[IVector]
+            An iterator yielding rows as vectors
+        """
+        pass
+    
+    @abstractmethod
+    def transpose(self) -> 'IMatrix':
+        """
+        Transpose the matrix.
+        
+        Returns
+        -------
+        IMatrix
+            The transposed matrix
+        """
+        pass
+    
+    @abstractmethod
+    def __array__(self) -> 'IMatrix':
+        """
+        Support for numpy's array protocol.
+        
+        Returns
+        -------
+        IMatrix
+            The matrix itself or a compatible representation
+        """
+        pass

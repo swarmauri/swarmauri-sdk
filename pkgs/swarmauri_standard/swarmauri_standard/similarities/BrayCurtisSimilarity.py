@@ -1,159 +1,281 @@
-from typing import Literal, Optional, Sequence, Union
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from typing import List, Sequence, Union, Optional, Literal, Any
 import numpy as np
 import logging
+from swarmauri_core.similarities.ISimilarity import ComparableType
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_base.ComponentBase import ComponentBase
 
+# Set up logger
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(SimilarityBase, "BrayCurtisSimilarity")
 class BrayCurtisSimilarity(SimilarityBase):
     """
-    Provides implementation for Bray-Curtis similarity measure.
-
-    The Bray-Curtis similarity is a normalized measure of similarity
-    between two vectors, commonly used in ecology. It is calculated as:
-
-    S = 1 - (sum(|x_i - y_i|) / sum(x_i + y_i))
-
-    This implementation ensures non-negativity of input vectors and provides
-    comprehensive validation of input data.
+    Bray-Curtis similarity measure.
+    
+    This similarity measure is commonly used in ecology to quantify the compositional 
+    dissimilarity between two samples. It is based on the ratio of the sum of the absolute 
+    differences to the sum of the abundances.
+    
+    The Bray-Curtis similarity is calculated as 1 - (sum of absolute differences / sum of all values).
+    
+    Attributes
+    ----------
+    type : Literal["BrayCurtisSimilarity"]
+        Type identifier for the similarity measure
     """
-
+    
     type: Literal["BrayCurtisSimilarity"] = "BrayCurtisSimilarity"
-    resource: Optional[str] = "SIMILARITY"
-
+    
     def __init__(self):
         """
-        Initializes the BrayCurtisSimilarity instance.
+        Initialize the Bray-Curtis similarity measure.
         """
         super().__init__()
-        logger.debug("BrayCurtisSimilarity instance initialized")
-
-    def similarity(
-        self,
-        x: Union[np.ndarray, Sequence[float]],
-        y: Union[np.ndarray, Sequence[float]],
-    ) -> float:
+        logger.debug("Initializing BrayCurtisSimilarity")
+    
+    def _validate_input(self, x: ComparableType, y: ComparableType) -> tuple:
         """
-        Calculates the Bray-Curtis similarity between two non-negative vectors.
-
-        Args:
-            x: First vector for comparison
-            y: Second vector for comparison
-
-        Returns:
-            float: Similarity score between 0 and 1
-
-        Raises:
-            ValueError: If input vectors are invalid
+        Validate that inputs are non-negative arrays or lists of the same length.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        tuple
+            Tuple of numpy arrays representing the validated inputs
+            
+        Raises
+        ------
+        ValueError
+            If inputs contain negative values or have different lengths
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        logger.debug(f"Calculating Bray-Curtis similarity between vectors {x} and {y}")
-
-        # Validate input vectors
-        self._validate_vectors(x, y)
-
-        # Convert to numpy arrays for efficient computation
-        x_vec = np.asarray(x, dtype=np.float64)
-        y_vec = np.asarray(y, dtype=np.float64)
-
-        # Compute absolute differences sum
-        difference = np.sum(np.abs(x_vec - y_vec))
-
-        # Compute total sum of both vectors
-        total = np.sum(x_vec + y_vec)
-
-        # Handle division by zero case
-        if total == 0:
-            logger.warning(
-                "Both input vectors are zero vectors - similarity is 1 by definition"
-            )
-            return 1.0
-
-        similarity = 1.0 - (difference / total)
-
-        logger.debug(f"Bray-Curtis similarity score: {similarity}")
-        return similarity
-
-    def dissimilarity(
-        self,
-        x: Union[np.ndarray, Sequence[float]],
-        y: Union[np.ndarray, Sequence[float]],
-    ) -> float:
+        try:
+            # Convert inputs to numpy arrays
+            x_array = np.asarray(x, dtype=float)
+            y_array = np.asarray(y, dtype=float)
+            
+            # Check if arrays have the same shape
+            if x_array.shape != y_array.shape:
+                raise ValueError(f"Input vectors must have the same shape: {x_array.shape} != {y_array.shape}")
+            
+            # Check for negative values
+            if np.any(x_array < 0) or np.any(y_array < 0):
+                raise ValueError("Bray-Curtis similarity requires non-negative input values")
+            
+            return x_array, y_array
+            
+        except (TypeError, ValueError) as e:
+            logger.error(f"Input validation error: {str(e)}")
+            raise
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculates the Bray-Curtis dissimilarity between two vectors.
-        This is simply 1 minus the similarity score.
-
-        Args:
-            x: First vector for comparison
-            y: Second vector for comparison
-
-        Returns:
-            float: Dissimilarity score between 0 and 1
+        Calculate the Bray-Curtis similarity between two vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        float
+            Bray-Curtis similarity between x and y
+            
+        Raises
+        ------
+        ValueError
+            If inputs contain negative values or have different lengths
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        logger.debug(
-            f"Calculating Bray-Curtis dissimilarity between vectors {x} and {y}"
-        )
-        return 1.0 - self.similarity(x, y)
-
-    def check_boundedness(self) -> bool:
+        try:
+            x_array, y_array = self._validate_input(x, y)
+            
+            # Calculate sum of absolute differences
+            sum_abs_diff = np.sum(np.abs(x_array - y_array))
+            
+            # Calculate sum of all values
+            sum_all = np.sum(x_array) + np.sum(y_array)
+            
+            # If both vectors are all zeros, they are identical
+            if sum_all == 0:
+                return 1.0
+            
+            # Calculate Bray-Curtis similarity: 1 - (sum of abs differences / sum of all values)
+            similarity_value = 1.0 - (sum_abs_diff / sum_all)
+            
+            return float(similarity_value)
+            
+        except Exception as e:
+            logger.error(f"Error calculating Bray-Curtis similarity: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Checks if the similarity measure is bounded.
-        Bray-Curtis similarity is bounded between 0 and 1.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        Calculate Bray-Curtis similarities between one vector and multiple other vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference vector
+        ys : Sequence[ComparableType]
+            Sequence of vectors to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of Bray-Curtis similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any inputs contain negative values or have different lengths
+        TypeError
+            If any inputs cannot be converted to numeric arrays
+        """
+        try:
+            # Convert x to numpy array once for efficiency
+            x_array = np.asarray(x, dtype=float)
+            
+            # Check for negative values in x
+            if np.any(x_array < 0):
+                raise ValueError("Bray-Curtis similarity requires non-negative input values")
+            
+            # Calculate sum of x once for efficiency
+            sum_x = np.sum(x_array)
+            
+            result = []
+            for y in ys:
+                y_array = np.asarray(y, dtype=float)
+                
+                # Check if arrays have the same shape
+                if x_array.shape != y_array.shape:
+                    raise ValueError(f"Input vectors must have the same shape: {x_array.shape} != {y_array.shape}")
+                
+                # Check for negative values in y
+                if np.any(y_array < 0):
+                    raise ValueError("Bray-Curtis similarity requires non-negative input values")
+                
+                sum_y = np.sum(y_array)
+                sum_abs_diff = np.sum(np.abs(x_array - y_array))
+                sum_all = sum_x + sum_y
+                
+                # If both vectors are all zeros, they are identical
+                if sum_all == 0:
+                    result.append(1.0)
+                else:
+                    similarity_value = 1.0 - (sum_abs_diff / sum_all)
+                    result.append(float(similarity_value))
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error calculating multiple Bray-Curtis similarities: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
+        """
+        Calculate the Bray-Curtis dissimilarity between two vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        float
+            Bray-Curtis dissimilarity between x and y
+            
+        Raises
+        ------
+        ValueError
+            If inputs contain negative values or have different lengths
+        TypeError
+            If inputs cannot be converted to numeric arrays
+        """
+        try:
+            x_array, y_array = self._validate_input(x, y)
+            
+            # Calculate sum of absolute differences
+            sum_abs_diff = np.sum(np.abs(x_array - y_array))
+            
+            # Calculate sum of all values
+            sum_all = np.sum(x_array) + np.sum(y_array)
+            
+            # If both vectors are all zeros, they are identical
+            if sum_all == 0:
+                return 0.0
+            
+            # Calculate Bray-Curtis dissimilarity directly: sum of abs differences / sum of all values
+            dissimilarity_value = sum_abs_diff / sum_all
+            
+            return float(dissimilarity_value)
+            
+        except Exception as e:
+            logger.error(f"Error calculating Bray-Curtis dissimilarity: {str(e)}")
+            raise
+    
+    def check_bounded(self) -> bool:
+        """
+        Check if the Bray-Curtis similarity measure is bounded.
+        
+        The Bray-Curtis similarity is bounded in the range [0, 1].
+        
+        Returns
+        -------
+        bool
+            True, as the Bray-Curtis similarity is bounded
         """
         return True
-
-    def check_reflexivity(self) -> bool:
+    
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Checks if the similarity measure satisfies reflexivity.
-        Bray-Curtis similarity is reflexive as s(x, x) = 1 for all x.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Check if the Bray-Curtis similarity measure is symmetric.
+        
+        The Bray-Curtis similarity is symmetric: s(x,y) = s(y,x).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        bool
+            True, as the Bray-Curtis similarity is symmetric
+            
+        Raises
+        ------
+        ValueError
+            If inputs contain negative values or have different lengths
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        return True
-
-    def check_symmetry(self) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-        Bray-Curtis similarity is symmetric as s(x, y) = s(y, x).
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
-        """
-        return True
-
-    def check_identity(self) -> bool:
-        """
-        Checks if the similarity measure satisfies identity of discernibles.
-        Bray-Curtis similarity satisfies this property as s(x, y) = 1 if and only if x = y.
-
-        Returns:
-            bool: True if the measure satisfies identity of discernibles, False otherwise
-        """
-        return True
-
-    def _validate_vectors(
-        self,
-        x: Union[np.ndarray, Sequence[float]],
-        y: Union[np.ndarray, Sequence[float]],
-    ) -> None:
-        """
-        Validates input vectors for Bray-Curtis similarity calculation.
-
-        Args:
-            x: First vector to validate
-            y: Second vector to validate
-
-        Raises:
-            ValueError: If vectors contain negative values or have different lengths
-        """
-        if len(x) != len(y):
-            raise ValueError("Input vectors must have the same length")
-
-        if np.any(np.array(x) < 0) or np.any(np.array(y) < 0):
-            raise ValueError("Input vectors must contain non-negative values")
+        try:
+            # Bray-Curtis similarity is symmetric by definition
+            # We'll verify this empirically
+            similarity_xy = self.similarity(x, y)
+            similarity_yx = self.similarity(y, x)
+            
+            # Use approximate equality to handle floating-point precision issues
+            return abs(similarity_xy - similarity_yx) < 1e-10
+            
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            raise

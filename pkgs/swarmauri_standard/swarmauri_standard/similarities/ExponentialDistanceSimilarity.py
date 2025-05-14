@@ -1,175 +1,253 @@
-from typing import Union, Sequence, Optional, Callable, Literal
-import numpy as np
+from typing import Callable, Sequence, List, Optional, Literal, Union, Any
 import logging
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
+import math
 
+from swarmauri_core.similarities.ISimilarity import ComparableType
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(SimilarityBase, "ExponentialDistanceSimilarity")
 class ExponentialDistanceSimilarity(SimilarityBase):
     """
-    Implements an exponentially decaying similarity measure based on distance.
-
-    The similarity score is calculated as:
-    s(x, y) = exp(-distance(x, y) / scale)
-
-    Where:
-    - distance(x, y) is the distance between elements x and y
-    - scale is a positive scaling factor that controls the decay rate
-
-    This implementation supports arbitrary distance measures and provides
-    both similarity and dissimilarity calculations.
+    Similarity measure based on exponentially decaying distance.
+    
+    This class implements a similarity measure where the similarity between two objects
+    decreases exponentially with the distance between them. The formula used is:
+    similarity = exp(-alpha * distance(x, y))
+    
+    Attributes
+    ----------
+    type : Literal["ExponentialDistanceSimilarity"]
+        The type identifier for this similarity measure
+    alpha : float
+        Decay rate parameter that controls how quickly similarity decreases with distance
+    distance_func : Callable[[ComparableType, ComparableType], float]
+        Function that calculates distance between two objects
     """
-
+    
     type: Literal["ExponentialDistanceSimilarity"] = "ExponentialDistanceSimilarity"
-
-    def __init__(self, scale: float = 1.0, distance_fn: Optional[Callable] = None):
+    alpha: float
+    distance_func: Callable[[ComparableType, ComparableType], float]
+    
+    def __init__(self, 
+                 distance_func: Callable[[ComparableType, ComparableType], float],
+                 alpha: float = 1.0):
         """
-        Initializes the ExponentialDistanceSimilarity instance.
-
-        Args:
-            scale: Positive scaling factor controlling the exponential decay
-            distance_fn: Optional custom distance function. If not provided,
-                uses Euclidean distance by default.
+        Initialize the exponential distance similarity measure.
+        
+        Parameters
+        ----------
+        distance_func : Callable[[ComparableType, ComparableType], float]
+            Function that calculates distance between two objects
+        alpha : float, optional
+            Decay rate parameter, by default 1.0. Higher values make similarity 
+            decrease more rapidly with distance.
+            
+        Raises
+        ------
+        ValueError
+            If alpha is not positive or distance_func is not callable
         """
         super().__init__()
-        self.scale = scale
-        self.distance_fn = distance_fn if distance_fn else self._default_distance
-
-    def _default_distance(
-        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
-    ) -> float:
+        
+        if not callable(distance_func):
+            error_msg = "distance_func must be callable"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+            
+        if alpha <= 0:
+            error_msg = "alpha must be positive"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+            
+        self.distance_func = distance_func
+        self.alpha = alpha
+        logger.debug(f"Initialized ExponentialDistanceSimilarity with alpha={alpha}")
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Default distance function using Euclidean distance.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            float: Euclidean distance between x and y
+        Calculate the similarity between two objects using exponential decay of distance.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
+            
+        Returns
+        -------
+        float
+            Similarity score between x and y in the range [0, 1]
+            
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable
+        TypeError
+            If the input types are not supported by the distance function
         """
-        return np.sqrt(np.sum((np.asarray(x) - np.asarray(y)) ** 2))
-
-    def similarity(
-        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
-    ) -> float:
+        try:
+            # Calculate distance between x and y
+            distance = self.distance_func(x, y)
+            
+            # Check if distance is negative
+            if distance < 0:
+                error_msg = f"Distance function returned negative value: {distance}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+                
+            # Calculate similarity using exponential decay
+            similarity_value = math.exp(-self.alpha * distance)
+            
+            logger.debug(f"Calculated similarity: {similarity_value} for distance: {distance}")
+            return similarity_value
+            
+        except Exception as e:
+            logger.error(f"Error in similarity calculation: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Calculates the similarity between two elements using exponential decay.
-
-        Args:
-            x: First element to compare
-            y: Second element to compare
-
-        Returns:
-            float: Similarity score between x and y in [0, 1]
+        Calculate similarities between one object and multiple other objects.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference object
+        ys : Sequence[ComparableType]
+            Sequence of objects to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any objects are incomparable
+        TypeError
+            If any input types are not supported by the distance function
         """
-        distance = self.distance_fn(x, y)
-        similarity_score = np.exp(-distance / self.scale)
-        logger.debug(f"Similarity between {x} and {y}: {similarity_score}")
-        return similarity_score
-
-    def similarities(
-        self, xs: Union[Sequence, np.ndarray], ys: Union[Sequence, np.ndarray]
-    ) -> Union[float, Sequence[float]]:
+        try:
+            # Calculate distances for all objects in ys
+            distances = [self.distance_func(x, y) for y in ys]
+            
+            # Check if any distance is negative
+            if any(d < 0 for d in distances):
+                error_msg = "Distance function returned negative value(s)"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+                
+            # Calculate similarities using exponential decay
+            similarity_values = [math.exp(-self.alpha * d) for d in distances]
+            
+            logger.debug(f"Calculated {len(similarity_values)} similarity values")
+            return similarity_values
+            
+        except Exception as e:
+            logger.error(f"Error in similarities calculation: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculates similarities for multiple pairs of elements.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Union[float, Sequence[float]]: Similarity scores for the pairs
+        Calculate the dissimilarity between two objects.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
+            
+        Returns
+        -------
+        float
+            Dissimilarity score between x and y in the range [0, 1]
+            
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable
+        TypeError
+            If the input types are not supported by the distance function
         """
-        if len(xs) != len(ys):
-            raise ValueError("Number of elements in xs and ys must match")
-
-        scores = [self.similarity(x, y) for x, y in zip(xs, ys)]
-        logger.debug(f"Similarities for multiple pairs: {scores}")
-        return scores
-
-    def dissimilarity(
-        self, x: Union[Sequence, np.ndarray], y: Union[Sequence, np.ndarray]
-    ) -> float:
+        try:
+            # For bounded similarity in [0,1], dissimilarity is 1-similarity
+            return 1.0 - self.similarity(x, y)
+        except Exception as e:
+            logger.error(f"Error in dissimilarity calculation: {str(e)}")
+            raise
+    
+    def check_bounded(self) -> bool:
         """
-        Calculates the dissimilarity between two elements.
-
-        Args:
-            x: First element to compare
-            y: Second element to compare
-
-        Returns:
-            float: Dissimilarity score between x and y in [0, 1]
+        Check if the similarity measure is bounded.
+        
+        The exponential similarity measure is bounded in the range [0,1].
+        
+        Returns
+        -------
+        bool
+            True, as this similarity measure is bounded
         """
-        similarity = self.similarity(x, y)
-        dissimilarity_score = 1.0 - similarity
-        logger.debug(f"Dissimilarity between {x} and {y}: {dissimilarity_score}")
-        return dissimilarity_score
-
-    def dissimilarities(
-        self, xs: Union[Sequence, np.ndarray], ys: Union[Sequence, np.ndarray]
-    ) -> Union[float, Sequence[float]]:
-        """
-        Calculates dissimilarity scores for multiple pairs of elements.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
-        """
-        if len(xs) != len(ys):
-            raise ValueError("Number of elements in xs and ys must match")
-
-        scores = [self.dissimilarity(x, y) for x, y in zip(xs, ys)]
-        logger.debug(f"Dissimilarities for multiple pairs: {scores}")
-        return scores
-
-    def check_boundedness(self) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        The exponential distance similarity is bounded between 0 and 1.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
-        """
+        # Exponential similarity is always bounded in [0,1]
         return True
-
-    def check_reflexivity(self) -> bool:
+    
+    def to_dict(self) -> dict:
         """
-        Checks if the similarity measure satisfies reflexivity.
-
-        For all x, s(x, x) = 1 since distance(x, x) = 0.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Convert the similarity measure to a dictionary representation.
+        
+        Returns
+        -------
+        dict
+            Dictionary representation of the similarity measure
+            
+        Note
+        ----
+        The distance function cannot be directly serialized, so it's not included
+        in the dictionary. When deserializing, the distance function must be provided.
         """
-        return True
-
-    def check_symmetry(self) -> bool:
+        base_dict = super().to_dict()
+        base_dict.update({
+            "alpha": self.alpha,
+            # Note: distance_func cannot be serialized directly
+            "distance_func_info": "Distance function cannot be serialized, must be provided when reconstructing"
+        })
+        return base_dict
+    
+    @classmethod
+    def from_dict(cls, data: dict, **kwargs) -> 'ExponentialDistanceSimilarity':
         """
-        Checks if the similarity measure is symmetric.
-
-        Since distance measures are symmetric, this similarity measure
-        is symmetric as well.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        Create an instance from a dictionary representation.
+        
+        Parameters
+        ----------
+        data : dict
+            Dictionary representation of the similarity measure
+        **kwargs
+            Additional keyword arguments, must include 'distance_func'
+            
+        Returns
+        -------
+        ExponentialDistanceSimilarity
+            New instance of the similarity measure
+            
+        Raises
+        ------
+        ValueError
+            If 'distance_func' is not provided in kwargs
         """
-        return True
-
-    def check_identity(self) -> bool:
-        """
-        Checks if the similarity measure satisfies identity of discernibles.
-
-        For distinct x and y, s(x, y) < 1 if they are different.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
-        """
-        return True
+        if 'distance_func' not in kwargs:
+            error_msg = "distance_func must be provided when reconstructing ExponentialDistanceSimilarity"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+            
+        distance_func = kwargs['distance_func']
+        alpha = data.get('alpha', 1.0)
+        
+        return cls(distance_func=distance_func, alpha=alpha)

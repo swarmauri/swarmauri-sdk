@@ -1,166 +1,315 @@
-from typing import Union, Sequence, Optional, Literal
+from typing import Set, List, Sequence, Literal, TypeVar, Optional, Union, Any
 import logging
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from collections.abc import Collection
 
+from swarmauri_core.similarities.ISimilarity import ComparableType
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
+T = TypeVar('T')
 
 @ComponentBase.register_type(SimilarityBase, "OverlapCoefficientSimilarity")
 class OverlapCoefficientSimilarity(SimilarityBase):
     """
-    Implementation of the Overlap Coefficient similarity measure.
-
-    The Overlap Coefficient is defined as the ratio of the intersection size to
-    the size of the smaller of the two sets. It is sensitive to cases where one set
-    is completely included in the other.
-
-    Inherits from SimilarityBase and implements all required methods for
-    similarity calculation.
+    Overlap Coefficient Similarity implementation.
+    
+    The Overlap Coefficient measures the overlap between two sets.
+    It is defined as the size of the intersection divided by the size of the smaller set.
+    This makes it sensitive to complete inclusion, where one set is a subset of the other.
+    
+    Attributes
+    ----------
+    type : Literal["OverlapCoefficientSimilarity"]
+        The type identifier for this similarity measure
     """
-
+    
     type: Literal["OverlapCoefficientSimilarity"] = "OverlapCoefficientSimilarity"
-    resource: Optional[str] = "SIMILARITY.OVERLAP"
-
-    def similarity(self, x: Union[Sequence, str], y: Union[Sequence, str]) -> float:
+    
+    def __init__(self):
+        """Initialize the Overlap Coefficient Similarity measure."""
+        super().__init__()
+        logger.debug("Initializing OverlapCoefficientSimilarity")
+    
+    def _convert_to_set(self, x: Any) -> Set:
         """
-        Calculate the similarity between two elements using the Overlap Coefficient.
-
-        The Overlap Coefficient is calculated as:
-            |x ∩ y| / min(|x|, |y|)
-
-        Args:
-            x: First element to compare (sequence or string)
-            y: Second element to compare (sequence or string)
-
-        Returns:
-            float: Similarity score between 0 and 1
-
-        Raises:
-            ValueError: If either x or y is empty
+        Convert input to a set if it's not already a set.
+        
+        Parameters
+        ----------
+        x : Any
+            Input to convert to a set
+            
+        Returns
+        -------
+        Set
+            The input converted to a set
+            
+        Raises
+        ------
+        TypeError
+            If the input cannot be converted to a set
         """
-        logger.debug(f"Calculating overlap coefficient similarity between {x} and {y}")
-
-        # Convert elements to sets
-        set_x = set(x)
-        set_y = set(y)
-
-        # Calculate intersection
-        intersection = set_x & set_y
-        overlap = len(intersection)
-
-        # Get sizes of sets
-        size_x = len(set_x)
-        size_y = len(set_y)
-
-        # Determine the size of the smaller set
-        smaller_size = min(size_x, size_y)
-
-        if smaller_size == 0:
-            raise ValueError("Both sets must be non-empty")
-
-        # Calculate and return the coefficient
-        coefficient = overlap / smaller_size
-        return coefficient
-
-    def similarities(
-        self, xs: Union[Sequence, str], ys: Union[Sequence, str]
-    ) -> Sequence[float]:
+        if isinstance(x, set):
+            return x
+        elif isinstance(x, Collection):
+            return set(x)
+        else:
+            try:
+                return set(x)
+            except (TypeError, ValueError) as e:
+                logger.error(f"Cannot convert input to set: {str(e)}")
+                raise TypeError(f"Input must be convertible to a set: {str(e)}")
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculate similarities for multiple pairs of elements.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Sequence[float]: List of similarity scores
+        Calculate the Overlap Coefficient similarity between two sets.
+        
+        The Overlap Coefficient is defined as |X ∩ Y| / min(|X|, |Y|).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First set or collection
+        y : ComparableType
+            Second set or collection
+            
+        Returns
+        -------
+        float
+            Overlap Coefficient similarity between x and y
+            
+        Raises
+        ------
+        ValueError
+            If either set is empty
+        TypeError
+            If inputs cannot be converted to sets
         """
-        logger.debug(
-            f"Calculating overlap coefficient similarities for {len(xs)} pairs"
-        )
-        return [self.similarity(x, y) for x, y in zip(xs, ys)]
-
-    def dissimilarity(self, x: Union[Sequence, str], y: Union[Sequence, str]) -> float:
+        try:
+            set_x = self._convert_to_set(x)
+            set_y = self._convert_to_set(y)
+            
+            # Check if sets are non-empty
+            if not set_x or not set_y:
+                logger.error("Sets must be non-empty for Overlap Coefficient")
+                raise ValueError("Sets must be non-empty for Overlap Coefficient")
+            
+            # Calculate intersection
+            intersection_size = len(set_x.intersection(set_y))
+            
+            # Calculate minimum size
+            min_size = min(len(set_x), len(set_y))
+            
+            # Calculate overlap coefficient
+            return intersection_size / min_size
+        except Exception as e:
+            logger.error(f"Error calculating Overlap Coefficient similarity: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Calculate the dissimilarity between two elements.
-
-        Dissimilarity is 1 minus the similarity score.
-
-        Args:
-            x: First element to compare
-            y: Second element to compare
-
-        Returns:
-            float: Dissimilarity score between 0 and 1
+        Calculate Overlap Coefficient similarities between one set and multiple other sets.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference set or collection
+        ys : Sequence[ComparableType]
+            Sequence of sets or collections to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of Overlap Coefficient similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any set is empty
+        TypeError
+            If any input cannot be converted to a set
         """
-        logger.debug(
-            f"Calculating overlap coefficient dissimilarity between {x} and {y}"
-        )
+        try:
+            # Convert x to set once for efficiency
+            set_x = self._convert_to_set(x)
+            
+            if not set_x:
+                logger.error("Reference set must be non-empty for Overlap Coefficient")
+                raise ValueError("Reference set must be non-empty for Overlap Coefficient")
+            
+            len_x = len(set_x)
+            results = []
+            
+            for y in ys:
+                set_y = self._convert_to_set(y)
+                
+                if not set_y:
+                    logger.error("Comparison set must be non-empty for Overlap Coefficient")
+                    raise ValueError("Comparison set must be non-empty for Overlap Coefficient")
+                
+                # Calculate intersection
+                intersection_size = len(set_x.intersection(set_y))
+                
+                # Calculate minimum size
+                min_size = min(len_x, len(set_y))
+                
+                # Calculate overlap coefficient
+                results.append(intersection_size / min_size)
+            
+            return results
+        except Exception as e:
+            logger.error(f"Error calculating multiple Overlap Coefficient similarities: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
+        """
+        Calculate the Overlap Coefficient dissimilarity between two sets.
+        
+        Defined as 1 - similarity(x, y).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First set or collection
+        y : ComparableType
+            Second set or collection
+            
+        Returns
+        -------
+        float
+            Overlap Coefficient dissimilarity between x and y
+            
+        Raises
+        ------
+        ValueError
+            If either set is empty
+        TypeError
+            If inputs cannot be converted to sets
+        """
         return 1.0 - self.similarity(x, y)
-
-    def dissimilarities(
-        self, xs: Union[Sequence, str], ys: Union[Sequence, str]
-    ) -> Sequence[float]:
+    
+    def check_bounded(self) -> bool:
         """
-        Calculate dissimilarities for multiple pairs of elements.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Sequence[float]: List of dissimilarity scores
+        Check if the Overlap Coefficient similarity measure is bounded.
+        
+        The Overlap Coefficient is bounded in the range [0, 1].
+        
+        Returns
+        -------
+        bool
+            True, as the Overlap Coefficient is bounded
         """
-        logger.debug(
-            f"Calculating overlap coefficient dissimilarities for {len(xs)} pairs"
-        )
-        return [self.dissimilarity(x, y) for x, y in zip(xs, ys)]
-
-    def check_boundedness(self) -> bool:
+        return True
+    
+    def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Check if the similarity measure is bounded.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        Check if the Overlap Coefficient similarity measure is reflexive: s(x,x) = 1.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Object to check reflexivity with
+            
+        Returns
+        -------
+        bool
+            True, as the Overlap Coefficient is reflexive
+            
+        Raises
+        ------
+        ValueError
+            If the set is empty
+        TypeError
+            If the input cannot be converted to a set
         """
-        logger.debug("Checking boundedness of overlap coefficient similarity")
-        return True  # Overlap Coefficient scores are bounded between 0 and 1
-
-    def check_reflexivity(self) -> bool:
+        try:
+            set_x = self._convert_to_set(x)
+            
+            if not set_x:
+                logger.error("Set must be non-empty for Overlap Coefficient")
+                raise ValueError("Set must be non-empty for Overlap Coefficient")
+            
+            # For any non-empty set, the overlap with itself is the set itself,
+            # and the minimum size is the size of the set, so the result is 1.0
+            return True
+        except Exception as e:
+            logger.error(f"Error checking reflexivity: {str(e)}")
+            raise
+    
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Check if the similarity measure satisfies reflexivity.
-
-        A measure is reflexive if s(x, x) = 1 for all x.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Check if the Overlap Coefficient similarity measure is symmetric: s(x,y) = s(y,x).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First set or collection
+        y : ComparableType
+            Second set or collection
+            
+        Returns
+        -------
+        bool
+            True, as the Overlap Coefficient is symmetric
+            
+        Raises
+        ------
+        ValueError
+            If either set is empty
+        TypeError
+            If inputs cannot be converted to sets
         """
-        logger.debug("Checking reflexivity of overlap coefficient similarity")
-        return True  # s(x, x) = 1 since |x ∩ x| / |x| = 1
-
-    def check_symmetry(self) -> bool:
+        # The Overlap Coefficient is symmetric by definition:
+        # |X ∩ Y| / min(|X|, |Y|) = |Y ∩ X| / min(|Y|, |X|)
+        return True
+    
+    def check_identity_of_discernibles(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Check if the similarity measure is symmetric.
-
-        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        Check if the Overlap Coefficient satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        
+        Note: The Overlap Coefficient does not strictly satisfy this property.
+        It returns 1 when one set is a subset of the other, not only when they are identical.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First set or collection
+        y : ComparableType
+            Second set or collection
+            
+        Returns
+        -------
+        bool
+            False if x ≠ y but s(x,y) = 1, True otherwise
+            
+        Raises
+        ------
+        ValueError
+            If either set is empty
+        TypeError
+            If inputs cannot be converted to sets
         """
-        logger.debug("Checking symmetry of overlap coefficient similarity")
-        return True  # Overlap Coefficient is symmetric as |x ∩ y| / min(|x|, |y|) is the same for x and y
-
-    def check_identity(self) -> bool:
-        """
-        Check if the similarity measure satisfies identity of discernibles.
-
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
-        """
-        logger.debug(
-            "Checking identity of discernibles for overlap coefficient similarity"
-        )
-        return False  # Different sets can have full overlap without being identical
+        try:
+            set_x = self._convert_to_set(x)
+            set_y = self._convert_to_set(y)
+            
+            if not set_x or not set_y:
+                logger.error("Sets must be non-empty for Overlap Coefficient")
+                raise ValueError("Sets must be non-empty for Overlap Coefficient")
+            
+            similarity_value = self.similarity(set_x, set_y)
+            
+            # If similarity is 1, check if sets are identical
+            if abs(similarity_value - 1.0) < 1e-10:
+                # The Overlap Coefficient can be 1 even if the sets are not identical
+                # It will be 1 if one set is a subset of the other
+                return set_x == set_y
+            
+            # If similarity is not 1, identity of discernibles is satisfied
+            return True
+        except Exception as e:
+            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            raise

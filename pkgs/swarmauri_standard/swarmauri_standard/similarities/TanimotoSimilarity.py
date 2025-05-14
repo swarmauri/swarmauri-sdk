@@ -1,179 +1,391 @@
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
-from typing import Union, Sequence, Literal
-import logging
+from typing import List, Sequence, Literal, Union, Any, Optional
 import numpy as np
+import logging
+from swarmauri_core.similarities.ISimilarity import ComparableType
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_base.ComponentBase import ComponentBase
 
+# Set up logger
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(SimilarityBase, "TanimotoSimilarity")
 class TanimotoSimilarity(SimilarityBase):
     """
-    Implementation of the Tanimoto similarity measure for real-valued vectors.
-
-    The Tanimoto similarity is a generalization of the Jaccard index for
-    real-valued vectors. It is commonly used in cheminformatics for
-    comparing molecular fingerprints. The similarity is calculated as:
-
-    S = (A·B) / (|A|² + |B|² - A·B)
-
-    where A and B are vectors, A·B is the dot product, and |A| is the
-    Euclidean norm of vector A.
-
-    Attributes:
-        type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
-        is_symmetric: bool = True
-        is_bounded: bool = True
+    Tanimoto Similarity implementation, a generalization of Jaccard for real vectors.
+    
+    The Tanimoto coefficient is widely used in cheminformatics for measuring 
+    the similarity between molecular fingerprints. It is defined as the ratio of 
+    the intersection to the union when applied to binary vectors, and extends to 
+    real-valued vectors.
+    
+    For real-valued vectors, the formula is:
+        T(A,B) = (A·B) / (|A|^2 + |B|^2 - A·B)
+    
+    where A·B is the dot product, and |A|^2 is the sum of squares of elements.
+    
+    Attributes
+    ----------
+    type : Literal["TanimotoSimilarity"]
+        Type identifier for this similarity measure
     """
-
+    
     type: Literal["TanimotoSimilarity"] = "TanimotoSimilarity"
-    is_symmetric: bool = True
-    is_bounded: bool = True
-
-    def similarity(
-        self,
-        x: Union[Sequence[float], np.ndarray],
-        y: Union[Sequence[float], np.ndarray],
-    ) -> float:
+    
+    def __init__(self):
+        """
+        Initialize the Tanimoto similarity measure.
+        """
+        super().__init__()
+        logger.debug("Initializing TanimotoSimilarity")
+    
+    def _validate_input(self, x: ComparableType, y: ComparableType) -> tuple:
+        """
+        Validate and convert inputs to numpy arrays.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        tuple
+            Tuple of validated numpy arrays
+            
+        Raises
+        ------
+        TypeError
+            If inputs cannot be converted to numeric arrays
+        ValueError
+            If inputs have different dimensions or are zero vectors
+        """
+        try:
+            # Convert to numpy arrays
+            x_array = np.array(x, dtype=float)
+            y_array = np.array(y, dtype=float)
+            
+            # Check dimensions
+            if x_array.shape != y_array.shape:
+                raise ValueError(f"Input vectors must have the same dimensions: {x_array.shape} != {y_array.shape}")
+            
+            # Check for zero vectors
+            if np.all(x_array == 0) or np.all(y_array == 0):
+                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+                
+            return x_array, y_array
+        except Exception as e:
+            logger.error(f"Input validation error: {str(e)}")
+            raise
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
         Calculate the Tanimoto similarity between two vectors.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Tanimoto similarity between x and y
-
-        Raises:
-            ValueError: If either vector contains only zeros
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        float
+            Tanimoto similarity score between x and y, in range [0,1]
+            
+        Raises
+        ------
+        ValueError
+            If vectors have different dimensions or are zero vectors
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        logger.debug(f"Calculating Tanimoto similarity between {x} and {y}")
-
-        # Convert to numpy arrays if not already
-        x = np.asarray(x)
-        y = np.asarray(y)
-
-        # Handle edge case where both vectors are zero
-        if np.all(x == 0) and np.all(y == 0):
-            return 1.0
-        if np.all(x == 0) or np.all(y == 0):
-            return 0.0
-
-        # Calculate dot product
-        dot_product = np.dot(x, y)
-
-        # Calculate magnitudes
-        mag_x = np.dot(x, x)
-        mag_y = np.dot(y, y)
-
-        # Compute similarity
-        similarity = dot_product / (mag_x + mag_y - dot_product)
-
-        return similarity
-
-    def similarities(
-        self,
-        xs: Union[Sequence[Sequence[float]], Sequence[np.ndarray]],
-        ys: Union[Sequence[Sequence[float]], Sequence[np.ndarray]],
-    ) -> Sequence[float]:
+        try:
+            x_array, y_array = self._validate_input(x, y)
+            
+            # Calculate dot product
+            dot_product = np.dot(x_array, y_array)
+            
+            # Calculate sum of squares
+            sum_squares_x = np.sum(x_array ** 2)
+            sum_squares_y = np.sum(y_array ** 2)
+            
+            # Calculate Tanimoto coefficient
+            denominator = sum_squares_x + sum_squares_y - dot_product
+            
+            # Avoid division by zero (though we already checked for zero vectors)
+            if denominator == 0:
+                return 0.0
+                
+            tanimoto = dot_product / denominator
+            
+            logger.debug(f"Tanimoto similarity: {tanimoto}")
+            return float(tanimoto)
+        except Exception as e:
+            logger.error(f"Error calculating Tanimoto similarity: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Calculate Tanimoto similarities for multiple pairs of vectors.
-
-        Args:
-            xs: Sequence of first vectors
-            ys: Sequence of second vectors
-
-        Returns:
-            Sequence[float]: Sequence of Tanimoto similarities for each pair
+        Calculate Tanimoto similarities between one vector and multiple other vectors.
+        
+        This implementation is optimized for multiple comparisons.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference vector
+        ys : Sequence[ComparableType]
+            Sequence of vectors to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of Tanimoto similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any vectors have different dimensions or are zero vectors
+        TypeError
+            If any inputs cannot be converted to numeric arrays
         """
-        logger.debug(f"Calculating Tanimoto similarities between {xs} and {ys}")
-        return [self.similarity(x, y) for x, y in zip(xs, ys)]
-
-    def dissimilarity(
-        self,
-        x: Union[Sequence[float], np.ndarray],
-        y: Union[Sequence[float], np.ndarray],
-    ) -> float:
+        try:
+            # Convert reference vector to numpy array
+            x_array = np.array(x, dtype=float)
+            
+            # Check for zero vector
+            if np.all(x_array == 0):
+                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+            
+            # Precompute sum of squares for reference vector
+            sum_squares_x = np.sum(x_array ** 2)
+            
+            results = []
+            for y in ys:
+                try:
+                    y_array = np.array(y, dtype=float)
+                    
+                    # Check dimensions
+                    if x_array.shape != y_array.shape:
+                        raise ValueError(f"Input vectors must have the same dimensions: {x_array.shape} != {y_array.shape}")
+                    
+                    # Check for zero vector
+                    if np.all(y_array == 0):
+                        raise ValueError("Tanimoto similarity is not defined for zero vectors")
+                    
+                    # Calculate dot product
+                    dot_product = np.dot(x_array, y_array)
+                    
+                    # Calculate sum of squares for y
+                    sum_squares_y = np.sum(y_array ** 2)
+                    
+                    # Calculate Tanimoto coefficient
+                    denominator = sum_squares_x + sum_squares_y - dot_product
+                    
+                    # Avoid division by zero
+                    if denominator == 0:
+                        results.append(0.0)
+                    else:
+                        results.append(float(dot_product / denominator))
+                        
+                except Exception as e:
+                    logger.warning(f"Error calculating individual similarity: {str(e)}")
+                    results.append(float('nan'))  # Use NaN to indicate calculation error
+                    
+            return results
+        except Exception as e:
+            logger.error(f"Error calculating multiple Tanimoto similarities: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
         Calculate the Tanimoto dissimilarity between two vectors.
-
-        The dissimilarity is 1 minus the similarity.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Tanimoto dissimilarity between x and y
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        float
+            Tanimoto dissimilarity score between x and y, in range [0,1]
+            
+        Raises
+        ------
+        ValueError
+            If vectors have different dimensions or are zero vectors
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        logger.debug(f"Calculating Tanimoto dissimilarity between {x} and {y}")
-        return 1.0 - self.similarity(x, y)
-
-    def dissimilarities(
-        self,
-        xs: Union[Sequence[Sequence[float]], Sequence[np.ndarray]],
-        ys: Union[Sequence[Sequence[float]], Sequence[np.ndarray]],
-    ) -> Sequence[float]:
-        """
-        Calculate Tanimoto dissimilarities for multiple pairs of vectors.
-
-        Args:
-            xs: Sequence of first vectors
-            ys: Sequence of second vectors
-
-        Returns:
-            Sequence[float]: Sequence of Tanimoto dissimilarities for each pair
-        """
-        logger.debug(f"Calculating Tanimoto dissimilarities between {xs} and {ys}")
-        return [1.0 - sim for sim in self.similarities(xs, ys)]
-
-    def check_boundedness(self) -> bool:
+        try:
+            # Tanimoto dissimilarity is 1 - similarity
+            return 1.0 - self.similarity(x, y)
+        except Exception as e:
+            logger.error(f"Error calculating Tanimoto dissimilarity: {str(e)}")
+            raise
+    
+    def check_bounded(self) -> bool:
         """
         Check if the Tanimoto similarity measure is bounded.
-
-        The Tanimoto similarity is bounded between 0 and 1 inclusive.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        
+        Tanimoto similarity is bounded in the range [0,1].
+        
+        Returns
+        -------
+        bool
+            True, as Tanimoto similarity is bounded in [0,1]
         """
-        logger.debug("Checking Tanimoto similarity boundedness")
-        return self.is_bounded
-
-    def check_reflexivity(self) -> bool:
-        """
-        Check if the Tanimoto similarity measure satisfies reflexivity.
-
-        A measure is reflexive if s(x, x) = 1 for all x.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
-        """
-        logger.debug("Checking Tanimoto similarity reflexivity")
         return True
-
-    def check_symmetry(self) -> bool:
+    
+    def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Check if the Tanimoto similarity measure is symmetric.
-
-        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        Check if the Tanimoto similarity measure is reflexive: s(x,x) = 1.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Vector to check reflexivity with
+            
+        Returns
+        -------
+        bool
+            True if s(x,x) = 1, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input cannot be converted to a numeric array
+        ValueError
+            If the input is a zero vector
         """
-        logger.debug("Checking Tanimoto similarity symmetry")
-        return self.is_symmetric
-
-    def check_identity(self) -> bool:
+        try:
+            # Convert to numpy array
+            x_array = np.array(x, dtype=float)
+            
+            # Check for zero vector
+            if np.all(x_array == 0):
+                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+            
+            # For non-zero vectors, Tanimoto similarity is reflexive
+            # s(x,x) = (x·x) / (|x|^2 + |x|^2 - x·x) = |x|^2 / |x|^2 = 1
+            
+            # Calculate explicitly to verify
+            dot_product = np.sum(x_array ** 2)  # x·x = sum of squares
+            denominator = dot_product + dot_product - dot_product  # 2|x|^2 - |x|^2 = |x|^2
+            
+            similarity_value = dot_product / denominator
+            
+            # Use approximate equality to handle floating-point precision issues
+            return abs(similarity_value - 1.0) < 1e-10
+        except Exception as e:
+            logger.error(f"Error checking reflexivity: {str(e)}")
+            raise
+    
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Check if the Tanimoto similarity measure satisfies identity of
-        discernibles.
-
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
+        Check if the Tanimoto similarity measure is symmetric: s(x,y) = s(y,x).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        bool
+            True if s(x,y) = s(y,x), False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If vectors have different dimensions or are zero vectors
+        TypeError
+            If inputs cannot be converted to numeric arrays
         """
-        logger.debug("Checking Tanimoto similarity identity of discernibles")
-        return False
+        try:
+            # Tanimoto similarity is symmetric by definition
+            # s(x,y) = (x·y) / (|x|^2 + |y|^2 - x·y) = (y·x) / (|y|^2 + |x|^2 - y·x) = s(y,x)
+            
+            # Calculate explicitly to verify
+            similarity_xy = self.similarity(x, y)
+            similarity_yx = self.similarity(y, x)
+            
+            # Use approximate equality to handle floating-point precision issues
+            return abs(similarity_xy - similarity_yx) < 1e-10
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            raise
+    
+    def check_identity_of_discernibles(self, x: ComparableType, y: ComparableType) -> bool:
+        """
+        Check if the Tanimoto similarity measure satisfies the identity of discernibles:
+        s(x,y) = 1 ⟺ x = y (proportional vectors).
+        
+        For Tanimoto similarity, s(x,y) = 1 if and only if x and y are proportional vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        bool
+            True if the identity of discernibles property holds, False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If vectors have different dimensions or are zero vectors
+        TypeError
+            If inputs cannot be converted to numeric arrays
+        """
+        try:
+            x_array, y_array = self._validate_input(x, y)
+            
+            # Calculate similarity
+            similarity_value = self.similarity(x_array, y_array)
+            
+            # For Tanimoto, s(x,y) = 1 if and only if x and y are proportional vectors
+            # Check if vectors are proportional (x = c*y for some constant c)
+            if abs(similarity_value - 1.0) < 1e-10:
+                # If similarity is 1, vectors should be proportional
+                # Find ratio for first non-zero element
+                ratio = None
+                for i in range(len(x_array)):
+                    if y_array[i] != 0 and x_array[i] != 0:
+                        ratio = x_array[i] / y_array[i]
+                        break
+                
+                if ratio is None:
+                    # This shouldn't happen since we checked for zero vectors
+                    return False
+                
+                # Check if all elements maintain this ratio (allowing for floating point error)
+                for i in range(len(x_array)):
+                    if x_array[i] == 0 and y_array[i] == 0:
+                        continue  # Both elements are zero, ratio is preserved
+                    elif x_array[i] == 0 or y_array[i] == 0:
+                        return False  # One element is zero, the other isn't
+                    elif abs(x_array[i] / y_array[i] - ratio) > 1e-10:
+                        return False  # Ratio differs
+                
+                return True  # All elements maintain the same ratio
+            else:
+                # If similarity is not 1, vectors should not be proportional
+                # Check if vectors are not proportional
+                # We already know similarity < 1, so they're not proportional
+                return True
+        except Exception as e:
+            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            raise

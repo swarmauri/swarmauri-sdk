@@ -1,92 +1,270 @@
+import logging
 import pytest
 import numpy as np
-from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import (
-    CoordinateProjectionSeminorm,
-)
+from typing import Set, List
+from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import CoordinateProjectionSeminorm
 from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Mock classes for testing
+class MockVector(IVector):
+    def __init__(self, components):
+        self._components = components
+    
+    @property
+    def components(self):
+        return self._components
+    
+    def __add__(self, other):
+        if isinstance(other, MockVector):
+            return MockVector([a + b for a, b in zip(self.components, other.components)])
+        return NotImplemented
+    
+    def __mul__(self, scalar):
+        return MockVector([c * scalar for c in self.components])
+
+
+class MockMatrix(IMatrix):
+    def __init__(self, rows):
+        self._rows = rows
+    
+    @property
+    def rows(self):
+        return self._rows
+    
+    def __add__(self, other):
+        if isinstance(other, MockMatrix):
+            return MockMatrix([[a + b for a, b in zip(row1, row2)] 
+                              for row1, row2 in zip(self.rows, other.rows)])
+        return NotImplemented
+    
+    def __mul__(self, scalar):
+        return MockMatrix([[c * scalar for c in row] for row in self.rows])
+
+
+# Fixtures
+@pytest.fixture
+def projection_indices() -> Set[int]:
+    return {0, 2, 4}
+
+
+@pytest.fixture
+def seminorm(projection_indices) -> CoordinateProjectionSeminorm:
+    return CoordinateProjectionSeminorm(projection_indices)
+
+
+@pytest.fixture
+def vector_data() -> List[float]:
+    return [1.0, 2.0, 3.0, 4.0, 5.0]
+
+
+@pytest.fixture
+def mock_vector(vector_data) -> MockVector:
+    return MockVector(vector_data)
+
+
+@pytest.fixture
+def matrix_data() -> List[List[float]]:
+    return [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
+
+
+@pytest.fixture
+def mock_matrix(matrix_data) -> MockMatrix:
+    return MockMatrix(matrix_data)
+
+
+# Test cases
+@pytest.mark.unit
+def test_initialization(projection_indices):
+    """Test the initialization of CoordinateProjectionSeminorm."""
+    seminorm = CoordinateProjectionSeminorm(projection_indices)
+    assert seminorm.projection_indices == projection_indices
+    assert seminorm.type == "CoordinateProjectionSeminorm"
 
 
 @pytest.mark.unit
-class TestCoordinateProjectionSeminorm:
-    """Unit tests for the CoordinateProjectionSeminorm class."""
+def test_initialization_with_empty_indices():
+    """Test that initialization with empty indices raises ValueError."""
+    with pytest.raises(ValueError, match="Projection indices set cannot be empty"):
+        CoordinateProjectionSeminorm(set())
 
-    @pytest.fixture
-    def coordinate_projection_seminorm(self):
-        """Fixture providing a default instance of CoordinateProjectionSeminorm."""
-        return CoordinateProjectionSeminorm()
 
-    @pytest.mark.unit
-    def test_init(self, coordinate_projection_seminorm):
-        """Test initialization of the CoordinateProjectionSeminorm instance."""
-        assert coordinate_projection_seminorm.projection_indices == []
+@pytest.mark.unit
+@pytest.mark.parametrize("indices,expected", [
+    ({0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),  # Only consider indices 0, 2, 4
+    ({1, 3}, np.sqrt(2**2 + 4**2)),            # Only consider indices 1, 3
+    ({0}, 1.0),                                # Only consider index 0
+    ({0, 1, 2, 3, 4}, np.sqrt(55)),            # Consider all indices
+])
+def test_compute_vector(indices, expected, vector_data):
+    """Test computing the seminorm for a vector with different projection indices."""
+    seminorm = CoordinateProjectionSeminorm(indices)
+    vector = MockVector(vector_data)
+    result = seminorm.compute(vector)
+    assert pytest.approx(result) == expected
 
-    @pytest.mark.unit
-    def test_compute_with_ivector(self, coordinate_projection_seminorm):
-        """Test compute method with IVector input."""
-        test_vector = IVector(data=np.array([1.0, 2.0, 3.0]))
-        result = coordinate_projection_seminorm.compute(test_vector)
-        assert isinstance(result, float)
 
-    @pytest.mark.unit
-    def test_compute_with_projection_indices(self):
-        """Test compute method with custom projection indices."""
-        projection_indices = [0, 2]
-        seminorm = CoordinateProjectionSeminorm(projection_indices=projection_indices)
-        test_vector = IVector(data=np.array([4.0, 5.0, 6.0]))
-        projected_vector = test_vector.data[projection_indices]
-        expected_result = np.linalg.norm(projected_vector)
-        result = seminorm.compute(test_vector)
-        assert np.isclose(result, expected_result)
+@pytest.mark.unit
+def test_compute_vector_out_of_bounds(vector_data):
+    """Test computing the seminorm with out-of-bounds projection indices."""
+    seminorm = CoordinateProjectionSeminorm({10})  # Index 10 is out of bounds
+    vector = MockVector(vector_data)
+    with pytest.raises(ValueError, match="Projection index 10 out of bounds"):
+        seminorm.compute(vector)
 
-    @pytest.mark.unit
-    def test_compute_with_non_ivector_input(coordinate_projection_seminorm):
-        """Test compute method with non-IVector input."""
-        test_input = "non_vector_input"
-        with pytest.raises(NotImplementedError):
-            coordinate_projection_seminorm.compute(test_input)
 
-    @pytest.mark.unit
-    def test_triangle_inequality(coordinate_projection_seminorm):
-        """Test the triangle inequality property."""
-        vector_a = IVector(data=np.array([1.0, 2.0]))
-        vector_b = IVector(data=np.array([3.0, 4.0]))
+@pytest.mark.unit
+def test_compute_matrix(seminorm, mock_matrix):
+    """Test computing the seminorm for a matrix."""
+    # When flattened, the matrix becomes [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    # Projection indices {0, 2, 4} correspond to elements 1.0, 3.0, 5.0
+    expected = np.sqrt(1**2 + 3**2 + 5**2)
+    result = seminorm.compute(mock_matrix)
+    assert pytest.approx(result) == expected
 
-        seminorm_a = coordinate_projection_seminorm.compute(vector_a)
-        seminorm_b = coordinate_projection_seminorm.compute(vector_b)
-        seminorm_a_plus_b = coordinate_projection_seminorm.compute(vector_a + vector_b)
 
-        assert seminorm_a_plus_b <= seminorm_a + seminorm_b
+@pytest.mark.unit
+def test_compute_matrix_out_of_bounds():
+    """Test computing the seminorm for a matrix with out-of-bounds projection indices."""
+    seminorm = CoordinateProjectionSeminorm({10})  # Index 10 is out of bounds
+    matrix = MockMatrix([[1.0, 2.0], [3.0, 4.0]])
+    with pytest.raises(ValueError, match="Projection index 10 out of bounds"):
+        seminorm.compute(matrix)
 
-    @pytest.mark.unit
-    def test_scalar_homogeneity(coordinate_projection_seminorm):
-        """Test the scalar homogeneity property."""
-        test_vector = IVector(data=np.array([2.0, 4.0]))
-        scalar = 3.0
 
-        scaled_vector = scalar * test_vector
-        seminorm_scaled = coordinate_projection_seminorm.compute(scaled_vector)
-        seminorm_original = coordinate_projection_seminorm.compute(test_vector)
+@pytest.mark.unit
+@pytest.mark.parametrize("data,indices,expected", [
+    ([1.0, 2.0, 3.0, 4.0, 5.0], {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
+    ([1.0, 2.0, 3.0, 4.0, 5.0], {1, 3}, np.sqrt(2**2 + 4**2)),
+    (np.array([1.0, 2.0, 3.0, 4.0, 5.0]), {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
+])
+def test_compute_sequence(data, indices, expected):
+    """Test computing the seminorm for different sequence types."""
+    seminorm = CoordinateProjectionSeminorm(indices)
+    result = seminorm.compute(data)
+    assert pytest.approx(result) == expected
 
-        assert np.isclose(seminorm_scaled, abs(scalar) * seminorm_original)
 
-    @pytest.mark.unit
-    def test_str_representation(coordinate_projection_seminorm):
-        """Test string representation of the object."""
-        expected_str = f"CoordinateProjectionSeminorm(projection_indices={coordinate_projection_seminorm.projection_indices})"
-        assert str(coordinate_projection_seminorm) == expected_str
+@pytest.mark.unit
+def test_compute_unsupported_type(seminorm):
+    """Test that computing the seminorm for an unsupported type raises TypeError."""
+    with pytest.raises(TypeError, match="Unsupported input type"):
+        seminorm.compute(42)  # Integer is not a supported type
 
-    @pytest.mark.unit
-    def test_repr(coordinate_projection_seminorm):
-        """Test official string representation of the object."""
-        assert repr(coordinate_projection_seminorm) == str(
-            coordinate_projection_seminorm
-        )
 
-    @pytest.mark.unit
-    def test_compute_without_projection_indices():
-        """Test compute method when no projection indices are specified."""
-        seminorm = CoordinateProjectionSeminorm()
-        test_vector = IVector(data=np.array([5.0, 6.0]))
-        expected_result = np.linalg.norm(test_vector.data)
-        result = seminorm.compute(test_vector)
-        assert np.isclose(result, expected_result)
+@pytest.mark.unit
+def test_triangle_inequality_vector(seminorm):
+    """Test the triangle inequality property for vectors."""
+    x = MockVector([1.0, 2.0, 3.0, 4.0, 5.0])
+    y = MockVector([5.0, 4.0, 3.0, 2.0, 1.0])
+    assert seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_triangle_inequality_matrix(seminorm):
+    """Test the triangle inequality property for matrices."""
+    x = MockMatrix([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    y = MockMatrix([[6.0, 5.0], [4.0, 3.0], [2.0, 1.0]])
+    assert seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_triangle_inequality_list(seminorm):
+    """Test the triangle inequality property for lists."""
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    y = [5.0, 4.0, 3.0, 2.0, 1.0]
+    assert seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_triangle_inequality_numpy(seminorm):
+    """Test the triangle inequality property for numpy arrays."""
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    y = np.array([5.0, 4.0, 3.0, 2.0, 1.0])
+    assert seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_triangle_inequality_incompatible_types(seminorm):
+    """Test that checking triangle inequality with incompatible types raises TypeError."""
+    x = MockVector([1.0, 2.0, 3.0, 4.0, 5.0])
+    y = [5.0, 4.0, 3.0, 2.0, 1.0]
+    with pytest.raises(TypeError, match="Unsupported or incompatible input types"):
+        seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_triangle_inequality_different_lengths(seminorm):
+    """Test that checking triangle inequality with sequences of different lengths raises ValueError."""
+    x = [1.0, 2.0, 3.0]
+    y = [5.0, 4.0, 3.0, 2.0, 1.0]
+    with pytest.raises(ValueError, match="Sequences must have the same length"):
+        seminorm.check_triangle_inequality(x, y)
+
+
+@pytest.mark.unit
+def test_scalar_homogeneity_vector(seminorm):
+    """Test the scalar homogeneity property for vectors."""
+    x = MockVector([1.0, 2.0, 3.0, 4.0, 5.0])
+    alpha = 2.5
+    assert seminorm.check_scalar_homogeneity(x, alpha)
+
+
+@pytest.mark.unit
+def test_scalar_homogeneity_matrix(seminorm):
+    """Test the scalar homogeneity property for matrices."""
+    x = MockMatrix([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    alpha = 2.5
+    assert seminorm.check_scalar_homogeneity(x, alpha)
+
+
+@pytest.mark.unit
+def test_scalar_homogeneity_list(seminorm):
+    """Test the scalar homogeneity property for lists."""
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    alpha = 2.5
+    assert seminorm.check_scalar_homogeneity(x, alpha)
+
+
+@pytest.mark.unit
+def test_scalar_homogeneity_numpy(seminorm):
+    """Test the scalar homogeneity property for numpy arrays."""
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    alpha = 2.5
+    assert seminorm.check_scalar_homogeneity(x, alpha)
+
+
+@pytest.mark.unit
+def test_scalar_homogeneity_unsupported_type(seminorm):
+    """Test that checking scalar homogeneity with an unsupported type raises TypeError."""
+    with pytest.raises(TypeError, match="Unsupported input type"):
+        seminorm.check_scalar_homogeneity(42, 2.5)  # Integer is not a supported type
+
+
+@pytest.mark.unit
+def test_compute_with_complex_values():
+    """Test computing the seminorm with complex values."""
+    seminorm = CoordinateProjectionSeminorm({0, 1})
+    x = [1+2j, 3+4j, 5+6j]
+    # |1+2j|^2 + |3+4j|^2 = 5 + 25 = 30
+    expected = np.sqrt(30)
+    result = seminorm.compute(x)
+    assert pytest.approx(result) == expected
+
+
+@pytest.mark.unit
+def test_zero_vector(seminorm):
+    """Test computing the seminorm of a zero vector."""
+    zero_vector = MockVector([0.0, 0.0, 0.0, 0.0, 0.0])
+    assert seminorm.compute(zero_vector) == 0.0
+
+
+@pytest.mark.unit
+def test_single_index_projection():
+    """Test projection onto a single coordinate."""
+    seminorm = CoordinateProjectionSeminorm({2})
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    assert seminorm.compute(x) == 3.0

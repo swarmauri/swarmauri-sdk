@@ -1,220 +1,388 @@
-from abc import ABC
-from typing import Union, Tuple, List
 import logging
+from typing import Iterator, List, Optional, Sequence, Tuple, Union
 
-from swarmauri_core.matrices.IMatrix import IMatrix
+from pydantic import Field
+from swarmauri_core.matrices.IMatrix import IMatrix, Index, IVector, T
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
-class MatrixBase(IMatrix, ABC):
+@ComponentBase.register_model()
+class MatrixBase(IMatrix, ComponentBase):
     """
-    Base implementation for matrix operations. This class provides a basic 
-    structure for implementing matrix functionality, including element-wise 
-    operations and matrix transformations.
-    
-    Attributes:
-        shape (Tuple[int, int]): The shape of the matrix (rows, columns)
-        dtype (type): The data type of the elements in the matrix
-        
-    Methods:
-        __getitem__: Gets elements using row and column indices or slices
-        __setitem__: Sets elements using row and column indices or slices
-        shape: Returns the shape of the matrix
-        reshape: Reshapes the matrix to a new shape
-        tolist: Converts the matrix to a list of lists
-        __add__: Element-wise addition with another matrix
-        __sub__: Element-wise subtraction with another matrix
-        __mul__: Element-wise multiplication with another matrix
-        __truediv__: Element-wise division with another matrix
+    Base class for matrix operations.
+
+    Provides abstract implementations for matrix operations including addition,
+    subtraction, multiplication, division, and other common matrix functions.
+    This class serves as a foundation for concrete matrix implementations.
+
+    Attributes
+    ----------
+    resource : Optional[str]
+        The resource type of this component, defaults to MATRICE
     """
-    
-    def __init__(self):
-        super().__init__()
-        logger.debug("Initialized MatrixBase")
 
-    def __getitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice]) -> Union[float, IMatrix, List[List[float]]]:
-        """
-        Gets elements using row and column indices or slices.
-        
-        Args:
-            index: Tuple of indices or slices for row and column access
-            
-        Returns:
-            Either a single element, a row vector, or a submatrix based on the index
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug(f"Getting item with index {index}")
-        raise NotImplementedError("Method not implemented in base class")
+    resource: Optional[str] = Field(default=ResourceTypes.MATRICE.value)
 
-    def __setitem__(self, index: Union[Tuple[int, int], Tuple[slice, slice], int, slice], value: Union[float, IMatrix, List[List[float]]]):
+    def __getitem__(self, key: Index) -> Union["IMatrix", IVector, T]:
         """
-        Sets elements using row and column indices or slices.
-        
-        Args:
-            index: Tuple of indices or slices for row and column access
-            value: Value or values to set at the specified index
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug(f"Setting item at index {index} with value {value}")
-        raise NotImplementedError("Method not implemented in base class")
+        Get an element, row, column, or submatrix using indexing/slicing.
 
+        Parameters
+        ----------
+        key : Index
+            The index or slice to access
+
+        Returns
+        -------
+        Union[IMatrix, IVector, T]
+            The requested element, vector, or submatrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "__getitem__ must be implemented by a concrete subclass"
+        )
+
+    def __setitem__(
+        self, key: Index, value: Union["IMatrix", IVector, T, Sequence[Sequence[T]]]
+    ) -> None:
+        """
+        Set an element, row, column, or submatrix using indexing/slicing.
+
+        Parameters
+        ----------
+        key : Index
+            The index or slice to modify
+        value : Union[IMatrix, IVector, T, Sequence[Sequence[T]]]
+            The value to set
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "__setitem__ must be implemented by a concrete subclass"
+        )
+
+    @property
     def shape(self) -> Tuple[int, int]:
         """
-        Returns the shape of the matrix as a tuple (rows, columns)
-        
-        Returns:
-            Tuple[int, int]: Shape of the matrix
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug("Getting matrix shape")
-        raise NotImplementedError("Method not implemented in base class")
+        Get the shape of the matrix.
 
-    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
-        """
-        Reshapes the matrix to a new shape.
-        
-        Args:
-            new_shape: New shape as a tuple (new_rows, new_cols)
-        
-        Returns:
-            Reshaped matrix
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug(f"Reshaping matrix to {new_shape}")
-        raise NotImplementedError("Method not implemented in base class")
+        Returns
+        -------
+        Tuple[int, int]
+            The dimensions of the matrix as (rows, columns)
 
+        Raises
+        ------
+        NotImplementedError
+            This property must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "shape property must be implemented by a concrete subclass"
+        )
+
+    def reshape(self, shape: Tuple[int, int]) -> "IMatrix":
+        """
+        Reshape the matrix to the specified dimensions.
+
+        Parameters
+        ----------
+        shape : Tuple[int, int]
+            The new dimensions as (rows, columns)
+
+        Returns
+        -------
+        IMatrix
+            A reshaped matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("reshape must be implemented by a concrete subclass")
+
+    @property
     def dtype(self) -> type:
         """
-        Returns the data type of the elements in the matrix
-        
-        Returns:
-            type: Data type of the matrix elements
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug("Getting matrix dtype")
-        raise NotImplementedError("Method not implemented in base class")
+        Get the data type of the matrix elements.
 
-    def tolist(self) -> List[List[float]]:
-        """
-        Converts the matrix to a list of lists of floats
-        
-        Returns:
-            List[List[float]]: Matrix as a list of lists
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug("Converting matrix to list")
-        raise NotImplementedError("Method not implemented in base class")
+        Returns
+        -------
+        type
+            The data type of the elements
 
-    def __add__(self, other: 'IMatrix') -> 'IMatrix':
+        Raises
+        ------
+        NotImplementedError
+            This property must be implemented by subclasses
         """
-        Element-wise addition with another matrix
-        
-        Args:
-            other: Another matrix to add
-            
-        Returns:
-            Resulting matrix after addition
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug("Performing matrix addition")
-        if not isinstance(other, IMatrix):
-            raise TypeError("Can only add another IMatrix instance")
-        if self.shape() != other.shape():
-            raise ValueError("Matrices must have the same shape for addition")
-        raise NotImplementedError("Method not implemented in base class")
+        raise NotImplementedError(
+            "dtype property must be implemented by a concrete subclass"
+        )
 
-    def __sub__(self, other: 'IMatrix') -> 'IMatrix':
+    def tolist(self) -> List[List[T]]:
         """
-        Element-wise subtraction with another matrix
-        
-        Args:
-            other: Another matrix to subtract
-            
-        Returns:
-            Resulting matrix after subtraction
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug("Performing matrix subtraction")
-        if not isinstance(other, IMatrix):
-            raise TypeError("Can only subtract another IMatrix instance")
-        if self.shape() != other.shape():
-            raise ValueError("Matrices must have the same shape for subtraction")
-        raise NotImplementedError("Method not implemented in base class")
+        Convert the matrix to a nested list.
 
-    def __mul__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
-        """
-        Element-wise multiplication with another matrix or scalar
-        
-        Args:
-            other: Either a scalar or another matrix to multiply
-            
-        Returns:
-            Resulting matrix after multiplication
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug(f"Performing matrix multiplication with {other}")
-        if isinstance(other, IMatrix):
-            if self.shape()[1] != other.shape()[0]:
-                raise ValueError("Incompatible shapes for matrix multiplication")
-        elif not isinstance(other, (float, int)):
-            raise TypeError("Can only multiply by a scalar or another IMatrix")
-        raise NotImplementedError("Method not implemented in base class")
+        Returns
+        -------
+        List[List[T]]
+            A list of lists representing the matrix
 
-    def __truediv__(self, other: Union[float, int, 'IMatrix']) -> 'IMatrix':
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        Element-wise division with another matrix or scalar
-        
-        Args:
-            other: Either a scalar or another matrix to divide by
-            
-        Returns:
-            Resulting matrix after division
-            
-        Raises:
-            NotImplementedError: Always raised as this is a base implementation
-        """
-        logger.debug(f"Performing matrix division by {other}")
-        if isinstance(other, IMatrix):
-            if self.shape() != other.shape():
-                raise ValueError("Matrices must have the same shape for division")
-        elif not isinstance(other, (float, int)):
-            raise TypeError("Can only divide by a scalar or another IMatrix")
-        raise NotImplementedError("Method not implemented in base class")
+        raise NotImplementedError("tolist must be implemented by a concrete subclass")
 
-    def __str__(self) -> str:
+    def row(self, index: int) -> IVector:
         """
-        Returns a string representation of the matrix
-        
-        Returns:
-            str: String representation of the matrix
-        """
-        return f"MatrixBase(shape={self.shape()}, dtype={self.dtype()})"
+        Get a specific row of the matrix.
 
-    def __repr__(self) -> str:
+        Parameters
+        ----------
+        index : int
+            The row index
+
+        Returns
+        -------
+        IVector
+            The specified row as a vector
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
         """
-        Returns the official string representation of the matrix
-        
-        Returns:
-            str: Official string representation
+        raise NotImplementedError("row must be implemented by a concrete subclass")
+
+    def column(self, index: int) -> IVector:
         """
-        return self.__str__()
+        Get a specific column of the matrix.
+
+        Parameters
+        ----------
+        index : int
+            The column index
+
+        Returns
+        -------
+        IVector
+            The specified column as a vector
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("column must be implemented by a concrete subclass")
+
+    def __add__(self, other: Union["IMatrix", T]) -> "IMatrix":
+        """
+        Add another matrix or scalar to this matrix.
+
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to add
+
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__add__ must be implemented by a concrete subclass")
+
+    def __sub__(self, other: Union["IMatrix", T]) -> "IMatrix":
+        """
+        Subtract another matrix or scalar from this matrix.
+
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to subtract
+
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__sub__ must be implemented by a concrete subclass")
+
+    def __mul__(self, other: Union["IMatrix", T]) -> "IMatrix":
+        """
+        Element-wise multiply this matrix by another matrix or scalar.
+
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to multiply by
+
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__mul__ must be implemented by a concrete subclass")
+
+    def __matmul__(self, other: "IMatrix") -> "IMatrix":
+        """
+        Perform matrix multiplication with another matrix.
+
+        Parameters
+        ----------
+        other : IMatrix
+            The matrix to multiply with
+
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "__matmul__ must be implemented by a concrete subclass"
+        )
+
+    def __truediv__(self, other: Union["IMatrix", T]) -> "IMatrix":
+        """
+        Element-wise divide this matrix by another matrix or scalar.
+
+        Parameters
+        ----------
+        other : Union[IMatrix, T]
+            The matrix or scalar to divide by
+
+        Returns
+        -------
+        IMatrix
+            The resulting matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "__truediv__ must be implemented by a concrete subclass"
+        )
+
+    def __neg__(self) -> "IMatrix":
+        """
+        Negate all elements in the matrix.
+
+        Returns
+        -------
+        IMatrix
+            The negated matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__neg__ must be implemented by a concrete subclass")
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if this matrix is equal to another matrix.
+
+        Parameters
+        ----------
+        other : object
+            The object to compare with
+
+        Returns
+        -------
+        bool
+            True if the matrices are equal, False otherwise
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__eq__ must be implemented by a concrete subclass")
+
+    def __iter__(self) -> Iterator[IVector]:
+        """
+        Iterate over the rows of the matrix.
+
+        Returns
+        -------
+        Iterator[IVector]
+            An iterator yielding rows as vectors
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError("__iter__ must be implemented by a concrete subclass")
+
+    def transpose(self) -> "IMatrix":
+        """
+        Transpose the matrix.
+
+        Returns
+        -------
+        IMatrix
+            The transposed matrix
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "transpose must be implemented by a concrete subclass"
+        )
+
+    def __array__(self) -> "IMatrix":
+        """
+        Support for numpy's array protocol.
+
+        Returns
+        -------
+        IMatrix
+            The matrix itself or a compatible representation
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "__array__ must be implemented by a concrete subclass"
+        )

@@ -1,118 +1,265 @@
+import logging
 import pytest
-from swarmauri_standard.seminorms import TraceSeminorm
-from swarmauri_core.vectors import IVector
-from swarmauri_core.matrices import IMatrix
+import numpy as np
+from typing import Any, Tuple
+
+from swarmauri_standard.seminorms.TraceSeminorm import TraceSeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+class MockVector(IVector):
+    """Mock implementation of IVector for testing purposes."""
+    
+    def __init__(self, data: np.ndarray):
+        """Initialize with numpy data."""
+        self._data = data
+        
+    def to_numpy(self) -> np.ndarray:
+        """Convert to numpy array."""
+        return self._data
+        
+    # Implement required methods from IVector
+    def __getitem__(self, key: Any) -> Any:
+        return self._data[key]
+        
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._data[key] = value
+        
+    def __len__(self) -> int:
+        return len(self._data)
+        
+    def dot(self, other: Any) -> float:
+        return np.dot(self._data, other.to_numpy() if hasattr(other, 'to_numpy') else other)
+
+
+class MockMatrix(IMatrix):
+    """Mock implementation of IMatrix for testing purposes."""
+    
+    def __init__(self, data: np.ndarray):
+        """Initialize with numpy data."""
+        self._data = data
+        
+    def to_numpy(self) -> np.ndarray:
+        """Convert to numpy array."""
+        return self._data
+        
+    # Implement required methods from IMatrix
+    def __getitem__(self, key: Any) -> Any:
+        return self._data[key]
+        
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._data[key] = value
+        
+    def __len__(self) -> int:
+        return len(self._data)
+        
+    @property
+    def shape(self) -> Tuple[int, int]:
+        return self._data.shape
 
 
 @pytest.fixture
-def trace_seminorm_instance():
-    """Fixture providing a TraceSeminorm instance for testing."""
+def trace_seminorm():
+    """Fixture that returns a TraceSeminorm instance."""
     return TraceSeminorm()
 
 
-@pytest.mark.unit
-def test_trace_seminorm_init(trace_seminorm_instance):
-    """Test initialization of TraceSeminorm instance."""
-    assert isinstance(trace_seminorm_instance, TraceSeminorm)
-    assert trace_seminorm_instance.type == "TraceSeminorm"
+@pytest.fixture
+def sample_matrices():
+    """Fixture that provides sample matrices for testing."""
+    # Identity matrix
+    identity = np.eye(3)
+    # Diagonal matrix
+    diagonal = np.diag([1, 2, 3])
+    # Random matrix
+    random_matrix = np.random.rand(3, 3)
+    # Zero matrix
+    zero_matrix = np.zeros((3, 3))
+    
+    return {
+        "identity": identity,
+        "diagonal": diagonal,
+        "random": random_matrix,
+        "zero": zero_matrix
+    }
+
+
+@pytest.fixture
+def sample_vectors():
+    """Fixture that provides sample vectors for testing."""
+    # Unit vector
+    unit = np.array([1.0, 0.0, 0.0])
+    # Random vector
+    random_vector = np.random.rand(3)
+    # Zero vector
+    zero_vector = np.zeros(3)
+    
+    return {
+        "unit": unit,
+        "random": random_vector,
+        "zero": zero_vector
+    }
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "input_vector,expected_result",
-    [(IVector([1, 2, 3]), 6.0), (IVector([]), 0.0), (IVector([0.5, -1.5]), -1.0)],
-)
-def test_compute_vector(input_vector, expected_result):
-    """Test compute method with vector input."""
+def test_trace_seminorm_initialization():
+    """Test that TraceSeminorm initializes correctly."""
     seminorm = TraceSeminorm()
-    result = seminorm.compute(input_vector)
-    assert result == expected_result
+    assert seminorm.type == "TraceSeminorm"
+    assert seminorm.resource == "Seminorm"
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "input_matrix,expected_result",
-    [
-        (IMatrix([[1, 0], [0, 1]]), 2.0),
-        (IMatrix([[2, 1], [1, 2]]), 4.0),
-        (IMatrix([[0, 0], [0, 0]]), 0.0),
-    ],
-)
-def test_compute_matrix(input_matrix, expected_result):
-    """Test compute method with matrix input."""
-    seminorm = TraceSeminorm()
-    result = seminorm.compute(input_matrix)
-    assert result == expected_result
+def test_compute_with_numpy_matrix(trace_seminorm, sample_matrices):
+    """Test computing trace seminorm with numpy matrices."""
+    # For identity matrix, trace norm should equal to the matrix dimension
+    identity_norm = trace_seminorm.compute(sample_matrices["identity"])
+    assert pytest.approx(identity_norm, abs=1e-10) == 3.0
+    
+    # For diagonal matrix, trace norm is sum of absolute eigenvalues
+    diagonal_norm = trace_seminorm.compute(sample_matrices["diagonal"])
+    assert pytest.approx(diagonal_norm, abs=1e-10) == 6.0
+    
+    # Zero matrix should have zero trace norm
+    zero_norm = trace_seminorm.compute(sample_matrices["zero"])
+    assert pytest.approx(zero_norm, abs=1e-10) == 0.0
+    
+    # Random matrix should have positive trace norm
+    random_norm = trace_seminorm.compute(sample_matrices["random"])
+    assert random_norm > 0
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "input_str,expected_result",
-    [
-        ("abc", 97 + 98 + 99),
-        ("", 0.0),
-        ("hello world", 104 + 101 + 108 + 108 + 111 + 32 + 119 + 111 + 114 + 108 + 100),
-    ],
-)
-def test_compute_string(input_str, expected_result):
-    """Test compute method with string input."""
-    seminorm = TraceSeminorm()
-    result = seminorm.compute(input_str)
-    assert result == float(expected_result)
+def test_compute_with_matrix_interface(trace_seminorm, sample_matrices):
+    """Test computing trace seminorm with IMatrix implementation."""
+    # Create a mock matrix from the identity matrix
+    mock_identity = MockMatrix(sample_matrices["identity"])
+    identity_norm = trace_seminorm.compute(mock_identity)
+    assert pytest.approx(identity_norm, abs=1e-10) == 3.0
+    
+    # Create a mock matrix from the diagonal matrix
+    mock_diagonal = MockMatrix(sample_matrices["diagonal"])
+    diagonal_norm = trace_seminorm.compute(mock_diagonal)
+    assert pytest.approx(diagonal_norm, abs=1e-10) == 6.0
 
 
 @pytest.mark.unit
-def test_compute_callable(trace_seminorm_instance):
-    """Test compute method with callable input."""
-
-    def test_callable():
-        return IVector([1, 2, 3])
-
-    result = trace_seminorm_instance.compute(test_callable)
-    assert result == 6.0
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "input_list,expected_result", [([1, 2, 3], 6.0), ([], 0.0), ([1.5, -2.5], -1.0)]
-)
-def test_compute_list(input_list, expected_result):
-    """Test compute method with list input."""
-    seminorm = TraceSeminorm()
-    result = seminorm.compute(input_list)
-    assert result == expected_result
+def test_compute_with_vector_interface(trace_seminorm, sample_vectors):
+    """Test computing trace seminorm with IVector implementation."""
+    # Create a mock vector from the unit vector
+    mock_unit = MockVector(sample_vectors["unit"])
+    unit_norm = trace_seminorm.compute(mock_unit)
+    # For a unit vector as column matrix, trace norm should be 1.0
+    assert pytest.approx(unit_norm, abs=1e-10) == 1.0
+    
+    # Create a mock vector from the zero vector
+    mock_zero = MockVector(sample_vectors["zero"])
+    zero_norm = trace_seminorm.compute(mock_zero)
+    assert pytest.approx(zero_norm, abs=1e-10) == 0.0
 
 
 @pytest.mark.unit
-def test_check_triangle_inequality(trace_seminorm_instance):
-    """Test triangle inequality check."""
-    a = IVector([1, 2])
-    b = IVector([2, 3])
-
-    seminorm_a = trace_seminorm_instance.compute(a)
-    seminorm_b = trace_seminorm_instance.compute(b)
-
-    a_plus_b = a + b
-    seminorm_a_plus_b = trace_seminorm_instance.compute(a_plus_b)
-
-    assert seminorm_a_plus_b <= seminorm_a + seminorm_b
+def test_compute_with_numpy_vector(trace_seminorm, sample_vectors):
+    """Test computing trace seminorm with numpy vectors (should raise TypeError)."""
+    # Direct vectors are not supported - they need to be wrapped in IVector
+    with pytest.raises(TypeError):
+        trace_seminorm.compute(sample_vectors["unit"])
 
 
 @pytest.mark.unit
-def test_check_scalar_homogeneity(trace_seminorm_instance):
-    """Test scalar homogeneity check."""
-    a = IVector([1, 2])
-    scalar = 2.0
-
-    scaled_a = scalar * a
-    seminorm_scaled = trace_seminorm_instance.compute(scaled_a)
-    seminorm_a = trace_seminorm_instance.compute(a)
-
-    assert seminorm_scaled == abs(scalar) * seminorm_a
+def test_triangle_inequality(trace_seminorm):
+    """Test that the triangle inequality property holds."""
+    # Create two random matrices
+    A = np.random.rand(3, 3)
+    B = np.random.rand(3, 3)
+    
+    # Check triangle inequality using numpy arrays
+    assert trace_seminorm.check_triangle_inequality(A, B) is True
+    
+    # Check with IMatrix implementations
+    mock_A = MockMatrix(A)
+    mock_B = MockMatrix(B)
+    assert trace_seminorm.check_triangle_inequality(mock_A, mock_B) is True
 
 
 @pytest.mark.unit
-def test_string_representation(trace_seminorm_instance):
-    """Test string representation of TraceSeminorm instance."""
-    assert str(trace_seminorm_instance) == "TraceSeminorm()"
-    assert repr(trace_seminorm_instance) == "TraceSeminorm()"
+def test_scalar_homogeneity(trace_seminorm):
+    """Test that the scalar homogeneity property holds."""
+    # Create a random matrix
+    A = np.random.rand(3, 3)
+    
+    # Test with various scalars
+    scalars = [2.0, -3.0, 0.5, 0.0]
+    
+    for scalar in scalars:
+        # Check homogeneity using numpy array
+        assert trace_seminorm.check_scalar_homogeneity(A, scalar) is True
+        
+        # Check with IMatrix implementation
+        mock_A = MockMatrix(A)
+        assert trace_seminorm.check_scalar_homogeneity(mock_A, scalar) is True
+
+
+@pytest.mark.unit
+def test_is_degenerate(trace_seminorm):
+    """Test the degeneracy check."""
+    # Create a non-zero matrix
+    A = np.random.rand(3, 3)
+    
+    # The trace norm should not be degenerate for a random matrix
+    assert trace_seminorm.is_degenerate(A) is False
+    
+    # Create a zero matrix (should not be considered degenerate by definition)
+    zero_matrix = np.zeros((3, 3))
+    assert trace_seminorm.is_degenerate(zero_matrix) is False
+    
+    # Test with IMatrix implementations
+    mock_A = MockMatrix(A)
+    assert trace_seminorm.is_degenerate(mock_A) is False
+
+
+@pytest.mark.unit
+def test_incompatible_shapes_triangle_inequality(trace_seminorm):
+    """Test triangle inequality check with incompatible shapes."""
+    # Create matrices with different shapes
+    A = np.random.rand(3, 3)
+    B = np.random.rand(2, 2)
+    
+    # Triangle inequality check should return False for incompatible shapes
+    assert trace_seminorm.check_triangle_inequality(A, B) is False
+
+
+@pytest.mark.unit
+def test_special_matrices(trace_seminorm):
+    """Test trace seminorm with special matrices."""
+    # Rank-1 matrix
+    v = np.array([1, 2, 3])
+    rank1 = np.outer(v, v)  # Outer product creates a rank-1 matrix
+    rank1_norm = trace_seminorm.compute(rank1)
+    # For rank-1 matrix, trace norm equals Frobenius norm
+    frobenius_norm = np.linalg.norm(rank1, 'fro')
+    assert pytest.approx(rank1_norm, abs=1e-10) == frobenius_norm
+    
+    # Symmetric matrix
+    symmetric = np.array([[1, 2, 3], [2, 4, 5], [3, 5, 6]])
+    symmetric_norm = trace_seminorm.compute(symmetric)
+    # For symmetric matrix, trace norm is sum of absolute eigenvalues
+    eigenvalues = np.linalg.eigvalsh(symmetric)
+    expected_norm = np.sum(np.abs(eigenvalues))
+    assert pytest.approx(symmetric_norm, abs=1e-10) == expected_norm
+
+
+@pytest.mark.unit
+def test_error_handling(trace_seminorm):
+    """Test error handling in TraceSeminorm."""
+    # Test with invalid input type
+    with pytest.raises(TypeError):
+        trace_seminorm.compute("not a matrix")
+    
+    # Test with scalar input
+    with pytest.raises(TypeError):
+        trace_seminorm.compute(5.0)

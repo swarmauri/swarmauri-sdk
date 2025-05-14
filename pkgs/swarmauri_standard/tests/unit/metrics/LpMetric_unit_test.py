@@ -1,98 +1,326 @@
+import logging
+
+import numpy as np
 import pytest
+from swarmauri_core.matrices.IMatrix import IMatrix
+
 from swarmauri_standard.metrics.LpMetric import LpMetric
-from swarmauri_base.exceptions import MetricViolationError
+from swarmauri_standard.vectors.Vector import Vector
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def lp_metric():
-    return LpMetric(p=2.0)
+def vectors():
+    """
+    Create a set of test vectors.
+
+    Returns
+    -------
+    Tuple[List[float], List[float], Vector, Vector]
+        Tuple containing two lists and two Vector instances
+    """
+    v1 = [1, 2, 3]
+    v2 = [4, 5, 6]
+    real_v1 = Vector(value=[1, 2, 3])
+    real_v2 = Vector(value=[4, 5, 6])
+    return v1, v2, real_v1, real_v2
 
 
-@pytest.fixture(params=[2.0, 1.5, 3.0])
-def lp_metric_var_p(request):
-    return LpMetric(p=request.param)
+class MockMatrix(IMatrix):
+    def __init__(self, data):
+        self.data = data
+
+    def to_array(self):
+        return np.array(self.data)
+
+    def model_dump_json(self):
+        return f'{{"data": {self.data}}}'
+
+
+@pytest.fixture
+def lp_metric_2():
+    """
+    Create an instance of LpMetric with p=2 (Euclidean distance).
+
+    Returns
+    -------
+    LpMetric
+        An instance of LpMetric with p=2
+    """
+    return LpMetric(p=2)
+
+
+@pytest.fixture
+def lp_metric_3():
+    """
+    Create an instance of LpMetric with p=3.
+
+    Returns
+    -------
+    LpMetric
+        An instance of LpMetric with p=3
+    """
+    return LpMetric(p=3)
+
+
+@pytest.fixture
+def matrices():
+    """
+    Create a set of test matrices.
+
+    Returns
+    -------
+    Tuple[List[List[float]], List[List[float]], MockMatrix, MockMatrix]
+        Tuple containing two 2D lists and two MockMatrix instances
+    """
+    m1 = [[1, 2], [3, 4]]
+    m2 = [[5, 6], [7, 8]]
+    mock_m1 = MockMatrix([[1, 2], [3, 4]])
+    mock_m2 = MockMatrix([[5, 6], [7, 8]])
+    return m1, m2, mock_m1, mock_m2
 
 
 @pytest.mark.unit
-class TestLpMetric:
-    """Unit tests for the LpMetric class."""
+def test_lp_metric_initialization():
+    """Test LpMetric initialization with various p values."""
+    # Valid p values
+    metric_2 = LpMetric(p=2)
+    assert metric_2.p == 2
+    assert metric_2.type == "LpMetric"
 
-    def test_initialization(self, lp_metric_var_p):
-        """Test that the LpMetric instance is correctly initialized."""
-        assert lp_metric_var_p.p == lp_metric_var_p.norm.p
-        with pytest.raises(ValueError):
-            LpMetric(p=-1.0)
-        with pytest.raises(ValueError):
-            LpMetric(p=1.0)
-        with pytest.raises(ValueError):
-            LpMetric(p=float("inf"))
-        with pytest.raises(ValueError):
-            LpMetric(p=None)
+    metric_3_5 = LpMetric(p=3.5)
+    assert metric_3_5.p == 3.5
 
-    def test_logging(self, lp_metric, caplog):
-        """Test that appropriate logging occurs during distance calculation."""
-        lp_metric.distance([1, 2], [3, 4])
-        assert "Calculating L2.0 distance" in caplog.text
+    # Invalid p values
+    with pytest.raises(ValueError):
+        LpMetric(p=1)  # p must be > 1
 
-    def test_is_valid(self, lp_metric):
-        """Test the is_valid method for different input types."""
-        assert lp_metric.is_valid(1)
-        assert lp_metric.is_valid([1.0, 2.0])
-        assert not lp_metric.is_valid(float("nan"))
-        assert not lp_metric.is_valid([float("inf"), 2.0])
-        assert not lp_metric.is_valid(None)
+    with pytest.raises(ValueError):
+        LpMetric(p=0)  # p must be > 1
 
-    def test_resource_and_type(self, lp_metric):
-        """Test that resource and type attributes are correctly set."""
-        assert LpMetric.resource == "Metric"
-        assert lp_metric.type == "LpMetric"
+    with pytest.raises(ValueError):
+        LpMetric(p=-2)  # p must be > 1
 
-    def test_repr(self, lp_metric):
-        """Test the string representation of the LpMetric instance."""
-        assert str(lp_metric) == f"LpMetric(p={lp_metric.p})"
+    with pytest.raises(ValueError):
+        LpMetric(p=float("inf"))  # p must be finite
 
-    def test_distance_vector_and_scalar(self, lp_metric):
-        """Test distance calculation with both vector and scalar inputs."""
-        # Vector vs Vector
-        d = lp_metric.distance([1.0, 2.0], [3.0, 4.0])
-        assert d >= 0.0
 
-        # Vector vs Scalar
-        d = lp_metric.distance([1.0, 2.0], 3.0)
-        assert d >= 0.0
+@pytest.mark.unit
+def test_resource_type():
+    """Test that the resource type is correctly set."""
+    metric = LpMetric(p=2)
+    assert metric.resource == "Metric"
 
-        # Scalar vs Vector
-        d = lp_metric.distance(3.0, [4.0, 5.0])
-        assert d >= 0.0
 
-        # Scalar vs Scalar
-        d = lp_metric.distance(3.0, 4.0)
-        assert d >= 0.0
+@pytest.mark.unit
+def test_convert_to_array(lp_metric_2, vectors, matrices):
+    """Test the _convert_to_array method with different input types."""
+    v1, v2, mock_v1, mock_v2 = vectors
+    m1, m2, mock_m1, mock_m2 = matrices
 
-    def test_identity_of_indiscernibles(self, lp_metric):
-        """Test the identity of indiscernibles axiom."""
-        point = [1.0, 2.0]
-        d = lp_metric.distance(point, point)
-        assert d == 0.0
+    # Test with lists
+    np.testing.assert_array_equal(
+        lp_metric_2._convert_to_array(v1), np.array([1, 2, 3])
+    )
 
-        with pytest.raises(MetricViolationError):
-            lp_metric.distance([1.0, 2.0], [1.0, 3.0])
-            lp_metric.check_identity([1.0, 2.0], [1.0, 2.0])
+    # Test with IVector implementation
+    np.testing.assert_array_equal(
+        lp_metric_2._convert_to_array(mock_v1), np.array([1, 2, 3])
+    )
 
-    def test_symmetry(self, lp_metric):
-        """Test the symmetry axiom."""
-        d_xy = lp_metric.distance([1.0, 2.0], [3.0, 4.0])
-        d_yx = lp_metric.distance([3.0, 4.0], [1.0, 2.0])
-        assert d_xy == d_yx
+    # Test with IMatrix implementation
+    np.testing.assert_array_equal(
+        lp_metric_2._convert_to_array(mock_m1), np.array([1, 2, 3, 4])
+    )
 
-    def test_triangle_inequality(self, lp_metric):
-        """Test the triangle inequality."""
-        x = [0.0, 0.0]
-        y = [1.0, 0.0]
-        z = [0.0, 1.0]
+    # Test with scalar values
+    np.testing.assert_array_equal(lp_metric_2._convert_to_array(5), np.array([5]))
 
-        d_xy = lp_metric.distance(x, y)
-        d_yz = lp_metric.distance(y, z)
-        d_xz = lp_metric.distance(x, z)
+    # Test with string
+    np.testing.assert_array_equal(
+        lp_metric_2._convert_to_array("abc"),
+        np.array([97, 98, 99]),  # ASCII values
+    )
 
-        assert d_xz <= d_xy + d_yz
+    # Test with unsupported type
+    with pytest.raises(TypeError):
+        lp_metric_2._convert_to_array({1: 2, 3: 4})  # Dictionary is not supported
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "p,expected",
+    [
+        (2, 5.196152422706632),  # Euclidean distance
+        (3, 4.326748710922225),  # p=3 distance
+        (5, 3.936459731915965),  # p=5 distance
+    ],
+)
+def test_distance_with_lists(p, expected):
+    """Test distance calculation with list inputs for different p values."""
+    metric = LpMetric(p=p)
+    v1 = [1, 2, 3]
+    v2 = [4, 5, 6]
+
+    result = metric.distance(v1, v2)
+    assert abs(result - expected) < 1e-10
+
+
+@pytest.mark.unit
+def test_distance_with_vectors(lp_metric_2, vectors):
+    """Test distance calculation with IVector implementations."""
+    _, _, mock_v1, mock_v2 = vectors
+
+    result = lp_metric_2.distance(mock_v1, mock_v2)
+    expected = 5.196152422706632  # Euclidean distance between [1,2,3] and [4,5,6]
+    assert abs(result - expected) < 1e-10
+
+
+@pytest.mark.unit
+def test_distance_with_matrices(lp_metric_2, matrices):
+    """Test distance calculation with IMatrix implementations."""
+    _, _, mock_m1, mock_m2 = matrices
+
+    result = lp_metric_2.distance(mock_m1, mock_m2)
+    expected = 8.0  # Euclidean distance between flattened matrices
+    assert abs(result - expected) < 1e-10
+
+
+@pytest.mark.unit
+def test_distance_with_incompatible_shapes():
+    """Test distance calculation with incompatible shapes."""
+    metric = LpMetric(p=2)
+    v1 = [1, 2, 3]
+    v2 = [4, 5]
+
+    with pytest.raises(ValueError):
+        metric.distance(v1, v2)
+
+
+@pytest.mark.unit
+def test_distances_with_lists(lp_metric_2):
+    """Test distances calculation with lists of points."""
+    points_x = [[1, 2], [3, 4]]
+    points_y = [[5, 6], [7, 8]]
+
+    # Test pairwise distances
+    result = lp_metric_2.distances(points_x, points_y)
+    expected = [
+        [5.656854249492381, 8.48528137423857],
+        [2.8284271247461903, 5.656854249492381],
+    ]
+
+    assert len(result) == len(expected)
+    for i in range(len(result)):
+        for j in range(len(result[i])):
+            assert abs(result[i][j] - expected[i][j]) < 1e-10
+
+    # Test with single point in x
+    result = lp_metric_2.distances([[1, 2]], points_y)
+    expected = [5.656854249492381, 8.48528137423857]
+
+    assert len(result) == len(expected)
+    for i in range(len(result)):
+        assert abs(result[i] - expected[i]) < 1e-10
+
+    # Test with single point in y
+    result = lp_metric_2.distances(points_x, [[5, 6]])
+    expected = [5.656854249492381, 2.8284271247461903]
+
+    assert len(result) == len(expected)
+    for i in range(len(result)):
+        assert abs(result[i] - expected[i]) < 1e-10
+
+
+@pytest.mark.unit
+def test_distances_with_vectors(lp_metric_2, vectors):
+    """Test distances calculation with IVector implementations."""
+    _, _, mock_v1, mock_v2 = vectors
+
+    result = lp_metric_2.distances(mock_v1, mock_v2)
+    expected = 5.196152422706632  # Same as distance for single vectors
+    assert abs(result - expected) < 1e-10
+
+
+@pytest.mark.unit
+def test_check_non_negativity(lp_metric_2, vectors):
+    """Test non-negativity axiom check."""
+    v1, v2, _, _ = vectors
+
+    # Distance should always be non-negative
+    assert lp_metric_2.check_non_negativity(v1, v2) is True
+    assert lp_metric_2.check_non_negativity(v1, v1) is True  # Same point
+
+
+@pytest.mark.unit
+def test_check_identity_of_indiscernibles(lp_metric_2, vectors):
+    """Test identity of indiscernibles axiom check."""
+    v1, v2, _, _ = vectors
+
+    # Same points should have zero distance
+    assert lp_metric_2.check_identity_of_indiscernibles(v1, v1) is True
+
+    # Different points should have non-zero distance
+    assert lp_metric_2.check_identity_of_indiscernibles(v1, v2) is True
+
+
+@pytest.mark.unit
+def test_check_symmetry(lp_metric_2, vectors):
+    """Test symmetry axiom check."""
+    v1, v2, _, _ = vectors
+
+    # Distance should be the same in both directions
+    assert lp_metric_2.check_symmetry(v1, v2) is True
+
+
+@pytest.mark.unit
+def test_check_triangle_inequality(lp_metric_2):
+    """Test triangle inequality axiom check."""
+    v1 = [1, 2, 3]
+    v2 = [4, 5, 6]
+    v3 = [7, 8, 9]
+
+    # Triangle inequality should hold
+    assert lp_metric_2.check_triangle_inequality(v1, v2, v3) is True
+
+
+@pytest.mark.unit
+def test_get_norm(lp_metric_2, lp_metric_3):
+    """Test getting the corresponding norm."""
+    norm2 = lp_metric_2.get_norm()
+    assert norm2.p == 2
+
+    norm3 = lp_metric_3.get_norm()
+    assert norm3.p == 3
+
+
+@pytest.mark.unit
+def test_edge_cases(lp_metric_2):
+    """Test edge cases for distance calculation."""
+    # Distance between identical points should be 0
+    assert lp_metric_2.distance([0, 0, 0], [0, 0, 0]) == 0
+
+    # Distance between a point and itself should be 0
+    point = [1.5, 2.5, 3.5]
+    assert lp_metric_2.distance(point, point) == 0
+
+    # Test with very small values
+    v1 = [1e-10, 2e-10, 3e-10]
+    v2 = [4e-10, 5e-10, 6e-10]
+    result = lp_metric_2.distance(v1, v2)
+    expected = 5.196152422706632e-10
+    assert abs(result - expected) < 1e-20
+
+
+@pytest.mark.unit
+def test_serialization():
+    """Test serialization and deserialization of LpMetric."""
+    original = LpMetric(p=2.5)
+    json_str = original.model_dump_json()
+    deserialized = LpMetric.model_validate_json(json_str)
+
+    assert deserialized.p == original.p
+    assert deserialized.type == original.type
+    assert deserialized.resource == original.resource

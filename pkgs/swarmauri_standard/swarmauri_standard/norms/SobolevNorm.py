@@ -1,140 +1,433 @@
-from typing import TypeVar, Union, Callable
+from typing import TypeVar, Union, Callable, Sequence, Optional, List, Dict, Any, Literal
 import logging
-from swarmauri_base.norms.NormBase import NormBase
-from swarmauri_base.ComponentBase import ComponentBase
+import numpy as np
+from pydantic import Field
 
-# Define a TypeVar to represent supported input types
-T = TypeVar("T", Union[Callable, list, float])
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.norms.NormBase import NormBase
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Define type variables for supported input types
+T = TypeVar('T')
+VectorType = TypeVar('VectorType', bound=IVector)
+MatrixType = TypeVar('MatrixType', bound=IMatrix)
+SequenceType = TypeVar('SequenceType', bound=Sequence)
+StringType = TypeVar('StringType', bound=str)
+CallableType = TypeVar('CallableType', bound=Callable)
 
 
 @ComponentBase.register_type(NormBase, "SobolevNorm")
 class SobolevNorm(NormBase):
     """
-    A class implementing the Sobolev norm, which combines the L2 norms of a function and its derivatives.
-
-    The Sobolev norm is particularly useful for measuring the smoothness of functions by considering both the function and its derivatives up to a specified order. This norm is defined as the sum of the squares of the L2 norms of the function and its derivatives, raised to the power of 1/2.
-
-    Attributes:
-        order: The highest order of derivatives to include in the norm computation. Defaults to 1.
-
-    Methods:
-        compute: Computes the Sobolev norm of the given input.
-        _compute_l2_norm: Helper method to compute the L2 norm of a function or its derivative.
+    Sobolev norm implementation that combines function and derivative norms.
+    
+    The Sobolev norm accounts for the smoothness of a function by incorporating
+    the L2 norm of both the function and its derivatives up to a specified order.
+    
+    Attributes
+    ----------
+    type : Literal["SobolevNorm"]
+        The type identifier for this norm.
+    order : int
+        The highest derivative order to consider in the norm computation.
+    weights : Dict[int, float]
+        Weights for each derivative order in the norm computation.
     """
-
-    type: str = "SobolevNorm"
-    order: int
-
-    def __init__(self, order: int = 1, **kwargs):
+    type: Literal["SobolevNorm"] = "SobolevNorm"
+    order: int = Field(default=1, description="Highest derivative order to consider")
+    weights: Dict[int, float] = Field(
+        default_factory=lambda: {0: 1.0, 1: 1.0},
+        description="Weights for each derivative order"
+    )
+    
+    def __init__(self, **kwargs):
         """
-        Initializes the SobolevNorm instance with the specified order of derivatives.
-
-        Args:
-            order: The highest order of derivatives to include in the norm computation.
-            **kwargs: Additional keyword arguments passed to the base class.
+        Initialize the Sobolev norm with specified parameters.
+        
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to pass to the parent class constructor.
+            May include 'order' and 'weights' to customize the norm.
         """
         super().__init__(**kwargs)
-        self.order = order
-
-    def compute(self, x: T) -> float:
+        # Ensure weights dictionary has entries for all orders up to self.order
+        for i in range(self.order + 1):
+            if i not in self.weights:
+                self.weights[i] = 1.0
+        
+        logger.debug(f"Initialized SobolevNorm with order {self.order} and weights {self.weights}")
+    
+    def compute(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> float:
         """
-        Computes the Sobolev norm of the given input.
-
-        The Sobolev norm is calculated as the square root of the sum of the squared L2 norms of the function and its derivatives up to the specified order.
-
-        Args:
-            x: The input function or vector to compute the norm of. Must be a callable or list.
-
-        Returns:
-            float: The computed Sobolev norm value.
+        Compute the Sobolev norm of the input.
+        
+        For callable inputs, computes the weighted sum of L2 norms of the function and its derivatives.
+        For other types, falls back to L2 norm of the input itself.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input for which to compute the norm.
+            
+        Returns
+        -------
+        float
+            The computed Sobolev norm value.
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported or derivatives cannot be computed.
+        ValueError
+            If the norm cannot be computed for the given input.
         """
-        logger.debug(
-            f"Computing Sobolev norm of order {self.order} for input type {type(x)}"
-        )
-
-        total_norm = 0.0
-
-        # Add the norm of the function itself (0th derivative)
-        f_norm = self._compute_l2_norm(x, 0)
-        total_norm += f_norm**2
-
-        # Add the norms of the derivatives up to the specified order
-        for derivative_order in range(1, self.order + 1):
-            derivative_norm = self._compute_l2_norm(x, derivative_order)
-            total_norm += derivative_norm**2
-
-        return total_norm**0.5
-
-    def _compute_l2_norm(self, x: T, derivative_order: int = 0) -> float:
-        """
-        Helper method to compute the L2 norm of a function or its derivative.
-
-        Args:
-            x: The input function or vector.
-            derivative_order: The order of the derivative to compute. Defaults to 0 (the function itself).
-
-        Returns:
-            float: The L2 norm of the function or its derivative.
-        """
-        logger.debug(f"Computing L2 norm for derivative order {derivative_order}")
-
-        # Get the function or its derivative based on the order
+        logger.debug(f"Computing Sobolev norm for {type(x).__name__}")
+        
         if callable(x):
-            func = self._get_derivative(x, derivative_order)
+            return self._compute_for_callable(x)
+        elif isinstance(x, (IVector, IMatrix, Sequence)):
+            # For non-callable types, use only the function value (0th derivative)
+            # with appropriate weight
+            logger.debug("Computing Sobolev norm for non-callable using L2 norm")
+            return self._compute_l2_norm(x) * self.weights.get(0, 1.0)
         else:
-            func = x  # Assume x is already the appropriate derivative for non-callable input
-
-        # Compute the L2 norm
-        if isinstance(func, list):
-            norm = sum(x**2 for x in func) ** 0.5
-        else:
-            # For callable functions, integrate over the domain or compute vector norm
-            # This is a simplified version - actual implementation would depend on the function type
-            norm = abs(func)  # Placeholder for actual L2 norm computation
-
-        return norm
-
-    def _get_derivative(self, func: Callable, order: int) -> Callable:
+            raise TypeError(f"Unsupported input type for Sobolev norm: {type(x).__name__}")
+    
+    def _compute_for_callable(self, func: Callable) -> float:
         """
-        Helper method to compute the nth derivative of a function.
-
-        Args:
-            func: The function to differentiate.
-            order: The order of the derivative to compute.
-
-        Returns:
-            Callable: The nth derivative of the input function.
+        Compute the Sobolev norm for a callable function.
+        
+        Parameters
+        ----------
+        func : Callable
+            The function for which to compute the Sobolev norm.
+            
+        Returns
+        -------
+        float
+            The computed Sobolev norm value.
+            
+        Raises
+        ------
+        ValueError
+            If derivatives cannot be computed or evaluated.
         """
-        logger.debug(f"Computing {order}th derivative of function")
-
-        if order == 0:
-            return func
-        elif order == 1:
-            return self._first_derivative(func)
-        else:
-            # This is a simplified version - actual implementation would need proper numerical differentiation
-            derivative_func = func
-            for _ in range(order):
-                derivative_func = self._first_derivative(derivative_func)
-            return derivative_func
-
-    def _first_derivative(self, func: Callable) -> Callable:
+        # Check if the function has the necessary attributes for computing derivatives
+        if not hasattr(func, 'derivative') and not hasattr(func, '__call__'):
+            raise ValueError("Function must support derivative computation for Sobolev norm")
+        
+        # Initialize sum for the norm calculation
+        norm_sum = 0.0
+        
+        try:
+            # Compute L2 norm of the function itself (0th derivative)
+            if 0 in self.weights and self.weights[0] > 0:
+                f_norm = self._evaluate_function_norm(func)
+                norm_sum += self.weights[0] * f_norm**2
+                logger.debug(f"0th derivative contribution: {self.weights[0] * f_norm**2}")
+            
+            # Compute L2 norms of derivatives
+            current_derivative = func
+            for i in range(1, self.order + 1):
+                if i in self.weights and self.weights[i] > 0:
+                    # Get the next derivative
+                    if hasattr(current_derivative, 'derivative'):
+                        current_derivative = current_derivative.derivative()
+                    else:
+                        # If no derivative method, raise error
+                        raise ValueError(f"Cannot compute {i}th derivative of the function")
+                    
+                    # Compute L2 norm of this derivative
+                    d_norm = self._evaluate_function_norm(current_derivative)
+                    norm_sum += self.weights[i] * d_norm**2
+                    logger.debug(f"{i}th derivative contribution: {self.weights[i] * d_norm**2}")
+            
+            # Return the square root of the weighted sum
+            return np.sqrt(norm_sum)
+        
+        except Exception as e:
+            logger.error(f"Error computing Sobolev norm: {str(e)}")
+            raise ValueError(f"Failed to compute Sobolev norm: {str(e)}")
+    
+    def _evaluate_function_norm(self, func: Callable) -> float:
         """
-        Helper method to compute the first derivative of a function using finite differences.
-
-        Args:
-            func: The function to differentiate.
-
-        Returns:
-            Callable: The first derivative of the input function.
+        Evaluate the L2 norm of a function over a default domain.
+        
+        Parameters
+        ----------
+        func : Callable
+            The function to evaluate.
+            
+        Returns
+        -------
+        float
+            The L2 norm of the function.
         """
-        logger.debug("Computing first derivative using finite differences")
-
-        def derivative(x):
-            h = 1e-8  # Small step size
-            return (func(x + h) - func(x - h)) / (2 * h)
-
-        return derivative
-
-
-logger = logging.getLogger(__name__)
+        # For simplicity, evaluate on a default domain [0, 1] with 100 points
+        # In practice, this would need to be customized based on the application
+        x_values = np.linspace(0, 1, 100)
+        try:
+            y_values = np.array([func(x) for x in x_values])
+            # Compute approximate L2 norm using trapezoidal rule
+            return np.sqrt(np.trapz(y_values**2, x_values))
+        except Exception as e:
+            logger.error(f"Error evaluating function: {str(e)}")
+            raise ValueError(f"Failed to evaluate function norm: {str(e)}")
+    
+    def _compute_l2_norm(self, x: Union[VectorType, MatrixType, SequenceType]) -> float:
+        """
+        Compute the L2 norm of a non-callable input.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType]
+            The input for which to compute the L2 norm.
+            
+        Returns
+        -------
+        float
+            The L2 norm of the input.
+            
+        Raises
+        ------
+        ValueError
+            If the norm cannot be computed for the given input.
+        """
+        try:
+            if hasattr(x, 'norm'):
+                # Use the object's own norm method if available
+                return x.norm()
+            elif isinstance(x, Sequence):
+                # Convert sequence to numpy array and compute norm
+                return np.linalg.norm(np.array(x, dtype=float))
+            else:
+                raise ValueError(f"Cannot compute L2 norm for type {type(x).__name__}")
+        except Exception as e:
+            logger.error(f"Error computing L2 norm: {str(e)}")
+            raise ValueError(f"Failed to compute L2 norm: {str(e)}")
+    
+    def check_non_negativity(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
+        """
+        Check if the Sobolev norm satisfies the non-negativity property.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input to check.
+            
+        Returns
+        -------
+        bool
+            True if the norm is non-negative, False otherwise.
+        """
+        try:
+            norm_value = self.compute(x)
+            return norm_value >= 0
+        except Exception as e:
+            logger.error(f"Error checking non-negativity: {str(e)}")
+            return False
+    
+    def check_definiteness(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
+        """
+        Check if the Sobolev norm satisfies the definiteness property.
+        
+        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input to check.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the definiteness property, False otherwise.
+        """
+        try:
+            # For a zero input, the norm should be zero
+            if self._is_zero(x):
+                norm_value = self.compute(x)
+                return abs(norm_value) < 1e-10  # Allow for numerical precision issues
+            
+            # For a non-zero input, the norm should be positive
+            norm_value = self.compute(x)
+            return norm_value > 0
+        except Exception as e:
+            logger.error(f"Error checking definiteness: {str(e)}")
+            return False
+    
+    def check_triangle_inequality(self, 
+                                 x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+                                 y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
+        """
+        Check if the Sobolev norm satisfies the triangle inequality.
+        
+        The triangle inequality states that norm(x + y) <= norm(x) + norm(y).
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The first input.
+        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The second input.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the triangle inequality, False otherwise.
+        """
+        try:
+            # Ensure x and y are of the same type
+            if not isinstance(y, type(x)):
+                raise TypeError("Inputs must be of the same type for triangle inequality check")
+            
+            # Compute norms
+            norm_x = self.compute(x)
+            norm_y = self.compute(y)
+            
+            # For callable functions
+            if callable(x) and callable(y):
+                # Create a new function representing x + y
+                def sum_func(t):
+                    return x(t) + y(t)
+                
+                # For functions with derivatives
+                if hasattr(x, 'derivative') and hasattr(y, 'derivative'):
+                    # Add derivative method to sum_func
+                    def create_derivative(func_x, func_y):
+                        def derivative_func(t):
+                            return func_x.derivative()(t) + func_y.derivative()(t)
+                        return derivative_func
+                    
+                    sum_func.derivative = lambda: create_derivative(x, y)
+                
+                norm_sum = self.compute(sum_func)
+            
+            # For vector-like objects
+            elif hasattr(x, '__add__'):
+                sum_xy = x + y
+                norm_sum = self.compute(sum_xy)
+            
+            # For sequences
+            elif isinstance(x, Sequence) and isinstance(y, Sequence):
+                if len(x) != len(y):
+                    raise ValueError("Sequences must have the same length for triangle inequality check")
+                sum_xy = [x[i] + y[i] for i in range(len(x))]
+                norm_sum = self.compute(sum_xy)
+            
+            else:
+                raise TypeError(f"Cannot compute sum for type {type(x).__name__}")
+            
+            # Check triangle inequality
+            logger.debug(f"Triangle inequality check: {norm_sum} <= {norm_x + norm_y}")
+            return norm_sum <= norm_x + norm_y + 1e-10  # Allow for numerical precision issues
+        
+        except Exception as e:
+            logger.error(f"Error checking triangle inequality: {str(e)}")
+            return False
+    
+    def check_absolute_homogeneity(self, 
+                                  x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+                                  scalar: float) -> bool:
+        """
+        Check if the Sobolev norm satisfies the absolute homogeneity property.
+        
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input.
+        scalar : float
+            The scalar value.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the absolute homogeneity property, False otherwise.
+        """
+        try:
+            # Compute norm of x
+            norm_x = self.compute(x)
+            
+            # For callable functions
+            if callable(x):
+                # Create a new function representing scalar * x
+                def scaled_func(t):
+                    return scalar * x(t)
+                
+                # For functions with derivatives
+                if hasattr(x, 'derivative'):
+                    # Add derivative method to scaled_func
+                    def create_derivative(func_x, scale):
+                        def derivative_func(t):
+                            return scale * func_x.derivative()(t)
+                        return derivative_func
+                    
+                    scaled_func.derivative = lambda: create_derivative(x, scalar)
+                
+                norm_scaled = self.compute(scaled_func)
+            
+            # For vector-like objects
+            elif hasattr(x, '__mul__'):
+                scaled_x = x * scalar
+                norm_scaled = self.compute(scaled_x)
+            
+            # For sequences
+            elif isinstance(x, Sequence):
+                scaled_x = [scalar * item for item in x]
+                norm_scaled = self.compute(scaled_x)
+            
+            else:
+                raise TypeError(f"Cannot scale input of type {type(x).__name__}")
+            
+            # Check absolute homogeneity
+            expected_norm = abs(scalar) * norm_x
+            logger.debug(f"Absolute homogeneity check: {norm_scaled} == {expected_norm}")
+            return abs(norm_scaled - expected_norm) < 1e-10 * (1 + abs(expected_norm))  # Relative tolerance
+        
+        except Exception as e:
+            logger.error(f"Error checking absolute homogeneity: {str(e)}")
+            return False
+    
+    def _is_zero(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
+        """
+        Check if the input is effectively zero.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input to check.
+            
+        Returns
+        -------
+        bool
+            True if the input is effectively zero, False otherwise.
+        """
+        try:
+            if callable(x):
+                # Sample the function at several points to check if it's zero
+                test_points = np.linspace(0, 1, 10)
+                return all(abs(x(t)) < 1e-10 for t in test_points)
+            
+            elif hasattr(x, 'is_zero'):
+                return x.is_zero()
+            
+            elif isinstance(x, Sequence):
+                return all(abs(float(item)) < 1e-10 for item in x)
+            
+            elif hasattr(x, '__abs__'):
+                return abs(x) < 1e-10
+            
+            else:
+                # Default case
+                return x == 0
+        
+        except Exception as e:
+            logger.error(f"Error checking if input is zero: {str(e)}")
+            return False

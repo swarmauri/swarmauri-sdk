@@ -90,3 +90,9 @@ class ResourceTypes(Enum):
     STT = "STT"
     OCR = "OCR"
     INNER_PRODUCT = "InnerProduct"
+    METRIC = "Metric"
+    NORM = "Norm"
+    SIMILARITY = "Similarity"
+    PSEUDOMETRIC = "PseudoMetric"
+    SEMINORM = "SemiNorm"
+    

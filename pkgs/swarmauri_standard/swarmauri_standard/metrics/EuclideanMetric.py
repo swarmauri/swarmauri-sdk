@@ -1,192 +1,328 @@
-from typing import Union, List, Sequence, Callable
 import logging
+import math
+from typing import Any, List, Literal, Sequence, Union
 
-from swarmauri_base.metrics import MetricBase
-from swarmauri_standard.norms import L2EuclideanNorm
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.metrics.MetricBase import MetricBase
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
-@MetricBase.register_type(MetricBase, "EuclideanMetric")
+@ComponentBase.register_type(MetricBase, "EuclideanMetric")
 class EuclideanMetric(MetricBase):
     """
-    A concrete implementation of the MetricBase class that computes the standard
-    Euclidean (L2) distance between vectors.
+    Euclidean metric (L2 distance) implementation.
 
-    Inherits from:
-        MetricBase: Base class providing template logic for metric computations.
+    This class implements the standard Euclidean distance metric, which is the
+    straight-line distance between two points in Euclidean space, computed as the
+    square root of the sum of the squared differences between corresponding coordinates.
 
-    Attributes:
-        type: String identifier for the metric type.
+    The Euclidean distance satisfies all metric axioms:
+    - Non-negativity: d(x,y) ≥ 0
+    - Identity of indiscernibles: d(x,y) = 0 if and only if x = y
+    - Symmetry: d(x,y) = d(y,x)
+    - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
 
-    Methods:
-        distance: Computes the Euclidean distance between two vectors.
-        distances: Computes pairwise distances between two lists of vectors.
-        check_non_negativity: Verifies the non-negativity axiom.
-        check_identity: Verifies the identity of indiscernibles axiom.
-        check_symmetry: Verifies the symmetry axiom.
-        check_triangle_inequality: Verifies the triangle inequality axiom.
+    Attributes
+    ----------
+    type : Literal["EuclideanMetric"]
+        The specific type of metric.
+    resource : str, optional
+        The resource type, defaults to METRIC.
     """
 
-    type: str = "EuclideanMetric"
+    type: Literal["EuclideanMetric"] = "EuclideanMetric"
 
-    def __init__(self):
+    def distance(self, x: Any, y: Any) -> float:
         """
-        Initializes the EuclideanMetric instance with the L2 norm.
-        """
-        self.norm = L2EuclideanNorm()
+        Calculate the Euclidean distance between two points.
 
-    def distance(
-        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
-    ) -> float:
-        """
-        Computes the Euclidean (L2) distance between two vectors.
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
 
-        Args:
-            x: First vector
-            y: Second vector
+        Returns
+        -------
+        float
+            The Euclidean distance between x and y
 
-        Returns:
-            float: The Euclidean distance between x and y
-
-        Raises:
-            ValueError: If the input vectors have different dimensions
+        Raises
+        ------
+        ValueError
+            If inputs have different dimensions or are incompatible
+        TypeError
+            If input types are not supported
         """
         logger.debug(f"Calculating Euclidean distance between {x} and {y}")
 
-        # Ensure vectors are of the same dimension
-        if len(x) != len(y):
-            raise ValueError("Input vectors must have the same dimension")
+        # Handle different input types
+        if isinstance(x, IVector) and isinstance(y, IVector):
+            # For vector objects
+            if len(x) != len(y):
+                raise ValueError(
+                    f"Vectors must have the same dimension: {len(x)} != {len(y)}"
+                )
 
-        # Compute the difference vector
-        difference = [x[i] - y[i] for i in range(len(x))]
+            # Get numeric values from vectors
+            x_values = x.to_numpy()
+            y_values = y.to_numpy()
 
-        # Compute the L2 norm of the difference vector
-        return self.norm.compute(difference)
+            # Calculate Euclidean distance
+            return math.sqrt(
+                sum((x_i - y_i) ** 2 for x_i, y_i in zip(x_values, y_values))
+            )
 
-    def distances(
-        self,
-        xs: List[Union[Sequence[float], Callable]],
-        ys: List[Union[Sequence[float], Callable]],
-    ) -> List[List[float]]:
-        """
-        Computes pairwise Euclidean distances between two lists of vectors.
+        elif (
+            isinstance(x, Sequence)
+            and isinstance(y, Sequence)
+            and not isinstance(x, str)
+            and not isinstance(y, str)
+        ):
+            # For general sequences (lists, tuples, etc.)
+            if len(x) != len(y):
+                raise ValueError(
+                    f"Sequences must have the same length: {len(x)} != {len(y)}"
+                )
 
-        Args:
-            xs: List of first vectors
-            ys: List of second vectors
+            try:
+                return math.sqrt(sum((x_i - y_i) ** 2 for x_i, y_i in zip(x, y)))
+            except (TypeError, ValueError) as e:
+                logger.error(f"Failed to compute Euclidean distance for sequences: {e}")
+                raise ValueError(
+                    f"Cannot compute Euclidean distance for sequences with non-numeric elements: {e}"
+                )
 
-        Returns:
-            List[List[float]]: Matrix of pairwise distances where distances[i][j] is the distance between xs[i] and ys[j]
-
-        Raises:
-            ValueError: If any pair of vectors have different dimensions
-        """
-        logger.debug(
-            f"Calculating pairwise distances between {len(xs)} vectors and {len(ys)} vectors"
-        )
-
-        distances = []
-        for x in xs:
-            row = []
-            for y in ys:
-                if len(x) != len(y):
-                    raise ValueError("All input vectors must have the same dimension")
-                row.append(self.distance(x, y))
-            distances.append(row)
-        return distances
-
-    def check_non_negativity(
-        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
-    ) -> None:
-        """
-        Verifies the non-negativity axiom: d(x,y) ≥ 0.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Raises:
-            ValueError: If the distance is negative
-        """
-        logger.debug("Checking non-negativity axiom")
-        distance = self.distance(x, y)
-        if distance < 0:
-            raise ValueError(f"Non-negativity violation: distance was {distance}")
-
-    def check_identity(
-        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
-    ) -> None:
-        """
-        Verifies the identity of indiscernibles axiom: d(x,y) = 0 if and only if x = y.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Raises:
-            ValueError: If d(x,y) = 0 but x ≠ y, or d(x,y) ≠ 0 but x = y
-        """
-        logger.debug("Checking identity of indiscernibles axiom")
-        distance = self.distance(x, y)
-        if distance == 0:
-            if x != y:
-                raise ValueError("Identity violation: d(x,y) = 0 but x ≠ y")
         else:
-            if x == y:
-                raise ValueError("Identity violation: d(x,y) ≠ 0 but x = y")
+            logger.error(
+                f"Unsupported input types for Euclidean distance: {type(x)} and {type(y)}"
+            )
+            raise TypeError(
+                f"Euclidean distance computation not supported for types {type(x)} and {type(y)}"
+            )
 
-    def check_symmetry(
-        self, x: Union[Sequence[float], Callable], y: Union[Sequence[float], Callable]
-    ) -> None:
+    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
         """
-        Verifies the symmetry axiom: d(x,y) = d(y,x).
+        Calculate Euclidean distances between collections of points.
 
-        Args:
-            x: First vector
-            y: Second vector
+        Parameters
+        ----------
+        x : Any
+            First collection of points
+        y : Any
+            Second collection of points
 
-        Raises:
-            ValueError: If d(x,y) ≠ d(y,x)
-        """
-        logger.debug("Checking symmetry axiom")
-        d_xy = self.distance(x, y)
-        d_yx = self.distance(y, x)
-        if d_xy != d_yx:
-            raise ValueError(f"Symmetry violation: d(x,y) = {d_xy}, d(y,x) = {d_yx}")
+        Returns
+        -------
+        Union[List[float], IVector, IMatrix]
+            Matrix or vector of Euclidean distances between points in x and y
 
-    def check_triangle_inequality(
-        self,
-        x: Union[Sequence[float], Callable],
-        y: Union[Sequence[float], Callable],
-        z: Union[Sequence[float], Callable],
-    ) -> None:
+        Raises
+        ------
+        ValueError
+            If inputs are incompatible
+        TypeError
+            If input types are not supported
         """
-        Verifies the triangle inequality axiom: d(x,z) ≤ d(x,y) + d(y,z).
+        logger.debug("Calculating Euclidean distances between collections")
 
-        Args:
-            x: First vector
-            y: Second vector
-            z: Third vector
+        # Handle different collection types
+        if isinstance(x, IMatrix) and isinstance(y, IMatrix):
+            # For matrix objects - compute pairwise distances between rows
+            if x.shape[1] != y.shape[1]:
+                raise ValueError(
+                    f"Points must have the same dimension: {x.shape[1]} != {y.shape[1]}"
+                )
 
-        Raises:
-            ValueError: If d(x,z) > d(x,y) + d(y,z)
-        """
-        logger.debug("Checking triangle inequality axiom")
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        if d_xz > d_xy + d_yz:
-            raise ValueError(f"Triangle inequality violation: {d_xz} > {d_xy} + {d_yz}")
+            # Create distance matrix
+            result = [[self.distance(x_row, y_row) for y_row in y] for x_row in x]
+            return result
 
-    def __str__(self) -> str:
-        """
-        Returns a string representation of the EuclideanMetric instance.
-        """
-        return "EuclideanMetric()"
+        elif (
+            isinstance(x, list)
+            and isinstance(y, list)
+            and all(isinstance(item, (list, tuple)) for item in x)
+            and all(isinstance(item, (list, tuple)) for item in y)
+        ):
+            # For lists of lists/tuples (representing collections of points)
 
-    def __repr__(self) -> str:
+            # Check if all points have the same dimension
+            x_dims = [len(point) for point in x]
+            y_dims = [len(point) for point in y]
+
+            if len(set(x_dims + y_dims)) != 1:
+                raise ValueError("All points must have the same dimension")
+
+            # Compute pairwise distances
+            result = [
+                [self.distance(x_point, y_point) for y_point in y] for x_point in x
+            ]
+            return result
+
+        elif isinstance(x, IVector) and isinstance(y, IVector):
+            # Single distance between two vectors
+            return [self.distance(x, y)]
+
+        elif isinstance(x, list) and isinstance(y, list):
+            # If x and y are simple lists (not lists of lists), treat them as individual points
+            if not any(isinstance(item, (list, tuple)) for item in x + y):
+                return [self.distance(x, y)]
+            else:
+                logger.error("Inconsistent collection structure")
+                raise ValueError("Inconsistent collection structure")
+
+        else:
+            logger.error(f"Unsupported collection types: {type(x)} and {type(y)}")
+            raise TypeError(
+                f"Euclidean distances computation not supported for types {type(x)} and {type(y)}"
+            )
+
+    def check_non_negativity(self, x: Any, y: Any) -> bool:
         """
-        Returns a string representation of the EuclideanMetric instance.
+        Check if the Euclidean metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied, which is always the case for Euclidean distance
         """
-        return "EuclideanMetric()"
+        try:
+            dist = self.distance(x, y)
+            logger.debug(f"Checking non-negativity axiom: distance = {dist}")
+            return dist >= 0  # Euclidean distance is always non-negative
+        except (TypeError, ValueError) as e:
+            logger.error(f"Error checking non-negativity: {e}")
+            return False
+
+    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+        """
+        Check if the Euclidean metric satisfies the identity of indiscernibles axiom:
+        d(x,y) = 0 if and only if x = y.
+
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied
+        """
+        try:
+            dist = self.distance(x, y)
+
+            # Check if distance is zero
+            is_zero_dist = (
+                abs(dist) < 1e-10
+            )  # Using small epsilon for floating point comparison
+
+            # Check if points are equal
+            if isinstance(x, IVector) and isinstance(y, IVector):
+                is_equal = len(x) == len(y) and all(
+                    abs(x_i - y_i) < 1e-10 for x_i, y_i in zip(x, y)
+                )
+            elif isinstance(x, Sequence) and isinstance(y, Sequence):
+                is_equal = len(x) == len(y) and all(
+                    abs(x_i - y_i) < 1e-10 for x_i, y_i in zip(x, y)
+                )
+            else:
+                is_equal = x == y
+
+            logger.debug(
+                f"Checking identity axiom: distance = {dist}, points equal: {is_equal}"
+            )
+
+            # Axiom is satisfied if distance is zero iff points are equal
+            return (is_zero_dist and is_equal) or (not is_zero_dist and not is_equal)
+
+        except (TypeError, ValueError) as e:
+            logger.error(f"Error checking identity of indiscernibles: {e}")
+            return False
+
+    def check_symmetry(self, x: Any, y: Any) -> bool:
+        """
+        Check if the Euclidean metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied
+        """
+        try:
+            dist_xy = self.distance(x, y)
+            dist_yx = self.distance(y, x)
+
+            # Check if the distances are equal (within floating point precision)
+            is_symmetric = abs(dist_xy - dist_yx) < 1e-10
+
+            logger.debug(
+                f"Checking symmetry axiom: d(x,y) = {dist_xy}, d(y,x) = {dist_yx}, symmetric: {is_symmetric}"
+            )
+            return is_symmetric
+
+        except (TypeError, ValueError) as e:
+            logger.error(f"Error checking symmetry: {e}")
+            return False
+
+    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+        """
+        Check if the Euclidean metric satisfies the triangle inequality axiom:
+        d(x,z) ≤ d(x,y) + d(y,z).
+
+        Parameters
+        ----------
+        x : Any
+            First point
+        y : Any
+            Second point
+        z : Any
+            Third point
+
+        Returns
+        -------
+        bool
+            True if the axiom is satisfied
+        """
+        try:
+            # Calculate the three distances
+            dist_xy = self.distance(x, y)
+            dist_yz = self.distance(y, z)
+            dist_xz = self.distance(x, z)
+
+            # Check triangle inequality
+            satisfies_inequality = (
+                dist_xz <= dist_xy + dist_yz + 1e-10
+            )  # Adding epsilon for floating point precision
+
+            logger.debug(
+                f"Checking triangle inequality: d(x,z) = {dist_xz}, d(x,y) + d(y,z) = {dist_xy + dist_yz}, "
+                + f"inequality satisfied: {satisfies_inequality}"
+            )
+
+            return satisfies_inequality
+
+        except (TypeError, ValueError) as e:
+            logger.error(f"Error checking triangle inequality: {e}")
+            return False

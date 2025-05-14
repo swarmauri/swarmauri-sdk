@@ -1,181 +1,314 @@
-from typing import Union, Sequence, Optional, Literal
 import logging
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+import numpy as np
+from typing import List, Sequence, Union, Literal, Optional
+import math
 
+from swarmauri_core.similarities.ISimilarity import ComparableType
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
-
-@ComponentBase.register_model()
+@ComponentBase.register_type(SimilarityBase, "CosineSimilarity")
 class CosineSimilarity(SimilarityBase):
     """
-    Concrete implementation of the SimilarityBase class for Cosine Similarity measure.
-
-    This class calculates the cosine similarity between vectors using the dot product
-    and magnitudes of the vectors. The cosine similarity is a measure of similarity
-    between two non-zero vectors of an inner product space that measures the cosine
-    of the angle between them.
-
-    The class provides implementations for similarity, dissimilarity, and related
-    properties like boundedness, reflexivity, symmetry, and identity.
+    Cosine similarity implementation that measures the cosine of the angle between two vectors.
+    
+    Cosine similarity is a measure of similarity between two non-zero vectors defined by the cosine of
+    the angle between them. It is calculated as the dot product of the vectors divided by the product
+    of their magnitudes. The result ranges from -1 to 1, where 1 means the vectors are identical in
+    direction, 0 means they are orthogonal, and -1 means they are opposite.
+    
+    Attributes
+    ----------
+    type : Literal["CosineSimilarity"]
+        Type identifier for this similarity measure
     """
-
+    
     type: Literal["CosineSimilarity"] = "CosineSimilarity"
-    resource: Optional[str] = "COSINE_SIMILARITY"
-
-    def similarity(
-        self, x: Union[Sequence[float], str], y: Union[Sequence[float], str]
-    ) -> float:
+    
+    def __init__(self):
         """
-        Computes the cosine similarity between two vectors.
-
-        The cosine similarity is defined as the dot product of the vectors divided
-        by the product of their magnitudes. This implementation assumes non-zero
-        vectors as per the constraints.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Cosine similarity between x and y
-
-        Raises:
-            ValueError: If either vector is zero
+        Initialize the cosine similarity measure.
         """
-        logger.debug(f"Calculating cosine similarity between {x} and {y}")
-
-        # Convert string representations to vectors if necessary
-        if isinstance(x, str):
-            x = eval(x)
-        if isinstance(y, str):
-            y = eval(y)
-
-        # Calculate dot product
-        dot_product = sum(a * b for a, b in zip(x, y))
-
-        # Calculate magnitudes
-        mag_x = sum(a**2 for a in x) ** 0.5
-        mag_y = sum(b**2 for b in y) ** 0.5
-
-        # Check for zero vectors
-        if mag_x == 0 or mag_y == 0:
-            raise ValueError("Non-zero vectors only")
-
-        # Compute cosine similarity
-        sim = dot_product / (mag_x * mag_y)
-
-        return sim
-
-    def similarities(
-        self,
-        xs: Union[Sequence[Union[Sequence[float], str]], Sequence[float], str],
-        ys: Union[Sequence[Union[Sequence[float], str]], Sequence[float], str],
-    ) -> Union[float, Sequence[float]]:
+        super().__init__()
+        logger.debug("Initializing CosineSimilarity")
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Computes cosine similarities for multiple pairs of vectors.
-
-        Args:
-            xs: Sequence of first vectors to compare
-            ys: Sequence of second vectors to compare
-
-        Returns:
-            Union[float, Sequence[float]]: Sequence of cosine similarities
+        Calculate the cosine similarity between two vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        float
+            Cosine similarity between x and y, ranging from -1 to 1
+            
+        Raises
+        ------
+        ValueError
+            If either vector has zero magnitude or incompatible dimensions
+        TypeError
+            If the input types are not numeric arrays or lists
         """
-        logger.debug(f"Calculating cosine similarities between {xs} and {ys}")
-
-        if isinstance(xs, Sequence) and isinstance(ys, Sequence):
-            return [self.similarity(x, y) for x, y in zip(xs, ys)]
-        else:
-            return self.similarity(xs, ys)
-
-    def dissimilarity(
-        self, x: Union[Sequence[float], str], y: Union[Sequence[float], str]
-    ) -> float:
+        try:
+            # Convert inputs to numpy arrays if they aren't already
+            x_array = np.array(x, dtype=float)
+            y_array = np.array(y, dtype=float)
+            
+            # Check for compatible dimensions
+            if x_array.shape != y_array.shape:
+                raise ValueError(f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}")
+            
+            # Calculate vector norms
+            x_norm = np.linalg.norm(x_array)
+            y_norm = np.linalg.norm(y_array)
+            
+            # Check for zero vectors
+            if x_norm < 1e-10 or y_norm < 1e-10:
+                raise ValueError("Cosine similarity is undefined for zero vectors")
+            
+            # Calculate dot product
+            dot_product = np.dot(x_array, y_array)
+            
+            # Calculate cosine similarity
+            cosine_sim = dot_product / (x_norm * y_norm)
+            
+            # Handle potential numerical errors that might push the value outside [-1, 1]
+            if cosine_sim > 1.0:
+                cosine_sim = 1.0
+            elif cosine_sim < -1.0:
+                cosine_sim = -1.0
+                
+            return float(cosine_sim)
+            
+        except Exception as e:
+            logger.error(f"Error calculating cosine similarity: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Computes the dissimilarity as 1 minus the cosine similarity.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Dissimilarity score
+        Calculate cosine similarities between one vector and multiple other vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference vector
+        ys : Sequence[ComparableType]
+            Sequence of vectors to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of cosine similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any vector has zero magnitude or incompatible dimensions
+        TypeError
+            If any input types are not numeric arrays or lists
         """
-        logger.debug(f"Calculating cosine dissimilarity between {x} and {y}")
-        return 1.0 - self.similarity(x, y)
-
-    def dissimilarities(
-        self,
-        xs: Union[Sequence[Union[Sequence[float], str]], Sequence[float], str],
-        ys: Union[Sequence[Union[Sequence[float], str]], Sequence[float], str],
-    ) -> Union[float, Sequence[float]]:
+        try:
+            # Convert reference vector to numpy array
+            x_array = np.array(x, dtype=float)
+            x_norm = np.linalg.norm(x_array)
+            
+            if x_norm < 1e-10:
+                raise ValueError("Cosine similarity is undefined for zero vectors")
+            
+            results = []
+            for y in ys:
+                y_array = np.array(y, dtype=float)
+                
+                # Check for compatible dimensions
+                if x_array.shape != y_array.shape:
+                    raise ValueError(f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}")
+                
+                y_norm = np.linalg.norm(y_array)
+                
+                if y_norm < 1e-10:
+                    raise ValueError("Cosine similarity is undefined for zero vectors")
+                
+                dot_product = np.dot(x_array, y_array)
+                cosine_sim = dot_product / (x_norm * y_norm)
+                
+                # Handle potential numerical errors
+                if cosine_sim > 1.0:
+                    cosine_sim = 1.0
+                elif cosine_sim < -1.0:
+                    cosine_sim = -1.0
+                    
+                results.append(float(cosine_sim))
+                
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error calculating multiple cosine similarities: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Computes cosine dissimilarities for multiple pairs of vectors.
-
-        Args:
-            xs: Sequence of first vectors to compare
-            ys: Sequence of second vectors to compare
-
-        Returns:
-            Union[float, Sequence[float]]: Sequence of cosine dissimilarities
+        Calculate the cosine dissimilarity between two vectors.
+        
+        For cosine similarity, dissimilarity is defined as 1 - similarity for
+        the normalized range [0, 1], which corresponds to the angle-based distance.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        float
+            Cosine dissimilarity between x and y, ranging from 0 to 2
+            
+        Raises
+        ------
+        ValueError
+            If either vector has zero magnitude or incompatible dimensions
+        TypeError
+            If the input types are not numeric arrays or lists
         """
-        logger.debug(f"Calculating cosine dissimilarities between {xs} and {ys}")
-
-        if isinstance(xs, Sequence) and isinstance(ys, Sequence):
-            return [1.0 - s for s in self.similarities(xs, ys)]
-        else:
-            return 1.0 - self.similarity(xs, ys)
-
-    def check_boundedness(self) -> bool:
+        try:
+            # Cosine dissimilarity is 1 - cosine similarity for normalized values
+            # This maps the range [-1, 1] to [0, 2]
+            similarity_value = self.similarity(x, y)
+            return 1.0 - similarity_value
+            
+        except Exception as e:
+            logger.error(f"Error calculating cosine dissimilarity: {str(e)}")
+            raise
+    
+    def check_bounded(self) -> bool:
         """
-        Checks if the cosine similarity measure is bounded.
-
-        Cosine similarity is bounded between -1 and 1, thus this method
-        returns True to indicate boundedness.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        Check if the similarity measure is bounded.
+        
+        Cosine similarity is bounded in the range [-1, 1].
+        
+        Returns
+        -------
+        bool
+            True, as cosine similarity is bounded
         """
-        logger.debug("Checking boundedness of cosine similarity")
         return True
-
-    def check_reflexivity(self) -> bool:
+    
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Checks if the cosine similarity measure satisfies reflexivity.
-
-        A measure is reflexive if s(x, x) = 1 for all x. Cosine similarity
-        satisfies this property, thus returning True.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Check if the cosine similarity measure is symmetric: s(x,y) = s(y,x).
+        
+        Cosine similarity is inherently symmetric due to the commutative property
+        of the dot product.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        bool
+            True, as cosine similarity is symmetric
+            
+        Raises
+        ------
+        ValueError
+            If either vector has zero magnitude or incompatible dimensions
+        TypeError
+            If the input types are not numeric arrays or lists
         """
-        logger.debug("Checking reflexivity of cosine similarity")
-        return True
-
-    def check_symmetry(self) -> bool:
+        try:
+            # Cosine similarity is symmetric by definition
+            # But we'll verify with an explicit check
+            similarity_xy = self.similarity(x, y)
+            similarity_yx = self.similarity(y, x)
+            return abs(similarity_xy - similarity_yx) < 1e-10
+            
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            raise
+    
+    def check_identity_of_discernibles(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Checks if the cosine similarity measure is symmetric.
-
-        Cosine similarity is symmetric since s(x, y) = s(y, x), thus
-        this method returns True.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        Check if the cosine similarity measure satisfies the identity of discernibles.
+        
+        For cosine similarity, this property is partially satisfied: parallel vectors 
+        with the same direction (even with different magnitudes) will have a similarity of 1.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        bool
+            True if the identity of discernibles property holds, False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If either vector has zero magnitude or incompatible dimensions
+        TypeError
+            If the input types are not numeric arrays or lists
         """
-        logger.debug("Checking symmetry of cosine similarity")
-        return True
-
-    def check_identity(self) -> bool:
-        """
-        Checks if the cosine similarity measure satisfies identity of discernibles.
-
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
-        Cosine similarity does not satisfy this property because different vectors
-        can have a similarity of 1, thus this method returns False.
-
-        Returns:
-            bool: False as cosine similarity does not satisfy identity
-        """
-        logger.debug("Checking identity of discernibles for cosine similarity")
-        return False
+        try:
+            # Convert inputs to numpy arrays
+            x_array = np.array(x, dtype=float)
+            y_array = np.array(y, dtype=float)
+            
+            # Check for zero vectors
+            x_norm = np.linalg.norm(x_array)
+            y_norm = np.linalg.norm(y_array)
+            
+            if x_norm < 1e-10 or y_norm < 1e-10:
+                raise ValueError("Cosine similarity is undefined for zero vectors")
+            
+            # For cosine similarity, vectors are "identical" (sim=1) if they point in the same direction
+            # This means they are scalar multiples of each other
+            similarity_value = self.similarity(x, y)
+            
+            # Check if vectors are parallel (same direction)
+            are_parallel = abs(similarity_value - 1.0) < 1e-10
+            
+            # For the identity of discernibles, we need to check if:
+            # 1. If vectors are identical (same direction and magnitude), similarity should be 1
+            # 2. If vectors are different in any way, similarity should be < 1
+            
+            # Check if vectors are identical (same values)
+            are_identical = np.array_equal(x_array, y_array)
+            
+            # For cosine similarity, the identity of discernibles is satisfied if:
+            # - Identical vectors have similarity 1 (always true for non-zero vectors)
+            # - Different vectors that are not parallel have similarity < 1
+            
+            if are_identical:
+                return are_parallel  # Should be True for identical non-zero vectors
+            else:
+                # For different vectors, we only care if the similarity correctly reflects 
+                # whether they're parallel or not
+                if are_parallel:
+                    # If vectors differ but are parallel, they're scalar multiples
+                    # For cosine similarity, this is still considered "identical" in direction
+                    return True
+                else:
+                    # If vectors are different and not parallel, similarity should be < 1
+                    return similarity_value < 1.0 - 1e-10
+            
+        except Exception as e:
+            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            raise

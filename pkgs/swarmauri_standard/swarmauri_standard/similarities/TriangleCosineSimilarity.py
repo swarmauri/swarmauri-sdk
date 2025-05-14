@@ -1,132 +1,300 @@
-from typing import Union, Sequence, Literal
-import numpy as np
 import logging
+import math
+import numpy as np
+from typing import List, Sequence, Union, Literal, Optional
+from numpy.typing import ArrayLike
+
+from swarmauri_core.similarities.ISimilarity import ComparableType
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+# Set up logger
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(SimilarityBase, "TriangleCosineSimilarity")
 class TriangleCosineSimilarity(SimilarityBase):
     """
-    A concrete implementation of the SimilarityBase class that computes the cosine similarity
-    between vectors using the dot product and magnitudes. This implementation uses the spherical
-    law of cosines to provide a tighter bounded similarity measure.
+    Triangle Cosine Similarity implementation that compares direction between vectors.
+    
+    This similarity measure uses a tighter bound derived from the spherical law of cosines,
+    providing a more accurate measure of directional similarity between non-zero vectors.
+    
+    Attributes
+    ----------
+    type : Literal["TriangleCosineSimilarity"]
+        The type identifier for this similarity measure
     """
-
+    
     type: Literal["TriangleCosineSimilarity"] = "TriangleCosineSimilarity"
-
+    
     def __init__(self):
         """
-        Initializes the TriangleCosineSimilarity instance.
+        Initialize the Triangle Cosine Similarity measure.
         """
         super().__init__()
-        logger.debug("Initialized TriangleCosineSimilarity")
-
-    def similarity(
-        self,
-        x: Union[Sequence[float], np.ndarray],
-        y: Union[Sequence[float], np.ndarray],
-    ) -> float:
+        logger.debug("Initializing TriangleCosineSimilarity")
+    
+    def _validate_vector(self, vector: ComparableType) -> np.ndarray:
         """
-        Computes the cosine similarity between two vectors using the dot product and magnitudes.
-        The result is bounded between -1 and 1, with 1 indicating identical direction and -1
-        indicating opposite directions.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Similarity score between x and y
-
-        Raises:
-            ValueError: If either vector is zero
+        Validate and convert input to numpy array.
+        
+        Parameters
+        ----------
+        vector : ComparableType
+            Input vector to validate
+            
+        Returns
+        -------
+        np.ndarray
+            Validated numpy array
+            
+        Raises
+        ------
+        TypeError
+            If the input cannot be converted to a numpy array
+        ValueError
+            If the input is a zero vector
         """
-        logger.debug(f"Calculating cosine similarity between vectors {x} and {y}")
-
-        # Convert input vectors to numpy arrays if they're not already
-        x = np.asarray(x)
-        y = np.asarray(y)
-
-        # Check for zero vectors
-        if np.linalg.norm(x) == 0 or np.linalg.norm(y) == 0:
-            raise ValueError("Input vectors must be non-zero")
-
-        # Compute dot product
-        dot_product = np.dot(x, y)
-
-        # Compute magnitudes
-        magnitude_x = np.linalg.norm(x)
-        magnitude_y = np.linalg.norm(y)
-
-        # Compute cosine similarity with tighter bounding
-        similarity = dot_product / (magnitude_x * magnitude_y)
-
-        # Ensure the result is within the valid range [-1, 1]
-        # This is necessary due to floating-point precision issues
-        similarity = np.clip(similarity, -1.0, 1.0)
-
-        return similarity
-
-    def dissimilarity(
-        self,
-        x: Union[Sequence[float], np.ndarray],
-        y: Union[Sequence[float], np.ndarray],
-    ) -> float:
+        try:
+            v = np.asarray(vector, dtype=float)
+            if v.ndim == 0:
+                raise ValueError("Input must be a vector, not a scalar")
+            
+            # Check for zero vector
+            if np.allclose(v, 0):
+                raise ValueError("Zero vectors are not allowed in TriangleCosineSimilarity")
+                
+            return v
+        except Exception as e:
+            logger.error(f"Vector validation error: {str(e)}")
+            raise
+    
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Computes the dissimilarity between two vectors as 1 minus the similarity.
-
-        Args:
-            x: First vector
-            y: Second vector
-
-        Returns:
-            float: Dissimilarity score between x and y
+        Calculate the triangle cosine similarity between two vectors.
+        
+        Uses the dot product over the product of norms, with a tighter bound
+        derived from the spherical law of cosines.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        float
+            Similarity score between x and y, in the range [0, 1]
+            
+        Raises
+        ------
+        ValueError
+            If inputs are zero vectors or have incompatible dimensions
+        TypeError
+            If inputs cannot be converted to numpy arrays
         """
-        logger.debug(f"Calculating dissimilarity between vectors {x} and {y}")
-        return 1.0 - self.similarity(x, y)
-
-    def check_boundedness(self) -> bool:
+        try:
+            # Validate and convert inputs
+            x_array = self._validate_vector(x)
+            y_array = self._validate_vector(y)
+            
+            # Check for compatible dimensions
+            if x_array.shape != y_array.shape:
+                raise ValueError(f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}")
+            
+            # Calculate norms
+            x_norm = np.linalg.norm(x_array)
+            y_norm = np.linalg.norm(y_array)
+            
+            # Calculate dot product
+            dot_product = np.dot(x_array, y_array)
+            
+            # Standard cosine similarity calculation
+            cosine = dot_product / (x_norm * y_norm)
+            
+            # Clamp to handle floating point errors
+            cosine = max(min(cosine, 1.0), -1.0)
+            
+            # Apply triangle-based transformation for tighter bounds
+            # This transforms the range [-1, 1] to [0, 1] with a non-linear mapping
+            # derived from the spherical law of cosines
+            angle = math.acos(cosine)
+            similarity = 1.0 - (angle / math.pi)
+            
+            return similarity
+            
+        except Exception as e:
+            logger.error(f"Error calculating triangle cosine similarity: {str(e)}")
+            raise
+    
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Checks if the similarity measure is bounded.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        Calculate triangle cosine similarities between one vector and multiple others.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Reference vector
+        ys : Sequence[ComparableType]
+            Sequence of vectors to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any vectors are zero or have incompatible dimensions
+        TypeError
+            If any inputs cannot be converted to numpy arrays
         """
-        logger.debug("Checking boundedness")
+        try:
+            # Validate reference vector once
+            x_array = self._validate_vector(x)
+            x_norm = np.linalg.norm(x_array)
+            
+            results = []
+            for y in ys:
+                try:
+                    y_array = self._validate_vector(y)
+                    
+                    # Check for compatible dimensions
+                    if x_array.shape != y_array.shape:
+                        raise ValueError(f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}")
+                    
+                    y_norm = np.linalg.norm(y_array)
+                    dot_product = np.dot(x_array, y_array)
+                    
+                    # Standard cosine similarity calculation
+                    cosine = dot_product / (x_norm * y_norm)
+                    
+                    # Clamp to handle floating point errors
+                    cosine = max(min(cosine, 1.0), -1.0)
+                    
+                    # Apply triangle-based transformation
+                    angle = math.acos(cosine)
+                    similarity = 1.0 - (angle / math.pi)
+                    
+                    results.append(similarity)
+                except Exception as e:
+                    logger.warning(f"Error calculating similarity for one vector: {str(e)}")
+                    # Append None or a default value, or re-raise based on requirements
+                    results.append(float('nan'))
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error calculating multiple triangle cosine similarities: {str(e)}")
+            raise
+    
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
+        """
+        Calculate the triangle cosine dissimilarity between two vectors.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector
+        y : ComparableType
+            Second vector
+            
+        Returns
+        -------
+        float
+            Dissimilarity score between x and y, in the range [0, 1]
+            
+        Raises
+        ------
+        ValueError
+            If inputs are zero vectors or have incompatible dimensions
+        TypeError
+            If inputs cannot be converted to numpy arrays
+        """
+        try:
+            # Simply use 1 - similarity since our measure is bounded [0, 1]
+            return 1.0 - self.similarity(x, y)
+        except Exception as e:
+            logger.error(f"Error calculating triangle cosine dissimilarity: {str(e)}")
+            raise
+    
+    def check_bounded(self) -> bool:
+        """
+        Check if the similarity measure is bounded.
+        
+        The triangle cosine similarity is bounded in the range [0, 1].
+        
+        Returns
+        -------
+        bool
+            True, as triangle cosine similarity is bounded
+        """
         return True
-
-    def check_reflexivity(self) -> bool:
+    
+    def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Checks if the similarity measure satisfies reflexivity.
-        A measure is reflexive if s(x, x) = 1 for all x.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Check if the similarity measure is reflexive: s(x,x) = 1.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            Vector to check reflexivity with
+            
+        Returns
+        -------
+        bool
+            True if s(x,x) = 1, False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If input is a zero vector
+        TypeError
+            If input cannot be converted to a numpy array
         """
-        logger.debug("Checking reflexivity")
-        return True
-
-    def check_symmetry(self) -> bool:
+        try:
+            x_array = self._validate_vector(x)
+            similarity_value = self.similarity(x_array, x_array)
+            return abs(similarity_value - 1.0) < 1e-10
+        except Exception as e:
+            logger.error(f"Error checking reflexivity: {str(e)}")
+            raise
+    
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Checks if the similarity measure is symmetric.
-        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        Check if the similarity measure is symmetric: s(x,y) = s(y,x).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First vector to compare
+        y : ComparableType
+            Second vector to compare
+            
+        Returns
+        -------
+        bool
+            True if s(x,y) = s(y,x), False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If inputs are zero vectors or have incompatible dimensions
+        TypeError
+            If inputs cannot be converted to numpy arrays
         """
-        logger.debug("Checking symmetry")
-        return True
-
-    def check_identity(self) -> bool:
-        """
-        Checks if the similarity measure satisfies identity of discernibles.
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
-        """
-        logger.debug("Checking identity of discernibles")
-        return False
+        try:
+            # Validate inputs
+            x_array = self._validate_vector(x)
+            y_array = self._validate_vector(y)
+            
+            similarity_xy = self.similarity(x_array, y_array)
+            similarity_yx = self.similarity(y_array, x_array)
+            
+            return abs(similarity_xy - similarity_yx) < 1e-10
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            raise

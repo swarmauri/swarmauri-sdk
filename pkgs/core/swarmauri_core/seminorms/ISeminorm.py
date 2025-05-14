@@ -1,152 +1,118 @@
 from abc import ABC, abstractmethod
-from typing import Union, Callable
 import logging
+from typing import TypeVar, Union, Callable, Sequence, Literal
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=Union[int, float, complex])
+InputType = Union[
+    Literal[IVector], 
+    Literal[IMatrix], 
+    Sequence[T], 
+    str, 
+    Callable[..., T]
+]
 
 
 class ISeminorm(ABC):
     """
-    Interface for seminorm structures. This class defines the interface for 
-    implementing seminorms, which are functions that satisfy the triangle 
-    inequality and scalar homogeneity but do not necessarily satisfy 
-    the definiteness property of norms.
+    Interface for seminorm structure.
     
-    Methods:
-        compute: Computes the seminorm value of the input
-        check_triangle_inequality: Verifies the triangle inequality property
-        check_scalar_homogeneity: Verifies the scalar homogeneity property
+    A seminorm is a function that assigns a non-negative length or size to all vectors
+    in a vector space. Unlike a norm, a seminorm can have a null space that is larger
+    than just the zero vector, meaning some non-zero vectors can have a seminorm of zero.
+    
+    Seminorms must satisfy:
+    1. Non-negativity: ||x|| ≥ 0 for all x
+    2. Triangle inequality: ||x + y|| ≤ ||x|| + ||y|| for all x, y
+    3. Scalar homogeneity: ||αx|| = |α|·||x|| for all x and scalar α
+    
+    Unlike norms, seminorms do not require:
+    - Definiteness: ||x|| = 0 implies x = 0
     """
-
-    def __init__(self):
-        super().__init__()
-        logger.debug("Initialized ISeminorm")
-
+    
     @abstractmethod
-    def compute(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> float:
+    def compute(self, x: InputType) -> float:
         """
-        Computes the seminorm value of the input.
+        Compute the seminorm of the input.
         
-        Args:
-            input: The input to compute the seminorm for. Supported types are:
-                - IVector: High-dimensional vector
-                - IMatrix: Matrix structure
-                - str: String input
-                - Callable: Callable function
-                - list: List of elements
-                - tuple: Tuple of elements
-                
-        Returns:
-            float: The computed seminorm value
+        Parameters
+        ----------
+        x : InputType
+            The input to compute the seminorm for. Can be a vector, matrix,
+            sequence, string, or callable.
             
-        Raises:
-            TypeError: If input type is not supported
-        """
-        logger.debug(f"Computing seminorm for input of type {type(input).__name__}")
-        # Implementation would compute the seminorm based on input type
-        raise NotImplementedError("Method not implemented")
-
-    def check_triangle_inequality(self, a: Union[IVector, IMatrix, str, Callable, list, tuple], 
-                                  b: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
-        """
-        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
-        
-        Args:
-            a: First element to check
-            b: Second element to check
+        Returns
+        -------
+        float
+            The seminorm value (non-negative real number)
             
-        Returns:
-            bool: True if triangle inequality holds, False otherwise
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the computation cannot be performed on the given input
         """
-        logger.debug("Checking triangle inequality")
-        seminorm_a = self.compute(a)
-        seminorm_b = self.compute(b)
-        combined = a + b  # This assumes + operator is defined for the input types
-        seminorm_combined = self.compute(combined)
-        return seminorm_combined <= seminorm_a + seminorm_b
-
-    def check_scalar_homogeneity(self, a: Union[IVector, IMatrix, str, Callable, list, tuple], 
-                               scalar: Union[int, float]) -> bool:
+        pass
+    
+    @abstractmethod
+    def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
         """
-        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
+        Check if the triangle inequality property holds for the given inputs.
         
-        Args:
-            a: Element to check
-            scalar: Scalar value to scale with
+        The triangle inequality states that:
+        ||x + y|| ≤ ||x|| + ||y||
+        
+        Parameters
+        ----------
+        x : InputType
+            First input to check
+        y : InputType
+            Second input to check
             
-        Returns:
-            bool: True if scalar homogeneity holds, False otherwise
-        """
-        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
-        scaled_a = a * scalar  # This assumes scalar multiplication is defined
-        seminorm_scaled = self.compute(scaled_a)
-        seminorm_original = self.compute(a)
-        return seminorm_scaled == abs(scalar) * seminorm_original
-
-    def _is_vector(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
-        """
-        Helper method to check if input is an IVector instance.
-        
-        Args:
-            input: Input to check
+        Returns
+        -------
+        bool
+            True if the triangle inequality holds, False otherwise
             
-        Returns:
-            bool: True if input is an IVector, False otherwise
+        Raises
+        ------
+        TypeError
+            If the input types are not supported or compatible
+        ValueError
+            If the check cannot be performed on the given inputs
         """
-        return isinstance(input, IVector)
-
-    def _is_matrix(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
+        pass
+    
+    @abstractmethod
+    def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Helper method to check if input is an IMatrix instance.
+        Check if the scalar homogeneity property holds for the given input and scalar.
         
-        Args:
-            input: Input to check
+        The scalar homogeneity states that:
+        ||αx|| = |α|·||x||
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to check
+        alpha : T
+            The scalar to multiply by
             
-        Returns:
-            bool: True if input is an IMatrix, False otherwise
-        """
-        return isinstance(input, IMatrix)
-
-    def _is_sequence(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
-        """
-        Helper method to check if input is a sequence (list or tuple).
-        
-        Args:
-            input: Input to check
+        Returns
+        -------
+        bool
+            True if scalar homogeneity holds, False otherwise
             
-        Returns:
-            bool: True if input is a sequence, False otherwise
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the check cannot be performed on the given input
         """
-        return isinstance(input, (list, tuple))
-
-    def _is_callable(self, input: Union[IVector, IMatrix, str, Callable, list, tuple]) -> bool:
-        """
-        Helper method to check if input is a callable function.
-        
-        Args:
-            input: Input to check
-            
-        Returns:
-            bool: True if input is callable, False otherwise
-        """
-        return isinstance(input, Callable)
-
-    def __str__(self) -> str:
-        """
-        Returns a string representation of the seminorm instance.
-        
-        Returns:
-            str: String representation
-        """
-        return "ISeminorm()"
-
-    def __repr__(self) -> str:
-        """
-        Returns the official string representation of the seminorm instance.
-        
-        Returns:
-            str: Official string representation
-        """
-        return self.__str__()
+        pass

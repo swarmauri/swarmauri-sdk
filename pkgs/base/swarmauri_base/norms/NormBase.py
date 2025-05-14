@@ -1,120 +1,162 @@
+from typing import TypeVar, Union, Callable, Sequence, Optional
 import logging
-from dataclasses import Field
-from typing import Optional, Sequence, TypeVar
-
-from swarmauri_core.matrices.IMatrix import IMatrix
-from swarmauri_core.norms.INorm import INorm
-from swarmauri_core.vectors.IVector import IVector
+from pydantic import Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.norms.INorm import INorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-# Define a TypeVar to represent supported input types
-T = TypeVar("T", IVector, IMatrix, str, callable, Sequence[float])
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Define type variables for supported input types
+T = TypeVar('T')
+VectorType = TypeVar('VectorType', bound=IVector)
+MatrixType = TypeVar('MatrixType', bound=IMatrix)
+SequenceType = TypeVar('SequenceType', bound=Sequence)
+StringType = TypeVar('StringType', bound=str)
+CallableType = TypeVar('CallableType', bound=Callable)
 
 
 @ComponentBase.register_model()
 class NormBase(INorm, ComponentBase):
     """
-    A base class implementing INorm interface providing template logic for norm behaviors.
-
-    This class provides a basic structure for norm computations. It implements all
-    abstract methods from INorm with base implementations that raise NotImplementedError,
-    requiring subclasses to provide concrete implementations.
-
-    Attributes:
-        resource: Type of resource this class represents.
-
-    Methods:
-        compute: Abstract method to compute the norm of input.
-        check_non_negativity: Verifies non-negativity property.
-        check_triangle_inequality: Verifies triangle inequality property.
-        check_absolute_homogeneity: Verifies absolute homogeneity property.
-        check_definiteness: Verifies definiteness property.
+    Base class for norm computations on vector spaces.
+    
+    This class provides a template implementation for norm behaviors,
+    implementing common normalization patterns across vector norms.
+    
+    Attributes
+    ----------
+    resource : str, optional
+        The resource type, defaults to NORM.
     """
-
     resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
-    def compute(self, x: T) -> float:
+    def compute(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> float:
         """
-        Computes the norm of the given input vector, matrix, sequence, string, or callable.
-
-        Args:
-            x: Input to compute the norm of. Can be a vector, matrix, sequence,
-               string, or callable.
-
-        Returns:
-            float: Computed norm value
-
-        Raises:
-            NotImplementedError: Method must be implemented in subclass.
+        Compute the norm of the input.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input for which to compute the norm.
+            
+        Returns
+        -------
+        float
+            The computed norm value.
+            
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        TypeError
+            If the input type is not supported.
+        ValueError
+            If the norm cannot be computed for the given input.
         """
-        logger.debug(f"Computing norm for input type {type(x)}")
-        raise NotImplementedError("Method compute() must be implemented in subclass")
-
-    def check_non_negativity(self, x: T) -> bool:
+        raise NotImplementedError("The compute method must be implemented by subclasses.")
+    
+    def check_non_negativity(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
         """
-        Verifies the non-negativity property of the norm.
-
-        Args:
-            x: Input to check non-negativity for
-
-        Returns:
-            bool: True if norm is non-negative, False otherwise
+        Check if the norm satisfies the non-negativity property.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input to check.
+            
+        Returns
+        -------
+        bool
+            True if the norm is non-negative, False otherwise.
+            
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
         """
-        logger.debug("Checking non-negativity property")
-        norm = self.compute(x)
-        return norm >= 0
-
-    def check_triangle_inequality(self, x: T, y: T) -> bool:
+        raise NotImplementedError("The check_non_negativity method must be implemented by subclasses.")
+    
+    def check_definiteness(self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
         """
-        Verifies the triangle inequality property of the norm.
-
-        Args:
-            x: First input vector
-            y: Second input vector
-
-        Returns:
-            bool: True if triangle inequality holds, False otherwise
+        Check if the norm satisfies the definiteness property.
+        
+        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input to check.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the definiteness property, False otherwise.
+            
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
         """
-        logger.debug("Checking triangle inequality property")
-        norm_x = self.compute(x)
-        norm_y = self.compute(y)
-        norm_xy = self.compute(x + y)
-        return norm_xy <= norm_x + norm_y
-
-    def check_absolute_homogeneity(self, x: T, alpha: float) -> bool:
+        raise NotImplementedError("The check_definiteness method must be implemented by subclasses.")
+    
+    def check_triangle_inequality(self, 
+                                 x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+                                 y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]) -> bool:
         """
-        Verifies the absolute homogeneity property of the norm.
-
-        Args:
-            x: Input vector
-            alpha: Scaling factor
-
-        Returns:
-            bool: True if absolute homogeneity holds, False otherwise
+        Check if the norm satisfies the triangle inequality.
+        
+        The triangle inequality states that norm(x + y) <= norm(x) + norm(y).
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The first input.
+        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The second input.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the triangle inequality, False otherwise.
+            
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        TypeError
+            If the inputs are not of the same type or cannot be added.
         """
-        logger.debug(f"Checking absolute homogeneity with alpha {alpha}")
-        norm_x = self.compute(x)
-        norm_alpha_x = self.compute(alpha * x)
-        return norm_alpha_x == abs(alpha) * norm_x
-
-    def check_definiteness(self, x: T) -> bool:
+        raise NotImplementedError("The check_triangle_inequality method must be implemented by subclasses.")
+    
+    def check_absolute_homogeneity(self, 
+                                  x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+                                  scalar: float) -> bool:
         """
-        Verifies the definiteness property of the norm.
-
-        A norm is definite if norm(x) = 0 if and only if x = 0.
-
-        Args:
-            x: Input vector
-
-        Returns:
-            bool: True if definiteness holds, False otherwise
+        Check if the norm satisfies the absolute homogeneity property.
+        
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+            The input.
+        scalar : float
+            The scalar value.
+            
+        Returns
+        -------
+        bool
+            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        TypeError
+            If the input cannot be scaled by the scalar.
         """
-        logger.debug("Checking definiteness property")
-        norm = self.compute(x)
-        if norm == 0:
-            return x == 0
-        return True
-
-
-logger = logging.getLogger(__name__)
+        raise NotImplementedError("The check_absolute_homogeneity method must be implemented by subclasses.")

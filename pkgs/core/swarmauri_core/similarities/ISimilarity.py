@@ -1,141 +1,222 @@
 from abc import ABC, abstractmethod
-from typing import Union, Sequence, Callable
+from typing import List, Tuple, Callable, Sequence, Union, Literal, TypeVar, overload
 import logging
 
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 
+# Set up logger
 logger = logging.getLogger(__name__)
+
+# Type variables
+T = TypeVar('T', bound=Union[float, int])
+VectorLike = Union[IVector, List[T], Tuple[T, ...]]
+MatrixLike = Union[IMatrix, List[List[T]], Tuple[Tuple[T, ...], ...]]
+SequenceLike = Union[Sequence[T], str]
+ComparableType = Union[VectorLike, MatrixLike, SequenceLike, Callable]
 
 
 class ISimilarity(ABC):
     """
-    Interface for similarity measures. This abstract base class defines the core
-    methods for calculating similarities and dissimilarities between various
-    types of data, including vectors, matrices, sequences, strings, and callables.
+    Interface for abstract similarity measures.
     
-    The interface provides methods for both single pair comparisons and batch
-    comparisons. Additionally, it includes checks for important properties of
-    similarity measures like boundedness, reflexivity, symmetry, and identity.
+    This interface defines methods for computing similarity and dissimilarity
+    between various data types including vectors, matrices, sequences, and
+    callable objects. It supports both direction-based and bounded comparisons.
     
-    Methods:
-        similarity: Calculates the similarity between two elements
-        similarities: Calculates similarities for multiple pairs
-        dissimilarity: Calculates the dissimilarity between two elements
-        dissimilarities: Calculates dissimilarities for multiple pairs
-        check_boundedness: Verifies if the similarity measure is bounded
-        check_reflexivity: Checks if the measure satisfies reflexivity
-        check_symmetry: Verifies if the measure is symmetric
-        check_identity: Checks if the measure satisfies identity of discernibles
+    Similarity measures quantify how alike two objects are, with higher values
+    indicating greater similarity. Dissimilarity measures represent the opposite.
     """
-
+    
     @abstractmethod
-    def similarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                    y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculates the similarity between two elements.
+        Calculate the similarity between two objects.
         
-        Args:
-            x: First element to compare
-            y: Second element to compare
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
             
-        Returns:
-            float: Similarity score between x and y
-        """
-        logger.debug(f"Calculating similarity between {x} and {y}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def similarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
-                     ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
-        """
-        Calculates similarities for multiple pairs of elements.
-        
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
+        Returns
+        -------
+        float
+            Similarity score between x and y
             
-        Returns:
-            Union[float, Sequence[float]]: Similarity scores for the pairs
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable or have incompatible dimensions
+        TypeError
+            If the input types are not supported
         """
-        logger.debug(f"Calculating similarities between {xs} and {ys}")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def dissimilarity(self, x: Union[IVector, IMatrix, Sequence, str, Callable], 
-                      y: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
+    def similarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Calculates the dissimilarity between two elements.
+        Calculate similarities between one object and multiple other objects.
         
-        Args:
-            x: First element to compare
-            y: Second element to compare
+        Parameters
+        ----------
+        x : ComparableType
+            Reference object
+        ys : Sequence[ComparableType]
+            Sequence of objects to compare against the reference
             
-        Returns:
-            float: Dissimilarity score between x and y
-        """
-        logger.debug(f"Calculating dissimilarity between {x} and {y}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def dissimilarities(self, xs: Union[IVector, IMatrix, Sequence, str, Callable], 
-                       ys: Union[IVector, IMatrix, Sequence, str, Callable]) -> Union[float, Sequence[float]]:
-        """
-        Calculates dissimilarities for multiple pairs of elements.
-        
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
+        Returns
+        -------
+        List[float]
+            List of similarity scores between x and each element in ys
             
-        Returns:
-            Union[float, Sequence[float]]: Dissimilarity scores for the pairs
+        Raises
+        ------
+        ValueError
+            If any objects are incomparable or have incompatible dimensions
+        TypeError
+            If any input types are not supported
         """
-        logger.debug(f"Calculating dissimilarities between {xs} and {ys}")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def check_boundedness(self) -> bool:
+    def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Checks if the similarity measure is bounded.
+        Calculate the dissimilarity between two objects.
         
-        Returns:
-            bool: True if the measure is bounded, False otherwise
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
+            
+        Returns
+        -------
+        float
+            Dissimilarity score between x and y
+            
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable or have incompatible dimensions
+        TypeError
+            If the input types are not supported
         """
-        logger.debug("Checking boundedness")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def check_reflexivity(self) -> bool:
+    def dissimilarities(self, x: ComparableType, ys: Sequence[ComparableType]) -> List[float]:
         """
-        Checks if the similarity measure satisfies reflexivity.
-        A measure is reflexive if s(x, x) = 1 for all x.
+        Calculate dissimilarities between one object and multiple other objects.
         
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Parameters
+        ----------
+        x : ComparableType
+            Reference object
+        ys : Sequence[ComparableType]
+            Sequence of objects to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of dissimilarity scores between x and each element in ys
+            
+        Raises
+        ------
+        ValueError
+            If any objects are incomparable or have incompatible dimensions
+        TypeError
+            If any input types are not supported
         """
-        logger.debug("Checking reflexivity")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def check_symmetry(self) -> bool:
+    def check_bounded(self) -> bool:
         """
-        Checks if the similarity measure is symmetric.
-        A measure is symmetric if s(x, y) = s(y, x) for all x, y.
+        Check if the similarity measure is bounded.
         
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
+        A bounded similarity measure has values within a fixed range,
+        typically [0,1] for similarities.
+        
+        Returns
+        -------
+        bool
+            True if the similarity measure is bounded, False otherwise
         """
-        logger.debug("Checking symmetry")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def check_identity(self) -> bool:
+    def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Checks if the similarity measure satisfies identity of discernibles.
-        A measure satisfies identity if s(x, y) = 1 if and only if x = y.
+        Check if the similarity measure is reflexive: s(x,x) = 1.
         
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
+        Parameters
+        ----------
+        x : ComparableType
+            Object to check reflexivity with
+            
+        Returns
+        -------
+        bool
+            True if s(x,x) = 1, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
         """
-        logger.debug("Checking identity of discernibles")
-        raise NotImplementedError("Method not implemented")
+        pass
+    
+    @abstractmethod
+    def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
+        """
+        Check if the similarity measure is symmetric: s(x,y) = s(y,x).
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
+            
+        Returns
+        -------
+        bool
+            True if s(x,y) = s(y,x), False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable or have incompatible dimensions
+        TypeError
+            If the input types are not supported
+        """
+        pass
+    
+    @abstractmethod
+    def check_identity_of_discernibles(self, x: ComparableType, y: ComparableType) -> bool:
+        """
+        Check if the similarity measure satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        
+        Parameters
+        ----------
+        x : ComparableType
+            First object to compare
+        y : ComparableType
+            Second object to compare
+            
+        Returns
+        -------
+        bool
+            True if the identity of discernibles property holds, False otherwise
+            
+        Raises
+        ------
+        ValueError
+            If the objects are incomparable or have incompatible dimensions
+        TypeError
+            If the input types are not supported
+        """
+        pass

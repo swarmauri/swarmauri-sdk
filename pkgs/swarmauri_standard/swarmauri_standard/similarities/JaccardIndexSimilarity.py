@@ -1,157 +1,193 @@
-from typing import Union, Sequence, Literal
+from typing import Set, List, Sequence, Union, Literal, Optional
 import logging
+
+from swarmauri_core.similarities.ISimilarity import ComparableType
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(SimilarityBase, "JaccardIndexSimilarity")
 class JaccardIndexSimilarity(SimilarityBase):
     """
-    Jaccard Index Similarity measure implementation.
-
-    The Jaccard Index is a statistic used for comparing the similarity and diversity of sample sets.
-    The Jaccard Index is the size of the intersection divided by the size of the union of the sample sets.
-
-    This implementation provides methods for calculating similarity and dissimilarity between sets.
-
-    Attributes:
-        resource (str): The resource identifier for this component.
+    Jaccard Index similarity measure for sets.
+    
+    The Jaccard Index is defined as the size of the intersection divided by the size of the union
+    of the sample sets. It ranges from 0 (no similarity) to 1 (identical sets).
+    
+    This similarity measure is symmetric and bounded in the range [0,1].
+    
+    Attributes
+    ----------
+    type : Literal["JaccardIndexSimilarity"]
+        Type identifier for this similarity measure
     """
-
+    
     type: Literal["JaccardIndexSimilarity"] = "JaccardIndexSimilarity"
-    resource: str = "JACCARD_INDEX_SIMILARITY"
-
+    
     def __init__(self):
         """
-        Initializes the JaccardIndexSimilarity instance.
+        Initialize the Jaccard Index similarity measure.
         """
         super().__init__()
-
-    def similarity(self, x: Union[set, Sequence], y: Union[set, Sequence]) -> float:
+        logger.debug("Initializing JaccardIndexSimilarity")
+    
+    def similarity(self, x: Set, y: Set) -> float:
         """
-        Calculates the Jaccard Index similarity between two sets.
-
-        Args:
-            x: First set to compare
-            y: Second set to compare
-
-        Returns:
-            float: The Jaccard Index similarity score between 0 and 1
-
-        Raises:
-            ValueError: If inputs are not sets or sequences
+        Calculate the Jaccard Index similarity between two sets.
+        
+        Parameters
+        ----------
+        x : Set
+            First set to compare
+        y : Set
+            Second set to compare
+            
+        Returns
+        -------
+        float
+            Jaccard Index similarity score between x and y
+            
+        Raises
+        ------
+        TypeError
+            If inputs are not sets
+        ValueError
+            If either set is empty and the other is not
         """
-        logger.debug(f"Calculating Jaccard similarity between {x} and {y}")
-
-        if not isinstance(x, (set, Sequence)) or not isinstance(y, (set, Sequence)):
-            raise ValueError("Inputs must be sets or sequences")
-
-        x_set = set(x) if not isinstance(x, set) else x
-        y_set = set(y) if not isinstance(y, set) else y
-
-        intersection = x_set.intersection(y_set)
-        union = x_set.union(y_set)
-
-        if not union:
+        # Validate input types
+        if not isinstance(x, set) or not isinstance(y, set):
+            logger.error("JaccardIndexSimilarity requires set inputs")
+            raise TypeError("Inputs must be sets")
+        
+        # Handle edge cases
+        if len(x) == 0 and len(y) == 0:
+            logger.debug("Both sets are empty, returning similarity of 1.0")
+            return 1.0
+        
+        if len(x) == 0 or len(y) == 0:
+            logger.debug("One set is empty, returning similarity of 0.0")
             return 0.0
-
-        return len(intersection) / len(union)
-
-    def similarities(
-        self, xs: Union[set, Sequence], ys: Union[set, Sequence]
-    ) -> Sequence[float]:
+        
+        # Calculate intersection and union
+        intersection_size = len(x.intersection(y))
+        union_size = len(x.union(y))
+        
+        # Calculate Jaccard Index
+        jaccard_index = intersection_size / union_size
+        logger.debug(f"Calculated Jaccard Index: {jaccard_index}")
+        
+        return jaccard_index
+    
+    def similarities(self, x: Set, ys: Sequence[Set]) -> List[float]:
         """
-        Calculates Jaccard Index similarities for multiple pairs of sets.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Sequence[float]: List of similarity scores for each pair
-
-        Raises:
-            ValueError: If inputs are not sets or sequences
+        Calculate Jaccard Index similarities between one set and multiple other sets.
+        
+        Parameters
+        ----------
+        x : Set
+            Reference set
+        ys : Sequence[Set]
+            Sequence of sets to compare against the reference
+            
+        Returns
+        -------
+        List[float]
+            List of Jaccard Index similarity scores between x and each element in ys
+            
+        Raises
+        ------
+        TypeError
+            If any input is not a set
         """
-        logger.debug(f"Calculating Jaccard similarities between {xs} and {ys}")
-
-        if not isinstance(xs, (set, Sequence)) or not isinstance(ys, (set, Sequence)):
-            raise ValueError("Inputs must be sets or sequences")
-
-        if not (isinstance(xs, Sequence) and isinstance(ys, Sequence)):
-            raise ValueError("Inputs must be sequences for multiple comparisons")
-
-        return [self.similarity(x, y) for x, y in zip(xs, ys)]
-
-    def dissimilarity(self, x: Union[set, Sequence], y: Union[set, Sequence]) -> float:
+        # Validate input types
+        if not isinstance(x, set):
+            logger.error("Reference input must be a set")
+            raise TypeError("Reference input must be a set")
+        
+        results = []
+        
+        for i, y in enumerate(ys):
+            if not isinstance(y, set):
+                logger.error(f"Input at index {i} is not a set")
+                raise TypeError(f"All inputs in sequence must be sets")
+            
+            results.append(self.similarity(x, y))
+        
+        return results
+    
+    def dissimilarity(self, x: Set, y: Set) -> float:
         """
-        Calculates the dissimilarity based on Jaccard Index.
-
-        Args:
-            x: First set to compare
-            y: Second set to compare
-
-        Returns:
-            float: The dissimilarity score between 0 and 1
+        Calculate the Jaccard dissimilarity between two sets.
+        
+        Jaccard dissimilarity is defined as 1 - Jaccard similarity.
+        
+        Parameters
+        ----------
+        x : Set
+            First set to compare
+        y : Set
+            Second set to compare
+            
+        Returns
+        -------
+        float
+            Jaccard dissimilarity score between x and y
+            
+        Raises
+        ------
+        TypeError
+            If inputs are not sets
         """
-        logger.debug(f"Calculating Jaccard dissimilarity between {x} and {y}")
-        similarity = self.similarity(x, y)
-        return 1.0 - similarity
-
-    def dissimilarities(
-        self, xs: Union[set, Sequence], ys: Union[set, Sequence]
-    ) -> Sequence[float]:
+        # Since Jaccard Index is bounded between 0 and 1,
+        # we can define dissimilarity as 1 - similarity
+        return 1.0 - self.similarity(x, y)
+    
+    def check_bounded(self) -> bool:
         """
-        Calculates Jaccard Index dissimilarities for multiple pairs of sets.
-
-        Args:
-            xs: First set of elements to compare
-            ys: Second set of elements to compare
-
-        Returns:
-            Sequence[float]: List of dissimilarity scores for each pair
+        Check if the similarity measure is bounded.
+        
+        The Jaccard Index is always bounded in the range [0,1].
+        
+        Returns
+        -------
+        bool
+            True, as the Jaccard Index is bounded
         """
-        logger.debug(f"Calculating Jaccard dissimilarities between {xs} and {ys}")
-        return [self.dissimilarity(x, y) for x, y in zip(xs, ys)]
-
-    def check_boundedness(self) -> bool:
-        """
-        Checks if the similarity measure is bounded.
-
-        Returns:
-            bool: True if the measure is bounded, False otherwise
-        """
-        logger.debug("Checking Jaccard Index boundedness")
         return True
-
-    def check_reflexivity(self) -> bool:
+    
+    def check_symmetry(self, x: Set, y: Set) -> bool:
         """
-        Checks if the similarity measure satisfies reflexivity.
-
-        Returns:
-            bool: True if the measure is reflexive, False otherwise
+        Check if the similarity measure is symmetric.
+        
+        The Jaccard Index is symmetric by definition: J(A,B) = J(B,A).
+        
+        Parameters
+        ----------
+        x : Set
+            First set to compare
+        y : Set
+            Second set to compare
+            
+        Returns
+        -------
+        bool
+            True, as the Jaccard Index is symmetric
+            
+        Raises
+        ------
+        TypeError
+            If inputs are not sets
         """
-        logger.debug("Checking Jaccard Index reflexivity")
-        return True
-
-    def check_symmetry(self) -> bool:
-        """
-        Checks if the similarity measure is symmetric.
-
-        Returns:
-            bool: True if the measure is symmetric, False otherwise
-        """
-        logger.debug("Checking Jaccard Index symmetry")
-        return True
-
-    def check_identity(self) -> bool:
-        """
-        Checks if the similarity measure satisfies identity of discernibles.
-
-        Returns:
-            bool: True if the measure satisfies identity, False otherwise
-        """
-        logger.debug("Checking Jaccard Index identity of discernibles")
-        return True
+        # Validate input types
+        if not isinstance(x, set) or not isinstance(y, set):
+            logger.error("Inputs must be sets")
+            raise TypeError("Inputs must be sets")
+        
+        # The Jaccard Index is symmetric by definition, but we can verify
+        similarity_xy = self.similarity(x, y)
+        similarity_yx = self.similarity(y, x)
+        
+        return abs(similarity_xy - similarity_yx) < 1e-10

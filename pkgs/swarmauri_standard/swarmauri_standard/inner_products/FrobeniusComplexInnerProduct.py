@@ -1,166 +1,275 @@
-from typing import Callable, Union, Literal
-import numpy as np
 import logging
+from typing import Callable, Literal, TypeVar, Union
 
+import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_core.vectors.IVector import IVector
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
+Vector = TypeVar("Vector", bound="IVector")
+Matrix = TypeVar("Matrix", bound=np.ndarray)
 
 
 @ComponentBase.register_type(InnerProductBase, "FrobeniusComplexInnerProduct")
 class FrobeniusComplexInnerProduct(InnerProductBase):
     """
-    Provides a concrete implementation of the Frobenius inner product for complex matrices.
-    Inherits from the InnerProductBase class and implements the compute method
-    to calculate the trace-based inner product with conjugate symmetry.
+    Frobenius inner product implementation for complex matrices.
 
-    The Frobenius inner product is defined as the trace of the product of one matrix
-    with the conjugate transpose of the other. It is a commonly used inner product
-    for complex matrices and ensures conjugate symmetry.
+    This class implements the Frobenius inner product for complex matrices,
+    which is defined as <A, B> = Tr(A* B), where A* is the conjugate transpose
+    of A and Tr denotes the trace operation.
+
+    The Frobenius inner product satisfies all inner product properties including
+    conjugate symmetry, linearity in the first argument, and positivity.
+
+    Attributes
+    ----------
+    type : Literal["FrobeniusComplexInnerProduct"]
+        The specific type identifier for this inner product implementation
     """
 
     type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
 
-    def __init__(self) -> None:
-        """
-        Initializes the FrobeniusComplexInnerProduct instance.
-        """
-        super().__init__()
-        logger.debug("FrobeniusComplexInnerProduct instance initialized")
-
     def compute(
-        self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
-    ) -> complex:
+        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+    ) -> float:
         """
-        Computes the Frobenius inner product between two complex matrices.
+        Compute the Frobenius inner product between two matrices.
 
-        The Frobenius inner product is defined as:
-        <A, B> = trace(A * B^H)
-        where B^H is the conjugate transpose of B.
+        For complex matrices A and B, computes Tr(A* B) where A* is the conjugate
+        transpose of A and Tr is the trace operation.
 
-        Args:
-            a: The first complex matrix (numpy.ndarray or Vector)
-            b: The second complex matrix (numpy.ndarray or Vector)
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The first matrix for inner product calculation
+        b : Union[Vector, Matrix, Callable]
+            The second matrix for inner product calculation
 
-        Returns:
-            float: The result of the Frobenius inner product operation.
+        Returns
+        -------
+        float
+            The inner product value
 
-        Raises:
-            ValueError: If the input matrices are not compatible for multiplication
-            ZeroDivisionError: If any operation leads to division by zero
+        Raises
+        ------
+        TypeError
+            If inputs are not matrices or cannot be converted to matrices
+        ValueError
+            If matrix dimensions are incompatible
         """
-        logger.debug("Computing Frobenius inner product")
+        logger.debug(
+            f"Computing Frobenius inner product between {type(a)} and {type(b)}"
+        )
 
-        # Ensure inputs are numpy arrays
-        if not isinstance(a, np.ndarray):
-            a = a.to_numpy()
-        if not isinstance(b, np.ndarray):
-            b = b.to_numpy()
+        try:
+            # Convert inputs to numpy arrays if they aren't already
+            a_matrix = np.array(a, dtype=complex)
+            b_matrix = np.array(b, dtype=complex)
 
-        # Check if matrices can be multiplied
-        if a.shape[1] != b.shape[0]:
-            raise ValueError("Incompatible dimensions for matrix multiplication")
+            # Check if dimensions match
+            if a_matrix.shape != b_matrix.shape:
+                raise ValueError(
+                    f"Matrix dimensions don't match: {a_matrix.shape} vs {b_matrix.shape}"
+                )
 
-        # Compute conjugate transpose of b
-        b_conj_transpose = b.conj().T
+            # Compute the inner product: Tr(A* B)
+            # This is equivalent to sum(conj(a_ij) * b_ij) over all elements
+            result = np.sum(np.conjugate(a_matrix) * b_matrix)
 
-        # Compute element-wise product and trace
-        product = np.multiply(a, b_conj_transpose)
-        trace = np.trace(product)
+            logger.debug(f"Frobenius inner product result: {result}")
+            return result
 
-        return trace
+        except Exception as e:
+            logger.error(f"Error computing Frobenius inner product: {str(e)}")
+            raise
 
     def check_conjugate_symmetry(
-        self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
-    ) -> None:
+        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+    ) -> bool:
         """
-        Verifies the conjugate symmetry property for the Frobenius inner product.
+        Check if the Frobenius inner product satisfies the conjugate symmetry property:
+        <a, b> = conj(<b, a>).
 
-        For complex matrices A and B, the inner product should satisfy:
-        <A, B> = conjugate(<B, A>)
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The first matrix
+        b : Union[Vector, Matrix, Callable]
+            The second matrix
 
-        Args:
-            a: The first complex matrix
-            b: The second complex matrix
-
-        Raises:
-            ValueError: If conjugate symmetry is not satisfied
+        Returns
+        -------
+        bool
+            True if conjugate symmetry holds, False otherwise
         """
-        logger.debug("Checking conjugate symmetry")
+        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
 
-        # Compute inner products
-        inner_ab = self.compute(a, b)
-        inner_ba = self.compute(b, a)
+        try:
+            # Compute <a, b>
+            ab_inner = self.compute(a, b)
 
-        # Check conjugate symmetry
-        if not np.isclose(inner_ab, inner_ba.conjugate(), rtol=1e-4):
-            raise ValueError("Conjugate symmetry not satisfied")
+            # Compute <b, a> and take conjugate
+            ba_inner_conj = np.conjugate(self.compute(b, a))
+
+            # Check if they're equal within numerical precision
+            is_symmetric = np.isclose(ab_inner, ba_inner_conj)
+
+            logger.debug(f"Conjugate symmetry check result: {is_symmetric}")
+            logger.debug(f"<a,b> = {ab_inner}, conj(<b,a>) = {ba_inner_conj}")
+
+            return is_symmetric
+
+        except Exception as e:
+            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            raise
 
     def check_linearity_first_argument(
         self,
-        a: Union[Vector, np.ndarray, Callable],
-        b: Union[Vector, np.ndarray, Callable],
-        c: Union[Vector, np.ndarray, Callable],
-    ) -> None:
+        a1: Union[Vector, Matrix, Callable],
+        a2: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
+        alpha: float,
+        beta: float,
+    ) -> bool:
         """
-        Verifies the linearity property in the first argument of the inner product.
+        Check if the Frobenius inner product satisfies linearity in the first argument:
+        <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>.
 
-        For complex matrices A, B, C and scalar α:
-        - Linearity: <A + B, C> = <A, C> + <B, C>
-        - Homogeneity: <αA, C> = α <A, C>
+        Parameters
+        ----------
+        a1 : Union[Vector, Matrix, Callable]
+            First component of the first argument
+        a2 : Union[Vector, Matrix, Callable]
+            Second component of the first argument
+        b : Union[Vector, Matrix, Callable]
+            The second matrix
+        alpha : float
+            Scalar multiplier for a1
+        beta : float
+            Scalar multiplier for a2
 
-        Args:
-            a: The first complex matrix
-            b: The second complex matrix
-            c: The third complex matrix
-
-        Raises:
-            ValueError: If linearity in the first argument is not satisfied
+        Returns
+        -------
+        bool
+            True if linearity in the first argument holds, False otherwise
         """
-        logger.debug("Checking linearity in first argument")
+        logger.debug(
+            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+        )
 
-        # Test linearity: <a + b, c> = <a, c> + <b, c>
-        ab = a + b
-        inner_ab_c = self.compute(ab, c)
-        inner_a_c = self.compute(a, c)
-        inner_b_c = self.compute(b, c)
+        try:
+            # Convert inputs to numpy arrays
+            a1_matrix = np.array(a1, dtype=complex)
+            a2_matrix = np.array(a2, dtype=complex)
+            b_matrix = np.array(b, dtype=complex)
 
-        if not np.isclose(inner_ab_c, inner_a_c + inner_b_c, rtol=1e-4):
-            raise ValueError("Linearity in first argument not satisfied")
+            # Check dimensions
+            if a1_matrix.shape != a2_matrix.shape or a1_matrix.shape != b_matrix.shape:
+                raise ValueError("Matrix dimensions don't match")
 
-        # Test homogeneity: <αa, c> = α <a, c>
-        alpha = 2.0
-        a_scaled = alpha * a
-        inner_scaled = self.compute(a_scaled, c)
-        expected = alpha * inner_a_c
+            # Compute left side: <alpha*a1 + beta*a2, b>
+            combined = alpha * a1_matrix + beta * a2_matrix
+            left_side = self.compute(combined, b_matrix)
 
-        if not np.isclose(inner_scaled, expected, rtol=1e-4):
-            raise ValueError("Homogeneity in first argument not satisfied")
+            # Compute right side: alpha*<a1, b> + beta*<a2, b>
+            right_side = alpha * self.compute(
+                a1_matrix, b_matrix
+            ) + beta * self.compute(a2_matrix, b_matrix)
 
-    def check_positivity(self, a: Union[Vector, np.ndarray, Callable]) -> None:
+            # Check if they're equal within numerical precision
+            is_linear = np.isclose(left_side, right_side)
+
+            logger.debug(f"Linearity check result: {is_linear}")
+            logger.debug(f"Left side: {left_side}, Right side: {right_side}")
+
+            return is_linear
+
+        except Exception as e:
+            logger.error(f"Error checking linearity: {str(e)}")
+            raise
+
+    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
         """
-        Verifies the positivity property of the inner product.
+        Check if the Frobenius inner product satisfies the positivity property:
+        <a, a> >= 0 and <a, a> = 0 iff a = 0.
 
-        For any non-zero complex matrix A:
-        - <A, A> > 0
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The matrix to check positivity for
 
-        Args:
-            a: The complex matrix to check for positivity
-
-        Raises:
-            ValueError: If the positivity property is not satisfied
+        Returns
+        -------
+        bool
+            True if positivity holds, False otherwise
         """
-        logger.debug("Checking positivity")
+        logger.debug(f"Checking positivity for {type(a)}")
 
-        inner_aa = self.compute(a, a)
+        try:
+            a_matrix = np.array(a, dtype=complex)
 
-        if inner_aa <= 0:
-            raise ValueError(
-                f"Positivity not satisfied. Inner product <a, a> = {inner_aa}"
+            # Compute <a, a>
+            inner_product = self.compute(a_matrix, a_matrix)
+
+            # For complex matrices, the inner product should be a real number >= 0
+            is_real = np.isclose(inner_product.imag, 0)
+            is_nonnegative = inner_product.real >= 0
+
+            # Check if <a, a> = 0 iff a = 0
+            is_zero_iff_a_zero = not np.isclose(inner_product, 0) or np.allclose(
+                a_matrix, 0
             )
+
+            result = is_real and is_nonnegative and is_zero_iff_a_zero
+
+            logger.debug(f"Positivity check result: {result}")
+            logger.debug(
+                f"<a,a> = {inner_product}, is_real: {is_real}, is_nonnegative: {is_nonnegative}"
+            )
+            logger.debug(f"Zero iff a is zero: {is_zero_iff_a_zero}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error checking positivity: {str(e)}")
+            raise
+
+    def norm(self, a: Union[Vector, Matrix, Callable]) -> float:
+        """
+        Compute the Frobenius norm of a matrix.
+
+        For a matrix A, the Frobenius norm is defined as sqrt(<A, A>).
+
+        Parameters
+        ----------
+        a : Union[Vector, Matrix, Callable]
+            The matrix to compute the norm for
+
+        Returns
+        -------
+        float
+            The Frobenius norm value
+        """
+        logger.debug(f"Computing Frobenius norm for {type(a)}")
+
+        try:
+            # Compute sqrt(<a, a>)
+            inner_product = self.compute(a, a)
+
+            # The inner product should be real and non-negative
+            if not np.isclose(inner_product.imag, 0) or inner_product.real < 0:
+                raise ValueError("Inner product <a,a> must be real and non-negative")
+
+            norm_value = np.sqrt(inner_product.real)
+
+            logger.debug(f"Frobenius norm result: {norm_value}")
+            return norm_value
+
+        except Exception as e:
+            logger.error(f"Error computing Frobenius norm: {str(e)}")
+            raise

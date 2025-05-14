@@ -1,145 +1,225 @@
-from typing import Callable, List, Union
-from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
-from swarmauri_base.ComponentBase import ComponentBase
+from typing import Callable, List, Literal, Sequence, TypeVar, Union, Any, Callable
 import logging
+from pydantic import Field
 
-from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
+# Set up logging
 logger = logging.getLogger(__name__)
 
+# Type variables
+T = TypeVar('T')
+
+# Type literals for IVector and IMatrix
+VectorType = Literal[IVector]
+MatrixType = Literal[IMatrix]
 
 @ComponentBase.register_type(PseudometricBase, "EquivalenceRelationPseudometric")
 class EquivalenceRelationPseudometric(PseudometricBase):
     """
-    A pseudometric space based on an equivalence relation.
-
-    This class implements a pseudometric where the distance between two points is 0
-    if they are equivalent under the given equivalence relation, and 1 otherwise.
-    This creates a quotient space where each equivalence class is a single point.
-
-    Inherits:
-        PseudometricBase: Base class for pseudometric spaces
-        ComponentBase: Base class for all components in the system
+    Implements a pseudometric based on equivalence relations.
+    
+    This pseudometric assigns distance 0 to points that are equivalent
+    under a given equivalence relation, and distance 1 to points that are not.
+    This effectively creates a quotient space where points in the same
+    equivalence class are treated as identical.
+    
+    The equivalence relation must satisfy:
+    1. Reflexivity: x ~ x for all x
+    2. Symmetry: if x ~ y, then y ~ x
+    3. Transitivity: if x ~ y and y ~ z, then x ~ z
     """
-
-    type: str = "EquivalenceRelationPseudometric"
-
-    def __init__(self, equivalence_function: callable):
+    
+    type: Literal["EquivalenceRelationPseudometric"] = "EquivalenceRelationPseudometric"
+    equivalence_relation: Callable[[Any, Any], bool] = Field(
+        ...,
+        description="Function that determines if two elements are equivalent"
+    )
+    
+    def distance(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable], 
+                y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> float:
         """
-        Initializes the EquivalenceRelationPseudometric instance.
-
-        Args:
-            equivalence_function (callable): A function that determines if two elements are equivalent.
-                It should take two arguments and return True if they are equivalent, False otherwise.
+        Calculate the pseudometric distance based on equivalence relation.
+        
+        Returns 0 if x is equivalent to y, 1 otherwise.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        float
+            0.0 if x and y are equivalent, 1.0 otherwise
         """
-        super().__init__()
-        self.equivalence_function = equivalence_function
-        logger.debug(
-            "Initialized EquivalenceRelationPseudometric with equivalence function"
-        )
-
-    def distance(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-    ) -> float:
+        try:
+            # Apply the equivalence relation to determine if x and y are equivalent
+            if self.equivalence_relation(x, y):
+                return 0.0
+            else:
+                return 1.0
+        except Exception as e:
+            logger.error(f"Error calculating distance: {str(e)}")
+            raise ValueError(f"Failed to calculate distance: {str(e)}")
+    
+    def distances(self, xs: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]], 
+                 ys: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]) -> List[List[float]]:
         """
-        Computes the distance between two elements based on equivalence.
-
-        Args:
-            x: First element to compute distance from
-            y: Second element to compute distance to
-
-        Returns:
-            float: 0 if x and y are equivalent, 1 otherwise
+        Calculate the pairwise distances between two collections of objects.
+        
+        Parameters
+        ----------
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+            The first collection of objects
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+            The second collection of objects
+            
+        Returns
+        -------
+        List[List[float]]
+            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
         """
-        logger.debug(f"Computing equivalence relation distance between {x} and {y}")
-        if self.equivalence_function(x, y):
-            return 0.0
-        else:
-            return 1.0
-
-    def check_symmetry(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-    ) -> bool:
+        try:
+            result = []
+            for x in xs:
+                row = []
+                for y in ys:
+                    row.append(self.distance(x, y))
+                result.append(row)
+            return result
+        except Exception as e:
+            logger.error(f"Error calculating distances matrix: {str(e)}")
+            raise ValueError(f"Failed to calculate distances matrix: {str(e)}")
+    
+    def check_non_negativity(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                           y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> bool:
         """
-        Verifies the symmetry property: d(x,y) = d(y,x).
-
-        For an equivalence relation, symmetry holds by definition.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if symmetry holds, False otherwise
+        Check if the distance function satisfies the non-negativity property.
+        
+        For an equivalence relation pseudometric, this is always true as the distance
+        is either 0 or 1, both of which are non-negative.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        bool
+            Always True for this pseudometric
         """
-        logger.debug("Checking symmetry for equivalence relation")
+        # Distance is always either 0 or 1, so it's always non-negative
         return True
-
-    def check_non_negativity(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-    ) -> bool:
+    
+    def check_symmetry(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                     y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                     tolerance: float = 1e-10) -> bool:
         """
-        Verifies the non-negativity property: d(x,y) ≥ 0.
-
-        Since the distance is either 0 or 1, non-negativity holds.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if non-negativity holds
+        Check if the distance function satisfies the symmetry property.
+        
+        This checks if the equivalence relation is symmetric, i.e., if x ~ y then y ~ x.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+        tolerance : float, optional
+            The tolerance for floating-point comparisons, by default 1e-10
+            
+        Returns
+        -------
+        bool
+            True if d(x,y) = d(y,x) within tolerance, False otherwise
         """
-        logger.debug("Checking non-negativity for equivalence relation")
-        return True
-
-    def check_triangle_inequality(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-        z: Union[IVector, IMatrix, List[float], str, Callable],
-    ) -> bool:
+        try:
+            # Check if the distance from x to y equals the distance from y to x
+            d_xy = self.distance(x, y)
+            d_yx = self.distance(y, x)
+            return abs(d_xy - d_yx) <= tolerance
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            raise ValueError(f"Failed to check symmetry: {str(e)}")
+    
+    def check_triangle_inequality(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                               tolerance: float = 1e-10) -> bool:
         """
-        Verifies the triangle inequality property: d(x,z) ≤ d(x,y) + d(y,z).
-
-        For this pseudometric, the triangle inequality holds because:
-        - If x ≡ z, then d(x,z)=0 and d(x,y)+d(y,z) ≥ 0
-        - If x not ≡ z, then d(x,z)=1 and d(x,y)+d(y,z) ≥ 1 since at least one of d(x,y) or d(y,z) is 1
-
-        Args:
-            x: First element
-            y: Second element
-            z: Third element
-
-        Returns:
-            bool: True if triangle inequality holds
+        Check if the distance function satisfies the triangle inequality.
+        
+        For an equivalence relation pseudometric, this is always true:
+        - If x ~ z, then d(x,z) = 0 ≤ d(x,y) + d(y,z) for any y
+        - If x !~ z, then d(x,z) = 1, and there are two cases:
+          * If x ~ y and y ~ z, transitivity of the equivalence relation would imply x ~ z,
+            contradicting our assumption. So this case is impossible.
+          * If x !~ y or y !~ z, then d(x,y) + d(y,z) ≥ 1 = d(x,z)
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+        z : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The third object
+        tolerance : float, optional
+            The tolerance for floating-point comparisons, by default 1e-10
+            
+        Returns
+        -------
+        bool
+            True if d(x,z) ≤ d(x,y) + d(y,z) within tolerance, False otherwise
         """
-        logger.debug("Checking triangle inequality for equivalence relation")
-        return True
-
-    def check_weak_identity(
-        self,
-        x: Union[IVector, IMatrix, List[float], str, Callable],
-        y: Union[IVector, IMatrix, List[float], str, Callable],
-    ) -> bool:
+        try:
+            d_xz = self.distance(x, z)
+            d_xy = self.distance(x, y)
+            d_yz = self.distance(y, z)
+            
+            # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
+            return d_xz <= d_xy + d_yz + tolerance
+        except Exception as e:
+            logger.error(f"Error checking triangle inequality: {str(e)}")
+            raise ValueError(f"Failed to check triangle inequality: {str(e)}")
+    
+    def check_weak_identity(self, x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+                          y: Union[VectorType, MatrixType, Sequence[T], str, Callable]) -> bool:
         """
-        Verifies the weak identity property: d(x,y) = 0 does not necessarily imply x = y.
-
-        This holds because equivalence relations can have x ≠ y but d(x,y) = 0.
-
-        Args:
-            x: First element
-            y: Second element
-
-        Returns:
-            bool: True if weak identity holds
+        Check if the distance function satisfies the weak identity property.
+        
+        In a pseudometric, d(x,y) = 0 is allowed even when x ≠ y.
+        For an equivalence relation pseudometric, d(x,y) = 0 exactly when x ~ y.
+        
+        Parameters
+        ----------
+        x : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The first object
+        y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
+            The second object
+            
+        Returns
+        -------
+        bool
+            True if the pseudometric properly handles the weak identity property
         """
-        logger.debug("Checking weak identity for equivalence relation")
-        return True
+        try:
+            # For this pseudometric, d(x,y) = 0 if and only if x ~ y
+            # So we check if the equivalence relation and distance are consistent
+            are_equivalent = self.equivalence_relation(x, y)
+            d_xy = self.distance(x, y)
+            
+            # If they're equivalent, distance should be 0; if not, distance should be 1
+            return (are_equivalent and d_xy == 0.0) or (not are_equivalent and d_xy == 1.0)
+        except Exception as e:
+            logger.error(f"Error checking weak identity: {str(e)}")
+            raise ValueError(f"Failed to check weak identity: {str(e)}")

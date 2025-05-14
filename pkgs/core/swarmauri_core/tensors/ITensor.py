@@ -1,209 +1,389 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Union, List
-import logging
+from typing import Tuple, List, TypeVar, Union, Iterator, Sequence, Protocol, Literal, Any, cast
 
 from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-logger = logging.getLogger(__name__)
+T = TypeVar('T', bound=Union[int, float, complex])
+Shape = Tuple[int, ...]
+Index = Union[int, slice, Tuple[Union[int, slice], ...]]
+
+
+class SupportsArray(Protocol):
+    """Protocol for objects that support array-like behavior."""
+    
+    @abstractmethod
+    def __array__(self) -> 'ITensor': ...
 
 
 class ITensor(ABC):
     """
-    Core interface for tensor operations. This class provides the foundation for
-    implementing various tensor operations, including element-wise access,
-    slicing, reshaping, and basic tensor transformations.
-
-    Attributes:
-        shape (Tuple[int, ...]): The shape of the tensor
-        dtype (type): The data type of the elements in the tensor
-
-    Methods:
-        __getitem__: Gets elements using tensor indices or slices
-        __setitem__: Sets elements using tensor indices or slices
-        shape: Returns the shape of the tensor
-        reshape: Reshapes the tensor to a new shape
-        dtype: Returns the data type of the tensor elements
-        tolist: Converts the tensor to a list of lists (if 2D) or nested lists
-        __add__: Element-wise addition with another tensor or scalar
-        __sub__: Element-wise subtraction with another tensor or scalar
-        __mul__: Element-wise multiplication with another tensor or scalar
-        __truediv__: Element-wise division with another tensor or scalar
-        transpose: Transposes the tensor
-        broadcast: Broadcasts the tensor to a new shape
+    Core interface for tensorial algebra components.
+    
+    This interface specifies required tensor operations and structural properties
+    that all tensor implementations must support, providing a common API for
+    n-dimensional arrays and mathematical operations.
     """
-
-    def __init__(self):
-        super().__init__()
-        logger.debug("Initialized ITensor")
-
+    
     @abstractmethod
-    def shape(self) -> Tuple[int, ...]:
+    def __getitem__(self, key: Index) -> Union['ITensor', IMatrix, IVector, T]:
         """
-        Returns the shape of the tensor as a tuple of integers.
+        Get an element, slice, or subtensor using indexing/slicing.
         
-        Returns:
-            Tuple[int, ...]: Shape of the tensor
-        """
-        logger.debug("Getting tensor shape")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
-        """
-        Reshapes the tensor to a new shape.
-        
-        Args:
-            new_shape: New shape as a tuple of integers
+        Parameters
+        ----------
+        key : Index
+            The index or slice to access
             
-        Returns:
-            Reshaped tensor
+        Returns
+        -------
+        Union[ITensor, IMatrix, IVector, T]
+            The requested element, vector, matrix, or subtensor
+        
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
         """
-        logger.debug(f"Reshaping tensor to {new_shape}")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
+    @abstractmethod
+    def __setitem__(self, key: Index, value: Union['ITensor', IMatrix, IVector, T, Sequence]) -> None:
+        """
+        Set an element, slice, or subtensor using indexing/slicing.
+        
+        Parameters
+        ----------
+        key : Index
+            The index or slice to modify
+        value : Union[ITensor, IMatrix, IVector, T, Sequence]
+            The value to set
+            
+        Raises
+        ------
+        IndexError
+            If the index is out of bounds
+        ValueError
+            If the value has incompatible dimensions
+        """
+        pass
+    
+    @property
+    @abstractmethod
+    def shape(self) -> Shape:
+        """
+        Get the shape of the tensor.
+        
+        Returns
+        -------
+        Shape
+            The dimensions of the tensor
+        """
+        pass
+    
+    @abstractmethod
+    def reshape(self, shape: Shape) -> 'ITensor':
+        """
+        Reshape the tensor to the specified dimensions.
+        
+        Parameters
+        ----------
+        shape : Shape
+            The new dimensions
+            
+        Returns
+        -------
+        ITensor
+            A reshaped tensor
+            
+        Raises
+        ------
+        ValueError
+            If the new shape is incompatible with the total number of elements
+        """
+        pass
+    
+    @property
     @abstractmethod
     def dtype(self) -> type:
         """
-        Returns the data type of the elements in the tensor.
+        Get the data type of the tensor elements.
         
-        Returns:
-            type: Data type of the tensor elements
+        Returns
+        -------
+        type
+            The data type of the elements
         """
-        logger.debug("Getting tensor dtype")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def __getitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice]) -> Union[float, IVector, 'ITensor']:
+    def tolist(self) -> List:
         """
-        Gets elements using tensor indices or slices.
+        Convert the tensor to a nested list.
         
-        Args:
-            index: Tuple of indices or slices for multi-dimensional access
+        Returns
+        -------
+        List
+            A nested list representing the tensor
+        """
+        pass
+    
+    @abstractmethod
+    def __add__(self, other: Union['ITensor', T]) -> 'ITensor':
+        """
+        Add another tensor or scalar to this tensor.
+        
+        Parameters
+        ----------
+        other : Union[ITensor, T]
+            The tensor or scalar to add
             
-        Returns:
-            Either a single element, a vector, or a subtensor based on the index
-        """
-        logger.debug(f"Getting item with index {index}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def __setitem__(self, index: Union[Tuple[int, ...], Tuple[slice, ...], int, slice], value: Union[float, IVector, 'ITensor']):
-        """
-        Sets elements using tensor indices or slices.
-        
-        Args:
-            index: Tuple of indices or slices for multi-dimensional access
-            value: Value or values to set at the specified index
-        """
-        logger.debug(f"Setting item at index {index} with value {value}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def tolist(self) -> Union[List[float], List[List[float]], ...]:
-        """
-        Converts the tensor to a nested list structure.
-        
-        Returns:
-            Union[List[float], List[List[float]], ...]: Tensor as a nested list
-        """
-        logger.debug("Converting tensor to list")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def __add__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
-        """
-        Element-wise addition with another tensor or scalar.
-        
-        Args:
-            other: Another tensor or scalar to add
+        Returns
+        -------
+        ITensor
+            The resulting tensor
             
-        Returns:
-            Resulting tensor after addition
+        Raises
+        ------
+        ValueError
+            If the tensors have incompatible dimensions
         """
-        logger.debug(f"Performing tensor addition with {other}")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def __sub__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
+    def __sub__(self, other: Union['ITensor', T]) -> 'ITensor':
         """
-        Element-wise subtraction with another tensor or scalar.
+        Subtract another tensor or scalar from this tensor.
         
-        Args:
-            other: Another tensor or scalar to subtract
+        Parameters
+        ----------
+        other : Union[ITensor, T]
+            The tensor or scalar to subtract
             
-        Returns:
-            Resulting tensor after subtraction
-        """
-        logger.debug(f"Performing tensor subtraction with {other}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def __mul__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
-        """
-        Element-wise multiplication with another tensor or scalar.
-        
-        Args:
-            other: Another tensor or scalar to multiply
+        Returns
+        -------
+        ITensor
+            The resulting tensor
             
-        Returns:
-            Resulting tensor after multiplication
+        Raises
+        ------
+        ValueError
+            If the tensors have incompatible dimensions
         """
-        logger.debug(f"Performing tensor multiplication with {other}")
-        raise NotImplementedError("Method not implemented")
-
+        pass
+    
     @abstractmethod
-    def __truediv__(self, other: Union[float, int, 'ITensor']) -> 'ITensor':
+    def __mul__(self, other: Union['ITensor', T]) -> 'ITensor':
         """
-        Element-wise division with another tensor or scalar.
+        Element-wise multiply this tensor by another tensor or scalar.
         
-        Args:
-            other: Another tensor or scalar to divide by
+        Parameters
+        ----------
+        other : Union[ITensor, T]
+            The tensor or scalar to multiply by
             
-        Returns:
-            Resulting tensor after division
-        """
-        logger.debug(f"Performing tensor division by {other}")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def transpose(self) -> 'ITensor':
-        """
-        Transposes the tensor.
-        
-        Returns:
-            Transposed tensor
-        """
-        logger.debug("Transposing tensor")
-        raise NotImplementedError("Method not implemented")
-
-    @abstractmethod
-    def broadcast(self, new_shape: Tuple[int, ...]) -> 'ITensor':
-        """
-        Broadcasts the tensor to a new shape.
-        
-        Args:
-            new_shape: New shape as a tuple of integers
+        Returns
+        -------
+        ITensor
+            The resulting tensor
             
-        Returns:
-            Broadcasted tensor
+        Raises
+        ------
+        ValueError
+            If the tensors have incompatible dimensions
         """
-        logger.debug(f"Broadcasting tensor to {new_shape}")
-        raise NotImplementedError("Method not implemented")
-
-    def __str__(self) -> str:
+        pass
+    
+    @abstractmethod
+    def __matmul__(self, other: 'ITensor') -> 'ITensor':
         """
-        Returns a string representation of the tensor.
+        Perform tensor contraction with another tensor.
         
-        Returns:
-            str: String representation of the tensor
+        Parameters
+        ----------
+        other : ITensor
+            The tensor to contract with
+            
+        Returns
+        -------
+        ITensor
+            The resulting tensor
+            
+        Raises
+        ------
+        ValueError
+            If the tensors have incompatible dimensions for contraction
         """
-        return f"ITensor(shape={self.shape()}, dtype={self.dtype()})"
-
-    def __repr__(self) -> str:
+        pass
+    
+    @abstractmethod
+    def __truediv__(self, other: Union['ITensor', T]) -> 'ITensor':
         """
-        Returns the official string representation of the tensor.
+        Element-wise divide this tensor by another tensor or scalar.
         
-        Returns:
-            str: Official string representation
+        Parameters
+        ----------
+        other : Union[ITensor, T]
+            The tensor or scalar to divide by
+            
+        Returns
+        -------
+        ITensor
+            The resulting tensor
+            
+        Raises
+        ------
+        ValueError
+            If the tensors have incompatible dimensions
+        ZeroDivisionError
+            If dividing by zero
         """
-        return self.__str__()
+        pass
+    
+    @abstractmethod
+    def __neg__(self) -> 'ITensor':
+        """
+        Negate all elements in the tensor.
+        
+        Returns
+        -------
+        ITensor
+            The negated tensor
+        """
+        pass
+    
+    @abstractmethod
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if this tensor is equal to another tensor.
+        
+        Parameters
+        ----------
+        other : object
+            The object to compare with
+            
+        Returns
+        -------
+        bool
+            True if the tensors are equal, False otherwise
+        """
+        pass
+    
+    @abstractmethod
+    def __iter__(self) -> Iterator[Union['ITensor', IMatrix, IVector]]:
+        """
+        Iterate over the first dimension of the tensor.
+        
+        Returns
+        -------
+        Iterator[Union[ITensor, IMatrix, IVector]]
+            An iterator yielding subtensors, matrices, or vectors
+        """
+        pass
+    
+    @abstractmethod
+    def transpose(self, axes: Union[None, Tuple[int, ...]] = None) -> 'ITensor':
+        """
+        Transpose (permute) the tensor's axes.
+        
+        Parameters
+        ----------
+        axes : Union[None, Tuple[int, ...]], optional
+            The new order of dimensions. If None, reverse the dimensions.
+            
+        Returns
+        -------
+        ITensor
+            The transposed tensor
+            
+        Raises
+        ------
+        ValueError
+            If the axes specification is invalid
+        """
+        pass
+    
+    @abstractmethod
+    def broadcast(self, shape: Shape) -> 'ITensor':
+        """
+        Broadcast the tensor to a new shape.
+        
+        Parameters
+        ----------
+        shape : Shape
+            The shape to broadcast to
+            
+        Returns
+        -------
+        ITensor
+            The broadcasted tensor
+            
+        Raises
+        ------
+        ValueError
+            If the tensor cannot be broadcast to the given shape
+        """
+        pass
+    
+    @abstractmethod
+    def __array__(self) -> 'ITensor':
+        """
+        Support for array protocol.
+        
+        Returns
+        -------
+        ITensor
+            The tensor itself or a compatible representation
+        """
+        pass
+    
+    @abstractmethod
+    def astype(self, dtype: type) -> 'ITensor':
+        """
+        Cast the tensor to a specified data type.
+        
+        Parameters
+        ----------
+        dtype : type
+            The target data type
+            
+        Returns
+        -------
+        ITensor
+            A new tensor with the specified data type
+        """
+        pass
+    
+    @abstractmethod
+    def to_matrix(self) -> Literal[IMatrix]:
+        """
+        Convert the tensor to a matrix if possible.
+        
+        Returns
+        -------
+        IMatrix
+            The tensor as a matrix
+            
+        Raises
+        ------
+        ValueError
+            If the tensor cannot be converted to a matrix
+        """
+        pass
+    
+    @abstractmethod
+    def to_vector(self) -> Literal[IVector]:
+        """
+        Convert the tensor to a vector if possible.
+        
+        Returns
+        -------
+        IVector
+            The tensor as a vector
+            
+        Raises
+        ------
+        ValueError
+            If the tensor cannot be converted to a vector
+        """
+        pass

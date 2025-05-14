@@ -1,154 +1,322 @@
-from typing import Callable, Union, List, Tuple
+from typing import TypeVar, Union, Callable, Sequence, Literal, Optional, Tuple
 import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.seminorms.SeminormBase import SeminormBase
+import numpy as np
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.seminorms.ISeminorm import InputType
+from swarmauri_base.seminorms.SeminormBase import SeminormBase
+from swarmauri_base.ComponentBase import ComponentBase
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
+T = TypeVar('T', bound=Union[int, float, complex])
 
-@ComponentBase.register_model()
+
+@ComponentBase.register_type(SeminormBase, "PartialSumSeminorm")
 class PartialSumSeminorm(SeminormBase):
     """
-    A class providing implementation for computing seminorms on partial segments of vectors.
-
-    Inherits from SeminormBase and implements the ISeminorm interface. This class
-    computes the seminorm by summing only a specified part of the input vector.
-
-    Attributes:
-        _start_index: int - Starting index for partial sum (inclusive)
-        _end_index: int - Ending index for partial sum (exclusive)
-        resource: str - Resource type identifier
-
-    Methods:
-        compute: Computes the seminorm by summing elements from start_index to end_index
-        check_triangle_inequality: Verifies the triangle inequality property
-        check_scalar_homogeneity: Verifies the scalar homogeneity property
+    Seminorm computed via summing only part of the vector.
+    
+    This seminorm evaluates the norm on a partial segment of the input,
+    ignoring the rest. It is particularly useful when only specific 
+    elements of a vector or matrix are relevant for a given analysis.
+    
+    Attributes
+    ----------
+    type : Literal["PartialSumSeminorm"]
+        The type identifier for this seminorm
+    start_idx : Optional[int]
+        Starting index for the summation (inclusive)
+    end_idx : Optional[int]
+        Ending index for the summation (exclusive)
+    indices : Optional[Sequence[int]]
+        Specific indices to include in the summation
     """
-
-    _start_index: int
-    _end_index: int
-    resource: str = ResourceTypes.SEMINORM.value
-
-    def __init__(self, start_index: int = 0, end_index: int = None):
+    type: Literal["PartialSumSeminorm"] = "PartialSumSeminorm"
+    start_idx: Optional[int] = None
+    end_idx: Optional[int] = None
+    indices: Optional[Sequence[int]] = None
+    
+    def __init__(self, 
+                 start_idx: Optional[int] = None, 
+                 end_idx: Optional[int] = None,
+                 indices: Optional[Sequence[int]] = None):
         """
-        Initializes the PartialSumSeminorm instance.
-
-        Args:
-            start_index: Starting index for the partial sum (inclusive)
-            end_index: Ending index for the partial sum (exclusive). If None, defaults to the end of the vector.
+        Initialize the PartialSumSeminorm.
+        
+        Parameters
+        ----------
+        start_idx : Optional[int], optional
+            Starting index for the summation (inclusive), by default None
+        end_idx : Optional[int], optional
+            Ending index for the summation (exclusive), by default None
+        indices : Optional[Sequence[int]], optional
+            Specific indices to include in the summation, by default None
+            
+        Notes
+        -----
+        Either provide start_idx and end_idx to define a range, or
+        provide indices to specify exact elements to include.
         """
-        super().__init__()
-        self._start_index = start_index
-        self._end_index = end_index
-        logger.debug(
-            f"Initialized PartialSumSeminorm with start_index={start_index}, end_index={end_index}"
-        )
-
-    def compute(
-        self,
-        input: Union[IVector, IMatrix, List[float], Tuple[float, ...], str, Callable],
-    ) -> float:
+        self.start_idx = start_idx
+        self.end_idx = end_idx
+        self.indices = indices
+        
+        # Validate that we have either range or indices
+        if (start_idx is None or end_idx is None) and indices is None:
+            logger.warning("Neither range nor indices specified. Will use entire input.")
+        elif indices is not None and (start_idx is not None or end_idx is not None):
+            logger.warning("Both range and indices provided. Will use indices.")
+            
+        logger.debug(f"Initialized PartialSumSeminorm with start_idx={start_idx}, "
+                     f"end_idx={end_idx}, indices={indices}")
+    
+    def _extract_partial_data(self, x: Union[Sequence, np.ndarray]) -> np.ndarray:
         """
-        Computes the seminorm by summing the elements from start_index to end_index.
-
-        Args:
-            input: The input vector-like structure to compute the seminorm for.
-                   Supported types: IVector, IMatrix, list, tuple, and others.
-
-        Returns:
-            float: The computed seminorm value
-
-        Raises:
-            ValueError: If indices are out of bounds
-            TypeError: If input type is not supported
+        Extract the partial data from the input based on configured indices.
+        
+        Parameters
+        ----------
+        x : Union[Sequence, np.ndarray]
+            Input data to extract partial elements from
+            
+        Returns
+        -------
+        np.ndarray
+            Array containing only the selected elements
+            
+        Raises
+        ------
+        ValueError
+            If indices are out of bounds
         """
-        logger.debug(
-            f"Computing partial sum seminorm for input of type {type(input).__name__}"
-        )
-
-        if self._is_vector(input):
-            vector = input.data()
-        elif self._is_matrix(input):
-            vector = input.data()[0]  # Assuming first row for matrices
-        elif isinstance(input, (list, tuple)):
-            vector = list(input)
-        else:
-            raise TypeError(f"Unsupported input type: {type(input).__name__}")
-
-        # Validate indices
-        if self._end_index is None:
-            self._end_index = len(vector)
-
-        if self._start_index >= len(vector):
-            raise ValueError("Start index out of bounds")
-        if self._end_index > len(vector):
-            raise ValueError("End index out of bounds")
-
-        # Compute partial sum
-        return sum(vector[self._start_index : self._end_index])
-
-    def check_triangle_inequality(
-        self,
-        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        b: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-    ) -> bool:
+        try:
+            # Convert to numpy array for easier manipulation
+            data = np.asarray(x)
+            
+            # Use indices if provided, otherwise use range
+            if self.indices is not None:
+                # Check if any indices are out of bounds
+                if max(self.indices) >= len(data) or min(self.indices) < 0:
+                    raise ValueError(f"Indices {self.indices} out of bounds for input of length {len(data)}")
+                return data[list(self.indices)]
+            elif self.start_idx is not None and self.end_idx is not None:
+                # Check if range is valid
+                if self.start_idx < 0 or self.end_idx > len(data):
+                    raise ValueError(f"Range [{self.start_idx}:{self.end_idx}] out of bounds "
+                                    f"for input of length {len(data)}")
+                return data[self.start_idx:self.end_idx]
+            else:
+                # Use entire input if no indices or range specified
+                return data
+        except Exception as e:
+            logger.error(f"Error extracting partial data: {str(e)}")
+            raise
+    
+    def compute(self, x: InputType) -> float:
         """
-        Verifies the triangle inequality property: seminorm(a + b) <= seminorm(a) + seminorm(b).
-
-        Args:
-            a: First element to check
-            b: Second element to check
-
-        Returns:
-            bool: True if triangle inequality holds, False otherwise
+        Compute the seminorm by summing the absolute values of the partial vector elements.
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to compute the seminorm for
+            
+        Returns
+        -------
+        float
+            The seminorm value
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the computation cannot be performed on the given input
         """
-        logger.debug("Checking triangle inequality for PartialSumSeminorm")
-
-        seminorm_ab = self.compute(a + b)
-        seminorm_a = self.compute(a)
-        seminorm_b = self.compute(b)
-
-        return seminorm_ab <= seminorm_a + seminorm_b
-
-    def check_scalar_homogeneity(
-        self,
-        a: Union[IVector, IMatrix, List[float], Tuple[float, ...]],
-        scalar: Union[int, float],
-    ) -> bool:
+        logger.debug(f"Computing PartialSumSeminorm for input of type {type(x)}")
+        
+        try:
+            # Handle different input types
+            if isinstance(x, (IVector, Sequence, list, tuple)):
+                # Convert to flat array and extract partial data
+                partial_data = self._extract_partial_data(x)
+                # Sum absolute values
+                return float(np.sum(np.abs(partial_data)))
+                
+            elif isinstance(x, IMatrix):
+                # Flatten matrix and extract partial data
+                flat_data = np.asarray(x).flatten()
+                partial_data = self._extract_partial_data(flat_data)
+                # Sum absolute values
+                return float(np.sum(np.abs(partial_data)))
+                
+            elif isinstance(x, str):
+                # Convert string to ASCII values
+                ascii_values = [ord(char) for char in x]
+                partial_data = self._extract_partial_data(ascii_values)
+                # Sum absolute values
+                return float(np.sum(np.abs(partial_data)))
+                
+            elif callable(x):
+                # For callable objects, we need a domain to evaluate on
+                # This is a simplified approach - in practice, you might want to 
+                # define a more specific domain based on the use case
+                domain = np.linspace(-1, 1, 100)
+                values = np.array([x(t) for t in domain])
+                partial_data = self._extract_partial_data(values)
+                # Sum absolute values
+                return float(np.sum(np.abs(partial_data)))
+                
+            else:
+                raise TypeError(f"Unsupported input type: {type(x)}")
+                
+        except Exception as e:
+            logger.error(f"Error computing PartialSumSeminorm: {str(e)}")
+            raise
+    
+    def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
         """
-        Verifies the scalar homogeneity property: seminorm(s * a) = |s| * seminorm(a).
-
-        Args:
-            a: Element to check
-            scalar: Scalar value to scale with
-
-        Returns:
-            bool: True if scalar homogeneity holds, False otherwise
+        Check if the triangle inequality property holds for the given inputs.
+        
+        The triangle inequality states that:
+        ||x + y|| ≤ ||x|| + ||y||
+        
+        Parameters
+        ----------
+        x : InputType
+            First input to check
+        y : InputType
+            Second input to check
+            
+        Returns
+        -------
+        bool
+            True if the triangle inequality holds, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input types are not supported or compatible
+        ValueError
+            If the check cannot be performed on the given inputs
         """
-        logger.debug(f"Checking scalar homogeneity with scalar {scalar}")
-
-        scaled_a = a * scalar
-        seminorm_scaled = self.compute(scaled_a)
-        seminorm_original = self.compute(a)
-
-        return seminorm_scaled == abs(scalar) * seminorm_original
-
-    def __str__(self) -> str:
+        logger.debug(f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}")
+        
+        try:
+            # Ensure inputs are of the same type
+            if type(x) != type(y):
+                raise TypeError(f"Inputs must be of the same type, got {type(x)} and {type(y)}")
+            
+            # Handle different input types
+            if isinstance(x, (IVector, Sequence, list, tuple)):
+                # Ensure inputs have the same length
+                if len(x) != len(y):
+                    raise ValueError(f"Inputs must have the same length, got {len(x)} and {len(y)}")
+                
+                # Compute the sum of x and y
+                z = [x[i] + y[i] for i in range(len(x))]
+                
+            elif isinstance(x, IMatrix):
+                # Ensure matrices have the same shape
+                x_array = np.asarray(x)
+                y_array = np.asarray(y)
+                if x_array.shape != y_array.shape:
+                    raise ValueError(f"Matrices must have the same shape, got {x_array.shape} and {y_array.shape}")
+                
+                # Compute the sum of x and y
+                z = x_array + y_array
+                
+            elif isinstance(x, str):
+                # For strings, we'll convert to ASCII and add
+                x_ascii = [ord(char) for char in x]
+                y_ascii = [ord(char) for char in y]
+                if len(x_ascii) != len(y_ascii):
+                    raise ValueError(f"Strings must have the same length, got {len(x)} and {len(y)}")
+                
+                z = [x_ascii[i] + y_ascii[i] for i in range(len(x_ascii))]
+                
+            elif callable(x):
+                # For callable objects, create a new callable that returns the sum
+                z = lambda t: x(t) + y(t)
+                
+            else:
+                raise TypeError(f"Unsupported input type: {type(x)}")
+            
+            # Check triangle inequality
+            norm_x_plus_y = self.compute(z)
+            norm_x = self.compute(x)
+            norm_y = self.compute(y)
+            
+            # Account for floating-point precision issues
+            epsilon = 1e-10
+            return norm_x_plus_y <= norm_x + norm_y + epsilon
+            
+        except Exception as e:
+            logger.error(f"Error checking triangle inequality: {str(e)}")
+            raise
+    
+    def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Returns a string representation of the PartialSumSeminorm instance.
-
-        Returns:
-            str: String representation
+        Check if the scalar homogeneity property holds for the given input and scalar.
+        
+        The scalar homogeneity states that:
+        ||αx|| = |α|·||x||
+        
+        Parameters
+        ----------
+        x : InputType
+            The input to check
+        alpha : T
+            The scalar to multiply by
+            
+        Returns
+        -------
+        bool
+            True if scalar homogeneity holds, False otherwise
+            
+        Raises
+        ------
+        TypeError
+            If the input type is not supported
+        ValueError
+            If the check cannot be performed on the given input
         """
-        return f"PartialSumSeminorm(start_index={self._start_index}, end_index={self._end_index})"
-
-    def __repr__(self) -> str:
-        """
-        Returns the official string representation of the PartialSumSeminorm instance.
-
-        Returns:
-            str: Official string representation
-        """
-        return self.__str__()
+        logger.debug(f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}")
+        
+        try:
+            # Handle different input types
+            if isinstance(x, (IVector, Sequence, list, tuple)):
+                # Multiply each element by alpha
+                scaled_x = [alpha * xi for xi in x]
+                
+            elif isinstance(x, IMatrix):
+                # Multiply matrix by alpha
+                x_array = np.asarray(x)
+                scaled_x = alpha * x_array
+                
+            elif isinstance(x, str):
+                # For strings, we'll convert to ASCII and scale
+                x_ascii = [ord(char) for char in x]
+                scaled_x = [alpha * val for val in x_ascii]
+                
+            elif callable(x):
+                # For callable objects, create a new callable that returns the scaled value
+                scaled_x = lambda t: alpha * x(t)
+                
+            else:
+                raise TypeError(f"Unsupported input type: {type(x)}")
+            
+            # Check scalar homogeneity
+            norm_scaled_x = self.compute(scaled_x)
+            norm_x = self.compute(x)
+            abs_alpha = abs(alpha)
+            
+            # Account for floating-point precision issues
+            epsilon = 1e-10
+            return abs(norm_scaled_x - abs_alpha * norm_x) < epsilon
+            
+        except Exception as e:
+            logger.error(f"Error checking scalar homogeneity: {str(e)}")
+            raise
