@@ -4,14 +4,15 @@ from typing import TypeVar, Union, Callable, Sequence, Literal
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.seminorms.ISeminorm import ISeminorm, InputType
+from swarmauri_base.ComponentBase import ComponentBase
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=Union[int, float, complex])
 
-
-class SeminormBase(ISeminorm, ABC):
+@ComponentBase.register_model()
+class SeminormBase(ISeminorm, ComponentBase):
     """
     Base class providing tools for evaluating seminorms in partial vector spaces.
     
