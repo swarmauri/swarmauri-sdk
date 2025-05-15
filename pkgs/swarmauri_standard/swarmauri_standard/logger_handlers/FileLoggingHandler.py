@@ -1,124 +1,94 @@
-from logging.handlers import RotatingFileHandler
+from typing import Optional, Union, Literal
 import logging
 import os
-from typing import Optional, Literal, Dict, Any
+from logging.handlers import RotatingFileHandler
 
+from swarmauri_base import FullUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "FileLoggingHandler")
+@ObserveBase.register_model()
 class FileLoggingHandler(HandlerBase):
     """
-    A handler that writes logging records to a specified file path.
-
-    This handler extends the base HandlerBase class to provide file-based logging
-    functionality. It uses Python's built-in FileHandler to manage writing logs
-    to disk, handling file opening, closing, and various file modes.
+    A handler for logging messages to a file on disk.
+    
+    This handler writes logging records to a specified file path using Python's
+    built-in FileHandler, managing file operations including opening, writing,
+    and closing the file.
+    
+    Attributes:
+        type: The type identifier for this handler.
+        level: The logging level for this handler.
+        formatter: Optional formatter for log messages.
+        file_path: Path to the log file.
+        file_mode: Mode for opening the file ('a' for append, 'w' for write).
+        encoding: Character encoding for the file.
+        max_bytes: Maximum file size before rotation (0 means no rotation).
+        backup_count: Number of backup files to keep when rotating.
     """
-
+    
     type: Literal["FileLoggingHandler"] = "FileLoggingHandler"
-
-    # File configuration
-    filepath: str
-    mode: str = "a"  # Default to append mode
-    encoding: Optional[str] = "utf-8"
-    delay: bool = False  # Don't delay file creation
-
-    # Rotation settings (optional)
+    level: int = logging.INFO
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    file_path: str = "logs/app.log"
+    file_mode: str = "a"
+    encoding: str = "utf-8"
     max_bytes: int = 0  # 0 means no rotation
-    backup_count: int = 0  # 0 means no backups
-
-    def __init__(self, **data: Any):
-        """
-        Initialize the FileLoggingHandler with the provided configuration.
-
-        Args:
-            **data: Dictionary containing configuration parameters.
-        """
-        super().__init__(**data)
-
-        # Ensure the directory exists
-        if self.filepath:
-            directory = os.path.dirname(self.filepath)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory, exist_ok=True)
-
+    backup_count: int = 0
+    
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a file logging handler using the specified configuration.
-
+        Compiles a file logging handler using the specified parameters.
+        
+        Creates a FileHandler or RotatingFileHandler based on configuration,
+        sets the appropriate logging level and formatter.
+        
         Returns:
             logging.Handler: Configured file handler for logging.
+        
+        Raises:
+            IOError: If the file path is invalid or inaccessible.
         """
-        # Ensure directory exists for the log file
-        directory = os.path.dirname(self.filepath)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory, exist_ok=True)
-
-        # Create the appropriate handler based on rotation settings
+        # Ensure the directory exists
+        log_dir = os.path.dirname(self.file_path)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+            
+        # Create the appropriate file handler based on rotation settings
         if self.max_bytes > 0:
-            # Use RotatingFileHandler if max_bytes is specified
+            # Create a rotating file handler
             handler = RotatingFileHandler(
-                filename=self.filepath,
-                mode=self.mode,
+                filename=self.file_path,
+                mode=self.file_mode,
                 maxBytes=self.max_bytes,
                 backupCount=self.backup_count,
-                encoding=self.encoding,
-                delay=self.delay,
+                encoding=self.encoding
             )
         else:
-            # Use standard FileHandler
+            # Create a standard file handler
             handler = logging.FileHandler(
-                filename=self.filepath,
-                mode=self.mode,
-                encoding=self.encoding,
-                delay=self.delay,
+                filename=self.file_path,
+                mode=self.file_mode,
+                encoding=self.encoding
             )
-
-        # Set the log level
+            
+        # Set the logging level
         handler.setLevel(self.level)
-
-        # Configure formatter
+        
+        # Configure the formatter
         if self.formatter:
             if isinstance(self.formatter, str):
                 handler.setFormatter(logging.Formatter(self.formatter))
             else:
                 handler.setFormatter(self.formatter.compile_formatter())
         else:
-            # Default formatter if none specified
+            # Apply default formatter if none is specified
             default_formatter = logging.Formatter(
-                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
+                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                "%Y-%m-%d %H:%M:%S"
             )
             handler.setFormatter(default_formatter)
-
+            
         return handler
-
-    def get_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration of this handler.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing the handler's configuration.
-        """
-        config = super().get_config() if hasattr(super(), "get_config") else {}
-        config.update(
-            {
-                "type": self.type,
-                "filepath": self.filepath,
-                "mode": self.mode,
-                "encoding": self.encoding,
-                "delay": self.delay,
-                "max_bytes": self.max_bytes,
-                "backup_count": self.backup_count,
-                "level": self.level,
-            }
-        )
-
-        if self.formatter:
-            if isinstance(self.formatter, str):
-                config["formatter"] = self.formatter
-            else:
-                config["formatter"] = self.formatter.get_config()
-
-        return config
