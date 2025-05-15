@@ -234,7 +234,7 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
-        j2_instance = j2pt.copy(deep=False)
+        j2_instance = j2pt()
         j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
 
         if not _process_file(
