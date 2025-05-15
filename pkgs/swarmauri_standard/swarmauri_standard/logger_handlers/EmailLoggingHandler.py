@@ -1,62 +1,74 @@
 import logging
-import smtplib
-from email.message import EmailMessage
-from typing import List, Optional, Union, Literal
+import logging.handlers
+from email.utils import formataddr
+from typing import Any, Dict, List, Literal, Optional, Union
+
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "EmailLoggingHandler")
+@ObserveBase.register_model()
 class EmailLoggingHandler(HandlerBase):
     """
-    A logging handler that sends log messages via email.
+    A handler that sends log messages via email using SMTP.
 
-    This handler emails logging records to specified recipients using SMTP,
-    with support for customizable subject lines and secure connections.
+    This handler extends the HandlerBase class to provide email logging functionality.
+    It uses Python's SMTPHandler to send log records to specified recipients.
     """
 
     type: Literal["EmailLoggingHandler"] = "EmailLoggingHandler"
 
     # SMTP configuration
-    smtp_server: str
-    smtp_port: int = 587
-    use_tls: bool = True
-    use_ssl: bool = False
-    username: Optional[str] = None
-    password: Optional[str] = None
+    mailhost: Union[str, tuple[str, int]] = (
+        "localhost"  # Can be a host string or (host, port) tuple
+    )
+    credentials: Optional[tuple[str, str]] = None  # (username, password) tuple
+    secure: Optional[Union[bool, tuple[str, str, str]]] = None  # Use TLS/SSL
+    timeout: Optional[float] = None  # Connection timeout in seconds
 
-    # Email configuration
-    from_addr: str
-    to_addrs: List[str]
-    subject: str = "Log Message"
+    # Email content configuration
+    fromaddr: str = "logger@example.com"
+    toaddrs: List[str] = []
+    subject: str = "Logging Message"
 
-    # Logging configuration
-    level: int = logging.ERROR  # Default to ERROR level to avoid excessive emails
+    # Additional email settings
+    mail_from_display_name: Optional[str] = None
+    send_empty_entries: bool = False
+
+    # Email formatting
+    html: bool = False
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles an SMTPHandler for sending log messages via email.
+        Compiles and returns an SMTPHandler configured with the provided settings.
 
         Returns:
-            logging.Handler: Configured SMTPHandler instance.
+            logging.Handler: A configured SMTPHandler instance.
         """
-        # Create a custom SMTP handler
-        handler = CustomSMTPHandler(
-            mailhost=(self.smtp_server, self.smtp_port),
-            fromaddr=self.from_addr,
-            toaddrs=self.to_addrs,
+        # Validate required fields
+        if not self.toaddrs:
+            raise ValueError("Email recipients (toaddrs) must be specified")
+
+        # Prepare from address with optional display name
+        from_addr = self.fromaddr
+        if self.mail_from_display_name:
+            from_addr = formataddr((self.mail_from_display_name, self.fromaddr))
+
+        # Create the SMTP handler
+        handler = logging.handlers.SMTPHandler(
+            mailhost=self.mailhost,
+            fromaddr=from_addr,
+            toaddrs=self.toaddrs,
             subject=self.subject,
-            credentials=(self.username, self.password)
-            if self.username and self.password
-            else None,
-            secure=() if self.use_tls else None,
-            use_ssl=self.use_ssl,
+            credentials=self.credentials,
+            secure=self.secure,
+            timeout=self.timeout,
         )
 
-        # Set the logging level
+        # Set the log level
         handler.setLevel(self.level)
 
         # Configure the formatter
@@ -66,95 +78,65 @@ class EmailLoggingHandler(HandlerBase):
             else:
                 handler.setFormatter(self.formatter.compile_formatter())
         else:
-            # Default email-friendly formatter with more details
-            default_formatter = logging.Formatter(
-                "Time: %(asctime)s\nLogger: %(name)s\nLevel: %(levelname)s\n\nMessage: %(message)s"
-            )
+            # Default HTML or plain text formatter
+            if self.html:
+                default_formatter = logging.Formatter(
+                    "<html><body><h2>%(levelname)s</h2>"
+                    "<p><b>Logger:</b> %(name)s<br>"
+                    "<b>Time:</b> %(asctime)s<br>"
+                    "<b>Message:</b> %(message)s</p>"
+                    "</body></html>",
+                    "%Y-%m-%d %H:%M:%S",
+                )
+            else:
+                default_formatter = logging.Formatter(
+                    "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                    "%Y-%m-%d %H:%M:%S",
+                )
             handler.setFormatter(default_formatter)
+
+        # Handle HTML content type if needed
+        if self.html:
+            # Add HTML content type header to emails
+            # This is done by monkey patching the getSubject method
+            original_get_subject = handler.getSubject
+
+            def get_subject_with_content_type(record):
+                subject = original_get_subject(record)
+                return f"{subject}\nContent-Type: text/html"
+
+            handler.getSubject = get_subject_with_content_type
+
+        # Configure to not send empty log entries if specified
+        if not self.send_empty_entries:
+            original_emit = handler.emit
+
+            def emit_if_not_empty(record):
+                if record.getMessage().strip():
+                    original_emit(record)
+
+            handler.emit = emit_if_not_empty
 
         return handler
 
-
-class CustomSMTPHandler(logging.Handler):
-    """
-    A custom SMTP handler that extends the functionality of logging.handlers.SMTPHandler.
-
-    This implementation provides better error handling and supports both TLS and SSL.
-    """
-
-    def __init__(
-        self,
-        mailhost,
-        fromaddr,
-        toaddrs,
-        subject,
-        credentials=None,
-        secure=None,
-        use_ssl=False,
-    ):
+    def get_configuration(self) -> Dict[str, Any]:
         """
-        Initialize the handler with the SMTP server details.
+        Returns the configuration of this handler.
 
-        Args:
-            mailhost: SMTP server host and port tuple (host, port)
-            fromaddr: From email address
-            toaddrs: List of recipient email addresses
-            subject: Email subject line
-            credentials: Authentication credentials as (username, password)
-            secure: Use TLS if not None
-            use_ssl: Use SSL instead of TLS if True
+        Returns:
+            Dict[str, Any]: A dictionary containing the configuration.
         """
-        super().__init__()
-        if isinstance(mailhost, (list, tuple)):
-            self.mailhost, self.mailport = mailhost
-        else:
-            self.mailhost = mailhost
-            self.mailport = 25
-
-        self.fromaddr = fromaddr
-        self.toaddrs = toaddrs if isinstance(toaddrs, list) else [toaddrs]
-        self.subject = subject
-        self.credentials = credentials
-        self.secure = secure
-        self.use_ssl = use_ssl
-
-    def emit(self, record):
-        """
-        Emit a record by sending an email.
-
-        Args:
-            record: Log record to format and send
-        """
-        try:
-            # Format the record
-            msg = self.format(record)
-
-            # Create email message
-            email = EmailMessage()
-            email["From"] = self.fromaddr
-            email["To"] = ", ".join(self.toaddrs)
-            email["Subject"] = f"{self.subject}: {record.levelname}"
-            email.set_content(msg)
-
-            # Connect to SMTP server
-            if self.use_ssl:
-                smtp = smtplib.SMTP_SSL(self.mailhost, self.mailport)
-            else:
-                smtp = smtplib.SMTP(self.mailhost, self.mailport)
-
-            # Use TLS if specified
-            if self.secure and not self.use_ssl:
-                smtp.ehlo()
-                smtp.starttls()
-                smtp.ehlo()
-
-            # Authenticate if credentials are provided
-            if self.credentials:
-                smtp.login(self.credentials[0], self.credentials[1])
-
-            # Send the email
-            smtp.send_message(email)
-            smtp.quit()
-
-        except Exception:
-            self.handleError(record)
+        return {
+            "type": self.type,
+            "level": self.level,
+            "mailhost": self.mailhost,
+            "fromaddr": self.fromaddr,
+            "toaddrs": self.toaddrs,
+            "subject": self.subject,
+            "credentials": "***REDACTED***" if self.credentials else None,
+            "secure": True if isinstance(self.secure, tuple) else self.secure,
+            "html": self.html,
+            "mail_from_display_name": self.mail_from_display_name,
+            "send_empty_entries": self.send_empty_entries,
+            "formatter": str(self.formatter) if self.formatter else None,
+        }

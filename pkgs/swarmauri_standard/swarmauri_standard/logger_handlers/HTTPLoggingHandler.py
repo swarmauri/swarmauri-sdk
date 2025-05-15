@@ -1,86 +1,48 @@
-import logging
 import http.client
+from logging.handlers import HTTPHandler
+import logging
 import urllib.parse
-from typing import Optional, Union, Literal, Dict, Any, Tuple
+from typing import Dict, Literal, Optional, Union
+
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "HTTPLoggingHandler")
+@ObserveBase.register_model()
 class HTTPLoggingHandler(HandlerBase):
     """
-    A logging handler that sends log records to an HTTP endpoint.
+    Handler for sending log records to an HTTP endpoint.
 
-    This handler supports both GET and POST methods for sending log data,
-    and includes options for timeouts and basic authentication.
+    This handler sends log records to a specified HTTP endpoint using either GET or POST methods.
+    It supports optional timeout and basic authentication credentials.
     """
 
     type: Literal["HTTPLoggingHandler"] = "HTTPLoggingHandler"
 
-    # Required attributes
+    # HTTP configuration
     host: str
     url: str
-    method: Literal["GET", "POST"] = "GET"
+    method: Literal["GET", "POST"] = "POST"
+    timeout: Optional[float] = None
+    credentials: Optional[Dict[str, str]] = None
 
-    # Optional attributes
-    timeout: Optional[int] = None
-    credentials: Optional[Tuple[str, str]] = None
-
-    # HTTP headers to use when sending requests
-    headers: Dict[str, str] = {}
-
-    def __init__(
-        self,
-        host: str,
-        url: str,
-        method: Literal["GET", "POST"] = "GET",
-        level: int = logging.INFO,
-        formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None,
-        timeout: Optional[int] = None,
-        credentials: Optional[Tuple[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ):
-        """
-        Initialize the HTTP logging handler.
-
-        Args:
-            host: The host to connect to (e.g., "example.com")
-            url: The URL path to send logs to (e.g., "/log")
-            method: HTTP method to use ("GET" or "POST")
-            level: Logging level
-            formatter: Log formatter to use
-            timeout: Connection timeout in seconds
-            credentials: Tuple of (username, password) for basic auth
-            headers: Dictionary of HTTP headers to include in requests
-        """
-        super().__init__(level=level, formatter=formatter)
-        self.host = host
-        self.url = url
-        self.method = method
-        self.timeout = timeout
-        self.credentials = credentials
-        self.headers = headers or {}
+    # Handler configuration
+    level: int = logging.INFO
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles and returns a logging.handlers.HTTPHandler with the configured settings.
+        Compiles an HTTP logging handler using the specified configuration.
 
         Returns:
-            A configured HTTP handler for logging
+            logging.Handler: An HTTP handler configured with the specified parameters.
         """
-        # Create a custom HTTPHandler that supports our additional features
-        handler = HTTPHandlerExtended(
-            host=self.host,
-            url=self.url,
-            method=self.method,
-            timeout=self.timeout,
-            credentials=self.credentials,
-            headers=self.headers,
-        )
+        # Create a custom HTTP handler that includes our timeout and credentials
+        handler = self._create_http_handler()
 
-        # Set the logging level
+        # Set the log level
         handler.setLevel(self.level)
 
         # Configure the formatter
@@ -90,6 +52,7 @@ class HTTPLoggingHandler(HandlerBase):
             else:
                 handler.setFormatter(self.formatter.compile_formatter())
         else:
+            # Use a default formatter if none is provided
             default_formatter = logging.Formatter(
                 "[%(name)s][%(levelname)s] %(message)s"
             )
@@ -97,120 +60,84 @@ class HTTPLoggingHandler(HandlerBase):
 
         return handler
 
-
-class HTTPHandlerExtended(logging.Handler):
-    """
-    Extended HTTP handler that supports timeouts, credentials, and custom headers.
-
-    This class extends the standard logging.handlers.HTTPHandler to provide
-    additional functionality needed for the HTTPLoggingHandler.
-    """
-
-    def __init__(
-        self,
-        host: str,
-        url: str,
-        method: str = "GET",
-        timeout: Optional[int] = None,
-        credentials: Optional[Tuple[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ):
+    def _create_http_handler(self) -> logging.Handler:
         """
-        Initialize the extended HTTP handler.
-
-        Args:
-            host: The host to connect to
-            url: The URL path to send logs to
-            method: HTTP method to use ("GET" or "POST")
-            timeout: Connection timeout in seconds
-            credentials: Tuple of (username, password) for basic auth
-            headers: Dictionary of HTTP headers to include in requests
-        """
-        super().__init__()
-        self.host = host
-        self.url = url
-        self.method = method
-        self.timeout = timeout
-        self.credentials = credentials
-        self.headers = headers or {}
-
-    def mapLogRecord(self, record: logging.LogRecord) -> Dict[str, Any]:
-        """
-        Map the log record to a dictionary that can be sent via HTTP.
-
-        Args:
-            record: The log record to map
+        Creates a custom HTTP handler with support for timeout and credentials.
 
         Returns:
-            Dictionary containing the log record data
+            logging.Handler: A customized HTTP handler.
         """
-        # Create a copy of the record's attributes
-        record_dict = {
-            "name": record.name,
-            "level": record.levelname,
-            "pathname": record.pathname,
-            "lineno": record.lineno,
-            "msg": record.getMessage(),
-            "args": str(record.args),
-            "exc_info": record.exc_info,
-            "func": record.funcName,
-        }
 
-        # Add formatted message if a formatter is set
-        if self.formatter:
-            record_dict["formatted"] = self.formatter.format(record)
+        # Create a custom HTTPHandler that supports our additional parameters
+        class CustomHTTPHandler(HTTPHandler):
+            def __init__(
+                self,
+                host: str,
+                url: str,
+                method: str = "POST",
+                timeout: Optional[float] = None,
+                credentials: Optional[Dict[str, str]] = None,
+            ):
+                super().__init__(host, url, method)
+                self.timeout = timeout
+                self.credentials = credentials
 
-        return record_dict
+            def emit(self, record: logging.LogRecord) -> None:
+                """
+                Send the log record to the specified HTTP endpoint.
 
-    def emit(self, record: logging.LogRecord) -> None:
-        """
-        Emit a log record by sending it to the configured HTTP endpoint.
+                Args:
+                    record: The log record to be sent.
+                """
+                try:
+                    # Format the record
+                    msg = self.format(record)
 
-        Args:
-            record: The log record to emit
-        """
-        try:
-            # Map the log record to a dictionary
-            data = self.mapLogRecord(record)
+                    # Prepare the connection
+                    if self.credentials:
+                        # Use basic authentication if credentials are provided
+                        headers = {
+                            "Authorization": "Basic "
+                            + urllib.parse.quote_plus(
+                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"
+                            )
+                        }
+                    else:
+                        headers = {}
 
-            # Create HTTP connection with optional timeout
-            if self.timeout:
-                connection = http.client.HTTPConnection(self.host, timeout=self.timeout)
-            else:
-                connection = http.client.HTTPConnection(self.host)
+                    # Establish connection with timeout if specified
+                    connection = http.client.HTTPConnection(
+                        self.host, timeout=self.timeout
+                    )
 
-            # Prepare headers
-            headers = self.headers.copy()
+                    # Send the request based on the method
+                    if self.method == "GET":
+                        connection.request(
+                            "GET",
+                            f"{self.url}?message={urllib.parse.quote(msg)}",
+                            headers=headers,
+                        )
+                    else:  # POST
+                        headers["Content-type"] = "application/x-www-form-urlencoded"
+                        connection.request(
+                            "POST",
+                            self.url,
+                            urllib.parse.urlencode({"message": msg}),
+                            headers=headers,
+                        )
 
-            # Add basic auth if credentials are provided
-            if self.credentials:
-                import base64
+                    connection.close()
 
-                auth_str = f"{self.credentials[0]}:{self.credentials[1]}"
-                auth_bytes = auth_str.encode("ascii")
-                base64_bytes = base64.b64encode(auth_bytes)
-                base64_auth = base64_bytes.decode("ascii")
-                headers["Authorization"] = f"Basic {base64_auth}"
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception:
+                    self.handleError(record)
 
-            # Send the request based on the method
-            if self.method == "GET":
-                # For GET, encode the data in the URL
-                url = self.url
-                if data:
-                    url = f"{url}?{urllib.parse.urlencode(data)}"
-                connection.request("GET", url, headers=headers)
-            else:
-                # For POST, encode the data in the body
-                body = urllib.parse.urlencode(data).encode("utf-8")
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
-                headers["Content-Length"] = str(len(body))
-                connection.request("POST", self.url, body=body, headers=headers)
-
-            # Get the response (but we don't do anything with it)
-            response = connection.getresponse()
-            response.read()  # Read and discard the response body
-            connection.close()
-
-        except Exception:
-            # If an error occurs during emission, call handleError
-            self.handleError(record)
+        # Create and return our custom handler
+        return CustomHTTPHandler(
+            host=self.host,
+            url=self.url,
+            method=self.method,
+            timeout=self.timeout,
+            credentials=self.credentials,
+        )
