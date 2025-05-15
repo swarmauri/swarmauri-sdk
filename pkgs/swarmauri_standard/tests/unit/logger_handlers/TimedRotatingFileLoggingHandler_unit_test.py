@@ -1,46 +1,57 @@
-import os
-import pytest
-import tempfile
 import logging
+import os
+import tempfile
 from datetime import datetime
+from typing import Generator
 from unittest.mock import MagicMock, patch
+
+import pytest
+from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (
     TimedRotatingFileLoggingHandler,
 )
-from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 
 @pytest.fixture
-def temp_log_dir():
+def temp_log_file() -> Generator[str, None, None]:
     """
-    Creates a temporary directory for log files.
+    Creates a temporary log file for testing.
 
-    Returns
-    -------
+    Yields
+    ------
     str
-        Path to the temporary directory.
+        Path to the temporary log file
     """
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        yield tmpdirname
+    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as tmp:
+        log_path = tmp.name
+
+    yield log_path
+
+    # Clean up after the test
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
+
+@pytest.fixture
+def mock_formatter() -> FormatterBase:
+    """Creates a mock formatter for testing."""
+    formatter = MagicMock(spec=FormatterBase)
+    formatter.type = "FormatterBase"  # Add type attribute for discriminator
+    formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )  # For Pydantic serialization
+    formatter.compile_formatter.return_value = logging.Formatter("[TEST] %(message)s")
+    return formatter
 
 
 @pytest.mark.unit
-def test_type():
-    """
-    Tests if the type attribute is correctly set.
-    """
-    assert TimedRotatingFileLoggingHandler.type == "TimedRotatingFileLoggingHandler"
+def test_init_default_values():
+    """Tests that the handler initializes with correct default values."""
+    handler = TimedRotatingFileLoggingHandler(filename="/tmp/test.log")
 
-
-@pytest.mark.unit
-def test_default_values():
-    """
-    Tests if default values are correctly set.
-    """
-    handler = TimedRotatingFileLoggingHandler()
-    assert handler.level == logging.INFO
-    assert handler.filename == "app.log"
+    assert handler.type == "TimedRotatingFileLoggingHandler"
+    assert handler.filename == "/tmp/test.log"
     assert handler.when == "midnight"
     assert handler.interval == 1
     assert handler.backupCount == 7
@@ -48,210 +59,221 @@ def test_default_values():
     assert handler.delay is False
     assert handler.utc is False
     assert handler.atTime is None
+    assert handler.level == logging.INFO
+    assert handler.formatter is None
 
 
 @pytest.mark.unit
-def test_custom_values():
-    """
-    Tests if custom values are correctly set.
-    """
+def test_init_custom_values():
+    """Tests that the handler initializes with custom values."""
+    custom_time = datetime.now()
     handler = TimedRotatingFileLoggingHandler(
-        level=logging.DEBUG,
-        filename="custom.log",
+        filename="/tmp/custom.log",
         when="H",
         interval=2,
         backupCount=10,
         encoding="utf-8",
         delay=True,
         utc=True,
+        atTime=custom_time,
+        level=logging.DEBUG,
+        formatter="[%(levelname)s] %(message)s",
     )
 
-    assert handler.level == logging.DEBUG
-    assert handler.filename == "custom.log"
+    assert handler.type == "TimedRotatingFileLoggingHandler"
+    assert handler.filename == "/tmp/custom.log"
     assert handler.when == "H"
     assert handler.interval == 2
     assert handler.backupCount == 10
     assert handler.encoding == "utf-8"
     assert handler.delay is True
     assert handler.utc is True
+    assert handler.atTime == custom_time
+    assert handler.level == logging.DEBUG
+    assert handler.formatter == "[%(levelname)s] %(message)s"
 
 
 @pytest.mark.unit
-def test_compile_handler_creates_directory(temp_log_dir):
-    """
-    Tests if the compile_handler method creates the directory for the log file.
+def test_compile_handler_with_string_formatter(temp_log_file):
+    """Tests that compile_handler correctly creates a handler with a string formatter."""
+    handler_config = TimedRotatingFileLoggingHandler(
+        filename=temp_log_file, formatter="[%(levelname)s] %(message)s"
+    )
 
-    Parameters
-    ----------
-    temp_log_dir : str
-        Path to a temporary directory.
-    """
-    log_subdir = os.path.join(temp_log_dir, "logs")
-    log_file = os.path.join(log_subdir, "test.log")
+    log_handler = handler_config.compile_handler()
 
-    handler = TimedRotatingFileLoggingHandler(filename=log_file)
-
-    # Directory should not exist yet
-    assert not os.path.exists(log_subdir)
-
-    # Compile the handler
-    compiled_handler = handler.compile_handler()
-
-    # Directory should now exist
-    assert os.path.exists(log_subdir)
-
-    # Cleanup
-    compiled_handler.close()
+    assert isinstance(log_handler, logging.handlers.TimedRotatingFileHandler)
+    assert log_handler.level == logging.INFO
+    assert log_handler.formatter._fmt == "[%(levelname)s] %(message)s"
+    assert log_handler.baseFilename == temp_log_file
 
 
 @pytest.mark.unit
-def test_compile_handler_returns_correct_type():
-    """
-    Tests if compile_handler returns a TimedRotatingFileHandler.
-    """
-    handler = TimedRotatingFileLoggingHandler()
-    compiled_handler = handler.compile_handler()
+def test_compile_handler_with_formatter_object(temp_log_file, mock_formatter):
+    """Tests that compile_handler correctly creates a handler with a formatter object."""
+    handler_config = TimedRotatingFileLoggingHandler(
+        filename=temp_log_file, formatter=mock_formatter
+    )
 
-    assert isinstance(compiled_handler, logging.handlers.TimedRotatingFileHandler)
+    log_handler = handler_config.compile_handler()
 
-    # Cleanup
-    compiled_handler.close()
-
-
-@pytest.mark.unit
-def test_compile_handler_sets_level():
-    """
-    Tests if compile_handler sets the correct logging level.
-    """
-    handler = TimedRotatingFileLoggingHandler(level=logging.WARNING)
-    compiled_handler = handler.compile_handler()
-
-    assert compiled_handler.level == logging.WARNING
-
-    # Cleanup
-    compiled_handler.close()
-
-
-@pytest.mark.unit
-def test_compile_handler_with_string_formatter():
-    """
-    Tests if compile_handler correctly handles string formatters.
-    """
-    format_string = "%(levelname)s - %(message)s"
-    handler = TimedRotatingFileLoggingHandler(formatter=format_string)
-    compiled_handler = handler.compile_handler()
-
-    assert isinstance(compiled_handler.formatter, logging.Formatter)
-    assert compiled_handler.formatter._fmt == format_string
-
-    # Cleanup
-    compiled_handler.close()
-
-
-@pytest.mark.unit
-def test_compile_handler_with_formatter_object():
-    """
-    Tests if compile_handler correctly handles FormatterBase objects.
-    """
-    mock_formatter = MagicMock(spec=FormatterBase)
-    mock_formatter.compile_formatter.return_value = logging.Formatter("%(message)s")
-
-    handler = TimedRotatingFileLoggingHandler(formatter=mock_formatter)
-    compiled_handler = handler.compile_handler()
-
-    # Check if the formatter's compile_formatter method was called
+    assert isinstance(log_handler, logging.handlers.TimedRotatingFileHandler)
+    assert log_handler.formatter._fmt == "[TEST] %(message)s"
     mock_formatter.compile_formatter.assert_called_once()
 
-    # Cleanup
-    compiled_handler.close()
-
 
 @pytest.mark.unit
-def test_compile_handler_with_default_formatter():
-    """
-    Tests if compile_handler uses a default formatter when none is specified.
-    """
-    handler = TimedRotatingFileLoggingHandler(formatter=None)
-    compiled_handler = handler.compile_handler()
+def test_compile_handler_without_formatter(temp_log_file):
+    """Tests that compile_handler correctly creates a handler with the default formatter."""
+    handler_config = TimedRotatingFileLoggingHandler(filename=temp_log_file)
 
-    assert isinstance(compiled_handler.formatter, logging.Formatter)
+    log_handler = handler_config.compile_handler()
+
+    assert isinstance(log_handler, logging.handlers.TimedRotatingFileHandler)
     assert (
-        "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
-        in compiled_handler.formatter._fmt
+        log_handler.formatter._fmt
+        == "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
     )
-
-    # Cleanup
-    compiled_handler.close()
 
 
 @pytest.mark.unit
-@patch("logging.handlers.TimedRotatingFileHandler")
-def test_compile_handler_passes_correct_parameters(mock_handler_class):
-    """
-    Tests if compile_handler passes the correct parameters to TimedRotatingFileHandler.
+def test_get_handler_config():
+    """Tests that get_handler_config returns the correct configuration dictionary."""
+    custom_time = datetime.now()
+    formatter = "[%(levelname)s] %(message)s"
 
-    Parameters
-    ----------
-    mock_handler_class : MagicMock
-        Mock for the TimedRotatingFileHandler class.
-    """
     handler = TimedRotatingFileLoggingHandler(
-        filename="test.log",
-        when="H",
-        interval=2,
-        backupCount=10,
+        filename="/tmp/config_test.log",
+        when="D",
+        interval=3,
+        backupCount=5,
         encoding="utf-8",
         delay=True,
         utc=True,
-        atTime=datetime(2023, 1, 1, 12, 0).time(),
+        atTime=custom_time,
+        level=logging.WARNING,
+        formatter=formatter,
     )
 
-    handler.compile_handler()
+    config = handler.get_handler_config()
 
-    # Check if TimedRotatingFileHandler was called with the correct parameters
-    mock_handler_class.assert_called_once_with(
-        filename="test.log",
-        when="H",
+    assert config["type"] == "TimedRotatingFileLoggingHandler"
+    assert config["filename"] == "/tmp/config_test.log"
+    assert config["when"] == "D"
+    assert config["interval"] == 3
+    assert config["backupCount"] == 5
+    assert config["encoding"] == "utf-8"
+    assert config["delay"] is True
+    assert config["utc"] is True
+    assert config["atTime"] == custom_time
+    assert config["level"] == logging.WARNING
+    assert config["formatter"] == formatter
+
+
+@pytest.mark.unit
+@patch(
+    "swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler.TimedRotatingFileHandler"
+)
+def test_handler_initialization_parameters(mock_handler_class, temp_log_file):
+    """Tests that the TimedRotatingFileHandler is initialized with the correct parameters."""
+    custom_time = datetime.now()
+
+    handler_config = TimedRotatingFileLoggingHandler(
+        filename=temp_log_file,
+        when="W0",
         interval=2,
-        backupCount=10,
+        backupCount=3,
         encoding="utf-8",
         delay=True,
         utc=True,
-        atTime=datetime(2023, 1, 1, 12, 0).time(),
+        atTime=custom_time,
+    )
+
+    handler_config.compile_handler()
+
+    # Verify the TimedRotatingFileHandler was created with correct parameters
+    mock_handler_class.assert_called_once_with(
+        filename=temp_log_file,
+        when="W0",
+        interval=2,
+        backupCount=3,
+        encoding="utf-8",
+        delay=True,
+        utc=True,
+        atTime=custom_time,
     )
 
 
 @pytest.mark.unit
-def test_serialization_deserialization():
-    """
-    Tests serialization and deserialization of the handler.
-    """
-    original_handler = TimedRotatingFileLoggingHandler(
-        level=logging.DEBUG,
-        filename="custom.log",
+@pytest.mark.parametrize(
+    "when,interval,expected_seconds",
+    [
+        ("S", 60, 60),  # 60 seconds
+        ("M", 30, 30 * 60),  # 30 minutes = 1800 seconds
+        ("H", 12, 12 * 3600),  # 12 hours = 43200 seconds
+        ("D", 1, 86400),  # 1 day = 86400 seconds
+        ("W0", 1, 604800),  # 1 week = 604800 seconds
+        ("midnight", 1, 86400),  # 1 day = 86400 seconds
+    ],
+)
+def test_various_rotation_configurations(
+    when, interval, expected_seconds, temp_log_file
+):
+    """Tests that various rotation configurations are properly set."""
+    handler_config = TimedRotatingFileLoggingHandler(
+        filename=temp_log_file, when=when, interval=interval
+    )
+
+    log_handler = handler_config.compile_handler()
+
+    assert log_handler.when.lower() == when.lower()
+    assert log_handler.interval == expected_seconds
+
+
+@pytest.mark.unit
+def test_functional_logging(temp_log_file):
+    """Tests that the handler works functionally for logging messages."""
+    # Create and configure the handler
+    handler_config = TimedRotatingFileLoggingHandler(
+        filename=temp_log_file, level=logging.DEBUG
+    )
+
+    # Set up a logger
+    logger = logging.getLogger("test_logger")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler_config.compile_handler())
+
+    # Log a test message
+    test_message = "This is a test log message"
+    logger.debug(test_message)
+
+    # Verify the message was written to the file
+    with open(temp_log_file, "r") as f:
+        log_content = f.read()
+
+    assert test_message in log_content
+
+
+@pytest.mark.unit
+def test_model_serialization_deserialization():
+    """Tests that the model can be properly serialized and deserialized."""
+    original = TimedRotatingFileLoggingHandler(
+        filename="/tmp/serialization_test.log",
         when="H",
-        interval=2,
+        interval=4,
         backupCount=10,
-        encoding="utf-8",
-        delay=True,
-        utc=True,
+        level=logging.ERROR,
     )
 
     # Serialize to JSON
-    json_data = original_handler.model_dump_json()
+    json_data = original.model_dump_json()
 
     # Deserialize from JSON
-    deserialized_handler = TimedRotatingFileLoggingHandler.model_validate_json(
-        json_data
-    )
+    deserialized = TimedRotatingFileLoggingHandler.model_validate_json(json_data)
 
-    # Check if all attributes match
-    assert deserialized_handler.level == original_handler.level
-    assert deserialized_handler.filename == original_handler.filename
-    assert deserialized_handler.when == original_handler.when
-    assert deserialized_handler.interval == original_handler.interval
-    assert deserialized_handler.backupCount == original_handler.backupCount
-    assert deserialized_handler.encoding == original_handler.encoding
-    assert deserialized_handler.delay == original_handler.delay
-    assert deserialized_handler.utc == original_handler.utc
-    assert deserialized_handler.atTime == original_handler.atTime
+    # Verify properties match
+    assert deserialized.filename == original.filename
+    assert deserialized.when == original.when
+    assert deserialized.interval == original.interval
+    assert deserialized.backupCount == original.backupCount
+    assert deserialized.level == original.level
