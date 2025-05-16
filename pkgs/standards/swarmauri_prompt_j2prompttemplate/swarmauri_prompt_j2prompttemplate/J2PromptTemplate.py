@@ -183,7 +183,7 @@ class J2PromptTemplate(PromptTemplateBase):
             return value.split()
 
     @staticmethod
-    def make_singular(verb):
+    def make_singular(word: str):
         """
         Converts a plural word to singular form.
         Requires inflect library to be installed.
@@ -194,11 +194,24 @@ class J2PromptTemplate(PromptTemplateBase):
             # Initialize the engine
             p = inflect.engine()
             # Return the singular form of the verb
-            return p.singular_noun(verb) if p.singular_noun(verb) else verb
+            return p.singular_noun(word) if p.singular_noun(word) else word
         except ImportError:
             # Return the original if inflect is not available
-            return verb
-
+            return word
+            
+    @staticmethod
+    def make_plural(word: str) -> str:
+        """
+        Converts a singular word to its plural form.
+        Requires inflect library to be installed.
+        """
+        try:
+            import inflect
+            p = inflect.engine()
+            return p.plural(word) or word
+        except ImportError:
+            return word
+    
     def add_filter(self, name: str, filter_func: Callable) -> None:
         """
         Adds a custom filter to the Jinja2 environment.
