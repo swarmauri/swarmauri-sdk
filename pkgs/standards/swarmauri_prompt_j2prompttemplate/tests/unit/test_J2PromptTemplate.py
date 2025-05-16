@@ -83,3 +83,41 @@ def test_split_whitespace():
 
     with pytest.raises(ValueError):
         J2PromptTemplate.split_whitespace(123)
+
+
+@pytest.mark.unit
+def test_j2pt_singleton_exists():
+    from swarmauri_prompt_j2prompttemplate import j2pt
+
+    assert j2pt is not None
+    assert j2pt.code_generation_mode is True
+
+
+@pytest.mark.unit
+def test_j2pt_code_generation_filters():
+    from swarmauri_prompt_j2prompttemplate import j2pt
+
+    # Test the make_singular filter which is only available in code_generation_mode
+    template_str = "{{ 'users' | make_singular }}"
+    j2pt.set_template(template_str)
+    result = j2pt.fill({})
+    assert result == "user"
+
+
+@pytest.mark.unit
+def test_j2pt_copy():
+    from swarmauri_prompt_j2prompttemplate import j2pt
+
+    # Test basic copy functionality
+    copy_instance = j2pt.model_copy(deep=False)
+    assert copy_instance is not j2pt
+    assert copy_instance.code_generation_mode == j2pt.code_generation_mode
+
+    # Test templates_dir handling
+    original_dir = j2pt.templates_dir
+    j2pt.templates_dir = ["test_dir"]
+    copy_with_dir = j2pt.model_copy(deep=False)
+    assert copy_with_dir.templates_dir == ["test_dir"]
+
+    # Restore original
+    j2pt.templates_dir = original_dir
