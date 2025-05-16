@@ -30,7 +30,6 @@ class J2PromptTemplate(PromptTemplateBase):
     # Optional templates_dir attribute (can be a single path or a list of paths)
     templates_dir: Optional[Union[str, List[str]]] = None
     # Whether to enable code generation specific features like linguistic filters
-    code_generation_mode: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
@@ -55,10 +54,7 @@ class J2PromptTemplate(PromptTemplateBase):
 
         # Add basic filters
         env.filters["split"] = self.split_whitespace
-
-        # Add code generation filters when in code_generation_mode
-        if self.code_generation_mode:
-            env.filters["make_singular"] = self.make_singular
+        env.filters["make_singular"] = self.make_singular
 
         return env
 
@@ -216,4 +212,4 @@ class J2PromptTemplate(PromptTemplateBase):
 
 
 # Create a singleton instance for peagen usage with code generation mode enabled
-j2pt = J2PromptTemplate(code_generation_mode=True)
+j2pt = J2PromptTemplate()
