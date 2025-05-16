@@ -9,30 +9,28 @@ It supports:
 """
 
 import os
-import io
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from pathlib import Path
 from pprint import pformat
 from typing import Any, Dict, List, Optional
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from colorama import Fore, Style
-from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
-from pathlib import Path
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
 
 from ._config import _config
-from ._rendering import _render_copy_template, _render_generate_template
 from ._graph import _build_forward_graph
+from ._rendering import _render_copy_template, _render_generate_template
 
 
 def _save_file(
     content: str,
-    filepath: str,                    # still the *logical* project path
+    filepath: str,  # still the *logical* project path
     logger=None,
     start_idx: int = 0,
     idx_len: int = 1,
     *,
     storage_adapter=None,
     org: str | None = None,
-    workspace_root: Path,             # NEW, injected by Peagen
+    workspace_root: Path,  # NEW, injected by Peagen
 ) -> None:
     """
     1. Always write to <workspace_root>/<filepath> (local, fast, zero egress).
@@ -45,8 +43,8 @@ def _save_file(
     # ---- local write -----------------------------------------------------------
     full_path.write_text(content, encoding="utf-8")
     if logger:
-        fname = "peagen_"+str(full_path).split('peagen_')[1]
-        logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
+        fname = "peagen_" + str(full_path).split("peagen_")[1]
+        logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
 
     # ---- optional remote upload ------------------------------------------------
     if storage_adapter:
@@ -55,7 +53,7 @@ def _save_file(
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
-            logger.info(f"({start_idx+1}/{idx_len}) Uploaded → {key}")
+            logger.info(f"({start_idx + 1}/{idx_len}) Uploaded → {key}")
 
 
 def _create_context(
@@ -78,7 +76,11 @@ def _create_context(
 
     if package_name:
         package = next(
-            (pkg for pkg in project_global_attributes["PACKAGES"] if pkg["NAME"] == package_name),
+            (
+                pkg
+                for pkg in project_global_attributes["PACKAGES"]
+                if pkg["NAME"] == package_name
+            ),
             None,
         )
         if package:
@@ -136,7 +138,9 @@ def _process_file(
                 context["INJ"] = _config["revision_notes"]
                 prompt_name = agent_env["agent_prompt_template_file"]
             else:
-                prompt_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+                prompt_name = file_record.get(
+                    "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
+                )
 
             prompt_path = os.path.join(template_dir, prompt_name)
             content = _render_generate_template(
@@ -160,8 +164,9 @@ def _process_file(
 
     if content == "":
         if logger:
-            logger.warning(f"Blank content for file '{final_filename}'; saving empty file.")
-
+            logger.warning(
+                f"Blank content for file '{final_filename}'; saving empty file."
+            )
 
     _save_file(
         content,
@@ -210,7 +215,9 @@ def _process_project_files(
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
             j2 = j2pt.copy(deep=False)
-            j2.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+            j2.templates_dir = (
+                [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+            )
             try:
                 _process_file(
                     rec,
@@ -223,7 +230,7 @@ def _process_project_files(
                     idx_len=idx_len,
                     storage_adapter=storage_adapter,
                     org=org,
-                    workspace_root=workspace_root,   # ← pass it here too
+                    workspace_root=workspace_root,  # ← pass it here too
                 )
             except Exception as e:
                 logger.warning(f"{e}")
@@ -258,7 +265,9 @@ def _process_project_files(
 
         j2 = j2pt.copy(deep=False)
         j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+        j2_instance.templates_dir = (
+            [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+        )
 
         if not _process_file(
             rec,
@@ -271,7 +280,7 @@ def _process_project_files(
             idx_len=idx_len,
             storage_adapter=storage_adapter,
             org=org,
-            workspace_root=workspace_root,   # ← and here
+            workspace_root=workspace_root,  # ← and here
         ):
             break
         start_idx += 1
