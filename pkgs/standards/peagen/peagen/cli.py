@@ -6,7 +6,7 @@ from peagen.commands import (
     process_app,
     revise_app,
     sort_app,
-    templates_app,
+    template_sets_app,
     doe_app,
 )
 
@@ -17,7 +17,7 @@ app = typer.Typer(help="CLI tool for processing project files using Peagen.")
 app.add_typer(process_app)
 app.add_typer(revise_app)
 app.add_typer(sort_app)
-app.add_typer(templates_app)
+app.add_typer(template_sets_app, name="template-set")
 app.add_typer(doe_app)
 
 if __name__ == "__main__":
