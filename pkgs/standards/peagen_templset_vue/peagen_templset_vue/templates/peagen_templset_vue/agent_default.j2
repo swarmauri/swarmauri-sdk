@@ -1,4 +1,5 @@
-I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
+I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". 
+This file provides a base implementation that extends a core interface class within the "{{ PKG.NAME }}" package.
 
 Below are the details and requirements for this task:
 
@@ -13,20 +14,20 @@ Below are the details and requirements for this task:
    - {{ requirement }}
    {%- endfor %}
 
-
 4. **Style Guide**:
-   - The code follows PEP 8 style guidelines.
-   - All modules, functions, classes, and methods must include spacy styled docstrings.
-   - The code follows PEP 484 annotation guidelines.
-   - Critical sections of the code include comments explaining the logic.
-   - Assume the user will copy-paste this code as-is into their project.
+   - Script logic in TypeScript with complete typings and doc comments.
+   - Include comments to explain complex UI logic or accessibility annotations.
 
 5. **File and Code Preferences**:
-   - Provide the concrete fully functional implementation of the code.
-   - All methods must feature a complete implementation.
-   - Must inherit the base class.
-   - Must provide fully functional implementations for all required methods.
-   - Implement logging using logging.
+   - Include type annotations on every function, method, and prop.
+   - Ensure necessary imports use absolute paths from the package root.
+
+{%- if FILE.EXTRAS.STATES %}
+6. **Required States**:
+   {%- for state in FILE.EXTRAS.STATES %}
+   - {{ state }}
+   {%- endfor %}
+{%- endif %}
 
 ### Desired Output
 Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 
