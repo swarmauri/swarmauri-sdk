@@ -1,0 +1,22 @@
+# Factor table – edit levels or add new factors as needed.
+# Any JSON-Patch snippet is applied to the base project template
+# **before** processing by Peagen.
+
+FACTORS:
+  temperature:
+    - 0.2
+    - 0.7
+  model:
+    - gpt-4o-mini
+    - gpt-4o-max
+
+PATCHES:
+  # Example: override provider when model == gpt-4o-max
+  - when:
+      model: gpt-4o-max
+    apply:
+      - op:   replace
+        path: /PROJECTS/0/PKGS/0/PROVIDER
+        value: openai
+
+  # Add your own rule blocks below …

@@ -1,0 +1,10 @@
+[general]
+template_set = "{{ template_set }}"
+workers       = 4
+
+[llm]
+provider    = "{{ provider or 'openai' }}"
+model_name  = "gpt-4o-mini"
+
+[paths]
+artifacts = "./peagen_out"
