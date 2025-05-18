@@ -11,6 +11,7 @@ Wire it in peagen/cli.py with:
 from pathlib import Path
 from typing import Dict, List, Optional
 import importlib.metadata as im
+import shutil
 import subprocess
 import sys
 
@@ -182,3 +183,206 @@ def add_template_set(
         )
     else:
         typer.echo("✅  Installation succeeded, but no template-set entry-point found.")
+
+
+@template_sets_app.command(
+    "add",
+    help=(
+        "Install a template-set distribution from PyPI, a wheel/sdist, or a "
+        "local directory."
+    ),
+)
+def add_template_set(
+    source: str = typer.Argument(
+        ...,
+        metavar="PKG|WHEEL|DIR",
+        help=(
+            "PyPI project slug, path to a wheel/tar.gz, or a directory that "
+            "contains a template-set extension."
+        ),
+    ),
+    editable: bool = typer.Option(
+        False,
+        "--editable",
+        "-e",
+        help="When SOURCE is a directory, install it in editable (-e) mode.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Re-install even if the distribution is already present.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "-v",
+        "--verbose",
+        help="Stream pip/uv output.",
+    ),
+):
+    """
+    Install a template-set extension.
+
+    * **PyPI slug** → `pip install <slug>`
+    * **Wheel / sdist** → `pip install ./dist/…`
+    * **Directory** → `pip install (-e) <dir>`  (use *-e/--editable* to develop)
+    """
+    src_path = Path(source)
+    is_local = src_path.exists()
+
+    # ------------------------------------------------------------------ helpers
+    def _build_installer(use_editable: bool) -> List[str]:
+        """
+        Prefer **uv** if it is on PATH; fall back to stdlib pip.
+        """
+        import shutil
+
+        if shutil.which("uv"):
+            base = ["uv", "pip", "install"]
+        else:
+            base = [sys.executable, "-m", "pip", "install"]
+
+        base += ["--no-deps"]
+        if force:
+            base += ["--upgrade", "--force-reinstall"]
+        if use_editable:
+            base += ["-e"]
+        return base
+
+    # ----------------------------------------------------------------- resolve
+    if is_local:
+        # directory OR file
+        if src_path.is_dir():
+            pip_cmd = _build_installer(editable)
+            pip_cmd.append(str(src_path.resolve()))
+        else:  # file (wheel / sdist)
+            pip_cmd = _build_installer(False)
+            pip_cmd.append(str(src_path.resolve()))
+    else:
+        # assume a PyPI project slug
+        pip_cmd = _build_installer(False)
+        pip_cmd.append(source)
+
+    # ------------------------------------------------------------ install step
+    typer.echo("⏳  Installing via pip …")
+    sets_before = set(_discover_template_sets().keys())
+
+    try:
+        subprocess.run(
+            pip_cmd,
+            check=True,
+            text=True,
+            stdout=None if verbose else subprocess.PIPE,
+            stderr=None if verbose else subprocess.STDOUT,
+        )
+    except subprocess.CalledProcessError as exc:
+        typer.echo("❌  Installation failed.")
+        if not verbose and exc.stdout:
+            typer.echo(exc.stdout)
+        raise typer.Exit(code=exc.returncode)
+
+    # --------------------------------------------------------------- feedback
+    sets_after = set(_discover_template_sets().keys())
+    new_sets = sorted(sets_after - sets_before)
+
+    if new_sets:
+        typer.echo(
+            f"✅  Installed template-set{'s' if len(new_sets) > 1 else ''}: "
+            + ", ".join(new_sets)
+        )
+    else:
+        typer.echo(
+            "✅  Installation succeeded, but no *new* template-set entry-point "
+            "was detected."
+        )
+
+@template_sets_app.command(
+    "remove",
+    help="Uninstall the package that owns a template-set.",
+)
+def remove_template_set(
+    name: str = typer.Argument(..., metavar="SET_NAME"),
+    yes: bool = typer.Option(
+        False,
+        "-y",
+        "--yes",
+        help="Skip confirmation prompt.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "-v",
+        "--verbose",
+        help="Show pip/uv output.",
+    ),
+):
+    """
+    Uninstall the wheel / editable project that exposes *SET_NAME* in the
+    ``peagen.template_sets`` entry-point group.
+    """
+    # ---------------------------------------------------------------- find dist(s)
+    dists: list[str] = []
+    for dist in im.distributions():
+        if any(
+            ep.group == "peagen.template_sets" and ep.name == name
+            for ep in dist.entry_points
+        ):
+            dists.append(dist.metadata["Name"])
+
+    if not dists:
+        typer.echo(f"❌  Template-set '{name}' not found (nothing to remove).")
+        raise typer.Exit(code=1)
+
+    # ---------------------------------------------------------------- protect core
+    PROTECTED_DISTS = {"peagen"}                      # core wheel(s)
+    protected = [d for d in dists if d.lower() in PROTECTED_DISTS]
+    removable = [d for d in dists if d.lower() not in PROTECTED_DISTS]
+
+    if protected and not removable:
+        typer.echo(
+            "⚠️  The requested template-set is bundled with Peagen itself and "
+            "cannot be uninstalled."
+        )
+        raise typer.Exit(code=1)
+
+    if protected and removable:
+        typer.echo(
+            "⚠️  Skipping core distribution(s) "
+            + ", ".join(protected)
+            + "; proceeding to uninstall "
+            + ", ".join(removable)
+        )
+        dists = removable
+
+    # ---------------------------------------------------------------- confirm
+    if not yes:
+        if not typer.confirm(f"Uninstall distribution(s): {', '.join(dists)} ?"):
+            typer.echo("Aborted.")
+            raise typer.Exit()
+
+    # ---------------------------------------------------------------- build cmd
+    if shutil.which("uv"):
+        # uv’s pip clone does not need/allow -y (non-interactive by default)
+        cmd = ["uv", "pip", "uninstall"] + dists
+    else:
+        cmd = [sys.executable, "-m", "pip", "uninstall", "-y"] + dists
+
+    # ---------------------------------------------------------------- run uninstall
+    typer.echo("⏳  Uninstalling via pip …")
+    try:
+        subprocess.run(
+            cmd,
+            check=True,
+            text=True,
+            stdout=None if verbose else subprocess.PIPE,
+            stderr=None if verbose else subprocess.STDOUT,
+        )
+    except subprocess.CalledProcessError as exc:
+        typer.echo("❌  Uninstall failed.")
+        if not verbose and exc.stdout:
+            typer.echo(exc.stdout)
+        raise typer.Exit(code=exc.returncode)
+
+    # ---------------------------------------------------------------- verify
+    if name in _discover_template_sets():
+        typer.echo("⚠️  Uninstall completed, but the template-set is still discoverable.")
+    else:
+        typer.echo(f"✅  Removed template-set '{name}'.")
