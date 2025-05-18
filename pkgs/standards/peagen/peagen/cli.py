@@ -501,7 +501,6 @@ def sort(
 
 
 
-
 @app.command("templates")
 def get_templates(
     verbose: int = typer.Option(
@@ -533,6 +532,31 @@ def get_templates(
     typer.echo("\nAvailable Template Folders:")
     for _t in templates:
         typer.echo(f"- {_t}")
+
+
+
+@app.command("doe")
+def doe_generate(
+    spec: str = typer.Argument(..., help="Path to the DOE spec YAML file."),
+    template: str = typer.Argument(..., help="Path to the template_project.yaml file."),
+    output: str = typer.Option(
+        "project_payloads.yaml",
+        "--output", "-o",
+        help="Output path for the generated DOE payloads YAML."
+    ),
+):
+    """
+    Generate project payloads via a DOE spec and base template.
+    """
+    from .doe import DOEManager
+
+    mgr = DOEManager(spec_path=spec, template_path=template)
+    payloads = mgr.generate()
+    mgr.write_payloads(output)
+
+    typer.echo(
+        f"DOE generation complete: {len(payloads)} experiments written to {output}"
+    )
 
 
 if __name__ == "__main__":
