@@ -44,8 +44,21 @@ class PathOrURI(str):
         p = pathlib.Path(value).expanduser().resolve()
         return str(p)          # no file:// prefix
 
+
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. common_peagen_options decorator
+# 2. load .peagen.toml
+# ─────────────────────────────────────────────────────────────────────────────
+def load_peagen_toml(start_dir: pathlib.Path = pathlib.Path.cwd()) -> dict[str, Any]:
+    for folder in [start_dir, *start_dir.parents]:
+        cfg_path = folder / ".peagen.toml"
+        if cfg_path.is_file():
+            import tomllib  # tomli for 3.10
+            return tomllib.loads(cfg_path.read_text("utf-8"))
+    return {}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. common_peagen_options decorator
 # ─────────────────────────────────────────────────────────────────────────────
 def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
     """
@@ -89,8 +102,10 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
         ctx: typer.Context = click.get_current_context()
+        # before first CLI option is copied:
         if ctx.obj is None:
-            ctx.obj = types.SimpleNamespace()
+            ctx.obj = types.SimpleNamespace(**load_peagen_toml())
+
 
         # copy recognised kwargs into ctx.obj
         for key in (
