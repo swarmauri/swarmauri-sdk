@@ -76,3 +76,10 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+[project.entry-points."peagen.template_sets"]
+init-project       = "peagen.scaffolding.project"
+init-template-set  = "peagen.scaffolding.template_set"
+init-doe-spec      = "peagen.scaffolding.doe_spec"
+init-eval-pool     = "peagen.scaffolding.eval_pool"
+init-ci            = "peagen.scaffolding.ci"

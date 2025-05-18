@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Build artefacts
+dist/
+peagen_out/
+
+# Editor / OS cruft
+.vscode/
+.DS_Store
