@@ -8,7 +8,7 @@ from peagen.commands import (
     revise_app,
     sort_app,
     template_sets_app,
-    doe_app,
+    experiment_app,
 )
 
 _print_banner()
@@ -20,7 +20,7 @@ app.add_typer(process_app)
 app.add_typer(revise_app)
 app.add_typer(sort_app)
 app.add_typer(template_sets_app, name="template-set")
-app.add_typer(doe_app)
+app.add_typer(experiment_app, name="doe")
 
 if __name__ == "__main__":
     app()
