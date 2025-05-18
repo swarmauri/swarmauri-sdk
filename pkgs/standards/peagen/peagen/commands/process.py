@@ -1,10 +1,11 @@
-# peagen/commands/process.py  · v2 compat, legacy-flag safe
+# peagen/commands/process.py  · v2-compatible, legacy-flag safe, S3 artifacts support
 from __future__ import annotations
 
 import os
 import time
 from pathlib import Path
 from typing import Optional, List
+from urllib.parse import urlparse
 
 import typer
 import yaml
@@ -16,14 +17,15 @@ from peagen._api_key import _resolve_api_key
 from peagen._gitops import _clone_swarmauri_repo
 
 from peagen.publishers.redis_publisher import RedisPublisher  # IPublish impl
+from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
 
 process_app = typer.Typer(help="Render / generate one or all projects in a YAML payload.")
 
 
-# ════════════════════════════════════════════════════════════════════════════
 @process_app.command("process")
 @common_peagen_options
-def process_cmd(                           # noqa: C901  (single entry point is OK)
+def process_cmd(
     ctx: typer.Context,
 
     # ── legacy positional ────────────────────────────────────────────────────
@@ -33,7 +35,7 @@ def process_cmd(                           # noqa: C901  (single entry point is 
     ),
 
     # ── legacy options (must stay) ───────────────────────────────────────────
-    project_name: str = typer.Option(None, help="Name of a single project to process."),
+    project_name: Optional[str] = typer.Option(None, help="Name of a single project to process."),
     template_base_dir: Optional[str] = typer.Option(
         None, help="Root directory for template lookup (file:// auto-prefix)."
     ),
@@ -60,14 +62,14 @@ def process_cmd(                           # noqa: C901  (single entry point is 
     ),
     api_key: Optional[str] = typer.Option(
         None,
-        help="Explicit API key; else we read <PROVIDER>_API_KEY env or .env.",
+        help="Explicit LLM API key; else we read <PROVIDER>_API_KEY env or .env.",
     ),
-    env: str = typer.Option(".env", help="Env-file path for API key lookup."),
+    env: str = typer.Option(".env", help="Env-file path for LLM API key lookup."),
     verbose: int = typer.Option(
         0, "-v", "--verbose", count=True, help="Verbosity (-v/-vv/-vvv)."
     ),
 
-    # ── v2 additions (already partly present) ───────────────────────────────
+    # ── v2 additions ─────────────────────────────────────────────────────────
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive",
         help="Only process transitive dependencies when starting mid-stream.",
@@ -83,44 +85,55 @@ def process_cmd(                           # noqa: C901  (single entry point is 
         None, "--notify",
         help="Redis URL or bare channel name for event publishing.",
     ),
-    # ── new v2 flags ─────────────────────────────────────────────────────────
+
+    # ── artifact storage flags ────────────────────────────────────────────────
     artifacts: Optional[str] = typer.Option(
         None, "--artifacts", "-a",
-        help="Where to write outputs: must be dir://PATH or s3://BUCKET[/PREFIX]."
+        help="Where to write outputs: dir://PATH or s3://ENDPOINT[/PREFIX]."
     ),
     org: Optional[str] = typer.Option(
         None, "--org", "-o",
-        help="Organization slug (used as S3 prefix or metadata)."
+        help="Organization slug (used as S3 bucket name and metadata)."
+    ),
+    access_key: Optional[str] = typer.Option(
+        None, "--access-key",
+        help="S3/MinIO access key (overrides AWS_ACCESS_KEY_ID)."
+    ),
+    secret_key: Optional[str] = typer.Option(
+        None, "--secret-key",
+        help="S3/MinIO secret key (overrides AWS_SECRET_ACCESS_KEY)."
+    ),
+    insecure: bool = typer.Option(
+       False, "--insecure",
+       help="When using s3://, disable TLS (use plain HTTP)."
     ),
 ):
-    """Main *process* entry—keeps every legacy flag but speaks v2 under the hood."""
-    # ─────────── fast sanity checks
+    """
+    Main *process* entry—keeps every legacy flag but speaks v2 under the hood.
+    """
+    # Sanity checks
     if start_idx and start_file:
         typer.echo("❌  Cannot use both --start-idx and --start-file.")
         raise typer.Exit(1)
     if not project_name and (start_idx or start_file):
         typer.echo("❌  --start-idx/start-file need --project-name.")
         raise typer.Exit(1)
-
     if not provider or not model_name:
-        typer.echo("❌  provider and model-name required.")
+        typer.echo("❌  --provider and --model-name are required.")
         raise typer.Exit(1)
 
-
-    # Convert to PathOrURI 
+    # Convert to PathOrURI
     projects_payload = PathOrURI(projects_payload)
     template_base_dir = PathOrURI(template_base_dir) if template_base_dir else None
 
-
-    # ─────────── prep extra package dirs
+    # Prepare extra Jinja dirs
     extra_dirs: List[Path] = []
     if additional_package_dirs:
         extra_dirs.extend(Path(p).expanduser() for p in additional_package_dirs.split(","))
-
     if include_swarmauri:
         extra_dirs.append(Path(_clone_swarmauri_repo(use_dev_branch=swarmauri_dev)))
 
-    # ─────────── global runtime flags
+    # Runtime flags
     _config.update(
         truncate=trunc,
         revise=False,
@@ -128,71 +141,60 @@ def process_cmd(                           # noqa: C901  (single entry point is 
         workers=workers,
     )
 
-    # ─────────── build agent_env
+    # Build agent_env
     resolved_key = _resolve_api_key(provider, api_key, env)
-    agent_env = {
-        "provider": provider,
-        "model_name": model_name,
-        "api_key": resolved_key,
-    }
+    agent_env = {"provider": provider, "model_name": model_name, "api_key": resolved_key}
     if agent_prompt_template_file:
-        agent_env["agent_prompt_template_file"] = str(agent_prompt_template_file)
+        agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
-    # ─────────── optional event publisher (Redis)
+    # Event publisher
     bus = None
     if notify:
         uri = notify if "://" in notify else f"redis://localhost:6379/0"
         channel = notify if "://" not in notify else "peagen.events"
         bus = RedisPublisher(uri)
-
         bus.publish(channel, {"type": "process.started"})
 
-
-    # ─────────── storage adapter selection ─────────────────────────────────
-    #
-    # we need a storage_adapter factory
-    #
-    # ───────────────────────────────────────────────────────────────────────
-    from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
-    from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+    # Storage adapter selection
     storage_adapter = None
     if artifacts is None:
-        # local read/write in working directory
+        # local working directory
         storage_adapter = FileStorageAdapter(root_dir=".")
     elif artifacts.startswith("dir://"):
         local_path = artifacts[len("dir://") :]
         storage_adapter = FileStorageAdapter(root_dir=local_path)
     elif artifacts.startswith("s3://"):
-        # parse bucket and optional prefix
-        from urllib.parse import urlparse
-
+        # s3://ENDPOINT[/PREFIX]
         parsed = urlparse(artifacts)
-        bucket = parsed.netloc
-        prefix = parsed.path.lstrip("/")  # may be empty
-        # credentials via env AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+        endpoint = parsed.netloc
+        prefix = parsed.path.lstrip("/")  # optional
+        if not org:
+            typer.echo("❌  --org is required when using s3:// artifacts.")
+            raise typer.Exit(1)
+        ak = access_key or os.getenv("AWS_ACCESS_KEY_ID", "")
+        sk = secret_key or os.getenv("AWS_SECRET_ACCESS_KEY", "")
         storage_adapter = MinioStorageAdapter(
-            endpoint=os.getenv("S3_ENDPOINT", f"{bucket}"),
-            access_key=os.getenv("AWS_ACCESS_KEY_ID", ""),
-            secret_key=os.getenv("AWS_SECRET_ACCESS_KEY", ""),
-            bucket=bucket,
-            secure=not os.getenv("S3_INSECURE", "false").lower() in ("1", "true"),
+            endpoint=endpoint,
+            access_key=ak,
+            secret_key=sk,
+            bucket=org,
+            secure=not insecure,
         )
-        # if prefix is set, wrap adapter to prepend it
         if prefix:
             class _PrefixedAdapter:
                 def __init__(self, base, prefix):
-                    self._base = base; self._prefix = prefix.rstrip("/") + "/"
+                    self._base = base
+                    self._prefix = prefix.rstrip("/") + "/"
                 def upload(self, key, data):
                     return self._base.upload(self._prefix + key, data)
                 def download(self, key):
                     return self._base.download(self._prefix + key)
-        storage_adapter = _PrefixedAdapter(storage_adapter, prefix)
+            storage_adapter = _PrefixedAdapter(storage_adapter, prefix)
     else:
         typer.echo("❌  --artifacts must start with dir:// or s3://")
         raise typer.Exit(1)
 
-
-    # ─────────── instantiate engine
+    # Instantiate engine
     pea = Peagen(
         projects_payload_path=str(projects_payload),
         template_base_dir=str(template_base_dir) if template_base_dir else None,
@@ -202,17 +204,16 @@ def process_cmd(                           # noqa: C901  (single entry point is 
         org=org,
     )
 
-    # logging level map
+    # Logging level
     if verbose >= 3:
-        pea.logger.set_level(10)   # DEBUG/VERBOSE
+        pea.logger.set_level(10)  # DEBUG
     elif verbose == 2:
-        pea.logger.set_level(20)   # INFO
+        pea.logger.set_level(20)  # INFO
     elif verbose == 1:
-        pea.logger.set_level(30)   # NOTICE
+        pea.logger.set_level(30)  # NOTICE
 
-    # ─────────── dispatch
+    # Dispatch
     start = time.time()
-
     try:
         if project_name:
             _process_single(
@@ -228,12 +229,11 @@ def process_cmd(                           # noqa: C901  (single entry point is 
     dur = time.time() - start
     pea.logger.info(f"{Fore.GREEN}Done in {dur:.1f}s{Fore.RESET}")
 
-    # publish 'done'
+    # Publish 'done'
     if bus:
         bus.publish(channel, {"type": "process.done", "seconds": dur})
 
 
-# ════════════════════════════════════════════════════════════════════════════
 def _process_single(
     pea: Peagen,
     name: str,
@@ -252,5 +252,8 @@ def _process_single(
     if start_file:
         pea.process_single_project(project, start_file=start_file)
     else:
-        pea.process_single_project(project, start_idx=start_idx or 0, transitive_only=transitive_only)
-
+        pea.process_single_project(
+            project,
+            start_idx=start_idx or 0,
+            transitive_only=transitive_only
+        )
