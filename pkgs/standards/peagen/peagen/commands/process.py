@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import typer
 import yaml
 
-from peagen.cli_common import PathOrURI, common_peagen_options
+from peagen.cli_common import PathOrURI, common_peagen_options, load_peagen_toml
 from peagen.core import Peagen, Fore
 from peagen._config import _config
 from peagen._api_key import _resolve_api_key
@@ -75,7 +75,7 @@ def process_cmd(
         help="Only process transitive dependencies when starting mid-stream.",
     ),
     workers: int = typer.Option(
-        0, "--workers", "-w",
+        None, "--workers", "-w",
         help="Render worker pool size (0 = sequential).",
     ),
     agent_prompt_template_file: Optional[str] = typer.Option(
@@ -111,7 +111,56 @@ def process_cmd(
     """
     Main *process* entry—keeps every legacy flag but speaks v2 under the hood.
     """
-    # Sanity checks
+    # ── Merge in .peagen.toml values ───────────────────────────────────────
+    toml_cfg = load_peagen_toml()
+
+    # 1) GENERAL
+    general = toml_cfg.get("general", {})
+    org     = org     if org     is not None else general.get("org")
+    workers = workers if workers is not None else general.get("workers", 0)
+
+    # 2) LLM
+    llm = toml_cfg.get("llm", {})
+    provider        = provider        if provider        is not None else llm.get("default_provider")
+    model_name      = model_name      if model_name      is not None else llm.get("default_model_name")
+    default_temp    = llm.get("default_temperature", 1.0)
+    default_max_tok = llm.get("default_max_tokens", 4096)
+
+    # pull provider-specific API key out of [llm.<provider>]
+    if api_key is None:
+        prov_tbl = llm.get(provider, {}) or llm.get(provider.lower(), {})
+        api_key = prov_tbl.get("api_key") or prov_tbl.get("API_KEY")
+
+    # 3) STORAGE
+    storage = toml_cfg.get("storage", {})
+    # pick which adapter to use
+    default_store = storage.get("default_storage_adapter", "file")
+    # if user passed --artifacts, we'll parse that later; otherwise pick from TOML
+    store_adapter = default_store if artifacts is None else None
+
+    adapters = storage.get("adapters", {})
+    file_cfg  = adapters.get("file", {})
+    minio_cfg = adapters.get("minio", {})
+
+    if artifacts is None:
+        if default_store == "file":
+            # local output_dir
+            artifacts = file_cfg.get("output_dir")
+        elif default_store == "minio":
+            ep     = minio_cfg.get("endpoint")
+            bucket = minio_cfg.get("bucket")
+            artifacts = f"s3://{ep}"
+
+    # 4) PUBLISHER
+    pubs         = toml_cfg.get("publishers", {})
+    default_pub  = pubs.get("default_publisher", {})
+    redis_cfg    = pubs.get(default_pub, {})
+
+    if redis_cfg:
+        notify = "peagen.events"
+
+
+    # ── Sanity checks ───────────────────────────────────────────────────────
     if start_idx and start_file:
         typer.echo("❌  Cannot use both --start-idx and --start-file.")
         raise typer.Exit(1)
@@ -119,8 +168,40 @@ def process_cmd(
         typer.echo("❌  --start-idx/start-file need --project-name.")
         raise typer.Exit(1)
     if not provider or not model_name:
-        typer.echo("❌  --provider and --model-name are required.")
+        typer.echo("❌  --provider and --model-name are required (via CLI or .peagen.toml).")
         raise typer.Exit(1)
+
+    # …later, in your RedisPublisher wiring…
+    if notify:
+        if "://" in notify:
+            uri     = notify
+            channel = "peagen.events"
+        else:
+            # build from TOML defaults under [publishers.redis]
+            host     = redis_cfg.get("host", "localhost")
+            port     = redis_cfg.get("port", 6379)
+            db       = redis_cfg.get("db", 0)
+            pwd      = redis_cfg.get("password")
+            auth     = f":{pwd}@" if pwd else ""
+            uri      = f"redis://{auth}{host}:{port}/{db}"
+            channel  = notify
+        bus = RedisPublisher(uri)
+        bus.publish(channel, {"type": "process.started"})
+
+    # …and your storage‐adapter selection can then test:
+    if artifacts.startswith("s3://"):
+        # use MinioStorageAdapter with access_key, secret_key from CLI or TOML:
+        ak = access_key or minio_cfg.get("access_key_id")
+        sk = secret_key or minio_cfg.get("secret_access_key")
+        storage_adapter = MinioStorageAdapter(
+            endpoint=minio_cfg.get("endpoint"),
+            access_key=ak,
+            secret_key=sk,
+            bucket=minio_cfg.get("bucket"),
+            secure=not insecure,
+        )
+    else:
+        storage_adapter = FileStorageAdapter(root_dir=Path(artifacts or file_cfg.get("output_dir", ".")))
 
     # Convert to PathOrURI
     projects_payload = PathOrURI(projects_payload)
@@ -146,53 +227,6 @@ def process_cmd(
     agent_env = {"provider": provider, "model_name": model_name, "api_key": resolved_key}
     if agent_prompt_template_file:
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
-
-    # Event publisher
-    bus = None
-    if notify:
-        uri = notify if "://" in notify else f"redis://localhost:6379/0"
-        channel = notify if "://" not in notify else "peagen.events"
-        bus = RedisPublisher(uri)
-        bus.publish(channel, {"type": "process.started"})
-
-    # Storage adapter selection
-    storage_adapter = None
-    if artifacts is None:
-        # local working directory
-        storage_adapter = FileStorageAdapter(root_dir=".")
-    elif artifacts.startswith("dir://"):
-        local_path = artifacts[len("dir://") :]
-        storage_adapter = FileStorageAdapter(root_dir=local_path)
-    elif artifacts.startswith("s3://"):
-        # s3://ENDPOINT[/PREFIX]
-        parsed = urlparse(artifacts)
-        endpoint = parsed.netloc
-        prefix = parsed.path.lstrip("/")  # optional
-        if not org:
-            typer.echo("❌  --org is required when using s3:// artifacts.")
-            raise typer.Exit(1)
-        ak = access_key or os.getenv("AWS_ACCESS_KEY_ID", "")
-        sk = secret_key or os.getenv("AWS_SECRET_ACCESS_KEY", "")
-        storage_adapter = MinioStorageAdapter(
-            endpoint=endpoint,
-            access_key=ak,
-            secret_key=sk,
-            bucket=org,
-            secure=not insecure,
-        )
-        if prefix:
-            class _PrefixedAdapter:
-                def __init__(self, base, prefix):
-                    self._base = base
-                    self._prefix = prefix.rstrip("/") + "/"
-                def upload(self, key, data):
-                    return self._base.upload(self._prefix + key, data)
-                def download(self, key):
-                    return self._base.download(self._prefix + key)
-            storage_adapter = _PrefixedAdapter(storage_adapter, prefix)
-    else:
-        typer.echo("❌  --artifacts must start with dir:// or s3://")
-        raise typer.Exit(1)
 
     # Instantiate engine
     pea = Peagen(

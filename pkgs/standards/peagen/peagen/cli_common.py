@@ -53,7 +53,8 @@ def load_peagen_toml(start_dir: pathlib.Path = pathlib.Path.cwd()) -> dict[str, 
         cfg_path = folder / ".peagen.toml"
         if cfg_path.is_file():
             import tomllib  # tomli for 3.10
-            return tomllib.loads(cfg_path.read_text("utf-8"))
+            res = tomllib.loads(cfg_path.read_text("utf-8"))
+            return res
     return {}
 
 
@@ -106,14 +107,17 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
         if ctx.obj is None:
             ctx.obj = types.SimpleNamespace(**load_peagen_toml())
 
-
+        # print(ctx.obj)
         # copy recognised kwargs into ctx.obj
         for key in (
             "workers",
             "truncate",
             "artifacts",
             "org",
-            "provider",
+            "default_provider",
+            "default_model_name",
+            "default_temperature",
+            "default_max_tokens",
             "template_set",
             "additional_package_dirs",
             "notify",
