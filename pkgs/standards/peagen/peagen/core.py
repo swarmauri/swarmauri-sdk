@@ -63,8 +63,11 @@ colorama_init(autoreset=True)
 class Peagen(ComponentBase):
     projects_payload_path: str
     template_base_dir: Optional[str] = None
+    org: Optional[str] = None
+    # storage_adapter should implement your IStorageAdapter interface
+    storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)  # adjust type as needed
+    j2pt: Any = Field(default_factory=lambda: j2pt)
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
@@ -94,7 +97,6 @@ class Peagen(ComponentBase):
         #    and add their package paths to namespace_dirs
         try:
             eps = entry_points().select(group="peagen.template_sets")
-            print(str(eps))
         except AttributeError:
             eps = entry_points().get("peagen.template_sets", [])
         for ep in eps:
@@ -364,11 +366,16 @@ class Peagen(ComponentBase):
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
-                template_dir=template_dir,  # Each record has its own TEMPLATE_SET
+                template_dir=template_dir,
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=start_idx,  # <-- use the original start_idx here
+                org=self.org,
+                storage_adapter=self.storage_adapter,
+                start_idx=start_idx,
             )
-            self.logger.info(f"Completed file generation workflow on '{project_name}'.")
+            self.logger.info(
+                f"Completed file generation workflow for org='{self.org}', "
+                f"project='{project_name}'."
+            )
 
         return (sorted_records, start_idx)

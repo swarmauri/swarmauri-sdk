@@ -1,92 +1,134 @@
-import typer
-from pathlib import Path
-from typing import Optional
-from pydantic import FilePath
-import time
+# peagen/commands/process.py  · v2 compat, legacy-flag safe
+from __future__ import annotations
 
-# ✅  all absolute
-from peagen.core import Peagen, Fore, Style
+import os
+import time
+from pathlib import Path
+from typing import Optional, List
+
+import typer
+import yaml
+
+from peagen.cli_common import PathOrURI, common_peagen_options
+from peagen.core import Peagen, Fore
 from peagen._config import _config
 from peagen._api_key import _resolve_api_key
-from peagen._banner import _print_banner
 from peagen._gitops import _clone_swarmauri_repo
 
-process_app = typer.Typer(help="Process a project payload with Peagen.")
+from peagen.publishers.redis_publisher import RedisPublisher  # IPublish impl
 
+process_app = typer.Typer(help="Render / generate one or all projects in a YAML payload.")
+
+
+# ════════════════════════════════════════════════════════════════════════════
 @process_app.command("process")
-def process(
-    projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
-    project_name: str = typer.Option(None, help="Name of the project to process."),
-    template_base_dir: str = typer.Option(None, help="Optional base directory for templates."),
-    additional_package_dirs: str = typer.Option(
-        None,
-        help="Optional list of additional directories to include in J2 env. Delimited by ','",
+@common_peagen_options
+def process_cmd(                           # noqa: C901  (single entry point is OK)
+    ctx: typer.Context,
+
+    # ── legacy positional ────────────────────────────────────────────────────
+    projects_payload: str = typer.Argument(
+        ...,
+        help="YAML path/URI with a PROJECTS list (file:// default).",
     ),
-    provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai, etc.)"),
-    model_name: str = typer.Option(None, help="The model_name to use."),
-    trunc: bool = typer.Option(True, help="Truncate response (True or False)"),
-    start_idx: int = typer.Option(None, help="Start at a certain file (Use 'sort' to find idx number)"),
-    start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use 'sort' to find filename)"),
+
+    # ── legacy options (must stay) ───────────────────────────────────────────
+    project_name: str = typer.Option(None, help="Name of a single project to process."),
+    template_base_dir: Optional[str] = typer.Option(
+        None, help="Root directory for template lookup (file:// auto-prefix)."
+    ),
+    additional_package_dirs: Optional[str] = typer.Option(
+        None,
+        help="Comma-separated list of extra directories for Jinja loading.",
+    ),
+    provider: Optional[str] = typer.Option(None, help="LLM provider ID."),
+    model_name: Optional[str] = typer.Option(None, help="Model name to use."),
+    trunc: bool = typer.Option(True, help="Truncate LLM responses."),
+    start_idx: Optional[int] = typer.Option(
+        None, help="Start at file index (see `peagen sort`)."
+    ),
+    start_file: Optional[str] = typer.Option(
+        None, help="Start at specific filename (see `peagen sort`)."
+    ),
     include_swarmauri: bool = typer.Option(
         True, "--include-swarmauri/--no-include-swarmauri",
-        help="Include swarmauri-sdk in the environment by default.",
+        help="Clone swarmauri-sdk into Jinja search path.",
     ),
     swarmauri_dev: bool = typer.Option(
         False, "--swarmauri-dev/--no-swarmauri-dev",
-        help="Use the mono/dev branch of swarmauri-sdk instead of master.",
+        help="Clone dev branch of swarmauri-sdk instead of main.",
     ),
-    api_key: str = typer.Option(
+    api_key: Optional[str] = typer.Option(
         None,
-        help="API key used to authenticate with the selected provider."
-             " If omitted, we look up <PROVIDER>_API_KEY in the environment.",
+        help="Explicit API key; else we read <PROVIDER>_API_KEY env or .env.",
     ),
-    env: str = typer.Option(".env", help="Filepath for env file used to authenticate."),
-    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
-    # NEW FLAGS:
+    env: str = typer.Option(".env", help="Env-file path for API key lookup."),
+    verbose: int = typer.Option(
+        0, "-v", "--verbose", count=True, help="Verbosity (-v/-vv/-vvv)."
+    ),
+
+    # ── v2 additions (already partly present) ───────────────────────────────
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive",
-        help="If set, will only process transitive dependencies if start-file or start-idx is provided.",
+        help="Only process transitive dependencies when starting mid-stream.",
     ),
     workers: int = typer.Option(
         0, "--workers", "-w",
-        help="Number of parallel workers for rendering (default 0 = sequential).",
+        help="Render worker pool size (0 = sequential).",
     ),
-    agent_prompt_template_file: str = typer.Option(
-        None, help="Path to a custom agent prompt template file to be used in the agent environment.",
+    agent_prompt_template_file: Optional[str] = typer.Option(
+        None, help="Override system-prompt Jinja template."
+    ),
+    notify: Optional[str] = typer.Option(
+        None, "--notify",
+        help="Redis URL or bare channel name for event publishing.",
+    ),
+    # ── new v2 flags ─────────────────────────────────────────────────────────
+    artifacts: Optional[str] = typer.Option(
+        None, "--artifacts", "-a",
+        help="Where to write outputs: must be dir://PATH or s3://BUCKET[/PREFIX]."
+    ),
+    org: Optional[str] = typer.Option(
+        None, "--org", "-o",
+        help="Organization slug (used as S3 prefix or metadata)."
     ),
 ):
-    """
-    Process a single project specified by its PROJECT_NAME in the YAML payload.
-
-    If --agent-prompt-template-file is used, it is passed along to the agent_env.
-    """
-    # Start timing
-    start_time = time.time()
-
+    """Main *process* entry—keeps every legacy flag but speaks v2 under the hood."""
+    # ─────────── fast sanity checks
     if start_idx and start_file:
-        typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
-        raise typer.Exit(code=1)
+        typer.echo("❌  Cannot use both --start-idx and --start-file.")
+        raise typer.Exit(1)
     if not project_name and (start_idx or start_file):
-        typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
-        raise typer.Exit(code=1)
+        typer.echo("❌  --start-idx/start-file need --project-name.")
+        raise typer.Exit(1)
 
-    # Convert additional_package_dirs from comma-delimited string to list[FilePath]
-    additional_dirs_list = additional_package_dirs.split(",") if additional_package_dirs else []
-    additional_dirs_list = [FilePath(_d) for _d in additional_dirs_list]
+    if not provider or not model_name:
+        typer.echo("❌  provider and model-name required.")
+        raise typer.Exit(1)
 
-    # Include swarmauri-sdk if requested
+
+    # Convert to PathOrURI 
+    projects_payload = PathOrURI(projects_payload)
+    template_base_dir = PathOrURI(template_base_dir) if template_base_dir else None
+
+
+    # ─────────── prep extra package dirs
+    extra_dirs: List[Path] = []
+    if additional_package_dirs:
+        extra_dirs.extend(Path(p).expanduser() for p in additional_package_dirs.split(","))
+
     if include_swarmauri:
-        from peagen._gitops import _clone_swarmauri_repo
-        cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
-        additional_dirs_list.append(FilePath(cloned_dir))
+        extra_dirs.append(Path(_clone_swarmauri_repo(use_dev_branch=swarmauri_dev)))
 
-    # Update global config
-    _config["truncate"] = trunc
-    _config["revise"] = False
-    _config["transitive"] = transitive
-    _config["workers"] = workers  # wire the new flag into config
+    # ─────────── global runtime flags
+    _config.update(
+        truncate=trunc,
+        revise=False,
+        transitive=transitive,
+        workers=workers,
+    )
 
-    # Resolve API key and build agent_env
+    # ─────────── build agent_env
     resolved_key = _resolve_api_key(provider, api_key, env)
     agent_env = {
         "provider": provider,
@@ -94,48 +136,121 @@ def process(
         "api_key": resolved_key,
     }
     if agent_prompt_template_file:
-        agent_env["agent_prompt_template_file"] = agent_prompt_template_file
+        agent_env["agent_prompt_template_file"] = str(agent_prompt_template_file)
+
+    # ─────────── optional event publisher (Redis)
+    bus = None
+    if notify:
+        uri = notify if "://" in notify else f"redis://localhost:6379/0"
+        channel = notify if "://" not in notify else "peagen.events"
+        bus = RedisPublisher(uri)
+
+        bus.publish(channel, {"type": "process.started"})
+
+
+    # ─────────── storage adapter selection ─────────────────────────────────
+    #
+    # we need a storage_adapter factory
+    #
+    # ───────────────────────────────────────────────────────────────────────
+    from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
+    from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+    storage_adapter = None
+    if artifacts is None:
+        # local read/write in working directory
+        storage_adapter = FileStorageAdapter(root_dir=".")
+    elif artifacts.startswith("dir://"):
+        local_path = artifacts[len("dir://") :]
+        storage_adapter = FileStorageAdapter(root_dir=local_path)
+    elif artifacts.startswith("s3://"):
+        # parse bucket and optional prefix
+        from urllib.parse import urlparse
+
+        parsed = urlparse(artifacts)
+        bucket = parsed.netloc
+        prefix = parsed.path.lstrip("/")  # may be empty
+        # credentials via env AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+        storage_adapter = MinioStorageAdapter(
+            endpoint=os.getenv("S3_ENDPOINT", f"{bucket}"),
+            access_key=os.getenv("AWS_ACCESS_KEY_ID", ""),
+            secret_key=os.getenv("AWS_SECRET_ACCESS_KEY", ""),
+            bucket=bucket,
+            secure=not os.getenv("S3_INSECURE", "false").lower() in ("1", "true"),
+        )
+        # if prefix is set, wrap adapter to prepend it
+        if prefix:
+            class _PrefixedAdapter:
+                def __init__(self, base, prefix):
+                    self._base = base; self._prefix = prefix.rstrip("/") + "/"
+                def upload(self, key, data):
+                    return self._base.upload(self._prefix + key, data)
+                def download(self, key):
+                    return self._base.download(self._prefix + key)
+        storage_adapter = _PrefixedAdapter(storage_adapter, prefix)
+    else:
+        typer.echo("❌  --artifacts must start with dir:// or s3://")
+        raise typer.Exit(1)
+
+
+    # ─────────── instantiate engine
+    pea = Peagen(
+        projects_payload_path=str(projects_payload),
+        template_base_dir=str(template_base_dir) if template_base_dir else None,
+        additional_package_dirs=extra_dirs,
+        agent_env=agent_env,
+        storage_adapter=storage_adapter,
+        org=org,
+    )
+
+    # logging level map
+    if verbose >= 3:
+        pea.logger.set_level(10)   # DEBUG/VERBOSE
+    elif verbose == 2:
+        pea.logger.set_level(20)   # INFO
+    elif verbose == 1:
+        pea.logger.set_level(30)   # NOTICE
+
+    # ─────────── dispatch
+    start = time.time()
 
     try:
-        pea = Peagen(
-            projects_payload_path=str(projects_payload),
-            template_base_dir=str(template_base_dir) if template_base_dir else None,
-            additional_package_dirs=additional_dirs_list,
-            agent_env=agent_env,
-        )
-        # Set logging level
-        if verbose == 1:
-            pea.logger.set_level(30)  # INFO
-        elif verbose == 2:
-            pea.logger.set_level(20)  # DEBUG
-        elif verbose >= 3:
-            pea.logger.set_level(10)  # VERBOSE
-
-        # Dispatch processing
         if project_name:
-            projects = pea.load_projects()
-            project = next((p for p in projects if p.get("NAME") == project_name), None)
-            if project is None:
-                pea.logger.error(f"Project '{project_name}' not found.")
-                raise typer.Exit(code=1)
-
-            if start_file:
-                pea.process_single_project(project, start_file=start_file)
-            else:
-                pea.process_single_project(project, start_idx=start_idx or 0)
-
-            pea.logger.info(f"Processed project '{project_name}' successfully.")
-            # Log total duration
-            duration = time.time() - start_time
-            pea.logger.info(f"Total execution time: {duration:.2f} seconds")
-
+            _process_single(
+                pea, project_name, start_idx, start_file,
+                transitive_only=transitive,
+            )
         else:
             pea.process_all_projects()
-            pea.logger.info("Processed all projects successfully.")
-            # Log total duration
-            duration = time.time() - start_time
-            pea.logger.info(f"Total execution time: {duration:.2f} seconds")
-
     except KeyboardInterrupt:
-        typer.echo("\n  Interrupted... exited.")
-        raise typer.Exit(code=1)
+        typer.echo("\nInterrupted.  Bye.")
+        raise typer.Exit(1)
+
+    dur = time.time() - start
+    pea.logger.info(f"{Fore.GREEN}Done in {dur:.1f}s{Fore.RESET}")
+
+    # publish 'done'
+    if bus:
+        bus.publish(channel, {"type": "process.done", "seconds": dur})
+
+
+# ════════════════════════════════════════════════════════════════════════════
+def _process_single(
+    pea: Peagen,
+    name: str,
+    start_idx: Optional[int],
+    start_file: Optional[str],
+    *,
+    transitive_only: bool,
+) -> None:
+    """Helper to keep main function readable."""
+    projects = pea.load_projects()
+    project = next((p for p in projects if p.get("NAME") == name), None)
+    if not project:
+        pea.logger.error(f"Project '{name}' not found in payload.")
+        raise typer.Exit(1)
+
+    if start_file:
+        pea.process_single_project(project, start_file=start_file)
+    else:
+        pea.process_single_project(project, start_idx=start_idx or 0, transitive_only=transitive_only)
+
