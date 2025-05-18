@@ -179,5 +179,5 @@ def init_ci(
 ):
     kind = "ci-github" if github else "ci-gitlab"
     dst = Path(".")
-    _render_scaffold("ci" + kind, dst, {}, force)
+    _render_scaffold("ci/" + kind, dst, {}, force)
     typer.echo("✅  CI file written.  Commit it to enable automatic runs.")
