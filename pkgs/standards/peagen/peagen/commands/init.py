@@ -88,7 +88,6 @@ def _summary(created_in: Path, next_cmd: str) -> None:
     typer.echo(textwrap.dedent(f"""\
         ✅  Scaffold created: {created_in}
            Next steps:
-             cd {created_in}
              {next_cmd}
     """))
 
@@ -133,7 +132,7 @@ def init_template_set(
     }
 
     _render_scaffold("template_set", path, context, force)
-    _summary(path, "uv build   # then  peagen template-sets add ./dist/*.whl")
+    _summary(path, f"peagen template-sets add {path}")
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
