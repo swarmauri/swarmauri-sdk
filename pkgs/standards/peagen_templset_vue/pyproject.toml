@@ -18,9 +18,7 @@ classifiers = [
 packages = [
   { include = "peagen_templset_vue" }
 ]
-include = [
-  { path = "peagen/templates/**", format = ["sdist", "wheel"] }
-]
+
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -62,4 +60,4 @@ dev = [
 ]
 
 [tool.poetry.plugins."peagen.template_sets"]
-peagen_templset_vue = "peagen_templset_vue.templates"
+peagen_templset_vue = "peagen_templset_vue.templates.peagen_templset_vue"
