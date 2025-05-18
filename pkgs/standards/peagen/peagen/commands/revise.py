@@ -151,7 +151,7 @@ def revise(
 
     # Conditionally include swarmauri-sdk by cloning and adding the tmpdir to additional_package_dirs
     if include_swarmauri:
-        from ._gitops import _clone_swarmauri_repo
+        from peagen._gitops import _clone_swarmauri_repo
 
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))

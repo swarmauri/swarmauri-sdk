@@ -1,6 +1,8 @@
 import typer
 from pathlib import Path
 from typing import Optional
+from pydantic import FilePath
+import time
 
 # ✅  all absolute
 from peagen.core import Peagen, Fore, Style
@@ -74,7 +76,7 @@ def process(
 
     # Include swarmauri-sdk if requested
     if include_swarmauri:
-        from ._gitops import _clone_swarmauri_repo
+        from peagen._gitops import _clone_swarmauri_repo
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))
 
