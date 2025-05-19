@@ -8,17 +8,17 @@ from typing import (
     TypeVar,
 )
 
-from pydantic import Field, ConfigDict
-from swarmauri_base.YamlMixin import YamlMixin
-from swarmauri_base.LoggerMixin import LoggerMixin
-from swarmauri_base.ServiceMixin import ServiceMixin
+from pydantic import ConfigDict, Field
+
 from swarmauri_base.DynamicBase import DynamicBase
 
 ###########################################
 # Export Subclass Union for Legacy Support
 ###########################################
 from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
-
+from swarmauri_base.LoggerMixin import LoggerMixin
+from swarmauri_base.ServiceMixin import ServiceMixin
+from swarmauri_base.YamlMixin import YamlMixin
 
 ###########################################
 # ComponentBase
@@ -96,3 +96,7 @@ class ResourceTypes(Enum):
     PSEUDOMETRIC = "PseudoMetric"
     SEMINORM = "SemiNorm"
     
+    PROGRAM = "Program"
+    EVALUATOR = "Evaluator"
+    EVALUATOR_RESULT = "EvaluatorResult"
+    EVALUATOR_POOL = "EvaluatorPool"
