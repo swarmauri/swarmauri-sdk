@@ -51,6 +51,7 @@ def _save_file(
     # ---- optional remote upload ------------------------------------------------
     if storage_adapter:
         key = f"{org.rstrip('/')}/{filepath.lstrip('/')}" if org else filepath
+        key = os.path.normpath(key)
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
