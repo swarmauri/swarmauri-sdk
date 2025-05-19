@@ -129,17 +129,19 @@ def _process_file(
     final_filename = file_record.get("RENDERED_FILE_NAME")
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
-    if process_type == "COPY":
-        content = _render_copy_template(file_record, context, j2_instance, logger)
-
-    elif process_type == "GENERATE":
-        if _config["revise"] and "agent_prompt_template_file" not in agent_env:
-            agent_env["agent_prompt_template_file"] = "agent_revise.j2"
-        if _config["revise"]:
-            context["INJ"] = _config["revision_notes"]
-            agent_prompt_template_name = agent_env["agent_prompt_template_file"]
-        else:
-            agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+    try:
+        if process_type == "COPY":
+            content = _render_copy_template(file_record, context, j2_instance, logger)
+        elif process_type == "GENERATE":
+            if _config["revise"] and "agent_prompt_template_file" not in agent_env:
+                agent_env["agent_prompt_template_file"] = "agent_revise.j2"
+            if _config["revise"]:
+                context["INJ"] = _config["revision_notes"]
+                prompt_name = agent_env["agent_prompt_template_file"]
+            else:
+                prompt_name = file_record.get(
+                    "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
+                )
 
             prompt_path = os.path.join(template_dir, prompt_name)
             content = _render_generate_template(
@@ -158,7 +160,7 @@ def _process_file(
 
     if content is None:
         if logger:
-            logger.warning(f"No content generated for file '{final_filename}'; skipping save.")
+            logger.warning(f"No content generated for '{final_filename}'; skipping.")
         return False
 
     if content == "":
@@ -166,7 +168,6 @@ def _process_file(
             logger.warning(
                 f"Blank content for file '{final_filename}'; saving empty file."
             )
-
 
     _save_file(
         content,
@@ -211,9 +212,7 @@ def _process_project_files(
             idx = idx_map[fname]
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
-            # Create a fresh instance
             j2 = j2pt.copy(deep=False)
-            # Detach and override template directory
             j2.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
 
             _process_file(
