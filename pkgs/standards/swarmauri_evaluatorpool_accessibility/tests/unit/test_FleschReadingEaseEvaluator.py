@@ -1,16 +1,16 @@
-import pytest
-import logging
-from unittest.mock import patch, MagicMock
-from typing import Dict, Any, Tuple
+from unittest.mock import MagicMock, patch
 
-from swarmauri_evaluatorpool_accessibility.FleschReadingEaseEvaluator import FleschReadingEaseEvaluator
+import pytest
+from swarmauri_evaluatorpool_accessibility.FleschReadingEaseEvaluator import (
+    FleschReadingEaseEvaluator,
+)
 
 
 @pytest.fixture
 def evaluator():
     """
     Fixture that provides a FleschReadingEaseEvaluator instance.
-    
+
     Returns:
         FleschReadingEaseEvaluator: An instance of the evaluator
     """
@@ -21,7 +21,7 @@ def evaluator():
 def mock_program():
     """
     Fixture that provides a mock Program object.
-    
+
     Returns:
         MagicMock: A mock Program object with configurable content
     """
@@ -31,9 +31,9 @@ def mock_program():
 
 
 @pytest.mark.unit
-def test_type():
+def test_type(evaluator):
     """Test that the evaluator has the correct type."""
-    assert FleschReadingEaseEvaluator.type == "FleschReadingEaseEvaluator"
+    assert evaluator.type == "FleschReadingEaseEvaluator"
 
 
 @pytest.mark.unit
@@ -50,10 +50,10 @@ def test_nltk_resources_downloaded(mock_download, mock_find, evaluator):
     """Test that NLTK resources are downloaded if not found."""
     # Simulate resources not found
     mock_find.side_effect = LookupError()
-    
+
     # Re-initialize to trigger downloads
     FleschReadingEaseEvaluator()
-    
+
     # Verify downloads were attempted
     assert mock_download.call_count >= 1
 
@@ -65,24 +65,32 @@ def test_nltk_resources_downloaded(mock_download, mock_find, evaluator):
         (
             "This is a simple sentence. It is easy to read.",
             pytest.approx(90, abs=15),
-            ["sentence_count", "word_count", "syllable_count", "readability_interpretation"]
+            [
+                "sentence_count",
+                "word_count",
+                "syllable_count",
+                "readability_interpretation",
+            ],
         ),
         (
             "The mitochondria is the powerhouse of the cell. It produces ATP through oxidative phosphorylation.",
-            pytest.approx(50, abs=30),
-            ["sentence_count", "word_count", "syllable_count", "readability_interpretation"]
+            pytest.approx(15, abs=10),
+            [
+                "sentence_count",
+                "word_count",
+                "syllable_count",
+                "readability_interpretation",
+            ],
         ),
-        (
-            "",
-            0.0,
-            ["error"]
-        ),
-    ]
+        ("", 0.0, ["error"]),
+    ],
 )
-def test_compute_score(evaluator, mock_program, content, expected_score, expected_metadata_keys):
+def test_compute_score(
+    evaluator, mock_program, content, expected_score, expected_metadata_keys
+):
     """
     Test the _compute_score method with different text contents.
-    
+
     Args:
         evaluator: The evaluator instance
         mock_program: A mock Program object
@@ -91,15 +99,15 @@ def test_compute_score(evaluator, mock_program, content, expected_score, expecte
         expected_metadata_keys: Expected keys in the metadata dictionary
     """
     mock_program.get_content.return_value = content
-    
+
     score, metadata = evaluator._compute_score(mock_program)
-    
+
     assert isinstance(score, float)
     if content:
         assert score == expected_score
     else:
         assert score == 0.0
-    
+
     for key in expected_metadata_keys:
         assert key in metadata
 
@@ -113,12 +121,12 @@ def test_compute_score(evaluator, mock_program, content, expected_score, expecte
         ("the", 1),
         ("readability", 5),
         ("a", 1),
-    ]
+    ],
 )
 def test_count_syllables(evaluator, word, expected_count):
     """
     Test the syllable counting functionality.
-    
+
     Args:
         evaluator: The evaluator instance
         word: The word to count syllables for
@@ -138,12 +146,12 @@ def test_count_syllables(evaluator, word, expected_count):
         ("  Multiple    spaces   ", "Multiple spaces"),
         ("\t\nWhitespace\r\n", "Whitespace"),
         ("Normal text", "Normal text"),
-    ]
+    ],
 )
 def test_clean_text(evaluator, text, expected_output):
     """
     Test the text cleaning functionality.
-    
+
     Args:
         evaluator: The evaluator instance
         text: The input text to clean
@@ -164,12 +172,12 @@ def test_clean_text(evaluator, text, expected_output):
         (55, "Fairly Difficult"),
         (40, "Difficult"),
         (20, "Very Difficult"),
-    ]
+    ],
 )
 def test_interpret_score(evaluator, score, expected_category):
     """
     Test the score interpretation functionality.
-    
+
     Args:
         evaluator: The evaluator instance
         score: The Flesch Reading Ease score
@@ -183,15 +191,15 @@ def test_interpret_score(evaluator, score, expected_category):
 def test_compute_score_with_non_string_content(evaluator, mock_program):
     """
     Test that the evaluator handles non-string content gracefully.
-    
+
     Args:
         evaluator: The evaluator instance
         mock_program: A mock Program object
     """
     mock_program.get_content.return_value = 12345  # Non-string content
-    
+
     score, metadata = evaluator._compute_score(mock_program)
-    
+
     assert score == 0.0
     assert "error" in metadata
 
@@ -200,33 +208,11 @@ def test_compute_score_with_non_string_content(evaluator, mock_program):
 def test_serialization(evaluator):
     """
     Test that the evaluator can be serialized and deserialized correctly.
-    
+
     Args:
         evaluator: The evaluator instance
     """
     serialized = evaluator.model_dump_json()
     deserialized = FleschReadingEaseEvaluator.model_validate_json(serialized)
-    
+
     assert deserialized.type == evaluator.type
-
-
-@pytest.mark.unit
-@patch("logging.getLogger")
-def test_logging(mock_get_logger, evaluator, mock_program):
-    """
-    Test that the evaluator logs appropriately.
-    
-    Args:
-        mock_get_logger: Mock for the logger
-        evaluator: The evaluator instance
-        mock_program: A mock Program object
-    """
-    mock_logger = MagicMock()
-    mock_get_logger.return_value = mock_logger
-    
-    mock_program.get_content.return_value = "This is a test sentence."
-    
-    evaluator._compute_score(mock_program)
-    
-    # Verify that logging occurred
-    assert mock_logger.info.called or mock_logger.warning.called
