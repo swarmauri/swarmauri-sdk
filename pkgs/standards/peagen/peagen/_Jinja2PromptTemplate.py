@@ -7,6 +7,9 @@ import os
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
+print('WARNING - switch to standalone')
+print('WARNING - switch to standalone')
+print('WARNING - switch to standalone')
 
 @ComponentBase.register_type(PromptTemplateBase, "Jinja2PromptTemplate")
 class Jinja2PromptTemplate(PromptTemplateBase):

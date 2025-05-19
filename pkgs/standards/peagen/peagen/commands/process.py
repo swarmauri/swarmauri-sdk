@@ -142,7 +142,6 @@ def process_cmd(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     with temp_workspace() as ws:
-        print(ws)
         pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
