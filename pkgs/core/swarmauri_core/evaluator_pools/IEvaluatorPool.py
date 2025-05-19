@@ -1,12 +1,9 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Sequence
 
 from swarmauri_core.evaluator_results.IEvalResult import IEvalResult
 from swarmauri_core.evaluators.IEvaluate import IEvaluate
 from swarmauri_core.programs.IProgram import IProgram
-
-logger = logging.getLogger(__name__)
 
 
 class IEvaluatorPool(ABC):

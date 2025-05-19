@@ -1,10 +1,7 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple
 
 from swarmauri_core.programs.IProgram import IProgram
-
-logger = logging.getLogger(__name__)
 
 
 class EvaluationError(Exception):

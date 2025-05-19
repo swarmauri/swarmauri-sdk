@@ -1,11 +1,8 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, TypeVar
 
 T = TypeVar("T", bound="IProgram")
 DiffType = Dict[str, Any]  # Type for diff representation
-
-logger = logging.getLogger(__name__)
 
 
 class IProgram(ABC):
