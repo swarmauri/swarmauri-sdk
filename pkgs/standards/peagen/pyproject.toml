@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "PyGithub", # this storage adapter needs to be pushed to its own standalone
     "redis", # this publisher needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
     "python-dotenv",
@@ -86,6 +87,8 @@ init-ci            = "peagen.scaffold.ci"
 [project.entry-points."peagen.storage_adapters"]
 minio   = "peagen.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
 file    = "peagen.storage_adapters.file_storage_adapter:FileStorageAdapter"
+github    = "peagen.storage_adapters.github_storage_adapter:GithubStorageAdapter"
+gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 
 [project.entry-points."peagen.publishers"]
 redis   = "peagen.publishers.redis_publisher:RedisPublisher"
