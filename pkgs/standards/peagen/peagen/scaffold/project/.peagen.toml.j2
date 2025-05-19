@@ -1,38 +1,39 @@
 # .peagen.toml
-[general]
-org          = "swarmauri"
+[workspace]
+org          = "your_org"
 template_set = "default"
-workers      = 4
+workers      = 1
 
 # ─────────────────────────── LLM (unchanged) ───────────────────────────
 [llm]
 default_provider    = "groq"
-default_model_name  = "llama-70b"
+default_model_name  = "deepseek-r1-distill-llama-70b"
 default_temperature = 0.7
 default_max_tokens  = 4096
 
-[llm.api_keys]
-groq   = "groq-sk_xxxx"
+[llm.groq]
+API_KEY   = "..."
 
 # ────────────────────────── Storage Adapters ───────────────────────────
 [storage]
-default_adapter = "file"
+default_storage_adapter = "minio"
 
 [storage.adapters.file]
 output_dir = "./peagen_artifacts"
 
 [storage.adapters.minio]
-endpoint          = "https://minio.local:9000"
-bucket            = "peagen-artifacts"
-access_key_id     = "MINIO_ACCESS_KEY"
-secret_access_key = "MINIO_SECRET_KEY"
+endpoint          = "<ip>:9000"
+bucket            = "..."
+access_key        = "..."
+secret_key        = "..."
+secure = false
 
 # ───────────────────────────── Publishers ──────────────────────────────
 [publishers]
-default_bus = "redis"
+default_publisher = "redis"
 
 [publishers.redis]
-host     = "localhost"
+host     = "<ip>"
 port     = 6379
 db       = 0
-password = "••••"                   # leave blank if no auth
+password = "..."                   # leave blank if no auth
