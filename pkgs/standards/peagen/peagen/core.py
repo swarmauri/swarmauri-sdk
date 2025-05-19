@@ -25,14 +25,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from importlib import import_module
-try:
-    # Py 3.10+
-    from importlib.metadata import entry_points
-except ImportError:
-    # Older versions
-    from importlib_metadata import entry_points
-
+import peagen.plugin_registry
 
 import yaml
 from colorama import Fore, Style
@@ -40,10 +33,12 @@ from colorama import init as colorama_init
 from pydantic import ConfigDict, Field, FilePath, model_validator
 
 import peagen.templates
+from importlib import import_module
+from types import ModuleType
 
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.loggers.LoggerBase import LoggerBase
+# from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 
 from swarmauri_standard.loggers.Logger import Logger
@@ -80,7 +75,7 @@ class Peagen(ComponentBase):
 
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: SubclassUnion[LoggerBase] = Logger(
+    logger: SubclassUnion["LoggerBase"] = Logger(
         name=Fore.GREEN + __logger_name__ + Style.RESET_ALL
     )
     dry_run: bool = False
@@ -90,38 +85,38 @@ class Peagen(ComponentBase):
 
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
-        # 1) Base filesystem discovery (as before)
-        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+        # 1) Base filesystem discovery (built-in templates)
+        namespace_dirs = list(peagen.templates.__path__)
 
-        # 2) New: discover any installed entry-point packages
-        #    and add their package paths to namespace_dirs
-        try:
-            eps = entry_points().select(group="peagen.template_sets")
-        except AttributeError:
-            eps = entry_points().get("peagen.template_sets", [])
-        for ep in eps:
-            # ep.value is like "peagen_templset_vue:VueTemplateSet"
-            module_name = ep.value.split(":", 1)[0]
-            try:
-                pkg = import_module(module_name)
-                if hasattr(pkg, "__path__"):
-                    namespace_dirs.extend(str(p) for p in pkg.__path__)
-            except ImportError:
-                # optional: log a warning instead of failing
-                print(f"Could not import template_sets package '{module_name}' from entry-point {ep.name!r}")
-        
-        # 3) Then add your working-dir and any overrides (same as before)
+        # 2) Discover installed template‐set plugins via the central registry
+        from peagen.plugin_registry import registry
+
+        for plugin in registry.get("template_sets", {}).values():
+            if isinstance(plugin, ModuleType):
+                # plugin is a module: use it directly
+                pkg = plugin
+            else:
+                # plugin is a class: import its top‐level package
+                pkg_name = plugin.__module__.split(".", 1)[0]
+                pkg = import_module(pkg_name)
+
+            # If this package exposes a __path__, treat it as a template dir
+            if hasattr(pkg, "__path__"):
+                for p in pkg.__path__:
+                    namespace_dirs.append(str(p))
+
+        # 3) Add working dir & any overrides
         initial_dirs = []
         initial_dirs.extend(self.additional_package_dirs)
 
-        namespace_dirs.append(self.base_dir)     # include project CWD :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+        namespace_dirs.append(self.base_dir)
         initial_dirs.append(self.base_dir)
 
         if self.template_base_dir:
             namespace_dirs.append(self.template_base_dir)
             initial_dirs.append(self.template_base_dir)
 
-        # 4) Store them and wire up J2PT
+        # 4) Wire up J2PT
         self.namespace_dirs = namespace_dirs
         self.j2pt.templates_dir = initial_dirs
 
@@ -140,7 +135,7 @@ class Peagen(ComponentBase):
         dirs = [os.path.normpath(_d) for _d in dirs]
         self.j2pt.templates_dir = dirs
 
-    def get_template_dir_any(self, template_set: str) -> Path:
+    def locate_template_set(self, template_set: str) -> Path:
         """
         Searches each directory in `self.namespace_dirs` for a subfolder
         named `template_set`. Returns the first match as a *Path*, or raises a ValueError.
@@ -240,7 +235,7 @@ class Peagen(ComponentBase):
             )
 
             try:
-                template_dir = self.get_template_dir_any(pkg_template_set)
+                template_dir = self.locate_template_set(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
                 self.logger.error(

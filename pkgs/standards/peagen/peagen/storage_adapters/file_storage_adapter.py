@@ -21,8 +21,8 @@ from typing import BinaryIO
 class FileStorageAdapter:
     """Write and read artefacts on the local disk."""
 
-    def __init__(self, root_dir: str | os.PathLike):
-        self._root = Path(root_dir).expanduser().resolve()
+    def __init__(self, output_dir: str | os.PathLike):
+        self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
 
     # ---------------------------------------------------------------- upload
