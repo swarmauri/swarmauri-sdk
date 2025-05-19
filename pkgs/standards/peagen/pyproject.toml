@@ -77,11 +77,11 @@ dev = [
 ]
 
 [project.entry-points."peagen.template_sets"]
-init-project       = "peagen.scaffolding.project"
-init-template-set  = "peagen.scaffolding.template_set"
-init-doe-spec      = "peagen.scaffolding.doe_spec"
-init-eval-pool     = "peagen.scaffolding.eval_pool"
-init-ci            = "peagen.scaffolding.ci"
+init-project       = "peagen.scaffold.project"
+init-template-set  = "peagen.scaffold.template_set"
+init-doe-spec      = "peagen.scaffold.doe_spec"
+init-eval-pool     = "peagen.scaffold.eval_pool"
+init-ci            = "peagen.scaffold.ci"
 
 [project.entry-points."peagen.storage_adapters"]
 minio   = "peagen.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
