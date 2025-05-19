@@ -1,116 +1,136 @@
 import logging
-from typing import Optional, Union, Literal, Any
 from logging.handlers import MemoryHandler
+from typing import Any, Dict, Literal, Optional, Union
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "MemoryLoggingHandler")
+@ObserveBase.register_model()
 class MemoryLoggingHandler(HandlerBase):
     """
     A handler that stores logging records in memory until a capacity is reached,
     then flushes to a target handler.
 
-    This handler buffers log records in memory and periodically flushes them to a
-    target handler. Flushing occurs when the buffer is full or when a record of
-    the specified flush level or higher is logged.
+    This handler buffers log records in memory and flushes them to a target
+    handler when the buffer is full or when a record with a level greater than
+    or equal to flushLevel is seen.
     """
 
     type: Literal["MemoryLoggingHandler"] = "MemoryLoggingHandler"
     capacity: int = 100  # Default buffer size
     flushLevel: int = logging.ERROR  # Default flush level
-    target: Optional[Union[str, FullUnion[HandlerBase]]] = (
-        None  # Target handler for flushing
-    )
+    target: Optional[Union[str, FullUnion[HandlerBase]]] = None
+
+    def __init__(self, **data: Any):
+        """
+        Initialize the MemoryLoggingHandler with the provided configuration.
+
+        Args:
+            **data: Configuration options for the handler.
+        """
+        super().__init__(**data)
+        self._memory_handler = None
+        self._target_handler = None
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a MemoryHandler with the specified capacity, flushLevel, and target handler.
+        Compiles a memory logging handler using the specified capacity,
+        flushLevel, and target handler.
 
         Returns:
-            logging.Handler: A configured MemoryHandler instance
+            logging.Handler: The configured memory handler.
 
         Raises:
-            ValueError: If no target handler is specified
+            ValueError: If no target handler is specified.
         """
-        if self.target is None:
-            raise ValueError("MemoryLoggingHandler requires a target handler")
+        if not self.target:
+            raise ValueError(
+                "MemoryLoggingHandler requires a target handler for flushing records"
+            )
 
-        # Get the target handler
-        target_handler = self._get_target_handler()
+        # Resolve the target handler
+        if isinstance(self.target, str):
+            # This is a placeholder for resolving handler by name
+            # In a real implementation, you would look up the handler by name
+            raise ValueError(
+                f"Target handler resolution by name '{self.target}' not implemented"
+            )
+        else:
+            self._target_handler = self.target.compile_handler()
 
-        # Create the memory handler
-        handler = MemoryHandler(
-            capacity=self.capacity, flushLevel=self.flushLevel, target=target_handler
+        # Create the memory handler with the target
+        self._memory_handler = MemoryHandler(
+            capacity=self.capacity,
+            flushLevel=self.flushLevel,
+            target=self._target_handler,
         )
+        self._memory_handler.setLevel(self.level)
 
-        # Set the log level
-        handler.setLevel(self.level)
-
-        # Configure the formatter
+        # Set formatter if provided
         if self.formatter:
             if isinstance(self.formatter, str):
-                handler.setFormatter(logging.Formatter(self.formatter))
+                self._memory_handler.setFormatter(logging.Formatter(self.formatter))
             else:
-                handler.setFormatter(self.formatter.compile_formatter())
+                self._memory_handler.setFormatter(self.formatter.compile_formatter())
         else:
             default_formatter = logging.Formatter(
                 "[%(name)s][%(levelname)s] %(message)s"
             )
-            handler.setFormatter(default_formatter)
+            self._memory_handler.setFormatter(default_formatter)
 
-        return handler
-
-    def _get_target_handler(self) -> logging.Handler:
-        """
-        Resolves and returns the target handler.
-
-        Returns:
-            logging.Handler: The target handler for flushing buffered records
-
-        Raises:
-            TypeError: If target is not a string or HandlerBase instance
-            ValueError: If target handler cannot be resolved
-        """
-        if isinstance(self.target, str):
-            # In a real implementation, this would resolve the handler by name
-            # from a registry or configuration system
-            raise ValueError(f"String target handlers not implemented: {self.target}")
-        elif isinstance(self.target, HandlerBase):
-            return self.target.compile_handler()
-        else:
-            raise TypeError(
-                f"Target must be a string or HandlerBase instance, got {type(self.target)}"
-            )
+        return self._memory_handler
 
     def flush(self) -> None:
         """
-        Forces a flush of the memory buffer to the target handler.
-
-        This method can be called externally to force the buffer to flush
-        regardless of capacity or log level.
+        Manually flush all buffered log records to the target handler.
         """
-        # This is a convenience method that would need to maintain a reference
-        # to the actual handler instance to work properly in a real implementation
-        pass
+        if self._memory_handler:
+            self._memory_handler.flush()
 
     def close(self) -> None:
         """
-        Flushes the buffer and closes both this handler and the target handler.
+        Close the memory handler and its target handler.
         """
-        # This is a convenience method that would need to maintain a reference
-        # to the actual handler instance to work properly in a real implementation
-        pass
+        if self._memory_handler:
+            self._memory_handler.close()
+        if self._target_handler:
+            self._target_handler.close()
 
-    def setFormatter(self, formatter: Any) -> None:
+    def setTarget(self, target_handler: logging.Handler) -> None:
         """
-        Sets the formatter for this handler.
+        Set a new target handler for this memory handler.
 
         Args:
-            formatter: The formatter to use
+            target_handler: The new target handler to use for flushing.
         """
-        # This is a convenience method that would need to maintain a reference
-        # to the actual handler instance to work properly in a real implementation
-        self.formatter = formatter
+        if self._memory_handler:
+            self._memory_handler.setTarget(target_handler)
+        self._target_handler = target_handler
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the handler configuration to a dictionary.
+
+        Returns:
+            Dict[str, Any]: Dictionary representation of the handler.
+        """
+        # Start with base attributes
+        result = {
+            "type": self.type,
+            "level": self.level,
+            "formatter": str(self.formatter) if self.formatter else None,
+        }
+
+        # Add MemoryLoggingHandler specific attributes
+        result.update(
+            {
+                "capacity": self.capacity,
+                "flushLevel": self.flushLevel,
+                "target": self.target.to_dict()
+                if hasattr(self.target, "to_dict")
+                else self.target,
+            }
+        )
+        return result

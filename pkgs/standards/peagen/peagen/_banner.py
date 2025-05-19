@@ -25,7 +25,7 @@ def _print_banner():
         f"{Fore.BLUE}{Style.BRIGHT}Package Name: {__package_name__}{Style.RESET_ALL}"
     )
     tagline = (
-        f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri scaffolding tool to simplify code gen."
+        f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri template-driven, dependency-aware render engine."
     )
     repo_info = (
         Fore.YELLOW

@@ -14,8 +14,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "aioredis", # this publisher needs to be pushed to its own standalone
+    "minio", # this storage adapter needs to be pushed to its own standalone
     "python-dotenv",
     "jinja2>=3.1.6",
+    "jsonpatch>=1.33",
     "inflect",
     "typer",
     "colorama",
@@ -75,3 +78,10 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+[project.entry-points."peagen.template_sets"]
+init-project       = "peagen.scaffolding.project"
+init-template-set  = "peagen.scaffolding.template_set"
+init-doe-spec      = "peagen.scaffolding.doe_spec"
+init-eval-pool     = "peagen.scaffolding.eval_pool"
+init-ci            = "peagen.scaffolding.ci"

@@ -25,11 +25,22 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import peagen.templates
+from importlib import import_module
+try:
+    # Py 3.10+
+    from importlib.metadata import entry_points
+except ImportError:
+    # Older versions
+    from importlib_metadata import entry_points
+
+
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
 from pydantic import ConfigDict, Field, FilePath, model_validator
+
+import peagen.templates
+
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
@@ -43,14 +54,20 @@ from ._graph import _topological_sort, _transitive_dependency_sort
 # Import helper modules from our package.
 from ._processing import _process_project_files
 
+
+
+
 colorama_init(autoreset=True)
 
 
 class Peagen(ComponentBase):
     projects_payload_path: str
     template_base_dir: Optional[str] = None
+    org: Optional[str] = None
+    # storage_adapter should implement your IStorageAdapter interface
+    storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)  # adjust type as needed
+    j2pt: Any = Field(default_factory=lambda: j2pt)
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
@@ -73,18 +90,41 @@ class Peagen(ComponentBase):
 
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
-        # Gather all physical directories that provide peagen.templates:
-        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs
+        # 1) Base filesystem discovery (as before)
+        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+
+        # 2) New: discover any installed entry-point packages
+        #    and add their package paths to namespace_dirs
+        try:
+            eps = entry_points().select(group="peagen.template_sets")
+        except AttributeError:
+            eps = entry_points().get("peagen.template_sets", [])
+        for ep in eps:
+            # ep.value is like "peagen_templset_vue:VueTemplateSet"
+            module_name = ep.value.split(":", 1)[0]
+            try:
+                pkg = import_module(module_name)
+                if hasattr(pkg, "__path__"):
+                    namespace_dirs.extend(str(p) for p in pkg.__path__)
+            except ImportError:
+                # optional: log a warning instead of failing
+                print(f"Could not import template_sets package '{module_name}' from entry-point {ep.name!r}")
+        
+        # 3) Then add your working-dir and any overrides (same as before)
         initial_dirs = []
         initial_dirs.extend(self.additional_package_dirs)
-        namespace_dirs.append(self.base_dir)  # include current working directory
+
+        namespace_dirs.append(self.base_dir)     # include project CWD :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
         initial_dirs.append(self.base_dir)
+
         if self.template_base_dir:
             namespace_dirs.append(self.template_base_dir)
             initial_dirs.append(self.template_base_dir)
+
+        # 4) Store them and wire up J2PT
         self.namespace_dirs = namespace_dirs
-        # Update the prompt template engine's templates directory list.
         self.j2pt.templates_dir = initial_dirs
+
         return self
 
     # ---------------------
@@ -326,11 +366,16 @@ class Peagen(ComponentBase):
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
-                template_dir=template_dir,  # Each record has its own TEMPLATE_SET
+                template_dir=template_dir,
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=start_idx,  # <-- use the original start_idx here
+                org=self.org,
+                storage_adapter=self.storage_adapter,
+                start_idx=start_idx,
             )
-            self.logger.info(f"Completed file generation workflow on '{project_name}'.")
+            self.logger.info(
+                f"Completed file generation workflow for org='{self.org}', "
+                f"project='{project_name}'."
+            )
 
         return (sorted_records, start_idx)

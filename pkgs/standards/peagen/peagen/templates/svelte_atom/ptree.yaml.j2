@@ -1,0 +1,197 @@
+# =====================================================
+# ptree.yaml.j2 for svelte-atom template_set (with static + dynamic requirements)
+# =====================================================
+
+{%- for PKG in PROJ.PKGS %}
+# -------------------------
+# Package: {{ PKG.NAME }}
+# -------------------------
+  {%- for MOD in PKG.MODULES %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/index.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/index.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Barrel export for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        - "./{{ MOD.NAME }}.d.ts"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.svelte.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.svelte"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Single‑file component for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Use TypeScript with full typing."
+        - "Comply with WCAG, ARIA, and accessibility best practices."
+        - "Use <style scoped> and CSS variables."
+        - "Add ARIA roles/labels in markup to satisfy a11y checks."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      STATES:
+        {%- for state in MOD.EXTRAS.STATES %}
+        - "{{ state }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.css"
+        - "./{{ MOD.NAME }}.spec.ts"
+        - "./{{ MOD.NAME }}.a11y.spec.ts"
+        - "./{{ MOD.NAME }}.visual.spec.ts"
+        - "./{{ MOD.NAME }}.stories.ts"
+        - "./{{ MOD.NAME }}.stories.mdx"
+        - "./index.ts"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.css.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.css"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Scoped CSS for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Use consistent file naming and `kebab-case` for CSS class selectors; `PascalCase` for component names."
+        - "Use <style scoped> and CSS variables."
+        - "Utilize media breakpoints for small mobile, large mobile, tablet, and desktop."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.d.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.d.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Props interface for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Use TypeScript with full typing."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./index.ts"
+        - "./{{ MOD.NAME }}.stories.ts"
+        - "./{{ MOD.NAME }}.stories.mdx"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.spec.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.spec.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Unit tests for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Must verify functionality."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.a11y.spec.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.a11y.spec.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Accessibility tests for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Must verify compliance with WCAG, ARIA, and accessibility best practices."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.visual.spec.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.visual.spec.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "Visual regression for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Must verify media breakpoints for small mobile, large mobile, tablet, and desktop."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.stories.ts.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.stories.ts"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "TS Storybook stories for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "Parameterize Storybook args for reusability."
+        - "Ensure Storybook metadata includes tags: ['autodocs']."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        - "./{{ MOD.NAME }}.d.ts"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.stories.mdx.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/components/{{ MOD.NAME }}/{{ MOD.NAME }}.stories.mdx"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "svelte-atom"
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "MDX Storybook docs for {{ MOD.NAME }}."
+      REQUIREMENTS:
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      DEPENDENCIES:
+        - "./{{ MOD.NAME }}.svelte"
+        - "./{{ MOD.NAME }}.d.ts"
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  {%- endfor %}
+
+{%- endfor %}
+# =====================================================
+# End of ptree payload
+# =====================================================

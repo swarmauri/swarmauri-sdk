@@ -75,7 +75,7 @@ def call_external_agent(
     # Log the prompt (truncated if configured)
     truncated_prompt = prompt[:140] + "..." if _config["truncate"] else prompt
     if logger:
-        logger.info(f"Sending prompt to external agent: \n\t{truncated_prompt}\n")
+        logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
 
     # Extract configuration from agent_env
     provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()

@@ -9,11 +9,13 @@ It supports:
 """
 
 import os
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+import io
 from pprint import pformat
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from swarmauri_prompt_j2prompttemplate import j2pt
+from colorama import Fore, Style
+from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 
 from ._config import _config
 from ._graph import _build_forward_graph
@@ -26,28 +28,42 @@ def _save_file(
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
+    storage_adapter: Optional[Any] = None,
+    org: Optional[str] = None,
 ) -> None:
     """
-    Saves the given content to the specified file path.
-    Creates the target directory if it does not exist.
+    Saves or uploads the given content.
+    - If storage_adapter is provided, upload under key = [org/]<filepath>.
+    - Otherwise write to local disk.
     """
     try:
-        directory = os.path.dirname(filepath)
-        os.makedirs(directory, exist_ok=True)
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(content)
-        if logger:
-            logger.info(f"({start_idx + 1}/{idx_len}) File saved: {filepath}")
+        if storage_adapter:
+            # remote upload
+            key = filepath
+            if org:
+                key = f"{org.rstrip('/')}/{filepath.lstrip('/')}"
+            bio = io.BytesIO(content.encode("utf-8"))
+            storage_adapter.upload(key, bio)
+            if logger:
+                logger.info(f"({start_idx+1}/{idx_len}) Uploaded: {key}")
+        else:
+            # local write
+            directory = os.path.dirname(filepath)
+            os.makedirs(directory, exist_ok=True)
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
+            if logger:
+                logger.info(f"({start_idx+1}/{idx_len}) File saved: {filepath}")
     except Exception as e:
         if logger:
-            logger.error(f"Failed to save file '{filepath}': {e}")
+            logger.error(f"Failed to save/upload '{filepath}': {e}")
 
 
 def _create_context(
     file_record: Dict[str, Any],
     project_global_attributes: Dict[str, Any],
     logger: Optional[Any] = None,
-):
+) -> Dict[str, Any]:
     """
     Builds the rendering context for a single file record.
     """
@@ -98,61 +114,67 @@ def _process_file(
     global_attrs: Dict[str, Any],
     template_dir: str,
     agent_env: Dict[str, Any],
-    j2_instance: Any,  # <-- new parameter
+    j2_instance: Any,
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
+    storage_adapter: Optional[Any] = None,
+    org: Optional[str] = None,
 ) -> bool:
     """
-    File: _processing.py
-    Function: _process_file
-
-    Now receives a Jinja2PromptTemplate instance (j2_instance) instead of using the singleton.
+    Render one file_record: either COPY or GENERATE.
+    Returns False if a hard error occurs and processing should stop.
     """
     context = _create_context(file_record, global_attrs, logger)
     final_filename = file_record.get("RENDERED_FILE_NAME")
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
-    if process_type == "COPY":
-        content = _render_copy_template(file_record, context, j2_instance, logger)
+    try:
+        if process_type == "COPY":
+            content = _render_copy_template(file_record, context, j2_instance, logger)
+        elif process_type == "GENERATE":
+            if _config["revise"] and "agent_prompt_template_file" not in agent_env:
+                agent_env["agent_prompt_template_file"] = "agent_revise.j2"
+            if _config["revise"]:
+                context["INJ"] = _config["revision_notes"]
+                prompt_name = agent_env["agent_prompt_template_file"]
+            else:
+                prompt_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
 
-    elif process_type == "GENERATE":
-        if _config["revise"] and "agent_prompt_template_file" not in agent_env:
-            agent_env["agent_prompt_template_file"] = "agent_revise.j2"
-        if _config["revise"]:
-            context["INJ"] = _config["revision_notes"]
-            agent_prompt_template_name = agent_env["agent_prompt_template_file"]
+            prompt_path = os.path.join(template_dir, prompt_name)
+            content = _render_generate_template(
+                file_record, context, prompt_path, j2_instance, agent_env, logger
+            )
         else:
-            agent_prompt_template_name = file_record.get(
-                "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
-            )
-
-        prompt_path = os.path.join(template_dir, agent_prompt_template_name)
-        content = _render_generate_template(
-            file_record, context, prompt_path, j2_instance, agent_env, logger
-        )
-
-    else:
+            if logger:
+                logger.warning(
+                    f"Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping."
+                )
+            return False
+    except Exception as e:
         if logger:
-            logger.warning(
-                f"Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping."
-            )
+            logger.error(f"Error rendering '{final_filename}': {e}")
         return False
 
     if content is None:
         if logger:
-            logger.warning(
-                f"No content generated for file '{final_filename}'; skipping save."
-            )
+            logger.warning(f"No content generated for '{final_filename}'; skipping.")
         return False
 
     if content == "":
         if logger:
-            logger.warning(
-                f"Blank content for file '{final_filename}'; saving empty file."
-            )
+            logger.warning(f"Blank content for file '{final_filename}'; saving empty file.")
 
-    _save_file(content, final_filename, logger, start_idx, idx_len)
+
+    _save_file(
+        content,
+        final_filename,
+        logger,
+        start_idx,
+        idx_len,
+        storage_adapter=storage_adapter,
+        org=org,
+    )
     return True
 
 
@@ -163,21 +185,18 @@ def _process_project_files(
     agent_env: Dict[str, Any],
     logger: Optional[Any] = None,
     start_idx: int = 0,
+    storage_adapter: Optional[Any] = None,
+    org: Optional[str] = None,
 ) -> None:
     """
-    File: _processing.py
-    Function: _process_project_files
-
-    Processes all file_records, creating a fresh J2PromptTemplate instance
-    for each record (or thread) via j2pt.copy(deep=False), then overriding
-    its templates_dir[0] to the file’s TEMPLATE_SET (or the project default).
+    Processes all file_records, creating fresh J2PromptTemplate instances
+    and either parallel- or sequentially executing _process_file.
     """
-
     idx_len = len(file_records) + start_idx
     workers = _config.get("workers", 0)
 
     if workers and workers > 0:
-        # Build dependency graph for parallel execution
+        # Parallel execution with dependency ordering
         forward_graph, in_degree, _ = _build_forward_graph(file_records)
         entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
         idx_map = {
@@ -190,9 +209,7 @@ def _process_project_files(
             idx = idx_map[fname]
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
-            # Create a fresh instance
             j2 = j2pt.copy(deep=False)
-            # Detach and override template directory
             j2.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
 
             _process_file(
@@ -202,19 +219,21 @@ def _process_project_files(
                 agent_env,
                 j2,
                 logger,
-                idx,
-                idx_len,
+                start_idx=idx,
+                idx_len=idx_len,
+                storage_adapter=storage_adapter,
+                org=org,
             )
 
         executor = ThreadPoolExecutor(max_workers=workers)
         futures = {}
         try:
-            # Launch roots
+            # Launch initial tasks
             for fname, deps in in_degree.items():
                 if deps == 0:
                     futures[executor.submit(_worker, fname)] = fname
 
-            # As tasks finish, schedule their dependents
+            # As tasks complete, schedule their dependents
             while futures:
                 done, _ = wait(futures, return_when=FIRST_COMPLETED)
                 for fut in done:
@@ -230,7 +249,7 @@ def _process_project_files(
             executor.shutdown(wait=True)
         return
 
-    # Sequential execution: one fresh instance per file
+    # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
@@ -244,8 +263,10 @@ def _process_project_files(
             agent_env,
             j2_instance,
             logger,
-            start_idx,
-            idx_len,
+            start_idx=start_idx,
+            idx_len=idx_len,
+            storage_adapter=storage_adapter,
+            org=org,
         ):
             break
         start_idx += 1

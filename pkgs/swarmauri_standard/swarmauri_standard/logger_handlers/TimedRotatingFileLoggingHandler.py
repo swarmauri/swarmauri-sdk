@@ -1,80 +1,74 @@
 import logging
-import os
-from typing import Literal, Optional, Union, Any
+from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
+from typing import Any, Literal, Optional, Union
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
-@ComponentBase.register_type(HandlerBase, "TimedRotatingFileLoggingHandler")
+@ObserveBase.register_model()
 class TimedRotatingFileLoggingHandler(HandlerBase):
     """
     A handler that extends FileHandler to rollover log files based on time intervals.
 
-    This handler rotates the log file at certain timed intervals using Python's built-in
-    TimedRotatingFileHandler. For example, you can set it to rotate logs daily at midnight,
-    hourly, or at any other time interval.
+    This handler uses TimedRotatingFileHandler from the standard logging module to
+    rotate log files at specified time intervals, such as daily at midnight.
 
     Attributes
     ----------
     type : Literal["TimedRotatingFileLoggingHandler"]
-        The type identifier for this handler.
-    level : int
-        The logging level for this handler.
-    formatter : Optional[Union[str, FullUnion[FormatterBase]]]
-        The formatter to use for formatting log records.
+        The type identifier for this handler
     filename : str
-        Path to the log file.
+        The path to the log file
     when : str
-        Specifies the type of interval. Can be one of 'S' (seconds), 'M' (minutes),
-        'H' (hours), 'D' (days), 'W0'-'W6' (weekday, 0=Monday), 'midnight'.
+        The type of interval - 'S' (seconds), 'M' (minutes), 'H' (hours),
+        'D' (days), 'W0'-'W6' (weekday, 0=Monday), 'midnight'
     interval : int
-        The interval value according to the when parameter.
+        The interval count (e.g., 1 for once per day with when='D')
     backupCount : int
-        The number of backup files to keep.
+        The number of backup files to keep
     encoding : Optional[str]
-        The encoding to use for the log file.
+        The encoding to use for the log file
     delay : bool
-        If True, the file will not be created until the first log record is emitted.
+        If True, the file opening is deferred until the first log record is emitted
     utc : bool
-        If True, times in UTC will be used; otherwise local time is used.
-    atTime : Optional[Any]
-        The time of day when rollover occurs, for 'midnight' or 'W0'-'W6'.
+        If True, times in UTC will be used; otherwise local time is used
+    atTime : Optional[datetime]
+        The time of day to rotate (only relevant for 'midnight' or 'W' whens)
+    level : int
+        The logging level for this handler
+    formatter : Optional[Union[str, FullUnion[FormatterBase]]]
+        The formatter to use for log messages
     """
 
     type: Literal["TimedRotatingFileLoggingHandler"] = "TimedRotatingFileLoggingHandler"
-    level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
-    filename: str = "app.log"
+    filename: str
     when: str = "midnight"
     interval: int = 1
     backupCount: int = 7
     encoding: Optional[str] = None
     delay: bool = False
     utc: bool = False
-    atTime: Optional[Any] = None
+    atTime: Optional[datetime] = None
+    level: int = logging.INFO
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a TimedRotatingFileHandler using the specified configuration.
+        Compiles a timed rotating file handler using the specified parameters.
 
-        This method creates a new TimedRotatingFileHandler instance with the configured
-        parameters, sets the appropriate logging level, and applies the formatter.
+        This method creates a TimedRotatingFileHandler with the configured
+        rotation settings, log level, and formatter.
 
         Returns
         -------
         logging.Handler
-            A configured TimedRotatingFileHandler instance.
+            The configured TimedRotatingFileHandler instance
         """
-        # Ensure the directory exists
-        log_dir = os.path.dirname(self.filename)
-        if log_dir and not os.path.exists(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
-
-        # Create the timed rotating file handler
+        # Create the timed rotating file handler with the specified parameters
         handler = TimedRotatingFileHandler(
             filename=self.filename,
             when=self.when,
@@ -86,21 +80,47 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
             atTime=self.atTime,
         )
 
-        # Set the logging level
+        # Set the log level
         handler.setLevel(self.level)
 
-        # Apply formatter
+        # Apply formatter if specified, otherwise use a default formatter
         if self.formatter:
             if isinstance(self.formatter, str):
+                # If formatter is a string, create a Formatter with the string as format
                 handler.setFormatter(logging.Formatter(self.formatter))
             else:
+                # If formatter is a FormatterBase instance, compile it
                 handler.setFormatter(self.formatter.compile_formatter())
         else:
-            # Use a default formatter if none is specified
+            # Use default formatter if none specified
             default_formatter = logging.Formatter(
-                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
-                "%Y-%m-%d %H:%M:%S",
+                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
             )
             handler.setFormatter(default_formatter)
 
         return handler
+
+    def get_handler_config(self) -> dict[str, Any]:
+        """
+        Returns the configuration of this handler as a dictionary.
+
+        This method is useful for serialization or debugging purposes.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary containing the handler's configuration
+        """
+        return {
+            "type": self.type,
+            "filename": self.filename,
+            "when": self.when,
+            "interval": self.interval,
+            "backupCount": self.backupCount,
+            "encoding": self.encoding,
+            "delay": self.delay,
+            "utc": self.utc,
+            "atTime": self.atTime,
+            "level": self.level,
+            "formatter": self.formatter,
+        }
