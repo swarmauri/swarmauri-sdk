@@ -1,11 +1,11 @@
 [project]
-name = "peagen"
-version = "0.1.2.dev10"
-description = "Swarmauri's Peagan - An AI-driven contextual, dependency-based scaffolding tool for rapid content generation."
+name = "peagen_templset_vue"
+version = "0.1.0.dev1"
+description = "A Swarmauri Peagen Template Set for Vue Atom"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen/peagen"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen_templset_vue"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -13,27 +13,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = [
-    "aioredis", # this publisher needs to be pushed to its own standalone
-    "minio", # this storage adapter needs to be pushed to its own standalone
-    "python-dotenv",
-    "jinja2>=3.1.6",
-    "jsonpatch>=1.33",
-    "inflect",
-    "typer",
-    "colorama",
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "swarmauri",
-    "swarmauri_prompt_j2prompttemplate",
+
+[tool.poetry]
+packages = [
+  { include = "peagen_templset_vue" }
 ]
 
-
-[tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -55,11 +40,6 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-# [project.entry-points.'swarmauri.workflows']
-# Ptree_Dag = "Ptree_Dag:PtreeDag"
-
-[project.scripts]
-peagen = "peagen.cli:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -79,9 +59,5 @@ dev = [
     "pytest-benchmark>=4.0.0",
 ]
 
-[project.entry-points."peagen.template_sets"]
-init-project       = "peagen.scaffolding.project"
-init-template-set  = "peagen.scaffolding.template_set"
-init-doe-spec      = "peagen.scaffolding.doe_spec"
-init-eval-pool     = "peagen.scaffolding.eval_pool"
-init-ci            = "peagen.scaffolding.ci"
+[tool.poetry.plugins."peagen.template_sets"]
+peagen_templset_vue = "peagen_templset_vue.templates.peagen_templset_vue"
