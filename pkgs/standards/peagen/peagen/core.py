@@ -49,9 +49,6 @@ from ._graph import _topological_sort, _transitive_dependency_sort
 # Import helper modules from our package.
 from ._processing import _process_project_files
 
-
-
-
 colorama_init(autoreset=True)
 
 
@@ -69,6 +66,15 @@ class Peagen(ComponentBase):
     additional_package_dirs: List[Path] = Field(
         exclude=True, default_factory=list
     )  # Changed from default=list
+
+    # --- NEW: optional temporary workspace directory --------------------
+    workspace_root: Optional[Path] = Field(
+        default=None,
+        exclude=True,
+        description="If set, Peagen searches this directory first for generated artifacts.",
+    )
+    # --------------------------------------------------------------------
+
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
@@ -83,12 +89,16 @@ class Peagen(ComponentBase):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     version: str = "0.1.0"
 
+    # ---------------------
+    # Environment setup
+    # ---------------------
+
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
         # 1) Base filesystem discovery (built-in templates)
         namespace_dirs = list(peagen.templates.__path__)
 
-        # 2) Discover installed template‐set plugins via the central registry
+        # 2) Discover installed template-set plugins via the central registry
         from peagen.plugin_registry import registry
 
         for plugin in registry.get("template_sets", {}).values():
@@ -96,7 +106,7 @@ class Peagen(ComponentBase):
                 # plugin is a module: use it directly
                 pkg = plugin
             else:
-                # plugin is a class: import its top‐level package
+                # plugin is a class: import its top-level package
                 pkg_name = plugin.__module__.split(".", 1)[0]
                 pkg = import_module(pkg_name)
 
@@ -106,8 +116,14 @@ class Peagen(ComponentBase):
                     namespace_dirs.append(str(p))
 
         # 3) Add working dir & any overrides
-        initial_dirs = []
+        initial_dirs: List[str] = []
         initial_dirs.extend(self.additional_package_dirs)
+
+        # --- NEW: put workspace_root at the very front -------------------
+        if self.workspace_root is not None:
+            namespace_dirs.insert(0, os.fspath(self.workspace_root))
+            initial_dirs.insert(0, os.fspath(self.workspace_root))
+        # -----------------------------------------------------------------
 
         namespace_dirs.append(self.base_dir)
         initial_dirs.append(self.base_dir)
@@ -199,6 +215,9 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
+    # -------------------------------------------------------------------
+    # Remaining methods (process_single_project, etc.) are unchanged.
+    # -------------------------------------------------------------------
 
     def process_single_project(
         self,
@@ -358,14 +377,23 @@ class Peagen(ComponentBase):
         # PHASE 5: PROCESS THE SORTED FILES (propagate original start_idx)
         # ------------------------------------------------------
         if not self.dry_run and sorted_records:
+            # ------------------------------------------------------
+            # Pass workspace_root into every file save/upload call
+            # ------------------------------------------------------
+            from pathlib import Path
+
+            # choose workspace_root or fallback to base_dir
+            root = self.workspace_root or Path(self.base_dir)
+
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
                 template_dir=template_dir,
                 agent_env=self.agent_env,
                 logger=self.logger,
-                org=self.org,
                 storage_adapter=self.storage_adapter,
+                org=self.org,
+                workspace_root=root,            # ← new kwarg
                 start_idx=start_idx,
             )
             self.logger.info(

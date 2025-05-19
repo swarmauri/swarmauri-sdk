@@ -17,6 +17,9 @@ from peagen._api_key import _resolve_api_key
 from peagen._gitops import _clone_swarmauri_repo
 
 from peagen.plugin_registry import registry  # central plugin registry
+from peagen.utils import temp_workspace
+
+
 
 process_app = typer.Typer(help="Render / generate one or all projects in a YAML payload.")
 
@@ -138,39 +141,42 @@ def process_cmd(
     if agent_prompt_template_file:
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
-    pea = Peagen(
-        projects_payload_path=str(projects_payload),
-        template_base_dir=str(template_base_dir) if template_base_dir else None,
-        additional_package_dirs=extra_dirs,
-        agent_env=agent_env,
-        storage_adapter=storage_adapter,
-        org=org,
-    )
+    with temp_workspace() as ws:
+        print(ws)
+        pea = Peagen(
+            projects_payload_path=str(projects_payload),
+            template_base_dir=str(template_base_dir) if template_base_dir else None,
+            additional_package_dirs=extra_dirs,
+            agent_env=agent_env,
+            storage_adapter=storage_adapter,
+            org=org,
+            workspace_root=ws, 
+        )
 
-    # ── LOG LEVEL ───────────────────────────────────────────────────────────
-    if verbose >= 3:
-        pea.logger.set_level(10)  # DEBUG
-    elif verbose == 2:
-        pea.logger.set_level(20)  # INFO
-    elif verbose == 1:
-        pea.logger.set_level(30)  # NOTICE
+        # ── LOG LEVEL ───────────────────────────────────────────────────────────
+        if verbose >= 3:
+            pea.logger.set_level(10)  # DEBUG
+        elif verbose == 2:
+            pea.logger.set_level(20)  # INFO
+        elif verbose == 1:
+            pea.logger.set_level(30)  # NOTICE
 
-    # ── DISPATCH ────────────────────────────────────────────────────────────
-    start = time.time()
-    try:
-        if project_name:
-            _process_single(pea, project_name, start_idx, start_file, transitive_only=transitive)
-        else:
-            pea.process_all_projects()
-    except KeyboardInterrupt:
-        typer.echo("\nInterrupted.  Bye.")
-        raise typer.Exit(1)
+        # ── DISPATCH ────────────────────────────────────────────────────────────
+        start = time.time()
+        try:
+            if project_name:
+                _process_single(pea, project_name, start_idx, start_file, transitive_only=transitive)
+            else:
+                pea.process_all_projects()
+        except KeyboardInterrupt:
+            typer.echo("\nInterrupted.  Bye.")
+            raise typer.Exit(1)
 
-    dur = time.time() - start
-    pea.logger.info(f"{Fore.GREEN}Done in {dur:.1f}s{Fore.RESET}")
+        dur = time.time() - start
+        pea.logger.info(f"{Fore.GREEN}Done in {dur:.1f}s{Fore.RESET}")
 
-    if bus:
-        bus.publish(channel, {"type": "process.done", "seconds": dur})
+        if bus:
+            bus.publish(channel, {"type": "process.done", "seconds": dur})
 
 
 def _process_single(
