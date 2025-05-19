@@ -249,6 +249,7 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
+        j2 = j2pt.copy(deep=False)
         j2_instance = J2PromptTemplate()
         j2_instance.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
 
