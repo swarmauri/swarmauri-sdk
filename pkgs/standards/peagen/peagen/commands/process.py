@@ -170,7 +170,7 @@ def process_cmd(
                 "type": "git",
                 "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
                 "ref": "mono/dev" if swarmauri_dev else "master",
-                "dest": "third_party/swarmauri_sdk",
+                "dest": "swarmauri_sdk",
             }
         )
 

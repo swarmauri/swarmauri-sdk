@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator, FilePath
 
 import peagen.plugin_registry
 import peagen.templates
