@@ -30,7 +30,7 @@ import peagen.plugin_registry
 import peagen.templates
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.loggers.LoggerBase import LoggerBase
+from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
 
