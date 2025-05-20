@@ -153,6 +153,8 @@ def process_cmd(
         raise typer.Exit(1)
 
     extra_store = adapters.get(adapter_name, {}) or {}
+    if 'bucket' not in extra_store:
+        extra_store['bucket'] = org
     storage_adapter = StoreCls(**extra_store)
 
     # ── PREPARE ENV & INSTANTIATE Peagen ────────────────────────────────────
