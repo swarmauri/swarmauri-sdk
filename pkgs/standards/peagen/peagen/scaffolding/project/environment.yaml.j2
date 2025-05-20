@@ -1,9 +1,0 @@
-name: {{ PROJECT_ROOT }}
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11
-  - uv
-  - pip:
-      - peagen=={{ peagen_version }}
-      - peagen-template-{{ template_set | replace('_', '-') }}>=0.1.0

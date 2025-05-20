@@ -14,7 +14,9 @@ from pprint import pformat
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from swarmauri_prompt_j2prompttemplate import j2pt
+from colorama import Fore, Style
+from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
+from pathlib import Path
 
 from ._config import _config
 from ._graph import _build_forward_graph
@@ -23,39 +25,37 @@ from ._rendering import _render_copy_template, _render_generate_template
 
 def _save_file(
     content: str,
-    filepath: str,
-    logger: Optional[Any] = None,
+    filepath: str,                    # still the *logical* project path
+    logger=None,
     start_idx: int = 0,
     idx_len: int = 1,
-    storage_adapter: Optional[Any] = None,
-    org: Optional[str] = None,
+    *,
+    storage_adapter=None,
+    org: str | None = None,
+    workspace_root: Path,             # NEW, injected by Peagen
 ) -> None:
     """
-    Saves or uploads the given content.
-    - If storage_adapter is provided, upload under key = [org/]<filepath>.
-    - Otherwise write to local disk.
+    1. Always write to <workspace_root>/<filepath> (local, fast, zero egress).
+    2. Then, *optionally* upload the same bytes to the configured adapter.
     """
-    try:
-        if storage_adapter:
-            # remote upload
-            key = filepath
-            if org:
-                key = f"{org.rstrip('/')}/{filepath.lstrip('/')}"
-            bio = io.BytesIO(content.encode("utf-8"))
-            storage_adapter.upload(key, bio)
-            if logger:
-                logger.info(f"({start_idx + 1}/{idx_len}) Uploaded: {key}")
-        else:
-            # local write
-            directory = os.path.dirname(filepath)
-            os.makedirs(directory, exist_ok=True)
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(content)
-            if logger:
-                logger.info(f"({start_idx + 1}/{idx_len}) File saved: {filepath}")
-    except Exception as e:
+    # ---- build full on-disk path ------------------------------------------------
+    full_path = workspace_root / filepath
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # ---- local write -----------------------------------------------------------
+    full_path.write_text(content, encoding="utf-8")
+    if logger:
+        fname = "peagen_"+str(full_path).split('peagen_')[1]
+        logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
+
+    # ---- optional remote upload ------------------------------------------------
+    if storage_adapter:
+        key = f"{org.rstrip('/')}/{filepath.lstrip('/')}" if org else filepath
+        key = os.path.normpath(key)
+        with full_path.open("rb") as fsrc:
+            storage_adapter.upload(key, fsrc)
         if logger:
-            logger.error(f"Failed to save/upload '{filepath}': {e}")
+            logger.info(f"({start_idx+1}/{idx_len}) Uploaded → {key}")
 
 
 def _create_context(
@@ -114,6 +114,8 @@ def _process_file(
     template_dir: str,
     agent_env: Dict[str, Any],
     j2_instance: Any,
+    *,
+    workspace_root: Path,
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
@@ -176,6 +178,7 @@ def _process_file(
         idx_len,
         storage_adapter=storage_adapter,
         org=org,
+        workspace_root=workspace_root,
     )
     return True
 
@@ -186,6 +189,8 @@ def _process_project_files(
     template_dir: str,
     agent_env: Dict[str, Any],
     logger: Optional[Any] = None,
+    *,
+    workspace_root: Path,
     start_idx: int = 0,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
@@ -212,20 +217,23 @@ def _process_project_files(
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
             j2 = j2pt.copy(deep=False)
-            j2.templates_dir = [str(new_dir)] + list(j2.templates_dir[1:])
-
-            _process_file(
-                rec,
-                global_attrs,
-                template_dir,
-                agent_env,
-                j2,
-                logger,
-                start_idx=idx,
-                idx_len=idx_len,
-                storage_adapter=storage_adapter,
-                org=org,
-            )
+            j2.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+            try:
+                _process_file(
+                    rec,
+                    global_attrs,
+                    template_dir,
+                    agent_env,
+                    j2,
+                    logger=logger,
+                    start_idx=idx,
+                    idx_len=idx_len,
+                    storage_adapter=storage_adapter,
+                    org=org,
+                    workspace_root=workspace_root,   # ← pass it here too
+                )
+            except Exception as e:
+                logger.warning(f"{e}")
 
         executor = ThreadPoolExecutor(max_workers=workers)
         futures = {}
@@ -254,9 +262,8 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-
-        j2_instance = j2pt()
-        j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
+        j2_instance = J2PromptTemplate()
+        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
 
         if not _process_file(
             rec,
@@ -269,6 +276,7 @@ def _process_project_files(
             idx_len=idx_len,
             storage_adapter=storage_adapter,
             org=org,
+            workspace_root=workspace_root,   # ← and here
         ):
             break
         start_idx += 1

@@ -25,15 +25,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from importlib import import_module
-
-try:
-    # Py 3.10+
-    from importlib.metadata import entry_points
-except ImportError:
-    # Older versions
-    from importlib_metadata import entry_points
-
+import peagen.plugin_registry
 
 import yaml
 from colorama import Fore, Style
@@ -41,10 +33,12 @@ from colorama import init as colorama_init
 from pydantic import ConfigDict, Field, FilePath, model_validator
 
 import peagen.templates
+from importlib import import_module
+from types import ModuleType
 
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.loggers.LoggerBase import LoggerBase
+# from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 
 from swarmauri_standard.loggers.Logger import Logger
@@ -54,7 +48,6 @@ from ._graph import _topological_sort, _transitive_dependency_sort
 
 # Import helper modules from our package.
 from ._processing import _process_project_files
-
 
 colorama_init(autoreset=True)
 
@@ -73,13 +66,22 @@ class Peagen(ComponentBase):
     additional_package_dirs: List[Path] = Field(
         exclude=True, default_factory=list
     )  # Changed from default=list
+
+    # --- NEW: optional temporary workspace directory --------------------
+    workspace_root: Optional[Path] = Field(
+        default=None,
+        exclude=True,
+        description="If set, Peagen searches this directory first for generated artifacts.",
+    )
+    # --------------------------------------------------------------------
+
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
 
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: SubclassUnion[LoggerBase] = Logger(
+    logger: SubclassUnion["LoggerBase"] = Logger(
         name=Fore.GREEN + __logger_name__ + Style.RESET_ALL
     )
     dry_run: bool = False
@@ -87,46 +89,50 @@ class Peagen(ComponentBase):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     version: str = "0.1.0"
 
+    # ---------------------
+    # Environment setup
+    # ---------------------
+
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
-        # 1) Base filesystem discovery (as before)
-        namespace_dirs = list(
-            peagen.templates.__path__
-        )  # installed template dirs :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+        # 1) Base filesystem discovery (built-in templates)
+        namespace_dirs = list(peagen.templates.__path__)
 
-        # 2) New: discover any installed entry-point packages
-        #    and add their package paths to namespace_dirs
-        try:
-            eps = entry_points().select(group="peagen.template_sets")
-        except AttributeError:
-            eps = entry_points().get("peagen.template_sets", [])
-        for ep in eps:
-            # ep.value is like "peagen_templset_vue:VueTemplateSet"
-            module_name = ep.value.split(":", 1)[0]
-            try:
-                pkg = import_module(module_name)
-                if hasattr(pkg, "__path__"):
-                    namespace_dirs.extend(str(p) for p in pkg.__path__)
-            except ImportError:
-                # optional: log a warning instead of failing
-                print(
-                    f"Could not import template_sets package '{module_name}' from entry-point {ep.name!r}"
-                )
+        # 2) Discover installed template-set plugins via the central registry
+        from peagen.plugin_registry import registry
 
-        # 3) Then add your working-dir and any overrides (same as before)
-        initial_dirs = []
+        for plugin in registry.get("template_sets", {}).values():
+            if isinstance(plugin, ModuleType):
+                # plugin is a module: use it directly
+                pkg = plugin
+            else:
+                # plugin is a class: import its top-level package
+                pkg_name = plugin.__module__.split(".", 1)[0]
+                pkg = import_module(pkg_name)
+
+            # If this package exposes a __path__, treat it as a template dir
+            if hasattr(pkg, "__path__"):
+                for p in pkg.__path__:
+                    namespace_dirs.append(str(p))
+
+        # 3) Add working dir & any overrides
+        initial_dirs: List[str] = []
         initial_dirs.extend(self.additional_package_dirs)
 
-        namespace_dirs.append(
-            self.base_dir
-        )  # include project CWD :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+        # --- NEW: put workspace_root at the very front -------------------
+        if self.workspace_root is not None:
+            namespace_dirs.insert(0, os.fspath(self.workspace_root))
+            initial_dirs.insert(0, os.fspath(self.workspace_root))
+        # -----------------------------------------------------------------
+
+        namespace_dirs.append(self.base_dir)
         initial_dirs.append(self.base_dir)
 
         if self.template_base_dir:
             namespace_dirs.append(self.template_base_dir)
             initial_dirs.append(self.template_base_dir)
 
-        # 4) Store them and wire up J2PT
+        # 4) Wire up J2PT
         self.namespace_dirs = namespace_dirs
         self.j2pt.templates_dir = initial_dirs
 
@@ -145,7 +151,7 @@ class Peagen(ComponentBase):
         dirs = [os.path.normpath(_d) for _d in dirs]
         self.j2pt.templates_dir = dirs
 
-    def get_template_dir_any(self, template_set: str) -> Path:
+    def locate_template_set(self, template_set: str) -> Path:
         """
         Searches each directory in `self.namespace_dirs` for a subfolder
         named `template_set`. Returns the first match as a *Path*, or raises a ValueError.
@@ -209,6 +215,10 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
+    # -------------------------------------------------------------------
+    # Remaining methods (process_single_project, etc.) are unchanged.
+    # -------------------------------------------------------------------
+
     def process_single_project(
         self,
         project: Dict[str, Any],
@@ -244,7 +254,7 @@ class Peagen(ComponentBase):
             )
 
             try:
-                template_dir = self.get_template_dir_any(pkg_template_set)
+                template_dir = self.locate_template_set(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
                 self.logger.error(
@@ -367,14 +377,23 @@ class Peagen(ComponentBase):
         # PHASE 5: PROCESS THE SORTED FILES (propagate original start_idx)
         # ------------------------------------------------------
         if not self.dry_run and sorted_records:
+            # ------------------------------------------------------
+            # Pass workspace_root into every file save/upload call
+            # ------------------------------------------------------
+            from pathlib import Path
+
+            # choose workspace_root or fallback to base_dir
+            root = self.workspace_root or Path(self.base_dir)
+
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
                 template_dir=template_dir,
                 agent_env=self.agent_env,
                 logger=self.logger,
-                org=self.org,
                 storage_adapter=self.storage_adapter,
+                org=self.org,
+                workspace_root=root,            # ← new kwarg
                 start_idx=start_idx,
             )
             self.logger.info(

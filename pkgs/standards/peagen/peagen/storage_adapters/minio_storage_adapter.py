@@ -9,6 +9,7 @@ Install dependency:
 """
 
 from __future__ import annotations
+from pydantic import SecretStr
 
 import io
 import os
@@ -30,8 +31,8 @@ class MinioStorageAdapter:
     def __init__(
         self,
         endpoint: str,
-        access_key: str,
-        secret_key: str,
+        access_key: SecretStr,
+        secret_key: SecretStr,
         bucket: str,
         *,
         secure: bool = True,

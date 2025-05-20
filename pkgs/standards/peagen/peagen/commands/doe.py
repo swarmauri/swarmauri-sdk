@@ -3,8 +3,8 @@
 peagen experiment – expand a DOE spec + base template into a project-payloads bundle.
 
 Wire in cli.py with:
-    from peagen.commands.doe import experiment_app
-    app.add_typer(experiment_app, name="experiment")
+    from peagen.commands.doe import doe_app
+    app.add_typer(doe_app, name="experiment")
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from typing import Dict, List, Optional
 import typer
 import yaml
 
-experiment_app = typer.Typer(help="Generate project-payloads.yaml from a DOE spec.")
+doe_app = typer.Typer(help="Generate project-payloads.yaml from a DOE spec.")
 
 # --------------------------------------------------------------------------- helpers
 LLM_FALLBACK_KEYS = {
@@ -89,7 +89,7 @@ def _print_design_matrix(
 
 
 # --------------------------------------------------------------------------- CLI
-@experiment_app.command("gen")
+@doe_app.command("gen")
 def experiment_generate(
     spec: Path = typer.Argument(..., exists=True, help="Path to DOE spec (.yml)"),
     template: Path = typer.Argument(..., exists=True, help="Base project template"),
