@@ -28,11 +28,8 @@ keywords = [
     "swarmauri"
 ]
 dependencies = [
-    "swarmauri_core = '*'",
-    "swarmauri_base = '*'",
-    "pydantic = '*'",
-    "ast = '*'",
-    "logging = '*'"
+    "swarmauri_core",
+    "swarmauri_base",
 ]
 
 [tool.uv.sources]
