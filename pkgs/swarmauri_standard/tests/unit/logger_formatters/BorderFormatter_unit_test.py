@@ -241,8 +241,5 @@ def test_model_post_init() -> None:
     """Test that model_post_init properly sets up the message format."""
     formatter = BorderFormatter(format="%(levelname)s: %(message)s")
 
-    # Manually call model_post_init as it would be called during initialization
-    formatter.model_post_init()
-
     # Check that message_format is set to the original format
     assert formatter.message_format == "%(levelname)s: %(message)s"
