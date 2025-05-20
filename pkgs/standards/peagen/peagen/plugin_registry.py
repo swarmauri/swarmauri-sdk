@@ -15,6 +15,7 @@ GROUPS = {
     "storage_adapters": ("peagen.storage_adapters", object),
     "publishers":       ("peagen.publishers",       object),
     "indexers":         ("peagen.indexers",         object),
+    "result_backends":  ("peagen.result_backends",  object),
     "evaluators":       ("peagen.evaluators",       object),
 }
 
