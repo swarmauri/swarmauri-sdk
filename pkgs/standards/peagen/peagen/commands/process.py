@@ -11,10 +11,13 @@ from peagen._api_key import _resolve_api_key
 from peagen._source_packages import materialise_packages #REPLACES: from peagen._gitops import _clone_swarmauri_repo
 from peagen._config import _config
 
-from peagen.cli_common import PathOrURI, common_peagen_options, load_peagen_toml
+from peagen.cli_common import ( PathOrURI, 
+    common_peagen_options, 
+    load_peagen_toml, 
+    temp_workspace
+    )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
-from peagen.utils import temp_workspace
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."

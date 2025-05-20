@@ -8,11 +8,33 @@ from __future__ import annotations
 
 import os
 import pathlib
+import tempfile
+from contextlib import contextmanager
+import shutil
 import types
 from typing import Any, Callable
 
 import click
 import typer
+import logging
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 0. temp_workspace
+# ─────────────────────────────────────────────────────────────────────────────
+@contextmanager
+def temp_workspace(prefix: str = "peagen_"):
+    """Yield a temporary directory that is removed on exit."""
+    dirpath = pathlib.Path(tempfile.mkdtemp(prefix=prefix))
+    try:
+        yield dirpath          # ←  every path you write will be under here
+    finally:
+        try:
+            shutil.rmtree(dirpath)
+        except FileNotFoundError:
+            # Already removed – fine.
+            pass
+        except OSError as exc:
+            logging.warning(f"Workspace cleanup failed: {exc}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
