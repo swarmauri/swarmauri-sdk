@@ -62,12 +62,6 @@ def test_json_log_formatter_format_basic():
     record.getMessage.return_value = "Test message"
     record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
     record.exc_info = None
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-    }
 
     # Format the record
     result = formatter.format(record)
@@ -95,12 +89,6 @@ def test_json_log_formatter_without_timestamp():
     record.getMessage.return_value = "Test message"
     record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
     record.exc_info = None
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-    }
 
     # Format the record
     result = formatter.format(record)
@@ -129,13 +117,6 @@ def test_json_log_formatter_with_exception():
     record.exc_info = (ValueError, ValueError("Test exception"), None)
     formatter.formatException = MagicMock(return_value="Traceback: Test exception")
 
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-    }
-
     # Format the record
     result = formatter.format(record)
 
@@ -162,13 +143,6 @@ def test_json_log_formatter_without_exception():
 
     # Mock the exception info
     record.exc_info = (ValueError, ValueError("Test exception"), None)
-
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-    }
 
     # Format the record
     result = formatter.format(record)
@@ -197,15 +171,6 @@ def test_json_log_formatter_with_custom_fields():
     # Add custom fields
     record.custom_field = "custom_value"
     record.another_field = 123
-
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-        "custom_field": record.custom_field,
-        "another_field": record.another_field,
-    }
 
     # Format the record
     result = formatter.format(record)
@@ -244,14 +209,6 @@ def test_json_log_formatter_with_non_serializable_fields():
     # Add non-serializable field
     record.non_serializable_field = non_serializable
 
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": record.exc_info,
-        "non_serializable_field": record.non_serializable_field,
-    }
-
     # Format the record
     result = formatter.format(record)
 
@@ -274,6 +231,7 @@ def test_json_log_formatter_serialization_failure():
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
+    record.exc_info = None
 
     # Mock json.dumps to raise an exception
     with patch(
@@ -301,19 +259,13 @@ def test_json_log_formatter_with_different_date_formats(date_format):
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
+    record.exc_info = None
 
     # Use a fixed timestamp for predictable testing
     fixed_datetime = datetime.datetime(
         2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc
     )
     record.created = fixed_datetime.timestamp()
-
-    record.__dict__ = {
-        "levelname": record.levelname,
-        "name": record.name,
-        "created": record.created,
-        "exc_info": None,
-    }
 
     # Format the record
     result = formatter.format(record)

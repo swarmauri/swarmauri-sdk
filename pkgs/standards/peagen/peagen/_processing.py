@@ -18,8 +18,8 @@ from colorama import Fore, Style
 from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 
 from ._config import _config
-from ._rendering import _render_copy_template, _render_generate_template
 from ._graph import _build_forward_graph
+from ._rendering import _render_copy_template, _render_generate_template
 
 
 def _save_file(
@@ -255,8 +255,8 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-
-        j2_instance = j2pt.model_copy(deep=False)
+        
+        j2_instance = j2pt()
         j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
 
         if not _process_file(
