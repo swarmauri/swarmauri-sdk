@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import numpy as np
 import pytest
@@ -45,15 +45,11 @@ def mock_vector():
 @pytest.fixture
 def mock_matrix():
     """
-    Fixture that provides a mock IMatrix.
-
-    Returns
-    -------
-    MagicMock
-        A mock object that simulates an IMatrix.
+    Fixture providing a mock IMatrix for testing.
     """
     mock = MagicMock(spec=IMatrix)
-    mock.values = [[1.0, -2.0], [3.0, -4.0]]
+    mock.values = [[1, 2], [3, 4]]
+    mock.to_array = Mock(return_value=np.array([[1, 2], [3, 4]]))
     return mock
 
 

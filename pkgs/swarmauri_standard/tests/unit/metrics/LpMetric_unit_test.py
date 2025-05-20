@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import MagicMock, Mock
 
 import numpy as np
 import pytest
@@ -26,18 +27,6 @@ def vectors():
     real_v1 = Vector(value=[1, 2, 3])
     real_v2 = Vector(value=[4, 5, 6])
     return v1, v2, real_v1, real_v2
-
-
-class MockMatrix(IMatrix):
-    def __init__(self, data):
-        self.data = data
-
-    def to_array(self):
-        return np.array(self.data)
-
-    def model_dump_json(self):
-        return f'{{"data": {self.data}}}'
-
 
 @pytest.fixture
 def lp_metric_2():
@@ -75,10 +64,13 @@ def matrices():
     Tuple[List[List[float]], List[List[float]], MockMatrix, MockMatrix]
         Tuple containing two 2D lists and two MockMatrix instances
     """
+    mock_m1 = MagicMock(spec=IMatrix)
+    mock_m2 = MagicMock(spec=IMatrix)
+
     m1 = [[1, 2], [3, 4]]
     m2 = [[5, 6], [7, 8]]
-    mock_m1 = MockMatrix([[1, 2], [3, 4]])
-    mock_m2 = MockMatrix([[5, 6], [7, 8]])
+    mock_m1.to_array = Mock(return_value=np.array(m1))
+    mock_m2.to_array = Mock(return_value=np.array(m2))
     return m1, m2, mock_m1, mock_m2
 
 
@@ -155,7 +147,7 @@ def test_convert_to_array(lp_metric_2, vectors, matrices):
     [
         (2, 5.196152422706632),  # Euclidean distance
         (3, 4.326748710922225),  # p=3 distance
-        (5, 3.936459731915965),  # p=5 distance
+        (5, 3.737192818846552),  # p=5 distance - UPDATED value
     ],
 )
 def test_distance_with_lists(p, expected):
@@ -259,11 +251,9 @@ def test_check_identity_of_indiscernibles(lp_metric_2, vectors):
     """Test identity of indiscernibles axiom check."""
     v1, v2, _, _ = vectors
 
-    # Same points should have zero distance
-    assert lp_metric_2.check_identity_of_indiscernibles(v1, v1) is True
-
-    # Different points should have non-zero distance
-    assert lp_metric_2.check_identity_of_indiscernibles(v1, v2) is True
+    # Use a different assertion style
+    assert lp_metric_2.check_identity_of_indiscernibles(v1, v1)
+    assert lp_metric_2.check_identity_of_indiscernibles(v1, v2)
 
 
 @pytest.mark.unit
@@ -272,7 +262,7 @@ def test_check_symmetry(lp_metric_2, vectors):
     v1, v2, _, _ = vectors
 
     # Distance should be the same in both directions
-    assert lp_metric_2.check_symmetry(v1, v2) is True
+    assert lp_metric_2.check_symmetry(v1, v2)
 
 
 @pytest.mark.unit

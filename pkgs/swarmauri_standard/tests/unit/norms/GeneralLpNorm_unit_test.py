@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import MagicMock, Mock
 
 import numpy as np
 import pytest
@@ -23,17 +24,6 @@ class MockVector(IVector):
         return len(self.data)
 
 
-class MockMatrix(IMatrix):
-    def __init__(self, data):
-        self.data = np.array(data)
-
-    def to_array(self):
-        return self.data
-
-    def shape(self):
-        return self.data.shape
-
-
 # Fixtures
 @pytest.fixture
 def simple_vector():
@@ -47,7 +37,10 @@ def mock_vector():
 
 @pytest.fixture
 def mock_matrix():
-    return MockMatrix([[1, 2], [3, 4]])
+    """Fixture providing a mock matrix for testing."""
+    mock = MagicMock(spec=IMatrix)
+    mock.to_array = Mock(return_value=np.array([[1, 2], [3, 4]]))
+    return mock
 
 
 @pytest.fixture

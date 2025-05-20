@@ -58,11 +58,10 @@ def mock_matrix() -> IMatrix:
 
 
 @pytest.mark.unit
-def test_l2_norm_attributes():
+def test_l2_norm_attributes(l2_norm):
     """Test the basic attributes of the L2EuclideanNorm class."""
-    norm = L2EuclideanNorm()
-    assert norm.type == "L2EuclideanNorm"
-    assert norm.resource == ResourceTypes.NORM.value
+    assert l2_norm.type == "L2EuclideanNorm"
+    assert l2_norm.resource == "Norm"
 
 
 @pytest.mark.unit

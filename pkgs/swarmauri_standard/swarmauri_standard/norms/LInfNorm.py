@@ -131,6 +131,10 @@ class LInfNorm(NormBase):
         ValueError
             If the sequence is empty.
         """
+        # Fix: Check for empty sequence using len() which works for both lists and NumPy arrays
+        if len(seq) == 0:
+            raise ValueError("Cannot compute L-infinity norm of an empty sequence")
+
         if not seq:
             raise ValueError("Cannot compute L-infinity norm of empty sequence")
 
@@ -192,8 +196,9 @@ class LInfNorm(NormBase):
         """
         try:
             norm_value = self.compute(x)
-            return norm_value >= 0
-        except (TypeError, ValueError) as e:
+            result = norm_value >= 0
+            return result
+        except Exception as e:
             logger.error(f"Error checking non-negativity: {e}")
             return False
 

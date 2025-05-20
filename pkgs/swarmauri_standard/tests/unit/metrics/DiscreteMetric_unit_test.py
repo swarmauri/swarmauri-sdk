@@ -65,9 +65,9 @@ def test_distance(discrete_metric, x, y, expected):
     ----------
     discrete_metric : DiscreteMetric
         The metric instance from the fixture
-    x : Any
+    x : float
         First input value
-    y : Any
+    y : float
         Second input value
     expected : float
         Expected distance result
@@ -200,11 +200,11 @@ def test_check_triangle_inequality(discrete_metric, x, y, z):
     ----------
     discrete_metric : DiscreteMetric
         The metric instance from the fixture
-    x : Any
+    x : float
         First point
-    y : Any
+    y : float
         Second point
-    z : Any
+    z : float
         Third point
     """
     assert discrete_metric.check_triangle_inequality(x, y, z) is True

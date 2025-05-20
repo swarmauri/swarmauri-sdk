@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Literal, Union
+from typing import List, Literal, Union
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -28,15 +28,15 @@ class DiscreteMetric(MetricBase):
 
     type: Literal["DiscreteMetric"] = "DiscreteMetric"
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: float, y: float) -> float:
         """
         Calculate the distance between two points: 1 if different, 0 if same.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point (must be hashable)
-        y : Any
+        y : float
             Second point (must be hashable)
 
         Returns
@@ -64,16 +64,16 @@ class DiscreteMetric(MetricBase):
         return 0.0 if x == y else 1.0
 
     def distances(
-        self, x: Union[List[Any], np.ndarray], y: Union[List[Any], np.ndarray]
+        self, x: Union[List[float], np.ndarray], y: Union[List[float], np.ndarray]
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
         Parameters
         ----------
-        x : Union[List[Any], np.ndarray]
+        x : Union[List[float], np.ndarray]
             First collection of points
-        y : Union[List[Any], np.ndarray]
+        y : Union[List[float], np.ndarray]
             Second collection of points
 
         Returns
@@ -108,7 +108,7 @@ class DiscreteMetric(MetricBase):
             logger.error(error_msg)
             raise TypeError(error_msg)
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -116,9 +116,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -130,7 +130,7 @@ class DiscreteMetric(MetricBase):
         # Distance is always 0 or 1, so always non-negative
         return True
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -139,9 +139,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -153,7 +153,7 @@ class DiscreteMetric(MetricBase):
         # By definition, distance is 0 if and only if x == y
         return True
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -161,9 +161,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -175,7 +175,7 @@ class DiscreteMetric(MetricBase):
         # x == y is symmetric, so the discrete metric is symmetric
         return True
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
@@ -184,11 +184,11 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
-        z : Any
+        z : float
             Third point
 
         Returns

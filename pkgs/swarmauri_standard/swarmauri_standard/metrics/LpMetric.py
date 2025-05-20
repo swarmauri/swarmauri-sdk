@@ -1,8 +1,8 @@
 import logging
-from typing import Any, List, Literal, Optional, Sequence, Union
+from typing import List, Literal, Optional, Sequence, Union
 
 import numpy as np
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
@@ -37,7 +37,7 @@ class LpMetric(MetricBase):
     p: float = Field(..., description="Parameter p for the Lp metric (must be > 1)")
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
-    @validator("p")
+    @field_validator("p")
     def validate_p(cls, v):
         """
         Validate that p is greater than 1 and finite.
@@ -63,13 +63,13 @@ class LpMetric(MetricBase):
             raise ValueError(f"Parameter p must be finite, got {v}")
         return v
 
-    def _convert_to_array(self, x: Any) -> np.ndarray:
+    def _convert_to_array(self, x: float) -> np.ndarray:
         """
         Convert the input to a numpy array for computation.
 
         Parameters
         ----------
-        x : Any
+        x : float
             The input to convert.
 
         Returns
@@ -95,15 +95,15 @@ class LpMetric(MetricBase):
         else:
             raise TypeError(f"Unsupported input type: {type(x)}")
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: float, y: float) -> float:
         """
         Calculate the Lp distance between two points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -138,15 +138,15 @@ class LpMetric(MetricBase):
             logger.error(f"Error calculating Lp distance: {str(e)}")
             raise
 
-    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
+    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Lp distances between collections of points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First collection of points
-        y : Any
+        y : float
             Second collection of points
 
         Returns
@@ -211,7 +211,7 @@ class LpMetric(MetricBase):
             logger.error(f"Error calculating Lp distances: {str(e)}")
             raise
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: float, y: float) -> bool:
         """
         Check if the Lp metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -219,9 +219,9 @@ class LpMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -238,16 +238,16 @@ class LpMetric(MetricBase):
             logger.error(f"Error in non-negativity check: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
         """
         Check if the Lp metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -279,15 +279,15 @@ class LpMetric(MetricBase):
             logger.error(f"Error in identity of indiscernibles check: {str(e)}")
             return False
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: float, y: float) -> bool:
         """
         Check if the Lp metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -308,18 +308,18 @@ class LpMetric(MetricBase):
             logger.error(f"Error in symmetry check: {str(e)}")
             return False
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
         """
         Check if the Lp metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
-        z : Any
+        z : float
             Third point
 
         Returns

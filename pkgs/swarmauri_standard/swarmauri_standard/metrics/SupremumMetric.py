@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np
 from pydantic import Field
@@ -35,15 +35,15 @@ class SupremumMetric(MetricBase):
     type: Literal["SupremumMetric"] = "SupremumMetric"
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: float, y: float) -> float:
         """
         Calculate the supremum (maximum) distance between two points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -125,15 +125,15 @@ class SupremumMetric(MetricBase):
             return 0.0
         return max(differences)
 
-    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
+    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First collection of points
-        y : Any
+        y : float
             Second collection of points
 
         Returns
@@ -225,7 +225,7 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error calculating supremum distances: {str(e)}")
             raise
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -233,9 +233,9 @@ class SupremumMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -255,16 +255,16 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -299,7 +299,7 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: float, y: float) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -307,9 +307,9 @@ class SupremumMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -331,18 +331,18 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking symmetry: {str(e)}")
             return False
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
-        z : Any
+        z : float
             Third point
 
         Returns

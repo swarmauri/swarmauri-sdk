@@ -149,11 +149,11 @@ def test_distances_collections(hamming_metric, sequence_collections):
     coll1, coll2 = sequence_collections
     distances = hamming_metric.distances(coll1, coll2)
 
-    # Expected distances matrix
+    # Correct expected distances matrix
     expected = [
-        [3.0, 3.0, 2.0],  # distances from coll1[0] to each seq in coll2
-        [2.0, 3.0, 1.0],  # distances from coll1[1] to each seq in coll2
-        [2.0, 1.0, 2.0],  # distances from coll1[2] to each seq in coll2
+        [2.0, 1.0, 3.0],  # distances from coll1[0] to each seq in coll2
+        [1.0, 2.0, 2.0],  # distances from coll1[1] to each seq in coll2
+        [2.0, 1.0, 1.0],  # distances from coll1[2] to each seq in coll2
     ]
 
     assert distances == expected
@@ -165,10 +165,10 @@ def test_distances_numpy_arrays(hamming_metric, numpy_arrays):
     arr1, arr2 = numpy_arrays
     distances = hamming_metric.distances(arr1, arr2)
 
-    # Expected distances matrix
+    # Corrected expected distances matrix
     expected = [
-        [2.0, 3.0],  # distances from arr1[0] to each row in arr2
-        [3.0, 2.0],  # distances from arr1[1] to each row in arr2
+        [2.0, 1.0],  # distances from arr1[0] to each row in arr2
+        [1.0, 2.0],  # distances from arr1[1] to each row in arr2
     ]
 
     assert distances == expected

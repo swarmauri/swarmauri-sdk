@@ -99,7 +99,3 @@ class ResourceTypes(Enum):
     SIMILARITY = "Similarity"
     PSEUDOMETRIC = "PseudoMetric"
     SEMINORM = "SemiNorm"
-    PROGRAM = "Program"
-    EVALUATOR = "Evaluator"
-    EVALUATOR_RESULT = "EvaluatorResult"
-    EVALUATOR_POOL = "EvaluatorPool"

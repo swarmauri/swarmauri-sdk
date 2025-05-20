@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Dict, List, Literal, Sequence, TypeVar, Union
+from typing import Callable, Dict, List, Literal, Sequence, TypeVar, Union
 
 import numpy as np
 from pydantic import Field
@@ -62,7 +62,7 @@ class SobolevMetric(MetricBase):
             f"Initialized SobolevMetric with order {self.order} and weights {self.weights}"
         )
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: float, y: float) -> float:
         """
         Calculate the Sobolev distance between two functions or vectors.
 
@@ -71,9 +71,9 @@ class SobolevMetric(MetricBase):
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input (function or vector)
-        y : Any
+        y : float
             Second input (function or vector)
 
         Returns
@@ -149,15 +149,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error calculating Sobolev distance: {str(e)}")
             raise ValueError(f"Failed to calculate Sobolev distance: {str(e)}")
 
-    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
+    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Sobolev distances between collections of functions or vectors.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First collection of inputs
-        y : Any
+        y : float
             Second collection of inputs
 
         Returns
@@ -231,15 +231,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error calculating Sobolev distances: {str(e)}")
             raise ValueError(f"Failed to calculate Sobolev distances: {str(e)}")
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: float, y: float) -> bool:
         """
         Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input
-        y : Any
+        y : float
             Second input
 
         Returns
@@ -255,16 +255,16 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
         """
         Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input
-        y : Any
+        y : float
             Second input
 
         Returns
@@ -287,15 +287,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: float, y: float) -> bool:
         """
         Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input
-        y : Any
+        y : float
             Second input
 
         Returns
@@ -313,18 +313,18 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking symmetry: {str(e)}")
             return False
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
         """
         Check if the Sobolev metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input
-        y : Any
+        y : float
             Second input
-        z : Any
+        z : float
             Third input
 
         Returns
@@ -344,15 +344,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking triangle inequality: {str(e)}")
             return False
 
-    def _are_effectively_equal(self, x: Any, y: Any) -> bool:
+    def _are_effectively_equal(self, x: float, y: float) -> bool:
         """
         Check if two inputs are effectively equal for the purposes of the metric.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First input
-        y : Any
+        y : float
             Second input
 
         Returns
@@ -387,7 +387,7 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     return False
-                return all(abs(float(x[i]) - float(y[i])) < 1e-7 for i in range(len(x)))
+                return all(abs(float(x[i]) - float(y[i])) < 1e-10 for i in range(len(x)))
 
             else:
                 # Default case

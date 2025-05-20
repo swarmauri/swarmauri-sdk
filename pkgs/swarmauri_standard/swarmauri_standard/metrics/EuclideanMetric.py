@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Any, List, Literal, Sequence, Union
+from typing import List, Literal, Sequence, Union
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
@@ -36,15 +36,15 @@ class EuclideanMetric(MetricBase):
 
     type: Literal["EuclideanMetric"] = "EuclideanMetric"
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: float, y: float) -> float:
         """
         Calculate the Euclidean distance between two points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -106,15 +106,15 @@ class EuclideanMetric(MetricBase):
                 f"Euclidean distance computation not supported for types {type(x)} and {type(y)}"
             )
 
-    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
+    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Euclidean distances between collections of points.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First collection of points
-        y : Any
+        y : float
             Second collection of points
 
         Returns
@@ -182,15 +182,15 @@ class EuclideanMetric(MetricBase):
                 f"Euclidean distances computation not supported for types {type(x)} and {type(y)}"
             )
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: float, y: float) -> bool:
         """
         Check if the Euclidean metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -206,16 +206,16 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {e}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
         """
         Check if the Euclidean metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -254,15 +254,15 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {e}")
             return False
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: float, y: float) -> bool:
         """
         Check if the Euclidean metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
 
         Returns
@@ -286,18 +286,18 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking symmetry: {e}")
             return False
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
         """
         Check if the Euclidean metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : Any
+        x : float
             First point
-        y : Any
+        y : float
             Second point
-        z : Any
+        z : float
             Third point
 
         Returns

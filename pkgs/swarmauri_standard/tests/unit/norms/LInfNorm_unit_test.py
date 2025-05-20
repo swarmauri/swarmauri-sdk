@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 import pytest
 from swarmauri_base.norms.NormBase import NormBase
 from swarmauri_core.matrices.IMatrix import IMatrix
@@ -29,17 +30,67 @@ class MockVector(IVector):
 
 class MockMatrix(IMatrix):
     def __init__(self, data):
-        self.data = data
+        self.data = np.array(data)
+
+    def to_array(self):
+        return self.data
+
+    # Add required methods
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __add__(self, other):
+        return MockMatrix(self.data + getattr(other, "data", other))
+
+    def __array__(self):
+        return self.data
+
+    def __eq__(self, other):
+        return np.array_equal(self.data, getattr(other, "data", other))
+
+    def __iter__(self):
+        return iter([self.data[i] for i in range(len(self.data))])
+
+    def __matmul__(self, other):
+        return MockMatrix(self.data @ getattr(other, "data", other))
+
+    def __mul__(self, other):
+        return MockMatrix(self.data * getattr(other, "data", other))
+
+    def __neg__(self):
+        return MockMatrix(-self.data)
+
+    def __sub__(self, other):
+        return MockMatrix(self.data - getattr(other, "data", other))
+
+    def __truediv__(self, other):
+        return MockMatrix(self.data / getattr(other, "data", other))
+
+    def column(self, idx):
+        return self.data[:, idx]
+
+    def row(self, idx):
+        return self.data[idx, :]
+
+    def reshape(self, shape):
+        return MockMatrix(self.data.reshape(shape))
+
+    def tolist(self):
+        return self.data.tolist()
+
+    def transpose(self):
+        return MockMatrix(self.data.T)
 
     @property
-    def shape(self) -> tuple:
-        return (len(self.data), len(self.data[0]) if self.data else 0)
+    def shape(self):
+        return self.data.shape
 
-    def __getitem__(self, idx):
-        return self.data[idx]
-
-    def __len__(self):
-        return len(self.data)
+    @property
+    def dtype(self):
+        return self.data.dtype
 
 
 @pytest.fixture
@@ -175,7 +226,9 @@ def test_definiteness(linf_norm):
     zero_vector = MockVector([0, 0, 0])
     zero_matrix = MockMatrix([[0, 0], [0, 0]])
     zero_sequence = [0, 0, 0]
-    zero_function = lambda x: 0
+
+    def zero_function(x):
+        return 0
 
     assert linf_norm.check_definiteness(zero_vector)
     assert linf_norm.check_definiteness(zero_matrix)
@@ -186,7 +239,9 @@ def test_definiteness(linf_norm):
     non_zero_vector = MockVector([0, 1, 0])
     non_zero_matrix = MockMatrix([[0, 1], [0, 0]])
     non_zero_sequence = [0, 1, 0]
-    non_zero_function = lambda x: x
+
+    def non_zero_function(x):
+        return x
 
     assert linf_norm.check_definiteness(non_zero_vector)
     assert linf_norm.check_definiteness(non_zero_matrix)
@@ -219,8 +274,12 @@ def test_triangle_inequality(linf_norm):
         linf_norm.check_triangle_inequality(string_a, string_b)
 
     # Test functions
-    function_a = lambda x: x**2
-    function_b = lambda x: 2 * x
+    def function_a(x):
+        return x**2
+
+    def function_b(x):
+        return 2 * x
+
     assert linf_norm.check_triangle_inequality(function_a, function_b)
 
 
@@ -243,7 +302,9 @@ def test_absolute_homogeneity(linf_norm):
     assert linf_norm.check_absolute_homogeneity(sequence, -0.5)
 
     # Test function
-    function = lambda x: x**2
+    def function(x):
+        return x**2
+
     assert linf_norm.check_absolute_homogeneity(function, 2.0)
     assert linf_norm.check_absolute_homogeneity(function, -0.5)
 
