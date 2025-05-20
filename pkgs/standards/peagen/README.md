@@ -118,6 +118,30 @@ peagen --help
 export OPENAI_API_KEY="sk-…"
 ```
 
+### CLI Defaults via `.peagen.toml`
+
+Create a `.peagen.toml` in your project root to store provider credentials and
+command defaults. A typical configuration might look like:
+
+```toml
+# .peagen.toml
+[llm]
+default_provider = "openai"
+default_model_name = "gpt-4"
+
+[llm.api_keys]
+openai = "sk-..."
+
+[storage]
+default_adapter = "file"
+
+[storage.adapters.file]
+output_dir = "./peagen_artifacts"
+```
+
+With these values in place you can omit `--provider`, `--model-name`, and other
+flags when running the CLI.
+
 ### Project YAML Schema Overview
 
 ```yaml
@@ -300,7 +324,6 @@ jobs:
           git diff --quiet || git commit -m "chore: update generated files"
 ```
 
----
 
 ## Conclusion & Next Steps
 
