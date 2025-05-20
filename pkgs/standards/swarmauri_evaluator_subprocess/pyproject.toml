@@ -71,11 +71,8 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.evaluators']
 SubprocessEvaluator = "swarmauri_evaluator_subprocess:SubprocessEvaluator"
-
-[tool.setuptools]
-packages = ["swarmauri_evaluator_subprocess"]
