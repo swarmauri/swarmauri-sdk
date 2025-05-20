@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
+print('WARNING DEPRECATING')
 def _clone_swarmauri_repo(use_dev_branch: bool = False) -> Path:
     """
     Clones the swarmauri-sdk repository to a temporary directory.
