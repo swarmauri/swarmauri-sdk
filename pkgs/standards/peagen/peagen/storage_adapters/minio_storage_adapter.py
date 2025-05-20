@@ -119,7 +119,7 @@ class MinioStorageAdapter:
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base)
-                key = os.path.join(prefix, rel.as_posix())
+                key = os.path.join(self._prefix, key) if self._prefix else key
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -141,3 +141,40 @@ class MinioStorageAdapter:
             data = self.download(key)
             with open(target, "wb") as fh:
                 shutil.copyfileobj(data, fh)
+
+    @classmethod
+    def from_uri(cls, uri: str) -> "MinioStorageAdapter":
+        """
+        Build an adapter from a minio[s]:// URI.
+        Credentials are read from env vars or from
+        [tool.peagen.storage.adapters.minio] in pyproject.toml / .peagen.toml.
+        """
+        from urllib.parse import urlparse
+        import tomllib, os, pathlib
+
+        p = urlparse(uri)
+        secure   = p.scheme == "minios"
+        endpoint = p.netloc
+        bucket, *rest = p.path.lstrip("/").split("/", 1)
+        prefix = rest[0] if rest else ""
+
+        # ---- optional config file lookup ---------------------------------
+        creds = {"access_key": None, "secret_key": None}
+        cfg_file = pathlib.Path(".peagen.toml")
+        if cfg_file.exists():
+            cfg = tomllib.loads(cfg_file.read_text())
+            creds.update(cfg.get("storage", {})
+                            .get("adapters", {})
+                            .get("minio", {}))
+
+        access = creds["access_key"] or os.getenv("MINIO_ACCESS_KEY") or ""
+        secret = creds["secret_key"] or os.getenv("MINIO_SECRET_KEY") or ""
+
+        return cls(
+            endpoint=endpoint,
+            bucket=bucket,
+            access_key=access,
+            secret_key=secret,
+            secure=secure,
+            prefix=prefix,
+        )

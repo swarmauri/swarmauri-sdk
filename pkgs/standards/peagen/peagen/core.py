@@ -30,8 +30,10 @@ import peagen.plugin_registry
 import peagen.templates
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
+
 
 from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
@@ -400,6 +402,8 @@ class Peagen(ComponentBase):
                 manifest_dir.mkdir(exist_ok=True)
 
                 manifest_path = manifest_dir / f"{project['NAME']}_manifest.json"
+                if self.org:
+                    manifest_path = self.org / manifest_path
 
                 # ───────────── choose the correct workspace_uri ─────────────
                 # 1. If a storage adapter exposes .root_uri (e.g. minio[s]://…),
@@ -407,9 +411,10 @@ class Peagen(ComponentBase):
                 # 2. Otherwise fall back to the local absolute path. This keeps
                 #    same-machine workflows working with no adapter.
                 #
-                workspace_uri = getattr(self.storage_adapter, "root_uri", None)
-                if workspace_uri is None:
-                    workspace_uri = f"file://{root.resolve()}"
+                workspace_uri = (
+                    getattr(self.storage_adapter, "root_uri", None)
+                    or f"file://{root.resolve()}"
+                )
 
                 manifest = {
                     "schema_version": 3,

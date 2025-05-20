@@ -100,3 +100,9 @@ class FileStorageAdapter:
                 target = dest / rel
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(path, target)
+                
+    @classmethod
+    def from_uri(cls, uri: str) -> "FileStorageAdapter":
+        # file:///absolute/path/
+        path = Path(uri[7:]).resolve()
+        return cls(output_dir=path)

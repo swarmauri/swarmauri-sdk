@@ -226,6 +226,17 @@ def process_cmd(
         if bus:
             bus.publish(channel, {"type": "process.done", "seconds": dur})
 
+        # ── REPORT MANIFEST LOCATION(S) ──────────────────────────────────
+        manifest_dir = ws / ".peagen"
+        if manifest_dir.exists():
+            for mf in manifest_dir.glob("*_manifest.json"):
+                if hasattr(storage_adapter, "root_uri"):
+                    remote_uri = f"{storage_adapter.root_uri.rstrip('/')}/.peagen/{mf.name}"
+                    typer.echo(f"\n📄 manifest → {remote_uri}")
+                else:
+                    typer.echo(f"\n📄 manifest → {mf.resolve()}")
+
+
 
 def _process_single(
     pea: Peagen,
