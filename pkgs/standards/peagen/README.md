@@ -348,6 +348,10 @@ projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
 
+### Storage Adapters & Publishers
+
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
