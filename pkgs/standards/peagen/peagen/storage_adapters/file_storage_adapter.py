@@ -56,3 +56,38 @@ class FileStorageAdapter:
         buffer = io.BytesIO(path.read_bytes())
         buffer.seek(0)
         return buffer
+
+    # ---------------------------------------------------------------- upload_dir
+    def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
+        """Recursively upload all files under *src* with keys prefixed by ``prefix``."""
+        base = Path(src)
+        for path in base.rglob("*"):
+            if path.is_file():
+                rel = path.relative_to(base)
+                key = os.path.join(prefix, rel.as_posix())
+                with path.open("rb") as fh:
+                    self.upload(key, fh)
+
+    # ---------------------------------------------------------------- iter_prefix
+    def iter_prefix(self, prefix: str):
+        """Yield stored keys starting with ``prefix``."""
+        base = self._root / prefix
+        if not base.exists():
+            return
+        for path in base.rglob("*"):
+            if path.is_file():
+                yield str(path.relative_to(self._root))
+
+    # ---------------------------------------------------------------- download_prefix
+    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+        """Copy all files under ``prefix`` into ``dest_dir``."""
+        src_root = self._root / prefix
+        dest = Path(dest_dir)
+        if not src_root.exists():
+            return
+        for path in src_root.rglob("*"):
+            if path.is_file():
+                rel = path.relative_to(src_root)
+                target = dest / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, target)
