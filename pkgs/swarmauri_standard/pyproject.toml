@@ -24,6 +24,7 @@ dependencies = [
 "joblib>=1.4.0",
 "pillow>=11.1.0",
 "aiofiles",
+"rich",
 "typing_extensions",
 "swarmauri_core",
 "swarmauri_base",
