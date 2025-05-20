@@ -12,6 +12,7 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_embedding_tfidf.TfidfEmbedding import TfidfEmbedding
 
+
 @ComponentBase.register_type(VectorStoreBase, "TfidfVectorStore")
 class TfidfVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase

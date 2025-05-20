@@ -20,10 +20,17 @@ def test_import_package() -> None:
     any exceptions, which confirms the package structure is correct.
     """
     try:
+<<<<<<< HEAD
         import swarmauri_evaluatorpool_accessibility
 
         logger.info(
             "Successfully imported swarmauri_evaluatorpool_accessibility package"
+=======
+        import swarmauri_evaluatorpool_accessibility as package
+
+        logger.info(
+            f"Successfully imported swarmauri_evaluatorpool_accessibility package - {package.__version__}"
+>>>>>>> upstream/mono/dev
         )
         assert True
     except ImportError as e:

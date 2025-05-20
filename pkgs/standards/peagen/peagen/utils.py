@@ -1,14 +1,17 @@
 # peagen/utils.py
+import logging
+import shutil
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-import tempfile, shutil, os, errno, logging
+
 
 @contextmanager
 def temp_workspace(prefix: str = "peagen_"):
     """Yield a temporary directory that is removed on exit."""
     dirpath = Path(tempfile.mkdtemp(prefix=prefix))
     try:
-        yield dirpath          # ←  every path you write will be under here
+        yield dirpath  # ←  every path you write will be under here
     finally:
         try:
             shutil.rmtree(dirpath)

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import pathlib
 import types
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import click
 import typer
@@ -42,7 +42,7 @@ class PathOrURI(str):
 
         # expand user and resolve relative path, return the *plain* path
         p = pathlib.Path(value).expanduser().resolve()
-        return str(p)          # no file:// prefix
+        return str(p)  # no file:// prefix
 
 
 # ─────────────────────────────────────────────────────────────────────────────

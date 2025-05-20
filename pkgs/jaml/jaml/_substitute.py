@@ -1,7 +1,14 @@
 import re
 from typing import Optional
 
-def _substitute_vars(expr: str, global_env: dict, local_env: dict, context: Optional[dict] = None, quote_strings: bool = True) -> str:
+
+def _substitute_vars(
+    expr: str,
+    global_env: dict,
+    local_env: dict,
+    context: Optional[dict] = None,
+    quote_strings: bool = True,
+) -> str:
     context = context or {}
 
     def repl_local(m):
@@ -15,8 +22,8 @@ def _substitute_vars(expr: str, global_env: dict, local_env: dict, context: Opti
 
     def repl_global(m):
         var = m.group(1).strip()
-        if '.' in var:
-            section, key = var.split('.', 1)
+        if "." in var:
+            section, key = var.split(".", 1)
             sect_val = global_env.get(section)
             if isinstance(sect_val, dict) and key in sect_val:
                 value = sect_val[key]
@@ -39,8 +46,7 @@ def _substitute_vars(expr: str, global_env: dict, local_env: dict, context: Opti
             return str(value)
         return f"${{{var}}}"
 
-    tmp = re.sub(r'%\{([^}]+)\}', repl_local, expr)
-    tmp = re.sub(r'@\{([^}]+)\}', repl_global, tmp)
-    tmp = re.sub(r'\$\{([^}]+)\}', repl_context, tmp)
+    tmp = re.sub(r"%\{([^}]+)\}", repl_local, expr)
+    tmp = re.sub(r"@\{([^}]+)\}", repl_global, tmp)
+    tmp = re.sub(r"\$\{([^}]+)\}", repl_context, tmp)
     return tmp
-

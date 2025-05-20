@@ -37,6 +37,7 @@ url = f"@{base}/config.toml"
     print(rendered_data)
     assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
+
 @pytest.mark.spec
 @pytest.mark.mep0011
 def test_global_scope_section_evaluation():
@@ -64,6 +65,7 @@ url = f"@{paths.base}/config.toml"
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["config"]["url"] == "/home/alt/config.toml"
+
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
@@ -93,11 +95,12 @@ greeting = f"Hello, %{name}!"
     print(resolved_config)
     assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
-    out  = data.dumps()
+    out = data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["user"]["greeting"] == "Hello, Bob!"
+
 
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
@@ -116,11 +119,14 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+    assert (
+        resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+    )
 
     out = data.dumps()
     rendered_data = data.render(context={"user": {"name": "Alice", "age": 30}})
     assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
+
 
 # Test 5: F-String Interpolation
 @pytest.mark.spec
@@ -139,7 +145,6 @@ text = f"Hello, ${name}!"
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["message"]["text"] == 'f"Hello, ${name}!"'
-
 
     rendered_data = data.render(context={"name": "Alice"})
     assert rendered_data["message"]["text"] == "Hello, Alice!"
@@ -168,15 +173,22 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    assert (
+        data["api"]["endpoint"]
+        == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    )
 
     data.resolve()
     print("[DEBUG]:")
     print(data)
-    assert data["api"]["endpoint"] == 'f"http://prodserver:8080/api?token=${auth_token}"'
+    assert (
+        data["api"]["endpoint"] == 'f"http://prodserver:8080/api?token=${auth_token}"'
+    )
 
     print("[DEBUG SETTER]: START")
-    data["api"]["endpoint"] = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data["api"]["endpoint"] = (
+        '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    )
     data.resolve()
     print("[DEBUG SETTER]:")
     print(data)
@@ -186,6 +198,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+
 
 # Test 8: List Comprehension Evaluation
 @pytest.mark.spec
@@ -216,6 +229,7 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     print(rendered_data)
     assert rendered_data["items"]["list_config"] == ["item_5", "item_10", "item_15"]
 
+
 # Test 9: Dict Comprehension Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -240,14 +254,22 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
-
+    assert resolved_config["items"]["dict_config"] == {
+        "item_5": 15,
+        "item_10": 30,
+        "item_15": 45,
+    }
 
     out = data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
-    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+    assert rendered_data["items"]["dict_config"] == {
+        "item_5": 15,
+        "item_10": 30,
+        "item_15": 45,
+    }
+
 
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -270,11 +292,20 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+    assert resolved_config["items"]["dict_config"] == {
+        "item_5": 15,
+        "item_10": 30,
+        "item_15": 45,
+    }
 
     out = data.dumps()
     rendered_data = data.render()
-    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+    assert rendered_data["items"]["dict_config"] == {
+        "item_5": 15,
+        "item_10": 30,
+        "item_15": 45,
+    }
+
 
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -287,9 +318,9 @@ result = <( 3 + 4 )>
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["calc"]["result"] == '<( 3 + 4 )>'
+    assert data["calc"]["result"] == "<( 3 + 4 )>"
 
-    data["calc"]["result"] = '<( 7 + 4 )>'
+    data["calc"]["result"] = "<( 7 + 4 )>"
     print("[DEBUG]:")
     print(data)
 
@@ -326,18 +357,26 @@ result = <( 3 + 4 )>
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
-    assert data["calc"]["result"] == '<( 3 + 4 )>'
+    assert (
+        data["api"]["endpoint"]
+        == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    )
+    assert data["calc"]["result"] == "<( 3 + 4 )>"
 
-    data["api"]["endpoint"] = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
-    data["calc"]["result"] = '<( 7 + 4 )>'
+    data["api"]["endpoint"] = (
+        '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    )
+    data["calc"]["result"] = "<( 7 + 4 )>"
     print("[DEBUG]:")
     print(data)
 
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
+    assert (
+        resolved_config["api"]["endpoint"]
+        == 'f"http://devserver:8080/api?token=${auth_token}"'
+    )
     assert resolved_config["calc"]["result"] == 11
 
     out = data.dumps()
@@ -346,6 +385,7 @@ result = <( 3 + 4 )>
     print(rendered_data)
     assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
     assert rendered_data["calc"]["result"] == 11
+
 
 # Test 11: Conditional Logic in Expressions
 @pytest.mark.spec
@@ -360,7 +400,6 @@ status = f"{'Yes' if true else 'No'}"
     print("[DEBUG]:")
     print(data)
     assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
-
 
     data["cond"]["status"] = '''f"{'Yes' if false else 'No'}"'''
     print("[DEBUG]:")
@@ -404,7 +443,8 @@ status = <('Yes' if true else 'No')>"""
     print(rendered_data)
     assert rendered_data["cond"]["status"] == "No"
 
-# Is this really a type inference test? 
+
+# Is this really a type inference test?
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
@@ -412,7 +452,7 @@ def test_infer_expressions():
     """
     Ensures expressions (wrapped with <{ ... )>) are type-inferred from their result.
     """
-    source = '''
+    source = """
     [exprs]
     # Arithmetic expression
     sum_val = <( 10 + 5 )>
@@ -420,12 +460,11 @@ def test_infer_expressions():
     greeting = <( "Hello, " + "World!" )>
     # Boolean logic
     combo = <( true and false )>
-    '''
+    """
     data = round_trip_loads(source)
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-
 
     exprs = resolved_config["exprs"]
     assert isinstance(exprs["sum_val"], int)

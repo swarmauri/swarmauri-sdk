@@ -1,14 +1,13 @@
 # test_conditional_table_sections.py
 import pytest
 
-from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
-    render
-)
+from jaml import round_trip_loads, round_trip_dumps, render
+
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Conditional table inclusion might not be fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Conditional table inclusion might not be fully implemented yet."
+)
 def test_table_included_if_expression_is_string():
     """
     MEP-0028:
@@ -26,7 +25,10 @@ db_host = "prod.database.example.com"
     ast = round_trip_loads(toml_str)
     # 2) Round-trip to ensure the syntax is preserved
     reserialized = round_trip_dumps(ast)
-    assert "[~(\"prod_config\" if ${settings.env} == \"production\" else None)]" in reserialized
+    assert (
+        '[~("prod_config" if ${settings.env} == "production" else None)]'
+        in reserialized
+    )
 
     # 3) Render with a context matching the 'production' environment
     context = {"settings.env": "production"}
@@ -34,7 +36,7 @@ db_host = "prod.database.example.com"
 
     # We expect the table to appear under "prod_config"
     assert "prod_config" in rendered_str
-    assert "db_host = \"prod.database.example.com\"" in rendered_str
+    assert 'db_host = "prod.database.example.com"' in rendered_str
 
 
 @pytest.mark.spec
@@ -55,18 +57,23 @@ db_host = "prod.database.example.com"
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
     # The header is still there in the text
-    assert "[~(\"prod_config\" if ${settings.env} == \"production\" else None)]" in reserialized
+    assert (
+        '[~("prod_config" if ${settings.env} == "production" else None)]'
+        in reserialized
+    )
 
     context = {"settings.env": "development"}
     rendered_str = render(reserialized, context=context)
 
     # Because env != "production", the expression yields None => exclude
     assert "prod_config" not in rendered_str
-    assert "db_host = \"prod.database.example.com\"" not in rendered_str
+    assert 'db_host = "prod.database.example.com"' not in rendered_str
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Direct boolean expressions may not fully resolve to a table name.")
+@pytest.mark.xfail(
+    reason="Direct boolean expressions may not fully resolve to a table name."
+)
 def test_direct_boolean_inclusion():
     """
     MEP-0028:
@@ -94,7 +101,7 @@ db_url = "https://prod-db.example.com"
 
     # We'll assume your parser names it "true".
     assert "[true]" in rendered_str
-    assert "db_url = \"https://prod-db.example.com\"" in rendered_str
+    assert 'db_url = "https://prod-db.example.com"' in rendered_str
 
 
 @pytest.mark.spec
@@ -102,7 +109,7 @@ db_url = "https://prod-db.example.com"
 def test_multiple_conditionals_merging_same_name():
     """
     MEP-0028:
-      If multiple conditional sections result in the same table name, 
+      If multiple conditional sections result in the same table name,
       they should be merged. Last-declared keys override earlier ones.
     """
     toml_str = """
@@ -147,15 +154,17 @@ db_host = "localhost"
     context = {"settings.env": "development"}
     rendered_str = render(reserialized, context=context)
     assert "dev_config" in rendered_str
-    assert "db_host = \"localhost\"" in rendered_str
+    assert 'db_host = "localhost"' in rendered_str
 
 
-@pytest.mark.xfail(reason="Not implemented: error if expression not a valid name or null/false")
+@pytest.mark.xfail(
+    reason="Not implemented: error if expression not a valid name or null/false"
+)
 @pytest.mark.spec
 def test_error_if_result_not_string_or_boolean():
     """
     MEP-0028:
-      If the conditional expression returns a numeric or other type 
+      If the conditional expression returns a numeric or other type
       that isn't a valid table name, null, or false => error.
     """
     invalid_toml = """
@@ -164,11 +173,15 @@ key = "value"
 """
     # Expect an error at render time because 123 is not a string, null, or false
     ast = round_trip_loads(invalid_toml)
-    with pytest.raises(Exception, match="Expression must yield a string, null, or false"):
+    with pytest.raises(
+        Exception, match="Expression must yield a string, null, or false"
+    ):
         render(round_trip_dumps(ast), context={})
 
 
-@pytest.mark.xfail(reason="No syntax check for environment usage or disallowed load-time variables yet")
+@pytest.mark.xfail(
+    reason="No syntax check for environment usage or disallowed load-time variables yet"
+)
 @pytest.mark.spec
 def test_disallow_load_time_variables_in_conditional_header():
     """
@@ -188,7 +201,9 @@ key = "value"
     render(round_trip_dumps(ast), context={})  # Should raise an error
 
 
-@pytest.mark.xfail(reason="Detailed syntax checks for the expression not fully implemented")
+@pytest.mark.xfail(
+    reason="Detailed syntax checks for the expression not fully implemented"
+)
 @pytest.mark.spec
 def test_syntax_error_in_conditional_header():
     """

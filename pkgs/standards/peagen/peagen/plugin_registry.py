@@ -1,9 +1,9 @@
 # peagen/plugin_registry.py
 
-from importlib.metadata import entry_points
 from collections import defaultdict
-from typing import Dict, Type
+from importlib.metadata import entry_points
 from types import ModuleType
+from typing import Dict
 
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
@@ -11,14 +11,15 @@ from types import ModuleType
 # and treat every other group as before (must resolve to a class).
 # ---------------------------------------------------------------------------
 GROUPS = {
-    "template_sets":    ("peagen.template_sets",    None),     # None = allow modules or classes
+    "template_sets": ("peagen.template_sets", None),  # None = allow modules or classes
     "storage_adapters": ("peagen.storage_adapters", object),
-    "publishers":       ("peagen.publishers",       object),
-    "indexers":         ("peagen.indexers",         object),
-    "evaluators":       ("peagen.evaluators",       object),
+    "publishers": ("peagen.publishers", object),
+    "indexers": ("peagen.indexers", object),
+    "evaluators": ("peagen.evaluators", object),
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
+
 
 def _load() -> None:
     """

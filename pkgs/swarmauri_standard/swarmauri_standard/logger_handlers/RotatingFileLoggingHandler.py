@@ -13,11 +13,11 @@ from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 class RotatingFileLoggingHandler(HandlerBase):
     """
     A handler that rotates log files when they reach a specified size.
-    
+
     This handler extends the base HandlerBase to provide log file rotation functionality.
     When the log file reaches the specified maxBytes, it is rotated and a new file is created.
     The handler keeps a specified number of backup files.
-    
+
     Attributes
     ----------
     type : Literal["RotatingFileLoggingHandler"]
@@ -46,14 +46,14 @@ class RotatingFileLoggingHandler(HandlerBase):
     backupCount: int = 5
     encoding: Optional[str] = None
     delay: bool = False
-    
+
     def compile_handler(self) -> logging.Handler:
         """
         Compiles a rotating file logging handler using the specified parameters.
-        
+
         This method creates a RotatingFileHandler with the specified filename, maximum bytes,
         backup count, and other parameters. It also sets the logging level and formatter.
-        
+
         Returns
         -------
         logging.Handler
@@ -63,7 +63,6 @@ class RotatingFileLoggingHandler(HandlerBase):
         log_dir = os.path.dirname(self.filename)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
-        
         # Create the rotating file handler
         handler = RotatingFileHandler(
             filename=self.filename,
@@ -75,7 +74,6 @@ class RotatingFileLoggingHandler(HandlerBase):
         
         # Set the logging level
         handler.setLevel(self.level)
-        
         # Apply formatter
         if self.formatter:
             if isinstance(self.formatter, str):
@@ -86,8 +84,8 @@ class RotatingFileLoggingHandler(HandlerBase):
             # Default formatter if none is specified
             default_formatter = logging.Formatter(
                 "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
+                datefmt="%Y-%m-%d %H:%M:%S",
             )
             handler.setFormatter(default_formatter)
-        
+
         return handler

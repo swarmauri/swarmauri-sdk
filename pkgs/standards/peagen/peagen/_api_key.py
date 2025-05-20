@@ -24,8 +24,12 @@ def _resolve_api_key(
     try:
         # walk up from cwd to find .peagen.toml
         toml_file = next(
-            (d / ".peagen.toml" for d in [Path.cwd(), *Path.cwd().parents] if (d / ".peagen.toml").is_file()),
-            None
+            (
+                d / ".peagen.toml"
+                for d in [Path.cwd(), *Path.cwd().parents]
+                if (d / ".peagen.toml").is_file()
+            ),
+            None,
         )
         if toml_file:
             with toml_file.open("rb") as f:

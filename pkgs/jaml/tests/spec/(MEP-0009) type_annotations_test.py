@@ -6,13 +6,14 @@ from jaml import (
     round_trip_loads,
 )
 
+
 @pytest.mark.spec
 @pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
 def test_primitive_type_annotations():
     """
     MEP-009 Section 3.1:
-      Verify that basic scalar annotations (str, int, float, bool, null) 
+      Verify that basic scalar annotations (str, int, float, bool, null)
       are recognized and preserved after round-trip.
     """
     toml_str = """
@@ -28,7 +29,7 @@ missing_val: null = null
     reserialized = ast.dumps()
 
     # Ensure the annotated keys are present with correct annotation
-    assert "greeting: str = \"Hello, World!\"" in reserialized
+    assert 'greeting: str = "Hello, World!"' in reserialized
     assert "answer: int = 42" in reserialized
     assert "pi: float = 3.14" in reserialized
     assert "is_active: bool = true" in reserialized
@@ -41,7 +42,7 @@ missing_val: null = null
 def test_list_annotation():
     """
     MEP-009 Section 3.1:
-      Lists annotated with 'list' should parse and round-trip, 
+      Lists annotated with 'list' should parse and round-trip,
       preserving the annotation.
     """
     toml_str = """
@@ -53,7 +54,7 @@ colors: list = ["red", "green", "blue"]
     reserialized = ast.dumps()
 
     assert "numbers: list = [1, 2, 3]" in reserialized
-    assert "colors: list = [\"red\", \"green\", \"blue\"]" in reserialized
+    assert 'colors: list = ["red", "green", "blue"]' in reserialized
 
 
 @pytest.mark.spec
@@ -81,7 +82,7 @@ point: table = { x = 10, y = 20 }
 def test_nested_inline_table_annotation():
     """
     MEP-009:
-      Ensure nested inline tables also preserve type annotations within them, 
+      Ensure nested inline tables also preserve type annotations within them,
       if they exist.
     """
     toml_str = """
@@ -92,7 +93,7 @@ user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str =
     reserialized = ast.dumps()
 
     # Verify the top-level user: table annotation
-    assert "user: table = {name: str = \"Azzy\"," in reserialized
+    assert 'user: table = {name: str = "Azzy",' in reserialized
     # Verify nested details: table annotation
     assert "details: table = {age: int = 9," in reserialized
 
@@ -117,8 +118,13 @@ authors: list = [
     reserialized = ast.dumps()
 
     # Should see 'authors: list = [' plus the inline tables
-    assert "authors: list = [\n  {name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\"}," in reserialized
-    assert "{name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\"}" in reserialized
+    assert (
+        'authors: list = [\n  {name: str = "Jacob", email: str = "jacob@swarmauri.com"},'
+        in reserialized
+    )
+    assert (
+        '{name: str = "Stewart", email: str = "stewart@swarmauri.com"}' in reserialized
+    )
 
 
 # @pytest.mark.xfail(reason="Type validation not implemented yet.")
@@ -127,7 +133,7 @@ authors: list = [
 def test_value_does_not_match_annotation():
     """
     MEP-009:
-      If type validation is implemented, a mismatch (e.g., an int annotation 
+      If type validation is implemented, a mismatch (e.g., an int annotation
       but a string value) might raise an error or warning.
       Marked xfail until validation is enforced.
     """
@@ -146,7 +152,7 @@ def test_nested_type_mismatch():
     """
     MEP-009:
       If the annotation says 'table' but we provide a list, or vice versa,
-      we might expect an error or mismatch event. 
+      we might expect an error or mismatch event.
       Marked xfail as it's still under discussion.
     """
     invalid_toml = """

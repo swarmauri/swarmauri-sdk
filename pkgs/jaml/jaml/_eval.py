@@ -5,7 +5,7 @@ import operator as op
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)          # caller can override
+logger.setLevel(logging.DEBUG)  # caller can override
 
 
 def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
@@ -24,38 +24,51 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
 
     # ── allow-lists ────────────────────────────────────────────────────
     _ops = {
-        ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv,
-        ast.FloorDiv: op.floordiv, ast.Mod: op.mod, ast.Pow: op.pow
+        ast.Add: op.add,
+        ast.Sub: op.sub,
+        ast.Mult: op.mul,
+        ast.Div: op.truediv,
+        ast.FloorDiv: op.floordiv,
+        ast.Mod: op.mod,
+        ast.Pow: op.pow,
     }
     _boolops = {ast.And, ast.Or}
     _cmpops = {
-        ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
-        ast.In, ast.NotIn, ast.Is, ast.IsNot
+        ast.Eq,
+        ast.NotEq,
+        ast.Lt,
+        ast.LtE,
+        ast.Gt,
+        ast.GtE,
+        ast.In,
+        ast.NotIn,
+        ast.Is,
+        ast.IsNot,
     }
-    _funcs = {
-        "enumerate": enumerate,
-        "false": False, "true": True, "null": None
-    }
+    _funcs = {"enumerate": enumerate, "false": False, "true": True, "null": None}
 
     # ── helpers ───────────────────────────────────────────────────────
     def _eval(node: ast.AST):
-
-
         # ── NEW: f-string nodes ───────────────────────────────────────────
-        if isinstance(node, ast.JoinedStr):        # complete f-string
+        if isinstance(node, ast.JoinedStr):  # complete f-string
             parts = []
             for piece in node.values:
                 parts.append(_eval(piece))
             return "".join(parts)
 
-        if isinstance(node, ast.FormattedValue):   # an {expr[:spec]!c} piece
+        if isinstance(node, ast.FormattedValue):  # an {expr[:spec]!c} piece
             val = _eval(node.value)
             # handle !s / !r / !a conversions
-            if   node.conversion == -1:  pass
-            elif node.conversion == ord("s"): val = str(val)
-            elif node.conversion == ord("r"): val = repr(val)
-            elif node.conversion == ord("a"): val = ascii(val)
-            else: raise ValueError("Unsupported f-string conversion")
+            if node.conversion == -1:
+                pass
+            elif node.conversion == ord("s"):
+                val = str(val)
+            elif node.conversion == ord("r"):
+                val = repr(val)
+            elif node.conversion == ord("a"):
+                val = ascii(val)
+            else:
+                raise ValueError("Unsupported f-string conversion")
 
             # handle optional format spec
             if node.format_spec is not None:
@@ -65,7 +78,7 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
 
         # ── NEW: attribute access (obj.attr or mapping-style) ──────────────
         if isinstance(node, ast.Attribute):
-            obj  = _eval(node.value)
+            obj = _eval(node.value)
             attr = node.attr
             if attr.startswith("_"):
                 raise ValueError("Access to private/protected attributes is disallowed")
@@ -77,7 +90,6 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
             if hasattr(obj, attr):
                 return getattr(obj, attr)
             raise ValueError(f"Attribute '{attr}' not found")
-
 
         # literals / names ------------------------------------------------
         if isinstance(node, ast.Expression):
@@ -107,7 +119,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
         # boolean ops -----------------------------------------------------
         if isinstance(node, ast.BoolOp):
             if type(node.op) not in _boolops:
-                raise ValueError(f"Unsupported boolean operator: {type(node.op).__name__}")
+                raise ValueError(
+                    f"Unsupported boolean operator: {type(node.op).__name__}"
+                )
             vals = [_eval(v) for v in node.values]
             return all(vals) if isinstance(node.op, ast.And) else any(vals)
 
@@ -124,16 +138,16 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
                 if t not in _cmpops:
                     raise ValueError(f"Unsupported comparison operator: {t.__name__}")
                 ok = (
-                    (t is ast.Eq     and left == cmp) or
-                    (t is ast.NotEq  and left != cmp) or
-                    (t is ast.Lt     and left <  cmp) or
-                    (t is ast.LtE    and left <= cmp) or
-                    (t is ast.Gt     and left >  cmp) or
-                    (t is ast.GtE    and left >= cmp) or
-                    (t is ast.In     and left in  cmp) or
-                    (t is ast.NotIn  and left not in cmp) or
-                    (t is ast.Is     and left is cmp) or
-                    (t is ast.IsNot  and left is not cmp)
+                    (t is ast.Eq and left == cmp)
+                    or (t is ast.NotEq and left != cmp)
+                    or (t is ast.Lt and left < cmp)
+                    or (t is ast.LtE and left <= cmp)
+                    or (t is ast.Gt and left > cmp)
+                    or (t is ast.GtE and left >= cmp)
+                    or (t is ast.In and left in cmp)
+                    or (t is ast.NotIn and left not in cmp)
+                    or (t is ast.Is and left is cmp)
+                    or (t is ast.IsNot and left is not cmp)
                 )
                 if not ok:
                     return False
@@ -159,6 +173,7 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
 
         # comprehensions (list, set, generator) ---------------------------  ◀ NEW
         if isinstance(node, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
+
             def _comp_recurse(gen_idx: int):
                 if gen_idx == len(node.generators):
                     yield _eval(node.elt)
@@ -185,15 +200,17 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
             # Always return the collection intact;
             # header logic will decide what to do with it.
             if isinstance(node, ast.GeneratorExp):
-                return output             # ← keep list, don’t join
+                return output  # ← keep list, don’t join
             if isinstance(node, ast.ListComp):
                 return output
-            return set(output)            # ast.SetComp
+            return set(output)  # ast.SetComp
 
         # subscripting ----------------------------------------------------
         if isinstance(node, ast.Subscript):
             value = _eval(node.value)
-            slice_val = _eval(node.slice.value if isinstance(node.slice, ast.Index) else node.slice)
+            slice_val = _eval(
+                node.slice.value if isinstance(node.slice, ast.Index) else node.slice
+            )
             return value[slice_val]
 
         # fallback --------------------------------------------------------
@@ -203,7 +220,7 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
     try:
         # wrap top-level bare f-string into a literal so ast.parse works
         if isinstance(expr, str) and expr.lstrip().startswith('f"'):
-            expr = f"({expr})"      # minimal wrapper
+            expr = f"({expr})"  # minimal wrapper
         logger.debug(f"evaluating {expr}")
         tree = ast.parse(expr, mode="eval")
         return _eval(tree)

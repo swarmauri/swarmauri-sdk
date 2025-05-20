@@ -7,7 +7,10 @@ Usage (wired in peagen/cli.py):
 """
 
 import json
+<<<<<<< HEAD
 import time
+=======
+>>>>>>> upstream/mono/dev
 from pathlib import Path
 from pprint import pformat
 from typing import Optional
@@ -17,14 +20,22 @@ from pydantic import FilePath
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen._api_key import _resolve_api_key
+<<<<<<< HEAD
 from peagen._banner import _print_banner
 from peagen._config import _config
 from peagen._gitops import _clone_swarmauri_repo
+=======
+from peagen._config import _config
+>>>>>>> upstream/mono/dev
 from peagen.core import Peagen
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
 revise_app = typer.Typer(help="Revise an existing Peagen project.")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/mono/dev
 # Note: we keep `@revise_app.callback()` so that “peagen revise …” works exactly
 # like before; swap to @revise_app.command() if you prefer a nested sub-command.
 @revise_app.command("revise")
@@ -210,4 +221,8 @@ def revise(
             pea.logger.info("Processed all projects successfully.")
     except KeyboardInterrupt:
         typer.echo("\n  Interrupted... exited.")
+<<<<<<< HEAD
         raise typer.Exit(code=1)
+=======
+        raise typer.Exit(code=1)
+>>>>>>> upstream/mono/dev

@@ -13,11 +13,11 @@ from swarmauri_base.ObserveBase import ObserveBase
 class FileLoggingHandler(HandlerBase):
     """
     A handler for logging messages to a file on disk.
-    
+
     This handler writes logging records to a specified file path using Python's
     built-in FileHandler, managing file operations including opening, writing,
     and closing the file.
-    
+
     Attributes:
         type: The type identifier for this handler.
         level: The logging level for this handler.
@@ -37,17 +37,17 @@ class FileLoggingHandler(HandlerBase):
     encoding: str = "utf-8"
     max_bytes: int = 0  # 0 means no rotation
     backup_count: int = 0
-    
+
     def compile_handler(self) -> logging.Handler:
         """
         Compiles a file logging handler using the specified parameters.
-        
+
         Creates a FileHandler or RotatingFileHandler based on configuration,
         sets the appropriate logging level and formatter.
-        
+
         Returns:
             logging.Handler: Configured file handler for logging.
-        
+
         Raises:
             IOError: If the file path is invalid or inaccessible.
         """
@@ -55,7 +55,6 @@ class FileLoggingHandler(HandlerBase):
         log_dir = os.path.dirname(self.file_path)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir)
-            
         # Create the appropriate file handler based on rotation settings
         if self.max_bytes > 0:
             # Create a rotating file handler
@@ -64,19 +63,17 @@ class FileLoggingHandler(HandlerBase):
                 mode=self.file_mode,
                 maxBytes=self.max_bytes,
                 backupCount=self.backup_count,
-                encoding=self.encoding
+                encoding=self.encoding,
             )
         else:
             # Create a standard file handler
             handler = logging.FileHandler(
-                filename=self.file_path,
-                mode=self.file_mode,
-                encoding=self.encoding
+                filename=self.file_path, mode=self.file_mode, encoding=self.encoding
             )
-            
+
         # Set the logging level
         handler.setLevel(self.level)
-        
+
         # Configure the formatter
         if self.formatter:
             if isinstance(self.formatter, str):
@@ -87,8 +84,8 @@ class FileLoggingHandler(HandlerBase):
             # Apply default formatter if none is specified
             default_formatter = logging.Formatter(
                 "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
-                "%Y-%m-%d %H:%M:%S"
+                "%Y-%m-%d %H:%M:%S",
             )
             handler.setFormatter(default_formatter)
-            
+
         return handler

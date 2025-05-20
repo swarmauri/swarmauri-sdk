@@ -18,16 +18,35 @@ HEADERS = {
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 llm = GroqModel(api_key=GROQ_API_KEY)
 
-BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
+BASE_BRANCH = (
+    os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
+)
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
-WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
+WORKFLOW_RUN_URL = (
+    os.getenv("GITHUB_SERVER_URL", "https://github.com")
+    + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
+)
+
 
 def parse_arguments():
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Manage GitHub Issues for Test Failures")
-    parser.add_argument("--results-file", type=str, required=True, help="Path to the pytest JSON report file")
-    parser.add_argument("--package", type=str, required=True, help="Name of the matrix package where the error occurred.")
+    parser = argparse.ArgumentParser(
+        description="Manage GitHub Issues for Test Failures"
+    )
+    parser.add_argument(
+        "--results-file",
+        type=str,
+        required=True,
+        help="Path to the pytest JSON report file",
+    )
+    parser.add_argument(
+        "--package",
+        type=str,
+        required=True,
+        help="Name of the matrix package where the error occurred.",
+    )
     return parser.parse_args()
+
 
 def load_pytest_results(report_file):
     """Load pytest results from the JSON report."""
@@ -42,13 +61,18 @@ def load_pytest_results(report_file):
     for test in report.get("tests", []):
         if test.get("outcome") == "failed":
             test_name = test.get("nodeid", "Unknown test")
-            failure_message = test.get("call", {}).get("longrepr", "No failure details available")
-            failures.append({
-                "name": test_name,
-                "path": test.get("nodeid", "Unknown path"),
-                "message": failure_message
-            })
+            failure_message = test.get("call", {}).get(
+                "longrepr", "No failure details available"
+            )
+            failures.append(
+                {
+                    "name": test_name,
+                    "path": test.get("nodeid", "Unknown path"),
+                    "message": failure_message,
+                }
+            )
     return failures
+
 
 def ask_groq_for_fix(test_name, failure_message, stack_trace):
     """Ask GroqModel for suggestions on fixing the test failure."""
@@ -69,6 +93,7 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
         print(f"Error communicating with Groq: {e}")
         return "Unable to retrieve suggestions from Groq at this time."
 
+
 def get_existing_issues():
     """Retrieve all existing issues with the pytest-failure label."""
     url = f"https://api.github.com/repos/{REPO}/issues"
@@ -76,6 +101,7 @@ def get_existing_issues():
     response = requests.get(url, headers=HEADERS, params=params)
     response.raise_for_status()
     return response.json()
+
 
 def create_issue(test, package):
     """Create a new GitHub issue for the test failure."""
@@ -87,10 +113,10 @@ def create_issue(test, package):
         "title": f"[Test Case Failure]: {test['name']}",
         "body": f"""
 ### Test Case:
-{test['path']}
+{test["path"]}
 
 ### Failure Details:
-{test['message']}
+{test["message"]}
 
 ---
 
@@ -109,23 +135,27 @@ def create_issue(test, package):
 ### Labels:
 This issue is auto-labeled for the `{package}` package.
 """,
-        "labels": ["pytest-failure", package]
+        "labels": ["pytest-failure", package],
     }
     response = requests.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
-    print(f"Issue created for {test['name']} with Groq suggestion in package '{package}'.")
+    print(
+        f"Issue created for {test['name']} with Groq suggestion in package '{package}'."
+    )
+
 
 def add_comment_to_issue(issue_number, test, package):
     """Add a comment to an existing GitHub issue."""
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
-    data = {"body": f"""
+    data = {
+        "body": f"""
 New failure detected:
 
 ### Test Case:
-{test['path']}
+{test["path"]}
 
 ### Details:
-{test['message']}
+{test["message"]}
 
 ---
 
@@ -135,10 +165,12 @@ New failure detected:
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
 - **Matrix Package**: `{package}`
-"""}
+"""
+    }
     response = requests.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
     print(f"Comment added to issue {issue_number} for {test['name']}.")
+
 
 def process_failures(report_file, package):
     """Process pytest failures and manage GitHub issues."""
@@ -159,6 +191,7 @@ def process_failures(report_file, package):
 
         if not issue_exists:
             create_issue(test, package)
+
 
 if __name__ == "__main__":
     args = parse_arguments()
