@@ -40,13 +40,19 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
 markers = [
+    "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
     "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
     "xfail: Expected failures",
-    "xpass: Expected passes"
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
+timeout = 300
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
