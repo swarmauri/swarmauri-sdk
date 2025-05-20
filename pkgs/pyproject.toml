@@ -135,6 +135,11 @@ swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_prompt_j2prompttemplate = { workspace = true }
+swarmauri_evaluator_abstractmethods = { workspace = true }
+swarmauri_evaluator_anyusage = { workspace = true }
+swarmauri_evaluator_externalimports = { workspace = true }
+swarmauri_evaluator_subprocess = { workspace = true }
+swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
 peagen = { workspace = true }
