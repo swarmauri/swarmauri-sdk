@@ -13,6 +13,8 @@ from pydantic import SecretStr
 
 import io
 import os
+import shutil
+from pathlib import Path
 from typing import BinaryIO, Optional
 
 from minio import Minio
@@ -36,6 +38,7 @@ class MinioStorageAdapter:
         bucket: str,
         *,
         secure: bool = True,
+        prefix: str = "",
     ):
         self._client = Minio(
             endpoint,
@@ -43,11 +46,24 @@ class MinioStorageAdapter:
             secret_key=secret_key,
             secure=secure,
         )
+        self._endpoint = endpoint
+        self._secure = secure
         self._bucket = bucket
+        self._prefix = prefix.lstrip("/")
 
         # create bucket if it doesn't exist
         if not self._client.bucket_exists(bucket):
             self._client.make_bucket(bucket)
+
+    # ------------------------------------------------------------
+    #  NEW – where Peagen should tell evaluators to look
+    # ------------------------------------------------------------
+    @property
+    def root_uri(self) -> str:
+        scheme = "minios" if self._secure else "minio"
+        base   = f"{scheme}://{self._endpoint}/{self._bucket}"
+        return f"{base}/{self._prefix}" if self._prefix else base
+
 
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> None:  # noqa: D401
@@ -95,3 +111,33 @@ class MinioStorageAdapter:
             return buffer
         except S3Error as exc:
             raise FileNotFoundError(f"{self._bucket}/{key}: {exc}") from exc
+
+    # ---------------------------------------------------------------- upload_dir
+    def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
+        """Upload the contents of a directory recursively under ``prefix``."""
+        base = Path(src)
+        for path in base.rglob("*"):
+            if path.is_file():
+                rel = path.relative_to(base)
+                key = os.path.join(prefix, rel.as_posix())
+                with path.open("rb") as fh:
+                    self.upload(key, fh)
+
+    # ---------------------------------------------------------------- iter_prefix
+    def iter_prefix(self, prefix: str):
+        """Iterate over stored keys under ``prefix``."""
+        objects = self._client.list_objects(self._bucket, prefix=prefix, recursive=True)
+        for obj in objects:
+            yield obj.object_name
+
+    # ---------------------------------------------------------------- download_prefix
+    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+        """Download objects under ``prefix`` into ``dest_dir``."""
+        dest = Path(dest_dir)
+        for key in self.iter_prefix(prefix):
+            rel = Path(key).relative_to(prefix)
+            target = dest / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            data = self.download(key)
+            with open(target, "wb") as fh:
+                shutil.copyfileobj(data, fh)

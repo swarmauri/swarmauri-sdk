@@ -29,6 +29,15 @@ class GithubStorageAdapter:
         self._repo = self._client.get_organization(org).get_repo(repo)
         self._branch = branch
 
+    # NEW ────────────────────────────────────────────────────────────────
+    @property
+    def root_uri(self) -> str:
+        """
+        Location prefix used by Peagen manifests and evaluators.
+        Example:  gh://my-org/my-repo/main/
+        """
+        return f"gh://{self._repo.full_name}/{self._branch}/"
+
     def upload(self, key: str, data: BinaryIO) -> None:
         """
         Uploads data to the repository at the given key (path).
