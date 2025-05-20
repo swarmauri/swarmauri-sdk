@@ -1,0 +1,81 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "swarmauri_evaluator_anyusage"
+version = "0.1.0"
+description = "An evaluator component that detects and penalizes usage of the `Any` type in Python code"
+authors = [
+    {name = "SwarmAuri Team", email = "team@swarmauri.com"}
+]
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+keywords = [
+    "swarmauri",
+    "evaluator",
+    "typing",
+    "any",
+    "static analysis",
+    "code quality",
+    "type checking",
+    "type hints",
+    "code evaluation",
+    "python"
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+[project.urls]
+"Homepage" = "https://swarmauri.com"
+"Repository" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_evaluator_anyusage"
+"Bug Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
+"Documentation" = "https://docs.swarmauri.com"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[project.entry-points."swarmauri.evaluators"]
+AnyTypeUsageEvaluator = "swarmauri_evaluator_anyusage:AnyTypeUsageEvaluator"
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "regression: Regression tests",
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

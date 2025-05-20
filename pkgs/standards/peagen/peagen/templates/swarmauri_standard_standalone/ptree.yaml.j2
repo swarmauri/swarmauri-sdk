@@ -12,8 +12,8 @@
 # Package-Level Files for {{ PKG.NAME }}
 # -------------------------
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/LICENSE.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/LICENSE"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/LICENSE.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/LICENSE"
   PROCESS_TYPE: "COPY"
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -24,8 +24,8 @@
     PURPOSE: "Defines the license for package {{ PKG.NAME }}."
     DESCRIPTION: "This file contains the license for package {{ PKG.NAME }}."
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/pyproject.toml.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/pyproject.toml"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -35,9 +35,9 @@
     DEPENDENCIES:
       {#- Loop over modules to include their main file as dependencies #}
       {%- for MOD in PKG.MODULES %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+        - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
       {%- endfor %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+        - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
     PURPOSE: "Specifies package metadata and dependencies for {{ PKG.NAME }}."
     DESCRIPTION: "Configuration for package {{ PKG.NAME }}. Must reference all module source files, README, and LICENSE."
     REQUIREMENTS:
@@ -45,8 +45,8 @@
       - "Must include any third party dependencies, setting the version to '*'"
       - "Must include a comprehensive list of applicable keywords."
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/README.md.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/README.md"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/README.md.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/README.md"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -54,11 +54,11 @@
   MODULE_NAME: null
   EXTRAS:
     DEPENDENCIES:
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+        - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
       {%- for MOD in PKG.MODULES %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+        - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
       {%- endfor %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+        - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/pyproject.toml"
     PURPOSE: "Documents package {{ PKG.NAME }}."
     DESCRIPTION: "{{ PKG.EXTRAS.DESCRIPTION  }}"
     REQUIREMENTS:
@@ -73,8 +73,8 @@
 # Package Source Files
 # -------------------------
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
   PROCESS_TYPE: "COPY"
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -86,8 +86,8 @@
     DEPENDENCIES: []
 
 {% for MOD in PKG.MODULES %}
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -110,9 +110,9 @@
           {%- else %}
             {%- set parts = dep | split('.') %}
             {%- if parts | length > 2 %}
-              - "{{ PROJ.ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
+              - "{{ PROJ.ROOT }}/standards/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
             {%- else %}
-              - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
+              - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
             {%- endif %}
           {%- endif %}
         {%- endfor %}
@@ -138,8 +138,8 @@
     RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
     EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -147,7 +147,7 @@
   MODULE_NAME: "{{ MOD.NAME }}"
   EXTRAS:
     DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+      - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
     PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
     DESCRIPTION: "Tests for module {{ MOD.NAME }}."
     REQUIREMENTS:
@@ -162,8 +162,8 @@
 # Package-Level Tests
 # -------------------------
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -177,7 +177,7 @@
       - "Must use @pytest.mark.i9n decorator to mark test cases."
       - "Where applicable use pytest fixtures."
     DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+      - "{{ PROJ.ROOT }}/standards/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
 
 {%- endfor %}
 

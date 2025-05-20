@@ -139,7 +139,9 @@ def _process_file(
                 context["INJ"] = _config["revision_notes"]
                 prompt_name = agent_env["agent_prompt_template_file"]
             else:
-                prompt_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+                prompt_name = file_record.get(
+                    "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
+                )
 
             prompt_path = os.path.join(template_dir, prompt_name)
             content = _render_generate_template(
@@ -163,8 +165,9 @@ def _process_file(
 
     if content == "":
         if logger:
-            logger.warning(f"Blank content for file '{final_filename}'; saving empty file.")
-
+            logger.warning(
+                f"Blank content for file '{final_filename}'; saving empty file."
+            )
 
     _save_file(
         content,
@@ -252,7 +255,7 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-
+        
         j2_instance = j2pt()
         j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
 
