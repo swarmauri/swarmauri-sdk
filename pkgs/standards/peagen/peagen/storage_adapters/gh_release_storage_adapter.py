@@ -40,6 +40,15 @@ class GithubReleaseStorageAdapter:
             prerelease=prerelease,
         )
 
+    @property
+    def root_uri(self) -> str:
+        """
+        Treat a GitHub Release as a ‘bucket’.  Evaluators that understand
+        the ghrel:// scheme can fetch assets back.
+        Example:  ghrel://my-org/my-repo/v1.3.0/
+        """
+        return f"ghrel://{self._repo.full_name}/{self._tag}/"
+
     def _get_or_create_release(
         self,
         tag: str,

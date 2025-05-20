@@ -25,6 +25,15 @@ class FileStorageAdapter:
         self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def root_uri(self) -> str:
+        """
+        Absolute on-disk location of the workspace, expressed as a URI that
+        remote-aware code can still parse.
+        Example:  file:///home/ci/artifacts/peagen_run_42/
+        """
+        return f"file://{self._root.as_posix()}/"
+
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> None:
         """
