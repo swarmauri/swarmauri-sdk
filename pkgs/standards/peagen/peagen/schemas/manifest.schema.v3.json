@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://peagen.dev/schemas/manifest-v3.json",
   "title": "Peagen Manifest (schema_version 3)",
+  "schemaVersion": "3.0.0",
   "type": "object",
   "required": [
     "schema_version",
@@ -14,7 +15,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": 3,
+      "const": "3.0.0",
       "description": "Hard-coded version tag; bump only on breaking changes."
     },
     "workspace_uri": {
