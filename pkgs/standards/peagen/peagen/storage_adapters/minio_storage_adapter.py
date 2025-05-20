@@ -23,7 +23,7 @@ from minio.error import S3Error
 # from swarmauri_core.storage_adapters.IStorageAdapter import IStorageAdapter
 
 
-#class MinioStorageAdapter(IStorageAdapter):
+# class MinioStorageAdapter(IStorageAdapter):
 class MinioStorageAdapter:
     """
     Very small wrapper around the MinIO client that fulfils the

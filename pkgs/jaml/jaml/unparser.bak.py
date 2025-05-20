@@ -83,16 +83,20 @@ class JMLUnparser:
         if isinstance(val, ValueNode):
             return f"{self.format_value(val.value)}{val.comment or ''}"
         if isinstance(val, InlineTableNode):
-            return val.origin if "\n" not in val.origin else self._expand_inline_table(val)
+            return (
+                val.origin if "\n" not in val.origin else self._expand_inline_table(val)
+            )
         if isinstance(val, (SingleLineArrayNode, MultiLineArrayNode)):
             return val.origin
-        if isinstance(val, (
+        if isinstance(
+            val,
+            (
                 SingleQuotedStringNode,
                 TripleQuotedStringNode,
                 BacktickStringNode,
                 FStringNode,
-                TripleBacktickStringNode
-                )
+                TripleBacktickStringNode,
+            ),
         ):
             return val.origin
 
@@ -121,7 +125,9 @@ class JMLUnparser:
     # ------------------------------------------------------------------ #
     def _expand_inline_table(self, tbl: InlineTableNode) -> str:
         text = tbl.origin.strip()
-        inner = text[1:-1].strip() if text.startswith("{") and text.endswith("}") else text
+        inner = (
+            text[1:-1].strip() if text.startswith("{") and text.endswith("}") else text
+        )
         lines = [ln.rstrip(",").strip() for ln in inner.splitlines() if ln.strip()]
         return "\n".join(lines)
 
@@ -140,7 +146,7 @@ class JMLUnparser:
                 body_lines.extend(getattr(node, "__comments__"))  # type: ignore[arg-type]
 
             # children (assignments / subsections / stray comments)
-            for child in (node.body or []):
+            for child in node.body or []:
                 if child is None:
                     continue
                 if isinstance(child, str) and child.lstrip().startswith("#"):
@@ -186,9 +192,14 @@ class JMLUnparser:
     # section helpers
     # ------------------------------------------------------------------ #
     def _collapse_section(self, path: List[Any], sect: Any) -> Tuple[List[str], Any]:
-        str_path = [item.origin.strip('[]') if isinstance(item, (TableArrayHeaderNode, ComprehensionHeaderNode)) else str(item) for item in path]
+        str_path = [
+            item.origin.strip("[]")
+            if isinstance(item, (TableArrayHeaderNode, ComprehensionHeaderNode))
+            else str(item)
+            for item in path
+        ]
         if isinstance(sect, dict) and len(sect) == 1:
-            (only_key, val), = sect.items()
+            ((only_key, val),) = sect.items()
             if isinstance(val, dict) and not {"_value", "_annotation"} <= val.keys():
                 return self._collapse_section(str_path + [only_key], val)
             if isinstance(val, InlineTableNode) and "\n" in val.origin:
@@ -217,18 +228,18 @@ class JMLUnparser:
             if k == "__comments__":
                 continue
             if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
-                print('+++==>', k, v, type(k), type(v))
+                print("+++==>", k, v, type(k), type(v))
                 val_txt = self.format_value(v["_value"])
                 lines.append(f"{k}: {v['_annotation']} = {val_txt}")
             elif not isinstance(v, dict):
                 if isinstance(k, TableArrayHeader):
-                    print('====>', k, v, type(k), type(v))
+                    print("====>", k, v, type(k), type(v))
                     lines.append(f"[[{k}]]")
                 elif isinstance(k, TableArraySectionNode):
-                    print('====>', k, v, type(k), type(v))
+                    print("====>", k, v, type(k), type(v))
                     lines.append(f"[[{k}]]")
                 else:
-                    print('==>', k, v, type(k), type(v))
+                    print("==>", k, v, type(k), type(v))
                     lines.append(f"{k} = {self.format_value(v)}")
 
         if len(lines) > 1:
@@ -237,7 +248,7 @@ class JMLUnparser:
         # nested subsections
         for k, v in sect.items():
             if isinstance(v, dict):
-                print('---->', k, v, type(k), type(v))
+                print("---->", k, v, type(k), type(v))
                 sub_path, collapsed = self._collapse_section(path + [k], v)
                 lines.append(self._emit_section(collapsed, sub_path))
 
@@ -248,7 +259,9 @@ class JMLUnparser:
         str_path = []
         for item in path:
             if isinstance(item, (TableArrayHeaderNode, ComprehensionHeaderNode)):
-                str_path.append(item.origin.strip('[]') if hasattr(item, 'origin') else str(item))
+                str_path.append(
+                    item.origin.strip("[]") if hasattr(item, "origin") else str(item)
+                )
             else:
                 str_path.append(str(item))
         if not isinstance(sect, dict):
@@ -272,6 +285,7 @@ class JMLUnparser:
                 sub_path, collapsed = self._collapse_section([k], v)
                 lines.append(self._emit_section(collapsed, str_path + sub_path))
         return "\n".join(lines).rstrip("\n")
+
     # ------------------------------------------------------------------ #
     # public API
     # ------------------------------------------------------------------ #
@@ -285,16 +299,29 @@ class JMLUnparser:
         for key, value in data.items():
             if key == "__comments__":
                 continue
-            if isinstance(value, list) and all(isinstance(v, (dict, TableArraySectionNode)) for v in value):
+            if isinstance(value, list) and all(
+                isinstance(v, (dict, TableArraySectionNode)) for v in value
+            ):
                 for section in value:
                     if isinstance(section, TableArraySectionNode):
                         out.append(self.unparse_node(section))
                     else:
-                        key_str = key.origin.strip('[]') if isinstance(key, (TableArrayHeaderNode, ComprehensionHeaderNode)) else key
+                        key_str = (
+                            key.origin.strip("[]")
+                            if isinstance(
+                                key, (TableArrayHeaderNode, ComprehensionHeaderNode)
+                            )
+                            else key
+                        )
                         lines = [f"[[{key_str}]]"]
                         for k, v in section.items():
-                            if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
-                                lines.append(f"{k}: {v['_annotation']} = {self.format_value(v['_value'])}")
+                            if (
+                                isinstance(v, dict)
+                                and {"_value", "_annotation"} <= v.keys()
+                            ):
+                                lines.append(
+                                    f"{k}: {v['_annotation']} = {self.format_value(v['_value'])}"
+                                )
                             else:
                                 lines.append(f"{k} = {self.format_value(v)}")
                         out.append("\n".join(lines))
@@ -305,7 +332,11 @@ class JMLUnparser:
                 out.append(self._emit_section(collapsed, path))
                 out.append("")
                 continue
-            rhs = self.format_value(value) if not hasattr(value, "unparse") else value.unparse()
+            rhs = (
+                self.format_value(value)
+                if not hasattr(value, "unparse")
+                else value.unparse()
+            )
             out.append(f"{key} = {rhs}")
         return "\n".join(out).rstrip("\n")
 

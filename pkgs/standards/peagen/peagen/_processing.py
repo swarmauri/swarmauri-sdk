@@ -9,12 +9,10 @@ It supports:
 """
 
 import os
-import io
 from pprint import pformat
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from colorama import Fore, Style
 from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 from pathlib import Path
 

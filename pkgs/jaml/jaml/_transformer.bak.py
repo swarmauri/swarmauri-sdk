@@ -3,7 +3,7 @@ import re
 from lark import Transformer, Token, v_args
 
 from .ast_nodes import (
-    PreservedString, 
+    PreservedString,
     PreservedValue,
     PreservedArray,
     PreservedInlineTable,
@@ -21,6 +21,7 @@ from .ast_nodes import (
     AliasClause,
     InClause,
 )
+
 
 class ConfigTransformer(Transformer):
     def __init__(self, debug=True):
@@ -53,9 +54,9 @@ class ConfigTransformer(Transformer):
         if len(items) == 2:
             key, value = items
         elif len(items) == 3:
-            if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
+            if isinstance(items[-1], dict) and "_inline_comment" in items[-1]:
                 key, value, inline = items
-            elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
+            elif isinstance(items[-1], str) and items[-1].lstrip().startswith("#"):
                 key, value, inline = items
             else:
                 key, type_annotation, value = items
@@ -66,7 +67,9 @@ class ConfigTransformer(Transformer):
 
         # Check for empty or whitespace-only value
         if isinstance(value, str) and value.strip() == "":
-            self.debug_print(f"Skipping empty or whitespace-only assignment for key: {key}")
+            self.debug_print(
+                f"Skipping empty or whitespace-only assignment for key: {key}"
+            )
             return key, None  # Or raise an error
 
         if isinstance(value, PreservedString) and value.value.strip() == "":
@@ -74,24 +77,30 @@ class ConfigTransformer(Transformer):
             return key, None
 
         # Unquote value if needed
-        if not isinstance(value, PreservedString) and isinstance(value, str) and (
-            (value.startswith("'") and value.endswith("'")) or 
-            (value.startswith('"') and value.endswith('"'))
+        if (
+            not isinstance(value, PreservedString)
+            and isinstance(value, str)
+            and (
+                (value.startswith("'") and value.endswith("'"))
+                or (value.startswith('"') and value.endswith('"'))
+            )
         ):
             value = value[1:-1]
 
-        if inline and isinstance(inline, dict) and '_inline_comment' in inline:
-            inline = inline['_inline_comment']
+        if inline and isinstance(inline, dict) and "_inline_comment" in inline:
+            inline = inline["_inline_comment"]
         inline = str(inline) if inline else None
 
         if type_annotation:
-            result = {"_value": PreservedValue(value, inline) if inline else value,
-                      "_annotation": type_annotation}
+            result = {
+                "_value": PreservedValue(value, inline) if inline else value,
+                "_annotation": type_annotation,
+            }
         else:
             result = PreservedValue(value, inline) if inline else value
 
         if self._current_ta_header is not None:
-            table_name = str(self._current_ta_header).split('=')[0].strip()
+            table_name = str(self._current_ta_header).split("=")[0].strip()
             if table_name not in self.current_section:
                 self.current_section[table_name] = []
             if not self.current_section[table_name]:
@@ -148,7 +157,9 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"pair_expr(): original_text = {original_text}")
         self.debug_print(f"pair_expr(): raw items = {items}")
         if len(items) < 3:
-            raise ValueError("pair_expr(): Expected at least three items (left, operator, right)")
+            raise ValueError(
+                "pair_expr(): Expected at least three items (left, operator, right)"
+            )
         left = items[0]
         right = items[2]
         self.debug_print(f"pair_expr(): left = {left}, right = {right}")
@@ -208,7 +219,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # Handle loop_vars
-        if i < len(items) and hasattr(items[i], "data") and items[i].data == "loop_vars":
+        if (
+            i < len(items)
+            and hasattr(items[i], "data")
+            and items[i].data == "loop_vars"
+        ):
             loop_vars_tree = items[i]
             for loop_var in loop_vars_tree.children:
                 if hasattr(loop_var, "data") and loop_var.data == "loop_var":
@@ -232,7 +247,11 @@ class ConfigTransformer(Transformer):
         while i < len(items):
             if isinstance(items[i], Token) and items[i].type == "IF":
                 i += 1
-                if i < len(items) and hasattr(items[i], "data") and items[i].data == "comprehension_condition":
+                if (
+                    i < len(items)
+                    and hasattr(items[i], "data")
+                    and items[i].data == "comprehension_condition"
+                ):
                     condition = []
                     condition_items = items[i].children
                     condition.append(condition_items[0])  # First comp_expr
@@ -244,13 +263,16 @@ class ConfigTransformer(Transformer):
             else:
                 i += 1  # Skip unexpected items (e.g., NEWLINE)
 
-        self.debug_print(f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}")
+        self.debug_print(
+            f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}"
+        )
         return ComprehensionClause(
             loop_vars=loop_vars,
             iterable=iterable,
             conditions=conditions,
-            original=original_text
+            original=original_text,
         )
+
     @v_args(meta=True)
     def comprehension_clauses(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
@@ -291,38 +313,52 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def list_comprehension(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"list_comprehension() called with meta: {meta} and items: {items}")
+        self.debug_print(
+            f"list_comprehension() called with meta: {meta} and items: {items}"
+        )
         self.debug_print(f"List comprehension original text: {original_text}")
         return DeferredListComprehension(original_text)
 
     @v_args(meta=True)
     def dict_comprehension(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"dict_comprehension() called with meta: {meta} and items: {items}")
+        self.debug_print(
+            f"dict_comprehension() called with meta: {meta} and items: {items}"
+        )
         return DeferredDictComprehension(original_text)
 
     @v_args(meta=True)
     def header_comprehension(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        meaningful_items = [item for item in items if not (isinstance(item, Token) and item.type in ("NEWLINE", "WHITESPACE"))]
+        meaningful_items = [
+            item
+            for item in items
+            if not (isinstance(item, Token) and item.type in ("NEWLINE", "WHITESPACE"))
+        ]
         header_expr = meaningful_items[0]
         clauses = meaningful_items[1] if len(meaningful_items) > 1 else None
         node = ComprehensionHeader(header_expr, clauses, original_text)
-        node.table_name = original_text.strip('[]')
+        node.table_name = original_text.strip("[]")
         # Extract aliases for rendering
         node.aliases = []
         if clauses:
             for clause in clauses.clauses:
                 for var in clause.loop_vars:
-                    if isinstance(var, tuple) and len(var) == 2 and isinstance(var[1], AliasClause):
+                    if (
+                        isinstance(var, tuple)
+                        and len(var) == 2
+                        and isinstance(var[1], AliasClause)
+                    ):
                         # Extract alias name from scoped_var (e.g., "%{package}" → "package")
                         scoped_var = var[1].scoped_var
-                        match = re.match(r'[@%$]\{([^}]+)\}', scoped_var)
+                        match = re.match(r"[@%$]\{([^}]+)\}", scoped_var)
                         if match:
                             alias_name = match.group(1)
                             node.aliases.append(alias_name)
                         else:
-                            self.debug_print(f"Warning: Malformed scoped_var in {scoped_var}")
+                            self.debug_print(
+                                f"Warning: Malformed scoped_var in {scoped_var}"
+                            )
         return node
 
     # --------------------------------------------------------------------------
@@ -331,7 +367,9 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def table_array_header(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"table_array_header() extracted original: {original_text} and items: {items}")
+        self.debug_print(
+            f"table_array_header() extracted original: {original_text} and items: {items}"
+        )
 
         header_parts = []
         for item in items:
@@ -341,7 +379,7 @@ class ConfigTransformer(Transformer):
             else:
                 header_parts.append(str(item))
         aggregated_header_expr = " ".join(header_parts)
-        
+
         header_node = TableArrayHeader(aggregated_header_expr, original_text)
         # Set the header pointer
         self._current_ta_header = header_node
@@ -364,10 +402,18 @@ class ConfigTransformer(Transformer):
         if hasattr(header, "inline_assignments"):
             body_dict.update(header.inline_assignments)
         # Resolve header to a string key
-        table_name = header.table_name if hasattr(header, 'table_name') else str(header).split('=')[0].strip()
+        table_name = (
+            header.table_name
+            if hasattr(header, "table_name")
+            else str(header).split("=")[0].strip()
+        )
         if isinstance(header, (ComprehensionHeader, TableArrayHeader)):
             # Use original text for comprehension headers
-            table_name = header.origin.strip('[]') if isinstance(header, ComprehensionHeader) else table_name
+            table_name = (
+                header.origin.strip("[]")
+                if isinstance(header, ComprehensionHeader)
+                else table_name
+            )
         if table_name not in self.current_section:
             self.current_section[table_name] = []
         node = TableArraySectionNode(
@@ -392,9 +438,9 @@ class ConfigTransformer(Transformer):
                 key, value = items
                 inline = None
             elif len(items) == 3:
-                if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
+                if isinstance(items[-1], dict) and "_inline_comment" in items[-1]:
                     key, value, inline = items
-                elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
+                elif isinstance(items[-1], str) and items[-1].lstrip().startswith("#"):
                     key, value, inline = items
                 else:
                     key, type_annotation, value = items
@@ -402,9 +448,11 @@ class ConfigTransformer(Transformer):
             elif len(items) == 4:
                 key, type_annotation, value, inline = items
             else:
-                raise ValueError("Unexpected structure in inline_assignment: " + str(items))
+                raise ValueError(
+                    "Unexpected structure in inline_assignment: " + str(items)
+                )
         self.debug_print(f"Inline assignment returning: {{ {key}: {value} }}")
-        return { key: value }
+        return {key: value}
 
     def inline_table_item(self, items):
         self.debug_print(f"inline_table_item() called with items: {items}")
@@ -431,12 +479,14 @@ class ConfigTransformer(Transformer):
 
     def inline_table_items(self, items):
         self.debug_print(f"inline_table_items() called with items: {items}")
+
         def is_ignorable(x):
             if hasattr(x, "data") and x.data == "ws":
                 return True
             if isinstance(x, str) and x.strip() == "":
                 return True
             return False
+
         return [x for x in items if not is_ignorable(x)]
 
     @v_args(meta=True)
@@ -468,7 +518,11 @@ class ConfigTransformer(Transformer):
                 if key == "email" and prev_key == "name":
                     prev_val = result.get(prev_key)
                     if isinstance(prev_val, PreservedValue):
-                        prev_val.comment = (prev_val.comment + " " + comment).strip() if prev_val.comment else comment
+                        prev_val.comment = (
+                            (prev_val.comment + " " + comment).strip()
+                            if prev_val.comment
+                            else comment
+                        )
                     else:
                         result[prev_key] = PreservedValue(prev_val, comment)
                     comment = None
@@ -501,7 +555,12 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"array() called with meta: {meta} and items: {items}")
         array_values = []
         for item in items:
-            if isinstance(item, Token) and item.type in ("LBRACK", "RBRACK", "NEWLINE", "WHITESPACE"):
+            if isinstance(item, Token) and item.type in (
+                "LBRACK",
+                "RBRACK",
+                "NEWLINE",
+                "WHITESPACE",
+            ):
                 continue
             if isinstance(item, str) and item.strip() == "":
                 continue
@@ -510,11 +569,14 @@ class ConfigTransformer(Transformer):
             else:
                 array_values.append(item)
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"array result: {array_values} with original text: {original_text}")
+        self.debug_print(
+            f"array result: {array_values} with original text: {original_text}"
+        )
         return PreservedArray(array_values, original_text)
 
     def array_content(self, items):
         self.debug_print(f"array_content() called with items: {items}")
+
         def is_ignorable(x):
             if hasattr(x, "data") and x.data == "ws":
                 return True
@@ -523,6 +585,7 @@ class ConfigTransformer(Transformer):
             if isinstance(x, Token) and x.type in ("WHITESPACE", "NEWLINE"):
                 return True
             return False
+
         return [x for x in items if x != "," and not is_ignorable(x)]
 
     def array_item(self, items):
@@ -548,17 +611,27 @@ class ConfigTransformer(Transformer):
         combined_inline = None
         if attach_pre_comments:
             pre_text = " ".join(tok.value for tok in pre_comments.children)
-            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
+            if (
+                inline_comment
+                and hasattr(inline_comment, "children")
+                and len(inline_comment.children) > 1
+            ):
                 inline_text = inline_comment.children[1].value
             else:
                 inline_text = ""
             combined_inline = pre_text + (" " + inline_text if inline_text else "")
         else:
-            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
+            if (
+                inline_comment
+                and hasattr(inline_comment, "children")
+                and len(inline_comment.children) > 1
+            ):
                 combined_inline = inline_comment.children[1].value
         actual_value = value
         if combined_inline:
-            self.debug_print(f"array_item() returning PreservedValue for value: {actual_value} with inline comment: {combined_inline}")
+            self.debug_print(
+                f"array_item() returning PreservedValue for value: {actual_value} with inline comment: {combined_inline}"
+            )
             return PreservedValue(actual_value, combined_inline)
         self.debug_print(f"array_item() returning value: {actual_value}")
         return actual_value
@@ -569,7 +642,7 @@ class ConfigTransformer(Transformer):
 
     def INLINE_TABLE(self, token):
         self.debug_print(f"INLINE_TABLE() called with token: {token}")
-        if hasattr(token, 'meta') and token.meta:
+        if hasattr(token, "meta") and token.meta:
             start = token.meta.start_pos
             end = token.meta.end_pos
             original_text = self._slice_input(start, end)
@@ -580,25 +653,28 @@ class ConfigTransformer(Transformer):
             s = s[1:-1].strip()
         result_dict = {}
         if s:
-            pairs = s.split(',')
+            pairs = s.split(",")
             for pair in pairs:
-                if '=' in pair:
-                    key, val = pair.split('=', 1)
+                if "=" in pair:
+                    key, val = pair.split("=", 1)
                     key = key.strip()
                     val = val.strip()
                     try:
-                        if '.' in val:
+                        if "." in val:
                             converted = float(val)
                         else:
                             converted = int(val)
                     except ValueError:
-                        if ((val.startswith('"') and val.endswith('"')) or 
-                            (val.startswith("'") and val.endswith("'"))):
+                        if (val.startswith('"') and val.endswith('"')) or (
+                            val.startswith("'") and val.endswith("'")
+                        ):
                             converted = val[1:-1]
                         else:
                             converted = val
                     result_dict[key] = converted
-        self.debug_print(f"INLINE_TABLE() parsed dict: {result_dict} with original text: {original_text}")
+        self.debug_print(
+            f"INLINE_TABLE() parsed dict: {result_dict} with original text: {original_text}"
+        )
         return PreservedInlineTable(result_dict, original_text)
 
     def ARRAY(self, token):
@@ -617,7 +693,7 @@ class ConfigTransformer(Transformer):
     def STRING(self, token):
         self.debug_print(f"STRING() called with token: {token}")
         s = token.value
-        if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
+        if s.lstrip().startswith('f"') or s.lstrip().startswith("f'"):
             self.debug_print("String with f-prefix detected")
             return PreservedString(s.lstrip(), s)
         if s.startswith("'''") and s.endswith("'''"):
@@ -642,7 +718,7 @@ class ConfigTransformer(Transformer):
         return int(val, 0)
 
     def BOOLEAN(self, token):
-        return (token.value == "true")
+        return token.value == "true"
 
     def NULL(self, token):
         return None

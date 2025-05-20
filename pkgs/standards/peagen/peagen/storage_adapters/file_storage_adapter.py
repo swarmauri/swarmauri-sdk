@@ -17,7 +17,7 @@ from typing import BinaryIO
 # from swarmauri_core.storage_adapters.IStorageAdapter import IStorageAdapter
 
 
-#class FileStorageAdapter(IStorageAdapter):
+# class FileStorageAdapter(IStorageAdapter):
 class FileStorageAdapter:
     """Write and read artefacts on the local disk."""
 
@@ -41,7 +41,7 @@ class FileStorageAdapter:
         with open(tmp, "wb") as fh:
             shutil.copyfileobj(data, fh)
 
-        tmp.replace(dest)   # atomic on POSIX
+        tmp.replace(dest)  # atomic on POSIX
 
     # ---------------------------------------------------------------- download
     def download(self, key: str) -> BinaryIO:

@@ -9,18 +9,19 @@ Usage (wired in peagen/cli.py):
 
 import typer
 from pprint import pformat
-from typing import Optional
 from pydantic import FilePath
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen.core import Peagen, Fore, Style
 from peagen._config import _config
 from peagen._api_key import _resolve_api_key
-from peagen._gitops import _clone_swarmauri_repo
 from peagen._graph import get_immediate_dependencies
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
-sort_app = typer.Typer(help="Sort and show the list of files that would be processed for a project (dry run).")
+sort_app = typer.Typer(
+    help="Sort and show the list of files that would be processed for a project (dry run)."
+)
+
 
 @sort_app.command("sort")
 def sort(
@@ -74,8 +75,8 @@ def sort(
     show_dependencies: bool = typer.Option(
         False,
         "--show-deps/--no-show-deps",
-        help="If set, will show the direct dependenices of each file in the sort (one hop)."
-        )
+        help="If set, will show the direct dependenices of each file in the sort (one hop).",
+    ),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -141,15 +142,15 @@ def sort(
 
         pea.logger.info("")
         pea.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
-        for i, record in enumerate(sorted_records): 
-            idx = i + (start_idx or 0)  
-            name = record.get("RENDERED_FILE_NAME")  
+        for i, record in enumerate(sorted_records):
+            idx = i + (start_idx or 0)
+            name = record.get("RENDERED_FILE_NAME")
             deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
             dep_str = ", ".join(deps) if deps else "None"
             pea.logger.info("")
             pea.logger.info(f"\t{idx}) {name}")
             if show_dependencies:
-                deps = get_immediate_dependencies(sorted_records, name)  
+                deps = get_immediate_dependencies(sorted_records, name)
                 pea.logger.info(f"\t\tDependencies: {dep_str}")
 
     else:
@@ -166,15 +167,15 @@ def sort(
                 Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL
             )
 
-            for i, record in enumerate(sorted_records): 
-                idx = i + (start_idx or 0)  
-                name = record.get("RENDERED_FILE_NAME")  
+            for i, record in enumerate(sorted_records):
+                idx = i + (start_idx or 0)
+                name = record.get("RENDERED_FILE_NAME")
                 deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
                 dep_str = ", ".join(deps) if deps else "None"
                 if show_dependencies:
                     pea.logger.info("")
                     pea.logger.info(f"\t{idx}) {name}")
-                    deps = get_immediate_dependencies(sorted_records, name)  
+                    deps = get_immediate_dependencies(sorted_records, name)
                     pea.logger.info(f"\t\tDependencies: {dep_str}")
                 else:
                     pea.logger.info(f"\t{idx}) {name}")

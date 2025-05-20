@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import peagen.plugin_registry
 
+from swarmauri_base.loggers.LoggerBase import LoggerBase
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init

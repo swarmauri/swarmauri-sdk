@@ -27,8 +27,8 @@ colorama.init(autoreset=True)
 def _render_copy_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
-    j2_instance: Any,                # <-- new parameter
-    logger: Optional[Any] = None
+    j2_instance: Any,  # <-- new parameter
+    logger: Optional[Any] = None,
 ) -> str:
     """
     File: _rendering.py
@@ -42,7 +42,7 @@ def _render_copy_template(
         return j2_instance.fill(context)
     except Exception as e:
         if logger:
-            e_split = str(e).split('not found')
+            e_split = str(e).split("not found")
             logger.error(
                 f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}':"
                 f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found {e_split[1]}"
@@ -54,7 +54,7 @@ def _render_generate_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
     agent_prompt_template: str,
-    j2_instance: Any,                # <-- new parameter
+    j2_instance: Any,  # <-- new parameter
     agent_env: Dict[str, str] = {},
     logger: Optional[Any] = None,
 ) -> str:
@@ -73,7 +73,7 @@ def _render_generate_template(
         return call_external_agent(rendered_prompt, agent_env, logger)
     except Exception as e:
         if logger:
-            e_split = str(e).split('not found')
+            e_split = str(e).split("not found")
             logger.error(
                 f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}':"
                 f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found in {e_split[1]}"

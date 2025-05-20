@@ -4,6 +4,7 @@ from lark import Token
 # Import the tokenization functions.
 from jaml import parser
 
+
 # Test that keywords are recognized before identifiers.
 @pytest.mark.spec
 @pytest.mark.mep0002
@@ -18,6 +19,7 @@ def test_keyword_precedence():
     assert token_values[0] == "if"
     assert token_values[1] == "condition"
 
+
 # Test that a string containing a hash is parsed entirely as a STRING.
 @pytest.mark.spec
 @pytest.mark.mep0002
@@ -30,6 +32,7 @@ def test_string_with_hash():
 
     assert len(tokens) == 5
     assert "Hello, # world" in tokens[4].value
+
 
 # Test that a standalone comment is parsed as a COMMENT.
 @pytest.mark.spec
@@ -44,6 +47,7 @@ def test_standalone_comment():
     assert len(tokens) == 2
     assert tokens[0].startswith("#")
     assert tokens[0] == "# This is a comment"
+
 
 # Test that an inline table is recognized as INLINE_TABLE and that its nested tokens include comments.
 @pytest.mark.spec
@@ -61,17 +65,18 @@ def test_inline_table_nesting():
     assert tokens[0] == "test"
     assert "# Inline table comment" in tokens[18].value
 
+
 # Test that a multiline array with commas is parsed as an ARRAY (not as a table section).
 @pytest.mark.spec
 @pytest.mark.mep0002
 def test_multiline_array_precedence():
-    sample = '''
+    sample = """
     test = [
       "red",    # Primary color
       "green",  # Secondary color
       "blue"    # Accent color
     ]
-    '''
+    """
     tree = parser.parse(sample)
     print(f"[DEBUG]: {tree}")
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
@@ -80,8 +85,9 @@ def test_multiline_array_precedence():
 
     assert len(tokens) == 16
     # assert tokens[3] == "STRING"
-    assert tokens[2].type == 'SETTER'
-    assert tokens[2].value == '='
+    assert tokens[2].type == "SETTER"
+    assert tokens[2].value == "="
+
 
 # Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
 @pytest.mark.spec
@@ -95,6 +101,7 @@ def test_table_section_precedence():
 
     assert len(tokens) == 3
     assert "globals" in tokens
+
 
 # Test that a table array header is recognized as TABLE_ARRAY.
 @pytest.mark.spec
@@ -110,6 +117,7 @@ def test_table_array_precedence():
     assert len(tokens) == 3
     assert "products" in tokens[1]
 
+
 # Test that punctuation (like '=') is parsed as OPERATOR.
 @pytest.mark.spec
 @pytest.mark.mep0002
@@ -123,7 +131,8 @@ def test_operator_precedence():
     # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
     token_types = [t.type for t in tokens]
     token_values = [t.value for t in tokens]
-    assert token_types == ['IDENTIFIER', 'HSPACES', 'SETTER', 'HSPACES', 'INTEGER']
+    assert token_types == ["IDENTIFIER", "HSPACES", "SETTER", "HSPACES", "INTEGER"]
+
 
 # Test that scoped variables take precedence (e.g. '${base}' is a SCOPED_VAR).
 @pytest.mark.spec
@@ -137,8 +146,15 @@ def test_scoped_variable_precedence():
 
     token_types = [t.type for t in tokens]
     token_values = [t.value for t in tokens]
-    assert token_types == ['IDENTIFIER', 'HSPACES', 'SETTER', 'HSPACES', 'CONTEXT_SCOPED_VAR']
+    assert token_types == [
+        "IDENTIFIER",
+        "HSPACES",
+        "SETTER",
+        "HSPACES",
+        "CONTEXT_SCOPED_VAR",
+    ]
     assert token_values[4].startswith("${")
+
 
 # Test that comments inside a line with code are recognized separately.
 @pytest.mark.spec
@@ -153,4 +169,3 @@ def test_inline_comment_precedence():
     # Expect tokens: IDENTIFIER, PUNCTUATION, STRING, COMMENT.
     token_types = [t.type for t in tokens]
     assert "INLINE_COMMENT" in token_types
-
