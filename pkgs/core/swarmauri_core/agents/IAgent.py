@@ -34,7 +34,6 @@ class IAgent(ABC):
         """
         pass
 
-
     @abstractmethod
     async def abatch(
         self,
@@ -46,4 +45,3 @@ class IAgent(ABC):
         Subclasses can override for more efficient implementations.
         """
         pass
-
