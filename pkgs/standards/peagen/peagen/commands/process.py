@@ -192,6 +192,7 @@ def process_cmd(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=extra_dirs,
+            source_packages=source_pkgs,
             agent_env=agent_env,
             storage_adapter=storage_adapter,
             org=org,

@@ -13,7 +13,9 @@ Main workflow class for Peagen.  This revision:
 
 from __future__ import annotations
 
+import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
 from types import ModuleType
@@ -31,7 +33,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
 
-from ._config import __logger_name__, _config
+from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._processing import _process_project_files
 
@@ -86,7 +88,7 @@ class Peagen(ComponentBase):
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    version: str = "0.1.0"
+    version: str = __version__
 
     # ──────────────────────────────────────────────────────────────────
     # Environment setup (called automatically by Pydantic)
@@ -97,6 +99,10 @@ class Peagen(ComponentBase):
         Build the Jinja search path (`namespace_dirs`) **purely from directories
         that exist inside the workspace** plus built-ins & plugin templates.
         """
+        # ── Auto-convert any leftover `additional_package_dirs`
+        #    into synthetic 'local' SOURCE_PACKAGE specs, so they get
+        #    written to the manifest without CLI help.
+        # -----------------------------------------------------------
         ns_dirs: List[str] = list(peagen.templates.__path__)
 
         # 1) Template-set plugins discovered via registry
@@ -384,6 +390,52 @@ class Peagen(ComponentBase):
                 workspace_root=root,            # ← new kwarg
                 start_idx=start_idx,
             )
+
+            # ────────────────────────────────────────────────────────────
+            #  NEW  – write & (optionally) upload manifest-v3
+            # ────────────────────────────────────────────────────────────
+            try:
+                root = self.workspace_root or Path(self.base_dir)
+                manifest_dir = root / ".peagen"
+                manifest_dir.mkdir(exist_ok=True)
+
+                manifest_path = manifest_dir / f"{project['NAME']}_manifest.json"
+
+                # ───────────── choose the correct workspace_uri ─────────────
+                # 1. If a storage adapter exposes .root_uri (e.g. minio[s]://…),
+                #    use that so remote evaluators can fetch the workspace.
+                # 2. Otherwise fall back to the local absolute path. This keeps
+                #    same-machine workflows working with no adapter.
+                #
+                workspace_uri = getattr(self.storage_adapter, "root_uri", None)
+                if workspace_uri is None:
+                    workspace_uri = f"file://{root.resolve()}"
+
+                manifest = {
+                    "schema_version": 3,
+                    "workspace_uri": workspace_uri,
+                    "project": project["NAME"],
+                    "generated": [fr["RENDERED_FILE_NAME"] for fr in sorted_records],
+                    "source_packages": self.source_packages,
+                    "peagen_version": self.version,
+                    "generated_at": datetime.now(timezone.utc)
+                    .isoformat(timespec="seconds"),
+                }
+
+                manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+                self.logger.info(f"Manifest written → {manifest_path}")
+
+                if self.storage_adapter:
+                    key = f".peagen/{manifest_path.name}"
+                    with manifest_path.open("rb") as fp:
+                        self.storage_adapter.upload(key, fp)
+                    self.logger.info(f"Manifest uploaded as {key}")
+            except Exception as exc:
+                self.logger.warning(f"Could not write/upload manifest: {exc}")
+
+            # ────────────────────────────────────────────────────────────
+            #  Log status
+            # ────────────────────────────────────────────────────────────
             self.logger.info(
                 f"Completed file generation workflow for org='{self.org}', "
                 f"project='{project_name}'."

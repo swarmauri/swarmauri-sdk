@@ -38,6 +38,7 @@ class MinioStorageAdapter:
         bucket: str,
         *,
         secure: bool = True,
+        prefix: str = "",
     ):
         self._client = Minio(
             endpoint,
@@ -45,11 +46,24 @@ class MinioStorageAdapter:
             secret_key=secret_key,
             secure=secure,
         )
+        self._endpoint = endpoint
+        self._secure = secure
         self._bucket = bucket
+        self._prefix = prefix.lstrip("/")
 
         # create bucket if it doesn't exist
         if not self._client.bucket_exists(bucket):
             self._client.make_bucket(bucket)
+
+    # ------------------------------------------------------------
+    #  NEW – where Peagen should tell evaluators to look
+    # ------------------------------------------------------------
+    @property
+    def root_uri(self) -> str:
+        scheme = "minios" if self._secure else "minio"
+        base   = f"{scheme}://{self._endpoint}/{self._bucket}"
+        return f"{base}/{self._prefix}" if self._prefix else base
+
 
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> None:  # noqa: D401
