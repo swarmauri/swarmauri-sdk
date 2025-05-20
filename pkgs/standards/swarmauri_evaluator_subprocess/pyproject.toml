@@ -35,9 +35,8 @@ keywords = [
     "swarmauri"
 ]
 dependencies = [
-    "swarmauri_core = '*'",
-    "swarmauri_base = '*'",
-    "pydantic = '*'"
+    "swarmauri_core",
+    "swarmauri_base",
 ]
 
 [project.optional-dependencies]
