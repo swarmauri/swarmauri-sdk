@@ -8,6 +8,7 @@ from swarmauri_core.tools.ITool import ITool
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.tools.ParameterBase import ParameterBase
 
+
 @ComponentBase.register_model()
 class ToolBase(ITool, ComponentBase):
     """
@@ -17,6 +18,7 @@ class ToolBase(ITool, ComponentBase):
     Base class for all tools. Now supports both single‐call (__call__)
     and batch processing via `batch()`.
     """
+
     name: str
     description: Optional[str] = None
     parameters: List[ParameterBase] = Field(default_factory=list)

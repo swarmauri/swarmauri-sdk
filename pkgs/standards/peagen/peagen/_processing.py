@@ -19,8 +19,8 @@ from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 from pathlib import Path
 
 from ._config import _config
-from ._rendering import _render_copy_template, _render_generate_template
 from ._graph import _build_forward_graph
+from ._rendering import _render_copy_template, _render_generate_template
 
 
 def _save_file(
@@ -78,7 +78,11 @@ def _create_context(
 
     if package_name:
         package = next(
-            (pkg for pkg in project_global_attributes["PACKAGES"] if pkg["NAME"] == package_name),
+            (
+                pkg
+                for pkg in project_global_attributes["PACKAGES"]
+                if pkg["NAME"] == package_name
+            ),
             None,
         )
         if package:
@@ -136,7 +140,9 @@ def _process_file(
                 context["INJ"] = _config["revision_notes"]
                 prompt_name = agent_env["agent_prompt_template_file"]
             else:
-                prompt_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+                prompt_name = file_record.get(
+                    "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
+                )
 
             prompt_path = os.path.join(template_dir, prompt_name)
             content = _render_generate_template(
@@ -160,8 +166,9 @@ def _process_file(
 
     if content == "":
         if logger:
-            logger.warning(f"Blank content for file '{final_filename}'; saving empty file.")
-
+            logger.warning(
+                f"Blank content for file '{final_filename}'; saving empty file."
+            )
 
     _save_file(
         content,
@@ -255,10 +262,8 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-
-        j2 = j2pt.copy(deep=False)
         j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
 
         if not _process_file(
             rec,

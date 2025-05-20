@@ -80,10 +80,16 @@ def test_escape_html():
     formatter = HTMLFormatter()
 
     test_cases = [
-        ("<script>alert('XSS')</script>", "&lt;script&gt;alert('XSS')&lt;/script&gt;"),
+        (
+            "<script>alert('XSS')</script>",
+            "&lt;script&gt;alert(&#x27;XSS&#x27;)&lt;/script&gt;",
+        ),
         ("a & b", "a &amp; b"),
         ('quote "test"', "quote &quot;test&quot;"),
-        ("'single'", "'single'"),  # Single quotes aren't typically escaped
+        (
+            "'single'",
+            "&#x27;single&#x27;",
+        ),  # Single quotes are escaped by html.escape()
         ("<div>", "&lt;div&gt;"),
     ]
 

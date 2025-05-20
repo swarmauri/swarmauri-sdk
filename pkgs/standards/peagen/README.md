@@ -118,6 +118,30 @@ peagen --help
 export OPENAI_API_KEY="sk-…"
 ```
 
+### CLI Defaults via `.peagen.toml`
+
+Create a `.peagen.toml` in your project root to store provider credentials and
+command defaults. A typical configuration might look like:
+
+```toml
+# .peagen.toml
+[llm]
+default_provider = "openai"
+default_model_name = "gpt-4"
+
+[llm.api_keys]
+openai = "sk-..."
+
+[storage]
+default_adapter = "file"
+
+[storage.adapters.file]
+output_dir = "./peagen_artifacts"
+```
+
+With these values in place you can omit `--provider`, `--model-name`, and other
+flags when running the CLI.
+
 ### Project YAML Schema Overview
 
 ```yaml
@@ -300,7 +324,6 @@ jobs:
           git diff --quiet || git commit -m "chore: update generated files"
 ```
 
----
 
 ## Conclusion & Next Steps
 
@@ -324,6 +347,10 @@ pea = Peagen(
 projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
+
+### Storage Adapters & Publishers
+
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 ### Contributing & Extending Templates
 

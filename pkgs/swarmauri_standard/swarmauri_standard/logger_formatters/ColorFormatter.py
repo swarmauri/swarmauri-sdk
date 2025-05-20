@@ -1,4 +1,5 @@
 import logging
+from typing import ClassVar, Dict
 
 from swarmauri_base import register_type
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -15,14 +16,14 @@ class ColorFormatter(FormatterBase):
     """
 
     # Color codes for different log levels
-    COLORS = {
+    COLORS: ClassVar[Dict[str, str]] = {
         "DEBUG": "\033[36m",  # Cyan
         "INFO": "\033[32m",  # Green
         "WARNING": "\033[33m",  # Yellow
         "ERROR": "\033[31m",  # Red
         "CRITICAL": "\033[41m",  # Red background
     }
-    RESET = "\033[0m"  # Reset ANSI color codes
+    RESET: ClassVar[str] = "\033[0m"  # Reset ANSI color codes
 
     format: str = "[%(name)s][%(levelname)s] %(message)s"
     date_format: str = "%Y-%m-%d %H:%M:%S"

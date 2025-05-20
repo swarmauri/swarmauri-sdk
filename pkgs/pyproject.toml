@@ -43,6 +43,11 @@ members = [
     "standards/swarmauri_tool_matplotlib",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
+    "standards/swarmauri_evaluator_abstractmethods",
+    "standards/swarmauri_evaluator_anyusage",
+    "standards/swarmauri_evaluator_externalimports",
+    "standards/swarmauri_evaluator_subprocess",
+    "standards/swarmauri_evaluatorpool_accessibility",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
@@ -130,6 +135,11 @@ swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_prompt_j2prompttemplate = { workspace = true }
+swarmauri_evaluator_abstractmethods = { workspace = true }
+swarmauri_evaluator_anyusage = { workspace = true }
+swarmauri_evaluator_externalimports = { workspace = true }
+swarmauri_evaluator_subprocess = { workspace = true }
+swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
 peagen = { workspace = true }

@@ -8,6 +8,7 @@ from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.agents.IAgent import IAgent
 
+
 @ComponentBase.register_model()
 class AgentBase(IAgent, ComponentBase):
     """
@@ -17,6 +18,7 @@ class AgentBase(IAgent, ComponentBase):
     Base class for all agents. Supports single‐call (`exec`/`aexec`)
     and batch processing (`batch`/`abatch`).
     """
+
     llm: SubclassUnion[LLMBase]
     llm_kwargs: Optional[Dict] = {}
     resource: ResourceTypes = Field(default=ResourceTypes.AGENT.value)
@@ -35,7 +37,9 @@ class AgentBase(IAgent, ComponentBase):
 
         Synchronous single‐item execution. Subclasses must override.
         """
-        raise NotImplementedError("The `exec` method has not been implemented on this class.")
+        raise NotImplementedError(
+            "The `exec` method has not been implemented on this class."
+        )
 
     async def aexec(
         self,
@@ -49,7 +53,9 @@ class AgentBase(IAgent, ComponentBase):
 
         Asynchronous single‐item execution. Subclasses must override.
         """
-        raise NotImplementedError("The `aexec` method has not been implemented on this class.")
+        raise NotImplementedError(
+            "The `aexec` method has not been implemented on this class."
+        )
 
     def batch(
         self,

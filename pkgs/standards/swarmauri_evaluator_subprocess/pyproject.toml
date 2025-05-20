@@ -1,0 +1,90 @@
+[project]
+name = "swarmauri_evaluator_subprocess"
+version = "0.1.0"
+description = "A subprocess-based evaluator for executing and measuring program performance in isolated subprocesses"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/swarmauri_evaluator_subprocess/"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Monitoring"
+]
+authors = [
+    { name = "SwarmAuri Team", email = "info@swarmauri.com" }
+]
+keywords = [
+    "subprocess",
+    "evaluation",
+    "sandboxing",
+    "program execution",
+    "resource limits",
+    "performance measurement",
+    "testing",
+    "security",
+    "swarm",
+    "ai",
+    "swarmauri"
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest = '*'",
+    "pytest-asyncio = '*'",
+    "pytest-cov = '*'",
+    "black = '*'",
+    "isort = '*'",
+    "mypy = '*'",
+    "flake8 = '*'",
+    "pre-commit = '*'"
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow running tests",
+    "security: Security-related tests"
+]
+testpaths = ["tests"]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.entry-points.'swarmauri.evaluators']
+SubprocessEvaluator = "swarmauri_evaluator_subprocess:SubprocessEvaluator"
+
+[tool.setuptools]
+packages = ["swarmauri_evaluator_subprocess"]
