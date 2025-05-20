@@ -61,7 +61,7 @@ def call_external_agent(
         from swarmauri.agents.QAAgent import QAAgent
         from swarmauri.messages.SystemMessage import SystemMessage
 
-        from .llm import GenericLLM
+        from ._llm import GenericLLM
     except Exception as e:
         error_details = traceback.format_exc()  # Get full traceback details
         raise ImportError(
