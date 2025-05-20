@@ -126,6 +126,7 @@ def _process_file(
     """
     context = _create_context(file_record, global_attrs, logger)
     final_filename = file_record.get("RENDERED_FILE_NAME")
+    final_filename = os.path.normpath(final_filename)
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
     try:

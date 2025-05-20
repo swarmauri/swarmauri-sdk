@@ -428,13 +428,13 @@ class Peagen(ComponentBase):
                 }
 
                 manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-                self.logger.info(f"Manifest written → {manifest_path}")
+                self.logger.info(f"Manifest written → {os.path.normpath(manifest_path)}")
 
                 if self.storage_adapter:
                     key = f".peagen/{manifest_path.name}"
                     with manifest_path.open("rb") as fp:
                         self.storage_adapter.upload(key, fp)
-                    self.logger.info(f"Manifest uploaded as {key}")
+                    self.logger.info(f"Manifest uploaded as {os.path.normpath(key)}")
             except Exception as exc:
                 self.logger.warning(f"Could not write/upload manifest: {exc}")
 
