@@ -1,86 +1,84 @@
 """
-core.py
+peagen.core
+===========
 
-This module defines the main class for the file generation workflow.
-The Peagen class encapsulates the overall workflow:
-  - Loading global project data from a YAML file.
-  - Rendering project YAML from a .yaml.j2 template.
-  - Expanding file records (with package and module context).
-  - Building and ordering a dependency graph.
-  - Processing files (via "COPY" or "GENERATE" modes).
-  - Querying dependencies and dependents.
-  - Updating and saving both the global projects YAML and the template (.yaml.j2) file.
-  - Starting processing from an arbitrary point (project, package, module, or file).
+Main workflow class for Peagen.  This revision:
 
-This class uses helper methods from modules such as:
-  - rendering.py (for rendering templates and fields)
-  - processing.py (for processing file records)
-  - graph.py (for dependency graph construction and topological sorting)
-  - updates.py (for updating and saving configuration data)
-  - dependencies.py (for resolving and querying dependencies)
-  - external.py (for calling external agents and chunking content)
+1.  Introduces **source_packages** (first-class) while retaining
+    additional_package_dirs as a backward-compat alias.
+2.  Re-computes namespace/search paths from the *dest* directories of
+    those source packages, ensuring Jinja includes still work.
+3.  Leaves *all* existing public behaviour intact (no j2pt API changes).
 """
+
+from __future__ import annotations
 
 import os
 from pathlib import Path
+from importlib import import_module
+from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
-import peagen.plugin_registry
-
-from swarmauri_base.loggers.LoggerBase import LoggerBase
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, FilePath, model_validator
+from pydantic import ConfigDict, Field, model_validator, FilePath
 
+import peagen.plugin_registry
 import peagen.templates
-from importlib import import_module
-from types import ModuleType
-
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
-# from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
-
 from swarmauri_standard.loggers.Logger import Logger
 
 from ._config import __logger_name__, _config
 from ._graph import _topological_sort, _transitive_dependency_sort
-
-# Import helper modules from our package.
 from ._processing import _process_project_files
 
 colorama_init(autoreset=True)
 
 
 class Peagen(ComponentBase):
+    """Encapsulates payload → file-generation workflow."""
+
+    # ── Inputs / ctor params ────────────────────────────────────────────
     projects_payload_path: str
     template_base_dir: Optional[str] = None
     org: Optional[str] = None
-    # storage_adapter should implement your IStorageAdapter interface
+
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
-    agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)
+    agent_env: Dict[str, Any]      = Field(default_factory=dict)
+    j2pt: Any                      = Field(default_factory=lambda: j2pt)
 
-    # Derived attributes with default factories:
+    # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
+
+    # Legacy flag – converted to SOURCE_PACKAGES during CLI parsing.
     additional_package_dirs: List[Path] = Field(
-        exclude=True, default_factory=list
-    )  # Changed from default=list
-
-    # --- NEW: optional temporary workspace directory --------------------
-    workspace_root: Optional[Path] = Field(
-        default=None,
-        exclude=True,
-        description="If set, Peagen searches this directory first for generated artifacts.",
+        default_factory=list,
+        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level."
     )
-    # --------------------------------------------------------------------
 
-    projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
-    dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
-    in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
+    # New: scratch workspace chosen by process.py
+    workspace_root: Optional[Path] = Field(
+        default=None, exclude=True,
+        description="Workspace where generated & copied files live."
+    )
 
-    # These will be computed in the validator:
+    # New: **authoritative list** of external packages copied into workspace.
+    source_packages: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Each item: {type:'git'|'local', uri/path, ref?, dest, checksum?}. "
+            "'dest' is relative to workspace_root."
+        ),
+    )
+
+    # Internal state
+    projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
+    dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
+    in_degree: Dict[str, int]            = Field(default_factory=dict, exclude=True)
+
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: SubclassUnion["LoggerBase"] = Logger(
         name=Fore.GREEN + __logger_name__ + Style.RESET_ALL
@@ -90,83 +88,72 @@ class Peagen(ComponentBase):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     version: str = "0.1.0"
 
-    # ---------------------
-    # Environment setup
-    # ---------------------
-
+    # ──────────────────────────────────────────────────────────────────
+    # Environment setup (called automatically by Pydantic)
+    # ──────────────────────────────────────────────────────────────────
     @model_validator(mode="after")
-    def setup_env(self) -> "Peagen":
-        # 1) Base filesystem discovery (built-in templates)
-        namespace_dirs = list(peagen.templates.__path__)
+    def _setup_env(self) -> "Peagen":
+        """
+        Build the Jinja search path (`namespace_dirs`) **purely from directories
+        that exist inside the workspace** plus built-ins & plugin templates.
+        """
+        ns_dirs: List[str] = list(peagen.templates.__path__)
 
-        # 2) Discover installed template-set plugins via the central registry
+        # 1) Template-set plugins discovered via registry
         from peagen.plugin_registry import registry
-
         for plugin in registry.get("template_sets", {}).values():
-            if isinstance(plugin, ModuleType):
-                # plugin is a module: use it directly
-                pkg = plugin
-            else:
-                # plugin is a class: import its top-level package
-                pkg_name = plugin.__module__.split(".", 1)[0]
-                pkg = import_module(pkg_name)
-
-            # If this package exposes a __path__, treat it as a template dir
+            pkg: ModuleType = plugin if isinstance(plugin, ModuleType) else import_module(plugin.__module__.split(".", 1)[0])
             if hasattr(pkg, "__path__"):
-                for p in pkg.__path__:
-                    namespace_dirs.append(str(p))
+                ns_dirs.extend(str(p) for p in pkg.__path__)
 
-        # 3) Add working dir & any overrides
-        initial_dirs: List[str] = []
-        initial_dirs.extend(self.additional_package_dirs)
-
-        # --- NEW: put workspace_root at the very front -------------------
+        # 2) Workspace itself – always first so includes can reference freshly generated files
         if self.workspace_root is not None:
-            namespace_dirs.insert(0, os.fspath(self.workspace_root))
-            initial_dirs.insert(0, os.fspath(self.workspace_root))
-        # -----------------------------------------------------------------
+            ns_dirs.insert(0, os.fspath(self.workspace_root))
 
-        namespace_dirs.append(self.base_dir)
-        initial_dirs.append(self.base_dir)
+        # 3) Source-package *dest* folders (now inside workspace)
+        for spec in self.source_packages:
+            ns_dirs.append(os.fspath(Path(self.workspace_root or ".") / spec["dest"]))
 
+        # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
+        for p in self.additional_package_dirs:
+            ns_dirs.append(os.fspath(p))
+
+        # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
-            namespace_dirs.append(self.template_base_dir)
-            initial_dirs.append(self.template_base_dir)
+            ns_dirs.append(self.template_base_dir)
+        ns_dirs.append(self.base_dir)
 
-        # 4) Wire up J2PT
-        self.namespace_dirs = namespace_dirs
-        self.j2pt.templates_dir = initial_dirs
+        # Finalise
+        self.namespace_dirs = ns_dirs
+        # j2pt expects *template search dirs* in templates_dir attr
+        self.j2pt.templates_dir = ns_dirs
 
         return self
 
-    # ---------------------
-    # J2PT Methods
-    # ---------------------
-
-    def update_templates_dir(self, package_specific_template_dir):
+    # ──────────────────────────────────────────────────────────────────
+    # Public helpers (unchanged except for search-path logic)
+    # ──────────────────────────────────────────────────────────────────
+    def update_templates_dir(self, package_specific_template_dir: str | Path) -> None:
+        """
+        Update Jinja search path for a package-specific render call.
+        Still honours source_packages so templates can {% include %} from them.
+        """
         dirs = [
-            package_specific_template_dir,
+            os.fspath(package_specific_template_dir),
             self.base_dir,
+            *[os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+              for spec in self.source_packages],
         ]
-        dirs.extend(self.additional_package_dirs)
-        dirs = [os.path.normpath(_d) for _d in dirs]
-        self.j2pt.templates_dir = dirs
+        dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
+        self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
 
     def locate_template_set(self, template_set: str) -> Path:
-        """
-        Searches each directory in `self.namespace_dirs` for a subfolder
-        named `template_set`. Returns the first match as a *Path*, or raises a ValueError.
-        """
-        for base_dir in self.namespace_dirs:
-            # base_dir could be a string or Path – let's ensure it's a Path:
-            base_dir_path = Path(base_dir)
-            candidate = base_dir_path / template_set
+        """Search `namespace_dirs` for the given template-set folder."""
+        for base in self.namespace_dirs:
+            candidate = Path(base) / template_set
             if candidate.is_dir():
-                # Return a resolved Path object (absolute)
                 return candidate.resolve()
-        raise ValueError(
-            f"Template set '{template_set}' not found in any of: {self.namespace_dirs}"
-        )
+        raise ValueError(f"Template set '{template_set}' not found in: {self.namespace_dirs}")
 
     # ---------------------
     # Public Methods

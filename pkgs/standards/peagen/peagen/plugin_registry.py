@@ -13,9 +13,10 @@ from typing import Dict
 GROUPS = {
     "template_sets": ("peagen.template_sets", None),  # None = allow modules or classes
     "storage_adapters": ("peagen.storage_adapters", object),
-    "publishers": ("peagen.publishers", object),
-    "indexers": ("peagen.indexers", object),
-    "evaluators": ("peagen.evaluators", object),
+    "publishers":       ("peagen.publishers",       object),
+    "indexers":         ("peagen.indexers",         object),
+    "result_backends":  ("peagen.result_backends",  object),
+    "evaluators":       ("peagen.evaluators",       object),
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
