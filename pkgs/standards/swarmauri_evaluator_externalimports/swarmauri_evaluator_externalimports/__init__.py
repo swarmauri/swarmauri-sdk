@@ -1,8 +1,6 @@
 from .ExternalImportsEvaluator import ExternalImportsEvaluator
 
-__all__ = [
-    "ExternalImportsEvaluator"
-]
+__all__ = ["ExternalImportsEvaluator"]
 
 try:
     # For Python 3.8 and newer

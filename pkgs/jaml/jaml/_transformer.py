@@ -1,19 +1,49 @@
 from lark import Transformer, Token, Tree, v_args
 from typing import Any, List, Union
 from ._ast_nodes import (
-    BaseNode, StartNode, SectionNode, SectionNameNode, TableArraySectionNode, TableArrayHeaderNode,
-    ComprehensionHeaderNode, AssignmentNode, CommentNode, NewlineNode, IntegerNode, BooleanNode, 
-    NullNode, FloatNode, StringExprNode, PairExprNode, DottedExprNode, ValueNode,
-    InlineTableNode, 
-    ListComprehensionNode, InlineTableComprehensionNode, DictComprehensionNode, 
-    ComprehensionClausesNode, ComprehensionClauseNode, AliasClauseNode, FoldedExpressionNode,
-    SingleQuotedStringNode, TripleQuotedStringNode, TripleBacktickStringNode, BacktickStringNode, FStringNode,
-    SingleLineArrayNode, MultiLineArrayNode, 
-    GlobalScopedVarNode, LocalScopedVarNode, ContextScopedVarNode, 
-    WhitespaceNode, HspacesNode, InlineWhitespaceNode,
-    ReservedFuncNode
+    BaseNode,
+    StartNode,
+    SectionNode,
+    SectionNameNode,
+    TableArraySectionNode,
+    TableArrayHeaderNode,
+    ComprehensionHeaderNode,
+    AssignmentNode,
+    CommentNode,
+    NewlineNode,
+    IntegerNode,
+    BooleanNode,
+    NullNode,
+    FloatNode,
+    StringExprNode,
+    PairExprNode,
+    DottedExprNode,
+    ValueNode,
+    InlineTableNode,
+    ListComprehensionNode,
+    InlineTableComprehensionNode,
+    DictComprehensionNode,
+    ComprehensionClausesNode,
+    ComprehensionClauseNode,
+    AliasClauseNode,
+    FoldedExpressionNode,
+    SingleQuotedStringNode,
+    TripleQuotedStringNode,
+    TripleBacktickStringNode,
+    BacktickStringNode,
+    FStringNode,
+    SingleLineArrayNode,
+    MultiLineArrayNode,
+    GlobalScopedVarNode,
+    LocalScopedVarNode,
+    ContextScopedVarNode,
+    WhitespaceNode,
+    HspacesNode,
+    InlineWhitespaceNode,
+    ReservedFuncNode,
 )
 from ._config import Config
+
 
 class ConfigTransformer(Transformer):
     def __init__(self, debug=True):
@@ -44,8 +74,8 @@ class ConfigTransformer(Transformer):
             CommentNode,
             NewlineNode,
             SectionNode,
-            TableArraySectionNode,     # <— include table‑array sections
-            )
+            TableArraySectionNode,  # <— include table‑array sections
+        )
 
         self.debug_print("start() called with items")
         node = StartNode(data=self._root_data, contents=items, origin="", meta=meta)
@@ -53,23 +83,29 @@ class ConfigTransformer(Transformer):
 
         # ─────────────────── collect top‑level lines
         for item in items:
-            if isinstance(item, (
-                SectionNode,
-                TableArraySectionNode,    # <— now captured
-                AssignmentNode,
-                CommentNode,
-                NewlineNode
-            )):
+            if isinstance(
+                item,
+                (
+                    SectionNode,
+                    TableArraySectionNode,  # <— now captured
+                    AssignmentNode,
+                    CommentNode,
+                    NewlineNode,
+                ),
+            ):
                 node.lines.append(item)
             elif isinstance(item, Tree) and item.data == "line":
                 for child in item.children:
-                    if isinstance(child, (
-                        SectionNode,
-                        TableArraySectionNode,  # <— now captured in line children
-                        AssignmentNode,
-                        CommentNode,
-                        NewlineNode
-                    )):
+                    if isinstance(
+                        child,
+                        (
+                            SectionNode,
+                            TableArraySectionNode,  # <— now captured in line children
+                            AssignmentNode,
+                            CommentNode,
+                            NewlineNode,
+                        ),
+                    ):
                         node.lines.append(child)
 
         # add parent pointer so children can splice themselves later
@@ -83,14 +119,14 @@ class ConfigTransformer(Transformer):
             if not isinstance(line, AssignmentNode):
                 continue
 
-            key   = line.identifier.value
+            key = line.identifier.value
             value = line.value
 
             # (static scalars, arrays, else-as-AST logic remains unchanged)
             # … [rest of existing priming logic] …
 
         # reset book‑keeping helpers
-        self.current_section    = self._root_data
+        self.current_section = self._root_data
         self._last_section_name = None
         self.debug_print(f"Final data structure: {self._root_data}")
 
@@ -113,12 +149,20 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # optional leading whitespace
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "HSPACES"
+        ):
             node.leading_whitespace = items[i]
             i += 1
 
         # '['
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "L_SQ_BRACK"
+        ):
             node.lbrack = items[i]
             i += 1
 
@@ -143,6 +187,7 @@ class ConfigTransformer(Transformer):
                     node.header = self.header_comprehension(meta, cur.children)
                 elif cur.data == "header_conditional":
                     from ._ast_nodes import TableArrayHeaderNode
+
                     hdr = TableArrayHeaderNode()
                     raw = "".join(
                         child.emit() if hasattr(child, "emit") else child.value
@@ -173,19 +218,30 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # ']'
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "R_SQ_BRACK"
+        ):
             node.rbrack = items[i]
             i += 1
 
         # optional trailing whitespace
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "HSPACES"
+        ):
             node.trailing_whitespace = items[i]
             i += 1
 
         # contents (assignments, comments, …)
         node.contents = [
-            itm for itm in items[i:]
-            if not isinstance(itm, list) and not isinstance(itm, CommentNode) and itm is not None
+            itm
+            for itm in items[i:]
+            if not isinstance(itm, list)
+            and not isinstance(itm, CommentNode)
+            and itm is not None
         ]
         node.__comments__ = [
             itm.value for itm in items[i:] if isinstance(itm, CommentNode)
@@ -193,6 +249,7 @@ class ConfigTransformer(Transformer):
 
         # Attach inline comments to preceding assignment
         from ._ast_nodes import AssignmentNode
+
         for comment_text in node.__comments__:
             for c in reversed(node.contents):
                 if isinstance(c, AssignmentNode):
@@ -216,9 +273,13 @@ class ConfigTransformer(Transformer):
             self.current_section = d.setdefault(parts[-1], {})
             self._last_section = self.current_section
             self._last_section_name = node.header.value
-            self.debug_print(f"section(): Processing static section {node.header.value}")
+            self.debug_print(
+                f"section(): Processing static section {node.header.value}"
+            )
         else:
-            raw_key = node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+            raw_key = (
+                node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+            )
             self.data[raw_key] = {}
             self.current_section = self.data[raw_key]
             self._last_section = self.current_section
@@ -227,6 +288,7 @@ class ConfigTransformer(Transformer):
 
         # relocate assignments primed into root back into this section
         from ._ast_nodes import AssignmentNode as _AssignmentNode
+
         for child in node.contents:
             if isinstance(child, _AssignmentNode):
                 key = child.identifier.value
@@ -241,10 +303,11 @@ class ConfigTransformer(Transformer):
                     else:
                         val = child.value
                     self.current_section[key] = val
-                    self.debug_print(f"section(): Moved assignment '{key}' into section '{self._last_section_name}'")
+                    self.debug_print(
+                        f"section(): Moved assignment '{key}' into section '{self._last_section_name}'"
+                    )
 
         return node
-
 
     # ─────────────────────────── assignment ─────────────────────────────
     @v_args(meta=True)
@@ -270,7 +333,9 @@ class ConfigTransformer(Transformer):
         i = 0
 
         def _is_ws(tok) -> bool:
-            return isinstance(tok, HspacesNode) or (isinstance(tok, Token) and tok.type == "HSPACES")
+            return isinstance(tok, HspacesNode) or (
+                isinstance(tok, Token) and tok.type == "HSPACES"
+            )
 
         # 1) leading whitespace
         if i < len(items) and _is_ws(items[i]):
@@ -278,7 +343,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 2) identifier
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IDENTIFIER"
+        ):
             node.identifier = items[i]
             key = items[i].value
             i += 1
@@ -306,27 +375,41 @@ class ConfigTransformer(Transformer):
             raise ValueError("Expected value in assignment")
         raw_value = items[i]
 
-        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode, InlineTableNode, FoldedExpressionNode)):
+        if isinstance(
+            raw_value,
+            (
+                SingleLineArrayNode,
+                MultiLineArrayNode,
+                InlineTableNode,
+                FoldedExpressionNode,
+            ),
+        ):
             node.value = raw_value
             i += 1
         elif isinstance(raw_value, Token):
             t = raw_value.type
             if t == "INTEGER":
-                node.value = IntegerNode(value=raw_value.value, origin=raw_value.value, meta=meta)
+                node.value = IntegerNode(
+                    value=raw_value.value, origin=raw_value.value, meta=meta
+                )
             elif t == "FLOAT":
-                node.value = FloatNode(value=raw_value.value, origin=raw_value.value, meta=meta)
+                node.value = FloatNode(
+                    value=raw_value.value, origin=raw_value.value, meta=meta
+                )
             elif t == "BOOLEAN":
                 tmp = BooleanNode()
                 tmp.value = tmp.origin = raw_value.value
                 tmp.resolve({}, {})
                 node.value = tmp
             elif t == "NULL":
-                node.value = NullNode(value=raw_value.value, origin=raw_value.value, meta=meta)
+                node.value = NullNode(
+                    value=raw_value.value, origin=raw_value.value, meta=meta
+                )
             elif t == "SINGLE_QUOTED_STRING":
                 sq = SingleQuotedStringNode()
                 sq.origin = raw_value.value
-                sq.value  = raw_value.value.strip("\"'")
-                sq.meta   = meta
+                sq.value = raw_value.value.strip("\"'")
+                sq.meta = meta
                 node.value = sq
             else:
                 node.value = raw_value
@@ -336,10 +419,18 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 6) inline comment
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "INLINE_COMMENT"
+        ):
             node.inline_comment = items[i]
             i += 1
-        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        elif (
+            i < len(items)
+            and isinstance(items[i], Tree)
+            and items[i].data == "inline_comment"
+        ):
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
@@ -364,20 +455,36 @@ class ConfigTransformer(Transformer):
             elif isinstance(val, FoldedExpressionNode):
                 # preserve AST for later resolve
                 processed = val
-            elif isinstance(val, (ListComprehensionNode, DictComprehensionNode, InlineTableComprehensionNode)):
+            elif isinstance(
+                val,
+                (
+                    ListComprehensionNode,
+                    DictComprehensionNode,
+                    InlineTableComprehensionNode,
+                ),
+            ):
                 # store the raw comprehension text, not the node
                 processed = val.origin
-            elif isinstance(val, (FStringNode, SingleQuotedStringNode, TripleQuotedStringNode,
-                                  BacktickStringNode, TripleBacktickStringNode)):
+            elif isinstance(
+                val,
+                (
+                    FStringNode,
+                    SingleQuotedStringNode,
+                    TripleQuotedStringNode,
+                    BacktickStringNode,
+                    TripleBacktickStringNode,
+                ),
+            ):
                 processed = val.origin
             else:
                 processed = val
 
             self.current_section[key] = processed
-            self.debug_print(f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}")
+            self.debug_print(
+                f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}"
+            )
 
         return node
-
 
     @v_args(meta=True)
     def value(self, meta, items: List[Any]) -> BaseNode:
@@ -386,7 +493,9 @@ class ConfigTransformer(Transformer):
         if isinstance(item, Token):
             if item.type == "SINGLE_QUOTED_STRING":
                 node = SingleQuotedStringNode()
-                node.value = item.value.strip('"\'')  # Strip quotes, e.g., '"red"' -> 'red'
+                node.value = item.value.strip(
+                    "\"'"
+                )  # Strip quotes, e.g., '"red"' -> 'red'
                 node.origin = item.value
                 node.meta = meta
                 return node
@@ -491,7 +600,11 @@ class ConfigTransformer(Transformer):
         self.debug_print("section_name() called with items")
         node = SectionNameNode()
 
-        if not items or not isinstance(items[0], Token) or items[0].type != "IDENTIFIER":
+        if (
+            not items
+            or not isinstance(items[0], Token)
+            or items[0].type != "IDENTIFIER"
+        ):
             raise ValueError(
                 f"Expected at least one IDENTIFIER in section_name, got {items[0] if items else 'nothing'}"
             )
@@ -509,7 +622,9 @@ class ConfigTransformer(Transformer):
                 node.dots.append(item)
             else:
                 # If anything else sneaks in, raise an error
-                raise ValueError(f"Expected IDENTIFIER or DOT, got {item.type} = {item}")
+                raise ValueError(
+                    f"Expected IDENTIFIER or DOT, got {item.type} = {item}"
+                )
 
         # Build the final value from the IDENTIFIER tokens only
         node.value = ".".join(part.value for part in node.parts)
@@ -543,7 +658,9 @@ class ConfigTransformer(Transformer):
         deferring full expansion to render time.
         """
         self.debug_print("table_array_section() called with items")
-        if not (items and isinstance(items[0], Token) and items[0].type == "L_DBL_SQ_BRACK"):
+        if not (
+            items and isinstance(items[0], Token) and items[0].type == "L_DBL_SQ_BRACK"
+        ):
             raise ValueError("Table-array section must start with '[['")
 
         # Comprehension-first: header is a ComprehensionHeaderNode
@@ -574,24 +691,40 @@ class ConfigTransformer(Transformer):
         node.header = header
         i += 1
         # skip any newlines between header and closing
-        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
+        while (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "NEWLINE"
+        ):
             i += 1
         # expect ']]'
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_DBL_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "R_DBL_SQ_BRACK"
+        ):
             i += 1
         else:
             raise ValueError("Table‑array section header not closed with ']]'")
         # body lines (assignments, comments)
-        node.body = [itm for itm in items[i:] if not (isinstance(itm, Token) and itm.type == "NEWLINE")]
-        node.__comments__ = [itm.value for itm in node.body if isinstance(itm, CommentNode)]
+        node.body = [
+            itm
+            for itm in items[i:]
+            if not (isinstance(itm, Token) and itm.type == "NEWLINE")
+        ]
+        node.__comments__ = [
+            itm.value for itm in node.body if isinstance(itm, CommentNode)
+        ]
         # mount into raw data
-        raw_key = node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+        raw_key = (
+            node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+        )
         self.data[raw_key] = {}
         self.current_section = self.data[raw_key]
         self._last_section = self.current_section
         self._last_section_name = raw_key
         node.origin = f"[[{raw_key}]]"
-        node.value = getattr(node.header, 'value', raw_key)
+        node.value = getattr(node.header, "value", raw_key)
         node.meta = meta
         return node
 
@@ -615,8 +748,8 @@ class ConfigTransformer(Transformer):
                 for child in first.children
             )
             node.origin = raw
-            node.value  = raw
-            node.meta   = meta
+            node.value = raw
+            node.meta = meta
             return node
 
         # All other cases (literal node, Token, etc.)
@@ -661,9 +794,10 @@ class ConfigTransformer(Transformer):
 
         # Capture the comprehension clauses
         from ._ast_nodes import ComprehensionClausesNode
+
         clauses = next(
             (itm for itm in items[1:] if isinstance(itm, ComprehensionClausesNode)),
-            None
+            None,
         )
         node.clauses = clauses
 
@@ -700,11 +834,19 @@ class ConfigTransformer(Transformer):
             itm.emit() if hasattr(itm, "emit") else str(itm) for itm in node.parts
         )
         node.value = node.origin
-        node.meta  = meta
+        node.meta = meta
         return node
 
     @v_args(meta=True)
-    def string_component(self, meta, items: List[Any]) -> Union[SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode]:
+    def string_component(
+        self, meta, items: List[Any]
+    ) -> Union[
+        SingleQuotedStringNode,
+        TripleQuotedStringNode,
+        BacktickStringNode,
+        FStringNode,
+        TripleBacktickStringNode,
+    ]:
         return items[0]
 
     @v_args(meta=True)
@@ -715,7 +857,9 @@ class ConfigTransformer(Transformer):
     def arithmetic(self, meta, items: List[Any]) -> StringExprNode:
         node = StringExprNode()
         node.parts = items
-        node.origin = "".join(item.value if isinstance(item, Token) else item.emit() for item in items)
+        node.origin = "".join(
+            item.value if isinstance(item, Token) else item.emit() for item in items
+        )
         node.value = node.origin
         node.meta = meta
         return node
@@ -734,10 +878,14 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # ── 1. KEY ──────────────────────────────────────────────────────
-        if i < len(items) and isinstance(items[i], (StringExprNode, FStringNode, Token)):
+        if i < len(items) and isinstance(
+            items[i], (StringExprNode, FStringNode, Token)
+        ):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
                 key_node = DottedExprNode()
-                key_node.dotted_value = key_node.origin = key_node.value = items[i].value
+                key_node.dotted_value = key_node.origin = key_node.value = items[
+                    i
+                ].value
                 key_node.meta = meta
                 node.key = key_node
             else:
@@ -748,25 +896,35 @@ class ConfigTransformer(Transformer):
         separator = "="  # default
         while i < len(items):
             itm = items[i]
-            if isinstance(itm, HspacesNode) or (isinstance(itm, Token) and itm.type == "HSPACES"):
+            if isinstance(itm, HspacesNode) or (
+                isinstance(itm, Token) and itm.type == "HSPACES"
+            ):
                 i += 1
                 continue
             if isinstance(itm, Token) and itm.type in ("SETTER", "COLON"):
                 separator = itm.value
                 i += 1
                 # absorb any whitespace nodes after the symbol
-                while i < len(items) and isinstance(items[i], (HspacesNode, Token)) and (
-                    isinstance(items[i], HspacesNode) or items[i].type == "HSPACES"
+                while (
+                    i < len(items)
+                    and isinstance(items[i], (HspacesNode, Token))
+                    and (
+                        isinstance(items[i], HspacesNode) or items[i].type == "HSPACES"
+                    )
                 ):
                     i += 1
                 break
             break
 
         # ── 3. VALUE ───────────────────────────────────────────────────
-        if i < len(items) and isinstance(items[i], (StringExprNode, FStringNode, Token)):
+        if i < len(items) and isinstance(
+            items[i], (StringExprNode, FStringNode, Token)
+        ):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
                 value_node = DottedExprNode()
-                value_node.dotted_value = value_node.origin = value_node.value = items[i].value
+                value_node.dotted_value = value_node.origin = value_node.value = items[
+                    i
+                ].value
                 value_node.meta = meta
                 node.value = value_node
             else:
@@ -774,13 +932,12 @@ class ConfigTransformer(Transformer):
 
         # ── 4. bookkeeping ─────────────────────────────────────────────
         # Safely emit key and value (in case one is still None)
-        key_emit = node.key.emit() if getattr(node, 'key', None) is not None else ""
-        val_emit = node.value.emit() if getattr(node, 'value', None) is not None else ""
+        key_emit = node.key.emit() if getattr(node, "key", None) is not None else ""
+        val_emit = node.value.emit() if getattr(node, "value", None) is not None else ""
         node.origin = f"{key_emit} {separator} {val_emit}"
         node.value = node.origin
         node.meta = meta
         return node
-
 
     @v_args(meta=True)
     def dotted_expr(self, meta, items: List[Token]) -> DottedExprNode:
@@ -805,6 +962,7 @@ class ConfigTransformer(Transformer):
         self.debug_print("sl_array_item() called with items")
         from ._ast_nodes import SLArrayItemNode, CommentNode
         from lark import Tree, Token
+
         node = SLArrayItemNode()
         i = 0
 
@@ -829,11 +987,19 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 3) Skip any whitespace tokens
-        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
+        while (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS")
+        ):
             i += 1
 
         # 4) Handle inline comment
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        if (
+            i < len(items)
+            and isinstance(items[i], Tree)
+            and items[i].data == "inline_comment"
+        ):
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
@@ -861,7 +1027,7 @@ class ConfigTransformer(Transformer):
             WhitespaceNode,
             HspacesNode,
             InlineWhitespaceNode,
-            NewlineNode
+            NewlineNode,
         )
         from lark import Token, Tree
 
@@ -870,8 +1036,14 @@ class ConfigTransformer(Transformer):
 
         # 1) Skip indentation, whitespace, or newline nodes
         while i < len(items) and (
-            isinstance(items[i], (WhitespaceNode, HspacesNode, InlineWhitespaceNode, NewlineNode))
-            or (isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"))
+            isinstance(
+                items[i],
+                (WhitespaceNode, HspacesNode, InlineWhitespaceNode, NewlineNode),
+            )
+            or (
+                isinstance(items[i], Token)
+                and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS")
+            )
         ):
             i += 1
 
@@ -891,15 +1063,27 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 4) Skip any whitespace tokens
-        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
+        while (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS")
+        ):
             i += 1
 
         # 5) Handle inline-comment token directly (fix)
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "INLINE_COMMENT"
+        ):
             node.inline_comment = items[i]
             i += 1
         # 6) Fallback: inline-comment subtree
-        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        elif (
+            i < len(items)
+            and isinstance(items[i], Tree)
+            and items[i].data == "inline_comment"
+        ):
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
@@ -915,7 +1099,6 @@ class ConfigTransformer(Transformer):
 
         return node
 
-        
     @v_args(meta=True)
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
         """
@@ -930,7 +1113,9 @@ class ConfigTransformer(Transformer):
         for itm in items:
             if isinstance(itm, Tree) and itm.data == "inline_table_items":
                 for child in itm.children:
-                    if isinstance(child, ValueNode) and isinstance(child.value, AssignmentNode):
+                    if isinstance(child, ValueNode) and isinstance(
+                        child.value, AssignmentNode
+                    ):
                         assignment = child.value
                         # Store the entire AssignmentNode to preserve the ': TYPE = value'
                         node.data[assignment.identifier.value] = assignment
@@ -953,7 +1138,11 @@ class ConfigTransformer(Transformer):
         i = 0
         # Handle pre-item comments
         if i < len(items) and isinstance(items[i], list):
-            node.__comments__.extend(item.value for item in items[i] if isinstance(item, CommentNode) and item is not None)
+            node.__comments__.extend(
+                item.value
+                for item in items[i]
+                if isinstance(item, CommentNode) and item is not None
+            )
             i += 1
         # Handle main item
         if i < len(items):
@@ -970,14 +1159,24 @@ class ConfigTransformer(Transformer):
                 self.debug_print(f"Skipping unexpected item at index {i}: {items[i]}")
                 i += 1
         # Handle inline comment
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "inline_comment"
+        ):
             node.inline_comment = items[i]
             i += 1
         # Handle post-item comments
         if i < len(items) and isinstance(items[i], list):
-            node.__comments__.extend(item.value for item in items[i] if isinstance(item, CommentNode) and item is not None)
+            node.__comments__.extend(
+                item.value
+                for item in items[i]
+                if isinstance(item, CommentNode) and item is not None
+            )
         # Set origin safely
-        node.origin = node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        node.origin = (
+            node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        )
         node.meta = meta
         return node
 
@@ -992,18 +1191,27 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # 1) Leading whitespace
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "HSPACES"
+        ):
             node.leading_whitespace = items[i]
             i += 1
 
         # 2) Identifier
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IDENTIFIER"
+        ):
             node.identifier = items[i]
             i += 1
 
         # 3) Skip whitespace before optional annotation
         while i < len(items) and (
-            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+            isinstance(items[i], HspacesNode)
+            or (isinstance(items[i], Token) and items[i].type == "HSPACES")
         ):
             i += 1
 
@@ -1011,50 +1219,81 @@ class ConfigTransformer(Transformer):
         if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
             node.colon = items[i]
             i += 1
-            if i < len(items) and isinstance(items[i], Token) and items[i].type == "TYPE":
+            if (
+                i < len(items)
+                and isinstance(items[i], Token)
+                and items[i].type == "TYPE"
+            ):
                 node.type_annotation = items[i]
                 i += 1
             # skip whitespace after annotation
             while i < len(items) and (
-                isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+                isinstance(items[i], HspacesNode)
+                or (isinstance(items[i], Token) and items[i].type == "HSPACES")
             ):
                 i += 1
 
         # 5) Whitespace before equals, then '=' and whitespace after
         if i < len(items) and (
-            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+            isinstance(items[i], HspacesNode)
+            or (isinstance(items[i], Token) and items[i].type == "HSPACES")
         ):
             node.equals_leading_whitespace = (
-                items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+                items[i]
+                if isinstance(items[i], HspacesNode)
+                else HspacesNode(items[i].value)
             )
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
             node.equals = items[i]
             i += 1
         if i < len(items) and (
-            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+            isinstance(items[i], HspacesNode)
+            or (isinstance(items[i], Token) and items[i].type == "HSPACES")
         ):
             node.equals_trailing_whitespace = (
-                items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+                items[i]
+                if isinstance(items[i], HspacesNode)
+                else HspacesNode(items[i].value)
             )
             i += 1
 
         # 6) Value
         if i < len(items):
             val = items[i]
-            if isinstance(val, (SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode, InlineTableNode, SingleLineArrayNode, MultiLineArrayNode)):
+            if isinstance(
+                val,
+                (
+                    SingleQuotedStringNode,
+                    IntegerNode,
+                    FloatNode,
+                    BooleanNode,
+                    NullNode,
+                    InlineTableNode,
+                    SingleLineArrayNode,
+                    MultiLineArrayNode,
+                ),
+            ):
                 node.value = val
             else:
                 node.value = self.value(meta, [val])
             i += 1
 
         # 7) Inline comment
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "inline_comment"
+        ):
             node.inline_comment = items[i]
             i += 1
 
         # 8) Trailing whitespace
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "HSPACES"
+        ):
             node.trailing_whitespace = items[i]
             i += 1
 
@@ -1077,7 +1316,11 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # skip leading '['
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "L_SQ_BRACK"
+        ):
             i += 1
 
         # ── header expr ────────────────────────────────────────────────────
@@ -1090,18 +1333,20 @@ class ConfigTransformer(Transformer):
         if isinstance(header, Token):
             if header.type == "F_STRING":
                 wrap = FStringNode()
-                wrap.value  = header.value
+                wrap.value = header.value
                 wrap.origin = header.value
-                wrap.meta   = meta
+                wrap.meta = meta
                 header = wrap
             elif header.type in {
-                "SINGLE_QUOTED_STRING", "TRIPLE_QUOTED_STRING",
-                "BACKTICK_STRING", "TRIPLE_BACKTICK_STRING"
+                "SINGLE_QUOTED_STRING",
+                "TRIPLE_QUOTED_STRING",
+                "BACKTICK_STRING",
+                "TRIPLE_BACKTICK_STRING",
             }:
                 wrap = SingleQuotedStringNode()
-                wrap.value  = header.value.strip('"\'' + "`")
+                wrap.value = header.value.strip("\"'" + "`")
                 wrap.origin = header.value
-                wrap.meta   = meta
+                wrap.meta = meta
                 header = wrap
 
         node.header_expr = header
@@ -1134,8 +1379,8 @@ class ConfigTransformer(Transformer):
             origin_parts.append(node.clauses.emit())
 
         node.origin = "[" + " ".join(origin_parts) + "]"
-        node.value  = node.origin
-        node.meta   = meta
+        node.value = node.origin
+        node.meta = meta
         return node
 
     @v_args(meta=True)
@@ -1150,11 +1395,19 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # Skip opening brace and any newlines
-        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("LBRACE", "L_CURL_BRACE", "NEWLINE"):
+        while (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type in ("LBRACE", "L_CURL_BRACE", "NEWLINE")
+        ):
             i += 1
 
         # dict_comprehension_pair → PairExprNode via pair_expr()
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "dict_comprehension_pair":
+        if (
+            i < len(items)
+            and isinstance(items[i], Tree)
+            and items[i].data == "dict_comprehension_pair"
+        ):
             pair_node = self.pair_expr(meta, items[i].children)
             node.pair = pair_node
             i += 1
@@ -1167,7 +1420,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # Loop variable
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IDENTIFIER"
+        ):
             node.loop_var = items[i]
             i += 1
 
@@ -1190,22 +1447,25 @@ class ConfigTransformer(Transformer):
             node.condition = None
 
         # Skip any trailing newlines and the closing brace
-        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("NEWLINE", "RBRACE", "R_CURL_BRACE"):
+        while (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type in ("NEWLINE", "RBRACE", "R_CURL_BRACE")
+        ):
             i += 1
 
         # Construct origin string
         origin_parts: List[str] = [
             node.pair.emit(),
-            f"for {node.loop_var.value} in {node.iterable.emit()}"
+            f"for {node.loop_var.value} in {node.iterable.emit()}",
         ]
         if node.condition:
             origin_parts.append(f"if {node.condition.emit()}")
 
         node.origin = "{" + " ".join(origin_parts) + "}"
-        node.value  = node.origin
-        node.meta   = meta
+        node.value = node.origin
+        node.meta = meta
         return node
-
 
     # ───────────────────── inline‑table comprehension ──────────────────────
     @v_args(meta=True)
@@ -1232,35 +1492,37 @@ class ConfigTransformer(Transformer):
             raise ValueError("Missing inline_comprehension_pair")
 
         if isinstance(items[i], Tree) and items[i].data == "inline_comprehension_pair":
-            pair_items   = items[i].children
-            pair_index   = 0
-            pair_node    = PairExprNode()
+            pair_items = items[i].children
+            pair_index = 0
+            pair_node = PairExprNode()
 
             # ---- helper to wrap raw tokens into nodes that own .emit() ----
             def _tok_to_node(tok: Token):
                 if tok.type == "F_STRING":
                     wrap = FStringNode()
-                    wrap.value  = tok.value
+                    wrap.value = tok.value
                     wrap.origin = tok.value
-                    wrap.meta   = meta
+                    wrap.meta = meta
                     return wrap
                 if tok.type in {
-                    "SINGLE_QUOTED_STRING", "TRIPLE_QUOTED_STRING",
-                    "BACKTICK_STRING", "TRIPLE_BACKTICK_STRING"
+                    "SINGLE_QUOTED_STRING",
+                    "TRIPLE_QUOTED_STRING",
+                    "BACKTICK_STRING",
+                    "TRIPLE_BACKTICK_STRING",
                 }:
                     wrap = SingleQuotedStringNode()
-                    wrap.value  = tok.value.strip('"\'`')
+                    wrap.value = tok.value.strip("\"'`")
                     wrap.origin = tok.value
-                    wrap.meta   = meta
+                    wrap.meta = meta
                     return wrap
                 if tok.type == "IDENTIFIER":
                     wrap = DottedExprNode()
                     wrap.dotted_value = tok.value
-                    wrap.origin       = tok.value
-                    wrap.value        = tok.value
-                    wrap.meta         = meta
+                    wrap.origin = tok.value
+                    wrap.value = tok.value
+                    wrap.meta = meta
                     return wrap
-                return tok                        # fallback (shouldn’t happen)
+                return tok  # fallback (shouldn’t happen)
 
             # ---- key ------------------------------------------------------
             key_tok_or_node = pair_items[pair_index]
@@ -1289,13 +1551,21 @@ class ConfigTransformer(Transformer):
                 pair_node.value = val_tok_or_node
 
             pair_node.origin = (
-                (pair_node.key.emit()   if hasattr(pair_node.key,   "emit") else pair_node.key.value)
+                (
+                    pair_node.key.emit()
+                    if hasattr(pair_node.key, "emit")
+                    else pair_node.key.value
+                )
                 + f" {separator} "
-                + (pair_node.value.emit() if hasattr(pair_node.value, "emit") else pair_node.value.value)
+                + (
+                    pair_node.value.emit()
+                    if hasattr(pair_node.value, "emit")
+                    else pair_node.value.value
+                )
             )
-            pair_node.value = pair_node.origin   # raw representation
-            pair_node.meta  = meta
-            node.pair       = pair_node
+            pair_node.value = pair_node.origin  # raw representation
+            pair_node.meta = meta
+            node.pair = pair_node
             i += 1
         elif isinstance(items[i], PairExprNode):
             node.pair = items[i]
@@ -1306,16 +1576,24 @@ class ConfigTransformer(Transformer):
             )
 
         # ── “for” IDENTIFIER “in” iterable [if cond] ───────────────────────
-        if not (i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR"):
+        if not (
+            i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR"
+        ):
             raise ValueError("Expected 'for' in inline‑table comprehension")
         i += 1
 
-        if not (i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER"):
+        if not (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IDENTIFIER"
+        ):
             raise ValueError("Expected loop variable after 'for'")
         node.loop_var = items[i]
         i += 1
 
-        if not (i < len(items) and isinstance(items[i], Token) and items[i].type == "IN"):
+        if not (
+            i < len(items) and isinstance(items[i], Token) and items[i].type == "IN"
+        ):
             raise ValueError("Expected 'in' after loop variable")
         i += 1
 
@@ -1344,13 +1622,13 @@ class ConfigTransformer(Transformer):
         # ── origin string --------------------------------------------------
         origin_parts = [
             node.pair.emit() if hasattr(node.pair, "emit") else node.pair.origin,
-            f"for {node.loop_var.value} in {node.iterable.emit()}"
+            f"for {node.loop_var.value} in {node.iterable.emit()}",
         ]
         if node.condition:
             origin_parts.append(f"if {node.condition.emit()}")
         node.origin = "{" + " ".join(origin_parts) + "}"
-        node.value  = node.origin
-        node.meta   = meta
+        node.value = node.origin
+        node.meta = meta
         return node
 
     @v_args(meta=True)
@@ -1360,7 +1638,7 @@ class ConfigTransformer(Transformer):
         node.clauses = items
         # Preserve each clause on its own line
         parts = [c.emit() for c in items]
-        node.origin = '\n'.join(parts)
+        node.origin = "\n".join(parts)
         node.value = node.origin
         node.meta = meta
         return node
@@ -1378,14 +1656,16 @@ class ConfigTransformer(Transformer):
         node.conditions = ast_items[2:]
 
         vars_txt = " ".join(
-            getattr(v, 'origin', v.emit() if hasattr(v, 'emit') else str(v)).strip()
+            getattr(v, "origin", v.emit() if hasattr(v, "emit") else str(v)).strip()
             for v in node.loop_vars
         )
         iterable_txt = (
-            node.iterable.emit() if hasattr(node.iterable, 'emit') else str(node.iterable)
+            node.iterable.emit()
+            if hasattr(node.iterable, "emit")
+            else str(node.iterable)
         ).strip()
         cond_txt = " ".join(
-            getattr(c, 'origin', c.emit() if hasattr(c, 'emit') else str(c)).strip()
+            getattr(c, "origin", c.emit() if hasattr(c, "emit") else str(c)).strip()
             for c in node.conditions
         )
 
@@ -1429,7 +1709,11 @@ class ConfigTransformer(Transformer):
         self.debug_print("comprehension_condition() called with items")
         node = StringExprNode()
         # Store only comp_expr nodes in parts
-        node.parts = [item for item in items if not isinstance(item, Token) or item.type != "OPERATOR"]
+        node.parts = [
+            item
+            for item in items
+            if not isinstance(item, Token) or item.type != "OPERATOR"
+        ]
         # Construct origin with emit() for nodes and value for tokens
         origin_parts = []
         for item in items:
@@ -1501,14 +1785,13 @@ class ConfigTransformer(Transformer):
                 content_parts.append(child.emit())
         content_str = "".join(content_parts)
 
-        start = items[0].value   # '<('
-        end   = items[-1].value  # ')>'
+        start = items[0].value  # '<('
+        end = items[-1].value  # ')>'
         node.origin = f"{start} {content_str} {end}"
-        node.value  = node.origin
-        node.meta   = meta
+        node.value = node.origin
+        node.meta = meta
 
         return node
-
 
     @v_args(meta=True)
     def folded_content(self, meta, items: List[Any]) -> Tree:
@@ -1527,18 +1810,29 @@ class ConfigTransformer(Transformer):
         i = 0
 
         # match '['
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "L_SQ_BRACK"
+        ):
             node.lbrack = items[i]
             i += 1
 
         # collect the array_content subtree
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "sl_array_content":
+        if (
+            i < len(items)
+            and isinstance(items[i], Tree)
+            and items[i].data == "sl_array_content"
+        ):
             for child in items[i].children:
                 # skip delimiters and whitespace
                 if isinstance(child, Token) and child.type == "COMMA":
                     continue
 
-                if isinstance(child, (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode)):
+                if isinstance(
+                    child,
+                    (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode),
+                ):
                     continue
 
                 # explicit array_item
@@ -1570,7 +1864,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # match ']'
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "R_SQ_BRACK"
+        ):
             node.rbrack = items[i]
 
         node.contents = contents
@@ -1605,15 +1903,19 @@ class ConfigTransformer(Transformer):
         for itm in items:
             # Skip purely structural whitespace/newline tokens
             if (
-                isinstance(itm, Token) and itm.type in ("NEWLINE", "HSPACES", "INLINE_WS")
-                or isinstance(itm, (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode))
+                isinstance(itm, Token)
+                and itm.type in ("NEWLINE", "HSPACES", "INLINE_WS")
+                or isinstance(
+                    itm,
+                    (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode),
+                )
             ):
                 continue
 
             # 1) Raw COMMENT token (e.g. "# something,"), strip and detect comma
             if isinstance(itm, Token) and itm.type == "COMMENT":
                 raw = itm.value.rstrip()
-                has_comma = raw.endswith(',')
+                has_comma = raw.endswith(",")
                 text = raw[:-1] if has_comma else raw
                 vn = ValueNode()
                 vn.value = None
@@ -1626,7 +1928,7 @@ class ConfigTransformer(Transformer):
             # 2) CommentNode (from comment_line transformer)
             if isinstance(itm, CommentNode):
                 raw = itm.origin.rstrip()
-                has_comma = raw.endswith(',')
+                has_comma = raw.endswith(",")
                 text = raw[:-1] if has_comma else raw
                 vn = ValueNode()
                 vn.value = None
@@ -1797,7 +2099,7 @@ class ConfigTransformer(Transformer):
         # Just strip the first 3 and last 3 chars. If your grammar supports both `"""` and `'''`,
         # you'd detect which is used. For now, assume `"""`.
         self.debug_print("TRIPLE_BACKTICK_STRING() called with token")
-        if raw_text.startswith('```') and raw_text.endswith('```'):
+        if raw_text.startswith("```") and raw_text.endswith("```"):
             inner_text = raw_text[3:-3]
         else:
             inner_text = raw_text

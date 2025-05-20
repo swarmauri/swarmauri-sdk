@@ -28,6 +28,7 @@ def test_inheritance():
     """Test that StreamLoggingHandler inherits from HandlerBase."""
     assert issubclass(StreamLoggingHandler, HandlerBase)
 
+
 @pytest.mark.unit
 def test_default_values():
     """Test the default values of StreamLoggingHandler."""

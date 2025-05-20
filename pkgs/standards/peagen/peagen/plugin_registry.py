@@ -2,7 +2,7 @@
 
 from importlib.metadata import entry_points
 from collections import defaultdict
-from typing import Dict, Type
+from typing import Dict
 from types import ModuleType
 
 # ---------------------------------------------------------------------------

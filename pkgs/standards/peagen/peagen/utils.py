@@ -1,7 +1,9 @@
 # peagen/utils.py
 from contextlib import contextmanager
 from pathlib import Path
-import tempfile, shutil, os, errno, logging
+import tempfile
+import shutil
+import logging
 
 @contextmanager
 def temp_workspace(prefix: str = "peagen_"):

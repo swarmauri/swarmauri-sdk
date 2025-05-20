@@ -7,7 +7,6 @@ Usage (wired in peagen/cli.py):
 """
 
 import json
-import time
 from pathlib import Path
 from pprint import pformat
 from typing import Optional
@@ -17,13 +16,12 @@ from pydantic import FilePath
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen._api_key import _resolve_api_key
-from peagen._banner import _print_banner
 from peagen._config import _config
-from peagen._gitops import _clone_swarmauri_repo
 from peagen.core import Peagen
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
 revise_app = typer.Typer(help="Revise an existing Peagen project.")
+
 
 # Note: we keep `@revise_app.callback()` so that “peagen revise …” works exactly
 # like before; swap to @revise_app.command() if you prefer a nested sub-command.

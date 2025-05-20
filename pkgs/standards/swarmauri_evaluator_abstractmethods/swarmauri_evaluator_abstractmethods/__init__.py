@@ -1,8 +1,6 @@
 from .AbstractMethodsEvaluator import AbstractMethodsEvaluator
 
-__all__ = [
-    "AbstractMethodsEvaluator"
-]
+__all__ = ["AbstractMethodsEvaluator"]
 
 try:
     # For Python 3.8 and newer

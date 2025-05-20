@@ -1,9 +1,6 @@
 import pytest
 
-from jaml import (
-    round_trip_loads
-)
-
+from jaml import round_trip_loads
 
 
 # @pytest.mark.xfail(reason="pending validation")
@@ -15,12 +12,12 @@ def test_section_headers_with_alias_clauses():
     """
 
     # The input JML content (as a multi-line string)
-    JML_INPUT = r'''
+    JML_INPUT = r"""
     rootDir = "src"
 
     [[f"file.{package.name}.{module.name}.source"
 for package as %{package} in ${packages} if package.active
-for module as %{module} in package.modules if package.active]]'''
+for module as %{module} in package.modules if package.active]]"""
 
     # The base external context used during rendering.
     BASE_CONTEXT = {
@@ -48,37 +45,38 @@ for module as %{module} in package.modules if package.active]]'''
         ],
     }
 
-
     data = round_trip_loads(JML_INPUT)
-    print('\n\n[TEST DEBUG]:')
-    print(data,'\n\n')
+    print("\n\n[TEST DEBUG]:")
+    print(data, "\n\n")
     assert data["rootDir"] == '"src"'
 
     data["rootDir"] = '"new_src"'
     resolved_config = data.resolve()
-    assert resolved_config["rootDir"] == 'new_src'
-    assert '''f"file.{package.name}.{module.name}.source"
+    assert resolved_config["rootDir"] == "new_src"
+    assert (
+        """f"file.{package.name}.{module.name}.source"
 for package as %{package} in ${packages} if package.active
-for module as %{module} in package.modules if package.active''' in data
-
+for module as %{module} in package.modules if package.active"""
+        in data
+    )
 
     # out = data.dumps()
     # rendered_data = data.render(out, context=BASE_CONTEXT)
     rendered_data = data.render(context=BASE_CONTEXT)
-    print('\n\n\n\n[RENDERED DATA]:')
+    print("\n\n\n\n[RENDERED DATA]:")
     print(rendered_data)
     assert rendered_data["rootDir"] == "new_src"
     assert rendered_data["file"]
     assert rendered_data["file"]["auth"]["login"]["source"]["module"]
     assert rendered_data["file"]["auth"]["signup"]["source"]["module"]
-    assert '''f"file.{package.name}.{module.name}.source"
+    assert (
+        """f"file.{package.name}.{module.name}.source"
 for package as %{package} in ${packages} if package.active
-for module as %{module} in package.modules if package.active''' not in rendered_data
-
+for module as %{module} in package.modules if package.active"""
+        not in rendered_data
+    )
 
     final_out = data.dumps()
-    print('\n\n\n\n[FINAL_OUT]:')
+    print("\n\n\n\n[FINAL_OUT]:")
     print(final_out)
     assert "[[file.auth.signup.source]]" in final_out
-
-

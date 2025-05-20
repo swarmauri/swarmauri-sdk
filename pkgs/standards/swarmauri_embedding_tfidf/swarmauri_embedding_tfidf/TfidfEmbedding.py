@@ -7,6 +7,7 @@ from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(EmbeddingBase, "TfidfEmbedding")
 class TfidfEmbedding(EmbeddingBase):
     _model = PrivateAttr()

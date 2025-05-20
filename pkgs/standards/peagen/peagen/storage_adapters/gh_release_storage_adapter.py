@@ -4,7 +4,6 @@ import io
 import tempfile
 from typing import BinaryIO, Optional
 from github import Github, UnknownObjectException
-from github.GithubException import GithubException
 
 
 class GithubReleaseStorageAdapter:

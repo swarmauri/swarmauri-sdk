@@ -1,8 +1,6 @@
 from .AnyTypeUsageEvaluator import AnyTypeUsageEvaluator
 
-__all__ = [
-    "AnyTypeUsageEvaluator"
-]
+__all__ = ["AnyTypeUsageEvaluator"]
 
 try:
     # For Python 3.8 and newer

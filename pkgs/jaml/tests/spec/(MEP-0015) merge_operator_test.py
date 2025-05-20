@@ -1,11 +1,8 @@
 # test_merge_operator.py
 import pytest
 
-from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
-    render
-)
+from jaml import round_trip_loads, round_trip_dumps, render
+
 
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Basic table merge not fully implemented yet.")
@@ -26,7 +23,9 @@ timeout = 60
     # Round-trip parse -> re-serialize
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
-    assert "<< = default" in reserialized, "Merge operator syntax not preserved in round-trip."
+    assert "<< = default" in reserialized, (
+        "Merge operator syntax not preserved in round-trip."
+    )
 
     # If merges are resolved at parse/render time, check the final result:
     rendered = render(toml_str, context={})
@@ -48,18 +47,20 @@ settings = { theme = "dark", << = { font = "Arial", size = 12 } }
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
     # Ensure the merge operator is still there
-    assert "<< = { font = \"Arial\", size = 12 }" in reserialized
+    assert '<< = { font = "Arial", size = 12 }' in reserialized
 
     # If merges are applied, check final rendered results:
     rendered = render(toml_str, context={})
     # The merged table should have 'theme', 'font', and 'size':
-    assert "theme = \"dark\"" in rendered
-    assert "font = \"Arial\"" in rendered
+    assert 'theme = "dark"' in rendered
+    assert 'font = "Arial"' in rendered
     assert "size = 12" in rendered
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Global scoped variable merge resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Global scoped variable merge resolution not fully implemented yet."
+)
 def test_merge_with_scoped_variable_global():
     """
     MEP-015:
@@ -86,7 +87,9 @@ timeout = 60
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Self scoped variable merge resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Self scoped variable merge resolution not fully implemented yet."
+)
 def test_merge_with_scoped_variable_self():
     """
     MEP-015:
@@ -107,11 +110,13 @@ settings = { theme = "light", << = %{override} }
     # After merges:
     rendered = render(toml_str, context={})
     # The final theme should be "dark", because override merges last.
-    assert "theme = \"dark\"" in rendered
+    assert 'theme = "dark"' in rendered
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Context scoped variable merge resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Context scoped variable merge resolution not fully implemented yet."
+)
 def test_merge_with_scoped_variable_context():
     """
     MEP-015:
@@ -170,19 +175,21 @@ database = { port = 5433 }
 << = override
 """
     rendered = render(toml_str, context={})
-    # We should get database.host=localhost from base, 
+    # We should get database.host=localhost from base,
     # but database.port=5433 from override
-    assert "host = \"localhost\"" in rendered
+    assert 'host = "localhost"' in rendered
     assert "port = 5433" in rendered
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Multiple merges in a single inline table not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Multiple merges in a single inline table not fully implemented yet."
+)
 def test_multiple_merges_inline_table():
     """
     MEP-015:
-      Inline table can have multiple merges, e.g. << = table1, << = table2, 
-      applied in order. 
+      Inline table can have multiple merges, e.g. << = table1, << = table2,
+      applied in order.
       Mark xfail if unimplemented.
     """
     toml_str = """
@@ -198,7 +205,7 @@ baz = 3
 stuff = { << = table1, << = table2 }
 """
     rendered = render(toml_str, context={})
-    # We expect 'foo=1' from table1, 'bar=99' from table2 overriding bar=2, 
+    # We expect 'foo=1' from table1, 'bar=99' from table2 overriding bar=2,
     # and 'baz=3' from table2
     assert "foo = 1" in rendered
     assert "bar = 99" in rendered

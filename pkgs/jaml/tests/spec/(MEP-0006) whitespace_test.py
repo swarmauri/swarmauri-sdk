@@ -6,6 +6,7 @@ from jaml import (
     round_trip_loads,
 )
 
+
 @pytest.mark.spec
 @pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Leading/trailing whitespace preservation not yet implemented.")
@@ -19,7 +20,9 @@ def test_leading_trailing_whitespace_in_strings_preserved():
 name = "  Jeff  "
 """
     ast = round_trip_loads(toml_str)
-    assert ast["settings"]["name"] == '"  Jeff  "', "Leading/trailing spaces should be preserved"
+    assert ast["settings"]["name"] == '"  Jeff  "', (
+        "Leading/trailing spaces should be preserved"
+    )
 
     # If you want to test round-trip:
     out = ast.dumps()
@@ -41,7 +44,9 @@ def test_trailing_whitespace_after_value_ignored():
 title = "Dev"     
 """
     data = loads(toml_str)
-    assert data["settings"]["title"] == '"Dev"', "Trailing whitespace after 'Dev' should be ignored"
+    assert data["settings"]["title"] == '"Dev"', (
+        "Trailing whitespace after 'Dev' should be ignored"
+    )
 
 
 @pytest.mark.spec
@@ -72,7 +77,7 @@ key    =    "value"
 def test_inline_tables_whitespace_preserved_round_trip():
     """
     MEP-006 Section 3.4:
-      Whitespace in inline tables is ignored during parsing, 
+      Whitespace in inline tables is ignored during parsing,
       but preserved when round-tripping (if your unparser supports it).
     """
     toml_str = """
@@ -86,8 +91,8 @@ profile = { name = "Alice", age = 30 }
     # If your unparser precisely preserves spacing, the strings should match.
     # Some implementations only preserve structure, not exact spacing.
     # Adjust accordingly. For strict tests:
-    
-    assert "name = \"Alice\"" in reserialized
+
+    assert 'name = "Alice"' in reserialized
     assert "age = 30" in reserialized
 
 
@@ -107,11 +112,11 @@ description = \"\"\"
 \"\"\"
 """
     data = loads(toml_str)
-    # Depending on how your parser handles the newlines, 
+    # Depending on how your parser handles the newlines,
     # check for leading space or entire block.
     desc = data["documentation"]["description"]
 
-    # Example expectation: The initial newline is stripped, but the 
+    # Example expectation: The initial newline is stripped, but the
     # leading spaces on lines are preserved. Adjust to your parser's rules.
     assert "  This is a multiline\n" in desc
     assert "  string with leading spaces" in desc
@@ -141,7 +146,7 @@ my key = "value"
 def test_line_continuation_not_supported_yet():
     """
     MEP-006 Section 6.1 (Open Issues):
-      If line continuation is not supported, 
+      If line continuation is not supported,
       the parser should fail or raise error if encountered.
     """
     toml_str = """

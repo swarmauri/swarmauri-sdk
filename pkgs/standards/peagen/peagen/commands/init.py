@@ -18,13 +18,11 @@ dict passed to `_render_scaffold`.
 from __future__ import annotations
 
 import shutil
-import sys
 import textwrap
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import typer
-import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 
 # ── Typer root ───────────────────────────────────────────────────────────────
@@ -35,6 +33,7 @@ _SCAFFOLD_ROOT = (
     Path(__file__).resolve().parent.parent  # → peagen/
     / "scaffolding"
 )
+
 
 # ── utilities ────────────────────────────────────────────────────────────────
 def _ensure_empty_or_force(dst: Path, force: bool) -> None:
@@ -63,9 +62,7 @@ def _render_scaffold(kind: str, dst: Path, context: dict, force: bool) -> None:
         rel = path.relative_to(src_root)
 
         # 1️⃣  Render *every* path segment (enables {{ var }} in folder names)
-        rendered_parts = [
-            Template(part).render(**context) for part in rel.parts
-        ]
+        rendered_parts = [Template(part).render(**context) for part in rel.parts]
         target = dst.joinpath(*rendered_parts)
 
         if path.is_dir():
@@ -74,22 +71,25 @@ def _render_scaffold(kind: str, dst: Path, context: dict, force: bool) -> None:
 
         # 2️⃣  File handling
         if path.suffix == ".j2":
-            template_key = rel.as_posix()          # POSIX path for Jinja
+            template_key = rel.as_posix()  # POSIX path for Jinja
             template = env.get_template(template_key)
 
-            target = target.with_suffix("")        # strip .j2
+            target = target.with_suffix("")  # strip .j2
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(template.render(**context), encoding="utf-8")
         else:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
 
+
 def _summary(created_in: Path, next_cmd: str) -> None:
-    typer.echo(textwrap.dedent(f"""\
+    typer.echo(
+        textwrap.dedent(f"""\
         ✅  Scaffold created: {created_in}
            Next steps:
              {next_cmd}
-    """))
+    """)
+    )
 
 
 # ── init project ─────────────────────────────────────────────────────────────

@@ -9,9 +9,9 @@ from ._eval import safe_eval
 # Helpers
 # ────────────────────────────────────────────────────────────────────────────
 
-from collections.abc import Mapping          # NEW import ⬅️
+from collections.abc import Mapping  # NEW import ⬅️
 
-_VAR_RE = re.compile(r'([@%\$])?\{([^}]+)\}')
+_VAR_RE = re.compile(r"([@%\$])?\{([^}]+)\}")
 
 
 def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
@@ -52,7 +52,7 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
         for part in parts:
             cur = _dig(cur, part)
             if cur is None:
-                break          # this env failed, try the next one
+                break  # this env failed, try the next one
         else:
             # completed the for-loop ⇒ success
             return cur
@@ -64,13 +64,14 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 from typing import Any, Dict, Optional
 import re
 
+
 # ────────────────────────────────────────────────────────────────────────────────
 # ① expand global- and local-scope f-strings
 def _eval_fstrings(mapping: Dict[str, Any]):
     for key, val in list(mapping.items()):
         if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
             # Skip context-scoped placeholders (${…}), only expand static f-strings
-            if '${' not in val:
+            if "${" not in val:
                 mapping[key] = _evaluate_f_string(
                     val,
                     global_data=mapping,
@@ -80,9 +81,11 @@ def _eval_fstrings(mapping: Dict[str, Any]):
         elif isinstance(val, dict):
             _eval_fstrings(val)
 
+
 # ────────────────────────────────────────────────────────────────────────────
 # Public entry‑point
 # ────────────────────────────────────────────────────────────────────────────
+
 
 def _evaluate_f_string(
     f_str: str,
@@ -115,13 +118,21 @@ def _evaluate_f_string(
     if inner:
         quote_char = inner[0]
         inner = inner[1:-1] if inner.endswith(quote_char) else inner[1:]
-    print("[DEBUG _fstring._evaluate_f_string] After removing f prefix and quotes, inner:", inner)
+    print(
+        "[DEBUG _fstring._evaluate_f_string] After removing f prefix and quotes, inner:",
+        inner,
+    )
 
     # ───────────────────────────────────────────────────────── placeholder pass
     def repl(match: "re.Match[str]") -> str:
         scope_marker, content = match.groups()
         content = content.strip()
-        print("[DEBUG _fstring._evaluate_f_string] Processing content:", content, "marker:", scope_marker)
+        print(
+            "[DEBUG _fstring._evaluate_f_string] Processing content:",
+            content,
+            "marker:",
+            scope_marker,
+        )
 
         # ${...} → context‑scoped (render‑time)
         if scope_marker == "$":
@@ -132,7 +143,10 @@ def _evaluate_f_string(
 
             value = _lookup(content, context, local_data, global_data)
             if value is None:
-                print("[DEBUG _fstring._evaluate_f_string] Context lookup failed for", content)
+                print(
+                    "[DEBUG _fstring._evaluate_f_string] Context lookup failed for",
+                    content,
+                )
                 return match.group(0)
 
             if hasattr(value, "value"):
@@ -142,22 +156,33 @@ def _evaluate_f_string(
             return str(value)
 
         # Determine lookup order for @{…}, %{…}, and bare {…}
-        if scope_marker == "@":                    # global‑only
+        if scope_marker == "@":  # global‑only
             value = _lookup(content, global_data)
-        else:                                      # '%' or bare
+        else:  # '%' or bare
             value = _lookup(content, local_data, global_data)
 
         # For bare {expr} try evaluating an expression if lookup failed
         if value is None and scope_marker not in ("@", "%"):
             try:
                 value = safe_eval(content, local_env=local_data)
-                print("[DEBUG _fstring._evaluate_f_string] Evaluated expression:", content, "to:", value)
+                print(
+                    "[DEBUG _fstring._evaluate_f_string] Evaluated expression:",
+                    content,
+                    "to:",
+                    value,
+                )
             except Exception as exc:
-                print("[DEBUG _fstring._evaluate_f_string] Expression evaluation failed:", exc)
+                print(
+                    "[DEBUG _fstring._evaluate_f_string] Expression evaluation failed:",
+                    exc,
+                )
                 return match.group(0)
 
         if value is None:
-            print("[DEBUG _fstring._evaluate_f_string] Content unresolved:", match.group(0))
+            print(
+                "[DEBUG _fstring._evaluate_f_string] Content unresolved:",
+                match.group(0),
+            )
             return match.group(0)
 
         # Collapse AST nodes or quoted literals
@@ -171,7 +196,7 @@ def _evaluate_f_string(
     print("[DEBUG _fstring._evaluate_f_string] After substitution:", substituted)
 
     # If the whole string now looks like a simple literal/expression, eval it
-    if re.fullmatch(r'[\d\s+\-*/().]+|true|false|null', substituted, flags=re.I):
+    if re.fullmatch(r"[\d\s+\-*/().]+|true|false|null", substituted, flags=re.I):
         try:
             evaluated = safe_eval(substituted, local_env=local_data)
             print("[DEBUG _fstring._evaluate_f_string] safe_eval result:", evaluated)

@@ -274,7 +274,7 @@ class SubprocessEvaluator(EvaluatorBase):
             if process and process.poll() is None:
                 try:
                     process.kill()
-                except:
+                except Exception:
                     pass
 
             logger.error(f"Error during subprocess execution: {str(e)}")

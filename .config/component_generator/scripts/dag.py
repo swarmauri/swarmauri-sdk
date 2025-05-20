@@ -80,12 +80,14 @@ def process_single_project_payload(global_attrs):
 
     # Step 4: Set up the Jinja2 environment using the selected template folder
     copy_env = Environment(
-        loader=FileSystemLoader([
-            template_dir,          # Use the selected template folder
-            BASE_DIR,              # For additional resources if needed
-            SWARMAURI_PACKAGE_PATH # To import swarmauri modules
-        ]),
-        autoescape=False
+        loader=FileSystemLoader(
+            [
+                template_dir,  # Use the selected template folder
+                BASE_DIR,  # For additional resources if needed
+                SWARMAURI_PACKAGE_PATH,  # To import swarmauri modules
+            ]
+        ),
+        autoescape=False,
     )
 
     agent_env = {}  # Define agent-specific settings if required
@@ -105,9 +107,11 @@ def process_single_project_payload(global_attrs):
             # If not, fallback to the global setting or to "agent_default.j2".
             agent_prompt_template_name = entry.get(
                 "AGENT_PROMPT_TEMPLATE",
-                global_attrs.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+                global_attrs.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2"),
             )
-            agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
+            agent_prompt_template_path = os.path.join(
+                template_dir, agent_prompt_template_name
+            )
             content = render_generate_template(
                 entry, agent_env, copy_env, global_attrs, agent_prompt_template_path
             )
@@ -120,9 +124,9 @@ def process_single_project_payload(global_attrs):
     # Step 6: Save the final global_attrs payload to payload.json
     package_payload_filename = os.path.join(
         BASE_DIR,
-        global_attrs.get('PROJECT_ROOT', ''),
-        global_attrs.get('PACKAGE_ROOT', ''),
-        "payload.json"
+        global_attrs.get("PROJECT_ROOT", ""),
+        global_attrs.get("PACKAGE_ROOT", ""),
+        "payload.json",
     )
     save_payload(package_payload_filename, global_attrs)
 
@@ -130,6 +134,7 @@ def process_single_project_payload(global_attrs):
 # ------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 # ------------------------------------------------------------------------------
+
 
 # 1. LOADING PROJECTS & FILE PAYLOAD
 def load_projects_list(path):
@@ -140,7 +145,9 @@ def load_projects_list(path):
         with open(path, "r", encoding="utf-8") as f:
             projects = json.load(f)
             if not isinstance(projects, list):
-                raise ValueError("projects_payloads.json must contain a list of project payloads.")
+                raise ValueError(
+                    "projects_payloads.json must contain a list of project payloads."
+                )
             return projects
     except FileNotFoundError:
         print(f"[ERROR] The file {path} does not exist.")
@@ -157,7 +164,7 @@ def load_files_payload(path, global_attrs):
     """
     Loads a Jinja2-based JSON template (payload.json.j2), renders it
     with `global_attrs`, and then parses the result as JSON.
-    
+
     Supports an optional top-level key "AGENT_PROMPT_TEMPLATE" in the payload.
     If the rendered JSON is a dictionary, it is expected to contain a "FILES"
     key with the list of file payloads, and optionally an "AGENT_PROMPT_TEMPLATE".
@@ -175,7 +182,9 @@ def load_files_payload(path, global_attrs):
         if isinstance(payload_data, dict):
             # If an agent prompt template is defined in the payload, update global_attrs.
             if "AGENT_PROMPT_TEMPLATE" in payload_data:
-                global_attrs["AGENT_PROMPT_TEMPLATE"] = payload_data["AGENT_PROMPT_TEMPLATE"]
+                global_attrs["AGENT_PROMPT_TEMPLATE"] = payload_data[
+                    "AGENT_PROMPT_TEMPLATE"
+                ]
             # Return the list of file definitions under the "FILES" key.
             return payload_data.get("FILES", [])
         else:
@@ -209,15 +218,15 @@ def resolve_placeholders(files_payload, global_attrs):
         new_record = {}
 
         # Render FILE_NAME -> RENDERED_FILE_NAME
-        unrendered_name = record["FILE_NAME"] + '.j2'
+        unrendered_name = record["FILE_NAME"] + ".j2"
         new_record["FILE_NAME"] = unrendered_name
         try:
             rendered_template = env.from_string(unrendered_name)
             rendered_name = rendered_template.render(**context)
-            new_record["RENDERED_FILE_NAME"] = rendered_name.replace('.j2', '')
+            new_record["RENDERED_FILE_NAME"] = rendered_name.replace(".j2", "")
         except Exception as e:
             print(f"[ERROR] Failed to render FILE_NAME '{unrendered_name}': {e}")
-            new_record["RENDERED_FILE_NAME"] = unrendered_name.replace('.j2', '')
+            new_record["RENDERED_FILE_NAME"] = unrendered_name.replace(".j2", "")
 
         # Render DEPENDENCIES -> RENDERED_DEPENDENCIES
         rendered_deps = []
@@ -239,7 +248,9 @@ def resolve_placeholders(files_payload, global_attrs):
                 try:
                     new_record[key] = env.from_string(val).render(**context)
                 except Exception as e:
-                    print(f"[ERROR] Failed to render field '{key}' with value '{val}': {e}")
+                    print(
+                        f"[ERROR] Failed to render field '{key}' with value '{val}': {e}"
+                    )
                     new_record[key] = val
 
             elif isinstance(val, list):
@@ -250,7 +261,9 @@ def resolve_placeholders(files_payload, global_attrs):
                             rendered_item = env.from_string(item).render(**context)
                             rendered_list.append(rendered_item)
                         except Exception as e:
-                            print(f"[ERROR] Failed to render list item '{item}' in field '{key}': {e}")
+                            print(
+                                f"[ERROR] Failed to render list item '{item}' in field '{key}': {e}"
+                            )
                             rendered_list.append(item)
                     else:
                         rendered_list.append(item)
@@ -311,7 +324,9 @@ def build_forward_graph(payload):
                 graph[dep].append(file_node)
                 in_degree[file_node] += 1
             else:
-                print(f"[WARNING] Dependency '{dep}' for file '{file_node}' not found among all nodes.")
+                print(
+                    f"[WARNING] Dependency '{dep}' for file '{file_node}' not found among all nodes."
+                )
 
     for node in all_nodes:
         if node not in graph:
@@ -336,7 +351,9 @@ def render_copy_template(entry, copy_env, global_attrs):
         return None
 
 
-def render_generate_template(entry, agent_env, copy_env, global_attrs, agent_prompt_template_path):
+def render_generate_template(
+    entry, agent_env, copy_env, global_attrs, agent_prompt_template_path
+):
     """
     Renders an agent prompt template (from agent_prompt_template_path) and
     calls an external agent to generate file content.
@@ -353,7 +370,9 @@ def render_generate_template(entry, agent_env, copy_env, global_attrs, agent_pro
         print(f"[INFO] Generated content length: {len(content)} characters")
         return content
     except Exception as e:
-        print(f"[ERROR] Failed to generate content for '{entry['RENDERED_FILE_NAME']}': {e}")
+        print(
+            f"[ERROR] Failed to generate content for '{entry['RENDERED_FILE_NAME']}': {e}"
+        )
         return None
 
 
@@ -367,10 +386,13 @@ def call_external_agent(prompt, agent_env):
     # Example: Using swarmauri components (adjust as needed)
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+
     # You can swap in your desired LLM model here
     llm = O1Model(api_key="***", name="o3-mini")
     system_context = "You are a helpful assistant."
-    agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
+    agent = RagAgent(
+        llm=llm, vector_store=TfidfVectorStore(), system_context=system_context
+    )
     result = agent.exec(prompt, top_k=0)
     content = chunk_content(result)
     del agent
@@ -388,6 +410,7 @@ def chunk_content(full_content: str) -> str:
         cleaned_text = re.sub(pattern, "", full_content).strip()
 
         from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
+
         chunker = MdSnippetChunker()
         chunks = chunker.chunk_text(cleaned_text)
         if len(chunks) > 1:
@@ -397,7 +420,9 @@ def chunk_content(full_content: str) -> str:
         except IndexError:
             return cleaned_text
     except ImportError:
-        print("[WARNING] MdSnippetChunker not found. Returning full content without chunking.")
+        print(
+            "[WARNING] MdSnippetChunker not found. Returning full content without chunking."
+        )
         return full_content
     except Exception as e:
         print(f"[ERROR] Failed to chunk content: {e}")
@@ -424,7 +449,7 @@ def save_payload(package_payload_filename, global_attrs):
     """
     try:
         os.makedirs(os.path.dirname(package_payload_filename), exist_ok=True)
-        with open(package_payload_filename, "w", encoding='utf-8') as f:
+        with open(package_payload_filename, "w", encoding="utf-8") as f:
             json.dump(global_attrs, f, indent=4)
         print(f"[INFO] Saved payload: {package_payload_filename}")
     except Exception as e:

@@ -2,6 +2,7 @@ import heapq
 from collections import defaultdict
 from typing import Any, Dict, List
 
+
 # development method, may be unstable
 def get_immediate_dependencies(
     payload: List[Dict[str, Any]], target_file: str
@@ -10,7 +11,7 @@ def get_immediate_dependencies(
     @dev development method, may be unstable
 
     ---
-    
+
     Returns a list of files that `target_file` directly depends on (one‑hop parents).
 
     Args:
@@ -30,6 +31,7 @@ def get_immediate_dependencies(
     # Invert to get direct dependency mapping
     reverse_graph = _build_reverse_graph(forward_graph)
     return reverse_graph[target_file]
+
 
 def _build_forward_graph(payload: List[Dict[str, Any]]):
     """
