@@ -14,7 +14,7 @@ from peagen.cli_common import PathOrURI, common_peagen_options, load_peagen_toml
 from peagen.core import Peagen, Fore
 from peagen._config import _config
 from peagen._api_key import _resolve_api_key
-from peagen._gitops import _clone_swarmauri_repo
+from peagen._source_packages import materialise_packages
 
 from peagen.plugin_registry import registry  # central plugin registry
 from peagen.utils import temp_workspace
@@ -132,8 +132,17 @@ def process_cmd(
     extra_dirs: List[Path] = []
     if additional_package_dirs:
         extra_dirs.extend(Path(p).expanduser() for p in additional_package_dirs.split(","))
+
+    source_pkgs = toml_cfg.get("source_packages", {}).get("package", [])
     if include_swarmauri:
-        extra_dirs.append(Path(_clone_swarmauri_repo(use_dev_branch=swarmauri_dev)))
+        source_pkgs.append(
+            {
+                "type": "git",
+                "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
+                "ref": "mono/dev" if swarmauri_dev else "master",
+                "dest": "third_party/swarmauri_sdk",
+            }
+        )
 
     _config.update(truncate=trunc, revise=False, transitive=transitive, workers=workers)
     resolved_key = _resolve_api_key(provider, api_key, env)
@@ -142,6 +151,9 @@ def process_cmd(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     with temp_workspace() as ws:
+        fetched_dirs = materialise_packages(source_pkgs, ws, storage_adapter)
+        extra_dirs.extend(fetched_dirs)
+
         pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
@@ -149,7 +161,7 @@ def process_cmd(
             agent_env=agent_env,
             storage_adapter=storage_adapter,
             org=org,
-            workspace_root=ws, 
+            workspace_root=ws,
         )
 
         # ── LOG LEVEL ───────────────────────────────────────────────────────────
