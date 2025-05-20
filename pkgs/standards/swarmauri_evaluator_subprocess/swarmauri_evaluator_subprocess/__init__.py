@@ -1,8 +1,6 @@
 from .SubprocessEvaluator import SubprocessEvaluator
 
-__all__ = [
-    "SubprocessEvaluator"
-]
+__all__ = ["SubprocessEvaluator"]
 
 try:
     # For Python 3.8 and newer

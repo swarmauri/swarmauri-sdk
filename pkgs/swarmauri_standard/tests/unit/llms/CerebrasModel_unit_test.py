@@ -48,7 +48,10 @@ def test_type(cerebras_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(cerebras_model):
-    assert cerebras_model.id == LLM.model_validate_json(cerebras_model.model_dump_json()).id
+    assert (
+        cerebras_model.id
+        == LLM.model_validate_json(cerebras_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.timeout(5)

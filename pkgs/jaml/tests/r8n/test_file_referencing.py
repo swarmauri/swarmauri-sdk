@@ -1,14 +1,15 @@
 import pytest
 from jaml import round_trip_loads, round_trip_dumps, loads
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Basic file inclusion not fully implemented")
 def test_basic_file_reference():
     # Test including an entire TOML file
-    jml = '''
+    jml = """
 [config]
 common = file("common.toml")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -18,15 +19,16 @@ common = file("common.toml")
     assert data["config"]["common"]["app_name"] == "AzzyApp"
     assert data["config"]["common"]["version"] == "1.2.3"
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Key-specific file inclusion not fully implemented")
 def test_key_specific_file_reference():
     # Test including a specific key from a TOML file
-    jml = '''
+    jml = """
 [database]
 url = file("db.toml").url
 port = file("db.toml").port
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -36,14 +38,15 @@ port = file("db.toml").port
     assert data["database"]["url"] == "http://localhost:5432"
     assert data["database"]["port"] == 5432
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="JSON file embedding not fully implemented")
 def test_json_file_reference():
     # Test including data from a JSON file
-    jml = '''
+    jml = """
 [user]
 profile = file("user.json", "json")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -53,14 +56,15 @@ profile = file("user.json", "json")
     assert data["user"]["profile"]["name"] == "Azzy"
     assert data["user"]["profile"]["age"] == 9
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="YAML file embedding not fully implemented")
 def test_yaml_file_reference():
     # Test including data from a YAML file
-    jml = '''
+    jml = """
 [settings]
 config = file("config.yaml", "yaml")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -70,14 +74,15 @@ config = file("config.yaml", "yaml")
     assert data["settings"]["config"]["env"] == "production"
     assert data["settings"]["config"]["debug"] is False
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Plain text file embedding not fully implemented")
 def test_text_file_reference():
     # Test embedding plain text file content
-    jml = '''
+    jml = """
 [docs]
 readme = file("README.md", "text")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -86,14 +91,15 @@ readme = file("README.md", "text")
     # Validate plain text file embedding
     assert "Welcome to AzzyApp" in data["docs"]["readme"]
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Script file embedding not fully implemented")
 def test_raw_file_embedding():
     # Test embedding a raw script file
-    jml = '''
+    jml = """
 [scripts]
 deploy = file("deploy.sh", "embed")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -102,38 +108,41 @@ deploy = file("deploy.sh", "embed")
     # Validate script file embedding
     assert data["scripts"]["deploy"].startswith("#!/bin/bash")
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Missing file error not fully implemented")
 def test_missing_file():
     # Test referencing a non-existent file
-    jml = '''
+    jml = """
 [config]
 file_path = file("nonexistent.toml")
-    '''.strip()
+    """.strip()
 
     with pytest.raises(FileNotFoundError):
         round_trip_loads(jml)
+
 
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Circular reference detection not fully implemented")
 def test_circular_file_reference():
     # Test circular file referencing
-    jml = '''
+    jml = """
 [config]
 a = file("b.toml").b
-    '''.strip()
+    """.strip()
 
     with pytest.raises(ValueError, match="Circular reference detected"):
         round_trip_loads(jml)
+
 
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Unsupported file format handling not fully implemented")
 def test_unsupported_file_format():
     # Test embedding an unsupported file format
-    jml = '''
+    jml = """
 [data]
 binary = file("image.png", "binary")
-    '''.strip()
+    """.strip()
 
     with pytest.raises(ValueError, match="Unsupported file format: binary"):
         round_trip_loads(jml)

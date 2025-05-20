@@ -198,7 +198,7 @@ class J2PromptTemplate(PromptTemplateBase):
         except ImportError:
             # Return the original if inflect is not available
             return word
-            
+
     @staticmethod
     def make_plural(word: str) -> str:
         """
@@ -207,11 +207,12 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         try:
             import inflect
+
             p = inflect.engine()
             return p.plural(word) or word
         except ImportError:
             return word
-    
+
     def add_filter(self, name: str, filter_func: Callable) -> None:
         """
         Adds a custom filter to the Jinja2 environment.

@@ -8,15 +8,15 @@ Wire it in peagen/cli.py with:
     app.add_typer(template_sets_app, name="template-sets")
 """
 
-from pathlib import Path
-from typing import Dict, List, Optional
 import importlib.metadata as im
 import shutil
 import subprocess
 import sys
+from pathlib import Path
+from typing import Dict, List
 
-import typer
 import peagen.templates as _pt  # root namespace that ships built-in sets
+import typer
 
 # ──────────────────────────────────────
 template_sets_app = typer.Typer(
@@ -24,10 +24,12 @@ template_sets_app = typer.Typer(
     add_completion=False,
 )
 
+
 # ─── helpers ───────────────────────────
 def _namespace_dirs() -> List[Path]:
     """Return the search roots that may contain template-set folders."""
     return [Path(p) for p in _pt.__path__]
+
 
 def _discover_template_sets() -> Dict[str, List[Path]]:
     """
@@ -46,8 +48,8 @@ def _discover_template_sets() -> Dict[str, List[Path]]:
     # folder in peagen.templates still show up.
     for ep in im.entry_points(group="peagen.template_sets"):
         try:
-            pkg = ep.load()                             # this is now the module object
-            for root in getattr(pkg, "__path__", []):   # pkg.__path__ is a list of dirs
+            pkg = ep.load()  # this is now the module object
+            for root in getattr(pkg, "__path__", []):  # pkg.__path__ is a list of dirs
                 sets.setdefault(ep.name, []).append(Path(root))
         except Exception as e:
             print(f"⚠️  could not load plugin {ep.name!r}: {e}")
@@ -108,6 +110,7 @@ def show_template_set(
             typer.echo(f"   ↳ {p}")
 
     if verbose:
+
         def _iter_files(base: Path):
             if verbose == 1:
                 yield from sorted(f.name for f in base.iterdir() if f.is_file())
@@ -145,7 +148,9 @@ def add_template_set(
         • a wheel or sdist path (``./dist/peagen_template_minimal-0.3.0-py3-none-any.whl``)
     """
     if Path(source).is_dir():
-        typer.echo("❌  Directory installs are not supported; supply a wheel or PyPI slug.")
+        typer.echo(
+            "❌  Directory installs are not supported; supply a wheel or PyPI slug."
+        )
         raise typer.Exit(code=1)
 
     pip_cmd = [sys.executable, "-m", "pip", "install", "--no-deps"]
@@ -173,7 +178,8 @@ def add_template_set(
 
     # try to guess the canonical set name(s) provided by this package
     new_sets = [
-        name for name, paths in discovered.items()
+        name
+        for name, paths in discovered.items()
         if any(source in str(p) for p in paths)
     ]
     if new_sets:
@@ -192,6 +198,7 @@ def add_template_set(
         "local directory."
     ),
 )
+
 def add_template_set(
     source: str = typer.Argument(
         ...,
@@ -295,6 +302,7 @@ def add_template_set(
             "was detected."
         )
 
+
 @template_sets_app.command(
     "remove",
     help="Uninstall the package that owns a template-set.",
@@ -332,7 +340,7 @@ def remove_template_set(
         raise typer.Exit(code=1)
 
     # ---------------------------------------------------------------- protect core
-    PROTECTED_DISTS = {"peagen"}                      # core wheel(s)
+    PROTECTED_DISTS = {"peagen"}  # core wheel(s)
     protected = [d for d in dists if d.lower() in PROTECTED_DISTS]
     removable = [d for d in dists if d.lower() not in PROTECTED_DISTS]
 
@@ -383,6 +391,8 @@ def remove_template_set(
 
     # ---------------------------------------------------------------- verify
     if name in _discover_template_sets():
-        typer.echo("⚠️  Uninstall completed, but the template-set is still discoverable.")
+        typer.echo(
+            "⚠️  Uninstall completed, but the template-set is still discoverable."
+        )
     else:
         typer.echo(f"✅  Removed template-set '{name}'.")

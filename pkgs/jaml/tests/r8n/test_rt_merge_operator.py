@@ -1,14 +1,15 @@
 import pytest
 from jaml import round_trip_loads, round_trip_dumps, loads
 
+
 @pytest.mark.unit
 def test_rt_local_merge():
-    jml = '''
+    jml = """
 [section]
 defaults = { retries = 3, timeout = 100 }
 
 user_settings = { <<: section.defaults, theme = "dark", retries = 5 }
-    '''.strip()
+    """.strip()
 
     # 1. Round-trip parse -> AST
     ast = round_trip_loads(jml)
@@ -22,19 +23,20 @@ user_settings = { <<: section.defaults, theme = "dark", retries = 5 }
     expected = {
         "section": {
             "defaults": {"retries": 3, "timeout": 100},
-            "user_settings": {"retries": 5, "timeout": 100, "theme": "dark"}
+            "user_settings": {"retries": 5, "timeout": 100, "theme": "dark"},
         }
     }
     assert data == expected
 
+
 @pytest.mark.unit
 def test_rt_alias_merge():
-    jml = '''
+    jml = """
 [section]
 defaults = { retries = 3, timeout = 100 }
 
 user_settings = { <<: @section.defaults, theme = "dark", retries = 5 }
-    '''.strip()
+    """.strip()
 
     # 1. Round-trip parse -> AST
     ast = round_trip_loads(jml)
@@ -48,7 +50,7 @@ user_settings = { <<: @section.defaults, theme = "dark", retries = 5 }
     expected = {
         "section": {
             "defaults": {"retries": 3, "timeout": 100},
-            "user_settings": {"retries": 5, "timeout": 100, "theme": "dark"}
+            "user_settings": {"retries": 5, "timeout": 100, "theme": "dark"},
         }
     }
     assert data == expected

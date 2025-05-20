@@ -24,9 +24,7 @@ def _print_banner():
     package_info = (
         f"{Fore.BLUE}{Style.BRIGHT}Package Name: {__package_name__}{Style.RESET_ALL}"
     )
-    tagline = (
-        f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri template-driven, dependency-aware render engine."
-    )
+    tagline = f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri template-driven, dependency-aware render engine."
     repo_info = (
         Fore.YELLOW
         + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen"

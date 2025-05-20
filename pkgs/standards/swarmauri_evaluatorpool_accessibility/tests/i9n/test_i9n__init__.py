@@ -20,10 +20,10 @@ def test_import_package() -> None:
     any exceptions, which confirms the package structure is correct.
     """
     try:
-        import swarmauri_evaluatorpool_accessibility
+        import swarmauri_evaluatorpool_accessibility as package
 
         logger.info(
-            "Successfully imported swarmauri_evaluatorpool_accessibility package"
+            f"Successfully imported swarmauri_evaluatorpool_accessibility package - {package.__version__}"
         )
         assert True
     except ImportError as e:

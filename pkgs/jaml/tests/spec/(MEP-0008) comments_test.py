@@ -3,10 +3,8 @@ import pytest
 
 # Adjust these imports to match your actual API or modules
 # where round_trip_loads / round_trip_dumps are defined.
-from jaml import (
-    loads,
-    round_trip_loads
-)
+from jaml import loads, round_trip_loads
+
 
 @pytest.mark.spec
 @pytest.mark.mep0008
@@ -14,7 +12,7 @@ from jaml import (
 def test_standalone_comment_preserved():
     """
     MEP-008:
-      Single-line comment at the top or anywhere should be preserved 
+      Single-line comment at the top or anywhere should be preserved
       after a round-trip operation.
     """
     original = """
@@ -35,7 +33,7 @@ key = "value"
 def test_inline_comment_preserved():
     """
     MEP-008:
-      Inline comments after a key-value pair must be preserved 
+      Inline comments after a key-value pair must be preserved
       in the same line after round-trip.
     """
     original = """
@@ -45,7 +43,9 @@ greeting = "Hello, World!"  # Inline comment: greeting message
     ast = round_trip_loads(original)
     serialized = ast.dumps()
     # Check that the inline comment is present on the same line
-    assert 'greeting = "Hello, World!"  # Inline comment: greeting message' in serialized
+    assert (
+        'greeting = "Hello, World!"  # Inline comment: greeting message' in serialized
+    )
 
 
 @pytest.mark.spec
@@ -54,7 +54,7 @@ greeting = "Hello, World!"  # Inline comment: greeting message
 def test_multiline_array_comments_preserved():
     """
     MEP-008:
-      Comments may appear among array elements. 
+      Comments may appear among array elements.
       Ensure they are preserved during round-trip.
     """
     original = """[settings]
@@ -67,13 +67,14 @@ colors = [
     assert original in serialized
     assert "# Accent color" in serialized
 
+
 @pytest.mark.spec
 @pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
 def test_multiline_array_comment_out_preserved():
     """
     MEP-008:
-      Comments may appear among array elements. 
+      Comments may appear among array elements.
       Ensure they are preserved during round-trip.
     """
     original = """[settings]
@@ -95,7 +96,7 @@ colors = [
 def test_multiline_array_comment_out_preserved_comma():
     """
     MEP-008:
-      Comments may appear among array elements. 
+      Comments may appear among array elements.
       Ensure they are preserved during round-trip.
     """
     original = """[settings]
@@ -117,7 +118,7 @@ colors = [
 def test_multiline_array_comments_preserved_comma():
     """
     MEP-008:
-      Comments may appear among array elements. 
+      Comments may appear among array elements.
       Ensure they are preserved during round-trip.
     """
     original = """[settings]
@@ -157,8 +158,8 @@ profile = {
     ast = round_trip_loads(original)
     serialized = ast.dumps()
     # Check that the two inline comments remain
-    assert '[user.profile]\nalias' in serialized
-    assert '''"Alice" # User's name''' in serialized
+    assert "[user.profile]\nalias" in serialized
+    assert """"Alice" # User's name""" in serialized
     assert "# User's name" in serialized
     assert "# User's email" in serialized
     # Also verify the triple-quoted block still contains the # as text
@@ -171,7 +172,7 @@ profile = {
 def test_multiline_arrays_with_comments_spacing():
     """
     MEP-008:
-      Check if exact spacing/newlines around comments in multiline arrays 
+      Check if exact spacing/newlines around comments in multiline arrays
       is preserved. Marked xfail until fully implemented.
     """
     original = """[settings]
@@ -182,7 +183,7 @@ numbers = [
 ]"""
     ast = round_trip_loads(original)
     serialized = ast.dumps()
-    # We expect spacing/newlines around the comments to match the original 
+    # We expect spacing/newlines around the comments to match the original
     # (though some normalizations may be allowed by spec).
     assert original in serialized
     assert "# first" in serialized
@@ -206,7 +207,7 @@ numbers = [
 
     ast = round_trip_loads(original)
     serialized = ast.dumps()
-    # We expect spacing/newlines around the comments to match the original 
+    # We expect spacing/newlines around the comments to match the original
     # (though some normalizations may be allowed by spec).
     assert original in serialized
     assert "# first" in serialized
@@ -220,7 +221,7 @@ numbers = [
 def test_whitespace_around_comments():
     """
     MEP-008:
-      The spec says we shouldn't remove or alter comments, 
+      The spec says we shouldn't remove or alter comments,
       but how about leading/trailing whitespace around them?
       Marked xfail if not yet implemented.
     """

@@ -7,6 +7,7 @@ import pytest
 # In practice, you'd import such a function from your parser/merger module.
 from jaml import loads, round_trip_loads
 
+
 @pytest.mark.spec
 @pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Namespace merging not yet implemented")
@@ -33,6 +34,7 @@ def test_simple_namespace_merging():
     assert "paths" in result["app"]
     assert result["app"]["paths"]["log"] == '"/var/log/app.log"'
 
+
 @pytest.mark.spec
 @pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
@@ -54,6 +56,7 @@ def test_conflicting_keys_last_key_wins():
     assert "server" in result
     assert result["server"]["host"] == '"localhost"'
     assert result["server"]["port"] == 8080
+
 
 @pytest.mark.spec
 @pytest.mark.mep0005
@@ -84,6 +87,7 @@ def test_nested_namespace():
     assert "author" in result["project"]
     assert result["project"]["author"]["name"] == '"John Doe"'
     assert result["project"]["author"]["email"] == '"john@example.com"'
+
 
 @pytest.mark.spec
 @pytest.mark.mep0005
@@ -117,6 +121,7 @@ def test_merge_across_multiple_sources():
     assert result["database"]["connection"]["port"] == 5432
     assert result["database"]["credentials"]["user"] == '"admin"'
 
+
 @pytest.mark.spec
 @pytest.mark.mep0005
 @pytest.mark.xfail(reason="Conflict warnings or detection not yet implemented")
@@ -137,7 +142,9 @@ def test_conflicting_key_warning():
     # For instance, if loads returns a warnings list:
     result, warnings = loads(source, enable_conflict_warnings=True)
     # Check that at least one warning about overwritten "level" is present.
-    conflict_warnings = [w for w in warnings if "overwritten" in w.lower() and "level" in w]
+    conflict_warnings = [
+        w for w in warnings if "overwritten" in w.lower() and "level" in w
+    ]
     assert len(conflict_warnings) > 0
 
 
@@ -159,6 +166,7 @@ def test_quoted_namespaces():
     result = loads(source)
     assert result["logging.app"]["url"] == '"/"'
     assert result["logging.config"]["level"] == '"info"'
+
 
 # @pytest.mark.xfail(reason="Table preservation is not yet implemented")
 @pytest.mark.spec

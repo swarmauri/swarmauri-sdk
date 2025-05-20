@@ -6,6 +6,7 @@ from jaml import (
     loads,
 )
 
+
 @pytest.mark.spec
 @pytest.mark.mep0010
 # @pytest.mark.xfail(reason="Hyphenated section name round-trip preservation not fully implemented yet.")
@@ -23,7 +24,9 @@ build-backend = "poetry.core.masonry.api"
     reserialized = ast.dumps()
 
     # Check that the section name is preserved
-    assert "[build-system]" in reserialized, "Hyphenated section name not preserved in round-trip"
+    assert "[build-system]" in reserialized, (
+        "Hyphenated section name not preserved in round-trip"
+    )
 
 
 @pytest.mark.spec
@@ -40,13 +43,15 @@ build-backend = "poetry.core.masonry.api"
 """
     data = loads(toml_str)
     # Check that the key is recognized
-    assert "build-backend" in data["project"], "Hyphenated key name missing from parsed data"
+    assert "build-backend" in data["project"], (
+        "Hyphenated key name missing from parsed data"
+    )
     assert data["project"]["build-backend"] == '"poetry.core.masonry.api"'
 
     # Now confirm round-trip
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    assert "build-backend = \"poetry.core.masonry.api\"" in reserialized
+    assert 'build-backend = "poetry.core.masonry.api"' in reserialized
 
 
 @pytest.mark.spec
@@ -55,7 +60,7 @@ build-backend = "poetry.core.masonry.api"
 def test_hyphenated_key_name_with_annotation():
     """
     MEP-010:
-      A hyphenated key name with a type annotation is valid 
+      A hyphenated key name with a type annotation is valid
       and should be preserved exactly.
     """
     toml_str = """
@@ -67,7 +72,7 @@ build-backend: str = "poetry.core.masonry.api"
     reserialized = ast.dumps()
 
     # Ensure the key and annotation are present
-    assert "build-backend: str = \"poetry.core.masonry.api\"" in reserialized
+    assert 'build-backend: str = "poetry.core.masonry.api"' in reserialized
 
 
 @pytest.mark.spec
@@ -89,8 +94,8 @@ additional-requires = ["something>=1.2.3"]
     # Check section
     assert "[my-build-system]" in reserialized
     # Check both keys
-    assert "build-backend: str = \"poetry.core.masonry.api\"" in reserialized
-    assert "additional-requires = [\"something>=1.2.3\"]" in reserialized
+    assert 'build-backend: str = "poetry.core.masonry.api"' in reserialized
+    assert 'additional-requires = ["something>=1.2.3"]' in reserialized
 
 
 # @pytest.mark.xfail(reason="Case-preservation for hyphenated identifiers not fully implemented.")
@@ -99,7 +104,7 @@ additional-requires = ["something>=1.2.3"]
 def test_case_preservation_for_hyphenated_identifiers():
     """
     MEP-010 Open Issue:
-      Confirm whether we preserve case exactly in hyphenated names. 
+      Confirm whether we preserve case exactly in hyphenated names.
       If the spec states we do, and it's not yet implemented, we xfail.
     """
     toml_str = """
@@ -111,5 +116,6 @@ my-Key: str = "SomeValue"
 
     # Expect exact case preservation
     assert "[Build-System]" in reserialized, "Section name case changed unexpectedly"
-    assert "my-Key: str = \"SomeValue\"" in reserialized, "Key name case changed unexpectedly"
-
+    assert 'my-Key: str = "SomeValue"' in reserialized, (
+        "Key name case changed unexpectedly"
+    )

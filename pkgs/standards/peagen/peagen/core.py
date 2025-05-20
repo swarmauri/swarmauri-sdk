@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from importlib import import_module
+
 try:
     # Py 3.10+
     from importlib.metadata import entry_points
@@ -53,8 +54,6 @@ from ._graph import _topological_sort, _transitive_dependency_sort
 
 # Import helper modules from our package.
 from ._processing import _process_project_files
-
-
 
 
 colorama_init(autoreset=True)
@@ -91,7 +90,9 @@ class Peagen(ComponentBase):
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
         # 1) Base filesystem discovery (as before)
-        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+        namespace_dirs = list(
+            peagen.templates.__path__
+        )  # installed template dirs :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
 
         # 2) New: discover any installed entry-point packages
         #    and add their package paths to namespace_dirs
@@ -108,13 +109,17 @@ class Peagen(ComponentBase):
                     namespace_dirs.extend(str(p) for p in pkg.__path__)
             except ImportError:
                 # optional: log a warning instead of failing
-                print(f"Could not import template_sets package '{module_name}' from entry-point {ep.name!r}")
-        
+                print(
+                    f"Could not import template_sets package '{module_name}' from entry-point {ep.name!r}"
+                )
+
         # 3) Then add your working-dir and any overrides (same as before)
         initial_dirs = []
         initial_dirs.extend(self.additional_package_dirs)
 
-        namespace_dirs.append(self.base_dir)     # include project CWD :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+        namespace_dirs.append(
+            self.base_dir
+        )  # include project CWD :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
         initial_dirs.append(self.base_dir)
 
         if self.template_base_dir:
@@ -203,7 +208,6 @@ class Peagen(ComponentBase):
             file_records, start_idx = self.process_single_project(project)
             sorted_records.append(file_records)
         return sorted_records
-
 
     def process_single_project(
         self,

@@ -1,5 +1,4 @@
 import logging
-import re
 from unittest.mock import Mock, patch
 
 import pytest

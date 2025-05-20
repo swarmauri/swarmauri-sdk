@@ -1,16 +1,17 @@
 import pytest
 from jaml import round_trip_loads, round_trip_dumps, loads
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Named parameter support in git() not fully implemented")
 def test_git_named_parameters_basic():
     # Test basic usage with named parameters
-    jml = '''
+    jml = """
 [config]
 repo = git(url = "https://github.com/user/project", branch = "main")
 release = git(url = "https://github.com/user/release", tag = "v1.0")
 fixed = git(url = "https://github.com/user/fix", commit = "abc123")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -22,14 +23,15 @@ fixed = git(url = "https://github.com/user/fix", commit = "abc123")
     assert data["config"]["release"]["tag"] == "v1.0"
     assert data["config"]["fixed"]["commit"] == "abc123"
 
+
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Embedding content from git() not fully implemented")
 def test_git_named_parameters_with_embed():
     # Test embedding raw content from a git repository
-    jml = '''
+    jml = """
 [script]
 deploy = git(url = "https://github.com/user/scripts", branch = "main").embed("deploy.sh")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
@@ -38,15 +40,18 @@ deploy = git(url = "https://github.com/user/scripts", branch = "main").embed("de
     # Validate embedded content
     assert data["script"]["deploy"].startswith("#!/bin/bash")
 
+
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Mixed named parameter git() references not fully implemented")
+@pytest.mark.xfail(
+    reason="Mixed named parameter git() references not fully implemented"
+)
 def test_git_mixed_named_parameters():
     # Test mixed usage of named parameters in git()
-    jml = '''
+    jml = """
 [build]
 source = git(url = "https://github.com/user/build", branch = "dev")
 stable = git(url = "https://github.com/user/build", tag = "v2.0").embed("config.toml")
-    '''.strip()
+    """.strip()
 
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)

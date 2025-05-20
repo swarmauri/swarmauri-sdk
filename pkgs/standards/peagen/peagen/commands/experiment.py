@@ -12,8 +12,6 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
-import shutil
-import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -34,6 +32,7 @@ LLM_FALLBACK_KEYS = {
     "frequency_penalty",
 }
 
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -41,9 +40,11 @@ def _sha256(path: Path) -> str:
             h.update(chunk)
     return h.hexdigest()
 
+
 def _load_yaml(uri: str | Path) -> Dict:
     p = Path(uri).expanduser()
     return yaml.safe_load(p.read_text(encoding="utf-8"))
+
 
 def _write_yaml(data: Dict, path: Path, force: bool) -> None:
     if path.exists() and not force:
@@ -51,12 +52,16 @@ def _write_yaml(data: Dict, path: Path, force: bool) -> None:
         raise typer.Exit(code=1)
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
+
 def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
     import jsonpatch
+
     jsonpatch.JsonPatch(patch_ops).apply(doc, in_place=True)
+
 
 def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
     return key in spec_llm_keys or key in LLM_FALLBACK_KEYS
+
 
 # ---------------------------------------------------------------- print matrix
 def _print_design_matrix(
@@ -81,7 +86,7 @@ def _print_design_matrix(
     for idx, pt in enumerate(design_points):
         cells = [f"{idx:03d}"] + [pt.get(k, "") for k in llm_keys + other_keys]
         typer.echo(_row(cells))
-        
+
 
 # --------------------------------------------------------------------------- CLI
 @experiment_app.command("gen")
@@ -202,22 +207,21 @@ def experiment_generate(
         typer.echo(f"  {did:<20} {llm_str}  {other_str}")
 
     if dry_run:
-        typer.echo("")               # blank line before the table
+        typer.echo("")  # blank line before the table
         _print_design_matrix(
             list(llm_map.keys()),
             list(other_map.keys()),
             design_points,
         )
-        typer.echo(
-            "\nDry-run complete – matrix printed above; no file written."
-        )
+        typer.echo("\nDry-run complete – matrix printed above; no file written.")
         raise typer.Exit()
 
     _write_yaml(bundle, output, force)
-    typer.echo(f"✅  Wrote {output} ({output.stat().st_size/1024:.1f} KB)")
+    typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
 
     if notify:
         _publish_event(notify, output, len(projects))
+
 
 # --------------------------------------------------------------------- notifier
 def _publish_event(uri: str, output: Path, count: int):

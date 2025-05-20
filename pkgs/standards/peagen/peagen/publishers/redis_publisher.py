@@ -6,6 +6,7 @@ from typing import Dict, Any
 
 import redis
 
+
 class RedisPublisher:
     """
     Sync implementation of the IPublish contract for Redis Pub/Sub,
@@ -21,7 +22,7 @@ class RedisPublisher:
                        - Legacy auth (no ACL): "redis://:<password>@host:port/db"
                        - ACL user auth      : "redis://<username>:<password>@host:port/db"
         """
-        self._client: redis.Redis = redis.from_url(uri, decode_responses=True) 
+        self._client: redis.Redis = redis.from_url(uri, decode_responses=True)
 
     def publish(self, channel: str, payload: Dict[str, Any]) -> None:
         """Fire-and-forget JSON message to the given channel."""

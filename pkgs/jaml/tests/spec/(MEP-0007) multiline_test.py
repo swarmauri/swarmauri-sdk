@@ -6,13 +6,14 @@ from jaml import (
     round_trip_loads,
 )
 
+
 @pytest.mark.spec
 @pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Multiline string preservation not fully implemented yet.")
 def test_multiline_string_preserves_format():
     """
     MEP-007 Section 3.1:
-      Multiline strings enclosed in triple quotes should preserve 
+      Multiline strings enclosed in triple quotes should preserve
       all newlines and indentation during round-trip.
     """
     toml_str = '''[metadata]
@@ -38,7 +39,7 @@ description = """
 def test_multiline_array_preserves_format():
     """
     MEP-007 Section 3.2:
-      Arrays can be multiline. The order of elements and 
+      Arrays can be multiline. The order of elements and
       intentional line breaks should be preserved.
     """
     toml_str = """[settings]
@@ -49,8 +50,7 @@ colors = [
 ]"""
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
-
+    # reserialized = round_trip_dumps(ast) # old
 
     # Check that the array is split across multiple lines
     # and in the same order
@@ -63,7 +63,7 @@ colors = [
 def test_multiline_inline_table_preserves_format():
     """
     MEP-007 Section 3.3:
-      Inline tables can be written across multiple lines. 
+      Inline tables can be written across multiple lines.
       Formatting (newlines, indentation) is preserved.
     """
     toml_str = """[user]
@@ -77,10 +77,12 @@ profile = {
 }"""
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
+    # reserialized = round_trip_dumps(ast) # old
 
     # Check that the inline table remains multiline
-    assert '[user.profile]\nname = "Alice"\nemail = "alice@example.com"\n' in reserialized
+    assert (
+        '[user.profile]\nname = "Alice"\nemail = "alice@example.com"\n' in reserialized
+    )
     assert "alice@example.com" in reserialized
     # Ensure the multiline string is still triple-quoted
     assert '"""' in reserialized
@@ -92,7 +94,7 @@ profile = {
 def test_conversion_of_inline_table_to_section():
     """
     MEP-007 Section 3.3:
-      Inline tables can be written across multiple lines. 
+      Inline tables can be written across multiple lines.
       Formatting (newlines, indentation) is preserved.
     """
     toml_str = """[user]
@@ -106,10 +108,11 @@ profile = {
 }"""
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
+    # reserialized = round_trip_dumps(ast) # old
 
     # Check that the inline table remains multiline
     assert "[user.profile]" in reserialized
+
 
 @pytest.mark.spec
 @pytest.mark.mep0007
@@ -117,7 +120,7 @@ profile = {
 def test_list_of_inline_tables_preserves_structure():
     """
     MEP-007 Section 3.4:
-      Lists of inline tables are defined by placing inline tables 
+      Lists of inline tables are defined by placing inline tables
       in an array. The structure and newlines must be preserved.
     """
     toml_str = """[project]
@@ -128,7 +131,7 @@ authors = [
 ]"""
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
+    # reserialized = round_trip_dumps(ast) # old
 
     # Ensure array of inline tables remains multiline
     # and the key-values remain intact
@@ -152,7 +155,7 @@ notes = """
 """'''
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
+    # reserialized = round_trip_dumps(ast) # old
     # Expect exact indentation preservation, e.g. 4 spaces, then 8 spaces, etc.
     assert "    Indented line\n" in reserialized
     assert "        Further indentation" in reserialized
@@ -164,8 +167,8 @@ notes = """
 def test_indentation_in_multiline_inline_tables():
     """
     MEP-007 Open Issue:
-      Clarify indentation within multiline inline tables, 
-      especially when nested. Currently xfail until 
+      Clarify indentation within multiline inline tables,
+      especially when nested. Currently xfail until
       we finalize the desired approach.
     """
     toml_str = """[deep]
@@ -177,7 +180,9 @@ nested = {
 }"""
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
-    # reserialized = round_trip_dumps(ast) # old 
-    # We expect to preserve indentation, though the exact approach 
+    # reserialized = round_trip_dumps(ast) # old
+    # We expect to preserve indentation, though the exact approach
     # is not fully implemented yet. This test is xfail.
-    assert "[deep.nested]\ndebug = true\n\n[deep.nested.meta]\nlevel = 2" in reserialized
+    assert (
+        "[deep.nested]\ndebug = true\n\n[deep.nested.meta]\nlevel = 2" in reserialized
+    )

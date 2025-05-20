@@ -14,8 +14,7 @@ from pprint import pformat
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from colorama import Fore, Style
-from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
+from swarmauri_prompt_j2prompttemplate import j2pt
 
 from ._config import _config
 from ._graph import _build_forward_graph
@@ -45,7 +44,7 @@ def _save_file(
             bio = io.BytesIO(content.encode("utf-8"))
             storage_adapter.upload(key, bio)
             if logger:
-                logger.info(f"({start_idx+1}/{idx_len}) Uploaded: {key}")
+                logger.info(f"({start_idx + 1}/{idx_len}) Uploaded: {key}")
         else:
             # local write
             directory = os.path.dirname(filepath)
@@ -53,7 +52,7 @@ def _save_file(
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             if logger:
-                logger.info(f"({start_idx+1}/{idx_len}) File saved: {filepath}")
+                logger.info(f"({start_idx + 1}/{idx_len}) File saved: {filepath}")
     except Exception as e:
         if logger:
             logger.error(f"Failed to save/upload '{filepath}': {e}")
@@ -255,7 +254,7 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-        
+
         j2_instance = j2pt()
         j2_instance.templates_dir = [str(new_dir)] + list(j2_instance.templates_dir[1:])
 

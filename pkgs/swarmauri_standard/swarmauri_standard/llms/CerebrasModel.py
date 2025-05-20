@@ -33,9 +33,7 @@ class CerebrasModel(LLMBase):
 
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.cerebras.ai/v1/chat/completions"
-    )
+    _BASE_URL: str = PrivateAttr(default="https://api.cerebras.ai/v1/chat/completions")
     timeout: float = 600.0
 
     def __init__(self, **data):

@@ -140,7 +140,7 @@ def test_prepare_command_make_executable(mock_program, evaluator):
         patch("os.access", return_value=False),
         patch("os.chmod") as mock_chmod,
     ):
-        cmd = evaluator._prepare_command(mock_program, [])
+        evaluator._prepare_command(mock_program, [])
 
         mock_chmod.assert_called_once_with("/path/to/program", 0o755)
 

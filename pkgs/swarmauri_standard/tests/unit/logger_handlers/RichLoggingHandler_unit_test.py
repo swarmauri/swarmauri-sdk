@@ -72,9 +72,7 @@ def test_handler_with_formatter_object():
     # Create a mock formatter with proper attributes for Pydantic validation
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"
-    mock_formatter.model_dump = MagicMock(
-        return_value={"type": "FormatterBase"}
-    )
+    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
     mock_formatter.compile_formatter.return_value = logging.Formatter(
         "%(levelname)s: %(message)s"
     )
