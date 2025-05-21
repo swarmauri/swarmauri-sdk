@@ -168,6 +168,7 @@ def process_cmd(
     # ─────────────────────────────────────────────────────────────────────
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     run_id = f"{timestamp}-{secrets.token_hex(4)}"
+    typer.echo(f"run-id: {run_id}")
 
     project_slug = slugify(project_name or "multi")
     proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
