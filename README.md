@@ -149,6 +149,7 @@ Individual components follow these naming conventions:
 - `swarmauri_parser_`*: Text parsing utilities
 - `swarmauri_distance_`*: Distance calculation methods
 
+For an overview of metric distances and how they differ from similarity measures, see [Metric Distances and Similarity](docs/docs/concept/distances.md).
 
 ## For Contributors
 If you want to contribute to the Swarmauri SDK, please read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) and [style guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/STYLE_GUIDE.md) to get started.

@@ -131,6 +131,7 @@ Here are some recommended next steps to continue your journey with Swarmauri SDK
 3. **Join the Community**: Connect with other developers in our [Discord server](https://discord.gg/swarmauri)
 4. **Contribute**: Learn how to [contribute to the project](./home/contribute.md)
 5. **Stay Updated**: Follow our [blog](../blog/index.md) for the latest updates
+6. **Understand Distances vs Similarity**: Read about [metric distances and similarity measures](./concept/distances.md)
 
 For more detailed information, visit our [comprehensive documentation](https://docs.swarmauri.com).
 
