@@ -71,6 +71,25 @@
       },
       "required": [ "default_publisher", "adapters" ],
       "additionalProperties": false
+    },
+
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["fallback", "switch", "fan-out"]
+        },
+        "switch": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-]+$": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["mode"],
+      "additionalProperties": false
     }
   },
 
