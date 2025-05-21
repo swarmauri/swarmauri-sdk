@@ -1,11 +1,9 @@
 # File: _processing.py
-"""
-processing.py
+"""Process COPY and GENERATE file records.
 
-This module contains functions for processing file records within a project.
-It supports:
-  - COPY: render static templates.
-  - GENERATE: render agent prompts and generate content via LLM.
+The module renders static templates or agent prompts and saves the
+result to disk. It also supports optional remote uploads and manifest
+streaming.
 """
 
 import os

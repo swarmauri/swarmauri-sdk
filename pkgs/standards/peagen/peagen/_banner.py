@@ -1,3 +1,9 @@
+"""CLI banner utilities for Peagen.
+
+Provides a colourful ASCII banner and additional version
+information shown when the CLI starts.
+"""
+
 from ._config import __version__, __package_name__
 import typer
 import datetime
