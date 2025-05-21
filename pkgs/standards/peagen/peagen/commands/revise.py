@@ -13,6 +13,7 @@ from typing import Optional
 
 import typer
 from pydantic import FilePath
+from peagen.cli_common import load_peagen_toml
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen._api_key import _resolve_api_key
@@ -91,6 +92,9 @@ def revise(
         None,
         help="Path to a custom agent prompt template file to be used in the agent environment.",
     ),
+    plugin_mode: Optional[str] = typer.Option(
+        None, "--plugin-mode", help="Plugin mode to use."
+    ),
 ):
     """
     Revise a single project specified by its PROJECT_NAME in the YAML payload.
@@ -158,6 +162,9 @@ def revise(
     _config["truncate"] = trunc
     _config["revise"] = True
     _config["transitive"] = transitive
+    toml_cfg = load_peagen_toml()
+    plugin_mode = plugin_mode if plugin_mode is not None else toml_cfg.get("plugins", {}).get("mode")
+    _config["plugin_mode"] = plugin_mode
 
     # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)

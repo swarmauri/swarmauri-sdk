@@ -37,3 +37,7 @@ host     = "localhost"
 port     = 6379
 db       = 0
 password = "..."                   # leave blank if no auth
+
+# ─────────────────────────────── Plugins ───────────────────────────────
+[plugins]
+mode = "switch"
