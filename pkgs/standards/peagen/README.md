@@ -125,6 +125,8 @@ command defaults. A typical configuration might look like:
 
 ```toml
 # .peagen.toml
+schemaVersion = "1.0.3"
+
 [llm]
 default_provider = "openai"
 default_model_name = "gpt-4"
@@ -133,10 +135,19 @@ default_model_name = "gpt-4"
 openai = "sk-..."
 
 [storage]
-default_adapter = "file"
+default_storage_adapter = "file"
 
 [storage.adapters.file]
 output_dir = "./peagen_artifacts"
+
+[publishers]
+default_publisher = "redis"
+
+[publishers.adapters.redis]
+host = "localhost"
+port = 6379
+db = 0
+password = "..."
 ```
 
 With these values in place you can omit `--provider`, `--model-name`, and other
