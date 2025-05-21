@@ -28,8 +28,10 @@ from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
 from ._config import __logger_name__, _config, __version__
-from ._graph import _topological_sort, _transitive_dependency_sort
-from ._processing import _process_project_files
+from ._graph import _topological_sort, _transitive_dependency_sort, _build_forward_graph
+from ._processing import _process_project_files, _process_file
+import re
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 colorama_init(autoreset=True)
 
@@ -188,20 +190,162 @@ class Peagen(ComponentBase):
         return self.projects_list
 
     def process_all_projects(self) -> list:
-        """
-        Processes all projects in self.projects_list.
-        For each project, it renders the project YAML, processes file records,
-        and (optionally) handles dependency ordering.
-        """
+        """Process all loaded projects using a single dependency graph."""
 
-        sorted_records = []
         if not self.projects_list:
             self.load_projects()
+
         self.logger.debug(f"Projects loaded: '{self.projects_list}'")
+
+        all_records: List[Dict[str, Any]] = []
+        graph_records: List[Dict[str, Any]] = []
+        id_to_record: Dict[str, Dict[str, Any]] = {}
+
         for project in self.projects_list:
-            file_records, start_idx = self.process_single_project(project)
-            sorted_records.append(file_records)
-        return sorted_records
+            project_name = project.get("NAME", "UnnamedProject")
+            slug = re.sub(r"[^0-9A-Za-z_-]+", "-", project_name).lower()
+            packages = project.get("PACKAGES", [])
+
+            for pkg in packages:
+                project_only_context = {"PROJ": project.copy()}
+                project_only_context["PROJ"]["PKGS"] = [pkg]
+
+                pkg_template_set = (
+                    pkg.get("TEMPLATE_SET_OVERRIDE")
+                    or pkg.get("TEMPLATE_SET", None)
+                    or project.get("TEMPLATE_SET", "default")
+                )
+
+                try:
+                    template_dir = self.locate_template_set(pkg_template_set)
+                    self.update_templates_dir(template_dir)
+                except ValueError as e:
+                    self.logger.error(
+                        f"[{project_name}] Package '{pkg.get('NAME')}' error: {e}"
+                    )
+                    continue
+
+                ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
+                if not os.path.isfile(ptree_template_path):
+                    self.logger.error(
+                        f"[{project_name}] Missing ptree.yaml.j2 in template dir "
+                        f"{template_dir} for package '{pkg.get('NAME')}'."
+                    )
+                    continue
+
+                try:
+                    self.j2pt.set_template(FilePath(ptree_template_path))
+                    rendered_yaml_str = self.j2pt.fill(project_only_context)
+                except Exception as e:
+                    self.logger.error(
+                        f"[{project_name}] Ptree render failure for package "
+                        f"'{pkg.get('NAME')}': {e}"
+                    )
+                    continue
+
+                try:
+                    partial_data = yaml.safe_load(rendered_yaml_str)
+                except yaml.YAMLError as e:
+                    self.logger.error(
+                        f"[{project_name}] YAML parse failure for '{pkg.get('NAME')}': {e}"
+                    )
+                    continue
+
+                if isinstance(partial_data, dict) and "FILES" in partial_data:
+                    pkg_file_records = partial_data["FILES"]
+                elif isinstance(partial_data, list):
+                    pkg_file_records = partial_data
+                else:
+                    self.logger.warning(
+                        f"[{project_name}] Unexpected YAML structure from "
+                        f"package '{pkg.get('NAME')}'; skipping."
+                    )
+                    continue
+
+                for record in pkg_file_records:
+                    record["TEMPLATE_SET"] = template_dir
+                    record["_PROJECT"] = project
+                    record["_SLUG"] = slug
+
+                    node_id = f"{slug}:{record['RENDERED_FILE_NAME']}"
+                    deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
+                    graph_record = {
+                        "RENDERED_FILE_NAME": node_id,
+                        "EXTRAS": {"DEPENDENCIES": [f"{slug}:{d}" for d in deps]},
+                    }
+
+                    graph_records.append(graph_record)
+                    id_to_record[node_id] = record
+                    all_records.append(record)
+
+        if not all_records:
+            return []
+
+        try:
+            forward_graph, in_degree, _ = _build_forward_graph(graph_records)
+            ordered_graph = _topological_sort(graph_records)
+        except Exception as e:
+            self.logger.error(f"Failed to topologically sort combined records: {e}")
+            return []
+
+        ordered_nodes = [g["RENDERED_FILE_NAME"] for g in ordered_graph]
+        idx_map = {name: i for i, name in enumerate(ordered_nodes)}
+        idx_len = len(ordered_nodes)
+
+        workers = _config.get("workers", 0)
+        root = self.workspace_root or Path(self.base_dir)
+
+        def _worker(node_id: str) -> None:
+            rec = id_to_record[node_id]
+            project = rec.get("_PROJECT", {})
+            template_dir = rec.get("TEMPLATE_SET") or project.get("TEMPLATE_SET", "")
+
+            j2_instance = j2pt.copy(deep=False)
+            j2_instance.templates_dir = [str(template_dir)] + [root] + list(j2_instance.templates_dir[1:])
+
+            try:
+                _process_file(
+                    rec,
+                    project,
+                    template_dir,
+                    self.agent_env,
+                    j2_instance,
+                    logger=self.logger,
+                    start_idx=idx_map[node_id],
+                    idx_len=idx_len,
+                    storage_adapter=self.storage_adapter,
+                    org=self.org,
+                    workspace_root=root,
+                )
+            except Exception as e:
+                self.logger.warning(f"{e}")
+
+        if workers and workers > 0:
+            executor = ThreadPoolExecutor(max_workers=workers)
+            futures = {}
+            try:
+                for node, deg in in_degree.items():
+                    if deg == 0:
+                        futures[executor.submit(_worker, node)] = node
+
+                while futures:
+                    done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                    for fut in done:
+                        comp = futures.pop(fut)
+                        for child in forward_graph.get(comp, []):
+                            in_degree[child] -= 1
+                            if in_degree[child] == 0:
+                                futures[executor.submit(_worker, child)] = child
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False)
+                raise
+            finally:
+                executor.shutdown(wait=True)
+        else:
+            for node in ordered_nodes:
+                _worker(node)
+
+        return [id_to_record[n] for n in ordered_nodes]
 
     # -------------------------------------------------------------------
     # Remaining methods (process_single_project, etc.) are unchanged.

@@ -146,18 +146,26 @@ class TestPeagen:
 
     def test_process_all_projects(self, basic_peagen):
         """Test process_all_projects with multiple projects."""
-        project1 = {"NAME": "project1"}
-        project2 = {"NAME": "project2"}
+        project1 = {"NAME": "project1", "PACKAGES": [{"NAME": "pkg1"}]}
+        project2 = {"NAME": "project2", "PACKAGES": [{"NAME": "pkg2"}]}
         basic_peagen.projects_list = [project1, project2]
 
-        # Use module-level patching instead of object patching
-        with patch(
-            "peagen.core.Peagen.process_single_project",
-            side_effect=[(["file1", "file2"], 0), (["file3", "file4"], 0)],
-        ):
-            result = basic_peagen.process_all_projects()
+        file_records1 = [{"RENDERED_FILE_NAME": "file1.txt"}]
+        file_records2 = [{"RENDERED_FILE_NAME": "file2.txt"}]
 
-            assert result == [["file1", "file2"], ["file3", "file4"]]
+        with patch("peagen.core.Peagen.locate_template_set", return_value=Path("/t")):
+            with patch("peagen.core.Peagen.update_templates_dir"):
+                with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
+                    with patch("swarmauri_prompt_j2prompttemplate.j2pt.fill", side_effect=["yaml1", "yaml2"]):
+                        with patch("yaml.safe_load", side_effect=[{"FILES": file_records1}, {"FILES": file_records2}]):
+                            with patch("peagen.core._process_file", return_value=True) as mock_proc:
+                                with patch("peagen.core._config", {"workers": 0}):
+                                    result = basic_peagen.process_all_projects()
+
+        assert len(result) == 2
+        assert result[0]["RENDERED_FILE_NAME"] == "file1.txt"
+        assert result[1]["RENDERED_FILE_NAME"] == "file2.txt"
+        assert mock_proc.call_count == 2
 
     @patch("os.path.isfile", return_value=True)
     def test_process_single_project_no_packages(self, mock_isfile, basic_peagen):
