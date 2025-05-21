@@ -359,3 +359,45 @@ class TestPeagen:
 
                                     # Should return the transitive closure
                                     assert result == transitive_records
+
+    def test_analyze_all_projects_no_conflicts(self, basic_peagen):
+        """Validate analyze_all_projects when no conflicts exist."""
+        slug_map = {
+            "proj1": {
+                "files": ["a.py", "b.py"],
+                "packages": [{"NAME": "pkgA", "VERSION": "1.0"}],
+            },
+            "proj2": {
+                "files": ["c.py"],
+                "packages": [{"NAME": "pkgA", "VERSION": "1.0"}],
+            },
+        }
+
+        # Should not raise any errors
+        basic_peagen.analyze_all_projects(slug_map)
+
+    def test_analyze_all_projects_file_conflict(self, basic_peagen):
+        """File name collision across projects should raise ValueError."""
+        slug_map = {
+            "proj1": {"files": ["shared.py"], "packages": []},
+            "proj2": {"files": ["shared.py"], "packages": []},
+        }
+
+        with pytest.raises(ValueError):
+            basic_peagen.analyze_all_projects(slug_map)
+
+    def test_analyze_all_projects_version_conflict(self, basic_peagen):
+        """Package version mismatch should raise ValueError."""
+        slug_map = {
+            "proj1": {
+                "files": ["a.py"],
+                "packages": [{"NAME": "pkgA", "VERSION": "1.0"}],
+            },
+            "proj2": {
+                "files": ["b.py"],
+                "packages": [{"NAME": "pkgA", "VERSION": "2.0"}],
+            },
+        }
+
+        with pytest.raises(ValueError):
+            basic_peagen.analyze_all_projects(slug_map)

@@ -203,6 +203,56 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
+    def analyze_all_projects(self, slug_map: Dict[str, Dict[str, Any]]) -> None:
+        """Validate projects collectively using a slug map.
+
+        The ``slug_map`` should map each project slug to a dictionary
+        containing ``files`` and ``packages`` lists. ``files`` represents all
+        rendered file paths for that project and ``packages`` is the list of
+        package specs (including optional ``VERSION`` fields).
+
+        This method ensures no two slugs attempt to produce the same file and
+        that packages shared across projects use compatible versions.
+
+        Parameters
+        ----------
+        slug_map:
+            Mapping of project slug to metadata about the files and packages
+            produced for that slug.
+
+        Raises
+        ------
+        ValueError
+            If conflicting file names or mismatched package versions are found.
+        """
+
+        file_owners: Dict[str, str] = {}
+        pkg_versions: Dict[str, str] = {}
+
+        for slug, meta in slug_map.items():
+            files = meta.get("files", [])
+            for file_path in files:
+                owner = file_owners.get(file_path)
+                if owner and owner != slug:
+                    raise ValueError(
+                        f"File '{file_path}' is defined in both '{owner}' and '{slug}'."
+                    )
+                file_owners[file_path] = slug
+
+            for pkg in meta.get("packages", []):
+                name = pkg.get("NAME")
+                version = pkg.get("VERSION")
+                if not name or version is None:
+                    continue
+                existing = pkg_versions.get(name)
+                if existing and existing != version:
+                    raise ValueError(
+                        f"Package '{name}' has incompatible versions: {existing} vs {version}."
+                    )
+                pkg_versions[name] = version
+
+        self.logger.info("All linked projects validated successfully.")
+
     # -------------------------------------------------------------------
     # Remaining methods (process_single_project, etc.) are unchanged.
     # -------------------------------------------------------------------
