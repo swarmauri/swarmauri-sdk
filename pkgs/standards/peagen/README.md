@@ -352,6 +352,36 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 
 Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
+### Parallel Processing & Artifact Storage Options
+
+Peagen can accelerate generation by spawning multiple workers. Set `--workers <N>`
+on the CLI (or `workers = N` in `.peagen.toml`) to enable a thread pool that
+renders files concurrently while still honoring dependency order. Leaving the
+flag unset or `0` processes files sequentially.
+
+Artifact locations are resolved via the `--artifacts` flag. Targets may be a
+local directory (`dir://./peagen_artifacts`) using `FileStorageAdapter` or an
+S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
+adapters and publishers can be supplied programmatically:
+
+```python
+from peagen.core import Peagen
+from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.publishers.redis_publisher import RedisPublisher
+
+store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+bus = RedisPublisher("redis://localhost:6379/0")
+
+pea = Peagen(
+    projects_payload_path="projects.yaml",
+    storage_adapter=store,
+    agent_env={"provider": "openai", "model_name": "gpt-4"},
+)
+
+bus.publish("peagen.events", {"type": "process.started"})
+pea.process_all_projects()
+```
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
