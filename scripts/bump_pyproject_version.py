@@ -5,6 +5,14 @@
 # ]
 # ///
 
+"""bump_pyproject_version.py
+
+Bump or set a version in ``pyproject.toml``.
+
+Call this script with the file path and either ``--bump`` or ``--set`` to
+increment or assign the version using semantic versioning rules.
+"""
+
 import sys
 import argparse
 from packaging.version import Version, InvalidVersion
