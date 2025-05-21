@@ -13,8 +13,7 @@ Main workflow class for Peagen.  This revision:
 
 from __future__ import annotations
 
-import json
-import os
+import json, os, sys
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
@@ -34,7 +33,7 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
 
-
+from .manifest_writer import ManifestWriter
 from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._processing import _process_project_files
@@ -222,15 +221,13 @@ class Peagen(ComponentBase):
         start_file: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        1) For each package in the project, render its ptree.yaml.j2 to get file records.
-        2) Combine those records into a single list.
-        3) Depending on _config['transitive']:
-           - If transitive=True and start_file is set, use _transitive_dependency_sort.
-           - If transitive=True and start_file is not set, use _topological_sort.
-           - If transitive=False, always use _topological_sort.
-        4) Even if transitive=False, still honor start_file by skipping up to that file's index in the sorted list.
-        5) Skip start_idx files.
-        6) Process the remaining files.
+        Render & generate all files for *project*.
+
+        Streaming manifests:
+        --------------------
+        *   A ManifestWriter is created before file processing begins.
+        *   Each file save triggers writer.add(…).
+        *   On successful completion we call writer.finalise().
         """
         all_file_records = []
         packages = project.get("PACKAGES", [])
@@ -376,10 +373,39 @@ class Peagen(ComponentBase):
             # ------------------------------------------------------
             # Pass workspace_root into every file save/upload call
             # ------------------------------------------------------
-            from pathlib import Path
+
 
             # choose workspace_root or fallback to base_dir
             root = self.workspace_root or Path(self.base_dir)
+
+            workspace_uri = ""
+            if self.storage_adapter:
+                # best-effort generic inference
+                for attr in ("workspace_uri", "base_uri", "root_uri"):
+                    if hasattr(self.storage_adapter, attr):
+                        workspace_uri = str(getattr(self.storage_adapter, attr))
+                        break
+
+            try:
+                peagen_version = metadata.version("peagen")
+            except Exception:
+                peagen_version = getattr(sys.modules.get("peagen"), "__version__", "0.0.0")
+
+            manifest_meta: Dict[str, Any] = {
+                "schema_version": 3,
+                "workspace_uri": workspace_uri,
+                "project": project_name,
+                "source_packages": self.source_packages,
+                "peagen_version": peagen_version,
+            }
+
+            manifest_writer: Optional[ManifestWriter] = None
+            manifest_writer = ManifestWriter(
+                slug=project_name,
+                adapter=self.storage_adapter,
+                tmp_root=root / ".peagen",
+                meta=manifest_meta,
+            )
 
             _process_project_files(
                 global_attrs=project,
@@ -389,54 +415,17 @@ class Peagen(ComponentBase):
                 logger=self.logger,
                 storage_adapter=self.storage_adapter,
                 org=self.org,
-                workspace_root=root,            # ← new kwarg
+                workspace_root=root,
                 start_idx=start_idx,
+                manifest_writer=manifest_writer,
             )
 
-            # ────────────────────────────────────────────────────────────
-            #  NEW  – write & (optionally) upload manifest-v3
-            # ────────────────────────────────────────────────────────────
-            try:
-                root = self.workspace_root or Path(self.base_dir)
-                manifest_dir = root / ".peagen"
-                manifest_dir.mkdir(exist_ok=True)
-
-                manifest_path = manifest_dir / f"{project['NAME']}_manifest.json"
-                if self.org:
-                    manifest_path = self.org / manifest_path
-
-                # ───────────── choose the correct workspace_uri ─────────────
-                # 1. If a storage adapter exposes .root_uri (e.g. minio[s]://…),
-                #    use that so remote evaluators can fetch the workspace.
-                # 2. Otherwise fall back to the local absolute path. This keeps
-                #    same-machine workflows working with no adapter.
-                #
-                workspace_uri = (
-                    getattr(self.storage_adapter, "root_uri", None)
-                    or f"file://{root.resolve()}"
-                )
-
-                manifest = {
-                    "schema_version": 3,
-                    "workspace_uri": workspace_uri,
-                    "project": project["NAME"],
-                    "generated": [fr["RENDERED_FILE_NAME"] for fr in sorted_records],
-                    "source_packages": self.source_packages,
-                    "peagen_version": self.version,
-                    "generated_at": datetime.now(timezone.utc)
-                    .isoformat(timespec="seconds"),
-                }
-
-                manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-                self.logger.info(f"Manifest written → {os.path.normpath(manifest_path)}")
-
-                if self.storage_adapter:
-                    key = f".peagen/{manifest_path.name}"
-                    with manifest_path.open("rb") as fp:
-                        self.storage_adapter.upload(key, fp)
-                    self.logger.info(f"Manifest uploaded as {os.path.normpath(key)}")
-            except Exception as exc:
-                self.logger.warning(f"Could not write/upload manifest: {exc}")
+            # --------  finalise manifest
+            final_path = manifest_writer.finalise()
+            self.logger.info(
+                f"[peagen] Manifest finalised → {final_path} "
+                f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
+            )
 
             # ────────────────────────────────────────────────────────────
             #  Log status
