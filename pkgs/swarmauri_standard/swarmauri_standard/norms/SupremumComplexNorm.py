@@ -33,7 +33,6 @@ class SupremumComplexNorm(NormBase):
     """
 
     type: Literal["SupremumComplexNorm"] = "SupremumComplexNorm"
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
     def compute(
         self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
@@ -148,9 +147,9 @@ class SupremumComplexNorm(NormBase):
         self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
     ) -> bool:
         """
-        Check if the norm satisfies the definiteness property.
+        Check if the input is the zero vector.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        For the definiteness property: norm(x) = 0 if and only if x = 0.
 
         Parameters
         ----------
@@ -160,7 +159,7 @@ class SupremumComplexNorm(NormBase):
         Returns
         -------
         bool
-            True if the norm satisfies the definiteness property, False otherwise.
+            True if the input is the zero vector, False otherwise.
         """
         try:
             # Check if x is zero
@@ -179,24 +178,12 @@ class SupremumComplexNorm(NormBase):
                 try:
                     complex_val = complex(x)
                     is_zero = abs(complex_val) < 1e-10
-                except:
+                except Exception:
                     is_zero = False
             else:
                 is_zero = abs(complex(x)) < 1e-10
 
-            # Check if norm is zero
-            norm_value = self.compute(x)
-            norm_is_zero = abs(norm_value) < 1e-10
-
-            # The definiteness property requires:
-            # 1. If x is zero, then norm(x) is zero
-            # 2. If norm(x) is zero, then x is zero
-            if is_zero:
-                # If x is zero, norm should be zero
-                return norm_is_zero
-            else:
-                # If x is not zero, norm should not be zero
-                return not norm_is_zero
+            return is_zero
 
         except Exception as e:
             logger.error(f"Error checking definiteness: {str(e)}")

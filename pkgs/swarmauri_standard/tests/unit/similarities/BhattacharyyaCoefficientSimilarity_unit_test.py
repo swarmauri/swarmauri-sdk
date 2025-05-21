@@ -59,7 +59,7 @@ def test_check_bounded(similarity_instance):
         # Partially overlapping distributions
         ([0.5, 0.5, 0.0], [0.0, 0.5, 0.5], 0.5),
         # More complex distribution
-        ([0.1, 0.4, 0.3, 0.2], [0.2, 0.3, 0.4, 0.1], 0.9),
+        ([0.1, 0.4, 0.3, 0.2], [0.2, 0.3, 0.4, 0.1], 0.97566303550217),
         # Uniform distributions
         ([0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], 1.0),
     ],
@@ -94,7 +94,7 @@ def test_similarity(similarity_instance, p, q, expected):
         # Partially overlapping with different keys
         ({"A": 0.5, "B": 0.5}, {"B": 0.5, "C": 0.5}, 0.5),
         # More complex case with missing keys
-        ({"A": 0.4, "B": 0.6}, {"A": 0.3, "B": 0.2, "C": 0.5}, 0.5291502622129181),
+        ({"A": 0.4, "B": 0.6}, {"A": 0.3, "B": 0.2, "C": 0.5}, 0.6928203230275509),
     ],
 )
 def test_similarity_with_dictionaries(similarity_instance, p_dict, q_dict, expected):
@@ -171,7 +171,7 @@ def test_similarities(similarity_instance):
         [1.0, 0.0, 0.0],  # Very different, expect ~0.45
     ]
 
-    expected = [1.0, 0.83, 0.4472135954999579]
+    expected = [1.0, 0.9324555320336758, 0.4472135954999579]
     results = similarity_instance.similarities(p, qs)
 
     assert len(results) == len(expected)
@@ -196,7 +196,7 @@ def test_similarities_with_dictionaries(similarity_instance):
         {"A": 0.0, "B": 0.0, "C": 1.0},  # Disjoint, expect 0.0
     ]
 
-    expected = [1.0, 0.8306623862918074, 0.0]
+    expected = [1.0, 0.916515138991168, 0.0]
     results = similarity_instance.similarities(p_dict, q_dicts)
 
     assert len(results) == len(expected)
@@ -211,7 +211,7 @@ def test_similarities_with_dictionaries(similarity_instance):
         ([0.2, 0.3, 0.5], [0.2, 0.3, 0.5], 0.0),  # Identical: dissimilarity = 0
         ([1.0, 0.0, 0.0], [0.0, 0.0, 1.0], 1.0),  # Disjoint: dissimilarity = 1
         ([0.5, 0.5, 0.0], [0.0, 0.5, 0.5], 0.5),  # Partial overlap
-        ([0.1, 0.4, 0.3, 0.2], [0.2, 0.3, 0.4, 0.1], 0.1),  # Small dissimilarity
+        ([0.1, 0.4, 0.3, 0.2], [0.2, 0.3, 0.4, 0.1], 0.02433696449782996),  # Small dissimilarity
     ],
 )
 def test_dissimilarity(similarity_instance, p, q, expected):
@@ -263,7 +263,7 @@ def test_error_handling(similarity_instance):
         The similarity instance from the fixture
     """
     # Test with non-numeric input
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         similarity_instance.similarity(["a", "b"], [0.5, 0.5])
 
     # Test with negative probabilities

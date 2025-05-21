@@ -62,7 +62,11 @@ class SobolevMetric(MetricBase):
             f"Initialized SobolevMetric with order {self.order} and weights {self.weights}"
         )
 
-    def distance(self, x: float, y: float) -> float:
+    def distance(
+        self,
+        x: Union[VectorType, MatrixType, SequenceType, CallableType],
+        y: Union[VectorType, MatrixType, SequenceType, CallableType],
+    ) -> float:
         """
         Calculate the Sobolev distance between two functions or vectors.
 
@@ -71,9 +75,9 @@ class SobolevMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : Union[VectorType, MatrixType, SequenceType, CallableType]
             First input (function or vector)
-        y : float
+        y : Union[VectorType, MatrixType, SequenceType, CallableType]
             Second input (function or vector)
 
         Returns
@@ -149,7 +153,11 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error calculating Sobolev distance: {str(e)}")
             raise ValueError(f"Failed to calculate Sobolev distance: {str(e)}")
 
-    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Sobolev distances between collections of functions or vectors.
 
@@ -231,7 +239,11 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error calculating Sobolev distances: {str(e)}")
             raise ValueError(f"Failed to calculate Sobolev distances: {str(e)}")
 
-    def check_non_negativity(self, x: float, y: float) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -255,7 +267,11 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
+    def check_identity_of_indiscernibles(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -287,7 +303,11 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(self, x: float, y: float) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -313,7 +333,12 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking symmetry: {str(e)}")
             return False
 
-    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+        z: float,
+    ) -> bool:
         """
         Check if the Sobolev metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
@@ -344,7 +369,11 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking triangle inequality: {str(e)}")
             return False
 
-    def _are_effectively_equal(self, x: float, y: float) -> bool:
+    def _are_effectively_equal(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if two inputs are effectively equal for the purposes of the metric.
 
@@ -387,7 +416,9 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     return False
-                return all(abs(float(x[i]) - float(y[i])) < 1e-10 for i in range(len(x)))
+                return all(
+                    abs(float(x[i]) - float(y[i])) < 1e-10 for i in range(len(x))
+                )
 
             else:
                 # Default case

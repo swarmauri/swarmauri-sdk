@@ -269,7 +269,7 @@ def test_triangle_inequality(linf_norm):
 
     # Test strings
     string_a = "abc"
-    string_b = "def"
+    string_b = "defr"
     with pytest.raises(ValueError):  # Different length strings should raise error
         linf_norm.check_triangle_inequality(string_a, string_b)
 

@@ -89,7 +89,11 @@ class LevenshteinMetric(MetricBase):
         # The bottom-right cell contains the Levenshtein distance
         return matrix[len(x)][len(y)]
 
-    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Levenshtein distances between collections of strings.
 

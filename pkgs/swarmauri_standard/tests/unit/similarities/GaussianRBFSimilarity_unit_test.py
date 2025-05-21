@@ -51,6 +51,22 @@ def test_initialization():
 
 
 @pytest.mark.unit
+def test_serialization(gaussian_rbf_similarity: GaussianRBFSimilarity):
+    """
+    Test serialization and deserialization of GaussianRBFSimilarity.
+    """
+    # Serialize the instance to JSON
+    serialized = gaussian_rbf_similarity.model_dump_json()
+
+    # Deserialize back to an instance
+    deserialized = GaussianRBFSimilarity.model_validate_json(serialized)
+
+    # Check that the deserialized instance has the same properties
+    assert deserialized.id == gaussian_rbf_similarity.id
+    assert deserialized.type == gaussian_rbf_similarity.type
+
+
+@pytest.mark.unit
 def test_initialization_invalid_gamma():
     """Test that initialization with invalid gamma values raises appropriate exceptions."""
     # Test with zero gamma
@@ -229,72 +245,6 @@ def test_check_bounded(gaussian_rbf_similarity: GaussianRBFSimilarity):
         The similarity measure instance
     """
     assert gaussian_rbf_similarity.check_bounded() is True
-
-
-@pytest.mark.unit
-def test_to_dict(
-    gaussian_rbf_similarity: GaussianRBFSimilarity,
-    custom_gamma_similarity: GaussianRBFSimilarity,
-):
-    """
-    Test the to_dict method returns the correct dictionary representation.
-
-    Parameters
-    ----------
-    gaussian_rbf_similarity : GaussianRBFSimilarity
-        The default similarity measure instance
-    custom_gamma_similarity : GaussianRBFSimilarity
-        A similarity measure instance with custom gamma
-    """
-    # Test default gamma
-    default_dict = gaussian_rbf_similarity.to_dict()
-    assert default_dict["type"] == "GaussianRBFSimilarity"
-    assert default_dict["gamma"] == 1.0
-
-    # Test custom gamma
-    custom_dict = custom_gamma_similarity.to_dict()
-    assert custom_dict["type"] == "GaussianRBFSimilarity"
-    assert custom_dict["gamma"] == 0.5
-
-
-@pytest.mark.unit
-def test_from_dict():
-    """Test that from_dict correctly reconstructs a GaussianRBFSimilarity instance."""
-    # Test with explicit gamma
-    data = {"type": "GaussianRBFSimilarity", "gamma": 2.5}
-    similarity = GaussianRBFSimilarity.from_dict(data)
-    assert similarity.gamma == 2.5
-
-    # Test with default gamma
-    data = {"type": "GaussianRBFSimilarity"}
-    similarity = GaussianRBFSimilarity.from_dict(data)
-    assert similarity.gamma == 1.0
-
-
-@pytest.mark.unit
-def test_serialization_roundtrip(
-    gaussian_rbf_similarity: GaussianRBFSimilarity,
-    custom_gamma_similarity: GaussianRBFSimilarity,
-):
-    """
-    Test serialization and deserialization roundtrip.
-
-    Parameters
-    ----------
-    gaussian_rbf_similarity : GaussianRBFSimilarity
-        The default similarity measure instance
-    custom_gamma_similarity : GaussianRBFSimilarity
-        A similarity measure instance with custom gamma
-    """
-    # Test default gamma
-    data = gaussian_rbf_similarity.to_dict()
-    reconstructed = GaussianRBFSimilarity.from_dict(data)
-    assert reconstructed.gamma == gaussian_rbf_similarity.gamma
-
-    # Test custom gamma
-    data = custom_gamma_similarity.to_dict()
-    reconstructed = GaussianRBFSimilarity.from_dict(data)
-    assert reconstructed.gamma == custom_gamma_similarity.gamma
 
 
 @pytest.mark.unit

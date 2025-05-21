@@ -27,7 +27,11 @@ class HammingMetric(MetricBase):
 
     type: Literal["HammingMetric"] = "HammingMetric"
 
-    def distance(self, x: float, y: float) -> float:
+    def distance(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> float:
         """
         Calculate the Hamming distance between two sequences.
 
@@ -69,7 +73,11 @@ class HammingMetric(MetricBase):
         logger.debug(f"Hamming distance: {distance}")
         return float(distance)
 
-    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Hamming distances between collections of sequences.
 
@@ -142,7 +150,11 @@ class HammingMetric(MetricBase):
 
         raise TypeError("Unsupported input types")
 
-    def check_non_negativity(self, x: float, y: float) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -165,7 +177,11 @@ class HammingMetric(MetricBase):
         # Hamming distance is always non-negative as it counts differences
         return True
 
-    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
+    def check_identity_of_indiscernibles(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -193,7 +209,11 @@ class HammingMetric(MetricBase):
 
         return sequences_equal == distance_zero
 
-    def check_symmetry(self, x: float, y: float) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -220,7 +240,12 @@ class HammingMetric(MetricBase):
             abs(dist_xy - dist_yx) < 1e-10
         )  # Using small epsilon for float comparison
 
-    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+        z: float,
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).

@@ -1,7 +1,7 @@
-import pytest
 import logging
+
 import numpy as np
-from typing import List, Tuple, Any
+import pytest
 
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def cosine_similarity():
     """
     Fixture that provides a CosineSimilarity instance.
-    
+
     Returns
     -------
     CosineSimilarity
@@ -24,9 +24,9 @@ def cosine_similarity():
 
 
 @pytest.mark.unit
-def test_type():
+def test_type(cosine_similarity):
     """Test that the type attribute is correctly set."""
-    assert CosineSimilarity.type == "CosineSimilarity"
+    assert cosine_similarity.type == "CosineSimilarity"
 
 
 @pytest.mark.unit
@@ -36,17 +36,20 @@ def test_check_bounded(cosine_similarity):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    ([1, 0, 0], [1, 0, 0], 1.0),              # Identical vectors
-    ([1, 0, 0], [0, 1, 0], 0.0),              # Orthogonal vectors
-    ([1, 0, 0], [-1, 0, 0], -1.0),            # Opposite vectors
-    ([1, 1, 0], [1, 0, 0], 1/np.sqrt(2)),     # 45-degree angle
-    ([1, 2, 3], [4, 5, 6], 0.9746318461970762), # Arbitrary vectors
-])
+@pytest.mark.parametrize(
+    "x, y, expected",
+    [
+        ([1, 0, 0], [1, 0, 0], 1.0),  # Identical vectors
+        ([1, 0, 0], [0, 1, 0], 0.0),  # Orthogonal vectors
+        ([1, 0, 0], [-1, 0, 0], -1.0),  # Opposite vectors
+        ([1, 1, 0], [1, 0, 0], 1 / np.sqrt(2)),  # 45-degree angle
+        ([1, 2, 3], [4, 5, 6], 0.9746318461970762),  # Arbitrary vectors
+    ],
+)
 def test_similarity(cosine_similarity, x, y, expected):
     """
     Test the similarity method with various vector pairs.
-    
+
     Parameters
     ----------
     cosine_similarity : CosineSimilarity
@@ -68,21 +71,24 @@ def test_similarity_error_handling(cosine_similarity):
     # Test with zero vectors
     with pytest.raises(ValueError, match="undefined for zero vectors"):
         cosine_similarity.similarity([0, 0, 0], [1, 2, 3])
-    
+
     # Test with incompatible dimensions
     with pytest.raises(ValueError, match="Incompatible dimensions"):
         cosine_similarity.similarity([1, 2, 3], [1, 2])
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, ys, expected", [
-    ([1, 0, 0], [[1, 0, 0], [0, 1, 0], [-1, 0, 0]], [1.0, 0.0, -1.0]),
-    ([1, 1, 0], [[1, 0, 0], [0, 1, 0]], [1/np.sqrt(2), 1/np.sqrt(2)]),
-])
+@pytest.mark.parametrize(
+    "x, ys, expected",
+    [
+        ([1, 0, 0], [[1, 0, 0], [0, 1, 0], [-1, 0, 0]], [1.0, 0.0, -1.0]),
+        ([1, 1, 0], [[1, 0, 0], [0, 1, 0]], [1 / np.sqrt(2), 1 / np.sqrt(2)]),
+    ],
+)
 def test_similarities(cosine_similarity, x, ys, expected):
     """
     Test the similarities method with various vectors.
-    
+
     Parameters
     ----------
     cosine_similarity : CosineSimilarity
@@ -106,27 +112,30 @@ def test_similarities_error_handling(cosine_similarity):
     # Test with zero reference vector
     with pytest.raises(ValueError, match="undefined for zero vectors"):
         cosine_similarity.similarities([0, 0, 0], [[1, 2, 3], [4, 5, 6]])
-    
+
     # Test with zero comparison vector
     with pytest.raises(ValueError, match="undefined for zero vectors"):
         cosine_similarity.similarities([1, 2, 3], [[0, 0, 0], [4, 5, 6]])
-    
+
     # Test with incompatible dimensions
     with pytest.raises(ValueError, match="Incompatible dimensions"):
         cosine_similarity.similarities([1, 2, 3], [[1, 2], [4, 5, 6]])
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    ([1, 0, 0], [1, 0, 0], 0.0),              # Identical vectors: 1 - 1 = 0
-    ([1, 0, 0], [0, 1, 0], 1.0),              # Orthogonal vectors: 1 - 0 = 1
-    ([1, 0, 0], [-1, 0, 0], 2.0),             # Opposite vectors: 1 - (-1) = 2
-    ([1, 1, 0], [1, 0, 0], 1 - 1/np.sqrt(2)), # 45-degree angle
-])
+@pytest.mark.parametrize(
+    "x, y, expected",
+    [
+        ([1, 0, 0], [1, 0, 0], 0.0),  # Identical vectors: 1 - 1 = 0
+        ([1, 0, 0], [0, 1, 0], 1.0),  # Orthogonal vectors: 1 - 0 = 1
+        ([1, 0, 0], [-1, 0, 0], 2.0),  # Opposite vectors: 1 - (-1) = 2
+        ([1, 1, 0], [1, 0, 0], 1 - 1 / np.sqrt(2)),  # 45-degree angle
+    ],
+)
 def test_dissimilarity(cosine_similarity, x, y, expected):
     """
     Test the dissimilarity method with various vector pairs.
-    
+
     Parameters
     ----------
     cosine_similarity : CosineSimilarity
@@ -143,15 +152,18 @@ def test_dissimilarity(cosine_similarity, x, y, expected):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y", [
-    ([1, 0, 0], [0, 1, 0]),
-    ([1, 2, 3], [4, 5, 6]),
-    ([0.5, 0.5], [0.7, 0.7]),
-])
+@pytest.mark.parametrize(
+    "x, y",
+    [
+        ([1, 0, 0], [0, 1, 0]),
+        ([1, 2, 3], [4, 5, 6]),
+        ([0.5, 0.5], [0.7, 0.7]),
+    ],
+)
 def test_check_symmetry(cosine_similarity, x, y):
     """
     Test that the cosine similarity is symmetric.
-    
+
     Parameters
     ----------
     cosine_similarity : CosineSimilarity
@@ -169,16 +181,19 @@ def test_check_symmetry(cosine_similarity, x, y):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("x, y, expected", [
-    ([1, 0, 0], [1, 0, 0], True),             # Identical vectors
-    ([1, 0, 0], [2, 0, 0], True),             # Same direction, different magnitude
-    ([1, 0, 0], [0, 1, 0], True),             # Different directions
-    ([1, 1, 0], [2, 2, 0], True),             # Same direction, different magnitude
-])
+@pytest.mark.parametrize(
+    "x, y, expected",
+    [
+        ([1, 0, 0], [1, 0, 0], True),  # Identical vectors
+        ([1, 0, 0], [2, 0, 0], True),  # Same direction, different magnitude
+        ([1, 0, 0], [0, 1, 0], True),  # Different directions
+        ([1, 1, 0], [2, 2, 0], True),  # Same direction, different magnitude
+    ],
+)
 def test_check_identity_of_discernibles(cosine_similarity, x, y, expected):
     """
     Test the identity of discernibles property.
-    
+
     Parameters
     ----------
     cosine_similarity : CosineSimilarity
@@ -200,10 +215,10 @@ def test_serialization_deserialization():
     cosine_sim = CosineSimilarity()
     serialized = cosine_sim.model_dump_json()
     deserialized = CosineSimilarity.model_validate_json(serialized)
-    
+
     # Check that the type is preserved
     assert deserialized.type == "CosineSimilarity"
-    
+
     # Verify functionality is preserved
     x = [1, 2, 3]
     y = [4, 5, 6]
@@ -214,7 +229,7 @@ def test_serialization_deserialization():
 def test_numerical_stability():
     """Test the numerical stability of the cosine similarity implementation."""
     cosine_sim = CosineSimilarity()
-    
+
     # Test with very small values
     x = [1e-10, 2e-10, 3e-10]
     y = [4e-10, 5e-10, 6e-10]
@@ -222,7 +237,7 @@ def test_numerical_stability():
     # The result should be the same as with larger values with the same proportions
     expected = cosine_sim.similarity([1, 2, 3], [4, 5, 6])
     assert abs(result - expected) < 1e-10
-    
+
     # Test with large values
     x = [1e10, 2e10, 3e10]
     y = [4e10, 5e10, 6e10]

@@ -1,10 +1,10 @@
-import pytest
 import logging
+
 import numpy as np
-from typing import Dict, Any, Callable
-from swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
+import pytest
 from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+
+from swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def point_evaluation_seminorm():
     """
     Fixture that provides a basic PointEvaluationSeminorm instance for testing.
-    
+
     Returns
     -------
     PointEvaluationSeminorm
@@ -27,14 +27,16 @@ def point_evaluation_seminorm():
 def sample_function():
     """
     Fixture that provides a sample function for testing.
-    
+
     Returns
     -------
     Callable
         A function that returns the square of its input
     """
+
     def func(x):
         return x * x
+
     return func
 
 
@@ -42,7 +44,7 @@ def sample_function():
 def sample_vector():
     """
     Fixture that provides a sample vector for testing.
-    
+
     Returns
     -------
     list
@@ -55,7 +57,7 @@ def sample_vector():
 def sample_dict():
     """
     Fixture that provides a sample dictionary for testing.
-    
+
     Returns
     -------
     Dict
@@ -66,18 +68,18 @@ def sample_dict():
 
 class MockVector(IVector):
     """Mock implementation of IVector for testing purposes."""
-    
+
     def __init__(self, data):
         self.data = data
-    
+
     def __getitem__(self, idx):
         return self.data[idx]
-    
+
     def __add__(self, other):
         if isinstance(other, MockVector):
             return MockVector([a + b for a, b in zip(self.data, other.data)])
         return NotImplemented
-    
+
     def __mul__(self, scalar):
         return MockVector([item * scalar for item in self.data])
 
@@ -86,7 +88,7 @@ class MockVector(IVector):
 def mock_vector():
     """
     Fixture that provides a mock vector implementing IVector.
-    
+
     Returns
     -------
     MockVector
@@ -102,11 +104,11 @@ def test_initialization():
     seminorm1 = PointEvaluationSeminorm(point=0)
     assert seminorm1.point == 0
     assert seminorm1.absolute is True
-    
+
     seminorm2 = PointEvaluationSeminorm(point="key", absolute=False)
     assert seminorm2.point == "key"
     assert seminorm2.absolute is False
-    
+
     seminorm3 = PointEvaluationSeminorm(point=(1, 2))
     assert seminorm3.point == (1, 2)
     assert seminorm3.absolute is True
@@ -120,11 +122,14 @@ def test_type_attribute():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("point,expected", [
-    (0, 0),  # f(0) = 0*0 = 0
-    (2, 4),  # f(2) = 2*2 = 4
-    (-3, 9)  # f(-3) = (-3)*(-3) = 9
-])
+@pytest.mark.parametrize(
+    "point,expected",
+    [
+        (0, 0),  # f(0) = 0*0 = 0
+        (2, 4),  # f(2) = 2*2 = 4
+        (-3, 9),  # f(-3) = (-3)*(-3) = 9
+    ],
+)
 def test_compute_with_function(sample_function, point, expected):
     """Test compute method with a function input."""
     seminorm = PointEvaluationSeminorm(point=point)
@@ -138,10 +143,10 @@ def test_compute_with_vector(sample_vector):
     # Test with different indices
     seminorm1 = PointEvaluationSeminorm(point=0)
     assert seminorm1.compute(sample_vector) == 1
-    
+
     seminorm2 = PointEvaluationSeminorm(point=2)
     assert seminorm2.compute(sample_vector) == 3
-    
+
     # Test with out of range index
     seminorm3 = PointEvaluationSeminorm(point=10)
     with pytest.raises(ValueError):
@@ -154,10 +159,10 @@ def test_compute_with_dict(sample_dict):
     # Test with existing keys
     seminorm1 = PointEvaluationSeminorm(point=0)
     assert seminorm1.compute(sample_dict) == 5
-    
+
     seminorm2 = PointEvaluationSeminorm(point="key")
     assert seminorm2.compute(sample_dict) == 20
-    
+
     # Test with non-existent key
     seminorm3 = PointEvaluationSeminorm(point="nonexistent")
     with pytest.raises(ValueError):
@@ -175,10 +180,10 @@ def test_compute_with_mock_vector(mock_vector):
 def test_compute_with_numpy_array():
     """Test compute method with a numpy array."""
     array = np.array([5, 10, 15, 20, 25])
-    
+
     seminorm1 = PointEvaluationSeminorm(point=0)
     assert seminorm1.compute(array) == 5
-    
+
     seminorm2 = PointEvaluationSeminorm(point=3)
     assert seminorm2.compute(array) == 20
 
@@ -186,14 +191,15 @@ def test_compute_with_numpy_array():
 @pytest.mark.unit
 def test_absolute_parameter():
     """Test that the absolute parameter works correctly."""
+
     # Create a function that returns negative values
     def neg_func(x):
         return -x
-    
+
     # With absolute=True (default)
     seminorm1 = PointEvaluationSeminorm(point=5)
     assert seminorm1.compute(neg_func) == 5  # |-5| = 5
-    
+
     # With absolute=False
     seminorm2 = PointEvaluationSeminorm(point=5, absolute=False)
     assert seminorm2.compute(neg_func) == -5
@@ -202,12 +208,13 @@ def test_absolute_parameter():
 @pytest.mark.unit
 def test_triangle_inequality_with_functions():
     """Test the triangle inequality check with functions."""
+
     def f(x):
         return x
-    
+
     def g(x):
         return 2 * x
-    
+
     seminorm = PointEvaluationSeminorm(point=3)
     assert seminorm.check_triangle_inequality(f, g)
 
@@ -217,7 +224,7 @@ def test_triangle_inequality_with_vectors():
     """Test the triangle inequality check with vectors."""
     vec1 = [1, 2, 3, 4, 5]
     vec2 = [5, 4, 3, 2, 1]
-    
+
     seminorm = PointEvaluationSeminorm(point=2)
     assert seminorm.check_triangle_inequality(vec1, vec2)
 
@@ -227,7 +234,7 @@ def test_triangle_inequality_with_dicts():
     """Test the triangle inequality check with dictionaries."""
     dict1 = {0: 1, 1: 2, 2: 3}
     dict2 = {0: 4, 1: 5, 2: 6}
-    
+
     seminorm = PointEvaluationSeminorm(point=1)
     assert seminorm.check_triangle_inequality(dict1, dict2)
 
@@ -265,7 +272,7 @@ def test_to_dict():
     """Test the to_dict method."""
     seminorm = PointEvaluationSeminorm(point="test_point", absolute=False)
     data = seminorm.to_dict()
-    
+
     assert isinstance(data, dict)
     assert data["type"] == "PointEvaluationSeminorm"
     assert data["point"] == "test_point"
@@ -275,14 +282,10 @@ def test_to_dict():
 @pytest.mark.unit
 def test_from_dict():
     """Test the from_dict class method."""
-    data = {
-        "type": "PointEvaluationSeminorm",
-        "point": "test_point",
-        "absolute": False
-    }
-    
+    data = {"type": "PointEvaluationSeminorm", "point": "test_point", "absolute": False}
+
     seminorm = PointEvaluationSeminorm.from_dict(data)
-    
+
     assert isinstance(seminorm, PointEvaluationSeminorm)
     assert seminorm.point == "test_point"
     assert seminorm.absolute is False
@@ -291,13 +294,10 @@ def test_from_dict():
 @pytest.mark.unit
 def test_from_dict_default_absolute():
     """Test the from_dict method with default absolute value."""
-    data = {
-        "type": "PointEvaluationSeminorm",
-        "point": 5
-    }
-    
+    data = {"type": "PointEvaluationSeminorm", "point": 5}
+
     seminorm = PointEvaluationSeminorm.from_dict(data)
-    
+
     assert isinstance(seminorm, PointEvaluationSeminorm)
     assert seminorm.point == 5
     assert seminorm.absolute is True
@@ -307,7 +307,7 @@ def test_from_dict_default_absolute():
 def test_error_unsupported_input_type():
     """Test that compute raises TypeError for unsupported input types."""
     seminorm = PointEvaluationSeminorm(point=0)
-    
+
     with pytest.raises(TypeError):
         seminorm.compute(123)  # Integer is not callable or indexable
 
@@ -316,7 +316,7 @@ def test_error_unsupported_input_type():
 def test_error_point_not_in_domain():
     """Test that compute raises ValueError when the point is not in the domain."""
     seminorm = PointEvaluationSeminorm(point=10)
-    
+
     with pytest.raises(ValueError):
         seminorm.compute([1, 2, 3])  # Index 10 is out of range
 
@@ -324,12 +324,13 @@ def test_error_point_not_in_domain():
 @pytest.mark.unit
 def test_complex_input_handling():
     """Test handling of complex values."""
+
     def complex_func(x):
         return complex(x, x)
-    
+
     seminorm = PointEvaluationSeminorm(point=3)
     result = seminorm.compute(complex_func)
-    
+
     # For complex number z = a + bi, |z| = sqrt(a² + b²)
     expected = abs(complex(3, 3))
     assert result == expected
@@ -341,7 +342,7 @@ def test_serialization_roundtrip():
     original = PointEvaluationSeminorm(point="test", absolute=False)
     data = original.to_dict()
     reconstructed = PointEvaluationSeminorm.from_dict(data)
-    
+
     assert reconstructed.point == original.point
     assert reconstructed.absolute == original.absolute
     assert reconstructed.type == original.type

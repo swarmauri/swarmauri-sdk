@@ -3,7 +3,6 @@ import math
 from unittest.mock import MagicMock
 
 import pytest
-from swarmauri_base.ComponentBase import ResourceTypes
 from swarmauri_core.matrices.IMatrix import IMatrix
 
 from swarmauri_standard.norms.L2EuclideanNorm import L2EuclideanNorm

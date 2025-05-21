@@ -29,7 +29,11 @@ class AbsoluteValueMetric(MetricBase):
 
     type: Literal["AbsoluteValueMetric"] = "AbsoluteValueMetric"
 
-    def distance(self, x: float, y: float) -> float:
+    def distance(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> float:
         """
         Calculate the distance between two scalar values using absolute difference.
 
@@ -105,7 +109,11 @@ class AbsoluteValueMetric(MetricBase):
             [self.distance(x_val, y_val) for y_val in y_values] for x_val in x_values
         ]
 
-    def check_non_negativity(self, x: float, y: float) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -128,7 +136,11 @@ class AbsoluteValueMetric(MetricBase):
         # Absolute value is always non-negative
         return dist >= 0
 
-    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
+    def check_identity_of_indiscernibles(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -151,7 +163,11 @@ class AbsoluteValueMetric(MetricBase):
         # Check if distance is 0 iff x equals y
         return (dist == 0 and x == y) or (dist > 0 and x != y)
 
-    def check_symmetry(self, x: float, y: float) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -176,7 +192,12 @@ class AbsoluteValueMetric(MetricBase):
         # Check if distances are equal (allowing for small floating-point errors)
         return abs(dist_xy - dist_yx) < 1e-10
 
-    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+        z: float,
+    ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).

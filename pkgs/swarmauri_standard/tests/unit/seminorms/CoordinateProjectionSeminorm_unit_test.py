@@ -1,28 +1,35 @@
 import logging
-import pytest
+from typing import List, Set
+
 import numpy as np
-from typing import Set, List
-from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import CoordinateProjectionSeminorm
-from swarmauri_core.vectors.IVector import IVector
+import pytest
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
+
+from swarmauri_standard.seminorms.CoordinateProjectionSeminorm import (
+    CoordinateProjectionSeminorm,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
 
 # Mock classes for testing
 class MockVector(IVector):
     def __init__(self, components):
         self._components = components
-    
+
     @property
     def components(self):
         return self._components
-    
+
     def __add__(self, other):
         if isinstance(other, MockVector):
-            return MockVector([a + b for a, b in zip(self.components, other.components)])
+            return MockVector(
+                [a + b for a, b in zip(self.components, other.components)]
+            )
         return NotImplemented
-    
+
     def __mul__(self, scalar):
         return MockVector([c * scalar for c in self.components])
 
@@ -30,19 +37,110 @@ class MockVector(IVector):
 class MockMatrix(IMatrix):
     def __init__(self, rows):
         self._rows = rows
-    
+
     @property
     def rows(self):
         return self._rows
-    
+
     def __add__(self, other):
         if isinstance(other, MockMatrix):
-            return MockMatrix([[a + b for a, b in zip(row1, row2)] 
-                              for row1, row2 in zip(self.rows, other.rows)])
+            return MockMatrix(
+                [
+                    [a + b for a, b in zip(row1, row2)]
+                    for row1, row2 in zip(self.rows, other.rows)
+                ]
+            )
         return NotImplemented
-    
+
     def __mul__(self, scalar):
         return MockMatrix([[c * scalar for c in row] for row in self.rows])
+
+    # Add missing methods
+    def __getitem__(self, index):
+        return self._rows[index]
+
+    def __iter__(self):
+        return iter(self._rows)
+
+    def __eq__(self, other):
+        if not isinstance(other, MockMatrix):
+            return NotImplemented
+        return self._rows == other._rows
+
+    def __neg__(self):
+        return MockMatrix([[-c for c in row] for row in self._rows])
+
+    def __sub__(self, other):
+        if not isinstance(other, MockMatrix):
+            return NotImplemented
+        return MockMatrix(
+            [
+                [a - b for a, b in zip(row1, row2)]
+                for row1, row2 in zip(self._rows, other._rows)
+            ]
+        )
+
+    def __truediv__(self, scalar):
+        return MockMatrix([[c / scalar for c in row] for row in self._rows])
+
+    def __matmul__(self, other):
+        # Simple matrix multiplication implementation
+        if not isinstance(other, MockMatrix):
+            return NotImplemented
+        result = []
+        for i in range(len(self._rows)):
+            row = []
+            for j in range(len(other._rows[0])):
+                value = sum(
+                    self._rows[i][k] * other._rows[k][j]
+                    for k in range(len(other._rows))
+                )
+                row.append(value)
+            result.append(row)
+        return MockMatrix(result)
+
+    def __setitem__(self, index, value):
+        self._rows[index] = value
+
+    def __array__(self):
+        import numpy as np
+
+        return np.array(self._rows)
+
+    @property
+    def shape(self):
+        if not self._rows:
+            return (0, 0)
+        return (len(self._rows), len(self._rows[0]) if self._rows[0] else 0)
+
+    @property
+    def dtype(self):
+        import numpy as np
+
+        return np.array(self._rows).dtype
+
+    def tolist(self):
+        return self._rows.copy()
+
+    def transpose(self):
+        if not self._rows:
+            return MockMatrix([])
+        return MockMatrix(
+            [[row[i] for row in self._rows] for i in range(len(self._rows[0]))]
+        )
+
+    def row(self, index):
+        return self._rows[index]
+
+    def column(self, index):
+        return [row[index] for row in self._rows]
+
+    def reshape(self, shape):
+        import numpy as np
+
+        flat = [item for row in self._rows for item in row]
+        reshaped = np.reshape(flat, shape).tolist()
+        return MockMatrix(reshaped)
 
 
 # Fixtures
@@ -93,12 +191,15 @@ def test_initialization_with_empty_indices():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("indices,expected", [
-    ({0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),  # Only consider indices 0, 2, 4
-    ({1, 3}, np.sqrt(2**2 + 4**2)),            # Only consider indices 1, 3
-    ({0}, 1.0),                                # Only consider index 0
-    ({0, 1, 2, 3, 4}, np.sqrt(55)),            # Consider all indices
-])
+@pytest.mark.parametrize(
+    "indices,expected",
+    [
+        ({0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),  # Only consider indices 0, 2, 4
+        ({1, 3}, np.sqrt(2**2 + 4**2)),  # Only consider indices 1, 3
+        ({0}, 1.0),  # Only consider index 0
+        ({0, 1, 2, 3, 4}, np.sqrt(55)),  # Consider all indices
+    ],
+)
 def test_compute_vector(indices, expected, vector_data):
     """Test computing the seminorm for a vector with different projection indices."""
     seminorm = CoordinateProjectionSeminorm(indices)
@@ -136,11 +237,14 @@ def test_compute_matrix_out_of_bounds():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("data,indices,expected", [
-    ([1.0, 2.0, 3.0, 4.0, 5.0], {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
-    ([1.0, 2.0, 3.0, 4.0, 5.0], {1, 3}, np.sqrt(2**2 + 4**2)),
-    (np.array([1.0, 2.0, 3.0, 4.0, 5.0]), {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
-])
+@pytest.mark.parametrize(
+    "data,indices,expected",
+    [
+        ([1.0, 2.0, 3.0, 4.0, 5.0], {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
+        ([1.0, 2.0, 3.0, 4.0, 5.0], {1, 3}, np.sqrt(2**2 + 4**2)),
+        (np.array([1.0, 2.0, 3.0, 4.0, 5.0]), {0, 2, 4}, np.sqrt(1**2 + 3**2 + 5**2)),
+    ],
+)
 def test_compute_sequence(data, indices, expected):
     """Test computing the seminorm for different sequence types."""
     seminorm = CoordinateProjectionSeminorm(indices)
@@ -197,8 +301,9 @@ def test_triangle_inequality_incompatible_types(seminorm):
 
 
 @pytest.mark.unit
-def test_triangle_inequality_different_lengths(seminorm):
+def test_triangle_inequality_different_lengths():
     """Test that checking triangle inequality with sequences of different lengths raises ValueError."""
+    seminorm = CoordinateProjectionSeminorm({0, 1, 2})
     x = [1.0, 2.0, 3.0]
     y = [5.0, 4.0, 3.0, 2.0, 1.0]
     with pytest.raises(ValueError, match="Sequences must have the same length"):
@@ -248,7 +353,7 @@ def test_scalar_homogeneity_unsupported_type(seminorm):
 def test_compute_with_complex_values():
     """Test computing the seminorm with complex values."""
     seminorm = CoordinateProjectionSeminorm({0, 1})
-    x = [1+2j, 3+4j, 5+6j]
+    x = [1 + 2j, 3 + 4j, 5 + 6j]
     # |1+2j|^2 + |3+4j|^2 = 5 + 25 = 30
     expected = np.sqrt(30)
     result = seminorm.compute(x)

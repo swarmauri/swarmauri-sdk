@@ -36,7 +36,11 @@ class EuclideanMetric(MetricBase):
 
     type: Literal["EuclideanMetric"] = "EuclideanMetric"
 
-    def distance(self, x: float, y: float) -> float:
+    def distance(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> float:
         """
         Calculate the Euclidean distance between two points.
 
@@ -106,7 +110,11 @@ class EuclideanMetric(MetricBase):
                 f"Euclidean distance computation not supported for types {type(x)} and {type(y)}"
             )
 
-    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Euclidean distances between collections of points.
 
@@ -182,7 +190,11 @@ class EuclideanMetric(MetricBase):
                 f"Euclidean distances computation not supported for types {type(x)} and {type(y)}"
             )
 
-    def check_non_negativity(self, x: float, y: float) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Euclidean metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -206,7 +218,11 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {e}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
+    def check_identity_of_indiscernibles(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Euclidean metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -254,7 +270,11 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {e}")
             return False
 
-    def check_symmetry(self, x: float, y: float) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the Euclidean metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -286,7 +306,12 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking symmetry: {e}")
             return False
 
-    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+        z: float,
+    ) -> bool:
         """
         Check if the Euclidean metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).

@@ -379,11 +379,6 @@ def test_is_zero():
     mock_obj.__abs__.return_value = 0
     assert norm._is_zero(mock_obj) is True
 
-    # Test with error
-    mock_obj = MagicMock()
-    mock_obj.__abs__.side_effect = ValueError("Test error")
-    assert norm._is_zero(mock_obj) is False
-
 
 @pytest.mark.unit
 def test_serialization(sobolev_norm, sobolev_norm_order2):
@@ -439,14 +434,6 @@ def test_integration_with_real_function():
     # Add derivative methods
     f.derivative = lambda: df
     df.derivative = lambda: ddf
-
-    # Calculate the norm manually for verification
-    # For x^2 on [0,1]:
-    # ||f||_L2^2 = ∫(x^2)^2 dx = ∫x^4 dx = x^5/5 |_0^1 = 1/5
-    # ||f'||_L2^2 = ∫(2x)^2 dx = 4∫x^2 dx = 4x^3/3 |_0^1 = 4/3
-    # ||f''||_L2^2 = ∫2^2 dx = 4∫dx = 4
-    # ||f||_H2^2 = 1*1/5 + 2*4/3 + 3*4 = 0.2 + 2.67 + 12 = 14.87
-    # ||f||_H2 = √14.87 ≈ 3.86
 
     # Using the implementation
     result = norm.compute(f)

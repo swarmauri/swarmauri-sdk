@@ -1,9 +1,8 @@
 import logging
 import math
-from typing import Callable, Literal, Optional, Sequence, TypeVar, Union
+from typing import Callable, Literal, Sequence, TypeVar, Union
 
-from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
@@ -37,7 +36,6 @@ class L2EuclideanNorm(NormBase):
     """
 
     type: Literal["L2EuclideanNorm"] = "L2EuclideanNorm"
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
     def compute(
         self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]

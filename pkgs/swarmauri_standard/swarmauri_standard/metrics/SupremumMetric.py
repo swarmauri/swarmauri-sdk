@@ -35,7 +35,11 @@ class SupremumMetric(MetricBase):
     type: Literal["SupremumMetric"] = "SupremumMetric"
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
-    def distance(self, x: float, y: float) -> float:
+    def distance(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> float:
         """
         Calculate the supremum (maximum) distance between two points.
 
@@ -125,7 +129,11 @@ class SupremumMetric(MetricBase):
             return 0.0
         return max(differences)
 
-    def distances(self, x: float, y: float) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
@@ -225,7 +233,11 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error calculating supremum distances: {str(e)}")
             raise
 
-    def check_non_negativity(self, x: float, y: float) -> bool:
+    def check_non_negativity(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -255,7 +267,11 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: float, y: float) -> bool:
+    def check_identity_of_indiscernibles(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -299,7 +315,11 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(self, x: float, y: float) -> bool:
+    def check_symmetry(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+    ) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -331,7 +351,12 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking symmetry: {str(e)}")
             return False
 
-    def check_triangle_inequality(self, x: float, y: float, z: float) -> bool:
+    def check_triangle_inequality(
+        self,
+        x: Union[List[float], np.ndarray, IVector],
+        y: Union[List[float], np.ndarray, IVector],
+        z: float,
+    ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).

@@ -2,7 +2,7 @@ import logging
 from typing import Callable, Literal, Optional, Sequence, TypeVar, Union
 
 import numpy as np
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.norms.NormBase import NormBase
 from swarmauri_core.matrices.IMatrix import IMatrix
@@ -42,7 +42,7 @@ class LInfNorm(NormBase):
     resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
     domain_bounds: tuple = Field(default=(-1, 1))
 
-    @validator("domain_bounds")
+    @field_validator("domain_bounds")
     def validate_domain_bounds(cls, v):
         """
         Validate that the domain bounds are properly specified.
@@ -135,9 +135,6 @@ class LInfNorm(NormBase):
         if len(seq) == 0:
             raise ValueError("Cannot compute L-infinity norm of an empty sequence")
 
-        if not seq:
-            raise ValueError("Cannot compute L-infinity norm of empty sequence")
-
         try:
             # Convert to numpy array for efficient computation
             array = np.asarray(seq, dtype=float)
@@ -226,10 +223,18 @@ class LInfNorm(NormBase):
             # Check if x is "zero"
             is_zero = False
 
-            if isinstance(x, (IVector, IMatrix)):
+            if isinstance(x, IVector):
                 is_zero = all(v == 0 for v in x.data)
+            elif isinstance(x, IMatrix):
+                # Fix: Convert numpy array to list before checking
+                data_array = np.asarray(x.data)
+                is_zero = np.all(data_array == 0)
             elif isinstance(x, Sequence) and not isinstance(x, str):
-                is_zero = all(v == 0 for v in x)
+                # Handle case where sequence might be a numpy array
+                if hasattr(x, "__array__") or isinstance(x, np.ndarray):
+                    is_zero = np.all(np.asarray(x) == 0)
+                else:
+                    is_zero = all(v == 0 for v in x)
             elif isinstance(x, str):
                 is_zero = len(x) == 0
             elif callable(x):
@@ -270,46 +275,61 @@ class LInfNorm(NormBase):
         ------
         TypeError
             If the inputs are not of the same type or cannot be added.
+        ValueError
+            If inputs have different dimensions or cannot be combined.
         """
-        try:
-            # Handle different input types
-            if isinstance(x, (IVector, IMatrix)) and isinstance(y, type(x)):
-                # For Vector and Matrix types
-                z = type(x)(
-                    data=[x_val + y_val for x_val, y_val in zip(x.data, y.data)]
-                )
-            elif (
-                isinstance(x, Sequence)
-                and isinstance(y, type(x))
-                and not isinstance(x, str)
-            ):
-                # For sequence types
-                if len(x) != len(y):
-                    raise ValueError("Sequences must have the same length")
-                z = [x_val + y_val for x_val, y_val in zip(x, y)]
-            elif isinstance(x, str) and isinstance(y, str):
-                # For strings, we can concatenate but that's not vector addition
-                # Instead, we'll add their ASCII values
-                if len(x) != len(y):
-                    raise ValueError("Strings must have the same length")
-                z = "".join(
-                    chr(ord(x_char) + ord(y_char)) for x_char, y_char in zip(x, y)
-                )
-            elif callable(x) and callable(y):
-                # For callable functions
-                z = lambda t: x(t) + y(t)
-            else:
-                raise TypeError(
-                    "Inputs must be of the same type and must support addition"
-                )
+        # Handle different input types
+        if isinstance(x, IVector) and isinstance(y, type(x)):
+            # For Vector types
+            z = type(x)(data=[x_val + y_val for x_val, y_val in zip(x.data, y.data)])
+        elif isinstance(x, IMatrix) and isinstance(y, type(x)):
+            # For Matrix types - use numpy array handling
+            x_array = np.asarray(x.data)
+            y_array = np.asarray(y.data)
+            # Check shapes match
+            if x_array.shape != y_array.shape:
+                raise ValueError("Matrices must have the same shape")
+            sum_array = x_array + y_array
+            # Create a new matrix of the same type with the summed data
+            z = type(x)(data=sum_array.tolist())
+        elif (
+            isinstance(x, Sequence)
+            and isinstance(y, type(x))
+            and not isinstance(x, str)
+        ):
+            # For sequence types
+            if len(x) != len(y):
+                raise ValueError("Sequences must have the same length")
 
+            # Handle numpy arrays
+            if isinstance(x, np.ndarray) or isinstance(y, np.ndarray):
+                z = np.asarray(x) + np.asarray(y)
+            else:
+                z = [x_val + y_val for x_val, y_val in zip(x, y)]
+        elif isinstance(x, str) and isinstance(y, str):
+            # For strings, we'll add their ASCII values
+            if len(x) != len(y):
+                raise ValueError("Strings must have the same length")
+            z = "".join(
+                chr(min(ord(x_char) + ord(y_char), 255)) for x_char, y_char in zip(x, y)
+            )
+        elif callable(x) and callable(y):
+            # For callable functions
+            def z(t):
+                return x(t) + y(t)
+
+        else:
+            raise TypeError("Inputs must be of the same type and must support addition")
+
+        try:
             # Compute norms
             norm_x = self.compute(x)
             norm_y = self.compute(y)
             norm_z = self.compute(z)
 
             # Check triangle inequality
-            return norm_z <= norm_x + norm_y
+            # Allow for small numerical errors
+            return norm_z <= norm_x + norm_y + 1e-10
         except Exception as e:
             logger.error(f"Error checking triangle inequality: {e}")
             return False
@@ -343,19 +363,31 @@ class LInfNorm(NormBase):
         """
         try:
             # Handle different input types
-            if isinstance(x, (IVector, IMatrix)):
-                # For Vector and Matrix types
+            if isinstance(x, IVector):
+                # For Vector types
                 scaled_x = type(x)(data=[scalar * val for val in x.data])
+            elif isinstance(x, IMatrix):
+                # For Matrix types - properly handle numpy arrays
+                data_array = np.asarray(x.data)
+                scaled_array = scalar * data_array
+                scaled_x = type(x)(data=scaled_array.tolist())
             elif isinstance(x, Sequence) and not isinstance(x, str):
                 # For sequence types
-                scaled_x = [scalar * val for val in x]
+                if isinstance(x, np.ndarray):
+                    scaled_x = scalar * x
+                else:
+                    scaled_x = [scalar * val for val in x]
             elif isinstance(x, str):
                 # For strings, scaling is not well-defined
-                # We'll scale the ASCII values
-                scaled_x = "".join(chr(int(scalar * ord(char))) for char in x)
+                # We'll scale the ASCII values and ensure they're valid (0-255)
+                scaled_x = "".join(
+                    chr(max(0, min(255, int(scalar * ord(char))))) for char in x
+                )
             elif callable(x):
-                # For callable functions
-                scaled_x = lambda t: scalar * x(t)
+
+                def scaled_x(t):
+                    return scalar * x(t)
+
             else:
                 raise TypeError(f"Unsupported input type for scaling: {type(x)}")
 

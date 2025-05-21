@@ -1,9 +1,8 @@
 import logging
-from typing import float, Literal, Optional, Sequence, Union
+from typing import Literal, Sequence, Union
 
 import numpy as np
-from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
@@ -30,7 +29,6 @@ class L1ManhattanNorm(NormBase):
     """
 
     type: Literal["L1ManhattanNorm"] = "L1ManhattanNorm"
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
     def compute(self, x: Union[IVector, IMatrix, Sequence, str, float]) -> float:
         """
