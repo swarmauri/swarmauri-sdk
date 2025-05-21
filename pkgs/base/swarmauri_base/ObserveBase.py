@@ -9,6 +9,7 @@ from typing import (
 
 from pydantic import ConfigDict
 from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.TomlMixin import TomlMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.DynamicBase import DynamicBase
 
@@ -16,7 +17,7 @@ T = TypeVar("T", bound="ObserveBase")
 
 
 @DynamicBase.register_type()
-class ObserveBase(YamlMixin, ServiceMixin, DynamicBase):
+class ObserveBase(YamlMixin, TomlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.
     """
