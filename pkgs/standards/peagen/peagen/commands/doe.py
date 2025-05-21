@@ -1,10 +1,10 @@
 # peagen/commands/doe.py
 """
-peagen experiment – expand a DOE spec + base template into a project-payloads bundle.
+peagen doe – expand a DOE spec + base template into a project-payloads bundle.
 
 Wire in cli.py with:
     from peagen.commands.doe import doe_app
-    app.add_typer(doe_app, name="experiment")
+    app.add_typer(doe_app, name="doe")
 """
 
 from __future__ import annotations
