@@ -1,8 +1,4 @@
-"""
-peagen.cli_common
-─────────────────────────────────────────────────────────────────────────────
-Shared helpers for every Typer command in the v2 CLI surface.
-"""
+"""Shared helpers for Typer commands."""
 
 from __future__ import annotations
 

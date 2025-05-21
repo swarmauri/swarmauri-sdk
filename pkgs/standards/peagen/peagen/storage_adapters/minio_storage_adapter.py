@@ -1,11 +1,6 @@
-"""
-peagen/storage_adapters/minio_storage_adapter.py
-─────────────────────────────────────────────────
-Concrete implementation of the IStorageAdapter port using the
-MinIO Python SDK (S3-compatible object storage).
+"""Storage adapter for MinIO/S3-compatible object stores.
 
-Install dependency:
-    pip install minio
+Requires the ``minio`` Python package.
 """
 
 from __future__ import annotations

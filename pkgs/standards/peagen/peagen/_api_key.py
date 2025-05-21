@@ -1,3 +1,9 @@
+"""Utility helpers for resolving API keys.
+
+These functions inspect CLI options, ``.peagen.toml`` and environment
+variables to determine the correct API key for an LLM provider.
+"""
+
 import os
 import typer
 from dotenv import load_dotenv
