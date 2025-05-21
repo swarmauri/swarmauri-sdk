@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from jinja2 import Environment, Template
-from peagen._Jinja2PromptTemplate import Jinja2PromptTemplate, j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
 from pydantic import FilePath
 
 
@@ -13,7 +13,7 @@ class TestJinja2PromptTemplate:
     @pytest.fixture
     def template_instance(self):
         """Create a fresh template instance for each test"""
-        return Jinja2PromptTemplate()
+        return J2PromptTemplate()
 
     @pytest.fixture
     def temp_template_file(self):
@@ -30,7 +30,7 @@ class TestJinja2PromptTemplate:
         assert template_instance.template == ""
         assert template_instance.variables == {}
         assert template_instance.templates_dir is None
-        assert template_instance.type == "Jinja2PromptTemplate"
+        assert template_instance.type == "J2PromptTemplate"
 
     def test_set_template_from_str(self, template_instance):
         """Test setting template from string"""
@@ -72,7 +72,7 @@ class TestJinja2PromptTemplate:
 
     def test_get_env_with_templates_dir_string(self):
         """Test get_env with string templates_dir"""
-        template = Jinja2PromptTemplate(templates_dir="/tmp")
+        template = J2PromptTemplate(templates_dir="/tmp")
         env = template.get_env()
         assert isinstance(env, Environment)
         assert env.loader is not None
@@ -80,7 +80,7 @@ class TestJinja2PromptTemplate:
 
     def test_get_env_with_templates_dir_list(self):
         """Test get_env with list templates_dir"""
-        template = Jinja2PromptTemplate(templates_dir=["/tmp", "/var"])
+        template = J2PromptTemplate(templates_dir=["/tmp", "/var"])
         env = template.get_env()
         assert isinstance(env, Environment)
         assert env.loader is not None
@@ -118,8 +118,8 @@ class TestJinja2PromptTemplate:
 
     def test_global_j2pt_instance(self):
         """Test that the global j2pt instance is properly initialized"""
-        assert isinstance(j2pt, Jinja2PromptTemplate)
-        assert j2pt.type == "Jinja2PromptTemplate"
+        assert isinstance(j2pt, J2PromptTemplate)
+        assert j2pt.type == "J2PromptTemplate"
 
     def test_template_with_complex_variables(self, template_instance):
         """Test template rendering with complex variables"""
