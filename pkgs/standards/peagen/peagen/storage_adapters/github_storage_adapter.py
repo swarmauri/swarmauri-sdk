@@ -1,3 +1,5 @@
+"""Storage adapter using GitHub repositories."""
+
 from __future__ import annotations
 from pydantic import SecretStr
 import io

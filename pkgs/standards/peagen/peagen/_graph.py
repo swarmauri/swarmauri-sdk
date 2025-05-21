@@ -1,3 +1,5 @@
+"""Graph utilities for dependency resolution."""
+
 import heapq
 from collections import defaultdict
 from typing import Any, Dict, List

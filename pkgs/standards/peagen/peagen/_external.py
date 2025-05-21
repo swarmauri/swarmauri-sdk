@@ -1,20 +1,9 @@
-"""
-external.py
+"""Helpers for calling external agents.
 
-This module contains functions for external integrations.
-It provides:
-
-  1. call_external_agent:
-     - Sends a rendered prompt to an external agent (e.g., an LLM or language model API)
-       and returns the generated content.
-
-  2. chunk_content:
-     - Optionally splits or processes the generated content into manageable chunks
-       before saving.
-
-Note:
-  - The implementations here are placeholders. In a real-world scenario, you would
-    replace them with calls to an actual external API (e.g., OpenAI, Hugging Face, etc.).
+These functions forward rendered prompts to language model APIs and
+optionally split the results into manageable chunks. The current
+implementations are placeholders and should be replaced with real API
+calls.
 """
 
 import os

@@ -1,4 +1,6 @@
 # peagen/commands/process.py
+"""Render or generate files for one or more projects."""
+
 from __future__ import annotations
 
 import re

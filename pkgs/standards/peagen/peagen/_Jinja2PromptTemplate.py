@@ -1,3 +1,10 @@
+"""Jinja2-based prompt template implementation.
+
+Provides a concrete ``PromptTemplateBase`` that renders templates
+using Jinja2. Templates may be supplied as literal strings or loaded
+from the filesystem.
+"""
+
 import typing
 from typing import List, Union, Optional, Literal
 from pydantic import ConfigDict, FilePath
