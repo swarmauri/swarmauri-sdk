@@ -16,7 +16,7 @@ class MinkowskiDistance(DistanceBase):
 
     Parameters:
     - p (int): The order of the Minkowski distance. p=2 corresponds to the Euclidean distance,
-               while p=1 corresponds to the Manhattan distance. Default is
+               while p=1 corresponds to the Manhattan distance. Default is 2.
     """
 
     type: Literal["MinkowskiDistance"] = "MinkowskiDistance"
