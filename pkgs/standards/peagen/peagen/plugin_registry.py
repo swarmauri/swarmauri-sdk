@@ -1,5 +1,23 @@
 # peagen/plugin_registry.py
-"""Discovery and registry for Peagen plugins."""
+"""
+peagen.plugin_registry
+
+Maintain the plugin registry loaded from distribution entry points.
+
+``registry`` maps plugin groups to dictionaries of ``{name: object}``.
+For example::
+
+    registry = {
+        "template_sets":    {"init-ci": <module>, ...},
+        "storage_adapters": {"file": <class FileStorageAdapter>, ...},
+        ...
+    }
+
+``_load()`` discovers entry points for each group defined in ``GROUPS``,
+validates them and populates this mapping at import time. Supported plugin
+groups are: ``template_sets``, ``storage_adapters``, ``publishers``,
+``indexers``, ``result_backends`` and ``evaluators``.
+"""
 
 from importlib.metadata import entry_points
 from collections import defaultdict
@@ -12,15 +30,16 @@ from types import ModuleType
 # and treat every other group as before (must resolve to a class).
 # ---------------------------------------------------------------------------
 GROUPS = {
-    "template_sets":    ("peagen.template_sets",    None),     # None = allow modules or classes
+    "template_sets": ("peagen.template_sets", None),  # None = allow modules or classes
     "storage_adapters": ("peagen.storage_adapters", object),
-    "publishers":       ("peagen.publishers",       object),
-    "indexers":         ("peagen.indexers",         object),
-    "result_backends":  ("peagen.result_backends",  object),
-    "evaluators":       ("peagen.evaluators",       object),
+    "publishers": ("peagen.publishers", object),
+    "indexers": ("peagen.indexers", object),
+    "result_backends": ("peagen.result_backends", object),
+    "evaluators": ("peagen.evaluators", object),
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
+
 
 def _load() -> None:
     """
