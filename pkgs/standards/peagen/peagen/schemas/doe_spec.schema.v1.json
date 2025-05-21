@@ -1,37 +1,31 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://example.com/doe_spec.schema.json",
-  "title": "DOE Spec Schema (v1.0.0)",
-  "schemaVersion": "1.0.0",
+  "title": "DOE Spec Schema (v1.0.1)",
+  "schemaVersion": "1.0.1",
   "type": "object",
+
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "1.0.0",
+      "const": "1.0.1",
       "description": "DOE spec schema version"
     },
+
     "FACTORS": {
       "type": "object",
       "patternProperties": {
         "^[A-Za-z0-9_]+$": {
           "type": "object",
           "properties": {
-            "code": {
-              "type": "string"
-            },
-            "description": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
+            "code":        { "type": "string" },
+            "description": { "type": "string" },
+            "type":        { "type": "string" },
+
             "levels": {
               "type": "array",
               "items": {
                 "oneOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "type": "object",
                     "properties": {
@@ -43,10 +37,12 @@
                     },
                     "required": ["name", "requirements"],
                     "additionalProperties": true
-                  }
+                  },
+                  { "type": ["string", "number", "boolean", "null"] }
                 ]
               }
             },
+
             "patches": {
               "type": "array",
               "items": {
@@ -68,6 +64,7 @@
       "additionalProperties": false
     }
   },
+
   "required": ["schemaVersion", "FACTORS"],
   "additionalProperties": false
 }

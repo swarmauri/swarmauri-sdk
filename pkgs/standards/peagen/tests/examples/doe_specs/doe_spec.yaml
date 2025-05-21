@@ -1,9 +1,8 @@
 # doe_spec.yaml
 # ───────────────────────────────────────────────────────────────
 # Define each factor, its levels, and the JSON-Patch ops to apply.
-
+schemaVersion: "1.0.1"
 FACTORS:
-
   COMPONENT_NAME:
     description: "Base name of the generated component"
     code: CMP
