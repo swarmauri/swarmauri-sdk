@@ -11,7 +11,7 @@ import re
 import traceback
 from typing import Any, Dict, Optional
 
-from swarmauri_standard.rate_limiters import TokenBucketRateLimiter
+from swarmauri_standard.rate_limits.TokenBucketRateLimit import TokenBucketRateLimit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 import colorama
@@ -30,7 +30,7 @@ UNDERLINE = "\033[4m"
 load_dotenv()
 
 # Global rate limiter to throttle external agent calls
-rate_limiter = TokenBucketRateLimiter(capacity=1, refill_rate=1.0)
+rate_limiter = TokenBucketRateLimit(capacity=1, refill_rate=1.0)
 
 
 def call_external_agent(
