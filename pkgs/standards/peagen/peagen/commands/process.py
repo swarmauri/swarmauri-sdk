@@ -83,8 +83,12 @@ def process_cmd(
     ),
 ):
     """
+    File: **process.py**
+    Class: —
+    Method: **process_cmd**
+
     Main *process* entry – now emits artefacts under
-    projects/<project>/runs/<run-id>/.
+    projects/<project>/runs/<run-id>/, honours publishers.adapters layout.
     """
     toml_cfg = load_peagen_toml()
 
@@ -117,10 +121,13 @@ def process_cmd(
             else f"{default_store}://{default_cfg.get('endpoint')}"
         )
 
-    # ── PUBLISHER CONFIG ────────────────────────────────────────────────
+    # ── PUBLISHER CONFIG (supports publishers.adapters) ─────────────────
     pubs_cfg = toml_cfg.get("publishers", {})
-    if pubs_cfg.get("default_publisher") and notify is None:
-        notify = pubs_cfg["default_publisher"]
+    pub_adapters_cfg = pubs_cfg.get("adapters", {})
+    default_publisher = pubs_cfg.get("default_publisher")
+
+    if default_publisher and notify is None:
+        notify = default_publisher
 
     # ── SANITY CHECKS ───────────────────────────────────────────────────
     if (start_idx and start_file) or (not provider or not model_name):
@@ -129,17 +136,23 @@ def process_cmd(
 
     # ── BUILD PUBLISHER (optional) ──────────────────────────────────────
     bus = None
+    channel = "peagen.events"
     if notify:
         nt = urlparse(notify)
         pub_name = nt.scheme or notify
-        pub_cfg = pubs_cfg.get(pub_name, {}) or {}
+        pub_cfg = pub_adapters_cfg.get(pub_name, {})
+        # Allow overriding channel via notify URI path, e.g. redis://mychannel
+        if nt.scheme and nt.path and nt.path != "/":
+            channel = nt.path.lstrip("/")
+        else:
+            channel = pub_cfg.get("channel", channel)
         try:
             PubCls = registry["publishers"][pub_name]
         except KeyError:
             typer.echo(f"❌ Unknown publisher '{pub_name}'.")
             raise typer.Exit(1)
         bus = PubCls(**pub_cfg)
-        bus.publish(pub_cfg.get("channel", "peagen.events"), {"type": "process.started"})
+        bus.publish(channel, {"type": "process.started"})
 
     # ─────────────────────────────────────────────────────────────────────
     #  NEW: run-ID & project-prefix for one-bucket-per-org strategy
@@ -171,7 +184,9 @@ def process_cmd(
 
     extra_dirs: List[Path] = []
     if additional_package_dirs:
-        extra_dirs.extend(Path(p).expanduser() for p in additional_package_dirs.split(","))
+        extra_dirs.extend(
+            Path(p).expanduser() for p in additional_package_dirs.split(",")
+        )
 
     source_pkgs = toml_cfg.get("source_packages", {}).get("package", [])
 
@@ -235,10 +250,7 @@ def process_cmd(
         pea.logger.info(f"{Fore.GREEN}Done in {dur:.1f}s{Fore.RESET}")
 
         if bus:
-            bus.publish(
-                pubs_cfg.get("channel", "peagen.events"),
-                {"type": "process.done", "seconds": dur},
-            )
+            bus.publish(channel, {"type": "process.done", "seconds": dur})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -252,7 +264,13 @@ def _process_single(
     *,
     transitive_only: bool,
 ) -> None:
-    """Internal helper to keep `process_cmd` readable."""
+    """
+    File: **process.py**
+    Class: —
+    Method: **_process_single**
+
+    Internal helper to keep `process_cmd` readable.
+    """
     projects = pea.load_projects()
     project = next((p for p in projects if p.get("NAME") == name), None)
     if not project:

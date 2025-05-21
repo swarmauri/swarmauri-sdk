@@ -1,24 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://example.com/peagen.schema.json",
-  "title": "Peagen Configuration Schema (v1.0.2)",
-  "schemaVersion": "1.0.2",
+  "title": "Peagen Configuration Schema (v1.0.3)",
   "type": "object",
+
   "properties": {
+    "schemaVersion": {
+      "const": "1.0.3",
+      "description": "Version of this Peagen configuration schema"
+    },
+
     "workspace": {
       "type": "object",
       "properties": {
-        "schemaVersion": {
-          "const": "1.0.2",
-          "description": "Peagen schema version"
-        },
         "org":          { "type": "string" },
         "template_set": { "type": "string" },
         "workers":      { "type": "integer" }
       },
-      "required": [ "org", "schemaVersion" ],
+      "required": [ "org" ],
       "additionalProperties": true
     },
+
     "llm": {
       "type": "object",
       "properties": {
@@ -30,6 +32,7 @@
       "required": [ "default_provider", "default_model_name" ],
       "additionalProperties": true
     },
+
     "storage": {
       "type": "object",
       "properties": {
@@ -37,9 +40,8 @@
         "adapters": {
           "type": "object",
           "patternProperties": {
-            "^[a-zA-Z0-9_\\-]+$": {
+            "^[A-Za-z0-9_\\-]+$": {
               "type": "object",
-              "description": "Custom config for this adapter",
               "additionalProperties": true
             }
           },
@@ -50,22 +52,28 @@
       "required": [ "default_storage_adapter", "adapters" ],
       "additionalProperties": false
     },
+
     "publishers": {
       "type": "object",
       "properties": {
-        "default_publisher": { "type": "string" }
-      },
-      "required": [ "default_publisher" ],
-      "patternProperties": {
-        "^[a-zA-Z0-9_\\-]+$": {
+        "default_publisher": { "type": "string" },
+        "adapters": {
           "type": "object",
-          "description": "Custom config for this publisher",
-          "additionalProperties": true
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-]+$": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "minProperties": 1,
+          "additionalProperties": false
         }
       },
+      "required": [ "default_publisher", "adapters" ],
       "additionalProperties": false
     }
   },
-  "required": [ "workspace", "llm", "storage", "publishers" ],
+
+  "required": [ "schemaVersion", "workspace", "llm", "storage", "publishers" ],
   "additionalProperties": false
 }
