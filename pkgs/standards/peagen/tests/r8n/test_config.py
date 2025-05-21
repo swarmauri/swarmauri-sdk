@@ -3,7 +3,7 @@ import pytest
 from peagen._config import __logger_name__, _config
 
 
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestConfig:
     def test_config_default_values(self):
         """Test that _config has expected default values"""

@@ -8,7 +8,7 @@ from peagen._graph import (
 )
 
 
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestGraph:
     @pytest.fixture
     def simple_payload(self):

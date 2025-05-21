@@ -2,11 +2,11 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from peagen.GenericLLM import GenericLLM
+from peagen._llm import GenericLLM
 from pydantic import SecretStr
 
 
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestGenericLLM:
     def test_init(self):
         """Test initialization of GenericLLM."""

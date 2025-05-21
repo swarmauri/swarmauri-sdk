@@ -87,7 +87,7 @@ class TestCallExternalAgent:
             patch(
                 "swarmauri.messages.SystemMessage.SystemMessage"
             ) as mock_system_message,
-            patch("peagen.GenericLLM.GenericLLM") as mock_generic_llm,
+            patch("peagen._llm.GenericLLM") as mock_generic_llm,
             patch("peagen._external._config", {"truncate": True}),
             patch.dict(os.environ, {}, clear=True),
         ):

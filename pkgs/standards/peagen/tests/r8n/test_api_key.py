@@ -6,7 +6,7 @@ import typer
 from peagen._api_key import _resolve_api_key
 
 
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestApiKey:
     def test_explicit_api_key(self):
         """Test that explicitly provided API key is returned as-is"""

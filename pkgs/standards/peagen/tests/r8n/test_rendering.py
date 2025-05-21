@@ -5,8 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from peagen._rendering import _render_copy_template, _render_generate_template
 
-
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestRendering:
     @pytest.fixture
     def mock_logger(self):

@@ -8,7 +8,7 @@ from peagen._Jinja2PromptTemplate import Jinja2PromptTemplate, j2pt
 from pydantic import FilePath
 
 
-@pytest.mark.unit
+@pytest.mark.r8n
 class TestJinja2PromptTemplate:
     @pytest.fixture
     def template_instance(self):
