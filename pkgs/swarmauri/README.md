@@ -63,6 +63,10 @@ The Swarmauri SDK is an evolving platform, and the community is encouraged to co
 ### Plugin Citizenship Registry
 - [plugin_citizenship_registry.py](swarmauri/plugin_citizenship_registry.py): Maintains a registry of plugins and their citizenship status within the Swarmauri ecosystem.
 
+When introducing a new resource kind or class, remember to update both the
+`plugin_citizenship_registry.py` and `interface_registry.py` so the framework can
+discover and validate your additions.
+
 ### Plugin Manager
 - [plugin_manager.py](swarmauri/plugin_manager.py): Oversees the loading, initialization, and management of plugins to extend the functionality of the Swarmauri framework.
 
