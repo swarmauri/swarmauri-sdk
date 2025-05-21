@@ -10,6 +10,9 @@ Usage (wired in peagen/cli.py):
 import typer
 from pprint import pformat
 from pydantic import FilePath
+from typing import Optional
+
+from peagen.cli_common import load_peagen_toml
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen.core import Peagen, Fore, Style
@@ -77,6 +80,9 @@ def sort(
         "--show-deps/--no-show-deps",
         help="If set, will show the direct dependenices of each file in the sort (one hop).",
     ),
+    plugin_mode: Optional[str] = typer.Option(
+        None, "--plugin-mode", help="Plugin mode to use."
+    ),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -92,6 +98,9 @@ def sort(
         raise typer.Exit(code=1)
 
     _config["transitive"] = transitive
+    toml_cfg = load_peagen_toml()
+    plugin_mode = plugin_mode if plugin_mode is not None else toml_cfg.get("plugins", {}).get("mode")
+    _config["plugin_mode"] = plugin_mode
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
     additional_dirs_list = (
