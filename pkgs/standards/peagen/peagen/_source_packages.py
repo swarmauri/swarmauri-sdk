@@ -10,6 +10,8 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import hashlib
+import json
 
 import typer
 
@@ -76,6 +78,18 @@ def _strip_git_dir(pkg_dir: Path) -> None:
                "workspace cleanup may be slow")
 
 
+def _dir_checksum(root: Path) -> str:
+    """Return a sha256 checksum of all files under *root*."""
+    h = hashlib.sha256()
+    for path in sorted(root.rglob("*")):
+        if path.is_file():
+            h.update(path.relative_to(root).as_posix().encode())
+            with path.open("rb") as fh:
+                for chunk in iter(lambda: fh.read(8192), b""):
+                    h.update(chunk)
+    return h.hexdigest()
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # materialise a single package
 # ────────────────────────────────────────────────────────────────────────────
@@ -98,10 +112,19 @@ def _materialise_source_pkg(
         typ = pkg_spec.get("type")
         if typ == "git":
             _git_clone_to(tmp, pkg_spec["uri"], pkg_spec.get("ref"))
+            checksum = (
+                subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=tmp)
+                .decode()
+                .strip()
+            )
         elif typ == "local":
-            shutil.copytree(Path(pkg_spec["path"]).expanduser(), tmp, dirs_exist_ok=True)
+            src_path = Path(pkg_spec["path"]).expanduser()
+            shutil.copytree(src_path, tmp, dirs_exist_ok=True)
+            checksum = _dir_checksum(src_path)
         else:
             raise ValueError(f"Unknown source package type: {typ!r}")
+
+        pkg_spec["checksum"] = checksum
 
         _strip_git_dir(tmp)                             # remove .git for Win cleanup
 
@@ -144,8 +167,23 @@ def materialise_packages(
     *,
     upload: bool = False,
 ) -> List[Path]:
-    """Clone / copy a list of source packages into *workspace*."""
+    """Clone / copy a list of source packages into *workspace*.
+
+    A ``source_packages.lock`` file is written containing the resolved
+    commit SHA or checksum for each package. On subsequent runs the
+    recorded values are loaded and mismatches abort execution.
+    """
+
+    lock_path = workspace / "source_packages.lock"
+    previous: Dict[str, str] = {}
+    if lock_path.exists():
+        try:
+            previous = json.loads(lock_path.read_text(encoding="utf-8"))
+        except Exception:  # pragma: no cover - corrupted lock file
+            previous = {}
+
     dests: List[Path] = []
+    current: Dict[str, str] = {}
     for spec in packages:
         dests.append(
             _materialise_source_pkg(
@@ -155,4 +193,16 @@ def materialise_packages(
                 storage_adapter=storage_adapter,
             )
         )
+        if "checksum" in spec:
+            current[spec["dest"]] = spec["checksum"]
+            prev = previous.get(spec["dest"])
+            if prev and prev != spec["checksum"]:
+                typer.echo(
+                    f"[ERROR] Source package {spec['dest']} changed "
+                    f"(was {prev}, now {spec['checksum']})"
+                )
+                raise typer.Exit(1)
+
+    lock_path.write_text(json.dumps(current, indent=2), encoding="utf-8")
+
     return dests
