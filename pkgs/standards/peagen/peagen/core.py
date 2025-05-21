@@ -423,7 +423,7 @@ class Peagen(ComponentBase):
             # --------  finalise manifest
             final_path = manifest_writer.finalise()
             self.logger.info(
-                f"Manifest finalised → {final_path} "
+                f"Manifest finalised → \n\t{Fore.YELLOW}{final_path}{Style.RESET_ALL} "
                 f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
             )
 
