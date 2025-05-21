@@ -94,4 +94,4 @@ gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleas
 redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 
 [tool.setuptools.package-data]
-"peagen.schemas" = ["manifest.schema.v3.json"]
+"peagen.schemas" = ["*.json", "extras/*.json"]

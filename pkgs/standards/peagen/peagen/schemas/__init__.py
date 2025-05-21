@@ -7,7 +7,8 @@ Import with:
 """
 
 from __future__ import annotations
-import json, importlib.resources as res
+import json
+import importlib.resources as res
 
 MANIFEST_V3_SCHEMA = json.loads(
     res.files(__package__)
@@ -40,6 +41,14 @@ PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
        .read_text(encoding="utf-8")
 )
 
+# ── EXTRAS schemas ─────────────────────────────────────────────
+_extras_pkg = res.files(__package__).joinpath("extras")
+EXTRAS_SCHEMAS = {
+    fp.name.replace(".schema.v1.json", ""): json.loads(fp.read_text(encoding="utf-8"))
+    for fp in _extras_pkg.iterdir()
+    if fp.name.endswith(".schema.v1.json")
+}
+
 
 __all__ = [
     "MANIFEST_V3_SCHEMA", 
@@ -47,4 +56,5 @@ __all__ = [
     "DOE_SPEC_V1_SCHEMA",
     "PTREE_V1_SCHEMA",
     "PROJECTS_PAYLOAD_V1_SCHEMA",
-    ]
+    "EXTRAS_SCHEMAS",
+]
