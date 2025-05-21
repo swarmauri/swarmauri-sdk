@@ -88,6 +88,7 @@ class TestCallExternalAgent:
                 "swarmauri.messages.SystemMessage.SystemMessage"
             ) as mock_system_message,
             patch("peagen._llm.GenericLLM") as mock_generic_llm,
+            patch("peagen._external._rate_limiter") as mock_limiter,
             patch("peagen._external._config", {"truncate": True}),
             patch.dict(os.environ, {}, clear=True),
         ):
@@ -106,6 +107,7 @@ class TestCallExternalAgent:
                 "generic_llm": mock_generic_llm,
                 "llm_instance": mock_llm_instance,
                 "agent_instance": mock_agent_instance,
+                "rate_limiter": mock_limiter,
             }
 
     def test_call_external_agent_basic(self, mock_dependencies):
@@ -133,6 +135,7 @@ class TestCallExternalAgent:
         mock_dependencies["agent_instance"].exec.assert_called_with(
             prompt, llm_kwargs={"max_tokens": 1000}
         )
+        mock_dependencies["rate_limiter"].acquire.assert_called_once()
 
     def test_call_external_agent_with_env_vars(self, mock_dependencies):
         """Test using environment variables for configuration."""

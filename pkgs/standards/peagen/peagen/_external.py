@@ -8,12 +8,15 @@ calls.
 
 import os
 import re
+import threading
+import time
 import traceback
 from typing import Any, Dict, Optional
 
 import colorama
 from colorama import Fore, Style
 from dotenv import load_dotenv
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 from ._config import _config
 
@@ -27,11 +30,43 @@ UNDERLINE = "\033[4m"
 load_dotenv()
 
 
+class TokenBucket:
+    """Simple token bucket rate limiter."""
+
+    def __init__(self, rate: float, capacity: int) -> None:
+        self.rate = rate
+        self.capacity = capacity
+        self.tokens = capacity
+        self.timestamp = time.monotonic()
+        self.lock = threading.Lock()
+
+    def acquire(self) -> None:
+        """Acquire a token, waiting if necessary."""
+        while True:
+            with self.lock:
+                now = time.monotonic()
+                elapsed = now - self.timestamp
+                self.timestamp = now
+                self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
+                if self.tokens >= 1:
+                    self.tokens -= 1
+                    return
+                wait_time = (1 - self.tokens) / self.rate
+            time.sleep(wait_time)
+
+
+_rate = float(os.getenv("PEAGEN_RATE_LIMIT", "5"))
+_rate_limiter = TokenBucket(rate=_rate, capacity=max(int(_rate), 1))
+
+
 def call_external_agent(
     prompt: str, agent_env: Dict[str, str], logger: Optional[Any] = None
 ) -> str:
     """
-    Sends the rendered prompt to an external agent (e.g., a language model) and returns the generated content.
+    Send the rendered prompt to an external agent and return the generated content.
+
+    The call is rate limited using a token bucket and retries on HTTP 429 and 529
+    responses.
 
     Parameters:
       prompt (str): The prompt string to send to the external agent.
@@ -103,12 +138,16 @@ def call_external_agent(
 
     agent.conversation.system_context = SystemMessage(content=system_context)
 
-    try:
-        # Execute the prompt against the agent
-        result = agent.exec(
+    @retry_on_status_codes((429, 529))
+    def _exec_prompt(a=agent) -> str:
+        _rate_limiter.acquire()
+        return a.exec(
             prompt,
             llm_kwargs={"max_tokens": max_tokens},
         )
+
+    try:
+        result = _exec_prompt()
     except KeyboardInterrupt:
         raise KeyboardInterrupt("'Interrupted...'")
 
