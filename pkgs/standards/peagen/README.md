@@ -94,6 +94,8 @@ Each of these methods is invoked by the CLI commands in cli.py (e.g. process() c
 ```bash
 # From PyPI (recommended)
 pip install peagen
+# Install optional plugins as needed
+pip install peagen-storage-minio peagen-storage-github peagen-storage-gh-release peagen-publisher-redis
 
 # From source (latest development)
 git clone https://github.com/swarmauri/swarmauri-sdk.git

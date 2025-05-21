@@ -52,6 +52,10 @@ members = [
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/peagen",
+    "standards/peagen_storage_minio",
+    "standards/peagen_storage_github",
+    "standards/peagen_storage_gh_release",
+    "standards/peagen_publisher_redis",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -143,6 +147,10 @@ swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
 peagen = { workspace = true }
+peagen_storage_minio = { workspace = true }
+peagen_storage_github = { workspace = true }
+peagen_storage_gh_release = { workspace = true }
+peagen_publisher_redis = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
