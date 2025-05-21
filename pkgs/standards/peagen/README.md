@@ -371,7 +371,7 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 
 ### Storage Adapters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for setup instructions. Event types and routing keys are documented in [docs/eda_protocol.md](docs/eda_protocol.md).
 
 ### Parallel Processing & Artifact Storage Options
 
@@ -402,6 +402,8 @@ pea = Peagen(
 bus.publish("peagen.events", {"type": "process.started"})
 pea.process_all_projects()
 ```
+
+See [docs/eda_protocol.md](docs/eda_protocol.md) for the payload schema and how to override the default channel.
 
 ### Contributing & Extending Templates
 
