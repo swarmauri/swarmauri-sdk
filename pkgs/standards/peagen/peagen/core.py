@@ -27,6 +27,7 @@ from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
+from .slug_utils import slugify
 from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._processing import _process_project_files
@@ -74,6 +75,7 @@ class Peagen(ComponentBase):
     projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
     dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
     in_degree: Dict[str, int]            = Field(default_factory=dict, exclude=True)
+    slug_map: Dict[str, str]             = Field(default_factory=dict, exclude=True)
 
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: SubclassUnion["LoggerBase"] = Logger(
@@ -182,6 +184,12 @@ class Peagen(ComponentBase):
                 + Style.RESET_ALL
                 + f" projects from '{self.projects_payload_path}'."
             )
+            # build slug map for quick lookup
+            self.slug_map = {
+                slugify(p.get("NAME", "")): p.get("NAME", "")
+                for p in self.projects_list
+                if p.get("NAME")
+            }
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
@@ -392,9 +400,11 @@ class Peagen(ComponentBase):
                 "peagen_version": peagen_version,
             }
 
+            project_slug = slugify(project_name)
+            self.slug_map.setdefault(project_slug, project_name)
             manifest_writer: Optional[ManifestWriter] = None
             manifest_writer = ManifestWriter(
-                slug=project_name,
+                slug=project_slug,
                 adapter=self.storage_adapter,
                 tmp_root=root / ".peagen",
                 meta=manifest_meta,
