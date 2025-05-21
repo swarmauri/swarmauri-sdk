@@ -11,6 +11,9 @@ import re
 import traceback
 from typing import Any, Dict, Optional
 
+from swarmauri_standard.rate_limiters import TokenBucketRateLimiter
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
 import colorama
 from colorama import Fore, Style
 from dotenv import load_dotenv
@@ -25,6 +28,9 @@ UNDERLINE = "\033[4m"
 
 
 load_dotenv()
+
+# Global rate limiter to throttle external agent calls
+rate_limiter = TokenBucketRateLimiter(capacity=1, refill_rate=1.0)
 
 
 def call_external_agent(
@@ -103,12 +109,14 @@ def call_external_agent(
 
     agent.conversation.system_context = SystemMessage(content=system_context)
 
+    @retry_on_status_codes((429, 529))
+    def _exec_with_limit() -> str:
+        rate_limiter.acquire()
+        return agent.exec(prompt, llm_kwargs={"max_tokens": max_tokens})
+
     try:
-        # Execute the prompt against the agent
-        result = agent.exec(
-            prompt,
-            llm_kwargs={"max_tokens": max_tokens},
-        )
+        # Execute the prompt against the agent with rate limiting and retries
+        result = _exec_with_limit()
     except KeyboardInterrupt:
         raise KeyboardInterrupt("'Interrupted...'")
 
