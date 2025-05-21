@@ -80,6 +80,3 @@ def discover_and_register_plugins(
                     )
 
             registry[group_key][ep.name] = obj
-
-
-discover_and_register_plugins()
