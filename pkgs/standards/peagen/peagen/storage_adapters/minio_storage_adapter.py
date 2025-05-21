@@ -15,6 +15,7 @@ from typing import BinaryIO, Optional
 from minio import Minio
 from minio.error import S3Error
 
+from peagen.cli_common import load_peagen_toml
 
 class MinioStorageAdapter:
     """
