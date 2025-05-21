@@ -1,4 +1,6 @@
 # peagen/commands/validate.py
+"""Validate manifests and configuration files."""
+
 from __future__ import annotations
 
 import json

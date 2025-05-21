@@ -1,4 +1,5 @@
 # peagen/plugin_registry.py
+"""Discovery and registry for Peagen plugins."""
 
 from importlib.metadata import entry_points
 from collections import defaultdict

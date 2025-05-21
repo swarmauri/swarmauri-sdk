@@ -1,4 +1,5 @@
 # File: redis_publisher.py
+"""Redis Pub/Sub publisher implementation."""
 
 from __future__ import annotations
 import json
