@@ -83,6 +83,9 @@ def process_cmd(
     insecure: bool = typer.Option(
         False, "--insecure", help="When using s3://, disable TLS."
     ),
+    plugin_mode: Optional[str] = typer.Option(
+        None, "--plugin-mode", help="Plugin mode to use."
+    ),
 ):
     """
     File: **process.py**
@@ -93,6 +96,10 @@ def process_cmd(
     projects/<project>/runs/<run-id>/, honours publishers.adapters layout.
     """
     toml_cfg = load_peagen_toml()
+    plugins_cfg = toml_cfg.get("plugins", {})
+    plugin_mode = plugin_mode if plugin_mode is not None else plugins_cfg.get("mode")
+    ctx.obj.plugin_mode = plugin_mode
+    _config["plugin_mode"] = plugin_mode
 
     # ── GENERAL & LLM ────────────────────────────────────────────────────
     workspace_cfg = toml_cfg.get("workspace", {})
