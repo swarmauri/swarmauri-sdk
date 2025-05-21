@@ -1,3 +1,5 @@
+"""Configuration constants for Peagen."""
+
 _config = {}
 __package_name__ = "peagen"
 __logger_name__ = "pea"

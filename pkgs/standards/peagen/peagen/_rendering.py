@@ -1,17 +1,8 @@
-"""
-rendering.py
+"""Internal helpers for rendering templates.
 
-This module contains internal rendering functions for the file generation workflow.
-It includes methods for:
-  - Rendering the project’s YAML (from a .yaml.j2 template) into file records.
-  - Rendering a generic field (e.g. an unresolved FILE_NAME) using a given context.
-  - Rendering a file template for "COPY" operations.
-  - Rendering an agent prompt template for "GENERATE" operations, then calling an external agent.
-
-Note:
-  - This module uses Jinja2 for template rendering.
-  - It assumes that file paths and templates follow a known structure (e.g., that file records contain an unrendered FILE_NAME
-    which is later rendered to obtain the correct template file path, with an expected '.j2' extension).
+Functions here render YAML payloads, generic fields and prompt
+templates using Jinja2. They are used by the processing workflow to
+generate files or call out to external agents.
 """
 
 from typing import Any, Dict, Optional

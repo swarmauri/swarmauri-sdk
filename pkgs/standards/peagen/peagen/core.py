@@ -1,14 +1,7 @@
-"""
-peagen.core
-===========
+"""Core workflow logic for Peagen.
 
-Main workflow class for Peagen.  This revision:
-
-1.  Introduces **source_packages** (first-class) while retaining
-    additional_package_dirs as a backward-compat alias.
-2.  Re-computes namespace/search paths from the *dest* directories of
-    those source packages, ensuring Jinja includes still work.
-3.  Leaves *all* existing public behaviour intact (no j2pt API changes).
+This module contains the ``Peagen`` class which orchestrates file
+generation, package handling and Jinja environment setup.
 """
 
 from __future__ import annotations

@@ -1,4 +1,5 @@
 # File: peagen/doe.py
+"""Design of Experiments helpers."""
 
 import yaml
 import jsonpatch

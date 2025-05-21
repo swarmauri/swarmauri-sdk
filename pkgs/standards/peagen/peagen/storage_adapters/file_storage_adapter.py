@@ -1,9 +1,7 @@
-"""
-peagen/storage_adapters/file_storage_adapter.py
-───────────────────────────────────────────────
-Local-filesystem implementation of `IStorageAdapter`.
+"""Filesystem-based storage adapter.
 
-Key → `${root_dir}/${key}`  (directories are created automatically)
+Files are written to ``${root_dir}/${key}`` and directories are created
+automatically.
 """
 
 from __future__ import annotations

@@ -1,4 +1,6 @@
 # File: peagen/manifest_writer.py
+"""Write manifest information during file generation."""
+
 from __future__ import annotations
 
 import json

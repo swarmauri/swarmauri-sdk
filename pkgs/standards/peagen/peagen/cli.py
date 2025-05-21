@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Entry point for the Peagen command line interface."""
+
 import typer
 
 from peagen._banner import _print_banner

@@ -1,8 +1,7 @@
-"""
-GenericLLM.py
+"""Generic interface to swarmauri-standard LLM providers.
 
-This module provides a generic interface to all supported LLM providers available in swarmauri_standard.
-It dynamically loads and instantiates LLM classes based on the specified provider.
+The module dynamically loads and instantiates provider-specific classes
+based on configuration or CLI options.
 """
 
 import importlib

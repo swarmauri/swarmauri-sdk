@@ -1,3 +1,5 @@
+"""Expose all Typer sub-applications for the CLI."""
+
 from peagen.commands.init import init_app
 from peagen.commands.process import process_app
 from peagen.commands.revise import revise_app
