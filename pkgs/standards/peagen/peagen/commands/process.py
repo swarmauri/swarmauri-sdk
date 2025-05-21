@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import re
+from peagen.slug_utils import slugify
 import secrets
 import time
 from datetime import datetime, timezone
@@ -168,8 +168,9 @@ def process_cmd(
     # ─────────────────────────────────────────────────────────────────────
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     run_id = f"{timestamp}-{secrets.token_hex(4)}"
+    typer.echo(f"run-id: {run_id}")
 
-    project_slug = re.sub(r"[^0-9A-Za-z_-]+", "-", (project_name or "multi")).lower()
+    project_slug = slugify(project_name or "multi")
     proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
 
     # ── BUILD STORAGE ADAPTER (prefix-aware) ────────────────────────────
