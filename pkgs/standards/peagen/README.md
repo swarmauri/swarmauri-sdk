@@ -220,6 +220,27 @@ peagen templates
 ![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
 
 
+### `peagen doe gen`
+
+Expand a Design-of-Experiments spec into a `project_payloads.yaml` bundle.
+
+```bash
+peagen doe gen <DOE_SPEC_YML> <TEMPLATE_PROJECT> \
+  [--output project_payloads.yaml] \
+  [--context global_patch.yml] \
+  [--dry-run] [--force]
+```
+
+Craft `doe_spec.yml` using the scaffold created by `peagen init doe-spec`. Follow the
+editing guidelines in [`peagen/scaffold/doe_spec/README.md`](peagen/scaffold/doe_spec/README.md):
+update factor levels, run `peagen validate doe-spec doe_spec.yml`, bump the version in
+`spec.yaml`, and never mutate published versions.
+
+For reference implementations, see the sample specs under
+[`tests/examples/doe_specs`](tests/examples/doe_specs) which demonstrate basic, composite,
+and evaluator-pool variations.
+
+
 ---
 
 ## Examples & Walkthroughs
