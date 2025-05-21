@@ -7,6 +7,7 @@ This document outlines the coding and documentation standards for our SDK. Our g
 ## Table of Contents
 
 - [General Coding Standards](#general-coding-standards)
+- [Testing Conventions](#testing-conventions)
 - [Docstring Conventions](#docstring-conventions)
   - [Overview](#overview)
   - [Structure](#structure)
@@ -24,8 +25,17 @@ This document outlines the coding and documentation standards for our SDK. Our g
 - **Readable and Maintainable Code:**  
   Write clear, self-explanatory code. Refactor and comment where necessary to improve clarity.
   
-- **Consistent Formatting:**  
+- **Consistent Formatting:**
   Use our style guide and formatting tools (e.g., linters, formatters) to maintain consistency across the codebase.
+
+## Testing Conventions
+
+All tests must reside in directories named for their pytest marker. Example locations include:
+- `tests/unit/`
+- `tests/i9n/`
+- `tests/r8n/`
+
+Each test module must also include the corresponding `@pytest.mark.<marker>` annotation.
 
 ---
 
