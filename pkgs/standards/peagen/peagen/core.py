@@ -387,17 +387,13 @@ class Peagen(ComponentBase):
                         workspace_uri = str(getattr(self.storage_adapter, attr))
                         break
 
-            try:
-                peagen_version = metadata.version("peagen")
-            except Exception:
-                peagen_version = getattr(sys.modules.get("peagen"), "__version__", "0.0.0")
 
             manifest_meta: Dict[str, Any] = {
                 "schema_version": 3,
                 "workspace_uri": workspace_uri,
                 "project": project_name,
                 "source_packages": self.source_packages,
-                "peagen_version": peagen_version,
+                "peagen_version": __version__,
             }
 
             project_slug = slugify(project_name)
