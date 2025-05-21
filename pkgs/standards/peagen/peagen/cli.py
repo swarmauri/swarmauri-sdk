@@ -18,12 +18,12 @@ _print_banner()
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
 
 app.add_typer(init_app, name="init")
-app.add_typer(process_app)
-app.add_typer(revise_app)
-app.add_typer(sort_app)
-app.add_typer(template_sets_app, name="template-set")
 app.add_typer(doe_app, name="doe")
+app.add_typer(process_app)
 app.add_typer(program_app, name="program")
+app.add_typer(sort_app)
+app.add_typer(revise_app)
+app.add_typer(template_sets_app, name="template-set")
 app.add_typer(validate_app, name="validate")
 
 if __name__ == "__main__":
