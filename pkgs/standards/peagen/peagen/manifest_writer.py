@@ -6,7 +6,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
-
+import typer
 
 class ManifestWriter:
     """
@@ -95,6 +95,9 @@ class ManifestWriter:
 
         # tidy up partial artefacts
         self.path.unlink(missing_ok=True)
+
+
+        typer.echo(f"\n📄 manifest → {self.adapter.root_uri}.peagen/{final_path.name}")
 
         return final_path
 

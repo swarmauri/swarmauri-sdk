@@ -240,12 +240,6 @@ def process_cmd(
                 {"type": "process.done", "seconds": dur},
             )
 
-        # ── REPORT MANIFEST LOCATION(S) ────────────────────────────────
-        manifest_dir = ws / ".peagen"
-        if manifest_dir.exists():
-            for mf in manifest_dir.glob("*_manifest.json"):
-                typer.echo(f"\n📄 manifest → {storage_adapter.root_uri}.peagen/{mf.name}")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Helper for single-project dispatch
