@@ -16,6 +16,9 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from peagen.commands.validate import _validate
+from peagen.schemas import DOE_SPEC_V1_SCHEMA
+
 import typer
 import yaml
 
@@ -104,6 +107,11 @@ def experiment_generate(
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print matrix only"),
     force: bool = typer.Option(False, "--force", help="Overwrite output file"),
+    skip_validate: bool = typer.Option(
+        False,
+        "--skip-validate",
+        help="Skip DOE spec validation",
+    ),
 ):
     """
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
@@ -115,6 +123,10 @@ def experiment_generate(
     ctx_patch = []
     if context:
         ctx_patch = _load_yaml(context)
+
+    # validate spec unless skipped
+    if not skip_validate:
+        _validate(spec_obj, DOE_SPEC_V1_SCHEMA, "DOE spec")
 
     llm_map = spec_obj.get("LLM_FACTORS", {})
     other_map = spec_obj.get("FACTORS", {})
