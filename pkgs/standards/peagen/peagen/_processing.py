@@ -46,8 +46,7 @@ def _save_file(
         logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
 
     if storage_adapter:                                   # remote upload
-        key = f"{org.rstrip('/')}/{filepath.lstrip('/')}" if org else filepath
-        key = os.path.normpath(key)
+        key = os.path.normpath(filepath.lstrip('/'))
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
