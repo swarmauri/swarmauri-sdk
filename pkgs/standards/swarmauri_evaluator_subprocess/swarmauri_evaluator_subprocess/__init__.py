@@ -1,12 +1,6 @@
 from .SubprocessEvaluator import SubprocessEvaluator
 
-<<<<<<< HEAD
-__all__ = [
-    "SubprocessEvaluator"
-]
-=======
 __all__ = ["SubprocessEvaluator"]
->>>>>>> upstream/mono/dev
 
 try:
     # For Python 3.8 and newer
@@ -19,8 +13,4 @@ try:
     __version__ = version("swarmauri_evaluator_subprocess")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
-<<<<<<< HEAD
     __version__ = "0.0.0"
-=======
-    __version__ = "0.0.0"
->>>>>>> upstream/mono/dev

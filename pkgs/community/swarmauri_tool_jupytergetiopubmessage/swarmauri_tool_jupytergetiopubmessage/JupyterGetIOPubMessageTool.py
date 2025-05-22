@@ -100,9 +100,7 @@ class JupyterGetIOPubMessageTool(ToolBase):
             while True:
                 # Check elapsed time for timeout
                 if (time.time() - start_time) > timeout:
-                    logger.warning(
-                        "Timeout exceeded while waiting for IOPub messages."
-                    )
+                    logger.warning("Timeout exceeded while waiting for IOPub messages.")
                     return {
                         "stdout": stdout_messages,
                         "stderr": stderr_messages,

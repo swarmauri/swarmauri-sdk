@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, TypeVar, Union
+from typing import Optional
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -7,6 +7,7 @@ from swarmauri_core.seminorms.ISeminorm import InputType, ISeminorm, T
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_model()
 class SeminormBase(ISeminorm, ComponentBase):

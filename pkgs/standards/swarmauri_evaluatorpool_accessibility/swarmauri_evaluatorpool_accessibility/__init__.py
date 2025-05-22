@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from .AutomatedReadabilityIndexEvaluator import AutomatedReadabilityIndexEvaluator 
-=======
 from .AutomatedReadabilityIndexEvaluator import AutomatedReadabilityIndexEvaluator
->>>>>>> upstream/mono/dev
 from .ColemanLiauIndexEvaluator import ColemanLiauIndexEvaluator
 from .FleschKincaidGradeEvaluator import FleschKincaidGradeEvaluator
 from .FleschReadingEaseEvaluator import FleschReadingEaseEvaluator
@@ -15,11 +11,7 @@ __all__ = [
     "FleschKincaidGradeEvaluator",
     "FleschReadingEaseEvaluator",
     "GunningFogEvaluator",
-<<<<<<< HEAD
-    "AccessibilityEvaluatorPool"
-=======
     "AccessibilityEvaluatorPool",
->>>>>>> upstream/mono/dev
 ]
 
 try:
@@ -33,8 +25,4 @@ try:
     __version__ = version("swarmauri_evaluatorpool_accessibility")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
-<<<<<<< HEAD
     __version__ = "0.0.0"
-=======
-    __version__ = "0.0.0"
->>>>>>> upstream/mono/dev
