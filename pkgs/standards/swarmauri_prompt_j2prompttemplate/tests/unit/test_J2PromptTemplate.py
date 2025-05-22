@@ -93,7 +93,7 @@ def test_j2pt_singleton_exists():
 
 
 @pytest.mark.unit
-def test_j2pt_builtin_filters():
+def test_j2pt_builtin_singular_filter():
     from swarmauri_prompt_j2prompttemplate import j2pt
 
     # Test the make_singular filter which is always available
@@ -101,6 +101,16 @@ def test_j2pt_builtin_filters():
     j2pt.set_template(template_str)
     result = j2pt.fill({})
     assert result == "user"
+
+@pytest.mark.unit
+def test_j2pt_builtin_plural_filter():
+    from swarmauri_prompt_j2prompttemplate import j2pt
+
+    # Test the make_singular filter which is always available
+    template_str = "{{ 'user' | make_plural }}"
+    j2pt.set_template(template_str)
+    result = j2pt.fill({})
+    assert result == "users"
 
 
 @pytest.mark.unit
