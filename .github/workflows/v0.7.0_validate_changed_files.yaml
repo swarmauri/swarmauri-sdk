@@ -11,7 +11,7 @@ on:
 
 jobs:
   detect-changed-files:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
@@ -45,7 +45,9 @@ jobs:
         id: detect
         run: |
           echo "Detecting changed packages …"
-          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt || true)
+          # Exclude the monorepo root pyproject.toml as it does not represent
+          # a real package and will always fail validation.
+          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' || true)
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changes in pkgs/. Exiting."
             echo 'matrix=[]' >> "$GITHUB_OUTPUT"
@@ -88,7 +90,7 @@ jobs:
   run-tests:
     needs: detect-changed-files
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
-    runs-on: ubuntu-latest
+    runs-on: [testing]
     strategy:
       fail-fast: false
       matrix:

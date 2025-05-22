@@ -1,7 +1,6 @@
 # File: tests/workflows/conditions/test_base_condition.py
 
 import pytest
-from abc import ABCMeta
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
 @pytest.mark.unit

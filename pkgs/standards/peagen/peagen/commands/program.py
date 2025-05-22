@@ -30,6 +30,9 @@ from peagen._source_packages import (
     materialise_packages,
     _materialise_source_pkg,
 )
+from peagen._template_sets import install_template_sets
+from swarmauri_standard.programs.Program import Program
+import importlib
 from peagen.storage_adapters import make_adapter_for_uri
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
 from jsonschema import validate as json_validate, ValidationError
@@ -55,6 +58,14 @@ def fetch(
     no_source: bool = typer.Option(
         False, help="Skip cloning/copying `source_packages` (debug only)"
     ),
+    install_template_sets: bool = typer.Option(
+        True, "--install-template-sets/--no-install-template-sets",
+        help="Install template sets before fetching",
+        ),
+#     evaluator_pool: Optional[str] = typer.Option(
+#         None,
+#         help="Evaluator pool class path 'module:Class' to run after fetch",
+#     ),
 ):
     """
     Reconstruct a complete workspace from manifest(s).
@@ -67,12 +78,23 @@ def fetch(
 
     for m_uri in manifests:
         manifest = _download_manifest(m_uri)
+        if install_template_sets and "template_sets" in manifest:
+            install_template_sets(manifest.get("template_sets", []))
         if not no_source:
             for spec in manifest["source_packages"]:
                 _materialise_source_pkg(spec, out_dir, upload=False)
         _materialise_workspace(manifest, out_dir)
-        
+
     typer.echo(f"workspace: {out_dir}")
+
+#     Future example of integration:
+#     if evaluator_pool:
+#         module_name, cls_name = evaluator_pool.split(":")
+#         pool_cls = getattr(importlib.import_module(module_name), cls_name)
+#         pool = pool_cls()
+#         program = Program.from_workspace(out_dir)
+#         result = pool.evaluate(program)
+#         typer.echo(json.dumps(result))
 
 
 # ───────────────────────────────────────────────────────────── patch ──

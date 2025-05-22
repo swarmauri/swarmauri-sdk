@@ -28,7 +28,7 @@ class FileLoggingHandler(HandlerBase):
         max_bytes: Maximum file size before rotation (0 means no rotation).
         backup_count: Number of backup files to keep when rotating.
     """
-
+    
     type: Literal["FileLoggingHandler"] = "FileLoggingHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
@@ -55,7 +55,6 @@ class FileLoggingHandler(HandlerBase):
         log_dir = os.path.dirname(self.file_path)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir)
-
         # Create the appropriate file handler based on rotation settings
         if self.max_bytes > 0:
             # Create a rotating file handler

@@ -16,9 +16,21 @@ MANIFEST_V3_SCHEMA = json.loads(
        .read_text(encoding="utf-8")
 )
 
+MANIFEST_V3_1_SCHEMA = json.loads(
+    res.files(__package__)
+       .joinpath("manifest.schema.v3.1.json")
+       .read_text(encoding="utf-8")
+)
+
 PEAGEN_TOML_V1_SCHEMA = json.loads(
     res.files(__package__)
        .joinpath("peagen.toml.schema.v1.json")
+       .read_text(encoding="utf-8")
+)
+
+PEAGEN_TOML_V1_1_SCHEMA = json.loads(
+    res.files(__package__)
+       .joinpath("peagen.toml.schema.v1.1.0.json")
        .read_text(encoding="utf-8")
 )
 
@@ -51,8 +63,10 @@ EXTRAS_SCHEMAS = {
 
 
 __all__ = [
-    "MANIFEST_V3_SCHEMA", 
-    "PEAGEN_TOML_V1_SCHEMA", 
+    "MANIFEST_V3_SCHEMA",
+    "MANIFEST_V3_1_SCHEMA",
+    "PEAGEN_TOML_V1_SCHEMA",
+    "PEAGEN_TOML_V1_1_SCHEMA",
     "DOE_SPEC_V1_SCHEMA",
     "PTREE_V1_SCHEMA",
     "PROJECTS_PAYLOAD_V1_SCHEMA",
