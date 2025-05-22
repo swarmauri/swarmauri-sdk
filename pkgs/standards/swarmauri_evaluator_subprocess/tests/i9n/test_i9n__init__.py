@@ -1,6 +1,9 @@
 import importlib
 import logging
+<<<<<<< HEAD
+=======
 import sys
+>>>>>>> upstream/mono/dev
 
 import pytest
 
@@ -21,11 +24,17 @@ def test_import_package():
     """
     try:
         # Attempt to import the package
+<<<<<<< HEAD
+        import swarmauri_evaluator_subprocess
+
+        logger.info("Successfully imported swarmauri_evaluator_subprocess package")
+=======
         import swarmauri_evaluator_subprocess as package
 
         logger.info(
             f"Successfully imported swarmauri_evaluator_subprocess package - {package.__version__}"
         )
+>>>>>>> upstream/mono/dev
         assert True
     except ImportError as e:
         logger.error(f"Failed to import swarmauri_evaluator_subprocess: {e}")
@@ -65,9 +74,15 @@ def test_subprocess_evaluator_import():
     """
     try:
         # Test direct import from package
+<<<<<<< HEAD
+        from swarmauri_evaluator_subprocess import SubprocessEvaluator
+
+        logger.info("Successfully imported SubprocessEvaluator from package")
+=======
         from swarmauri_evaluator_subprocess import SubprocessEvaluator as evaluator
 
         logger.info(f"Successfully imported SubprocessEvaluator from package - {evaluator}")
+>>>>>>> upstream/mono/dev
         assert True
     except ImportError as e:
         logger.error(f"Failed to import SubprocessEvaluator: {e}")
@@ -129,3 +144,10 @@ def test_package_reload(reload_package):
         "Reloaded package missing SubprocessEvaluator"
     )
     logger.info("Successfully reloaded package")
+<<<<<<< HEAD
+
+
+# Add missing import for the reload_package fixture
+import sys
+=======
+>>>>>>> upstream/mono/dev
