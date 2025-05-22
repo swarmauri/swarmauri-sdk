@@ -7,13 +7,13 @@ streaming.
 """
 
 import os
-from pprint import pformat
-from typing import Any, Dict, List, Optional
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from datetime import datetime, timezone
 from pathlib import Path
+from pprint import pformat
+from typing import Any, Dict, List, Optional
 
-from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
 
 from ._config import _config
 from ._graph import _build_forward_graph
@@ -249,7 +249,6 @@ def _process_project_files(
                 j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
                 if logger:
                     logger.debug(f"Updated templates_dir to {new_dir}")
-
             try:
                 _process_file(
                     rec,

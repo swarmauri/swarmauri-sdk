@@ -1,6 +1,5 @@
-
-from typing import List, Literal, Sequence, TypeVar, Union, Any, Callable
 import logging
+from math import e
 from typing import Any, Callable, List, Literal, Sequence, TypeVar, Union
 
 from pydantic import Field
@@ -38,9 +37,22 @@ class EquivalenceRelationPseudometric(PseudometricBase):
 
     type: Literal["EquivalenceRelationPseudometric"] = "EquivalenceRelationPseudometric"
     equivalence_relation: Callable[[Any, Any], bool] = Field(
-        ...,
-        description="Function that determines if two elements are equivalent",
+        ..., description="Equivalence relation function"
     )
+
+    def __init__(self, equivalence_relation: Callable[[Any, Any], bool], **kwargs):
+        """
+        Initialize the EquivalenceRelationPseudometric with an equivalence relation.
+
+        Parameters
+        ----------
+        equivalence_relation : Callable[[Any, Any], bool]
+            A function that takes two arguments and returns True if they are equivalent,
+            False otherwise.
+        kwargs : Any
+            Additional keyword arguments for the base class.
+        """
+        super().__init__(**kwargs, equivalence_relation=equivalence_relation)
 
     def distance(
         self,

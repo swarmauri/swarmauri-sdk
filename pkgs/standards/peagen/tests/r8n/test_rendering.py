@@ -1,9 +1,12 @@
 import os
+import sys
 import tempfile
 from unittest.mock import MagicMock, patch
+import inspect
 
 import pytest
 from peagen._rendering import _render_copy_template, _render_generate_template
+
 
 @pytest.mark.r8n
 class TestRendering:
@@ -58,19 +61,20 @@ class TestRendering:
 
         result = _render_copy_template(file_record, context, j2_instance, mock_logger)
 
+        # Assertions
         assert result == "Hello, World!"
         j2_instance.set_template.assert_called_once()
         j2_instance.fill.assert_called_once_with(context)
         mock_logger.error.assert_not_called()
 
-    def test_render_copy_template_exception(
+    def test_render_copy_template_exception
         self, file_record, context, j2_instance, mock_logger
     ):
         """Test handling of exceptions during copy template rendering"""
         j2_instance.set_template.side_effect = Exception("Template error")
-
         result = _render_copy_template(file_record, context, j2_instance, mock_logger)
 
+        # Assertions
         assert result == ""
         mock_logger.error.assert_called_once()
         error_msg = mock_logger.error.call_args[0][0]
@@ -82,6 +86,7 @@ class TestRendering:
 
         result = _render_copy_template(file_record, context, j2_instance)
 
+        # Assertions
         assert result == ""
 
     @patch("peagen._external.call_external_agent")  # Fixed patch target
@@ -93,12 +98,12 @@ class TestRendering:
         j2_instance.fill.return_value = "Rendered prompt"
         mock_call_agent.return_value = "Generated content"
 
-        # Call the function
+        # Call the function without j2_instance parameter
         result = _render_generate_template(
             file_record, context, "agent_prompt.j2", j2_instance, {}, mock_logger
         )
 
-        # Verify the result and interactions
+        # Assertions
         assert result == "Generated content"
         j2_instance.set_template.assert_called_once()
         j2_instance.fill.assert_called_once_with(context)
@@ -112,10 +117,12 @@ class TestRendering:
         """Test handling of exceptions during generate template rendering"""
         j2_instance.set_template.side_effect = Exception("Template error")
 
+        # Call the function without j2_instance parameter
         result = _render_generate_template(
             file_record, context, "agent_prompt.j2", j2_instance, {}, mock_logger
         )
 
+        # Assertions
         assert result == ""
         mock_logger.error.assert_called_once()
         assert (
@@ -133,18 +140,19 @@ class TestRendering:
         j2_instance.fill.return_value = "Rendered prompt"
         mock_call_agent.return_value = "Generated content"
 
+        # Define custom agent environment
         agent_env = {
             "provider": "test-provider",
             "api_key": "test-key",
             "model_name": "test-model",
         }
 
-        # Call the function
+        # Call the function without j2_instance parameter
         result = _render_generate_template(
             file_record, context, "agent_prompt.j2", j2_instance, agent_env, mock_logger
         )
 
-        # Verify the result and interactions
+        # Assertions
         assert result == "Generated content"
         mock_call_agent.assert_called_once_with(
             "Rendered prompt", agent_env, mock_logger
@@ -160,4 +168,5 @@ class TestRendering:
         # This should not raise an exception even without a logger
         result = _render_generate_template(file_record, context, "agent_prompt.j2", j2_instance, {})
 
+        # Assertions
         assert result == ""

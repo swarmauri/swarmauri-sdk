@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from typing import Any, Dict, Literal, Tuple
 
@@ -12,6 +13,10 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.programs.Program import Program
 
 logger = logging.getLogger(__name__)
+
+# Custom download dir for environments like CI
+NLTK_DATA_DIR = os.getenv("NLTK_DATA_DIR", "/tmp/nltk_data")
+nltk.data.path.append(NLTK_DATA_DIR)
 
 
 @ComponentBase.register_type(EvaluatorBase, "FleschReadingEaseEvaluator")
@@ -41,13 +46,13 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             nltk.data.find("tokenizers/punkt")
         except LookupError:
             logger.info("Downloading NLTK punkt tokenizer")
-            nltk.download("punkt", quiet=True)
+            nltk.download("punkt", quiet=True, download_dir=NLTK_DATA_DIR)
 
         try:
             nltk.data.find("corpora/cmudict")
         except LookupError:
             logger.info("Downloading CMU Pronouncing Dictionary")
-            nltk.download("cmudict", quiet=True)
+            nltk.download("cmudict", quiet=True, download_dir=NLTK_DATA_DIR)
 
         # Load the CMU dictionary for syllable counting
         self._cmu_dict = cmudict.dict() if cmudict else None

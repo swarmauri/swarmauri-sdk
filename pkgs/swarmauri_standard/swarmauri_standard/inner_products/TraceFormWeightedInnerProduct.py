@@ -37,8 +37,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
     type: Literal["TraceFormWeightedInnerProduct"] = "TraceFormWeightedInnerProduct"
     weight_matrix: np.ndarray
     model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        json_encoders={np.ndarray: lambda v: v.tolist()}
+        arbitrary_types_allowed=True, json_encoders={np.ndarray: lambda v: v.tolist()}
     )
 
     def __init__(self, weight_matrix: Optional[np.ndarray] = None, **kwargs):
@@ -71,6 +70,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         Compute the weighted trace inner product between two matrices.
 
         The inner product is defined as trace(A^T * W * B), where W is the weight matrix.
+        For complex matrices, we use the conjugate transpose A^H instead of transpose A^T.
 
         Parameters
         ----------
@@ -113,8 +113,20 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
         # Compute the weighted trace inner product
         try:
-            # Calculate A^T * W * B
-            weighted_product = np.matmul(a.T, np.matmul(self.weight_matrix, b))
+            # For complex matrices, use conjugate transpose (Hermitian)
+            if (
+                np.iscomplexobj(a)
+                or np.iscomplexobj(b)
+                or np.iscomplexobj(self.weight_matrix)
+            ):
+                # Calculate A^H * W * B (conjugate transpose)
+                weighted_product = np.matmul(
+                    a.conj().T, np.matmul(self.weight_matrix, b)
+                )
+            else:
+                # Calculate A^T * W * B (regular transpose for real matrices)
+                weighted_product = np.matmul(a.T, np.matmul(self.weight_matrix, b))
+
             # Take the trace
             result = np.trace(weighted_product)
             logger.debug(f"Inner product result: {result}")

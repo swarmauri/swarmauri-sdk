@@ -48,7 +48,7 @@ class TestPeagen:
             assert "/custom/templates" in peagen.namespace_dirs
 
             # Check j2pt templates_dir
-            assert Path("/additional/templates") in peagen.j2pt.templates_dir
+            assert str(Path("/additional/templates")) in peagen.j2pt.templates_dir
             assert peagen.base_dir in peagen.j2pt.templates_dir
             assert "/custom/templates" in peagen.j2pt.templates_dir
 
@@ -69,7 +69,6 @@ class TestPeagen:
         )
         assert os.path.normpath("/add1") in basic_peagen.j2pt.templates_dir
         assert os.path.normpath("/add2") in basic_peagen.j2pt.templates_dir
-
 
     def test_load_projects_dict(self, basic_peagen):
         """Test load_projects when YAML contains a dict with PROJECTS key."""
@@ -153,8 +152,12 @@ class TestPeagen:
 
     @patch("os.path.isfile", return_value=True)
     @patch("yaml.safe_load")
+    @patch(
+        "peagen.manifest_writer.ManifestWriter.finalise",
+        return_value=Path("/fake/manifest.json"),
+    )
     def test_process_single_project_with_files(
-        self, mock_yaml_load, mock_isfile, basic_peagen
+        self, mock_finalise, mock_yaml_load, mock_isfile, basic_peagen
     ):
         """Test process_single_project with a normal project."""
         # Setup project with packages
@@ -205,7 +208,14 @@ class TestPeagen:
                             basic_peagen.logger.info.assert_called()
 
     @patch("os.path.isfile", return_value=True)
-    def test_process_single_project_with_start_file(self, mock_isfile, basic_peagen):
+    @patch("yaml.safe_load")
+    @patch(
+        "peagen.manifest_writer.ManifestWriter.finalise",
+        return_value=Path("/fake/manifest.json"),
+    )
+    def test_process_single_project_with_start_file(
+        self, mock_finalise, mock_yaml_load, mock_isfile, basic_peagen
+    ):
         """Test process_single_project with start_file parameter."""
         # Setup project
         project = {
@@ -250,7 +260,14 @@ class TestPeagen:
                                     assert result[1]["RENDERED_FILE_NAME"] == "file3.py"
 
     @patch("os.path.isfile", return_value=True)
-    def test_process_single_project_with_start_idx(self, mock_isfile, basic_peagen):
+    @patch("yaml.safe_load")
+    @patch(
+        "peagen.manifest_writer.ManifestWriter.finalise",
+        return_value=Path("/fake/manifest.json"),
+    )
+    def test_process_single_project_with_start_idx(
+        self, mock_finalise, mock_yaml_load, mock_isfile, basic_peagen
+    ):
         """Test process_single_project with start_idx parameter."""
         # Setup project
         project = {
@@ -291,8 +308,13 @@ class TestPeagen:
                                 assert idx == 1
 
     @patch("os.path.isfile", return_value=True)
+    @patch("yaml.safe_load")
+    @patch(
+        "peagen.manifest_writer.ManifestWriter.finalise",
+        return_value=Path("/fake/manifest.json"),
+    )
     def test_process_single_project_with_transitive_sorting(
-        self, mock_isfile, basic_peagen
+        self, mock_finalise, mock_yaml_load, mock_isfile, basic_peagen
     ):
         """Test process_single_project with transitive sorting."""
         # Setup project
