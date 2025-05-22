@@ -1,7 +1,10 @@
 # File: tests/workflows/merge_strategies/test_identity_merge.py
 
 import pytest
-from swarmauri_workflow_statedriven.merge_strategies.identity_merge import IdentityMergeStrategy
+from swarmauri_workflow_statedriven.merge_strategies.identity_merge import (
+    IdentityMergeStrategy,
+)
+
 
 @pytest.mark.unit
 def test_merge_returns_same_list_instance():
@@ -17,6 +20,7 @@ def test_merge_returns_same_list_instance():
     result = strategy.merge(data)
     assert result is data
 
+
 @pytest.mark.unit
 def test_merge_returns_same_dict_instance():
     """
@@ -30,6 +34,7 @@ def test_merge_returns_same_dict_instance():
     data = {"a": 1}
     result = strategy.merge(data)
     assert result is data
+
 
 @pytest.mark.unit
 def test_merge_returns_same_scalar():
@@ -45,6 +50,7 @@ def test_merge_returns_same_scalar():
         result = strategy.merge(scalar)
         assert result is scalar
 
+
 @pytest.mark.unit
 def test_merge_returns_same_complex_object():
     """
@@ -54,8 +60,10 @@ def test_merge_returns_same_complex_object():
 
     When inputs is an arbitrary object, merge should return it unchanged.
     """
+
     class Custom:
         pass
+
     strategy = IdentityMergeStrategy()
     obj = Custom()
     result = strategy.merge(obj)

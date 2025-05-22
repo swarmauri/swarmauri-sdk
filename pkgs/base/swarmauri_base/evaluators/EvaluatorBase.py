@@ -22,6 +22,7 @@ class EvaluatorBase(IEvaluate, ComponentBase):
     """
 
     resource: Optional[str] = Field(default=ResourceTypes.EVALUATOR.value)
+    type: Literal["EvaluatorBase"] = "EvaluatorBase"
 
     def evaluate(self, program: Program, **kwargs) -> Tuple[float, Dict[str, Any]]:
         """

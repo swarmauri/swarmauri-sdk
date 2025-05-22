@@ -1,5 +1,4 @@
 import pytest
-from importlib.metadata import EntryPoint
 
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
@@ -29,7 +28,10 @@ def test_add_and_remove_entry():
     PluginCitizenshipRegistry.remove_from_registry(
         "first", "swarmauri.agents.TestAgent"
     )
-    assert "swarmauri.agents.TestAgent" not in PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY
+    assert (
+        "swarmauri.agents.TestAgent"
+        not in PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY
+    )
 
 
 @pytest.mark.unit
@@ -56,7 +58,8 @@ def test_update_and_delete_entry():
         == "pkg.NewChain"
     )
 
-    PluginCitizenshipRegistry.delete_entry(
-        "second", "swarmauri.chains.TestChain"
+    PluginCitizenshipRegistry.delete_entry("second", "swarmauri.chains.TestChain")
+    assert (
+        "swarmauri.chains.TestChain"
+        not in PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY
     )
-    assert "swarmauri.chains.TestChain" not in PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY
