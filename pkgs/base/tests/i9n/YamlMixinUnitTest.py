@@ -2,10 +2,11 @@ import yaml
 import pytest
 
 from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.TomlMixin import TomlMixin
 
 
 # Integration model combining several features
-class IntegrationModel(YamlMixin):
+class IntegrationModel(YamlMixin, TomlMixin):
     name: str
     age: int
     api_key: str = None

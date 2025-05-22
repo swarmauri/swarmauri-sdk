@@ -1,16 +1,24 @@
 import json
-from pydantic import BaseModel, ValidationError
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - fallback for Python <3.11
+    import tomli as tomllib
+
 import catoml
+from pydantic import BaseModel, ValidationError
 
 
 class TomlMixin(BaseModel):
     @classmethod
     def model_validate_toml(cls, toml_data: str):
         try:
-            toml_content = catoml.loads(toml_data)
-            return cls.model_validate_json(json.dumps(toml_content))
-        except ValueError as e:
+            toml_content = tomllib.loads(toml_data)
+        except Exception as e:  # pragma: no cover - tomllib provides decode error
             raise ValueError(f"Invalid TOML data: {e}")
+
+        try:
+            return cls.model_validate_json(json.dumps(toml_content))
         except ValidationError as e:
             raise ValueError(f"Validation failed: {e}")
 
@@ -24,7 +32,10 @@ class TomlMixin(BaseModel):
             if isinstance(data, dict):
                 return {
                     key: (
-                        api_key_placeholder if key == "api_key" and api_key_placeholder is not None else process_fields(value, fields_to_exclude)
+
+                        api_key_placeholder
+                        if key == "api_key" and api_key_placeholder is not None
+                        else process_fields(value, fields_to_exclude)
                     )
                     for key, value in data.items()
                     if key not in fields_to_exclude
