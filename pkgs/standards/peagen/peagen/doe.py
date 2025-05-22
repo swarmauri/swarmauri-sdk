@@ -9,7 +9,10 @@ from pathlib import Path
 from jinja2 import Template
 from typing import Any, Dict
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> upstream/mono/dev
 class DOEManager:
     """
     Manager for Design of Experiments (DOE) integration within Peagen.
@@ -37,9 +40,13 @@ class DOEManager:
         tmpl = yaml.safe_load(self.template_path.read_text(encoding="utf-8"))
         projects = tmpl.get("PROJECTS", [])
         if not projects:
+<<<<<<< HEAD
+            raise ValueError("template_project.yaml must contain a top-level 'PROJECTS' list")
+=======
             raise ValueError(
                 "template_project.yaml must contain a top-level 'PROJECTS' list"
             )
+>>>>>>> upstream/mono/dev
         self.base_project = projects[0]
 
     def build_designs(self) -> list[Dict[str, Any]]:
@@ -67,9 +74,13 @@ class DOEManager:
             val = val[part]
         return val
 
+<<<<<<< HEAD
+    def render_patches(self, design: Dict[str, Any], exp_id: str) -> list[Dict[str, Any]]:
+=======
     def render_patches(
         self, design: Dict[str, Any], exp_id: str
     ) -> list[Dict[str, Any]]:
+>>>>>>> upstream/mono/dev
         """
         DOEManager.render_patches
         Renders JSON-Patch operations for a single design.
@@ -86,9 +97,13 @@ class DOEManager:
                     key = next(iter(raw_val))
                     if "." in key:
                         val = self._get_from_context(key, ctx)
+<<<<<<< HEAD
+                        patches.append({"op": pt["op"], "path": pt["path"], "value": val})
+=======
                         patches.append(
                             {"op": pt["op"], "path": pt["path"], "value": val}
                         )
+>>>>>>> upstream/mono/dev
                         continue
 
                 # GENERAL CASE: render the template string directly

@@ -1,8 +1,8 @@
 # peagen/plugin_registry.py
 """Plugin registry for the Peagen microkernel."""
 
-from importlib.metadata import entry_points
 from collections import defaultdict
+from importlib.metadata import entry_points
 from types import ModuleType
 from typing import Dict
 
@@ -11,6 +11,7 @@ from typing import Dict
 # ---------------------------------------------------------------------------
 GROUPS = {
     "template_sets": ("peagen.template_sets", None),
+
     "storage_adapters": ("peagen.storage_adapters", object),
     "publishers": ("peagen.publishers", object),
     "indexers": ("peagen.indexers", object),
@@ -19,7 +20,6 @@ GROUPS = {
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
-
 
 def discover_and_register_plugins(
     mode: str = "fan-out", switch_map: dict[str, str] | None = None
@@ -34,6 +34,7 @@ def discover_and_register_plugins(
         ``switch_map`` for each group, falling back to built-ins.
     switch_map:
         Optional mapping of ``group_key`` → ``plugin_name`` for ``"switch"`` mode.
+
     """
 
     switch_map = switch_map or {}

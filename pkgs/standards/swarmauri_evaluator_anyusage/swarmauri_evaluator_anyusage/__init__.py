@@ -1,6 +1,12 @@
 from .AnyTypeUsageEvaluator import AnyTypeUsageEvaluator
 
+<<<<<<< HEAD
+__all__ = [
+    "AnyTypeUsageEvaluator"
+]
+=======
 __all__ = ["AnyTypeUsageEvaluator"]
+>>>>>>> upstream/mono/dev
 
 try:
     # For Python 3.8 and newer
@@ -13,4 +19,8 @@ try:
     __version__ = version("swarmauri_evaluator_anyusage")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
+<<<<<<< HEAD
     __version__ = "0.0.0"
+=======
+    __version__ = "0.0.0"
+>>>>>>> upstream/mono/dev

@@ -71,7 +71,6 @@ def load_peagen_toml(start_dir: pathlib.Path = pathlib.Path.cwd()) -> dict[str, 
         cfg_path = folder / ".peagen.toml"
         if cfg_path.is_file():
             import tomllib  # tomli for 3.10
-
             res = tomllib.loads(cfg_path.read_text("utf-8"))
             return res
     return {}
