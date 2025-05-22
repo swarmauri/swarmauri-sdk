@@ -8,10 +8,17 @@ Tests are classified into three categories:
 - Integration tests
 - Acceptance tests
 
-
 ## Running the Tests
 
 The tests can be run locally using pytest:
 ```sh
 pytest --junitxml=results.xml
 python classify_test_results.py results.xml
+```
+
+### Performance Tests
+
+Performance benchmarks are located under `tests/perf`. Execute them with:
+```sh
+uv run --package swarmauri-standard --directory swarmauri_standard pytest -k perf
+```
