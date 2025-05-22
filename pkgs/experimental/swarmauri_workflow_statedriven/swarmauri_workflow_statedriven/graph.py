@@ -101,6 +101,7 @@ class WorkflowGraph(WorkflowBase):
             The path to the generated PNG.
         """
         dot_source = self.to_dot()
+        escaped_dot = dot_source.replace("`", "\\`")
         # Build minimal HTML page
         html = f"""
         <html>
@@ -114,7 +115,7 @@ class WorkflowGraph(WorkflowBase):
             <script>
               const {{ Viz }} = window;
               const viz = new Viz();
-              viz.renderSVGElement(`{dot_source.replace('`','\\`')}`)
+              viz.renderSVGElement(`{escaped_dot}`)
                  .then(el => document.getElementById("container").appendChild(el))
                  .catch(err => console.error(err));
             </script>

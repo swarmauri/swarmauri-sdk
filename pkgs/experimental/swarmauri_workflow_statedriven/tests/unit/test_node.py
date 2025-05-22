@@ -2,7 +2,6 @@
 
 import pytest
 from swarmauri_workflow_statedriven.node import Node
-from swarmauri_workflow_statedriven.exceptions import WorkflowError
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
 from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
 from swarmauri_workflow_statedriven.input_modes.base import InputMode

@@ -1,7 +1,6 @@
 # File: tests/workflows/test_graph.py
 
 import pytest
-from pathlib import Path
 from swarmauri_workflow_statedriven.graph import WorkflowGraph
 from swarmauri_workflow_statedriven.conditions.function_condition import FunctionCondition
 
@@ -26,7 +25,9 @@ def test_execute_returns_expected_results():
     b_agent = DummyAgent()
     wf.add_state("A", agent=a_agent)
     wf.add_state("B", agent=b_agent)
-    wf.add_transition("A", "B", FunctionCondition(lambda s: True))
+    def always_true(_state):
+        return True
+    wf.add_transition("A", "B", FunctionCondition(always_true))
 
     results = wf.execute("A", "start")
     assert results["A"] == "start_out"
@@ -44,7 +45,9 @@ def test_visualize_returns_dot_string_and_contains_nodes_edges(tmp_path):
     wf = WorkflowGraph()
     wf.add_state("X", agent=DummyAgent())
     wf.add_state("Y", agent=DummyAgent())
-    wf.add_transition("X", "Y", FunctionCondition(lambda s: True))
+    def always_true(_state):
+        return True
+    wf.add_transition("X", "Y", FunctionCondition(always_true))
 
     dot = wf.visualize()
     # Return type is str (DOT source)
@@ -79,7 +82,9 @@ def test_visualize_png_headless_creates_png(tmp_path):
     wf = WorkflowGraph()
     wf.add_state("A", agent=DummyAgent())
     wf.add_state("B", agent=DummyAgent())
-    wf.add_transition("A", "B", FunctionCondition(lambda s: True))
+    def always_true(_state):
+        return True
+    wf.add_transition("A", "B", FunctionCondition(always_true))
 
     png_path = tmp_path / "graph.png"
     result_path = wf.visualize_png_headless(str(png_path))
