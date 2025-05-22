@@ -37,15 +37,6 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
-<<<<<<< HEAD
-markers = [
-    "unit: Unit tests",
-    "i9n: Integration tests",
-    "r8n: Regression tests",
-    "xfail: Expected failures",
-    "xpass: Expected passes"
-]
-=======
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
@@ -59,7 +50,6 @@ markers = [
     "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
->>>>>>> upstream/mono/dev
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
@@ -77,15 +67,11 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-<<<<<<< HEAD
-    "flake8>=7.0",
-=======
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
->>>>>>> upstream/mono/dev
 ]
 
 [project.entry-points.'swarmauri.evaluators']
