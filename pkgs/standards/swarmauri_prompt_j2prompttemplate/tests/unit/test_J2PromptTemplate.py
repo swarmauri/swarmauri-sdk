@@ -90,14 +90,13 @@ def test_j2pt_singleton_exists():
     from swarmauri_prompt_j2prompttemplate import j2pt
 
     assert j2pt is not None
-    assert j2pt.code_generation_mode is True
 
 
 @pytest.mark.unit
-def test_j2pt_code_generation_filters():
+def test_j2pt_builtin_filters():
     from swarmauri_prompt_j2prompttemplate import j2pt
 
-    # Test the make_singular filter which is only available in code_generation_mode
+    # Test the make_singular filter which is always available
     template_str = "{{ 'users' | make_singular }}"
     j2pt.set_template(template_str)
     result = j2pt.fill({})
@@ -111,7 +110,6 @@ def test_j2pt_copy():
     # Test basic copy functionality
     copy_instance = j2pt.model_copy(deep=False)
     assert copy_instance is not j2pt
-    assert copy_instance.code_generation_mode == j2pt.code_generation_mode
 
     # Test templates_dir handling
     original_dir = j2pt.templates_dir

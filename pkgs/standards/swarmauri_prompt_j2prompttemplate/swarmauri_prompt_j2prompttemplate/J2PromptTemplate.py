@@ -18,9 +18,8 @@ class J2PromptTemplate(PromptTemplateBase):
 
     Features:
     - Support for multiple template directories with fallback mechanism
-    - Built-in filters: split_whitespace, make_singular (when code_generation_mode is True)
+    - Built-in filters: split_whitespace, make_singular, make_plural
     - Template caching for performance
-    - Configurable for both general-purpose use and code generation
     """
 
     # The template attribute may be a literal string (template content),
@@ -29,7 +28,6 @@ class J2PromptTemplate(PromptTemplateBase):
     variables: Dict[str, Union[str, int, float, Any]] = {}
     # Optional templates_dir attribute (can be a single path or a list of paths)
     templates_dir: Optional[Union[str, List[str]]] = None
-    # Whether to enable code generation specific features like linguistic filters
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
@@ -55,6 +53,7 @@ class J2PromptTemplate(PromptTemplateBase):
         # Add basic filters
         env.filters["split"] = self.split_whitespace
         env.filters["make_singular"] = self.make_singular
+        env.filters["make_plural"] = self.make_plural
 
         return env
 
@@ -136,8 +135,8 @@ class J2PromptTemplate(PromptTemplateBase):
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
-        if self.code_generation_mode:
-            fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_plural"] = self.make_plural
 
         self.template = fallback_env.get_template(template_name)
 
@@ -198,11 +197,6 @@ class J2PromptTemplate(PromptTemplateBase):
         except ImportError:
             # Return the original if inflect is not available
             return word
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> upstream/mono/dev
     @staticmethod
     def make_plural(word: str) -> str:
         """
@@ -211,19 +205,10 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         try:
             import inflect
-<<<<<<< HEAD
-=======
-
->>>>>>> upstream/mono/dev
             p = inflect.engine()
             return p.plural(word) or word
         except ImportError:
             return word
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> upstream/mono/dev
     def add_filter(self, name: str, filter_func: Callable) -> None:
         """
         Adds a custom filter to the Jinja2 environment.
@@ -236,5 +221,5 @@ class J2PromptTemplate(PromptTemplateBase):
         env.filters[name] = filter_func
 
 
-# Create a singleton instance for peagen usage with code generation mode enabled
+# Create a singleton instance for peagen usage
 j2pt = J2PromptTemplate()
