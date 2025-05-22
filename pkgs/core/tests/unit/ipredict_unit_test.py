@@ -1,4 +1,3 @@
-import inspect
 import pytest
 from swarmauri_core.llms.IPredict import IPredict
 

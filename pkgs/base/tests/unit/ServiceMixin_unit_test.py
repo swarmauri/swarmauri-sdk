@@ -1,8 +1,10 @@
 import pytest
 from swarmauri_base.ServiceMixin import ServiceMixin
 
+
 class DummyService(ServiceMixin):
     pass
+
 
 @pytest.mark.unit
 def test_service_mixin_defaults():
