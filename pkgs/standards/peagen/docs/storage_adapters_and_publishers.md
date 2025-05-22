@@ -25,12 +25,19 @@ Any class providing `upload()` and `download()` can serve as the adapter, enabli
 
 ## Publisher Plugins
 
-The CLI can emit JSON events such as `process.started` and `process.done`. The repository includes a `RedisPublisher` that sends messages via Redis Pub/Sub:
+The CLI can emit JSON events such as `process.started` and `process.done`. The repository includes a `RedisPublisher` for Redis Pub/Sub and a `WebhookPublisher` for HTTP endpoints:
 
 ```python
 from peagen.publishers.redis_publisher import RedisPublisher
 
 bus = RedisPublisher("redis://localhost:6379/0")
+bus.publish("peagen.events", {"type": "process.started"})
+```
+
+```python
+from peagen.publishers.webhook_publisher import WebhookPublisher
+
+bus = WebhookPublisher("https://example.com/peagen")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
