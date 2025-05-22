@@ -34,10 +34,15 @@ def _render_copy_template(
     except Exception as e:
         if logger:
             e_split = str(e).split("not found")
-            logger.error(
-                f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}':"
-                f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found {e_split[1]}"
-            )
+            if len(e_split) > 1:
+                logger.error(
+                    f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}':"
+                    f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found {e_split[1]}"
+                )
+            else:
+                logger.error(
+                    f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}': {e}"
+                )
         return ""
 
 
@@ -65,8 +70,13 @@ def _render_generate_template(
     except Exception as e:
         if logger:
             e_split = str(e).split("not found")
-            logger.error(
-                f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}':"
-                f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found in {e_split[1]}"
-            )
+            if len(e_split) > 1:
+                logger.error(
+                    f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}':"
+                    f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found in {e_split[1]}"
+                )
+            else:
+                logger.error(
+                    f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}': {e}"
+                )
         return ""
