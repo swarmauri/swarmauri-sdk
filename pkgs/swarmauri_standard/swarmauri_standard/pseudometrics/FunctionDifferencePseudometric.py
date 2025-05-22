@@ -1,8 +1,7 @@
-from typing import TypeVar, Union, Callable, Sequence, Literal, Any, Dict, List, Optional, Set
+from typing import TypeVar, Union, Callable, Sequence, Literal, Any, Dict, List, Optional
 import logging
 import numpy as np
 import random
-from functools import partial
 
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -139,7 +138,6 @@ class FunctionDifferencePseudometric(PseudometricBase):
         for _ in range(self.num_samples):
             if len(dimensions) == 1:
                 # 1D case - return scalar
-                dim = dimensions[0]
                 lower, upper = bounds[0]
                 point = random.uniform(lower, upper)
                 self._sample_points.append(point)

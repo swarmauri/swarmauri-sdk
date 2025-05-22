@@ -201,7 +201,6 @@ def test_linearity_first_argument(euclidean_inner_product, a1, a2, b, alpha, bet
     # Direct computation to verify
     a1_array = np.array(a1)
     a2_array = np.array(a2)
-    b_array = np.array(b)
 
     combined = alpha * a1_array + beta * a2_array
     left_side = euclidean_inner_product.compute(combined, b)

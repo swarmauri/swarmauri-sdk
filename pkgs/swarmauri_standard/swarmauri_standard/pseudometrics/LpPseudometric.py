@@ -1,8 +1,7 @@
-from typing import TypeVar, Union, Callable, Sequence, Literal, List, Optional, Any, Dict, Tuple
+from typing import TypeVar, Union, Callable, Sequence, Literal, List, Optional, Tuple
 import logging
 import numpy as np
 import math
-from functools import lru_cache
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
@@ -141,8 +140,10 @@ class LpPseudometric(PseudometricBase):
             try:
                 # Try to convert to array as a last resort
                 return np.array(x, dtype=float)
-            except:
-                raise TypeError(f"Unsupported input type for LpPseudometric: {type(x)}")
+            except Exception as exc:
+                raise TypeError(
+                    f"Unsupported input type for LpPseudometric: {type(x)}"
+                ) from exc
     
     def _filter_coordinates(self, arr: np.ndarray) -> np.ndarray:
         """

@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Optional, Sequence, TypeVar, Union, Tuple
+from typing import Callable, List, Literal, Sequence, TypeVar, Union, Tuple
 import logging
 import numpy as np
 from pydantic import Field

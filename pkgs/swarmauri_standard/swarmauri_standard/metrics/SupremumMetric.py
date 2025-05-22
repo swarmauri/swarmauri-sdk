@@ -96,8 +96,10 @@ class SupremumMetric(MetricBase):
                 # Try to handle other types
                 try:
                     return abs(x - y)
-                except:
-                    raise TypeError(f"Unsupported input types: {type(x)} and {type(y)}")
+                except Exception as exc:
+                    raise TypeError(
+                        f"Unsupported input types: {type(x)} and {type(y)}"
+                    ) from exc
 
         except Exception as e:
             logger.error(f"Error calculating supremum distance: {str(e)}")

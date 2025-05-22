@@ -196,7 +196,7 @@ class L2EuclideanNorm(NormBase):
         """
         try:
             # Check if inputs are of the same type
-            if type(x) != type(y):
+            if type(x) is not type(y):
                 raise TypeError(
                     f"Inputs must be of the same type, got {type(x)} and {type(y)}"
                 )

@@ -1,7 +1,7 @@
 import pytest
 import logging
 import numpy as np
-from typing import Dict, List, Callable, Any
+from typing import Dict, Callable
 from swarmauri_standard.pseudometrics.FunctionDifferencePseudometric import FunctionDifferencePseudometric
 
 # Configure logging for tests
@@ -419,7 +419,8 @@ def test_with_constant_functions(fixed_points_pseudometric, simple_functions):
 def test_evaluate_function(fixed_points_pseudometric):
     """Test the internal _evaluate_function method."""
     # Simple function
-    func = lambda x: x**2
+    def func(x):
+        return x**2
     points = [-2, -1, 0, 1, 2]
     
     # Expected values: [4, 1, 0, 1, 4]

@@ -1,7 +1,5 @@
 import pytest
 import logging
-from typing import List, Set
-from collections import Counter
 
 from swarmauri_standard.similarities.OverlapCoefficientSimilarity import OverlapCoefficientSimilarity
 

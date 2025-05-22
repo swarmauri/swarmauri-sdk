@@ -1,9 +1,8 @@
 import logging
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 import numpy as np
-from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import (
     CallableType,
     MatrixType,
@@ -248,8 +247,8 @@ class SupremumComplexNorm(NormBase):
                 # For single values or incompatible types
                 try:
                     x_plus_y = complex(x) + complex(y)
-                except:
-                    raise TypeError("Inputs cannot be added")
+                except Exception as exc:
+                    raise TypeError("Inputs cannot be added") from exc
 
             # Compute norms
             norm_x = abs(self.compute(x))

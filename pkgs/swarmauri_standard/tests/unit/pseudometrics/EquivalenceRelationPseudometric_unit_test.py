@@ -1,7 +1,6 @@
 import pytest
 import logging
-from typing import List, Any, Callable
-from unittest.mock import Mock
+from typing import List, Any
 
 from swarmauri_standard.pseudometrics.EquivalenceRelationPseudometric import EquivalenceRelationPseudometric
 
