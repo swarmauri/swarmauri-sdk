@@ -11,7 +11,7 @@ on:
 
 jobs:
   detect-changed-files:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
@@ -70,7 +70,9 @@ jobs:
           for FILE in $CHANGED_FILES; do
             DIR=$(dirname "$FILE")
             PKG_ROOT=$(find_pyproject_root "$DIR")
-            [ -z "$PKG_ROOT" ] && continue        # skip if no pyproject
+            if [[ -z "$PKG_ROOT" || "$PKG_ROOT" == "pkgs" ]]; then
+              continue
+            fi
             PKG_PATH="${PKG_ROOT#pkgs/}"          # strip leading pkgs/
             PACKAGE_SET["$PKG_PATH"]=1            # record the package
           done
@@ -90,7 +92,7 @@ jobs:
   run-tests:
     needs: detect-changed-files
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
-    runs-on: ubuntu-latest
+    runs-on: [testing]
     strategy:
       fail-fast: false
       matrix:
