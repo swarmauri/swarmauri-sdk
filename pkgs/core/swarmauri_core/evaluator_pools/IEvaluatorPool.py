@@ -74,7 +74,7 @@ class IEvaluatorPool(ABC):
         pass
 
     @abstractmethod
-    def evaluate_all(
+    def evaluate(
         self, programs: Sequence[IProgram], **kwargs
     ) -> Sequence[IEvalResult]:
         """
