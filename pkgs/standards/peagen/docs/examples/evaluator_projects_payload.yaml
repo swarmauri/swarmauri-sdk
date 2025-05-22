@@ -30,7 +30,7 @@ PROJECTS:
               RESOURCE_KIND: "evaluator_pools"
               REQUIREMENTS:
                 - "Must implement add_evaluator(ev: IEvaluate) and remove_evaluator(name: str)"
-                - "Must provide evaluate_all(programs: Sequence[Program]) -> Sequence[EvaluationResult]"
+                - "Must provide evaluate(programs: Sequence[Program]) -> Sequence[EvaluationResult]"
                 - "Must support async evaluation via async def evaluate_async(...)"
                 - "Must expose aggregate(scores: Sequence[float]) -> float and allow pluggable aggregation"
                 - "Must include initialize() and shutdown() lifecycle hooks for resource management"
@@ -89,7 +89,7 @@ PROJECTS:
               REQUIREMENTS:
                 - "Must inherit from IPoolEvaluator"
                 - "Must implement _dispatch(self, programs: Sequence[Program]) -> Sequence[EvaluationResult]"
-                - "Must provide default evaluate_all, evaluate_async, and aggregate implementations"
+                - "Must provide default evaluate, evaluate_async, and aggregate implementations"
                 - "Must manage a concurrent.futures.Executor for parallel runs"
                 - "Must include pre_process and post_process hooks for inputs and outputs"
 
