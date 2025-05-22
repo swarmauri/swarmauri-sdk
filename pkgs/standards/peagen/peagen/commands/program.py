@@ -30,6 +30,8 @@ from peagen._source_packages import (
     materialise_packages,
     _materialise_source_pkg,
 )
+from swarmauri_standard.programs.Program import Program
+import importlib
 from peagen.storage_adapters import make_adapter_for_uri
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
 from jsonschema import validate as json_validate, ValidationError
@@ -55,6 +57,10 @@ def fetch(
     no_source: bool = typer.Option(
         False, help="Skip cloning/copying `source_packages` (debug only)"
     ),
+    evaluator_pool: Optional[str] = typer.Option(
+        None,
+        help="Evaluator pool class path 'module:Class' to run after fetch",
+    ),
 ):
     """
     Reconstruct a complete workspace from manifest(s).
@@ -71,8 +77,16 @@ def fetch(
             for spec in manifest["source_packages"]:
                 _materialise_source_pkg(spec, out_dir, upload=False)
         _materialise_workspace(manifest, out_dir)
-        
+
     typer.echo(f"workspace: {out_dir}")
+
+    if evaluator_pool:
+        module_name, cls_name = evaluator_pool.split(":")
+        pool_cls = getattr(importlib.import_module(module_name), cls_name)
+        pool = pool_cls()
+        program = Program.from_workspace(out_dir)
+        result = pool.evaluate(program)
+        typer.echo(json.dumps(result))
 
 
 # ───────────────────────────────────────────────────────────── patch ──
