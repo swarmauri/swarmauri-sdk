@@ -8,11 +8,13 @@ purposes. It includes timeout-based handling to avoid hanging during message ret
 """
 
 from typing import ClassVar, Callable, Any, Dict, List, Literal
+import json
 import logging
 import time
 
 from pydantic import Field, PrivateAttr
-from jupyter_client import find_connection_file, BlockingKernelClient
+from jupyter_client import find_connection_file
+from websocket import create_connection
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -55,14 +57,26 @@ class JupyterGetShellMessageTool(ToolBase):
     find_connection_file: ClassVar[Callable[[], str]] = staticmethod(
         find_connection_file
     )
-    BlockingKernelClient: ClassVar[Callable[..., Any]] = BlockingKernelClient
+    create_connection: ClassVar[Callable[..., Any]] = staticmethod(create_connection)
+    read_json_file: ClassVar[Callable[[str], Dict[str, Any]]] = staticmethod(
+        lambda p: json.load(open(p))
+    )
+    build_ws_url: ClassVar[Callable[[Dict[str, Any]], str]] = staticmethod(
+        lambda info: info.get("ws_url", "")
+    )
 
     # Private attributes to hold the patched functions.
     _find_connection_file: Callable[[], str] = PrivateAttr(
         default_factory=lambda: JupyterGetShellMessageTool.find_connection_file
     )
-    _BlockingKernelClient: Callable[..., Any] = PrivateAttr(
-        default_factory=lambda: JupyterGetShellMessageTool.BlockingKernelClient
+    _create_connection: Callable[..., Any] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.create_connection
+    )
+    _read_json_file: Callable[[str], Dict[str, Any]] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.read_json_file
+    )
+    _build_ws_url: Callable[[Dict[str, Any]], str] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.build_ws_url
     )
 
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
@@ -88,27 +102,35 @@ class JupyterGetShellMessageTool(ToolBase):
         """
         messages = []
         try:
-            # Use the private attribute that now holds the patched find_connection_file.
-            connection_file = find_connection_file()
-            client = BlockingKernelClient(connection_file=connection_file)
-            client.load_connection_file()
-            client.start_channels()
+            connection_file = self._find_connection_file()
+            connection_info = self._read_json_file(connection_file)
+            ws_url = self._build_ws_url(connection_info)
+            ws = self._create_connection(ws_url)
+            ws.settimeout(0.1)
 
             start_time = time.monotonic()
-            retrieved_any_message = False
 
             while time.monotonic() - start_time < timeout:
-                if client.shell_channel.msg_ready():
-                    msg = client.shell_channel.get_msg(block=False)
-                    messages.append(msg)
-                    logging.debug(f"Retrieved a shell message: {msg}")
-                    retrieved_any_message = True
-                else:
+                try:
+                    raw_msg = ws.recv()
+                except Exception:
                     time.sleep(0.1)
+                    continue
 
-            client.stop_channels()
+                if not raw_msg:
+                    continue
 
-            if not retrieved_any_message:
+                try:
+                    msg = json.loads(raw_msg)
+                except Exception:
+                    logger.debug("Failed to decode message: %s", raw_msg)
+                    continue
+
+                messages.append(msg)
+
+            ws.close()
+
+            if not messages:
                 return {
                     "error": f"No shell messages received within {timeout} seconds."
                 }

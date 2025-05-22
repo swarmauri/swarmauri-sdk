@@ -18,7 +18,7 @@
 
 # Swarmauri Tool Jupyter Get Shell Message
 
-A dedicated Python package providing a tool to retrieve shell messages from a running Jupyter kernel using jupyter_client. Built on the swarmauri framework, JupyterGetShellMessageTool is suitable for debugging, logging, and diagnostic purposes.
+A dedicated Python package providing a tool to retrieve shell messages from a running Jupyter kernel over a WebSocket connection. Built on the swarmauri framework, JupyterGetShellMessageTool is suitable for debugging, logging, and diagnostic purposes.
 
 ---
 
@@ -34,9 +34,9 @@ If you are using Poetry for dependency management, add it to your project by spe
     swarmauri_tool_jupytergetshellmessage = "^0.1.0.dev1"
 
 Once installed, the package automatically brings in its required dependencies:
-• swarmauri_core  
-• swarmauri_base  
-• jupyter_client  
+• swarmauri_core
+• swarmauri_base
+• websocket-client
 
 No specialized steps beyond a standard Python environment with pip or Poetry are necessary.
 
@@ -70,7 +70,7 @@ The tool attempts to connect to the active Jupyter kernel, retrieve available sh
 ## Dependencies
 
 • swarmauri_core and swarmauri_base provide the core classes (ComponentBase, ToolBase) for building and integrating tools across the swarmauri ecosystem.  
-• jupyter_client is leveraged to interface with the running Jupyter kernel, enabling retrieval of shell-based IPC messages.  
+• websocket-client is used to communicate with the running Jupyter kernel's shell WebSocket channel.
 
 These dependencies are automatically installed when installing this package via pip or Poetry.
 

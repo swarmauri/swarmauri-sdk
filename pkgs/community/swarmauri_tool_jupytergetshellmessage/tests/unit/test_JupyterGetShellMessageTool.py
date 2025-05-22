@@ -6,6 +6,7 @@ The tests ensure the tool correctly retrieves shell messages from a Jupyter kern
 handles timeouts, and manages exceptions.
 """
 
+import json
 import pytest
 from unittest.mock import patch, MagicMock
 from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
@@ -32,9 +33,8 @@ def test_call_method_no_messages(timeout_value: float) -> None:
     Verify that calling the tool with no messages available returns
     an error indicating no shell messages were received.
     """
-    mock_client = MagicMock()
-    # Simulate no messages on the shell channel
-    mock_client.shell_channel.msg_ready.return_value = False
+    mock_ws = MagicMock()
+    mock_ws.recv.side_effect = TimeoutError()
 
     with (
         patch(
@@ -42,8 +42,12 @@ def test_call_method_no_messages(timeout_value: float) -> None:
             return_value="fake_connection_file",
         ),
         patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
-            return_value=mock_client,
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.read_json_file",
+            return_value={"ws_url": "ws://fake"},
+        ),
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.create_connection",
+            return_value=mock_ws,
         ),
     ):
         tool = JupyterGetShellMessageTool()
@@ -63,17 +67,17 @@ def test_call_method_with_messages() -> None:
             return_value="fake_connection_file",
         ),
         patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
-        ) as MockClient,
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.read_json_file",
+            return_value={"ws_url": "ws://fake"},
+        ),
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.create_connection"
+        ) as MockConn,
     ):
-        mock_client_instance = MockClient.return_value
-        # Use an iterator that returns True once and then False indefinitely
-        mock_client_instance.shell_channel.msg_ready.side_effect = chain(
-            [True], repeat(False)
+        mock_ws = MockConn.return_value
+        mock_ws.recv.side_effect = chain(
+            [json.dumps({"content": {"text": "Hello, world!"}})], repeat(TimeoutError())
         )
-        mock_client_instance.shell_channel.get_msg.return_value = {
-            "content": {"text": "Hello, world!"}
-        }
 
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=1.0)
@@ -96,7 +100,11 @@ def test_call_method_exception_handling() -> None:
             return_value="fake_connection_file",
         ),
         patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.read_json_file",
+            return_value={"ws_url": "ws://fake"},
+        ),
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.create_connection",
             side_effect=RuntimeError("Test Error"),
         ),
     ):
