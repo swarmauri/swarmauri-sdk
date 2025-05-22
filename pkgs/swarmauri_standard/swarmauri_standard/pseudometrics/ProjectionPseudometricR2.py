@@ -1,3 +1,5 @@
+from typing import Callable, List, Literal, Sequence, TypeVar, Union, Tuple
+
 import logging
 from typing import Callable, List, Literal, Sequence, Tuple, TypeVar, Union
 
@@ -68,6 +70,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     def _validate_and_extract_coordinates(
         self, point: Union[VectorType, MatrixType, Sequence[T], str, Callable]
     ) -> Tuple[float, float]:
+
         """
         Validate input as a 2D point and extract its coordinates.
 

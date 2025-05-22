@@ -12,6 +12,7 @@ from typing import (
     Union,
 )
 
+
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase

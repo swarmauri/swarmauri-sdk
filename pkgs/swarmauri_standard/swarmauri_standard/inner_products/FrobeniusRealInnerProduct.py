@@ -3,6 +3,7 @@ from typing import Literal, TypeVar, Union
 
 import numpy as np
 from numpy.typing import NDArray
+from swarmauri_core.vectors.IVector import IVector
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 from swarmauri_core.vectors.IVector import IVector
@@ -10,7 +11,7 @@ from swarmauri_core.vectors.IVector import IVector
 # Configure logging
 logger = logging.getLogger(__name__)
 
-Vector = TypeVar("Vector", bound="IVector")
+Vector = TypeVar("Vector", bound=IVector)
 Matrix = TypeVar("Matrix", bound=np.ndarray)
 
 

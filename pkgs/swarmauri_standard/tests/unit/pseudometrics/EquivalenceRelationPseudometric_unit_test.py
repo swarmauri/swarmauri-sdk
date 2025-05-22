@@ -3,6 +3,7 @@ from typing import Any, List
 
 import pytest
 
+
 from swarmauri_standard.pseudometrics.EquivalenceRelationPseudometric import (
     EquivalenceRelationPseudometric,
 )

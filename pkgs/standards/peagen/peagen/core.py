@@ -51,10 +51,11 @@ class Peagen(ComponentBase):
     # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
 
-    # Legacy flag – converted to SOURCE_PACKAGES during CLI parsing.
+    # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
     additional_package_dirs: List[Path] = Field(
         default_factory=list,
         description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
+
     )
 
     # New: scratch workspace chosen by process.py
@@ -68,15 +69,19 @@ class Peagen(ComponentBase):
     source_packages: List[Dict[str, Any]] = Field(
         default_factory=list,
         description=(
-            "Each item: {type:'git'|'local', uri/path, ref?, dest, checksum?}. "
-            "'dest' is relative to workspace_root."
+            "Each item: {type:'git'|'local'|'bundle'|'uri', uri/archive, ref?, dest, "
+            "expose_to_jinja?, checksum?}. 'dest' is relative to workspace_root."
         ),
     )
 
     # New: template-sets installed for this run
     template_sets: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="Manifest entries for installed template-sets",
+        description=(
+            "Manifest entries for installed template-sets. "
+            "Each item: {name, type:'pip'|'git'|'local'|'bundle', "
+            "target, ref?, bundle_file?}."
+        ),
     )
 
     # Internal state
@@ -104,7 +109,7 @@ class Peagen(ComponentBase):
         that exist inside the workspace** plus built-ins & plugin templates.
         """
         # ── Auto-convert any leftover `additional_package_dirs`
-        #    into synthetic 'local' SOURCE_PACKAGE specs, so they get
+        #    into synthetic 'local' TEMPLATE_SET entries, so they get
         #    written to the manifest without CLI help.
         # -----------------------------------------------------------
         ns_dirs: List[str] = list(peagen.templates.__path__)
@@ -125,9 +130,12 @@ class Peagen(ComponentBase):
         if self.workspace_root is not None:
             ns_dirs.insert(0, os.fspath(self.workspace_root))
 
-        # 3) Source-package *dest* folders (now inside workspace)
+        # 3) Source-package *dest* folders exposed to Jinja
         for spec in self.source_packages:
-            ns_dirs.append(os.fspath(Path(self.workspace_root or ".") / spec["dest"]))
+            if spec.get("expose_to_jinja"):
+                ns_dirs.append(
+                    os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                )
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
@@ -159,6 +167,7 @@ class Peagen(ComponentBase):
             *[
                 os.fspath(Path(self.workspace_root or ".") / spec["dest"])
                 for spec in self.source_packages
+                if spec.get("expose_to_jinja")
             ],
         ]
         dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
