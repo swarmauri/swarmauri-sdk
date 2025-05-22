@@ -71,6 +71,12 @@ class Peagen(ComponentBase):
         ),
     )
 
+    # New: template-sets installed for this run
+    template_sets: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Manifest entries for installed template-sets",
+    )
+
     # Internal state
     projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
     dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
@@ -389,10 +395,11 @@ class Peagen(ComponentBase):
 
 
             manifest_meta: Dict[str, Any] = {
-                "schema_version": 3,
+                "schema_version": "3.1.0",
                 "workspace_uri": workspace_uri,
                 "project": project_name,
                 "source_packages": self.source_packages,
+                "template_sets": self.template_sets,
                 "peagen_version": __version__,
             }
 
