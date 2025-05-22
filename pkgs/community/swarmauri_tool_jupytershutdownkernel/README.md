@@ -18,7 +18,7 @@
 
 # Swarmauri Tool Jupyter Shutdown Kernel
 
-The swarmauri_tool_jupytershutdownkernel package provides a straightforward solution to shut down a running Jupyter kernel programmatically. It uses jupyter_client under the hood and is integrated into the Swarmauri framework ecosystem. This tool can be useful for automated resource management, testing scenarios that require repeated kernel restarts, or any workflow that programmatically terminates Jupyter kernels.
+The swarmauri_tool_jupytershutdownkernel package provides a straightforward solution to shut down a running Jupyter kernel programmatically. It uses **jupyter_rest_client** under the hood and is integrated into the Swarmauri framework ecosystem. This tool can be useful for automated resource management, testing scenarios that require repeated kernel restarts, or any workflow that programmatically terminates Jupyter kernels.
 
 ## Installation
 
@@ -26,7 +26,7 @@ You can install this module directly via PyPI using pip:
 
   pip install swarmauri_tool_jupytershutdownkernel
 
-This will install the package and its dependencies, including jupyter_client and the Swarmauri libraries required by JupyterShutdownKernelTool.
+This will install the package and its dependencies, including **jupyter_rest_client** and the Swarmauri libraries required by JupyterShutdownKernelTool.
 
 Ensure you are running a Python version between 3.10 and 3.13, and that you have the appropriate Swarmauri core/base packages installed. Typically, pip will handle these dependencies automatically.
 
@@ -68,7 +68,7 @@ def shutdown_kernel_example(kernel_identifier: str):
 
 ### Dependencies
 
-• jupyter_client – Underlies the kernel shutdown implementation.  
+• jupyter_rest_client – Provides the HTTP interface used for kernel shutdown.
 • swarmauri_core / swarmauri_base – Provide the foundational classes (ComponentBase and ToolBase).  
 • pydantic – Used internally for type validation in Swarmauri parameters.  
 

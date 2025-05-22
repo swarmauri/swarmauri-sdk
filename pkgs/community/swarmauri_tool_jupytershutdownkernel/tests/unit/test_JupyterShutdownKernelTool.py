@@ -1,12 +1,13 @@
 import inspect
 from unittest.mock import patch, MagicMock
 from typing import Dict
+import httpx
 
 from swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool import (
     JupyterShutdownKernelTool,
 )
 from swarmauri_base.tools.ToolBase import ToolBase
-from jupyter_client.kernelspec import NoSuchKernel
+
 
 
 class TestJupyterShutdownKernelTool:
@@ -54,80 +55,48 @@ class TestJupyterShutdownKernelTool:
         )
 
     @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.jupyter_rest_client"
     )
-    def test_call_success(self, mock_kernel_manager: MagicMock) -> None:
-        mock_manager_instance = mock_kernel_manager.return_value
-        # The shutdown logic calls is_alive() several times:
-        # 1. While-loop condition (iteration 1)
-        # 2. While-loop condition (iteration 2) → exit loop
-        # 3. Forced shutdown check (should not be called)
-        # 4. Final check confirming kernel is down
-        mock_manager_instance.is_alive.side_effect = [True, False, False, False]
+    def test_call_success(self, mock_client: MagicMock) -> None:
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            "status": "success",
+            "message": "Kernel shut down successfully.",
+        }
+        mock_client.shutdown_kernel.return_value = mock_response
 
         tool = JupyterShutdownKernelTool()
         result: Dict[str, str] = tool(kernel_id="test_kernel")
 
         assert result["status"] == "success"
         assert "shut down successfully" in result["message"]
-        mock_manager_instance.shutdown_kernel.assert_called_with(now=False)
+        mock_client.shutdown_kernel.assert_called_with("test_kernel")
 
     @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.jupyter_rest_client"
     )
-    def test_call_forced_shutdown(self, mock_kernel_manager: MagicMock) -> None:
-        mock_manager_instance = mock_kernel_manager.return_value
-        # For forced shutdown, is_alive() is called multiple times:
-        # Provide enough responses to cover all calls.
-        mock_manager_instance.is_alive.side_effect = [True, True, True, True, True]
-
-        tool = JupyterShutdownKernelTool()
-        result: Dict[str, str] = tool(kernel_id="test_kernel", shutdown_timeout=1)
-
-        assert result["status"] == "error"
-        assert "could not be shut down" in result["message"]
-        mock_manager_instance.shutdown_kernel.assert_any_call(now=True)
-
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
-    )
-    def test_call_no_such_kernel(self, mock_kernel_manager: MagicMock) -> None:
-        mock_manager_instance = mock_kernel_manager.return_value
-        # Instantiate NoSuchKernel with a dummy argument.
-        mock_manager_instance.load_connection_file.side_effect = NoSuchKernel("dummy")
-
-        tool = JupyterShutdownKernelTool()
-        result: Dict[str, str] = tool(kernel_id="non_existent")
-
-        assert result["status"] == "error"
-        assert "No such kernel" in result["message"]
-
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
-    )
-    def test_call_connection_file_not_found(
-        self, mock_kernel_manager: MagicMock
-    ) -> None:
-        mock_manager_instance = mock_kernel_manager.return_value
-        mock_manager_instance.load_connection_file.side_effect = FileNotFoundError
-
-        tool = JupyterShutdownKernelTool()
-        result: Dict[str, str] = tool(kernel_id="missing_connection_file")
-
-        assert result["status"] == "error"
-        assert "Connection file not found" in result["message"]
-
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
-    )
-    def test_call_unexpected_exception(self, mock_kernel_manager: MagicMock) -> None:
-        mock_manager_instance = mock_kernel_manager.return_value
-        mock_manager_instance.load_connection_file.side_effect = RuntimeError(
-            "Unexpected error"
+    def test_call_http_error(self, mock_client: MagicMock) -> None:
+        request = httpx.Request("DELETE", "http://localhost")
+        response = httpx.Response(500, request=request, json={"message": "fail"})
+        mock_client.shutdown_kernel.side_effect = httpx.HTTPStatusError(
+            "Server error", request=request, response=response
         )
 
         tool = JupyterShutdownKernelTool()
-        result: Dict[str, str] = tool(kernel_id="faulty_kernel")
+        result = tool(kernel_id="test_kernel")
+
+        assert result["status"] == "error"
+        assert "fail" in result["message"]
+
+    @patch(
+        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.jupyter_rest_client"
+    )
+    def test_call_unexpected_exception(self, mock_client: MagicMock) -> None:
+        mock_client.shutdown_kernel.side_effect = RuntimeError("boom")
+
+        tool = JupyterShutdownKernelTool()
+        result = tool(kernel_id="faulty_kernel")
 
         assert result["status"] == "error"
         assert "unexpected error" in result["message"].lower()
