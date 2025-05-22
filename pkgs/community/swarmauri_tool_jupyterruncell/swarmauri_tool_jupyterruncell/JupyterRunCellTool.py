@@ -1,18 +1,19 @@
-"""
-JupyterRunCellTool.py
+"""JupyterRunCellTool.py
 
-This module defines the JupyterRunCellTool, a component that executes Python code cells
-in an interactive IPython environment. It captures the standard output and standard error
-streams, handles timeouts, and returns the results for further processing. The tool
-integrates seamlessly with the swarmauri tool architecture and supports automated
-testing workflows.
+Execute Python code on a remote Jupyter server via its REST API.
+
+The tool sends code to a running kernel using HTTP requests and returns the
+captured stdout and stderr. It integrates with the Swarmauri tool architecture
+to allow automated execution of notebook cells in external Jupyter services.
 """
 
 import logging
-import signal
-import io
 import traceback
 from typing import List, Literal, Optional, Dict, Any
+
+import httpx
+
+from httpx import HTTPError
 from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
@@ -24,19 +25,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def _timeout_handler(signum, frame):
-    """
-    Signal handler to raise a TimeoutError when the signal is emitted.
-    """
-    raise TimeoutError("Cell execution timed out.")
-
-
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
 class JupyterRunCellTool(ToolBase):
     """
-    JupyterRunCellTool is a tool that executes Python code within an interactive IPython shell.
-    It captures the stdout and stderr streams, handles execution timeouts, logs the process,
-    and returns the output for further processing.
+    JupyterRunCellTool executes Python code using a Jupyter server's REST API.
+    It sends a request to a running kernel, captures stdout and stderr from the
+    response, and returns the results for further processing.
 
     Attributes:
         version (str): The version of the JupyterRunCellTool.
@@ -53,88 +47,89 @@ class JupyterRunCellTool(ToolBase):
             Parameter(
                 name="code",
                 input_type="string",
-                description="The Python code to run in the IPython cell.",
+                description="The Python code to run on the Jupyter server.",
                 required=True,
+            ),
+            Parameter(
+                name="base_url",
+                input_type="string",
+                description="Base URL of the Jupyter server REST API.",
+                required=True,
+            ),
+            Parameter(
+                name="kernel_id",
+                input_type="string",
+                description="Identifier of the kernel used for execution.",
+                required=True,
+            ),
+            Parameter(
+                name="token",
+                input_type="string",
+                description="Authentication token for the Jupyter server.",
+                required=False,
+                default=None,
             ),
             Parameter(
                 name="timeout",
                 input_type="number",
-                description="Optional timeout (in seconds) for the code execution. Default is 0 (no timeout).",
+                description="Optional timeout (in seconds) for the request. Default is 30 seconds.",
                 required=False,
-                default=0,
+                default=30,
             ),
         ]
     )
     name: str = "JupyterRunCellTool"
     description: str = (
-        "Executes Python code in an IPython environment, capturing stdout and stderr."
+        "Executes Python code using the Jupyter server REST API and captures stdout and stderr."
     )
     type: Literal["JupyterRunCellTool"] = "JupyterRunCellTool"
 
-    def __call__(self, code: str, timeout: Optional[float] = 0) -> Dict[str, Any]:
-        """
-        Executes the provided Python code in an interactive IPython session.
+    def __call__(
+        self,
+        code: str,
+        base_url: str,
+        kernel_id: str,
+        token: Optional[str] = None,
+        timeout: float = 30,
+    ) -> Dict[str, Any]:
+        """Execute code on a Jupyter server using its REST API.
 
         Args:
-            code (str): The Python code to execute in a cell.
-            timeout (float, optional): The maximum amount of time (in seconds) to allow for
-                                       code execution. If 0 or not provided, no timeout
-                                       is imposed. Defaults to 0.
+            code (str): The Python code to execute.
+            base_url (str): Base URL of the Jupyter server.
+            kernel_id (str): Identifier of the kernel to execute against.
+            token (Optional[str]): Authentication token for the server.
+            timeout (float): Request timeout in seconds. Defaults to 30.
 
         Returns:
-            Dict[str, Any]: A dictionary containing:
-                - "cell_output" (str): Captured standard output from running the code cell.
-                - "error_output" (str): Captured errors or exception traces, if any.
-                - "success" (bool): Indicates if execution succeeded without any unhandled exceptions.
+            Dict[str, Any]: A dictionary containing captured ``cell_output``,
+            ``error_output`` and a ``success`` flag.
 
         Example:
             >>> tool = JupyterRunCellTool()
-            >>> result = tool(\"\"\"print('Hello, world!')\"\"\")
-            >>> print(result)
-            {
-                'cell_output': 'Hello, world!\\n',
-                'error_output': '',
-                'success': True
-            }
+            >>> result = tool("print('hi')", "http://localhost:8888", "abcd")
         """
-        import contextlib
-        from IPython import get_ipython
 
         logger.info("JupyterRunCellTool called with code:\n%s", code)
-        logger.info("Timeout set to %s seconds.", timeout)
 
-        # Retrieve the current IPython shell instance
-        shell = get_ipython()
-        if shell is None:
-            logger.error("No active IPython shell found.")
-            return {
-                "cell_output": "",
-                "error_output": "Error: No active IPython shell available.",
-                "success": False,
-            }
+        headers = {}
+        if token:
+            headers["Authorization"] = f"token {token}"
 
-        # Prepare buffers to capture stdout and stderr
-        output_buffer = io.StringIO()
-        error_buffer = io.StringIO()
-
-        # Set up a signal handler if a timeout is specified
-        original_handler = signal.getsignal(signal.SIGALRM)
-        if timeout and timeout > 0:
-            signal.signal(signal.SIGALRM, _timeout_handler)
-            signal.alarm(int(timeout))
+        url = f"{base_url.rstrip('/')}/api/kernels/{kernel_id}/execute"
 
         try:
-            # Redirect stdout and stderr to capture them
-            with (
-                contextlib.redirect_stdout(output_buffer),
-                contextlib.redirect_stderr(error_buffer),
-            ):
-                shell.run_cell(code)
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue()
-            logger.info("Cell execution completed.")
-            logger.debug("Captured stdout: %s", cell_output.strip())
-            logger.debug("Captured stderr: %s", error_output.strip())
+            response = httpx.post(
+                url,
+                json={"code": code},
+                headers=headers,
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            cell_output = data.get("stdout", "")
+            error_output = data.get("stderr", "")
 
             return {
                 "cell_output": cell_output,
@@ -142,27 +137,17 @@ class JupyterRunCellTool(ToolBase):
                 "success": True,
             }
 
-        except TimeoutError as e:
-            logger.error("TimeoutError: %s", str(e))
-            # Attempt to gather partial outputs
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue() + f"\nTimeoutError: {str(e)}"
+        except HTTPError as exc:
+            logger.error("HTTP request failed: %s", exc)
             return {
-                "cell_output": cell_output,
-                "error_output": error_output,
+                "cell_output": "",
+                "error_output": str(exc),
                 "success": False,
             }
-        except Exception as e:
-            logger.error("An error occurred during cell execution: %s", str(e))
-            traceback_str = traceback.format_exc()
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue() + "\n" + traceback_str
+        except ValueError as exc:
+            logger.error("Failed parsing response JSON: %s", exc)
             return {
-                "cell_output": cell_output,
-                "error_output": error_output,
+                "cell_output": "",
+                "error_output": f"Invalid response: {exc}",
                 "success": False,
             }
-        finally:
-            # Disable the alarm and restore the original handler
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, original_handler)
