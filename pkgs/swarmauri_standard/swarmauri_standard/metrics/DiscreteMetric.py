@@ -5,6 +5,7 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
@@ -28,19 +29,15 @@ class DiscreteMetric(MetricBase):
 
     type: Literal["DiscreteMetric"] = "DiscreteMetric"
 
-    def distance(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the distance between two points: 1 if different, 0 if same.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point (must be hashable)
-        y : float
+        y : MetricInput
             Second point (must be hashable)
 
         Returns
@@ -68,21 +65,23 @@ class DiscreteMetric(MetricBase):
         return 0.0 if x == y else 1.0
 
     def distances(
-        self, x: Union[List[float], np.ndarray], y: Union[List[float], np.ndarray]
+        self,
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
         Parameters
         ----------
-        x : Union[List[float], np.ndarray]
+        x : Union[MetricInput, MetricInputCollection]
             First collection of points
-        y : Union[List[float], np.ndarray]
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of points
 
         Returns
         -------
-        Union[List[float], np.ndarray]
+        Union[List[float], IVector, IMatrix]
             Matrix of distances between points in x and y
 
         Raises
@@ -94,8 +93,8 @@ class DiscreteMetric(MetricBase):
 
         try:
             # Convert inputs to lists if they're not already
-            x_list = list(x)
-            y_list = list(y)
+            x_list = list(x) if not isinstance(x, (int, float)) else [x]
+            y_list = list(y) if not isinstance(y, (int, float)) else [y]
 
             # Create a distance matrix
             result = np.zeros((len(x_list), len(y_list)))
@@ -112,11 +111,7 @@ class DiscreteMetric(MetricBase):
             logger.error(error_msg)
             raise TypeError(error_msg)
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -124,9 +119,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -138,11 +133,7 @@ class DiscreteMetric(MetricBase):
         # Distance is always 0 or 1, so always non-negative
         return True
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -151,9 +142,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -165,11 +156,7 @@ class DiscreteMetric(MetricBase):
         # By definition, distance is 0 if and only if x == y
         return True
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -177,9 +164,9 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -192,10 +179,7 @@ class DiscreteMetric(MetricBase):
         return True
 
     def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
+        self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
@@ -205,11 +189,11 @@ class DiscreteMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
-        z : float
+        z : MetricInput
             Third point
 
         Returns

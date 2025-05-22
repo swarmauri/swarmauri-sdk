@@ -10,20 +10,21 @@ import json, os, sys
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
+import peagen.plugin_registry
+import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, model_validator, FilePath
-
-import peagen.plugin_registry
-import peagen.templates
+from pydantic import ConfigDict, Field, FilePath, model_validator
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
+
 from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
@@ -44,8 +45,8 @@ class Peagen(ComponentBase):
     org: Optional[str] = None
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
-    agent_env: Dict[str, Any]      = Field(default_factory=dict)
-    j2pt: Any                      = Field(default_factory=lambda: j2pt)
+    agent_env: Dict[str, Any] = Field(default_factory=dict)
+    j2pt: Any = Field(default_factory=lambda: j2pt)
 
     # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
@@ -53,13 +54,15 @@ class Peagen(ComponentBase):
     # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
     additional_package_dirs: List[Path] = Field(
         default_factory=list,
-        description="DEPRECATED – converted to anonymous template-set entries at CLI level."
+        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
+
     )
 
     # New: scratch workspace chosen by process.py
     workspace_root: Optional[Path] = Field(
-        default=None, exclude=True,
-        description="Workspace where generated & copied files live."
+        default=None,
+        exclude=True,
+        description="Workspace where generated & copied files live.",
     )
 
     # New: **authoritative list** of external packages copied into workspace.
@@ -113,8 +116,13 @@ class Peagen(ComponentBase):
 
         # 1) Template-set plugins discovered via registry
         from peagen.plugin_registry import registry
+
         for plugin in registry.get("template_sets", {}).values():
-            pkg: ModuleType = plugin if isinstance(plugin, ModuleType) else import_module(plugin.__module__.split(".", 1)[0])
+            pkg: ModuleType = (
+                plugin
+                if isinstance(plugin, ModuleType)
+                else import_module(plugin.__module__.split(".", 1)[0])
+            )
             if hasattr(pkg, "__path__"):
                 ns_dirs.extend(str(p) for p in pkg.__path__)
 
@@ -171,7 +179,9 @@ class Peagen(ComponentBase):
             candidate = Path(base) / template_set
             if candidate.is_dir():
                 return candidate.resolve()
-        raise ValueError(f"Template set '{template_set}' not found in: {self.namespace_dirs}")
+        raise ValueError(
+            f"Template set '{template_set}' not found in: {self.namespace_dirs}"
+        )
 
     # ---------------------
     # Public Methods

@@ -19,6 +19,7 @@ from peagen.cli_common import load_peagen_toml
 from peagen._api_key import _resolve_api_key
 from peagen._config import _config
 from peagen.core import Peagen
+from pydantic import FilePath
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
 revise_app = typer.Typer(help="Revise an existing Peagen project.")

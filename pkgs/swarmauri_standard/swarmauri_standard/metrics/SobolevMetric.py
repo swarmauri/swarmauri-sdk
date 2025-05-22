@@ -1,22 +1,18 @@
 import logging
-from typing import Callable, Dict, List, Literal, Sequence, TypeVar, Union
+from typing import Dict, List, Literal, Sequence, Union
 
 import numpy as np
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 from swarmauri_standard.norms.SobolevNorm import SobolevNorm
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-VectorType = TypeVar("VectorType", bound=IVector)
-MatrixType = TypeVar("MatrixType", bound=IMatrix)
-SequenceType = TypeVar("SequenceType", bound=Sequence)
-CallableType = TypeVar("CallableType", bound=Callable)
 
 
 @ComponentBase.register_type(MetricBase, "SobolevMetric")
@@ -62,11 +58,7 @@ class SobolevMetric(MetricBase):
             f"Initialized SobolevMetric with order {self.order} and weights {self.weights}"
         )
 
-    def distance(
-        self,
-        x: Union[VectorType, MatrixType, SequenceType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, CallableType],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the Sobolev distance between two functions or vectors.
 
@@ -75,9 +67,9 @@ class SobolevMetric(MetricBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, CallableType]
+        x : MetricInput
             First input (function or vector)
-        y : Union[VectorType, MatrixType, SequenceType, CallableType]
+        y : MetricInput
             Second input (function or vector)
 
         Returns
@@ -155,17 +147,17 @@ class SobolevMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Sobolev distances between collections of functions or vectors.
 
         Parameters
         ----------
-        x : float
+        x : Union[MetricInput, MetricInputCollection]
             First collection of inputs
-        y : float
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of inputs
 
         Returns
@@ -239,19 +231,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error calculating Sobolev distances: {str(e)}")
             raise ValueError(f"Failed to calculate Sobolev distances: {str(e)}")
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First input
-        y : float
+        y : MetricInput
             Second input
 
         Returns
@@ -267,20 +255,16 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First input
-        y : float
+        y : MetricInput
             Second input
 
         Returns
@@ -303,19 +287,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First input
-        y : float
+        y : MetricInput
             Second input
 
         Returns
@@ -334,10 +314,7 @@ class SobolevMetric(MetricBase):
             return False
 
     def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
+        self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
         Check if the Sobolev metric satisfies the triangle inequality axiom:
@@ -345,11 +322,11 @@ class SobolevMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First input
-        y : float
+        y : MetricInput
             Second input
-        z : float
+        z : MetricInput
             Third input
 
         Returns
@@ -369,19 +346,15 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking triangle inequality: {str(e)}")
             return False
 
-    def _are_effectively_equal(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def _are_effectively_equal(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if two inputs are effectively equal for the purposes of the metric.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First input
-        y : float
+        y : MetricInput
             Second input
 
         Returns

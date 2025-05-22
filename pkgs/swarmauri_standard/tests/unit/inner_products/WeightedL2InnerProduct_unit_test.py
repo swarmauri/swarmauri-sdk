@@ -102,7 +102,6 @@ def test_validate_weight_at_points_invalid():
     # Create a weight function that returns negative values
     def negative_weight_func(x):
         return -1.0
-
     inner_product = WeightedL2InnerProduct(weight_function=negative_weight_func)
 
     with pytest.raises(ValueError, match="Weight function must be strictly positive"):
@@ -287,7 +286,6 @@ def test_serialization():
     data = inner_product.model_dump()
     assert data["type"] == "WeightedL2InnerProduct"
     assert data["resource"] == "InnerProduct"
-
 
 
 @pytest.mark.unit

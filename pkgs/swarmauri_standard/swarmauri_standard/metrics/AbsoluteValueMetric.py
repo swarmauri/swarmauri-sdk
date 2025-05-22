@@ -5,6 +5,7 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
@@ -29,19 +30,15 @@ class AbsoluteValueMetric(MetricBase):
 
     type: Literal["AbsoluteValueMetric"] = "AbsoluteValueMetric"
 
-    def distance(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the distance between two scalar values using absolute difference.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First scalar value
-        y : float
+        y : MetricInput
             Second scalar value
 
         Returns
@@ -66,17 +63,17 @@ class AbsoluteValueMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of scalar values.
 
         Parameters
         ----------
-        x : Union[List[float], np.ndarray, IVector]
+        x : Union[MetricInput, MetricInputCollection]
             First collection of scalar values
-        y : Union[List[float], np.ndarray, IVector]
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of scalar values
 
         Returns
@@ -109,11 +106,7 @@ class AbsoluteValueMetric(MetricBase):
             [self.distance(x_val, y_val) for y_val in y_values] for x_val in x_values
         ]
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -121,9 +114,9 @@ class AbsoluteValueMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First scalar value
-        y : float
+        y : MetricInput
             Second scalar value
 
         Returns
@@ -136,20 +129,16 @@ class AbsoluteValueMetric(MetricBase):
         # Absolute value is always non-negative
         return dist >= 0
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First scalar value
-        y : float
+        y : MetricInput
             Second scalar value
 
         Returns
@@ -163,19 +152,15 @@ class AbsoluteValueMetric(MetricBase):
         # Check if distance is 0 iff x equals y
         return (dist == 0 and x == y) or (dist > 0 and x != y)
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First scalar value
-        y : float
+        y : MetricInput
             Second scalar value
 
         Returns
@@ -193,10 +178,7 @@ class AbsoluteValueMetric(MetricBase):
         return abs(dist_xy - dist_yx) < 1e-10
 
     def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
+        self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
@@ -204,11 +186,11 @@ class AbsoluteValueMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First scalar value
-        y : float
+        y : MetricInput
             Second scalar value
-        z : float
+        z : MetricInput
             Third scalar value
 
         Returns
@@ -226,15 +208,13 @@ class AbsoluteValueMetric(MetricBase):
         # Check triangle inequality (with small tolerance for floating-point errors)
         return dist_xz <= dist_xy + dist_yz + 1e-10
 
-    def _to_list(
-        self, x: Union[float, List[float], np.ndarray, IVector]
-    ) -> List[float]:
+    def _to_list(self, x: MetricInput) -> List[float]:
         """
         Convert various input types to a list of floats.
 
         Parameters
         ----------
-        x : Union[float, List[float], np.ndarray, IVector]
+        x : MetricInput
             Input to convert
 
         Returns
@@ -275,6 +255,13 @@ class AbsoluteValueMetric(MetricBase):
                 return [float(val) for val in x]
             except (ValueError, TypeError):
                 raise TypeError("Cannot convert sequence elements to float")
+
+        # Handle dictionary
+        elif isinstance(x, dict):
+            try:
+                return [float(val) for val in x.values()]
+            except (ValueError, TypeError):
+                raise TypeError("Cannot convert dictionary values to float")
 
         else:
             raise TypeError(f"Cannot convert type {type(x)} to list of floats")
