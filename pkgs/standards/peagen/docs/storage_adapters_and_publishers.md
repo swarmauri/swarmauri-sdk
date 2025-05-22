@@ -4,10 +4,38 @@ Peagen writes artifacts to a pluggable storage backend and can publish events du
 
 ## Storage Adapters
 
-`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Two adapters ship with the SDK:
+`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Four adapters ship with the SDK:
 
 - `FileStorageAdapter` – stores artifacts on the local filesystem.
 - `MinioStorageAdapter` – targets S3 compatible object stores.
+- `GithubStorageAdapter` – saves files into a GitHub repository.
+- `GithubReleaseStorageAdapter` – uploads artifacts as release assets.
+
+Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
+tables. For example:
+
+```toml
+[storage]
+default_storage_adapter = "file"
+
+[storage.adapters.file]
+output_dir = "./peagen_artifacts"
+
+[storage.adapters.minio]
+endpoint = "localhost:9000"
+bucket = "peagen"
+
+[storage.adapters.github]
+token = "ghp_..."
+org = "my-org"
+repo = "my-repo"
+
+[storage.adapters.gh_release]
+token = "ghp_..."
+org = "my-org"
+repo = "my-repo"
+tag = "v1.0.0"
+```
 
 To use a different solution, subclass one of these classes or implement the same two-method API and pass the instance when creating `Peagen`:
 
@@ -26,6 +54,7 @@ Any class providing `upload()` and `download()` can serve as the adapter, enabli
 ## Publisher Plugins
 
 The CLI can emit JSON events such as `process.started` and `process.done`. The repository includes a `RedisPublisher` for Redis Pub/Sub and a `WebhookPublisher` for HTTP endpoints:
+
 
 ```python
 from peagen.publishers.redis_publisher import RedisPublisher

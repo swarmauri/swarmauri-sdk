@@ -274,7 +274,11 @@ class SubprocessEvaluator(EvaluatorBase):
             if process and process.poll() is None:
                 try:
                     process.kill()
+<<<<<<< HEAD
+                except:
+=======
                 except Exception:
+>>>>>>> upstream/mono/dev
                     pass
 
             logger.error(f"Error during subprocess execution: {str(e)}")
