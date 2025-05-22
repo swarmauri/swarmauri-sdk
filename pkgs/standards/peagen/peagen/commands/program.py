@@ -24,7 +24,7 @@ import typer
 from rich import print as rprint
 from rich.tree import Tree
 
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from peagen._source_packages import (
     materialise_packages,
@@ -67,10 +67,8 @@ def fetch(
 
     for m_uri in manifests:
         manifest = _download_manifest(m_uri)
-        print(manifest)
         if not no_source:
             for spec in manifest["source_packages"]:
-                print(spec)
                 _materialise_source_pkg(spec, out_dir, upload=False)
         _materialise_workspace(manifest, out_dir)
         
@@ -200,26 +198,31 @@ def validate(
 
 # ───────────────────────────────────── helper implementations ──
 def _download_manifest(uri: str) -> dict:
-    # local file path? → open directly
-    if not "://" in uri:
+    """
+    Fetch *one* manifest JSON from *uri*.
+
+    Fix 2025-05-20: scopes the storage-adapter to the **directory
+    containing** the manifest (instead of the object itself).  
+    This prevents the double-prefix path reported in the stack-trace
+    where `<prefix>/<file> + <prefix>/<file>` was requested.
+    """
+    # Local file path? → just open it.
+    if "://" not in uri:
         return json.loads(pathlib.Path(uri).read_text())
 
-    # 1. Build adapter
-    adapter = make_adapter_for_uri(uri)
+    # Split object path into directory + filename
+    p = urlparse(uri)
+    dir_path, key_name = p.path.rsplit("/", 1)           # “…/.peagen”, “foo_manifest.json”
+    dir_uri = urlunparse((p.scheme, p.netloc, dir_path, "", "", ""))
 
-    # 2. Parse key relative to bucket
-    p       = urlparse(uri)
-    bucket_path = p.path.lstrip("/")              # "test/.peagen/Example..."
-    _, key  = bucket_path.split("/", 1)           # drop bucket name
+    # Build adapter scoped to the directory (bucket + prefix *without* the file)
+    adapter = make_adapter_for_uri(dir_uri)
 
-    # 3. Drop adapter prefix if present
-    pref = getattr(adapter, "_prefix", "")
-    if pref and key.startswith(pref.rstrip("/") + "/"):
-        key = key[len(pref.rstrip("/")) + 1 :]
-
-    # 4. Download and parse JSON
-    data = adapter.download(key)                  # returns BytesIO
+    # Download using *only* the file-name; adapter adds its prefix correctly
+    data = adapter.download(key_name)
     return json.load(data)
+
+
 
 
 def _materialise_workspace(manifest: dict, dest: Path):
