@@ -11,6 +11,7 @@ from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMerge
 from swarmauri_workflow_statedriven.state_manager import StateManager
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
 
+
 class Node:
     """
     File: workflows/node.py
@@ -59,10 +60,7 @@ class Node:
         self.merge_strategy = merge_strategy or ListMergeStrategy()
 
     def prepare_input(
-        self,
-        state_manager: "StateManager",
-        data: Any,
-        results: Dict[str, Any]
+        self, state_manager: "StateManager", data: Any, results: Dict[str, Any]
     ) -> Any:
         """
         File: workflows/node.py
@@ -124,10 +122,7 @@ class Node:
         return res
 
     def run(
-        self,
-        state_manager: "StateManager",
-        data: Any,
-        results: Dict[str, Any]
+        self, state_manager: "StateManager", data: Any, results: Dict[str, Any]
     ) -> Any:
         """
         File: workflows/node.py

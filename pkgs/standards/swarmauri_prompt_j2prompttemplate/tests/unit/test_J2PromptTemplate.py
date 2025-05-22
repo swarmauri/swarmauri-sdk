@@ -102,6 +102,7 @@ def test_j2pt_builtin_singular_filter():
     result = j2pt.fill({})
     assert result == "user"
 
+
 @pytest.mark.unit
 def test_j2pt_builtin_plural_filter():
     from swarmauri_prompt_j2prompttemplate import j2pt

@@ -1,7 +1,10 @@
 # File: tests/workflows/conditions/test_membership_condition.py
 
 import pytest
-from swarmauri_workflow_statedriven.conditions.membership_condition import MembershipCondition
+from swarmauri_workflow_statedriven.conditions.membership_condition import (
+    MembershipCondition,
+)
+
 
 @pytest.mark.unit
 def test_init_sets_attributes():
@@ -15,6 +18,7 @@ def test_init_sets_attributes():
     assert cond.member == 5
     assert cond.should_be_member is True
 
+
 @pytest.mark.unit
 def test_evaluate_true_when_member_present_and_should_be_member():
     """
@@ -26,6 +30,7 @@ def test_evaluate_true_when_member_present_and_should_be_member():
     state = {"A": ["foo", "bar"]}
     assert cond.evaluate(state) is True
 
+
 @pytest.mark.unit
 def test_evaluate_false_when_member_missing_and_should_be_member():
     """
@@ -36,6 +41,7 @@ def test_evaluate_false_when_member_missing_and_should_be_member():
     cond = MembershipCondition(node_name="A", member="baz", should_be_member=True)
     state = {"A": ["foo", "bar"]}
     assert cond.evaluate(state) is False
+
 
 @pytest.mark.unit
 def test_evaluate_false_when_container_not_iterable_and_should_be_member():
@@ -50,6 +56,7 @@ def test_evaluate_false_when_container_not_iterable_and_should_be_member():
     state = {"B": 123}
     assert cond.evaluate(state) is False
 
+
 @pytest.mark.unit
 def test_evaluate_true_when_member_missing_and_should_not_be_member():
     """
@@ -60,6 +67,7 @@ def test_evaluate_true_when_member_missing_and_should_not_be_member():
     cond = MembershipCondition(node_name="A", member="baz", should_be_member=False)
     state = {"A": ["foo", "bar"]}
     assert cond.evaluate(state) is True
+
 
 @pytest.mark.unit
 def test_evaluate_false_when_member_present_and_should_not_be_member():
@@ -72,6 +80,7 @@ def test_evaluate_false_when_member_present_and_should_not_be_member():
     state = {"A": ["foo", "bar"]}
     assert cond.evaluate(state) is False
 
+
 @pytest.mark.unit
 def test_evaluate_false_when_node_missing_and_should_be_member():
     """
@@ -82,8 +91,9 @@ def test_evaluate_false_when_node_missing_and_should_be_member():
     Missing node yields False when should_be_member=True.
     """
     cond = MembershipCondition(node_name="Missing", member="x", should_be_member=True)
-    state = {"Other": [1,2,3]}
+    state = {"Other": [1, 2, 3]}
     assert cond.evaluate(state) is False
+
 
 @pytest.mark.unit
 def test_evaluate_true_when_node_missing_and_should_not_be_member():

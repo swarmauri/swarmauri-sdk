@@ -3,6 +3,7 @@
 from typing import Any, List, Callable
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 
+
 class ConditionalJoinStrategy(JoinStrategy):
     """
     File: join_strategies/conditional_join.py

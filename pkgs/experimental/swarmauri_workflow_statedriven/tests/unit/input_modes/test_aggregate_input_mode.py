@@ -3,11 +3,14 @@
 import pytest
 from swarmauri_workflow_statedriven.input_modes.aggregate import AggregateInputMode
 
+
 class DummyStateManager:
     """
     Stub state manager (not used by AggregateInputMode).
     """
+
     pass
+
 
 @pytest.mark.unit
 def test_prepare_returns_shallow_copy_of_results():
@@ -21,11 +24,14 @@ def test_prepare_returns_shallow_copy_of_results():
     mode = AggregateInputMode()
     sm = DummyStateManager()
     results = {"A": 1, "B": [2, 3]}
-    prepared = mode.prepare(state_manager=sm, node_name="X", data="ignored", results=results)
+    prepared = mode.prepare(
+        state_manager=sm, node_name="X", data="ignored", results=results
+    )
     # returned dict equal to original
     assert prepared == results
     # but not the same object
     assert prepared is not results
+
 
 @pytest.mark.unit
 def test_modifying_prepared_does_not_mutate_original():
@@ -45,6 +51,7 @@ def test_modifying_prepared_does_not_mutate_original():
     # original remains unchanged
     assert results["A"] == {"nested": 9}
 
+
 @pytest.mark.unit
 def test_prepare_ignores_data_parameter():
     """
@@ -58,6 +65,8 @@ def test_prepare_ignores_data_parameter():
     sm = DummyStateManager()
     results = {"key": "value"}
     # Try with various data inputs
-    for data in [None, 123, "foo", [1,2,3]]:
-        prepared = mode.prepare(state_manager=sm, node_name="X", data=data, results=results)
+    for data in [None, 123, "foo", [1, 2, 3]]:
+        prepared = mode.prepare(
+            state_manager=sm, node_name="X", data=data, results=results
+        )
         assert prepared == results

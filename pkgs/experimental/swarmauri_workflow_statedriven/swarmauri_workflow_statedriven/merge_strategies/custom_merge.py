@@ -3,6 +3,7 @@
 from typing import Any, Callable, List
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 
+
 class CustomMergeStrategy(MergeStrategy):
     """
     File: merge_strategies/custom_merge.py
