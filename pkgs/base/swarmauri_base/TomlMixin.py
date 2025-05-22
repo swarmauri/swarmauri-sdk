@@ -1,4 +1,5 @@
 import json
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - fallback for Python <3.11
@@ -31,6 +32,7 @@ class TomlMixin(BaseModel):
             if isinstance(data, dict):
                 return {
                     key: (
+
                         api_key_placeholder
                         if key == "api_key" and api_key_placeholder is not None
                         else process_fields(value, fields_to_exclude)
