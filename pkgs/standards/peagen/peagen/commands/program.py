@@ -31,7 +31,6 @@ from peagen._source_packages import (
     _materialise_source_pkg,
 )
 from peagen._template_sets import install_template_sets
-from swarmauri_standard.programs.Program import Program
 import importlib
 from peagen.storage_adapters import make_adapter_for_uri
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
