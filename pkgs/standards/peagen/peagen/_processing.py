@@ -7,18 +7,19 @@ streaming.
 """
 
 import os
-from pprint import pformat
-from typing import Any, Dict, List, Optional
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from datetime import datetime, timezone
 from pathlib import Path
+from pprint import pformat
+from typing import Any, Dict, List, Optional
 
-from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
 
 from ._config import _config
 from ._graph import _build_forward_graph
 from ._rendering import _render_copy_template, _render_generate_template
 from .manifest_writer import ManifestWriter
+
 
 def _save_file(
     content: str,
@@ -30,7 +31,7 @@ def _save_file(
     storage_adapter=None,
     org: str | None = None,
     workspace_root: Path,
-    manifest_writer: Optional[ManifestWriter] = None,   # NEW
+    manifest_writer: Optional[ManifestWriter] = None,  # NEW
 ) -> None:
     """
     1.  Write to <workspace_root>/<filepath>.
@@ -43,16 +44,16 @@ def _save_file(
 
     if logger:
         fname = "peagen_" + str(full_path).split("peagen_")[1]
-        logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
+        logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
 
-    if storage_adapter:                                   # remote upload
-        key = os.path.normpath(filepath.lstrip('/'))
+    if storage_adapter:  # remote upload
+        key = os.path.normpath(filepath.lstrip("/"))
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
-            logger.info(f"({start_idx+1}/{idx_len}) Uploaded → {key}")
+            logger.info(f"({start_idx + 1}/{idx_len}) Uploaded → {key}")
 
-    if manifest_writer:                                   # manifest line
+    if manifest_writer:  # manifest line
         manifest_writer.add(
             {
                 "file": filepath,
@@ -124,7 +125,7 @@ def _process_file(
     idx_len: int = 1,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
-    manifest_writer: Optional[ManifestWriter] = None,      # NEW
+    manifest_writer: Optional[ManifestWriter] = None,  # NEW
 ) -> bool:
     """
     Render one file_record (COPY | GENERATE).
@@ -198,7 +199,7 @@ def _process_project_files(
     start_idx: int = 0,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
-    manifest_writer: Optional[ManifestWriter] = None,      # NEW
+    manifest_writer: Optional[ManifestWriter] = None,  # NEW
 ) -> None:
     """
     Processes all file_records, creating fresh J2PromptTemplate instances
@@ -210,7 +211,10 @@ def _process_project_files(
     if workers and workers > 0:
         forward_graph, in_degree, _ = _build_forward_graph(file_records)
         entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
-        idx_map = {rec["RENDERED_FILE_NAME"]: i + start_idx for i, rec in enumerate(file_records)}
+        idx_map = {
+            rec["RENDERED_FILE_NAME"]: i + start_idx
+            for i, rec in enumerate(file_records)
+        }
 
         def _worker(fname: str) -> None:
             rec = entry_map[fname]
@@ -218,7 +222,9 @@ def _process_project_files(
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
             j2 = j2pt.copy(deep=False)
-            j2.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+            j2.templates_dir = (
+                [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+            )
 
             try:
                 _process_file(
@@ -233,7 +239,7 @@ def _process_project_files(
                     storage_adapter=storage_adapter,
                     org=org,
                     workspace_root=workspace_root,
-                    manifest_writer=manifest_writer,          # NEW
+                    manifest_writer=manifest_writer,  # NEW
                 )
             except Exception as e:
                 logger.warning(f"{e}")
@@ -266,7 +272,9 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
         j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
+        j2_instance.templates_dir = (
+            [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
+        )
 
         if not _process_file(
             rec,
