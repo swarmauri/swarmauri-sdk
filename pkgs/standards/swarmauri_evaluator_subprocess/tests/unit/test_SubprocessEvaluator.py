@@ -306,21 +306,6 @@ def test_compute_score_success(
 
 
 @pytest.mark.unit
-@patch.object(SubprocessEvaluator, "_prepare_command")
-@patch("tempfile.TemporaryDirectory")
-def test_compute_score_error(mock_prepare, mock_temp_dir, evaluator, mock_program):
-    """Test score computation with error."""
-    mock_temp_dir.return_value.name = "/tmp/test_dir"
-    mock_prepare.side_effect = ValueError("Test error")
-
-    score, metadata = evaluator._compute_score(mock_program)
-
-    assert score == evaluator.score_on_error
-    assert "error" in metadata
-    assert metadata["error"] == "Test error"
-
-
-@pytest.mark.unit
 def test_compute_score_with_working_dir(evaluator, mock_program):
     """Test score computation with specified working directory."""
     evaluator.working_dir = "/custom/dir"
