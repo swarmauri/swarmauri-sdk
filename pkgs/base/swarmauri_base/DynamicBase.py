@@ -62,35 +62,20 @@ class DynamicBase(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init_subclass__(cls, **kwargs):
-        """Initialize a subclass of ``DynamicBase``.
-
-        ``pydantic`` version 2 is strict about field overrides.  Tests in this
-        repository dynamically create subclasses that simply assign ``type =
-        "Dummy"`` without providing a type annotation.  When ``BaseModel``
-        processes such a class it raises a ``PydanticUserError`` because the
-        ``type`` field on ``DynamicBase`` is annotated.  To remain backwards
-        compatible we inject the appropriate annotation before calling
-        ``BaseModel.__init_subclass__``.
-
-        Parameters
-        ----------
-        **kwargs : Any
-            Additional keyword arguments passed to the superclass.
         """
-        # Ensure the ``type`` annotation exists before ``BaseModel`` processes
-        # the subclass.  If the subclass already defines an annotation we leave
-        # it untouched.
-        annotations = dict(getattr(cls, "__annotations__", {}))
-        annotations.setdefault("type", Literal[cls.__name__])
-        cls.__annotations__ = annotations
-        cls.type = cls.__name__
-        cls._type = cls.__name__
+        Initialize a subclass of DynamicBase.
+        This method is automatically called when a subclass is defined. It sets the type attribute,
+        updates the class annotations, and initializes the UnionFactory for the subclass.
 
+        Parameters:
+            **kwargs: Additional keyword arguments.
+        """
         super().__init_subclass__(**kwargs)
-
+        cls._type = cls.__name__
+        cls.__annotations__["type"] = Literal[cls.__name__]
+        cls.type = cls.__name__
         cls._set_subclass_union_factory()
         cls._set_full_union_factory()
-
     ###############################################################
     # _subclass_union_factory methods
     ###############################################################
