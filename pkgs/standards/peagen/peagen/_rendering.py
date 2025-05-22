@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 import colorama
 from colorama import Fore, Style
 from pydantic import FilePath
+from swarmauri_prompt_j2prompttemplate import j2pt
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
@@ -18,7 +19,6 @@ colorama.init(autoreset=True)
 def _render_copy_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
-    j2_instance: Any,  # <-- new parameter
     logger: Optional[Any] = None,
 ) -> str:
     """
@@ -29,8 +29,8 @@ def _render_copy_template(
     """
     try:
         template_path = file_record.get("FILE_NAME", "NOT_FILE_FOUND")
-        j2_instance.set_template(FilePath(template_path))
-        return j2_instance.fill(context)
+        j2pt.set_template(FilePath(template_path))
+        return j2pt.fill(context)
     except Exception as e:
         if logger:
             e_split = str(e).split("not found")
@@ -45,7 +45,6 @@ def _render_generate_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
     agent_prompt_template: str,
-    j2_instance: Any,  # <-- new parameter
     agent_env: Dict[str, str] = {},
     logger: Optional[Any] = None,
 ) -> str:
@@ -57,8 +56,8 @@ def _render_generate_template(
     then calls out to the external agent.
     """
     try:
-        j2_instance.set_template(FilePath(agent_prompt_template))
-        rendered_prompt = j2_instance.fill(context)
+        j2pt.set_template(FilePath(agent_prompt_template))
+        rendered_prompt = j2pt.fill(context)
         from ._external import call_external_agent
 
         return call_external_agent(rendered_prompt, agent_env, logger)

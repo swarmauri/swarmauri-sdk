@@ -139,7 +139,7 @@ class Peagen(ComponentBase):
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
-            ns_dirs.append(os.fspath(p))
+            ns_dirs.append(p)
 
         # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
@@ -182,6 +182,11 @@ class Peagen(ComponentBase):
         raise ValueError(
             f"Template set '{template_set}' not found in: {self.namespace_dirs}"
         )
+
+    # Backwards compatibility
+    def get_template_dir_any(self, template_set: str) -> Path:
+        """Alias for locate_template_set for legacy tests."""
+        return self.locate_template_set(template_set)
 
     # ---------------------
     # Public Methods
