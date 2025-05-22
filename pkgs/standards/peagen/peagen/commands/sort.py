@@ -25,6 +25,7 @@ sort_app = typer.Typer(
     help="Sort and show the list of files that would be processed for a project (dry run)."
 )
 
+
 @sort_app.command("sort")
 def sort(
     projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
@@ -150,10 +151,9 @@ def sort(
 
         pea.logger.info("")
         pea.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
-        for i, record in enumerate(sorted_records): 
-            idx = i + (start_idx or 0)  
-            name = record.get("RENDERED_FILE_NAME")  
-
+        for i, record in enumerate(sorted_records):
+            idx = i + (start_idx or 0)
+            name = record.get("RENDERED_FILE_NAME")
             deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
             dep_str = ", ".join(deps) if deps else "None"
             pea.logger.info("")
@@ -176,16 +176,15 @@ def sort(
                 Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL
             )
 
-            for i, record in enumerate(sorted_records): 
-                idx = i + (start_idx or 0)  
-                name = record.get("RENDERED_FILE_NAME")  
+            for i, record in enumerate(sorted_records):
+                idx = i + (start_idx or 0)
+                name = record.get("RENDERED_FILE_NAME")
                 deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
                 dep_str = ", ".join(deps) if deps else "None"
                 if show_dependencies:
                     pea.logger.info("")
                     pea.logger.info(f"\t{idx}) {name}")
-                    deps = get_immediate_dependencies(sorted_records, name)  
+                    deps = get_immediate_dependencies(sorted_records, name)
                     pea.logger.info(f"\t\tDependencies: {dep_str}")
                 else:
                     pea.logger.info(f"\t{idx}) {name}")
-

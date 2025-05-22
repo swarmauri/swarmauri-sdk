@@ -103,17 +103,12 @@ class GenericLLM:
                     with toml_path.open("rb") as f:
                         toml_data = tomllib.load(f)
                     llm_section = toml_data.get("llm", {})
-<<<<<<< HEAD
-                    provider_section = llm_section.get(provider, {}) or llm_section.get(provider.lower(), {})
-                    toml_api_key = provider_section.get("API_KEY") or provider_section.get("api_key")
-=======
                     provider_section = llm_section.get(provider, {}) or llm_section.get(
                         provider.lower(), {}
                     )
                     toml_api_key = provider_section.get(
                         "API_KEY"
                     ) or provider_section.get("api_key")
->>>>>>> upstream/mono/dev
                     if toml_api_key:
                         api_key = toml_api_key
                 except Exception:

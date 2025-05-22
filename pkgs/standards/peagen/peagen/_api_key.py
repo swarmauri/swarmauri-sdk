@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import tomllib
 
+
 def _resolve_api_key(
     provider: str,
     api_key: str = None,

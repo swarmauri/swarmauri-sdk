@@ -15,7 +15,6 @@ from pathlib import Path
 
 from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 
-
 from ._config import _config
 from ._graph import _build_forward_graph
 from ._rendering import _render_copy_template, _render_generate_template
@@ -32,7 +31,6 @@ def _save_file(
     org: str | None = None,
     workspace_root: Path,
     manifest_writer: Optional[ManifestWriter] = None,   # NEW
-
 ) -> None:
     """
     1.  Write to <workspace_root>/<filepath>.
@@ -45,15 +43,14 @@ def _save_file(
 
     if logger:
         fname = "peagen_" + str(full_path).split("peagen_")[1]
-        logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
-
+        logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
 
     if storage_adapter:                                   # remote upload
         key = os.path.normpath(filepath.lstrip('/'))
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
-            logger.info(f"({start_idx + 1}/{idx_len}) Uploaded → {key}")
+            logger.info(f"({start_idx+1}/{idx_len}) Uploaded → {key}")
 
     if manifest_writer:                                   # manifest line
         manifest_writer.add(
@@ -221,10 +218,8 @@ def _process_project_files(
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
             j2 = j2pt.copy(deep=False)
+            j2.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
 
-            j2.templates_dir = (
-                [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
-            )
             try:
                 _process_file(
                     rec,
@@ -239,7 +234,6 @@ def _process_project_files(
                     org=org,
                     workspace_root=workspace_root,
                     manifest_writer=manifest_writer,          # NEW
-
                 )
             except Exception as e:
                 logger.warning(f"{e}")
@@ -272,9 +266,7 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
         j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = (
-            [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
-        )
+        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
 
         if not _process_file(
             rec,
@@ -289,7 +281,6 @@ def _process_project_files(
             org=org,
             workspace_root=workspace_root,
             manifest_writer=manifest_writer,
-
         ):
             break
         start_idx += 1
