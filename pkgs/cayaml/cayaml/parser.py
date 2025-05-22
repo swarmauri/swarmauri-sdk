@@ -216,6 +216,7 @@ def parse_mapping(lines: list, indent: int):
             # first line following the block indicator. YAML treats that
             # indentation as significant for the entire block, so we capture it
             # and strip exactly that amount from each subsequent line.
+
             block_indent = None
             while i < n:
                 next_line = lines[i]
@@ -295,6 +296,7 @@ def parse_sequence(lines: list, indent: int):
             # from the first line that follows the indicator. Each subsequent
             # line must be at least that indented; anything less signals the end
             # of the block.
+
             block_indent = None
             while i < n:
                 nxt = lines[i]

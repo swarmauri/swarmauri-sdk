@@ -23,11 +23,13 @@ dependencies = [
     "inflect",
     "typer",
     "colorama",
+    "httpx>=0.27.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
+    "pika",
 ]
 
 
@@ -70,7 +72,7 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-    "requests>=2.32.3",
+    "httpx>=0.27.0",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
@@ -92,6 +94,8 @@ gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleas
 
 [project.entry-points."peagen.publishers"]
 redis   = "peagen.publishers.redis_publisher:RedisPublisher"
+webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["manifest.schema.v3.json"]

@@ -1,8 +1,4 @@
 import logging
-<<<<<<< HEAD
-import re
-=======
->>>>>>> upstream/mono/dev
 from unittest.mock import Mock, patch
 
 import pytest

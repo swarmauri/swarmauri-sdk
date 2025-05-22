@@ -53,27 +53,29 @@ Any class providing `upload()` and `download()` can serve as the adapter, enabli
 
 ## Publisher Plugins
 
-The CLI can emit JSON events such as `process.started` and `process.done`. One built-in publisher ships with the SDK:
+The CLI can emit JSON events such as `process.started` and `process.done`. The repository includes a `RedisPublisher` for Redis Pub/Sub and a `WebhookPublisher` for HTTP endpoints:
 
-- `RedisPublisher` – sends messages via Redis Pub/Sub.
-
-Enable it in `.peagen.toml` using the `[publishers.adapters.redis]` table:
-
-```toml
-[publishers]
-default_publisher = "redis"
-
-[publishers.adapters.redis]
-uri = "redis://localhost:6379/0"
-channel = "peagen.events"
-```
-
-You can also instantiate it programmatically:
 
 ```python
 from peagen.publishers.redis_publisher import RedisPublisher
 
 bus = RedisPublisher("redis://localhost:6379/0")
+bus.publish("peagen.events", {"type": "process.started"})
+```
+
+```python
+from peagen.publishers.webhook_publisher import WebhookPublisher
+
+bus = WebhookPublisher("https://example.com/peagen")
+bus.publish("peagen.events", {"type": "process.started"})
+```
+
+You can also publish events to RabbitMQ using `RabbitMQPublisher`:
+
+```python
+from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+
+bus = RabbitMQPublisher(host="localhost", port=5672, exchange="", routing_key="peagen.events")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
