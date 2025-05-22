@@ -137,8 +137,8 @@ class J2PromptTemplate(PromptTemplateBase):
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
-        if self.code_generation_mode:
-            fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_plural"] = self.make_plural
 
         self.template = fallback_env.get_template(template_name)
 
