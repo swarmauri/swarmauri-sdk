@@ -260,3 +260,27 @@ def test_reset(evaluator_pool, mock_evaluator):
     evaluator_pool.reset()
 
     mock_evaluator.reset.assert_called_once()
+
+
+@pytest.mark.unit
+def test_auto_register_evaluators(monkeypatch):
+    """AccessibilityEvaluatorPool auto-registers evaluators from the package."""
+    import swarmauri_evaluatorpool_accessibility as pkg
+
+    class DummyEvaluator(EvaluatorBase):
+        type = "DummyEvaluator"
+
+        def _compute_score(self, program: Program, **kwargs):
+            return 0.0, {}
+
+    for name in pkg.__all__:
+        if name == "AccessibilityEvaluatorPool":
+            continue
+        monkeypatch.setattr(pkg, name, type(name, (DummyEvaluator,), {}))
+
+    pool = pkg.AccessibilityEvaluatorPool()
+
+    expected = {name for name in pkg.__all__ if name != "AccessibilityEvaluatorPool"}
+    evaluator_names = {e.__class__.__name__ for e in pool.evaluators}
+
+    assert evaluator_names == expected
