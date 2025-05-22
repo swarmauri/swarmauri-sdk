@@ -93,3 +93,4 @@ class ResourceTypes(Enum):
     EVALUATOR = "Evaluator"
     EVALUATOR_RESULT = "EvaluatorResult"
     EVALUATOR_POOL = "EvaluatorPool"
+    RATE_LIMIT = "RateLimit"
