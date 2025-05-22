@@ -53,14 +53,17 @@ def discover_and_register_plugins(
             eps_to_process = builtins + others
 
         for ep in eps_to_process:
+            obj = ep.load()
+
             if ep.name in registry[group_key]:
+                existing = registry[group_key][ep.name]
+                if existing is obj:
+                    continue
                 if mode == "fallback":
                     continue
                 raise RuntimeError(
                     f"Duplicate plugin name '{ep.name}' detected in group '{group_key}'."
                 )
-
-            obj = ep.load()
 
             if group_key == "template_sets":
                 if not (isinstance(obj, ModuleType) or isinstance(obj, type)):
