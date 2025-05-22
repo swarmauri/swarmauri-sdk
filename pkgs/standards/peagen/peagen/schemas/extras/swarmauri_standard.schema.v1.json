@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/swarmauri_standard.schema.json",
+  "title": "EXTRAS Schema for swarmauri_standard",
+  "type": "object",
+  "properties": {
+    "RESOURCE_KIND": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "DEPENDENCIES": {},
+    "BASE_FILE": {},
+    "EXTERNAL_DOC_FILES": {},
+    "MIXIN_FILES": {},
+    "BASE_CLASS": {},
+    "MIXINS": {},
+    "EXAMPLES": {}
+  },
+  "additionalProperties": false
+}

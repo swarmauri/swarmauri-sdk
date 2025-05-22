@@ -8,6 +8,7 @@ import secrets
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+import pathlib
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -16,6 +17,7 @@ import typer
 from peagen._api_key import _resolve_api_key
 from peagen._config import _config
 from peagen._source_packages import materialise_packages
+from peagen._template_sets import install_template_sets
 from peagen.cli_common import (
     PathOrURI,
     common_peagen_options,
@@ -34,6 +36,7 @@ process_app = typer.Typer(
 @common_peagen_options
 def process_cmd(
     ctx: typer.Context,
+    # ── general options ────────────────────────────────────────────
     projects_payload: str = typer.Argument(
         ..., help="YAML path/URI with a PROJECTS list."
     ),
@@ -43,20 +46,31 @@ def process_cmd(
     template_base_dir: Optional[str] = typer.Option(
         None, help="Root dir for template lookup."
     ),
+    config: Optional[str] = typer.Option(
+        None, "-c", "--config", help="Alternate .peagen.toml path."
+    ),
+    bundles: Optional[str] = typer.Option(
+        None, "--bundles", "-B", help="Comma-separated environment-only bundles."
+    ),
     additional_package_dirs: Optional[str] = typer.Option(
         None, help="Comma-separated extra Jinja dirs."
     ),
+    # ── LLM options ────────────────────────────────────────────────
     provider: Optional[str] = typer.Option(None, help="LLM provider ID."),
     model_name: Optional[str] = typer.Option(None, help="Model name to use."),
     trunc: bool = typer.Option(True, help="Truncate LLM responses."),
     start_idx: Optional[int] = typer.Option(None, help="Start at file index."),
     start_file: Optional[str] = typer.Option(None, help="Start at specific filename."),
+    api_key: Optional[str] = typer.Option(None, help="Explicit LLM API key."),
+    env: str = typer.Option(".env", help="Env-file path for LLM API key lookup."),
+    # ── Swarmauri options ───────────────────────────────────────────
     include_swarmauri: bool = typer.Option(
         True, "--include-swarmauri/--no-include-swarmauri"
     ),
     swarmauri_dev: bool = typer.Option(False, "--swarmauri-dev/--no-swarmauri-dev"),
-    api_key: Optional[str] = typer.Option(None, help="Explicit LLM API key."),
-    env: str = typer.Option(".env", help="Env-file path for LLM API key lookup."),
+    swarmauri_bundle: Optional[str] = typer.Option(
+        None, "--swarmauri-bundle", help="Use bundle archive for swarmauri_sdk"
+    ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity."),
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive", help="Only process transitive deps."
@@ -95,17 +109,28 @@ def process_cmd(
     Main *process* entry – now emits artefacts under
     projects/<project>/runs/<run-id>/, honours publishers.adapters layout.
     """
-    toml_cfg = load_peagen_toml()
+    toml_cfg = load_peagen_toml(pathlib.Path(config) if config else pathlib.Path.cwd())
     plugins_cfg = toml_cfg.get("plugins", {})
     plugin_mode = plugin_mode if plugin_mode is not None else plugins_cfg.get("mode")
     ctx.obj.plugin_mode = plugin_mode
     _config["plugin_mode"] = plugin_mode
 
-    # ── GENERAL & LLM ────────────────────────────────────────────────────
+    # ── GENERAL ─────────────────────────────────────────────────────────
     workspace_cfg = toml_cfg.get("workspace", {})
     org = org if org is not None else workspace_cfg.get("org")
     workers = workers if workers is not None else workspace_cfg.get("workers", 0)
 
+    template_sets_cfg = toml_cfg.get("template_sets", [])
+    if bundles:
+        for b in bundles.split(","):
+            template_sets_cfg.append({"name": Path(b).stem, "type": "bundle", "target": b.strip()})
+
+    if additional_package_dirs:
+        for p in additional_package_dirs.split(","):
+            pp = Path(p).expanduser()
+            template_sets_cfg.append({"name": pp.stem, "type": "local", "target": str(pp)})
+
+    # ── LLM CONFIG ──────────────────────────────────────────────────────
     llm_cfg = toml_cfg.get("llm", {})
     provider = provider if provider is not None else llm_cfg.get("default_provider")
     model_name = (
@@ -203,14 +228,17 @@ def process_cmd(
     if include_swarmauri:
         source_pkgs.append(
             {
-                "type": "git",
+                "type": "bundle" if swarmauri_bundle else "git",
                 "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
                 "ref": "mono/dev" if swarmauri_dev else "master",
+                "archive": swarmauri_bundle if swarmauri_bundle else None,
                 "dest": "swarmauri_sdk",
             }
         )
 
     _config.update(truncate=trunc, revise=False, transitive=transitive, workers=workers)
+
+    installed_sets = install_template_sets(template_sets_cfg)
     resolved_key = _resolve_api_key(provider, api_key, env)
     agent_env = {
         "provider": provider,
@@ -229,6 +257,7 @@ def process_cmd(
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=extra_dirs,
             source_packages=source_pkgs,
+            template_sets=installed_sets,
             agent_env=agent_env,
             storage_adapter=storage_adapter,
             org=org,

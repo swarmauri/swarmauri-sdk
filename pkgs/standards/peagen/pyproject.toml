@@ -98,4 +98,4 @@ webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
 rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
 [tool.setuptools.package-data]
-"peagen.schemas" = ["manifest.schema.v3.json"]
+"peagen.schemas" = ["*.json", "extras/*.json"]
