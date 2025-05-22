@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_jupyterexecutecell"
 version = "0.7.4.dev10"
-description = "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors."
+description = "Execute a single code cell in a running Jupyter kernel via a REST interface, capturing its output and errors."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutecell/"
@@ -15,9 +15,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "jupyter_client>=8.6.3",
-    "IPython>=8.32.0",
-    "ipykernel==6.29.5",
+    "httpx>=0.27.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",

@@ -37,7 +37,7 @@ To install the package from PyPI with all its dependencies, run:
   - Python 3.12  
   - Python 3.13  
 
-Make sure that Jupyter-related tools (e.g., IPython) are installed for the cell execution functionality to work as expected. If your environment does not already include Jupyter or IPython, you can install them alongside this package (for example, pip install jupyter ipython).
+Ensure that a Jupyter server is running and note the kernel ID that you want to use for execution. The tool communicates with the server via a REST interface, so no direct IPython integration is required.
 
 ---
 
@@ -52,9 +52,10 @@ tool = JupyterExecuteCellTool()
 
 # Provide some code to execute
 code_to_run = "print('Hello from swarmauri!')"
+kernel_id = "your-kernel-id"
 
 # Execute the code in the Jupyter kernel
-result = tool(code_to_run)
+result = tool(kernel_id, code_to_run)
 
 # The 'result' dictionary contains three keys: 'stdout', 'stderr', and 'error'.
 print("Captured standard output:")
@@ -66,23 +67,19 @@ print(result["stderr"])
 print("Captured error messages (if any):")
 print(result["error"])
 
-If the execution times out (default is 30 seconds), the returned dictionary’s "error" key will contain a timeout message. You can override the default timeout by passing a second argument:
-
-result = tool(code_to_run, timeout=60)  # 60-second timeout
-
 ## Examples
 
 1. Executing Basic Python Statements:
 
    code_to_run = "a = 10\nb = 20\nprint(a + b)"
-   result = tool(code_to_run)
+   result = tool(kernel_id, code_to_run)
    # result["stdout"] will contain '30'
    # result["stderr"] and result["error"] should be empty if everything worked correctly.
 
 2. Handling Exceptions:
 
    code_with_error = "print(1/0)"  # Division by zero
-   result = tool(code_with_error)
+   result = tool(kernel_id, code_with_error)
    # result["stdout"] should be empty
    # result["stderr"] or result["error"] will contain information about the ZeroDivisionError.
 
@@ -93,17 +90,15 @@ import time
 time.sleep(10)
 print("Long operation finished!")
 '''
-   result = tool(code_with_long_process, timeout=15)
-   # Will complete successfully if it finishes under 15 seconds.
-   # If it exceeds the specified timeout, the "error" key will note the timeout event.
+   result = tool(kernel_id, code_with_long_process)
 
 ---
 
 ## Dependencies
 
-• swarmauri_core for core support.  
-• swarmauri_base for base tool classes.  
-• jupyter_client (and typically IPython) for Jupyter interaction.  
+• swarmauri_core for core support.
+• swarmauri_base for base tool classes.
+• httpx for REST communication with Jupyter kernels.
 
 Consult the pyproject.toml for additional dev/test dependencies.  
 
