@@ -23,7 +23,7 @@ def _determine_plugin_mode() -> str:
     except Exception:
         pass
 
-    return "fan-out"
+    return "fallback"
 
 
 discover_and_register_plugins(mode=_determine_plugin_mode())
