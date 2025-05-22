@@ -2,6 +2,7 @@ import copy
 import logging
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any, ClassVar, Dict, Literal, Optional
 
 from swarmauri_base.programs.ProgramBase import ProgramBase
@@ -184,3 +185,27 @@ class Program(ProgramBase):
 
         logger.info(f"Program {self.id} validation successful")
         return True
+
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_workspace(cls, root: Path) -> "Program":
+        """Create a program from all source files in *root*.
+
+        Args:
+            root (Path): Workspace directory containing source files.
+
+        Returns:
+            Program: Instance populated with file contents.
+        """
+        root = root.resolve()
+        content: Dict[str, str] = {}
+        for path in root.rglob("*"):
+            if path.is_file() and path.suffix in {".py", ".txt", ".md"}:
+                rel = path.relative_to(root)
+                content[str(rel)] = path.read_text(encoding="utf-8")
+
+        return cls(content=content)
+
+    def get_source_files(self) -> Dict[str, str]:
+        """Return program source files keyed by relative path."""
+        return self.content

@@ -145,7 +145,7 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             logger.warning(f"Attempted to remove non-existent evaluator '{name}'")
             return False
 
-    def evaluate_all(self, programs: Sequence[P], **kwargs) -> Sequence[IEvalResult]:
+    def evaluate(self, programs: Sequence[P], **kwargs) -> Sequence[IEvalResult]:
         """
         Evaluate all programs with all registered evaluators.
 
@@ -173,7 +173,7 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
 
             return final_results
         except Exception as e:
-            logger.error(f"Error in evaluate_all: {e}")
+            logger.error(f"Error in evaluate: {e}")
             raise RuntimeError(f"Failed to evaluate programs: {e}")
 
     async def evaluate_async(
@@ -195,10 +195,10 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             RuntimeError: If evaluation fails
         """
         try:
-            # Create a function that runs evaluate_all in a separate thread
+            # Create a function that runs evaluate in a separate thread
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
-                self._executor, partial(self.evaluate_all, programs, **kwargs)
+                self._executor, partial(self.evaluate, programs, **kwargs)
             )
             return result
         except Exception as e:
