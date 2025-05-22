@@ -89,6 +89,7 @@ class TestCallExternalAgent:
             ) as mock_system_message,
             patch("peagen._llm.GenericLLM") as mock_generic_llm,
             patch("peagen._external._config", {"truncate": True}),
+            patch("peagen._external.rate_limiter") as mock_rate_limiter,
             patch.dict(os.environ, {}, clear=True),
         ):
             # Setup the mock chain
@@ -99,6 +100,7 @@ class TestCallExternalAgent:
             mock_agent_instance = mock_qa_agent.return_value
             mock_agent_instance.exec.return_value = "Generated content"
             mock_agent_instance.conversation = MagicMock()
+            mock_rate_limiter.acquire.return_value = None
 
             yield {
                 "qa_agent": mock_qa_agent,
