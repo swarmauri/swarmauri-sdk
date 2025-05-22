@@ -12,5 +12,5 @@ def test_publish_base_defaults():
     pub = DummyPublisher()
     pub.publish("chan", {"a": 1})
     assert pub.resource == "Publisher"
-    assert pub.type == "PublishBase"
+    assert pub.type == "DummyPublisher"
     assert pub.last == ("chan", {"a": 1})
