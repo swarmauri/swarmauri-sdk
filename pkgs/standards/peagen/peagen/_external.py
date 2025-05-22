@@ -149,8 +149,8 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
             logger.warning(
                 "MdSnippetChunker not found. Returning full content without chunking."
             )
-        return full_content
+        return cleaned_text
     except Exception as e:
         if logger:
             logger.error(f"[ERROR] Failed to chunk content: {e}")
-        return full_content
+        return cleaned_text

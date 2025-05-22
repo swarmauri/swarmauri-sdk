@@ -29,8 +29,8 @@ def _save_file(
     *,
     storage_adapter=None,
     org: str | None = None,
-    workspace_root: Path,
-    manifest_writer: Optional[ManifestWriter] = None,   # NEW
+    workspace_root: Path = Path("."),
+    manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
     1.  Write to <workspace_root>/<filepath>.
@@ -118,7 +118,7 @@ def _process_file(
     agent_env: Dict[str, Any],
     j2_instance: Any,
     *,
-    workspace_root: Path,
+    workspace_root: Path = Path("."),
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
@@ -194,11 +194,11 @@ def _process_project_files(
     agent_env: Dict[str, Any],
     logger: Optional[Any] = None,
     *,
-    workspace_root: Path,
+    workspace_root: Path = Path("."),
     start_idx: int = 0,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
-    manifest_writer: Optional[ManifestWriter] = None,      # NEW
+    manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
     Processes all file_records, creating fresh J2PromptTemplate instances

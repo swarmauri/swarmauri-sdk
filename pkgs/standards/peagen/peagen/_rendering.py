@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 import colorama
 from colorama import Fore, Style
 from pydantic import FilePath
+from swarmauri_prompt_j2prompttemplate import j2pt
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
@@ -18,7 +19,7 @@ colorama.init(autoreset=True)
 def _render_copy_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
-    j2_instance: Any,  # <-- new parameter
+    j2_instance: Any,
     logger: Optional[Any] = None,
 ) -> str:
     """
@@ -45,7 +46,7 @@ def _render_generate_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
     agent_prompt_template: str,
-    j2_instance: Any,  # <-- new parameter
+    j2_instance: Any,
     agent_env: Dict[str, str] = {},
     logger: Optional[Any] = None,
 ) -> str:
