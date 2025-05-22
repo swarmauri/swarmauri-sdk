@@ -118,9 +118,12 @@ class Peagen(ComponentBase):
         if self.workspace_root is not None:
             ns_dirs.insert(0, os.fspath(self.workspace_root))
 
-        # 3) Source-package *dest* folders (now inside workspace)
+        # 3) Source-package *dest* folders exposed to Jinja
         for spec in self.source_packages:
-            ns_dirs.append(os.fspath(Path(self.workspace_root or ".") / spec["dest"]))
+            if spec.get("expose_to_jinja"):
+                ns_dirs.append(
+                    os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                )
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
@@ -149,8 +152,11 @@ class Peagen(ComponentBase):
         dirs = [
             os.fspath(package_specific_template_dir),
             self.base_dir,
-            *[os.fspath(Path(self.workspace_root or ".") / spec["dest"])
-              for spec in self.source_packages],
+            *[
+                os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                for spec in self.source_packages
+                if spec.get("expose_to_jinja")
+            ],
         ]
         dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
         self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
