@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri_tool_jupytershutdownkernel"
 version = "0.6.2.dev3"
-description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources."
+description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_rest_client, releasing all associated resources."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -23,7 +23,7 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 # Dependencies
-jupyter_client = "^8.6.3"
+jupyter_rest_client = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

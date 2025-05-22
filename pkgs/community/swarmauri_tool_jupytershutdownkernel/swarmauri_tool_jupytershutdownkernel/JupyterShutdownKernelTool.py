@@ -5,12 +5,15 @@
 # and handles kernel resource release, logging, error handling, and configurable timeouts.
 
 import logging
-import time
-from typing import List, Literal, Dict
+from typing import List, Literal, Dict, ClassVar, Any
+
+import httpx
 
 from pydantic import Field
-from jupyter_client import KernelManager
-from jupyter_client.kernelspec import NoSuchKernel
+try:
+    from jupyter_rest_client import jupyter_rest_client
+except Exception:  # pragma: no cover - optional dependency
+    jupyter_rest_client = None
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -59,6 +62,9 @@ class JupyterShutdownKernelTool(ToolBase):
     )
     type: Literal["JupyterShutdownKernelTool"] = "JupyterShutdownKernelTool"
 
+    # Expose jupyter_rest_client for easy patching in unit tests
+    jupyter_rest_client: ClassVar[Any] = jupyter_rest_client
+
     def __call__(self, kernel_id: str, shutdown_timeout: int = 5) -> Dict[str, str]:
         """
         Shuts down the specified Jupyter kernel using the provided kernel_id.
@@ -84,59 +90,32 @@ class JupyterShutdownKernelTool(ToolBase):
         logger.info("Initiating shutdown for kernel_id='%s'", kernel_id)
 
         try:
-            manager = KernelManager(kernel_name=kernel_id)
-            # Attempt to load the connection file; if it doesn’t exist or is invalid, this may fail.
-            manager.load_connection_file()
+            if self.jupyter_rest_client is None:
+                raise RuntimeError("jupyter_rest_client is not available")
 
-            # Request a graceful shutdown.
-            manager.shutdown_kernel(now=False)
-            logger.debug(
-                "Shutdown request sent to kernel_id='%s'; waiting up to %s seconds.",
-                kernel_id,
-                shutdown_timeout,
+            response = self.jupyter_rest_client.shutdown_kernel(kernel_id)
+            response.raise_for_status()
+            data = response.json()
+
+            message = data.get(
+                "message", f"Kernel {kernel_id} shut down successfully."
             )
-
-            # Wait for kernel to terminate, polling periodically.
-            elapsed = 0
-            poll_interval = 0.5
-            while manager.is_alive() and elapsed < shutdown_timeout:
-                time.sleep(poll_interval)
-                elapsed += poll_interval
-
-            # If kernel is still alive, attempt a forced shutdown.
-            if manager.is_alive():
-                logger.warning(
-                    "Kernel did not shut down within %s seconds; forcing shutdown.",
-                    shutdown_timeout,
-                )
-                manager.shutdown_kernel(now=True)
-
-            # Final check to confirm kernel termination.
-            if manager.is_alive():
-                error_message = f"Kernel {kernel_id} could not be shut down."
-                logger.error(error_message)
-                return {
-                    "kernel_id": kernel_id,
-                    "status": "error",
-                    "message": error_message,
-                }
-
-            success_message = f"Kernel {kernel_id} shut down successfully."
-            logger.info(success_message)
+            logger.info(message)
             return {
                 "kernel_id": kernel_id,
-                "status": "success",
-                "message": success_message,
+                "status": data.get("status", "success"),
+                "message": message,
             }
 
-        except NoSuchKernel:
-            error_message = f"No such kernel: {kernel_id}."
-            logger.error(error_message)
-            return {"kernel_id": kernel_id, "status": "error", "message": error_message}
-        except FileNotFoundError:
-            error_message = f"Connection file not found for kernel: {kernel_id}."
-            logger.error(error_message)
-            return {"kernel_id": kernel_id, "status": "error", "message": error_message}
+        except httpx.HTTPError as e:
+            message = str(e)
+            try:
+                if getattr(e, "response", None) is not None:
+                    message = e.response.json().get("message", message)
+            except Exception:
+                pass
+            logger.error("HTTP error while shutting down kernel: %s", message)
+            return {"kernel_id": kernel_id, "status": "error", "message": message}
         except Exception as e:
             logger.exception(
                 "An error occurred while shutting down kernel_id='%s'.", kernel_id

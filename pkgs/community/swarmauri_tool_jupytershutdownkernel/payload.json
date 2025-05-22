@@ -1,6 +1,6 @@
 {
     "PROJECT_ROOT": "pkgs",
-    "PACKAGE_DESCRIPTION": "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources.",
+    "PACKAGE_DESCRIPTION": "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_rest_client, releasing all associated resources.",
     "PACKAGE_ROOT": "swarmauri_tool_jupytershutdownkernel",
     "RESOURCE_KIND": "tool",
     "MODULE_NAME": "JupyterShutdownKernelTool",
@@ -19,7 +19,7 @@
     "EXTERNAL_DOC_EXAMPLE_FILE": null,
     "THIRD_PARTY_DEPENDENCIES": [
         {
-            "name": "jupyter_client",
+            "name": "jupyter_rest_client",
             "version": "*"
         }
     ]

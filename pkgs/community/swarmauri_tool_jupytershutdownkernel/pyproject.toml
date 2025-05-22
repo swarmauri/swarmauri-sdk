@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_jupytershutdownkernel"
 version = "0.7.4.dev10"
-description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources."
+description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_rest_client, releasing all associated resources."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel/"
@@ -15,7 +15,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "jupyter_client>=8.6.3",
+    "jupyter_rest_client>=0.1.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
