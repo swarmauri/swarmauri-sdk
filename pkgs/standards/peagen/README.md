@@ -371,7 +371,7 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 
 ### Storage Adapters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, `RedisPublisher`, and `RabbitMQPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
 
@@ -395,9 +395,11 @@ adapters and publishers can be supplied programmatically:
 from peagen.core import Peagen
 from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
 from peagen.publishers.redis_publisher import RedisPublisher
+from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
 bus = RedisPublisher("redis://localhost:6379/0")
+# bus = RabbitMQPublisher(host="localhost", port=5672, routing_key="peagen.events")
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
