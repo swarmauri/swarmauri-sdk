@@ -1,6 +1,6 @@
 {
     "PROJECT_ROOT": "pkgs",
-    "PACKAGE_DESCRIPTION": "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors.",
+    "PACKAGE_DESCRIPTION": "Execute a single code cell in a running Jupyter kernel over HTTP, capturing its output and errors.",
     "PACKAGE_ROOT": "swarmauri_tool_jupyterexecutecell",
     "RESOURCE_KIND": "tool",
     "MODULE_NAME": "JupyterExecuteCellTool",
@@ -19,7 +19,7 @@
     "EXTERNAL_DOC_EXAMPLE_FILE": null,
     "THIRD_PARTY_DEPENDENCIES": [
         {
-            "name": "jupyter_client",
+            "name": "httpx",
             "version": "*"
         }
     ]
