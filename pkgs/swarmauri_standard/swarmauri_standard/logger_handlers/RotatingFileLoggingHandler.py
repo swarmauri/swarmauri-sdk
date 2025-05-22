@@ -37,7 +37,7 @@ class RotatingFileLoggingHandler(HandlerBase):
     delay : bool
         If True, the file opening is deferred until the first log record is emitted.
     """
-
+    
     type: Literal["RotatingFileLoggingHandler"] = "RotatingFileLoggingHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
@@ -63,19 +63,17 @@ class RotatingFileLoggingHandler(HandlerBase):
         log_dir = os.path.dirname(self.filename)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
-
         # Create the rotating file handler
         handler = RotatingFileHandler(
             filename=self.filename,
             maxBytes=self.maxBytes,
             backupCount=self.backupCount,
             encoding=self.encoding,
-            delay=self.delay,
+            delay=self.delay
         )
-
+        
         # Set the logging level
         handler.setLevel(self.level)
-
         # Apply formatter
         if self.formatter:
             if isinstance(self.formatter, str):
