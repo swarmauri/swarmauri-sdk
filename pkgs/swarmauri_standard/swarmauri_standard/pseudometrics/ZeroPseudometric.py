@@ -206,4 +206,4 @@ class ZeroPseudometric(PseudometricBase):
         str
             A string representation suitable for debugging
         """
-        return f"ZeroPseudometric()"
+        return "ZeroPseudometric()"

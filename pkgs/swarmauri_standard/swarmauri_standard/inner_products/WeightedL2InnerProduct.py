@@ -3,6 +3,7 @@ from numbers import Number
 from typing import Any, Callable, Dict, Literal, TypeVar, Union
 
 import numpy as np
+from swarmauri_core.vectors.IVector import IVector
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 
@@ -10,7 +11,7 @@ from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
-Vector = TypeVar("Vector", bound="IVector")
+Vector = TypeVar("Vector", bound=IVector)
 Matrix = TypeVar("Matrix", bound=np.ndarray)
 
 

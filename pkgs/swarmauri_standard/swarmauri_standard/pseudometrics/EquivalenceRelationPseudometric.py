@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Sequence, TypeVar, Union, Any, Callable
+from typing import List, Literal, Sequence, TypeVar, Union, Any, Callable
 import logging
 from pydantic import Field
 

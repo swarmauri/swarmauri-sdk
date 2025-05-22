@@ -2,7 +2,6 @@ import logging
 import math
 from typing import Callable, List, Literal, Sequence
 
-from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 from swarmauri_core.similarities.ISimilarity import ComparableType
