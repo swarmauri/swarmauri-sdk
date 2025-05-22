@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/pythonpkg.schema.json",
+  "title": "EXTRAS Schema for pythonpkg",
+  "type": "object",
+  "properties": {
+    "AUTHORS": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "DEPENDENCIES": {},
+    "BASE_FILE": {},
+    "EXTERNAL_DOC_FILES": {},
+    "MIXIN_FILES": {},
+    "BASE_CLASS": {},
+    "MIXINS": {},
+    "RESOURCE_KIND": {},
+    "EXAMPLES": {}
+  },
+  "additionalProperties": false
+}
