@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.join_strategies.n_of_m_join import NofMJoinStrategy
 
+
 @pytest.mark.unit
 def test_init_sets_n():
     """
@@ -13,6 +14,7 @@ def test_init_sets_n():
     strategy = NofMJoinStrategy(n=3)
     assert hasattr(strategy, "n")
     assert strategy.n == 3
+
 
 @pytest.mark.unit
 def test_is_satisfied_false_when_buffer_length_less_than_n():
@@ -25,6 +27,7 @@ def test_is_satisfied_false_when_buffer_length_less_than_n():
     buffer = [1, 2, 3]
     assert strategy.is_satisfied(buffer) is False
 
+
 @pytest.mark.unit
 def test_is_satisfied_true_when_buffer_length_equals_n():
     """
@@ -36,6 +39,7 @@ def test_is_satisfied_true_when_buffer_length_equals_n():
     buffer = ["a", "b"]
     assert strategy.is_satisfied(buffer) is True
 
+
 @pytest.mark.unit
 def test_is_satisfied_true_when_buffer_length_exceeds_n():
     """
@@ -46,6 +50,7 @@ def test_is_satisfied_true_when_buffer_length_exceeds_n():
     strategy = NofMJoinStrategy(n=2)
     buffer = [0, 1, 2]
     assert strategy.is_satisfied(buffer) is True
+
 
 @pytest.mark.unit
 def test_mark_complete_no_effect_and_no_error():
@@ -59,6 +64,7 @@ def test_mark_complete_no_effect_and_no_error():
     strategy.mark_complete("branchX")
     assert strategy.is_satisfied([]) is False
     assert strategy.is_satisfied([42]) is True
+
 
 @pytest.mark.unit
 def test_reset_no_internal_state_change():

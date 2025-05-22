@@ -4,6 +4,7 @@ import pytest
 import re
 from swarmauri_workflow_statedriven.conditions.regex_condition import RegexCondition
 
+
 @pytest.mark.unit
 def test_init_compiles_pattern():
     """
@@ -17,6 +18,7 @@ def test_init_compiles_pattern():
     assert isinstance(cond.regex, re.Pattern)
     assert cond.node_name == "X"
 
+
 @pytest.mark.unit
 def test_init_invalid_pattern_raises_error():
     """
@@ -28,6 +30,7 @@ def test_init_invalid_pattern_raises_error():
     """
     with pytest.raises(re.error):
         RegexCondition(node_name="X", pattern="*[")  # invalid regex
+
 
 @pytest.mark.unit
 def test_evaluate_true_when_pattern_matches():
@@ -42,6 +45,7 @@ def test_evaluate_true_when_pattern_matches():
     state = {"A": "well, hello there"}
     assert cond.evaluate(state) is True
 
+
 @pytest.mark.unit
 def test_evaluate_false_when_pattern_not_matches():
     """
@@ -55,6 +59,7 @@ def test_evaluate_false_when_pattern_not_matches():
     state = {"A": "no digits here"}
     assert cond.evaluate(state) is False
 
+
 @pytest.mark.unit
 def test_evaluate_false_when_output_not_string():
     """
@@ -67,6 +72,7 @@ def test_evaluate_false_when_output_not_string():
     cond = RegexCondition(node_name="B", pattern="x")
     state = {"B": 12345}
     assert cond.evaluate(state) is False
+
 
 @pytest.mark.unit
 def test_evaluate_false_when_node_missing():

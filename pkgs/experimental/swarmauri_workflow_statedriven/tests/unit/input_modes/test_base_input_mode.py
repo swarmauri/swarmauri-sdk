@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 
+
 @pytest.mark.unit
 def test_input_mode_is_abstract():
     """
@@ -15,12 +16,15 @@ def test_input_mode_is_abstract():
     with pytest.raises(TypeError):
         InputMode()
 
+
 class DummyMode(InputMode):
     """
     Concrete subclass implementing prepare for testing.
     """
+
     def prepare(self, state_manager, node_name, data, results):
         return f"prepared:{data}"
+
 
 @pytest.mark.unit
 def test_dummy_mode_prepare_returns_expected():

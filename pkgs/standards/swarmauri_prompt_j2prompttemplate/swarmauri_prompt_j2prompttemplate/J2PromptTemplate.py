@@ -22,7 +22,6 @@ class J2PromptTemplate(PromptTemplateBase):
     - Template caching for performance
     """
 
-
     # The template attribute may be a literal string (template content),
     # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
     template: Union[str, FilePath, Template] = ""

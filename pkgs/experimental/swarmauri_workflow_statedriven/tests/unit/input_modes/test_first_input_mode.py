@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
 
+
 @pytest.mark.unit
 def test_prepare_returns_first_element_for_non_empty_list():
     """
@@ -17,6 +18,7 @@ def test_prepare_returns_first_element_for_non_empty_list():
     result = mode.prepare(state_manager=None, node_name="X", data=data, results={})
     assert result == "a"
 
+
 @pytest.mark.unit
 def test_prepare_returns_none_for_empty_list():
     """
@@ -30,6 +32,7 @@ def test_prepare_returns_none_for_empty_list():
     result = mode.prepare(state_manager=None, node_name="X", data=[], results={})
     assert result is None
 
+
 @pytest.mark.unit
 def test_prepare_passes_through_scalar():
     """
@@ -41,5 +44,7 @@ def test_prepare_passes_through_scalar():
     """
     mode = FirstInputMode()
     for scalar in [42, "foo", {"k": "v"}]:
-        result = mode.prepare(state_manager=None, node_name="X", data=scalar, results={})
+        result = mode.prepare(
+            state_manager=None, node_name="X", data=scalar, results={}
+        )
         assert result == scalar

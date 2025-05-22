@@ -2,6 +2,7 @@
 
 from typing import Any, Dict
 
+
 def always_valid(state: Dict[str, Any]) -> bool:
     """
     File: workflows/validator.py
@@ -10,6 +11,7 @@ def always_valid(state: Dict[str, Any]) -> bool:
     Always returns True, allowing any transition.
     """
     return True
+
 
 def validate_requirements(state: Dict[str, Any]) -> bool:
     """
@@ -21,6 +23,7 @@ def validate_requirements(state: Dict[str, Any]) -> bool:
     """
     output = state.get("Requirements Gathering", "")
     return "system design" in output.lower()
+
 
 def validate_design(state: Dict[str, Any]) -> bool:
     """

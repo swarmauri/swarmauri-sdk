@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Literal
 
 from pydantic import Field
 from swarmauri_core.evaluators.IEvaluate import EvaluationError, IEvaluate
@@ -22,6 +22,7 @@ class EvaluatorBase(IEvaluate, ComponentBase):
     """
 
     resource: Optional[str] = Field(default=ResourceTypes.EVALUATOR.value)
+    type: Literal["EvaluatorBase"] = "EvaluatorBase"
 
     def evaluate(self, program: Program, **kwargs) -> Tuple[float, Dict[str, Any]]:
         """

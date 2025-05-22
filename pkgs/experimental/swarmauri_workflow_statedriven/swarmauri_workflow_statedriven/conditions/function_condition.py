@@ -3,6 +3,7 @@
 from typing import Callable, Dict, Any
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
+
 class FunctionCondition(Condition):
     """
     Wraps a simple Python callable as a workflow condition.
