@@ -87,6 +87,7 @@ class DynamicBase(BaseModel):
         cls._type = cls.__name__
 
         super().__init_subclass__(**kwargs)
+
     ###############################################################
     # _subclass_union_factory methods
     ###############################################################
