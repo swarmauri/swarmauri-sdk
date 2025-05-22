@@ -2,6 +2,8 @@ import logging
 import re
 from typing import Any, Dict, Literal, Tuple
 
+from pydantic import PrivateAttr
+
 import nltk
 from nltk.corpus import cmudict
 from nltk.tokenize import sent_tokenize, word_tokenize
@@ -29,6 +31,7 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     """
 
     type: Literal["FleschReadingEaseEvaluator"] = "FleschReadingEaseEvaluator"
+    _cmu_dict = PrivateAttr(default=None)
 
     def __init__(self, **kwargs):
         """Initialize the Flesch Reading Ease evaluator."""
@@ -47,7 +50,12 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             nltk.download("cmudict", quiet=True)
 
         # Load the CMU dictionary for syllable counting
-        self.cmu_dict = cmudict.dict() if cmudict else None
+        self._cmu_dict = cmudict.dict() if cmudict else None
+
+    @property
+    def cmu_dict(self):
+        """Access the CMU Pronouncing Dictionary used for syllable counts."""
+        return self._cmu_dict
 
     def _compute_score(
         self, program: Program, **kwargs
@@ -154,13 +162,13 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         word = word.lower()
 
         # Try using CMU dictionary first
-        if self.cmu_dict and word in self.cmu_dict:
+        if self._cmu_dict and word in self._cmu_dict:
             # Count vowel phonemes (indicated by digits in the CMU dict)
             return max(
                 1,
                 sum(
                     1
-                    for phoneme in self.cmu_dict[word][0]
+                    for phoneme in self._cmu_dict[word][0]
                     if any(c.isdigit() for c in phoneme)
                 ),
             )

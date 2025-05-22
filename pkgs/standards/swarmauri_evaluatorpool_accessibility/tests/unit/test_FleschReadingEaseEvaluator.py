@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+import json
 
 import pytest
 from swarmauri_evaluatorpool_accessibility.FleschReadingEaseEvaluator import (
@@ -216,3 +217,4 @@ def test_serialization(evaluator):
     deserialized = FleschReadingEaseEvaluator.model_validate_json(serialized)
 
     assert deserialized.type == evaluator.type
+    assert "cmu_dict" not in json.loads(serialized)
