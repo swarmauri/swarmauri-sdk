@@ -3,6 +3,7 @@
 from typing import Any, List
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 
+
 class AggregatorStrategy(JoinStrategy):
     """
     File: join_strategies/aggregator.py

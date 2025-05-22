@@ -1,8 +1,15 @@
 # File: tests/workflows/conditions/test_composite_condition.py
 
 import pytest
-from swarmauri_workflow_statedriven.conditions.composite_condition import AndCondition, OrCondition, NotCondition
-from swarmauri_workflow_statedriven.conditions.function_condition import FunctionCondition
+from swarmauri_workflow_statedriven.conditions.composite_condition import (
+    AndCondition,
+    OrCondition,
+    NotCondition,
+)
+from swarmauri_workflow_statedriven.conditions.function_condition import (
+    FunctionCondition,
+)
+
 
 @pytest.mark.unit
 def test_and_condition_all_true():
@@ -15,10 +22,11 @@ def test_and_condition_all_true():
     """
     conds = [
         FunctionCondition(lambda s: True),
-        FunctionCondition(lambda s: s.get("x", 0) > 0)
+        FunctionCondition(lambda s: s.get("x", 0) > 0),
     ]
     and_cond = AndCondition(conds)
     assert and_cond.evaluate({"x": 5}) is True
+
 
 @pytest.mark.unit
 def test_and_condition_one_false():
@@ -29,12 +37,10 @@ def test_and_condition_one_false():
 
     Returns False if any sub‑condition is False.
     """
-    conds = [
-        FunctionCondition(lambda s: True),
-        FunctionCondition(lambda s: False)
-    ]
+    conds = [FunctionCondition(lambda s: True), FunctionCondition(lambda s: False)]
     and_cond = AndCondition(conds)
     assert and_cond.evaluate({}) is False
+
 
 @pytest.mark.unit
 def test_and_condition_empty_list_yields_true():
@@ -48,6 +54,7 @@ def test_and_condition_empty_list_yields_true():
     and_cond = AndCondition([])
     assert and_cond.evaluate({}) is True
 
+
 @pytest.mark.unit
 def test_or_condition_all_false():
     """
@@ -57,12 +64,10 @@ def test_or_condition_all_false():
 
     Returns False when all sub‑conditions are False.
     """
-    conds = [
-        FunctionCondition(lambda s: False),
-        FunctionCondition(lambda s: 0)
-    ]
+    conds = [FunctionCondition(lambda s: False), FunctionCondition(lambda s: 0)]
     or_cond = OrCondition(conds)
     assert or_cond.evaluate({}) is False
+
 
 @pytest.mark.unit
 def test_or_condition_one_true():
@@ -73,12 +78,10 @@ def test_or_condition_one_true():
 
     Returns True if any sub‑condition is True.
     """
-    conds = [
-        FunctionCondition(lambda s: False),
-        FunctionCondition(lambda s: True)
-    ]
+    conds = [FunctionCondition(lambda s: False), FunctionCondition(lambda s: True)]
     or_cond = OrCondition(conds)
     assert or_cond.evaluate({}) is True
+
 
 @pytest.mark.unit
 def test_or_condition_empty_list_yields_false():
@@ -92,6 +95,7 @@ def test_or_condition_empty_list_yields_false():
     or_cond = OrCondition([])
     assert or_cond.evaluate({}) is False
 
+
 @pytest.mark.unit
 def test_not_condition_inverts_true_to_false():
     """
@@ -104,6 +108,7 @@ def test_not_condition_inverts_true_to_false():
     cond = FunctionCondition(lambda s: True)
     not_cond = NotCondition(cond)
     assert not_cond.evaluate({}) is False
+
 
 @pytest.mark.unit
 def test_not_condition_inverts_false_to_true():

@@ -3,6 +3,7 @@
 from typing import Any, List, Dict
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 
+
 class DictMergeStrategy(MergeStrategy):
     """
     MergeStrategy that shallow‑merges a list of dicts into a single dict.

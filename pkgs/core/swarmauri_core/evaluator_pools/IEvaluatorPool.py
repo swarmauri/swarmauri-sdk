@@ -74,9 +74,7 @@ class IEvaluatorPool(ABC):
         pass
 
     @abstractmethod
-    def evaluate(
-        self, programs: Sequence[IProgram], **kwargs
-    ) -> Sequence[IEvalResult]:
+    def evaluate(self, programs: Sequence[IProgram], **kwargs) -> Sequence[IEvalResult]:
         """
         Evaluate all programs with all registered evaluators.
 

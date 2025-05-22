@@ -7,6 +7,7 @@ from pyppeteer import launch
 
 from swarmauri_workflow_statedriven.base import WorkflowBase
 
+
 class WorkflowGraph(WorkflowBase):
     """
     File: workflows/graph.py
@@ -131,7 +132,9 @@ class WorkflowGraph(WorkflowBase):
         )
         return str(out_path)
 
-    async def _render_html_to_png(self, html: str, output_png: str, width: int, height: int):
+    async def _render_html_to_png(
+        self, html: str, output_png: str, width: int, height: int
+    ):
         """
         File: workflows/graph.py
         Class: WorkflowGraph

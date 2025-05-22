@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.merge_strategies.dict_merge import DictMergeStrategy
 
+
 @pytest.mark.unit
 def test_merge_empty_list_returns_empty_dict():
     """
@@ -12,6 +13,7 @@ def test_merge_empty_list_returns_empty_dict():
     """
     strategy = DictMergeStrategy()
     assert strategy.merge([]) == {}
+
 
 @pytest.mark.unit
 def test_merge_single_dict_returns_same_dict():
@@ -27,6 +29,7 @@ def test_merge_single_dict_returns_same_dict():
     # should be a new dict, not the same instance
     assert result is not d
 
+
 @pytest.mark.unit
 def test_merge_multiple_dicts_combines_keys():
     """
@@ -39,6 +42,7 @@ def test_merge_multiple_dicts_combines_keys():
     d2 = {"y": 2}
     result = strategy.merge([d1, d2])
     assert result == {"x": 1, "y": 2}
+
 
 @pytest.mark.unit
 def test_merge_overlapping_keys_last_wins():
@@ -53,6 +57,7 @@ def test_merge_overlapping_keys_last_wins():
     result = strategy.merge([d1, d2])
     assert result == {"k": "second", "other": 3}
 
+
 @pytest.mark.unit
 def test_merge_ignores_non_dict_items():
     """
@@ -64,6 +69,7 @@ def test_merge_ignores_non_dict_items():
     d = {"a": 1}
     result = strategy.merge([d, 123, "foo", {"b": 2}])
     assert result == {"a": 1, "b": 2}
+
 
 @pytest.mark.unit
 def test_merge_shallow_merges_nested_dicts():
