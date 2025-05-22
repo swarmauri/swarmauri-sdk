@@ -215,8 +215,4 @@ def test_serialization(evaluator):
     serialized = evaluator.model_dump_json()
     deserialized = FleschReadingEaseEvaluator.model_validate_json(serialized)
 
-<<<<<<< HEAD
     assert deserialized.type == evaluator.type
-=======
-    assert deserialized.type == evaluator.type
->>>>>>> upstream/mono/dev
