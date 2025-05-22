@@ -212,12 +212,17 @@ def parse_mapping(lines: list, indent: int):
             block_node = ScalarNode(None, style=style_char)
             block_node.lines = []
 
-            # Gather subsequent lines that are strictly more indented
-            block_indent = current_indent + 1
+            # Determine the indentation of the block content from the first
+            # following line that is more indented than the current key line.
+            block_indent = None
             while i < n:
                 next_line = lines[i]
                 next_line_indent = len(next_line) - len(next_line.lstrip())
-                if next_line_indent < block_indent or not next_line.strip():
+                if next_line_indent <= current_indent or not next_line.strip():
+                    break
+                if block_indent is None:
+                    block_indent = next_line_indent
+                if next_line_indent < block_indent:
                     break
                 block_node.lines.append(next_line[block_indent:])
                 i += 1
@@ -284,12 +289,18 @@ def parse_sequence(lines: list, indent: int):
             block_node = ScalarNode(None, style=style_char)
             block_node.lines = []
 
-            # same logic for block indentation
-            block_indent = current_indent + 1
+            # Determine the indentation of the block scalar content by
+            # inspecting the first line following the dash that has a greater
+            # indentation level.
+            block_indent = None
             while i < n:
                 nxt = lines[i]
                 nxt_indent = len(nxt) - len(nxt.lstrip())
-                if nxt_indent < block_indent or not nxt.strip():
+                if nxt_indent <= current_indent or not nxt.strip():
+                    break
+                if block_indent is None:
+                    block_indent = nxt_indent
+                if nxt_indent < block_indent:
                     break
                 block_node.lines.append(nxt[block_indent:])
                 i += 1
