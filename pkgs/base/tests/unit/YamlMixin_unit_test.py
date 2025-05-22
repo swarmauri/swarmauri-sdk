@@ -1,10 +1,11 @@
 import pytest
 import yaml
 from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.TomlMixin import TomlMixin
 
 
 # --- Dummy model for testing ---
-class DummyModel(YamlMixin):
+class DummyModel(YamlMixin, TomlMixin):
     name: str
     age: int
     api_key: str = None
