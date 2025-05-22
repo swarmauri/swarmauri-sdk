@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/python_api_gw_service.schema.json",
+  "title": "EXTRAS Schema for python_api_gw_service",
+  "type": "object",
+  "properties": {
+    "RESOURCE_KIND": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "DEPENDENCIES": {}
+  },
+  "additionalProperties": false
+}
