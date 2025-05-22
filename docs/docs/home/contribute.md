@@ -75,6 +75,9 @@ We welcome contributions from the community to help improve Swarmauri SDK. This 
        ...
    ```
 3. **Implement Functionality**: Implement the functionality of your plugin, ensuring it adheres to the required interfaces and standards.
+4. **Update Registries**: Register your new component so it can be discovered.
+   - **InterfaceRegistry**: Add the resource kind and its interface mapping.
+   - **PluginCitizenshipRegistry**: Map the full resource path of your class to its module path.
 
 ### Testing the Plugin
 

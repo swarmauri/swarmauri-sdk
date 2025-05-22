@@ -105,6 +105,7 @@ class InterfaceRegistry:
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
+        "swarmauri.rate_limits": RateLimitBase,
     }
 
     @classmethod

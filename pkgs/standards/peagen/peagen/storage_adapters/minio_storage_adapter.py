@@ -15,6 +15,7 @@ from typing import BinaryIO, Optional
 from minio import Minio
 from minio.error import S3Error
 
+from peagen.cli_common import load_peagen_toml
 
 class MinioStorageAdapter:
     """
@@ -80,7 +81,6 @@ class MinioStorageAdapter:
                 data = io.BytesIO(data.read())  # type: ignore[arg-type]
             size = len(data.getbuffer())  # type: ignore[attr-defined]
         data.seek(0)
-
         self._client.put_object(
             self._bucket,
             self._full_key(key),
@@ -95,6 +95,7 @@ class MinioStorageAdapter:
         Retrieve object `<prefix>/<key>` and return a BytesIO.
         """
         try:
+            print(f"downloading {key}")
             resp = self._client.get_object(self._bucket, self._full_key(key))
             buffer = io.BytesIO(resp.read())
             buffer.seek(0)
@@ -123,9 +124,8 @@ class MinioStorageAdapter:
         """
         Yield keys *relative to the run root* under ``prefix``.
         """
-        full_prefix = self._full_key(prefix).rstrip("/")
         for obj in self._client.list_objects(
-            self._bucket, prefix=full_prefix, recursive=True
+            self._bucket, prefix=prefix, recursive=True
         ):
             key = obj.object_name
             # strip run-prefix before yielding
@@ -139,10 +139,12 @@ class MinioStorageAdapter:
         Download *all* objects under ``prefix`` (relative to run root)
         into *dest_dir*.
         """
+        print(prefix, dest_dir)
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
             target.parent.mkdir(parents=True, exist_ok=True)
+            print(rel_key)
             data = self.download(rel_key)
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
