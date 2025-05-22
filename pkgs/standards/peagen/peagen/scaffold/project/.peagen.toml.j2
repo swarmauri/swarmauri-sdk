@@ -37,3 +37,11 @@ host     = "<ip>"
 port     = 6379
 db       = 0
 password = "..."                   # leave blank if no auth
+
+[publishers.rabbitmq]
+host        = "<ip>"
+port        = 5672
+username    = "guest"
+password    = "guest"
+exchange    = ""
+routing_key = "peagen.events"
