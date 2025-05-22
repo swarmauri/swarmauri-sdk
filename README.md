@@ -167,6 +167,14 @@ class YourVectorStore(VectorStoreBase):
     # Your implementation
 ```
 
+## Running Performance Tests
+Each standards package contains benchmarks under `tests/perf`. To run a package's performance tests in isolation:
+
+```bash
+cd /workspace/swarmauri-sdk/pkgs
+uv run --package <module-name> --directory standards/<module-dir> pytest tests/perf
+```
+
 ## License
 The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file for details.
 
