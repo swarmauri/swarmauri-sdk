@@ -80,6 +80,7 @@ class ResourceTypes(Enum):
     VLM = "VLM"
     DATA_CONNECTOR = "DataConnector"
     TRANSPORT = "Transport"
+    PUBLISHER = "Publisher"
     FACTORY = "Factory"
     PIPELINE = "Pipeline"
     SERVICE_REGISTRY = "ServiceRegistry"
