@@ -47,7 +47,7 @@ def process_cmd(
         None, help="Root dir for template lookup."
     ),
     config: Optional[str] = typer.Option(
-        None, "-c", "--config", help="Alternate .peagen.toml path."
+        ".peagen.toml", "-c", "--config", help="Alternate .peagen.toml path."
     ),
     bundles: Optional[str] = typer.Option(
         None, "--bundles", "-B", help="Comma-separated environment-only bundles."
@@ -223,7 +223,7 @@ def process_cmd(
             Path(p).expanduser() for p in additional_package_dirs.split(",")
         )
 
-    source_pkgs = toml_cfg.get("source_packages", {}).get("package", [])
+    source_pkgs = toml_cfg.get("source_packages", {})
 
     if include_swarmauri:
         source_pkgs.append(
