@@ -61,6 +61,7 @@ def fetch(
     install_template_sets: bool = typer.Option(
         True, "--install-template-sets/--no-install-template-sets",
         help="Install template sets before fetching",
+        ),
 #     evaluator_pool: Optional[str] = typer.Option(
 #         None,
 #         help="Evaluator pool class path 'module:Class' to run after fetch",
