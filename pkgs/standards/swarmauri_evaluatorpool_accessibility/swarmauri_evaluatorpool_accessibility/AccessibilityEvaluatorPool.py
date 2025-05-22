@@ -44,10 +44,10 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
             Additional keyword arguments
         """
         super().__init__(**kwargs)
-        self.evaluators = evaluators or []
+        self.evaluators = evaluators if evaluators is not None else []
         self.weights = weights or {}
 
-        if not self.evaluators:
+        if evaluators is None and not self.evaluators:
             self._auto_register_evaluators()
 
         # Validate that all evaluators are properly initialized
