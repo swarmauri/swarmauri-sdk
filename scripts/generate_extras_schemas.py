@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import List
+import argparse
 
 TEMPLATES_ROOT = Path("pkgs/standards/peagen/peagen/templates")
 SCHEMAS_DIR = Path("pkgs/standards/peagen/peagen/schemas/extras")
@@ -35,17 +36,27 @@ def _build_schema(keys: List[str], set_name: str) -> dict:
     }
 
 
-def generate_schemas() -> None:
+def generate_schemas(templates_root: Path = TEMPLATES_ROOT) -> None:
     """Generate schema files for all template-sets."""
     SCHEMAS_DIR.mkdir(parents=True, exist_ok=True)
-    for md_file in TEMPLATES_ROOT.glob("*/EXTRAS.md"):
+    for md_file in templates_root.glob("*/EXTRAS.md"):
         set_name = md_file.parent.name
         keys = _parse_keys(md_file)
         schema = _build_schema(keys, set_name)
         out_path = SCHEMAS_DIR / f"{set_name}.schema.v1.json"
         out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
-        print(f"✅ Wrote {out_path}")
+        template_out_path = md_file.parent / "extras.schema.v1.json"
+        template_out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
+        print(f"✅ Wrote {out_path} and {template_out_path}")
 
 
 if __name__ == "__main__":
-    generate_schemas()
+    parser = argparse.ArgumentParser(description="Generate EXTRAS schemas")
+    parser.add_argument(
+        "--templates-root",
+        type=Path,
+        default=TEMPLATES_ROOT,
+        help="Root directory containing template sets",
+    )
+    args = parser.parse_args()
+    generate_schemas(args.templates_root)

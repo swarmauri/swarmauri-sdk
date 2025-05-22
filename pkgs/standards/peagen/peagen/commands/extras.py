@@ -1,4 +1,5 @@
 """Generate extras schemas via CLI."""
+
 from __future__ import annotations
 
 import json
@@ -33,10 +34,14 @@ def _build_schema(keys: List[str], set_name: str) -> dict:
 
 
 @extras_app.command("generate")
-def generate() -> None:
+def generate(
+    templates_root: Path = typer.Option(
+        None, help="Root directory containing template sets"
+    ),
+) -> None:
     """Regenerate EXTRAS schema files from templates."""
     base = Path(__file__).resolve().parents[1]
-    templates_root = base / "templates"
+    templates_root = Path(templates_root) if templates_root else base / "templates"
     schemas_dir = base / "schemas" / "extras"
     schemas_dir.mkdir(parents=True, exist_ok=True)
 
@@ -46,5 +51,6 @@ def generate() -> None:
         schema = _build_schema(keys, set_name)
         out_path = schemas_dir / f"{set_name}.schema.v1.json"
         out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
-        typer.echo(f"✅ Wrote {out_path}")
-
+        template_out_path = md_file.parent / "extras.schema.v1.json"
+        template_out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
+        typer.echo(f"✅ Wrote {out_path} and {template_out_path}")
