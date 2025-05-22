@@ -1,59 +1,64 @@
 # File: _processing.py
-"""
-processing.py
+"""Process COPY and GENERATE file records.
 
-This module contains functions for processing file records within a project.
-It supports:
-  - COPY: render static templates.
-  - GENERATE: render agent prompts and generate content via LLM.
+The module renders static templates or agent prompts and saves the
+result to disk. It also supports optional remote uploads and manifest
+streaming.
 """
 
 import os
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-from pathlib import Path
 from pprint import pformat
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from datetime import datetime, timezone
+from pathlib import Path
 
-from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
+from swarmauri_prompt_j2prompttemplate import j2pt, J2PromptTemplate
 
 from ._config import _config
 from ._graph import _build_forward_graph
 from ._rendering import _render_copy_template, _render_generate_template
-
+from .manifest_writer import ManifestWriter
 
 def _save_file(
     content: str,
-    filepath: str,  # still the *logical* project path
+    filepath: str,
     logger=None,
     start_idx: int = 0,
     idx_len: int = 1,
     *,
     storage_adapter=None,
     org: str | None = None,
-    workspace_root: Path,  # NEW, injected by Peagen
+    workspace_root: Path,
+    manifest_writer: Optional[ManifestWriter] = None,   # NEW
 ) -> None:
     """
-    1. Always write to <workspace_root>/<filepath> (local, fast, zero egress).
-    2. Then, *optionally* upload the same bytes to the configured adapter.
+    1.  Write to <workspace_root>/<filepath>.
+    2.  Optionally upload to the configured storage_adapter.
+    3.  Stream a manifest line via ManifestWriter (if provided).
     """
-    # ---- build full on-disk path ------------------------------------------------
     full_path = workspace_root / filepath
     full_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # ---- local write -----------------------------------------------------------
     full_path.write_text(content, encoding="utf-8")
+
     if logger:
         fname = "peagen_" + str(full_path).split("peagen_")[1]
-        logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
+        logger.info(f"({start_idx+1}/{idx_len}) File saved: {fname}")
 
-    # ---- optional remote upload ------------------------------------------------
-    if storage_adapter:
-        key = f"{org.rstrip('/')}/{filepath.lstrip('/')}" if org else filepath
-        key = os.path.normpath(key)
+    if storage_adapter:                                   # remote upload
+        key = os.path.normpath(filepath.lstrip('/'))
         with full_path.open("rb") as fsrc:
             storage_adapter.upload(key, fsrc)
         if logger:
-            logger.info(f"({start_idx + 1}/{idx_len}) Uploaded → {key}")
+            logger.info(f"({start_idx+1}/{idx_len}) Uploaded → {key}")
+
+    if manifest_writer:                                   # manifest line
+        manifest_writer.add(
+            {
+                "file": filepath,
+                "saved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            }
+        )
 
 
 def _create_context(
@@ -119,13 +124,13 @@ def _process_file(
     idx_len: int = 1,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
+    manifest_writer: Optional[ManifestWriter] = None,      # NEW
 ) -> bool:
     """
-    Render one file_record: either COPY or GENERATE.
-    Returns False if a hard error occurs and processing should stop.
+    Render one file_record (COPY | GENERATE).
     """
     context = _create_context(file_record, global_attrs, logger)
-    final_filename = file_record.get("RENDERED_FILE_NAME")
+    final_filename = os.path.normpath(file_record.get("RENDERED_FILE_NAME"))
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
     try:
@@ -177,6 +182,7 @@ def _process_file(
         storage_adapter=storage_adapter,
         org=org,
         workspace_root=workspace_root,
+        manifest_writer=manifest_writer,
     )
     return True
 
@@ -192,6 +198,7 @@ def _process_project_files(
     start_idx: int = 0,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
+    manifest_writer: Optional[ManifestWriter] = None,      # NEW
 ) -> None:
     """
     Processes all file_records, creating fresh J2PromptTemplate instances
@@ -201,13 +208,9 @@ def _process_project_files(
     workers = _config.get("workers", 0)
 
     if workers and workers > 0:
-        # Parallel execution with dependency ordering
         forward_graph, in_degree, _ = _build_forward_graph(file_records)
         entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
-        idx_map = {
-            rec["RENDERED_FILE_NAME"]: i + start_idx
-            for i, rec in enumerate(file_records)
-        }
+        idx_map = {rec["RENDERED_FILE_NAME"]: i + start_idx for i, rec in enumerate(file_records)}
 
         def _worker(fname: str) -> None:
             rec = entry_map[fname]
@@ -215,9 +218,8 @@ def _process_project_files(
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
             j2 = j2pt.copy(deep=False)
-            j2.templates_dir = (
-                [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
-            )
+            j2.templates_dir = [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
+
             try:
                 _process_file(
                     rec,
@@ -230,7 +232,8 @@ def _process_project_files(
                     idx_len=idx_len,
                     storage_adapter=storage_adapter,
                     org=org,
-                    workspace_root=workspace_root,  # ← pass it here too
+                    workspace_root=workspace_root,
+                    manifest_writer=manifest_writer,          # NEW
                 )
             except Exception as e:
                 logger.warning(f"{e}")
@@ -263,9 +266,7 @@ def _process_project_files(
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
         j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = (
-            [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
-        )
+        j2_instance.templates_dir = [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
 
         if not _process_file(
             rec,
@@ -278,7 +279,8 @@ def _process_project_files(
             idx_len=idx_len,
             storage_adapter=storage_adapter,
             org=org,
-            workspace_root=workspace_root,  # ← and here
+            workspace_root=workspace_root,
+            manifest_writer=manifest_writer,
         ):
             break
         start_idx += 1

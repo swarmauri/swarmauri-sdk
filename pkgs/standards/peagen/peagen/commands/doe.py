@@ -1,28 +1,29 @@
 # peagen/commands/doe.py
 """
-peagen experiment – expand a DOE spec + base template into a project-payloads bundle.
+peagen doe – expand a DOE spec + base template into a project-payloads bundle.
 
 Wire in cli.py with:
     from peagen.commands.doe import doe_app
-    app.add_typer(doe_app, name="experiment")
+    app.add_typer(doe_app, name="doe")
 """
 
 from __future__ import annotations
 
 import hashlib
 import itertools
-import json
-<<<<<<< HEAD
-import shutil
-import sys
-=======
->>>>>>> upstream/mono/dev
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from peagen.commands.validate import _validate
+from peagen.schemas import DOE_SPEC_V1_SCHEMA
+
 import typer
 import yaml
+from urllib.parse import urlparse
+
+from peagen.cli_common import load_peagen_toml
+from peagen.plugin_registry import registry
 
 doe_app = typer.Typer(help="Generate project-payloads.yaml from a DOE spec.")
 
@@ -37,10 +38,7 @@ LLM_FALLBACK_KEYS = {
     "frequency_penalty",
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/mono/dev
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -48,33 +46,18 @@ def _sha256(path: Path) -> str:
             h.update(chunk)
     return h.hexdigest()
 
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/mono/dev
 def _load_yaml(uri: str | Path) -> Dict:
     p = Path(uri).expanduser()
     return yaml.safe_load(p.read_text(encoding="utf-8"))
 
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/mono/dev
 def _write_yaml(data: Dict, path: Path, force: bool) -> None:
     if path.exists() and not force:
         typer.echo(f"❌  File '{path}' exists. Use --force to overwrite.")
         raise typer.Exit(code=1)
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
-<<<<<<< HEAD
-def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
-    import jsonpatch
-    jsonpatch.JsonPatch(patch_ops).apply(doc, in_place=True)
-
-def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
-    return key in spec_llm_keys or key in LLM_FALLBACK_KEYS
-
-=======
 
 def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
     import jsonpatch
@@ -86,7 +69,6 @@ def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
     return key in spec_llm_keys or key in LLM_FALLBACK_KEYS
 
 
->>>>>>> upstream/mono/dev
 # ---------------------------------------------------------------- print matrix
 def _print_design_matrix(
     llm_keys: List[str],
@@ -110,11 +92,7 @@ def _print_design_matrix(
     for idx, pt in enumerate(design_points):
         cells = [f"{idx:03d}"] + [pt.get(k, "") for k in llm_keys + other_keys]
         typer.echo(_row(cells))
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> upstream/mono/dev
 
 # --------------------------------------------------------------------------- CLI
 @doe_app.command("gen")
@@ -132,10 +110,40 @@ def experiment_generate(
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print matrix only"),
     force: bool = typer.Option(False, "--force", help="Overwrite output file"),
+    skip_validate: bool = typer.Option(
+        False,
+        "--skip-validate",
+        help="Skip DOE spec validation",
+    ),
 ):
     """
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
     """
+
+    toml_cfg = load_peagen_toml()
+    pubs_cfg = toml_cfg.get("publishers", {})
+    adapters_cfg = pubs_cfg.get("adapters", {})
+    default_pub = pubs_cfg.get("default_publisher")
+
+    if default_pub and notify is None:
+        notify = default_pub
+
+    bus = None
+    channel = "peagen.events"
+    if notify:
+        nt = urlparse(notify)
+        pub_name = nt.scheme or notify
+        pub_cfg = adapters_cfg.get(pub_name, {})
+        if nt.scheme and nt.path and nt.path != "/":
+            channel = nt.path.lstrip("/")
+        else:
+            channel = pub_cfg.get("channel", channel)
+        try:
+            PubCls = registry["publishers"][pub_name]
+        except KeyError:
+            typer.echo(f"❌ Unknown publisher '{pub_name}'.")
+            raise typer.Exit(1)
+        bus = PubCls(**pub_cfg)
 
     # 1. ---------- load files -------------------------------------------------
     spec_obj = _load_yaml(spec)
@@ -143,6 +151,10 @@ def experiment_generate(
     ctx_patch = []
     if context:
         ctx_patch = _load_yaml(context)
+
+    # validate spec unless skipped
+    if not skip_validate:
+        _validate(spec_obj, DOE_SPEC_V1_SCHEMA, "DOE spec")
 
     llm_map = spec_obj.get("LLM_FACTORS", {})
     other_map = spec_obj.get("FACTORS", {})
@@ -235,65 +247,25 @@ def experiment_generate(
         typer.echo(f"  {did:<20} {llm_str}  {other_str}")
 
     if dry_run:
-<<<<<<< HEAD
-        typer.echo("")               # blank line before the table
-=======
         typer.echo("")  # blank line before the table
->>>>>>> upstream/mono/dev
         _print_design_matrix(
             list(llm_map.keys()),
             list(other_map.keys()),
             design_points,
         )
-<<<<<<< HEAD
-        typer.echo(
-            "\nDry-run complete – matrix printed above; no file written."
-        )
-        raise typer.Exit()
-
-    _write_yaml(bundle, output, force)
-    typer.echo(f"✅  Wrote {output} ({output.stat().st_size/1024:.1f} KB)")
-=======
         typer.echo("\nDry-run complete – matrix printed above; no file written.")
         raise typer.Exit()
 
     _write_yaml(bundle, output, force)
     typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
->>>>>>> upstream/mono/dev
 
-    if notify:
-        _publish_event(notify, output, len(projects))
-
-<<<<<<< HEAD
-=======
-
->>>>>>> upstream/mono/dev
-# --------------------------------------------------------------------- notifier
-def _publish_event(uri: str, output: Path, count: int):
-    try:
-        import nats
-    except ImportError:
-        typer.echo("⚠️  nats-py not installed; cannot publish event.")
-        return
-
-    async def _send():
-        nc = await nats.connect(uri)
-        await nc.publish(
-            "peagen.experiment.done",
-            json.dumps(
-                {
-                    "output": str(output),
-                    "count": count,
-                    "uri": uri,
-                }
-            ).encode(),
+    if bus:
+        bus.publish(
+            channel,
+            {
+                "type": "peagen.experiment.done",
+                "output": str(output),
+                "count": len(projects),
+            },
         )
-        await nc.drain()
 
-    import asyncio
-
-    try:
-        asyncio.run(_send())
-        typer.echo(f"📡  Notification sent to {uri}")
-    except Exception as e:
-        typer.echo(f"⚠️  Failed to publish event: {e}")

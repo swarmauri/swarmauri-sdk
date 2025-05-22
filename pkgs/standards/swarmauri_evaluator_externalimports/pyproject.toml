@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_externalimports"
-version = "0.1.0"
+version = "0.1.1.dev4"
 description = "Evaluator that detects and penalizes non-built-in Python imports in source files"
 license = "Apache-2.0"
 readme = "README.md"
@@ -40,15 +40,6 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
-<<<<<<< HEAD
-markers = [
-    "unit: Unit tests",
-    "i9n: Integration tests",
-    "r8n: Regression tests",
-    "xfail: Expected failures",
-    "xpass: Expected passes"
-]
-=======
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
@@ -62,7 +53,6 @@ markers = [
     "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
->>>>>>> upstream/mono/dev
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
@@ -79,9 +69,10 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
-    "python-dotenv>=0.21.0",
+    "python-dotenv",
     "requests>=2.32.3",
     "flake8>=7.0",
-    "black>=24.1.0",
-    "mypy>=1.8.0"
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

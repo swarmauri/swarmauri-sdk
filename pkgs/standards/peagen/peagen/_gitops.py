@@ -1,3 +1,5 @@
+"""Utilities for interacting with Git repositories."""
+
 import typer
 import subprocess
 import tempfile

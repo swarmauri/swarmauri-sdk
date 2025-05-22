@@ -2,11 +2,14 @@
 Unit tests for the JupyterGetIOPubMessageTool class.
 
 This module contains pytest-based test cases for verifying the functionality and correctness
-of the JupyterGetIOPubMessageTool class. It uses mock objects to simulate the behavior of a
-Jupyter kernel client.
+of the JupyterGetIOPubMessageTool class. It uses mock WebSocket objects to simulate the
+behavior of a Jupyter kernel connection.
 """
 
+import sys
 import time
+import types
+import json
 import pytest
 from unittest.mock import MagicMock, patch
 from swarmauri_tool_jupytergetiopubmessage.JupyterGetIOPubMessageTool import (
@@ -15,24 +18,34 @@ from swarmauri_tool_jupytergetiopubmessage.JupyterGetIOPubMessageTool import (
 
 
 @pytest.fixture
-def mock_kernel_client():
-    """
-    Pytest fixture that creates a mock Jupyter kernel client with a controllable sequence of messages.
-    """
-    client = MagicMock()
+def mock_websocket(monkeypatch):
+    """Create a mock WebSocket module with controllable messages."""
     messages = []
 
-    def get_iopub_msg(timeout: float = 0.1):
-        """
-        Returns the next message from the predefined messages list if available, otherwise None.
-        """
+    class DummyTimeout(Exception):
+        pass
+
+    ws = MagicMock()
+
+    def recv() -> str:
         if messages:
             return messages.pop(0)
-        return None
+        raise DummyTimeout()
 
-    client.get_iopub_msg.side_effect = get_iopub_msg
-    client._messages = messages  # Expose the list so tests can manipulate it as needed
-    return client
+    ws.recv.side_effect = recv
+    ws.settimeout = MagicMock()
+    ws._messages = messages
+
+    def create_connection(url: str, timeout: float | None = None):
+        return ws
+
+    dummy_module = types.SimpleNamespace(
+        create_connection=create_connection,
+        WebSocketTimeoutException=DummyTimeout,
+    )
+
+    monkeypatch.setitem(sys.modules, "websocket", dummy_module)
+    return ws
 
 
 def test_init():
@@ -51,40 +64,46 @@ def test_init():
 
     # Check parameters
     assert len(tool.parameters) == 2, (
-        "Should have two parameters: kernel_client and timeout"
+        "Should have two parameters: channels_url and timeout"
     )
 
     param_names = {p.name for p in tool.parameters}
-    assert "kernel_client" in param_names, "Missing 'kernel_client' parameter"
+    assert "channels_url" in param_names, "Missing 'channels_url' parameter"
     assert "timeout" in param_names, "Missing 'timeout' parameter"
 
 
-def test_retrieves_messages(mock_kernel_client):
+def test_retrieves_messages(mock_websocket):
     """
     Tests that JupyterGetIOPubMessageTool correctly retrieves various IOPub messages and stops
     on an idle status message without timing out.
     """
     # Prepare mock messages
-    mock_kernel_client._messages.extend(
+    mock_websocket._messages.extend(
         [
-            {
-                "msg_type": "stream",
-                "content": {"name": "stdout", "text": "Hello from stdout\n"},
-            },
-            {
-                "msg_type": "stream",
-                "content": {"name": "stderr", "text": "Warning: something\n"},
-            },
-            {
-                "msg_type": "execute_result",
-                "content": {"data": {"text/plain": "Execution result"}},
-            },
-            {"msg_type": "status", "content": {"execution_state": "idle"}},
+            json.dumps(
+                {
+                    "msg_type": "stream",
+                    "content": {"name": "stdout", "text": "Hello from stdout\n"},
+                }
+            ),
+            json.dumps(
+                {
+                    "msg_type": "stream",
+                    "content": {"name": "stderr", "text": "Warning: something\n"},
+                }
+            ),
+            json.dumps(
+                {
+                    "msg_type": "execute_result",
+                    "content": {"data": {"text/plain": "Execution result"}},
+                }
+            ),
+            json.dumps({"msg_type": "status", "content": {"execution_state": "idle"}}),
         ]
     )
 
     tool = JupyterGetIOPubMessageTool()
-    result = tool(kernel_client=mock_kernel_client, timeout=2.0)
+    result = tool("ws://test/api/kernels/1/channels", timeout=2.0)
 
     assert result["timeout_exceeded"] is False, "Should not have exceeded timeout"
     assert len(result["stdout"]) == 1, "Should have captured one stdout message"
@@ -99,32 +118,28 @@ def test_retrieves_messages(mock_kernel_client):
 
 
 @pytest.mark.parametrize("idle_messages", [[], None])
-def test_timeout(mock_kernel_client, idle_messages):
+def test_timeout(mock_websocket, idle_messages):
     """
     Tests that JupyterGetIOPubMessageTool correctly reports a timeout when no idle status message
     is received within the specified duration.
     """
     # Add messages that never include an idle status.
-    mock_kernel_client._messages.extend(
+    mock_websocket._messages.extend(
         [
-            {
-                "msg_type": "stream",
-                "content": {"name": "stdout", "text": "Still running...\n"},
-            },
-            {
-                "msg_type": "stream",
-                "content": {"name": "stdout", "text": "More output...\n"},
-            },
+            json.dumps(
+                {
+                    "msg_type": "stream",
+                    "content": {"name": "stdout", "text": "Still running...\n"},
+                }
+            ),
+            json.dumps(
+                {
+                    "msg_type": "stream",
+                    "content": {"name": "stdout", "text": "More output...\n"},
+                }
+            ),
         ]
     )
-
-    # Patch get_iopub_msg so that it returns messages from the _messages list.
-    def fake_get_iopub_msg(timeout=0.1):
-        if mock_kernel_client._messages:
-            return mock_kernel_client._messages.pop(0)
-        return None
-
-    mock_kernel_client.get_iopub_msg.side_effect = fake_get_iopub_msg
 
     # Patch time.time to simulate passage of time so we trigger timeout quickly.
     with patch.object(time, "time") as mock_time:
@@ -140,7 +155,7 @@ def test_timeout(mock_kernel_client, idle_messages):
         mock_time.side_effect = fake_time
 
         tool = JupyterGetIOPubMessageTool()
-        result = tool(kernel_client=mock_kernel_client, timeout=2.0)
+        result = tool("ws://test/api/kernels/1/channels", timeout=2.0)
 
     assert result["timeout_exceeded"] is True, "Should have exceeded timeout"
     assert len(result["stdout"]) == 2, (
@@ -148,7 +163,7 @@ def test_timeout(mock_kernel_client, idle_messages):
     )
 
 
-def test_error_handling(mock_kernel_client):
+def test_error_handling(mock_websocket):
     """
     Tests that JupyterGetIOPubMessageTool handles error messages properly and logs the traceback.
     """
@@ -157,15 +172,17 @@ def test_error_handling(mock_kernel_client):
         '  File "<ipython-input-1>"',
         "NameError: name 'x' is not defined",
     ]
-    mock_kernel_client._messages.extend(
+    mock_websocket._messages.extend(
         [
-            {"msg_type": "error", "content": {"traceback": error_traceback}},
-            {"msg_type": "status", "content": {"execution_state": "idle"}},
+            json.dumps(
+                {"msg_type": "error", "content": {"traceback": error_traceback}}
+            ),
+            json.dumps({"msg_type": "status", "content": {"execution_state": "idle"}}),
         ]
     )
 
     tool = JupyterGetIOPubMessageTool()
-    result = tool(kernel_client=mock_kernel_client, timeout=2.0)
+    result = tool("ws://test/api/kernels/1/channels", timeout=2.0)
 
     assert result["timeout_exceeded"] is False, (
         "Should not exceed timeout with valid idle message"

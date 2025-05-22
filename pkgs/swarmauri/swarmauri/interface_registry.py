@@ -49,6 +49,7 @@ from swarmauri_base.vectors.VectorBase import VectorBase
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
+from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -105,6 +106,7 @@ class InterfaceRegistry:
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
+        "swarmauri.rate_limits": RateLimitBase,
     }
 
     @classmethod

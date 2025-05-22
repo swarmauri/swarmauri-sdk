@@ -1,0 +1,18 @@
+# template_project.yaml
+schemaVersion: "1.0.0"
+PROJECTS:
+- NAME: ExampleParserProject
+  ROOT: "swarmauri-sdk/pkgs"
+  TEMPLATE_SET: swarmauri_base
+  PACKAGES:
+  - NAME: "base/swarmauri_base"
+    MODULES:
+    - NAME: "ParserBase"
+      EXTRAS:
+        PURPOSE: "Provide a base implementation of the interface class for extension by subclasses."
+        DESCRIPTION: "Base implementation of the interface class"
+        REQUIREMENTS:
+        - "Should inherit from the interface first and ComponentBase second."
+        RESOURCE_KIND: "parsers"
+        INTERFACE_NAME: "IParser"
+        INTERFACE_FILE: "pkgs/core/swarmauri_core/parsers/IParser.py"

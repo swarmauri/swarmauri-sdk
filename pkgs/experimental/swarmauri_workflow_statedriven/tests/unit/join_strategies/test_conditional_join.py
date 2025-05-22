@@ -10,7 +10,8 @@ def test_init_sets_predicate():
     Class: ConditionalJoinStrategy
     Method: __init__
     """
-    predicate = lambda buf: True
+    def predicate(buf):
+        return True
     strategy = ConditionalJoinStrategy(predicate)
     # The predicate attribute should be set to the provided function
     assert strategy.predicate is predicate
@@ -22,7 +23,8 @@ def test_is_satisfied_true_when_predicate_true():
     Class: ConditionalJoinStrategy
     Method: is_satisfied
     """
-    predicate = lambda buf: len(buf) >= 2
+    def predicate(buf):
+        return len(buf) >= 2
     strategy = ConditionalJoinStrategy(predicate)
     assert strategy.is_satisfied([1, 2]) is True
     assert strategy.is_satisfied([0, 1, 2, 3]) is True
@@ -34,7 +36,8 @@ def test_is_satisfied_false_when_predicate_false():
     Class: ConditionalJoinStrategy
     Method: is_satisfied
     """
-    predicate = lambda buf: "ready" in buf
+    def predicate(buf):
+        return "ready" in buf
     strategy = ConditionalJoinStrategy(predicate)
     assert strategy.is_satisfied([]) is False
     assert strategy.is_satisfied(["not-ready"]) is False
@@ -46,7 +49,9 @@ def test_mark_complete_no_error_and_no_effect():
     Class: ConditionalJoinStrategy
     Method: mark_complete
     """
-    strategy = ConditionalJoinStrategy(lambda buf: True)
+    def always_true(buf):
+        return True
+    strategy = ConditionalJoinStrategy(always_true)
     # mark_complete is a no-op and should not raise
     strategy.mark_complete("any_branch")
     # is_satisfied remains governed by predicate

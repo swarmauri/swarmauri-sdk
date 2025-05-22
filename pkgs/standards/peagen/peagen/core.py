@@ -1,19 +1,13 @@
-"""
-peagen.core
-===========
+"""Core workflow logic for Peagen.
 
-Main workflow class for Peagen.  This revision:
-
-1.  Introduces **source_packages** (first-class) while retaining
-    additional_package_dirs as a backward-compat alias.
-2.  Re-computes namespace/search paths from the *dest* directories of
-    those source packages, ensuring Jinja includes still work.
-3.  Leaves *all* existing public behaviour intact (no j2pt API changes).
+This module contains the ``Peagen`` class which orchestrates file
+generation, package handling and Jinja environment setup.
 """
 
 from __future__ import annotations
 
-import os
+import json, os, sys
+from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
 from types import ModuleType
@@ -28,10 +22,13 @@ import peagen.plugin_registry
 import peagen.templates
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
 from swarmauri_standard.loggers.Logger import Logger
 
-from ._config import __logger_name__, _config
+from .manifest_writer import ManifestWriter
+from .slug_utils import slugify
+from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._processing import _process_project_files
 
@@ -78,6 +75,7 @@ class Peagen(ComponentBase):
     projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
     dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
     in_degree: Dict[str, int]            = Field(default_factory=dict, exclude=True)
+    slug_map: Dict[str, str]             = Field(default_factory=dict, exclude=True)
 
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: SubclassUnion["LoggerBase"] = Logger(
@@ -86,7 +84,7 @@ class Peagen(ComponentBase):
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    version: str = "0.1.0"
+    version: str = __version__
 
     # ──────────────────────────────────────────────────────────────────
     # Environment setup (called automatically by Pydantic)
@@ -97,6 +95,10 @@ class Peagen(ComponentBase):
         Build the Jinja search path (`namespace_dirs`) **purely from directories
         that exist inside the workspace** plus built-ins & plugin templates.
         """
+        # ── Auto-convert any leftover `additional_package_dirs`
+        #    into synthetic 'local' SOURCE_PACKAGE specs, so they get
+        #    written to the manifest without CLI help.
+        # -----------------------------------------------------------
         ns_dirs: List[str] = list(peagen.templates.__path__)
 
         # 1) Template-set plugins discovered via registry
@@ -182,6 +184,12 @@ class Peagen(ComponentBase):
                 + Style.RESET_ALL
                 + f" projects from '{self.projects_payload_path}'."
             )
+            # build slug map for quick lookup
+            self.slug_map = {
+                slugify(p.get("NAME", "")): p.get("NAME", "")
+                for p in self.projects_list
+                if p.get("NAME")
+            }
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
@@ -214,15 +222,13 @@ class Peagen(ComponentBase):
         start_file: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        1) For each package in the project, render its ptree.yaml.j2 to get file records.
-        2) Combine those records into a single list.
-        3) Depending on _config['transitive']:
-           - If transitive=True and start_file is set, use _transitive_dependency_sort.
-           - If transitive=True and start_file is not set, use _topological_sort.
-           - If transitive=False, always use _topological_sort.
-        4) Even if transitive=False, still honor start_file by skipping up to that file's index in the sorted list.
-        5) Skip start_idx files.
-        6) Process the remaining files.
+        Render & generate all files for *project*.
+
+        Streaming manifests:
+        --------------------
+        *   A ManifestWriter is created before file processing begins.
+        *   Each file save triggers writer.add(…).
+        *   On successful completion we call writer.finalise().
         """
         all_file_records = []
         packages = project.get("PACKAGES", [])
@@ -368,10 +374,37 @@ class Peagen(ComponentBase):
             # ------------------------------------------------------
             # Pass workspace_root into every file save/upload call
             # ------------------------------------------------------
-            from pathlib import Path
+
 
             # choose workspace_root or fallback to base_dir
             root = self.workspace_root or Path(self.base_dir)
+
+            workspace_uri = ""
+            if self.storage_adapter:
+                # best-effort generic inference
+                for attr in ("workspace_uri", "base_uri", "root_uri"):
+                    if hasattr(self.storage_adapter, attr):
+                        workspace_uri = str(getattr(self.storage_adapter, attr))
+                        break
+
+
+            manifest_meta: Dict[str, Any] = {
+                "schema_version": 3,
+                "workspace_uri": workspace_uri,
+                "project": project_name,
+                "source_packages": self.source_packages,
+                "peagen_version": __version__,
+            }
+
+            project_slug = slugify(project_name)
+            self.slug_map.setdefault(project_slug, project_name)
+            manifest_writer: Optional[ManifestWriter] = None
+            manifest_writer = ManifestWriter(
+                slug=project_slug,
+                adapter=self.storage_adapter,
+                tmp_root=root / ".peagen",
+                meta=manifest_meta,
+            )
 
             _process_project_files(
                 global_attrs=project,
@@ -381,9 +414,21 @@ class Peagen(ComponentBase):
                 logger=self.logger,
                 storage_adapter=self.storage_adapter,
                 org=self.org,
-                workspace_root=root,            # ← new kwarg
+                workspace_root=root,
                 start_idx=start_idx,
+                manifest_writer=manifest_writer,
             )
+
+            # --------  finalise manifest
+            final_path = manifest_writer.finalise()
+            self.logger.info(
+                f"Manifest finalised → \n\t{Fore.YELLOW}{final_path}{Style.RESET_ALL} "
+                f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
+            )
+
+            # ────────────────────────────────────────────────────────────
+            #  Log status
+            # ────────────────────────────────────────────────────────────
             self.logger.info(
                 f"Completed file generation workflow for org='{self.org}', "
                 f"project='{project_name}'."

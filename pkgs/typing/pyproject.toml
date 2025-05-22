@@ -1,10 +1,7 @@
 [project]
 name = "swarmauri-typing"
-<<<<<<< HEAD
-version = "0.7.4.dev8"
-=======
-version = "0.7.4.dev9"
->>>>>>> upstream/mono/dev
+version = "0.7.4.dev13"
+
 description = "This repository includes typing used in the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },

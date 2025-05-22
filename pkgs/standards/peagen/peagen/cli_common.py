@@ -1,18 +1,36 @@
-"""
-peagen.cli_common
-─────────────────────────────────────────────────────────────────────────────
-Shared helpers for every Typer command in the v2 CLI surface.
-"""
+"""Shared helpers for Typer commands."""
 
 from __future__ import annotations
 
 import os
 import pathlib
+import tempfile
+from contextlib import contextmanager
+import shutil
 import types
 from typing import Any, Callable
 
 import click
 import typer
+import logging
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 0. temp_workspace
+# ─────────────────────────────────────────────────────────────────────────────
+@contextmanager
+def temp_workspace(prefix: str = "peagen_"):
+    """Yield a temporary directory that is removed on exit."""
+    dirpath = pathlib.Path(tempfile.mkdtemp(prefix=prefix))
+    try:
+        yield dirpath          # ←  every path you write will be under here
+    finally:
+        try:
+            shutil.rmtree(dirpath)
+        except FileNotFoundError:
+            # Already removed – fine.
+            pass
+        except OSError as exc:
+            logging.warning(f"Workspace cleanup failed: {exc}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +71,7 @@ def load_peagen_toml(start_dir: pathlib.Path = pathlib.Path.cwd()) -> dict[str, 
         cfg_path = folder / ".peagen.toml"
         if cfg_path.is_file():
             import tomllib  # tomli for 3.10
+
             res = tomllib.loads(cfg_path.read_text("utf-8"))
             return res
     return {}
@@ -76,6 +95,7 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
         template_set: Optional[str]
         additional_package_dirs: Optional[str]
         notify: Optional[str]
+        plugin_mode: Optional[str]
 
     Example:
 
@@ -105,7 +125,9 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
         ctx: typer.Context = click.get_current_context()
         # before first CLI option is copied:
         if ctx.obj is None:
-            ctx.obj = types.SimpleNamespace(**load_peagen_toml())
+            cfg = load_peagen_toml()
+            ctx.obj = types.SimpleNamespace(**cfg)
+            ctx.obj.plugin_mode = cfg.get("plugins", {}).get("mode")
 
         # print(ctx.obj)
         # copy recognised kwargs into ctx.obj
@@ -121,6 +143,7 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
             "template_set",
             "additional_package_dirs",
             "notify",
+            "plugin_mode",
         ):
             if key in kwargs:
                 setattr(ctx.obj, key, kwargs[key])

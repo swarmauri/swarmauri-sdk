@@ -1,9 +1,7 @@
-"""
-peagen/storage_adapters/file_storage_adapter.py
-───────────────────────────────────────────────
-Local-filesystem implementation of `IStorageAdapter`.
+"""Filesystem-based storage adapter.
 
-Key → `${root_dir}/${key}`  (directories are created automatically)
+Files are written to ``${root_dir}/${key}`` and directories are created
+automatically.
 """
 
 from __future__ import annotations
@@ -21,9 +19,26 @@ from typing import BinaryIO
 class FileStorageAdapter:
     """Write and read artefacts on the local disk."""
 
-    def __init__(self, output_dir: str | os.PathLike):
+    def __init__(self, output_dir: str | os.PathLike, *, prefix: str = ""):
         self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
+        self._prefix = prefix.lstrip("/")
+
+    def _full_key(self, key: str) -> Path:
+        key = key.lstrip("/")
+        if self._prefix:
+            return self._root / self._prefix / key
+        return self._root / key
+
+    @property
+    def root_uri(self) -> str:
+        """
+        Absolute on-disk location of the workspace, expressed as a URI that
+        remote-aware code can still parse.
+        Example:  file:///home/ci/artifacts/peagen_run_42/
+        """
+        base = f"file://{self._root.as_posix()}"
+        return f"{base}/{self._prefix}" if self._prefix else f"{base}/"
 
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> None:
@@ -33,7 +48,7 @@ class FileStorageAdapter:
         Large payloads are streamed in chunks; small BytesIO’s are copied at
         once.  Existing files are overwritten.
         """
-        dest = self._root / key
+        dest = self._full_key(key)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         # Ensure restartable writes: write to tmp, then replace
@@ -49,7 +64,7 @@ class FileStorageAdapter:
         Open `${root_dir}/${key}` and return a BytesIO so the caller gets a
         file-like object just like S3/MinIO download().
         """
-        path = self._root / key
+        path = self._full_key(key)
         if not path.exists():
             raise FileNotFoundError(path)
 
@@ -71,17 +86,18 @@ class FileStorageAdapter:
     # ---------------------------------------------------------------- iter_prefix
     def iter_prefix(self, prefix: str):
         """Yield stored keys starting with ``prefix``."""
-        base = self._root / prefix
+        base = self._full_key(prefix)
         if not base.exists():
             return
         for path in base.rglob("*"):
             if path.is_file():
-                yield str(path.relative_to(self._root))
+                rel = path.relative_to(self._root)
+                yield str(rel)
 
     # ---------------------------------------------------------------- download_prefix
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Copy all files under ``prefix`` into ``dest_dir``."""
-        src_root = self._root / prefix
+        src_root = self._full_key(prefix)
         dest = Path(dest_dir)
         if not src_root.exists():
             return
@@ -91,3 +107,9 @@ class FileStorageAdapter:
                 target = dest / rel
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(path, target)
+                
+    @classmethod
+    def from_uri(cls, uri: str) -> "FileStorageAdapter":
+        # file:///absolute/path/
+        path = Path(uri[7:]).resolve()
+        return cls(output_dir=path)

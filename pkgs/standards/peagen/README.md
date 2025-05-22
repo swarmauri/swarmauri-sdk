@@ -220,6 +220,27 @@ peagen templates
 ![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
 
 
+### `peagen doe gen`
+
+Expand a Design-of-Experiments spec into a `project_payloads.yaml` bundle.
+
+```bash
+peagen doe gen <DOE_SPEC_YML> <TEMPLATE_PROJECT> \
+  [--output project_payloads.yaml] \
+  [--context global_patch.yml] \
+  [--dry-run] [--force]
+```
+
+Craft `doe_spec.yml` using the scaffold created by `peagen init doe-spec`. Follow the
+editing guidelines in [`peagen/scaffold/doe_spec/README.md`](peagen/scaffold/doe_spec/README.md):
+update factor levels, run `peagen validate doe-spec doe_spec.yml`, bump the version in
+`spec.yaml`, and never mutate published versions.
+
+For reference implementations, see the sample specs under
+[`tests/examples/doe_specs`](tests/examples/doe_specs) which demonstrate basic, composite,
+and evaluator-pool variations.
+
+
 ---
 
 ## Examples & Walkthroughs
@@ -350,7 +371,55 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 
 ### Storage Adapters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, and `RedisPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+
+
+For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
+
+```bash
+peagen process projects.yaml --notify redis://localhost:6379/0/custom.events
+```
+
+### Parallel Processing & Artifact Storage Options
+
+Peagen can accelerate generation by spawning multiple workers. Set `--workers <N>`
+on the CLI (or `workers = N` in `.peagen.toml`) to enable a thread pool that
+renders files concurrently while still honoring dependency order. Leaving the
+flag unset or `0` processes files sequentially.
+
+Artifact locations are resolved via the `--artifacts` flag. Targets may be a
+local directory (`dir://./peagen_artifacts`) using `FileStorageAdapter` or an
+S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
+adapters and publishers can be supplied programmatically:
+
+```python
+from peagen.core import Peagen
+from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.publishers.webhook_publisher import WebhookPublisher
+
+store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+bus = WebhookPublisher("https://example.com/peagen")
+```
+
+Another Example:
+
+```
+from peagen.publishers.redis_publisher import RedisPublisher
+from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+
+store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+bus = RedisPublisher("redis://localhost:6379/0")
+# bus = RabbitMQPublisher(host="localhost", port=5672, routing_key="peagen.events")
+
+pea = Peagen(
+    projects_payload_path="projects.yaml",
+    storage_adapter=store,
+    agent_env={"provider": "openai", "model_name": "gpt-4"},
+)
+
+bus.publish("peagen.events", {"type": "process.started"})
+pea.process_all_projects()
+```
 
 ### Contributing & Extending Templates
 

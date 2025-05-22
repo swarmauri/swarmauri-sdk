@@ -183,3 +183,15 @@ def test_validate_invalid_program_version():
         mock_logger.error.assert_called_with(
             "Program version mismatch or missing in metadata"
         )
+
+
+@pytest.mark.unit
+def test_from_workspace_and_get_source_files(tmp_path):
+    """Test creating a Program from a workspace directory."""
+    file_path = tmp_path / "example.py"
+    file_path.write_text("print('hello')")
+
+    program = Program.from_workspace(tmp_path)
+
+    assert "example.py" in program.content
+    assert program.get_source_files()["example.py"] == "print('hello')"

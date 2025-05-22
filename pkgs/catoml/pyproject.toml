@@ -1,10 +1,6 @@
 [project]
 name = "catoml"
-<<<<<<< HEAD
-version = "0.1.1.dev16"
-=======
-version = "0.1.1.dev17"
->>>>>>> upstream/mono/dev
+version = "0.1.1.dev21"
 description = "Swarmauri's Canon Toml"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

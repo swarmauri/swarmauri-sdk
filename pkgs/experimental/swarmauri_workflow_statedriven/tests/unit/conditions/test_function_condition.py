@@ -10,7 +10,8 @@ def test_init_sets_callable():
     Class: FunctionCondition
     Method: __init__
     """
-    fn = lambda s: "key" in s
+    def fn(s):
+        return "key" in s
     cond = FunctionCondition(fn)
     assert cond.fn is fn
 
@@ -21,7 +22,8 @@ def test_evaluate_returns_true_when_fn_true():
     Class: FunctionCondition
     Method: evaluate
     """
-    fn = lambda state: state.get("x", 0) > 0
+    def fn(state):
+        return state.get("x", 0) > 0
     cond = FunctionCondition(fn)
     assert cond.evaluate({"x": 5}) is True
 
@@ -32,7 +34,8 @@ def test_evaluate_returns_false_when_fn_false():
     Class: FunctionCondition
     Method: evaluate
     """
-    fn = lambda state: False
+    def fn(state):
+        return False
     cond = FunctionCondition(fn)
     assert cond.evaluate({"any": "value"}) is False
 
