@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "swarmauri_evaluator_anyusage"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "An evaluator component that detects and penalizes usage of the `Any` type in Python code"
 authors = [
     {name = "SwarmAuri Team", email = "team@swarmauri.com"}
@@ -40,15 +40,6 @@ dependencies = [
     "swarmauri_base",
 ]
 
-<<<<<<< HEAD
-[project.urls]
-"Homepage" = "https://swarmauri.com"
-"Repository" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_evaluator_anyusage"
-"Bug Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
-"Documentation" = "https://docs.swarmauri.com"
-
-=======
->>>>>>> upstream/mono/dev
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
@@ -58,13 +49,6 @@ swarmauri_standard = { workspace = true }
 AnyTypeUsageEvaluator = "swarmauri_evaluator_anyusage:AnyTypeUsageEvaluator"
 
 [tool.pytest.ini_options]
-<<<<<<< HEAD
-markers = [
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "regression: Regression tests",
-]
-=======
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
@@ -78,28 +62,10 @@ markers = [
     "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
->>>>>>> upstream/mono/dev
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-<<<<<<< HEAD
-
-[tool.black]
-line-length = 100
-target-version = ["py310", "py311", "py312"]
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
-[tool.mypy]
-python_version = "3.10"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-=======
 asyncio_default_fixture_loop_scope = "function"
 
 [dependency-groups]
@@ -115,4 +81,3 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
->>>>>>> upstream/mono/dev

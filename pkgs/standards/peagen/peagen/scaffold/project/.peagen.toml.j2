@@ -41,3 +41,11 @@ password = "..."  # leave blank if no auth
 [publishers.webhook]
 # POST notifications to this URL
 url = "https://example.com/peagen"
+
+[publishers.rabbitmq]
+host        = "<ip>"
+port        = 5672
+username    = "guest"
+password    = "guest"
+exchange    = ""
+routing_key = "peagen.events"

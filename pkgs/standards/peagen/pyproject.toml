@@ -29,6 +29,7 @@ dependencies = [
     "swarmauri_standard",
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
+    "pika",
 ]
 
 
@@ -94,6 +95,7 @@ gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleas
 [project.entry-points."peagen.publishers"]
 redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["manifest.schema.v3.json"]

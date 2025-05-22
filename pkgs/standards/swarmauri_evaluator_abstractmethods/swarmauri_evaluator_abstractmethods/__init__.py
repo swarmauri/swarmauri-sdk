@@ -1,12 +1,6 @@
 from .AbstractMethodsEvaluator import AbstractMethodsEvaluator
 
-<<<<<<< HEAD
-__all__ = [
-    "AbstractMethodsEvaluator"
-]
-=======
 __all__ = ["AbstractMethodsEvaluator"]
->>>>>>> upstream/mono/dev
 
 try:
     # For Python 3.8 and newer

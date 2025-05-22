@@ -70,4 +70,13 @@ bus = WebhookPublisher("https://example.com/peagen")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
+You can also publish events to RabbitMQ using `RabbitMQPublisher`:
+
+```python
+from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+
+bus = RabbitMQPublisher(host="localhost", port=5672, exchange="", routing_key="peagen.events")
+bus.publish("peagen.events", {"type": "process.started"})
+```
+
 To support another message bus, implement the same `publish()` method and use your class when wiring Peagen. See the `.peagen.toml` scaffold for configuration hints.

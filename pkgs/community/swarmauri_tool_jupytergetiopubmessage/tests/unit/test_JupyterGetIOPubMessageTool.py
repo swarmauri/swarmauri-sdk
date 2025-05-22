@@ -141,7 +141,6 @@ def test_timeout(mock_websocket, idle_messages):
         ]
     )
 
-
     # Patch time.time to simulate passage of time so we trigger timeout quickly.
     with patch.object(time, "time") as mock_time:
         start = 1000.0
@@ -175,7 +174,9 @@ def test_error_handling(mock_websocket):
     ]
     mock_websocket._messages.extend(
         [
-            json.dumps({"msg_type": "error", "content": {"traceback": error_traceback}}),
+            json.dumps(
+                {"msg_type": "error", "content": {"traceback": error_traceback}}
+            ),
             json.dumps({"msg_type": "status", "content": {"execution_state": "idle"}}),
         ]
     )
