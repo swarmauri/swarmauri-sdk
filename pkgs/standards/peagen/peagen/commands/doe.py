@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import itertools
+import json
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -258,6 +259,30 @@ def experiment_generate(
 
     _write_yaml(bundle, output, force)
     typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
+
+    if notify:
+        _publish_event(notify, output, len(projects))
+
+
+# --------------------------------------------------------------------- notifier
+def _publish_event(uri: str, output: Path, count: int):
+    try:
+        import nats
+    except ImportError:
+        typer.echo("⚠️  nats-py not installed; cannot publish event.")
+        return
+
+    async def _send():
+        nc = await nats.connect(uri)
+        await nc.publish(
+            "peagen.experiment.done",
+            json.dumps(
+                {
+                    "output": str(output),
+                    "count": count,
+                    "uri": uri,
+                }
+            ).encode(),
 
     if bus:
         bus.publish(

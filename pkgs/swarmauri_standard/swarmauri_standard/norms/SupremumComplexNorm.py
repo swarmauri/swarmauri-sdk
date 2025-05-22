@@ -247,8 +247,9 @@ class SupremumComplexNorm(NormBase):
                 # For single values or incompatible types
                 try:
                     x_plus_y = complex(x) + complex(y)
-                except Exception as exc:
-                    raise TypeError("Inputs cannot be added") from exc
+                except TypeError:
+                    raise TypeError("Inputs cannot be added")
+
 
             # Compute norms
             norm_x = abs(self.compute(x))
