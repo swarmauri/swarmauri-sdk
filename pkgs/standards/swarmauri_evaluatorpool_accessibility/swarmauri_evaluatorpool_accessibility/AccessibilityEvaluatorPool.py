@@ -1,4 +1,6 @@
 import logging
+import importlib
+import inspect
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
@@ -42,8 +44,11 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
             Additional keyword arguments
         """
         super().__init__(**kwargs)
-        self.evaluators = evaluators or []
+        self.evaluators = evaluators if evaluators is not None else []
         self.weights = weights or {}
+
+        if evaluators is None and not self.evaluators:
+            self._auto_register_evaluators()
 
         # Validate that all evaluators are properly initialized
         for evaluator in self.evaluators:
@@ -55,6 +60,26 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         logger.info(
             f"Initialized AccessibilityEvaluatorPool with {len(self.evaluators)} evaluators"
         )
+
+    def _auto_register_evaluators(self) -> None:
+        """Instantiate and register all evaluators defined in this package."""
+        try:
+            package = importlib.import_module(__package__)
+            for name in getattr(package, "__all__", []):
+                if name == "AccessibilityEvaluatorPool":
+                    continue
+                obj = getattr(package, name, None)
+                if inspect.isclass(obj) and issubclass(obj, EvaluatorBase):
+                    try:
+                        evaluator = obj()
+                        self.evaluators.append(evaluator)
+                        self.weights.setdefault(obj.__name__, 1.0)
+                    except Exception as e:  # pragma: no cover - best effort
+                        logger.warning(
+                            f"Failed to instantiate evaluator {name}: {e}"
+                        )
+        except Exception as e:  # pragma: no cover - best effort
+            logger.warning(f"Failed automatic evaluator registration: {e}")
 
     def evaluate(self, program: Program) -> Dict[str, Any]:
         """

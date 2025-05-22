@@ -7,9 +7,9 @@ based on configuration or CLI options.
 import importlib
 import os
 from pathlib import Path
-import tomllib
 from typing import Optional, Union
 
+import tomllib
 from pydantic import SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 

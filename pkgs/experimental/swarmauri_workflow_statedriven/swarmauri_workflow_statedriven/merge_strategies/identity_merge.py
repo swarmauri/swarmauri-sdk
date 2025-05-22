@@ -1,7 +1,8 @@
 # File: swarmauri/workflows/merge_strategies/identity_merge.py
 
-from typing import Any, List
+from typing import Any
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
+
 
 class IdentityMergeStrategy(MergeStrategy):
     """

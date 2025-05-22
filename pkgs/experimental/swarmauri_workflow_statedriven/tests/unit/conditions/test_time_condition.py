@@ -1,14 +1,16 @@
 # File: tests/workflows/conditions/test_time_condition.py
 
 import pytest
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 import swarmauri_workflow_statedriven.conditions.time_condition as tc_module
 from swarmauri_workflow_statedriven.conditions.time_condition import TimeWindowCondition
+
 
 class _FixedDateTime:
     """
     Helper to monkeypatch datetime.utcnow() to return a fixed time.
     """
+
     def __init__(self, fixed_time: time):
         self._fixed = fixed_time
 
@@ -16,9 +18,14 @@ class _FixedDateTime:
         # Return a datetime whose .time() is the fixed time
         now = datetime.now()
         return datetime(
-            year=now.year, month=now.month, day=now.day,
-            hour=self._fixed.hour, minute=self._fixed.minute, second=self._fixed.second
+            year=now.year,
+            month=now.month,
+            day=now.day,
+            hour=self._fixed.hour,
+            minute=self._fixed.minute,
+            second=self._fixed.second,
         )
+
 
 @pytest.mark.unit
 def test_within_non_wrapping_window(monkeypatch):
@@ -45,6 +52,7 @@ def test_within_non_wrapping_window(monkeypatch):
     fixed = time(17, 0, 1)
     monkeypatch.setattr(tc_module, "datetime", _FixedDateTime(fixed))
     assert cond.evaluate({}) is False
+
 
 @pytest.mark.unit
 def test_within_wrapping_window(monkeypatch):

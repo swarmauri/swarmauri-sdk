@@ -18,9 +18,8 @@ class J2PromptTemplate(PromptTemplateBase):
 
     Features:
     - Support for multiple template directories with fallback mechanism
-    - Built-in filters: split_whitespace, make_singular (when code_generation_mode is True)
+    - Built-in filters: split_whitespace, make_singular, make_plural
     - Template caching for performance
-    - Configurable for both general-purpose use and code generation
     """
 
     # The template attribute may be a literal string (template content),
@@ -55,6 +54,7 @@ class J2PromptTemplate(PromptTemplateBase):
         # Add basic filters
         env.filters["split"] = self.split_whitespace
         env.filters["make_singular"] = self.make_singular
+        env.filters["make_plural"] = self.make_plural
 
         return env
 
@@ -136,8 +136,8 @@ class J2PromptTemplate(PromptTemplateBase):
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
-        if self.code_generation_mode:
-            fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_singular"] = self.make_singular
+        fallback_env.filters["make_plural"] = self.make_plural
 
         self.template = fallback_env.get_template(template_name)
 

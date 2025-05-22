@@ -21,6 +21,10 @@ from peagen.schemas import DOE_SPEC_V1_SCHEMA
 
 import typer
 import yaml
+from urllib.parse import urlparse
+
+from peagen.cli_common import load_peagen_toml
+from peagen.plugin_registry import registry
 
 doe_app = typer.Typer(help="Generate project-payloads.yaml from a DOE spec.")
 
@@ -116,6 +120,31 @@ def experiment_generate(
     """
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
     """
+
+    toml_cfg = load_peagen_toml()
+    pubs_cfg = toml_cfg.get("publishers", {})
+    adapters_cfg = pubs_cfg.get("adapters", {})
+    default_pub = pubs_cfg.get("default_publisher")
+
+    if default_pub and notify is None:
+        notify = default_pub
+
+    bus = None
+    channel = "peagen.events"
+    if notify:
+        nt = urlparse(notify)
+        pub_name = nt.scheme or notify
+        pub_cfg = adapters_cfg.get(pub_name, {})
+        if nt.scheme and nt.path and nt.path != "/":
+            channel = nt.path.lstrip("/")
+        else:
+            channel = pub_cfg.get("channel", channel)
+        try:
+            PubCls = registry["publishers"][pub_name]
+        except KeyError:
+            typer.echo(f"❌ Unknown publisher '{pub_name}'.")
+            raise typer.Exit(1)
+        bus = PubCls(**pub_cfg)
 
     # 1. ---------- load files -------------------------------------------------
     spec_obj = _load_yaml(spec)
@@ -254,13 +283,14 @@ def _publish_event(uri: str, output: Path, count: int):
                     "uri": uri,
                 }
             ).encode(),
+
+    if bus:
+        bus.publish(
+            channel,
+            {
+                "type": "peagen.experiment.done",
+                "output": str(output),
+                "count": len(projects),
+            },
         )
-        await nc.drain()
 
-    import asyncio
-
-    try:
-        asyncio.run(_send())
-        typer.echo(f"📡  Notification sent to {uri}")
-    except Exception as e:
-        typer.echo(f"⚠️  Failed to publish event: {e}")

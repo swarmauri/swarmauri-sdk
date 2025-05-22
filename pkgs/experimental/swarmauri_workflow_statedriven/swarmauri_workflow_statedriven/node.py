@@ -1,12 +1,16 @@
 # File: swarmauri/workflows/node.py
 from __future__ import annotations
-from typing import Any, Optional, Dict, List
+from typing import Any, Dict, List, Optional
 import json
+from swarmauri_workflow_statedriven.input_modes.base import InputMode
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
+from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 from swarmauri_workflow_statedriven.join_strategies.first_join import FirstJoinStrategy
+from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMergeStrategy
+from swarmauri_workflow_statedriven.state_manager import StateManager
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
-from swarmauri_standard.messages.HumanMessage import HumanMessage
+
 
 class Node:
     """
@@ -56,10 +60,7 @@ class Node:
         self.merge_strategy = merge_strategy or ListMergeStrategy()
 
     def prepare_input(
-        self,
-        state_manager: "StateManager",
-        data: Any,
-        results: Dict[str, Any]
+        self, state_manager: "StateManager", data: Any, results: Dict[str, Any]
     ) -> Any:
         """
         File: workflows/node.py
@@ -85,7 +86,7 @@ class Node:
                     res = self.agent.exec(input_data)
                     print(res)
                     return res
-                except Exception as e:
+                except Exception:
                     res = self.agent.exec(input_data)
                     print(res)
                     return res
@@ -121,10 +122,7 @@ class Node:
         return res
 
     def run(
-        self,
-        state_manager: "StateManager",
-        data: Any,
-        results: Dict[str, Any]
+        self, state_manager: "StateManager", data: Any, results: Dict[str, Any]
     ) -> Any:
         """
         File: workflows/node.py

@@ -5,6 +5,13 @@ import numpy as np
 from deepface import DeepFace
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
 from swarmauri.distances.base.VisionDistanceBase import VisionDistanceBase
+import warnings
+
+warnings.warn(
+    "This distance class will be deprecated in v0.10.0",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
     

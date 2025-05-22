@@ -7,6 +7,7 @@ from pyppeteer import launch
 
 from swarmauri_workflow_statedriven.base import WorkflowBase
 
+
 class WorkflowGraph(WorkflowBase):
     """
     File: workflows/graph.py
@@ -101,6 +102,7 @@ class WorkflowGraph(WorkflowBase):
             The path to the generated PNG.
         """
         dot_source = self.to_dot()
+        escaped_dot = dot_source.replace("`", "\\`")
         # Build minimal HTML page
         html = f"""
         <html>
@@ -114,7 +116,7 @@ class WorkflowGraph(WorkflowBase):
             <script>
               const {{ Viz }} = window;
               const viz = new Viz();
-              viz.renderSVGElement(`{dot_source.replace('`','\\`')}`)
+              viz.renderSVGElement(`{escaped_dot}`)
                  .then(el => document.getElementById("container").appendChild(el))
                  .catch(err => console.error(err));
             </script>
@@ -130,7 +132,9 @@ class WorkflowGraph(WorkflowBase):
         )
         return str(out_path)
 
-    async def _render_html_to_png(self, html: str, output_png: str, width: int, height: int):
+    async def _render_html_to_png(
+        self, html: str, output_png: str, width: int, height: int
+    ):
         """
         File: workflows/graph.py
         Class: WorkflowGraph

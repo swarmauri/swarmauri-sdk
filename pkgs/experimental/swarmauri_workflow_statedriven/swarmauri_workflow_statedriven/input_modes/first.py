@@ -4,6 +4,7 @@ from typing import Any, Dict
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 from swarmauri_workflow_statedriven.state_manager import StateManager
 
+
 class FirstInputMode(InputMode):
     """
     File: first.py
@@ -18,7 +19,7 @@ class FirstInputMode(InputMode):
         state_manager: StateManager,
         node_name: str,
         data: Any,
-        results: Dict[str, Any]
+        results: Dict[str, Any],
     ) -> Any:
         """
         Return data[0] if data is a non-empty list; else return data.

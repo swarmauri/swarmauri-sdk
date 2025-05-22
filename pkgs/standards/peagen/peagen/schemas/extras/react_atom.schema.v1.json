@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/react_atom.schema.json",
+  "title": "EXTRAS Schema for react_atom",
+  "type": "object",
+  "properties": {
+    "RESOURCE_KIND": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "STATES": {},
+    "DEPENDENCIES": {}
+  },
+  "additionalProperties": false
+}

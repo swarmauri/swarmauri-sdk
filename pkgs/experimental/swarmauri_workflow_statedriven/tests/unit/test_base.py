@@ -2,13 +2,17 @@
 
 import pytest
 from swarmauri_workflow_statedriven.base import WorkflowBase
-from swarmauri_workflow_statedriven.conditions.function_condition import FunctionCondition
+from swarmauri_workflow_statedriven.conditions.function_condition import (
+    FunctionCondition,
+)
 from swarmauri_workflow_statedriven.exceptions import InvalidTransitionError
+
 
 class DummyAgent:
     """
     Simple agent stub for testing.
     """
+
     def __init__(self, suffix: str = ""):
         self.suffix = suffix
 
@@ -36,7 +40,9 @@ def test_add_state_errors():
     with pytest.raises(ValueError):
         wf.add_state("no_backend")  # neither agent nor tool
     with pytest.raises(ValueError):
-        wf.add_state("both_backends", agent=DummyAgent(), tool=DummyAgent())  # both provided
+        wf.add_state(
+            "both_backends", agent=DummyAgent(), tool=DummyAgent()
+        )  # both provided
 
 
 def test_add_state_success():

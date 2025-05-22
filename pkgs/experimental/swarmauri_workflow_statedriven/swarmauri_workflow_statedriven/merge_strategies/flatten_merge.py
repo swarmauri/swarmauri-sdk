@@ -3,6 +3,7 @@
 from typing import Any, List
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 
+
 class FlattenMergeStrategy(MergeStrategy):
     def merge(self, inputs: List[Any]) -> Any:
         # this returns List[Scalar] even if inputs was [[a,b],[c]]

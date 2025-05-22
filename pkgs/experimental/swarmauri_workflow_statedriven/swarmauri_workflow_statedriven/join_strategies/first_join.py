@@ -3,6 +3,7 @@
 from typing import Any, List
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 
+
 class FirstJoinStrategy(JoinStrategy):
     """
     File: join_strategies/first_join.py

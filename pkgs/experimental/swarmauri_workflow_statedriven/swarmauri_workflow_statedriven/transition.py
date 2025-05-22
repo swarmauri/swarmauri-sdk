@@ -3,6 +3,7 @@
 from typing import Any, Dict
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
+
 class Transition:
     """
     Represents a directed edge between two workflow states, guarded by a Condition.

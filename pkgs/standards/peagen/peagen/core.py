@@ -10,20 +10,21 @@ import json, os, sys
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
+import peagen.plugin_registry
+import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, model_validator, FilePath
-
-import peagen.plugin_registry
-import peagen.templates
+from pydantic import ConfigDict, Field, FilePath, model_validator
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_prompt_j2prompttemplate import j2pt
+
 from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
@@ -44,30 +45,42 @@ class Peagen(ComponentBase):
     org: Optional[str] = None
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
-    agent_env: Dict[str, Any]      = Field(default_factory=dict)
-    j2pt: Any                      = Field(default_factory=lambda: j2pt)
+    agent_env: Dict[str, Any] = Field(default_factory=dict)
+    j2pt: Any = Field(default_factory=lambda: j2pt)
 
     # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
 
-    # Legacy flag – converted to SOURCE_PACKAGES during CLI parsing.
+    # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
     additional_package_dirs: List[Path] = Field(
         default_factory=list,
-        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level."
+        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
+
     )
 
     # New: scratch workspace chosen by process.py
     workspace_root: Optional[Path] = Field(
-        default=None, exclude=True,
-        description="Workspace where generated & copied files live."
+        default=None,
+        exclude=True,
+        description="Workspace where generated & copied files live.",
     )
 
     # New: **authoritative list** of external packages copied into workspace.
     source_packages: List[Dict[str, Any]] = Field(
         default_factory=list,
         description=(
-            "Each item: {type:'git'|'local', uri/path, ref?, dest, checksum?}. "
-            "'dest' is relative to workspace_root."
+            "Each item: {type:'git'|'local'|'bundle'|'uri', uri/archive, ref?, dest, "
+            "expose_to_jinja?, checksum?}. 'dest' is relative to workspace_root."
+        ),
+    )
+
+    # New: template-sets installed for this run
+    template_sets: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Manifest entries for installed template-sets. "
+            "Each item: {name, type:'pip'|'git'|'local'|'bundle', "
+            "target, ref?, bundle_file?}."
         ),
     )
 
@@ -96,15 +109,20 @@ class Peagen(ComponentBase):
         that exist inside the workspace** plus built-ins & plugin templates.
         """
         # ── Auto-convert any leftover `additional_package_dirs`
-        #    into synthetic 'local' SOURCE_PACKAGE specs, so they get
+        #    into synthetic 'local' TEMPLATE_SET entries, so they get
         #    written to the manifest without CLI help.
         # -----------------------------------------------------------
         ns_dirs: List[str] = list(peagen.templates.__path__)
 
         # 1) Template-set plugins discovered via registry
         from peagen.plugin_registry import registry
+
         for plugin in registry.get("template_sets", {}).values():
-            pkg: ModuleType = plugin if isinstance(plugin, ModuleType) else import_module(plugin.__module__.split(".", 1)[0])
+            pkg: ModuleType = (
+                plugin
+                if isinstance(plugin, ModuleType)
+                else import_module(plugin.__module__.split(".", 1)[0])
+            )
             if hasattr(pkg, "__path__"):
                 ns_dirs.extend(str(p) for p in pkg.__path__)
 
@@ -112,9 +130,12 @@ class Peagen(ComponentBase):
         if self.workspace_root is not None:
             ns_dirs.insert(0, os.fspath(self.workspace_root))
 
-        # 3) Source-package *dest* folders (now inside workspace)
+        # 3) Source-package *dest* folders exposed to Jinja
         for spec in self.source_packages:
-            ns_dirs.append(os.fspath(Path(self.workspace_root or ".") / spec["dest"]))
+            if spec.get("expose_to_jinja"):
+                ns_dirs.append(
+                    os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                )
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
@@ -143,8 +164,11 @@ class Peagen(ComponentBase):
         dirs = [
             os.fspath(package_specific_template_dir),
             self.base_dir,
-            *[os.fspath(Path(self.workspace_root or ".") / spec["dest"])
-              for spec in self.source_packages],
+            *[
+                os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                for spec in self.source_packages
+                if spec.get("expose_to_jinja")
+            ],
         ]
         dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
         self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
@@ -155,7 +179,9 @@ class Peagen(ComponentBase):
             candidate = Path(base) / template_set
             if candidate.is_dir():
                 return candidate.resolve()
-        raise ValueError(f"Template set '{template_set}' not found in: {self.namespace_dirs}")
+        raise ValueError(
+            f"Template set '{template_set}' not found in: {self.namespace_dirs}"
+        )
 
     # ---------------------
     # Public Methods
@@ -439,10 +465,11 @@ class Peagen(ComponentBase):
 
 
             manifest_meta: Dict[str, Any] = {
-                "schema_version": 3,
+                "schema_version": "3.1.0",
                 "workspace_uri": workspace_uri,
                 "project": project_name,
                 "source_packages": self.source_packages,
+                "template_sets": self.template_sets,
                 "peagen_version": __version__,
             }
 
