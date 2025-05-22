@@ -39,7 +39,7 @@ class ProjectionPseudometricR2(PseudometricBase):
     type: Literal["ProjectionPseudometricR2"] = "ProjectionPseudometricR2"
     projection_axis: int = Field(default=0, ge=0, le=1)
     
-    def __init__(self, projection_axis: int = 0):
+    def __init__(self, projection_axis: int = 0, **kwargs):
         """
         Initialize the ProjectionPseudometricR2.
         
@@ -54,11 +54,17 @@ class ProjectionPseudometricR2(PseudometricBase):
             If projection_axis is not 0 or 1
         """
         if projection_axis not in [0, 1]:
-            logger.error(f"Invalid projection axis: {projection_axis}. Must be 0 (x-axis) or 1 (y-axis).")
+            logger.error(
+                f"Invalid projection axis: {projection_axis}. Must be 0 (x-axis) or 1 (y-axis)."
+            )
             raise ValueError("Projection axis must be 0 (x-axis) or 1 (y-axis)")
-        
-        self.projection_axis = projection_axis
-        logger.debug(f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}")
+
+        kwargs["projection_axis"] = projection_axis
+        super().__init__(**kwargs)
+
+        logger.debug(
+            f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}"
+        )
     
     def _validate_and_extract_coordinates(self, 
                                          point: Union[VectorType, MatrixType, Sequence[T], str, Callable]
