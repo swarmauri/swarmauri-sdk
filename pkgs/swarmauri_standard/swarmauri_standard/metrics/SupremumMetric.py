@@ -6,6 +6,7 @@ from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
@@ -35,19 +36,15 @@ class SupremumMetric(MetricBase):
     type: Literal["SupremumMetric"] = "SupremumMetric"
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
-    def distance(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the supremum (maximum) distance between two points.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -96,7 +93,7 @@ class SupremumMetric(MetricBase):
                 # Try to handle other types
                 try:
                     return abs(x - y)
-                except:
+                except TypeError:
                     raise TypeError(f"Unsupported input types: {type(x)} and {type(y)}")
 
         except Exception as e:
@@ -131,17 +128,17 @@ class SupremumMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
         Parameters
         ----------
-        x : float
+        x : Union[MetricInput, MetricInputCollection]
             First collection of points
-        y : float
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of points
 
         Returns
@@ -233,11 +230,7 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error calculating supremum distances: {str(e)}")
             raise
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -245,9 +238,9 @@ class SupremumMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -267,20 +260,16 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -315,11 +304,7 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {str(e)}")
             return False
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
@@ -327,9 +312,9 @@ class SupremumMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -352,10 +337,7 @@ class SupremumMetric(MetricBase):
             return False
 
     def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
+        self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
@@ -363,11 +345,11 @@ class SupremumMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
-        z : float
+        z : MetricInput
             Third point
 
         Returns

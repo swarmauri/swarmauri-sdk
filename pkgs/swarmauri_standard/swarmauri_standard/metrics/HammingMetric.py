@@ -5,6 +5,7 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
@@ -27,11 +28,7 @@ class HammingMetric(MetricBase):
 
     type: Literal["HammingMetric"] = "HammingMetric"
 
-    def distance(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the Hamming distance between two sequences.
 
@@ -40,9 +37,9 @@ class HammingMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First sequence
-        y : float
+        y : MetricInput
             Second sequence
 
         Returns
@@ -75,17 +72,17 @@ class HammingMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Hamming distances between collections of sequences.
 
         Parameters
         ----------
-        x : float
+        x : Union[MetricInput, MetricInputCollection]
             First collection of sequences
-        y : float
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of sequences
 
         Returns
@@ -150,11 +147,7 @@ class HammingMetric(MetricBase):
 
         raise TypeError("Unsupported input types")
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Hamming metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -163,9 +156,9 @@ class HammingMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First sequence
-        y : float
+        y : MetricInput
             Second sequence
 
         Returns
@@ -177,20 +170,16 @@ class HammingMetric(MetricBase):
         # Hamming distance is always non-negative as it counts differences
         return True
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Hamming metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First sequence
-        y : float
+        y : MetricInput
             Second sequence
 
         Returns
@@ -209,19 +198,15 @@ class HammingMetric(MetricBase):
 
         return sequences_equal == distance_zero
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Hamming metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First sequence
-        y : float
+        y : MetricInput
             Second sequence
 
         Returns
@@ -240,23 +225,18 @@ class HammingMetric(MetricBase):
             abs(dist_xy - dist_yx) < 1e-10
         )  # Using small epsilon for float comparison
 
-    def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
-    ) -> bool:
+    def check_triangle_inequality(self, x: MetricInput, y: MetricInput, z: MetricInput) -> bool:
         """
         Check if the Hamming metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First sequence
-        y : float
+        y : MetricInput
             Second sequence
-        z : float
+        z : MetricInput
             Third sequence
 
         Returns

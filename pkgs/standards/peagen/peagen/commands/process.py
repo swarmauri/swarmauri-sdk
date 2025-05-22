@@ -250,7 +250,11 @@ def process_cmd(
 
     with temp_workspace() as ws:
         fetched_dirs = materialise_packages(source_pkgs, ws, storage_adapter)
-        extra_dirs.extend(fetched_dirs)
+        extra_dirs.extend(
+            d
+            for spec, d in zip(source_pkgs, fetched_dirs)
+            if spec.get("expose_to_jinja")
+        )
 
         pea = Peagen(
             projects_payload_path=str(projects_payload),

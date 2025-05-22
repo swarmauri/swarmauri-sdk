@@ -76,8 +76,8 @@ def test_initialization():
     # Test default initialization
     pool = AccessibilityEvaluatorPool()
     assert pool.type == "AccessibilityEvaluatorPool"
-    assert pool.evaluators == []
-    assert pool.weights == {}
+    assert len(pool.evaluators) > 0
+    assert pool.weights
 
     # Test initialization with evaluators and weights
     mock_eval = Mock(spec=EvaluatorBase)
@@ -98,7 +98,7 @@ def test_initialization_with_invalid_evaluator():
 @pytest.mark.unit
 def test_evaluate_empty_evaluators():
     """Test evaluate method with no evaluators returns default values."""
-    pool = AccessibilityEvaluatorPool()
+    pool = AccessibilityEvaluatorPool(evaluators=[])
     program = Mock(spec=Program)
     program.get_source_files = Mock(return_value={})
     result = pool.evaluate(program)
@@ -260,3 +260,26 @@ def test_reset(evaluator_pool, mock_evaluator):
     evaluator_pool.reset()
 
     mock_evaluator.reset.assert_called_once()
+
+
+@pytest.mark.unit
+def test_auto_register_evaluators(monkeypatch):
+    """AccessibilityEvaluatorPool auto-registers evaluators from the package."""
+    import swarmauri_evaluatorpool_accessibility as pkg
+
+    class DummyEvaluator(EvaluatorBase):
+
+        def _compute_score(self, program: Program, **kwargs):
+            return 0.0, {}
+
+    for name in pkg.__all__:
+        if name == "AccessibilityEvaluatorPool":
+            continue
+        monkeypatch.setattr(pkg, name, type(name, (DummyEvaluator,), {}))
+
+    pool = pkg.AccessibilityEvaluatorPool()
+
+    expected = {name for name in pkg.__all__ if name != "AccessibilityEvaluatorPool"}
+    evaluator_names = {e.__class__.__name__ for e in pool.evaluators}
+
+    assert evaluator_names == expected

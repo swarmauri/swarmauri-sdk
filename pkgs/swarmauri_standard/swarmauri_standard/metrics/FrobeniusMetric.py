@@ -1,18 +1,16 @@
 import logging
-from typing import List, Literal, Optional, Sequence, TypeVar, Union
+from typing import List, Literal, Optional, Sequence, Union
 
 import numpy as np
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-# Type variables for generic typing
-T = TypeVar("T", bound=Union[IMatrix, np.ndarray, List[List[float]]])
 
 
 @ComponentBase.register_type(MetricBase, "FrobeniusMetric")
@@ -34,15 +32,15 @@ class FrobeniusMetric(MetricBase):
     type: Literal["FrobeniusMetric"] = "FrobeniusMetric"
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
-    def distance(self, x: T, y: T) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the Frobenius distance between two matrices.
 
         Parameters
         ----------
-        x : T
+        x : MetricInput
             First matrix
-        y : T
+        y : MetricInput
             Second matrix
 
         Returns
@@ -91,16 +89,18 @@ class FrobeniusMetric(MetricBase):
         return float(frobenius_distance)
 
     def distances(
-        self, x: Union[List[T], Sequence[T]], y: Union[List[T], Sequence[T]]
+        self,
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Frobenius distances between collections of matrices.
 
         Parameters
         ----------
-        x : Union[List[T], Sequence[T]]
+        x : Union[MetricInput, MetricInputCollection]
             First collection of matrices
-        y : Union[List[T], Sequence[T]]
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of matrices
 
         Returns
@@ -137,7 +137,7 @@ class FrobeniusMetric(MetricBase):
 
         return distance_matrix
 
-    def check_non_negativity(self, x: T, y: T) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Frobenius metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -145,9 +145,9 @@ class FrobeniusMetric(MetricBase):
 
         Parameters
         ----------
-        x : T
+        x : MetricInput
             First matrix
-        y : T
+        y : MetricInput
             Second matrix
 
         Returns
@@ -163,16 +163,16 @@ class FrobeniusMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {e}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: T, y: T) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Frobenius metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : T
+        x : MetricInput
             First matrix
-        y : T
+        y : MetricInput
             Second matrix
 
         Returns
@@ -210,15 +210,15 @@ class FrobeniusMetric(MetricBase):
             logger.error(f"Error checking identity of indiscernibles: {e}")
             return False
 
-    def check_symmetry(self, x: T, y: T) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Frobenius metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : T
+        x : MetricInput
             First matrix
-        y : T
+        y : MetricInput
             Second matrix
 
         Returns
@@ -238,18 +238,20 @@ class FrobeniusMetric(MetricBase):
             logger.error(f"Error checking symmetry: {e}")
             return False
 
-    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
+    def check_triangle_inequality(
+        self, x: MetricInput, y: MetricInput, z: MetricInput
+    ) -> bool:
         """
         Check if the Frobenius metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : T
+        x : MetricInput
             First matrix
-        y : T
+        y : MetricInput
             Second matrix
-        z : T
+        z : MetricInput
             Third matrix
 
         Returns

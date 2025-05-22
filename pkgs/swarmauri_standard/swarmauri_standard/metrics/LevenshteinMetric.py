@@ -5,6 +5,7 @@ import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
@@ -26,15 +27,15 @@ class LevenshteinMetric(MetricBase):
 
     type: Literal["LevenshteinMetric"] = "LevenshteinMetric"
 
-    def distance(self, x: str, y: str) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the Levenshtein distance between two strings.
 
         Parameters
         ----------
-        x : str
+        x : MetricInput
             First string
-        y : str
+        y : MetricInput
             Second string
 
         Returns
@@ -91,17 +92,17 @@ class LevenshteinMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Levenshtein distances between collections of strings.
 
         Parameters
         ----------
-        x : Union[List[str], np.ndarray]
+        x : Union[MetricInput, MetricInputCollection]
             First collection of strings
-        y : Union[List[str], np.ndarray]
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of strings
 
         Returns
@@ -159,7 +160,7 @@ class LevenshteinMetric(MetricBase):
 
         return result
 
-    def check_non_negativity(self, x: str, y: str) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Levenshtein metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -167,9 +168,9 @@ class LevenshteinMetric(MetricBase):
 
         Parameters
         ----------
-        x : str
+        x : MetricInput
             First string
-        y : str
+        y : MetricInput
             Second string
 
         Returns
@@ -183,16 +184,16 @@ class LevenshteinMetric(MetricBase):
         # which cannot be negative
         return True
 
-    def check_identity_of_indiscernibles(self, x: str, y: str) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Levenshtein metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : str
+        x : MetricInput
             First string
-        y : str
+        y : MetricInput
             Second string
 
         Returns
@@ -205,15 +206,15 @@ class LevenshteinMetric(MetricBase):
         # The distance is 0 if and only if the strings are identical
         return (self.distance(x, y) == 0) == (x == y)
 
-    def check_symmetry(self, x: str, y: str) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Levenshtein metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : str
+        x : MetricInput
             First string
-        y : str
+        y : MetricInput
             Second string
 
         Returns
@@ -229,18 +230,20 @@ class LevenshteinMetric(MetricBase):
 
         return d_xy == d_yx
 
-    def check_triangle_inequality(self, x: str, y: str, z: str) -> bool:
+    def check_triangle_inequality(
+        self, x: MetricInput, y: MetricInput, z: MetricInput
+    ) -> bool:
         """
         Check if the Levenshtein metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : str
+        x : MetricInput
             First string
-        y : str
+        y : MetricInput
             Second string
-        z : str
+        z : MetricInput
             Third string
 
         Returns

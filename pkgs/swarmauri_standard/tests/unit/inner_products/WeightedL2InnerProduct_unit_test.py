@@ -100,7 +100,8 @@ def test_validate_weight_at_points_valid(weighted_l2_constant):
 def test_validate_weight_at_points_invalid():
     """Test validation fails with non-positive weights."""
     # Create a weight function that returns negative values
-    negative_weight_func = lambda x: -1.0
+    def negative_weight_func(x):
+        return -1.0
     inner_product = WeightedL2InnerProduct(weight_function=negative_weight_func)
 
     with pytest.raises(ValueError, match="Weight function must be strictly positive"):
@@ -236,7 +237,10 @@ def test_compute_with_complex_arrays(weighted_l2_constant):
 @pytest.mark.unit
 def test_invalid_weight_function():
     """Test inner product with a weight function that returns zero or negative values."""
-    invalid_weight_func = lambda x: np.zeros_like(x) if isinstance(x, np.ndarray) else 0
+
+    def invalid_weight_func(x):
+        return np.zeros_like(x) if isinstance(x, np.ndarray) else 0
+
     inner_product = WeightedL2InnerProduct(weight_function=invalid_weight_func)
 
     a = np.array([1, 2, 3])
@@ -282,7 +286,6 @@ def test_serialization():
     data = inner_product.model_dump()
     assert data["type"] == "WeightedL2InnerProduct"
     assert data["resource"] == "InnerProduct"
-
 
 
 @pytest.mark.unit

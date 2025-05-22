@@ -2,7 +2,7 @@ import logging
 from typing import Callable, Literal, TypeVar, Union
 
 import numpy as np
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
 from swarmauri_core.vectors.IVector import IVector
 
