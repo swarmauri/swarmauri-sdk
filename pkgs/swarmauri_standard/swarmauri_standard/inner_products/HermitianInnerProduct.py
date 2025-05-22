@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar, Union
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase

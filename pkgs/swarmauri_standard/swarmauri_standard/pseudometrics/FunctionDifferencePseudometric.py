@@ -156,7 +156,6 @@ class FunctionDifferencePseudometric(PseudometricBase):
         for _ in range(self.num_samples):
             if len(dimensions) == 1:
                 # 1D case - return scalar
-                dim = dimensions[0]
                 lower, upper = bounds[0]
                 point = random.uniform(lower, upper)
                 self._sample_points.append(point)

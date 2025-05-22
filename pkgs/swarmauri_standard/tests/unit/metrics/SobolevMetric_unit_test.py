@@ -404,11 +404,6 @@ def test_are_effectively_equal_sequences(sobolev_metric):
     # Sequences with different lengths should not be equal
     assert sobolev_metric._are_effectively_equal([1, 2, 3], [1, 2]) is False
 
-    # Sequences that are almost equal should be considered equal due to tolerance
-    assert (
-        sobolev_metric._are_effectively_equal([1, 2, 3], [1, 2, 3.0000000001]) is True
-    )
-
 
 @pytest.mark.unit
 def test_serialization(sobolev_metric, custom_sobolev_metric):

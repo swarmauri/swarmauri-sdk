@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -1,11 +1,10 @@
 import logging
-from typing import Any, List, Literal, Optional, Union
-
-from swarmauri_core.matrices.IMatrix import IMatrix
-from swarmauri_core.metrics.IMetric import IMetric
-from swarmauri_core.vectors.IVector import IVector
+from typing import List, Literal, Optional, Union
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import IMetric, MetricInput, MetricInputCollection
+from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
 logger = logging.getLogger(__name__)
@@ -29,15 +28,15 @@ class MetricBase(IMetric, ComponentBase):
     resource: Optional[str] = ResourceTypes.METRIC.value
     type: Literal["MetricBase"] = "MetricBase"
 
-    def distance(self, x: Any, y: Any) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the distance between two points.
 
         Parameters
         ----------
-        x : Any
+        x : MetricInput
             First point
-        y : Any
+        y : MetricInput
             Second point
 
         Returns
@@ -59,15 +58,19 @@ class MetricBase(IMetric, ComponentBase):
             "The distance method must be implemented by child classes"
         )
 
-    def distances(self, x: Any, y: Any) -> Union[List[float], IVector, IMatrix]:
+    def distances(
+        self,
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
+    ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
         Parameters
         ----------
-        x : Any
+        x : Union[MetricInput, MetricInputCollection]
             First collection of points
-        y : Any
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of points
 
         Returns
@@ -89,15 +92,15 @@ class MetricBase(IMetric, ComponentBase):
             "The distances method must be implemented by child classes"
         )
 
-    def check_non_negativity(self, x: Any, y: Any) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
         Parameters
         ----------
-        x : Any
+        x : MetricInput
             First point
-        y : Any
+        y : MetricInput
             Second point
 
         Returns
@@ -115,16 +118,16 @@ class MetricBase(IMetric, ComponentBase):
             "The check_non_negativity method must be implemented by child classes"
         )
 
-    def check_identity_of_indiscernibles(self, x: Any, y: Any) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : Any
+        x : MetricInput
             First point
-        y : Any
+        y : MetricInput
             Second point
 
         Returns
@@ -142,15 +145,15 @@ class MetricBase(IMetric, ComponentBase):
             "The check_identity_of_indiscernibles method must be implemented by child classes"
         )
 
-    def check_symmetry(self, x: Any, y: Any) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : Any
+        x : MetricInput
             First point
-        y : Any
+        y : MetricInput
             Second point
 
         Returns
@@ -168,18 +171,20 @@ class MetricBase(IMetric, ComponentBase):
             "The check_symmetry method must be implemented by child classes"
         )
 
-    def check_triangle_inequality(self, x: Any, y: Any, z: Any) -> bool:
+    def check_triangle_inequality(
+        self, x: MetricInput, y: MetricInput, z: MetricInput
+    ) -> bool:
         """
         Check if the metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters
         ----------
-        x : Any
+        x : MetricInput
             First point
-        y : Any
+        y : MetricInput
             Second point
-        z : Any
+        z : MetricInput
             Third point
 
         Returns

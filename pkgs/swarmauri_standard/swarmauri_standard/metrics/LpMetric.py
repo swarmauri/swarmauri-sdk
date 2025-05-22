@@ -6,6 +6,7 @@ from pydantic import Field, field_validator
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.metrics.IMetric import MetricInput, MetricInputCollection
 from swarmauri_core.vectors.IVector import IVector
 
 from swarmauri_standard.norms.GeneralLpNorm import GeneralLpNorm
@@ -27,7 +28,7 @@ class LpMetric(MetricBase):
     ----------
     type : Literal["LpMetric"]
         The type identifier for this metric.
-    p : float
+    p : floats
         The parameter p for the Lp metric. Must be finite and greater than 1.
     resource : str, optional
         The resource type, defaults to METRIC.
@@ -63,13 +64,13 @@ class LpMetric(MetricBase):
             raise ValueError(f"Parameter p must be finite, got {v}")
         return v
 
-    def _convert_to_array(self, x: float) -> np.ndarray:
+    def _convert_to_array(self, x: MetricInput) -> np.ndarray:
         """
         Convert the input to a numpy array for computation.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             The input to convert.
 
         Returns
@@ -95,19 +96,15 @@ class LpMetric(MetricBase):
         else:
             raise TypeError(f"Unsupported input type: {type(x)}")
 
-    def distance(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> float:
+    def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
         Calculate the Lp distance between two points.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -144,17 +141,17 @@ class LpMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
+        x: Union[MetricInput, MetricInputCollection],
+        y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
         Calculate Lp distances between collections of points.
 
         Parameters
         ----------
-        x : float
+        x : Union[MetricInput, MetricInputCollection]
             First collection of points
-        y : float
+        y : Union[MetricInput, MetricInputCollection]
             Second collection of points
 
         Returns
@@ -219,11 +216,7 @@ class LpMetric(MetricBase):
             logger.error(f"Error calculating Lp distances: {str(e)}")
             raise
 
-    def check_non_negativity(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Lp metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
@@ -231,9 +224,9 @@ class LpMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -250,20 +243,16 @@ class LpMetric(MetricBase):
             logger.error(f"Error in non-negativity check: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Lp metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -295,19 +284,15 @@ class LpMetric(MetricBase):
             logger.error(f"Error in identity of indiscernibles check: {str(e)}")
             return False
 
-    def check_symmetry(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-    ) -> bool:
+    def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
         Check if the Lp metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
 
         Returns
@@ -329,10 +314,7 @@ class LpMetric(MetricBase):
             return False
 
     def check_triangle_inequality(
-        self,
-        x: Union[List[float], np.ndarray, IVector],
-        y: Union[List[float], np.ndarray, IVector],
-        z: float,
+        self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
         Check if the Lp metric satisfies the triangle inequality axiom:
@@ -340,11 +322,11 @@ class LpMetric(MetricBase):
 
         Parameters
         ----------
-        x : float
+        x : MetricInput
             First point
-        y : float
+        y : MetricInput
             Second point
-        z : float
+        z : MetricInput
             Third point
 
         Returns
