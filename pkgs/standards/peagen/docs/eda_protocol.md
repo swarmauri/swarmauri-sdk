@@ -4,7 +4,7 @@ Peagen publishes JSON messages to notify external systems about key events durin
 
 ## Event Structure
 
-Each event is a JSON object with a top-level `type` field. Implementations may include additional fields for context.
+Each event is a JSON object with a top-level `type` field. Implementations may include additional fields for context. A machine readable schema is provided at `peagen/schemas/event.schema.v1.json`.
 
 ```json
 {

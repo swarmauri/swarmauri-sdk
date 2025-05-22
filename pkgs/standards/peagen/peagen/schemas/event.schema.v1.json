@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/event.schema.json",
+  "title": "Peagen Event Schema (v1.0.0)",
+  "schemaVersion": "1.0.0",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["process.started", "process.done", "peagen.experiment.done"],
+      "description": "Event type identifier"
+    },
+    "extra": {
+      "type": "object",
+      "description": "Optional contextual data",
+      "additionalProperties": true
+    },
+    "seconds": {
+      "type": "number",
+      "description": "Duration in seconds for process.done events"
+    },
+    "output": {
+      "type": "string",
+      "description": "Output path for peagen.experiment.done"
+    },
+    "count": {
+      "type": "integer",
+      "description": "Project count for peagen.experiment.done"
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": true
+}
