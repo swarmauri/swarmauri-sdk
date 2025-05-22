@@ -13,7 +13,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import peagen.templates as _pt  # root namespace that ships built-in sets
 import typer
@@ -141,6 +141,9 @@ def add_template_set(
             "contains a template-set extension."
         ),
     ),
+    from_bundle: Optional[str] = typer.Option(
+        None, "--from-bundle", help="Install from bundled archive"
+    ),
     editable: bool = typer.Option(
         False,
         "--editable",
@@ -166,7 +169,7 @@ def add_template_set(
     * **Wheel / sdist** → `pip install ./dist/…`
     * **Directory** → `pip install (-e) <dir>`  (use *-e/--editable* to develop)
     """
-    src_path = Path(source)
+    src_path = Path(from_bundle) if from_bundle else Path(source)
     is_local = src_path.exists()
 
     # ------------------------------------------------------------------ helpers

@@ -11,7 +11,7 @@ on:
 
 jobs:
   detect-changed-files:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
@@ -90,7 +90,7 @@ jobs:
   run-tests:
     needs: detect-changed-files
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
-    runs-on: ubuntu-latest
+    runs-on: [testing]
     strategy:
       fail-fast: false
       matrix:
