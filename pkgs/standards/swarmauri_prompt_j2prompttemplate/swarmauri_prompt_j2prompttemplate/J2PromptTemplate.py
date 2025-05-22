@@ -22,12 +22,14 @@ class J2PromptTemplate(PromptTemplateBase):
     - Template caching for performance
     """
 
+
     # The template attribute may be a literal string (template content),
     # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
     template: Union[str, FilePath, Template] = ""
     variables: Dict[str, Union[str, int, float, Any]] = {}
     # Optional templates_dir attribute (can be a single path or a list of paths)
     templates_dir: Optional[Union[str, List[str]]] = None
+    # Whether to enable code generation specific features like linguistic filters
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
@@ -135,8 +137,8 @@ class J2PromptTemplate(PromptTemplateBase):
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
-        fallback_env.filters["make_singular"] = self.make_singular
-        fallback_env.filters["make_plural"] = self.make_plural
+        if self.code_generation_mode:
+            fallback_env.filters["make_singular"] = self.make_singular
 
         self.template = fallback_env.get_template(template_name)
 
@@ -197,6 +199,7 @@ class J2PromptTemplate(PromptTemplateBase):
         except ImportError:
             # Return the original if inflect is not available
             return word
+
     @staticmethod
     def make_plural(word: str) -> str:
         """
@@ -205,10 +208,12 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         try:
             import inflect
+
             p = inflect.engine()
             return p.plural(word) or word
         except ImportError:
             return word
+
     def add_filter(self, name: str, filter_func: Callable) -> None:
         """
         Adds a custom filter to the Jinja2 environment.
@@ -221,5 +226,5 @@ class J2PromptTemplate(PromptTemplateBase):
         env.filters[name] = filter_func
 
 
-# Create a singleton instance for peagen usage
+# Create a singleton instance for peagen usage with code generation mode enabled
 j2pt = J2PromptTemplate()
