@@ -6,7 +6,7 @@ import numpy as np
 
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_base.chains.ChainContextBase import ChainContextBase
-from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
+from swarmauri_base.prompts.PromptMatrixBase import PromptMatrixBase
 from swarmauri_base.agents.AgentBase import AgentBase
 
 from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
