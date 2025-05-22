@@ -30,8 +30,8 @@ def _save_file(
     *,
     storage_adapter=None,
     org: str | None = None,
-    workspace_root: Path,
-    manifest_writer: Optional[ManifestWriter] = None,  # NEW
+    workspace_root: Path = Path("."),
+    manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
     1.  Write to <workspace_root>/<filepath>.
@@ -39,11 +39,17 @@ def _save_file(
     3.  Stream a manifest line via ManifestWriter (if provided).
     """
     full_path = workspace_root / filepath
-    full_path.parent.mkdir(parents=True, exist_ok=True)
-    full_path.write_text(content, encoding="utf-8")
+    try:
+        os.makedirs(full_path.parent, exist_ok=True)
+        with open(str(full_path), "w", encoding="utf-8") as f:
+            f.write(content)
+    except Exception as exc:
+        if logger:
+            logger.error(f"Failed to save file '{full_path}': {exc}")
+        return
 
     if logger:
-        fname = "peagen_" + str(full_path).split("peagen_")[1]
+        fname = os.path.relpath(full_path, workspace_root)
         logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
 
     if storage_adapter:  # remote upload
@@ -117,9 +123,9 @@ def _process_file(
     global_attrs: Dict[str, Any],
     template_dir: str,
     agent_env: Dict[str, Any],
-    j2_instance: Any,
+    j2_instance: Any | None = None,
     *,
-    workspace_root: Path,
+    workspace_root: Path = Path("."),
     logger: Optional[Any] = None,
     start_idx: int = 0,
     idx_len: int = 1,
@@ -130,13 +136,20 @@ def _process_file(
     """
     Render one file_record (COPY | GENERATE).
     """
+    if j2_instance is None:
+        j2_instance = J2PromptTemplate()
+        if j2pt.templates_dir:
+            j2_instance.templates_dir = [template_dir] + list(j2pt.templates_dir)
+        else:
+            j2_instance.templates_dir = [template_dir]
+
     context = _create_context(file_record, global_attrs, logger)
     final_filename = os.path.normpath(file_record.get("RENDERED_FILE_NAME"))
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
 
     try:
         if process_type == "COPY":
-            content = _render_copy_template(file_record, context, j2_instance, logger)
+            content = _render_copy_template(file_record, context, j2_instance)
         elif process_type == "GENERATE":
             if _config["revise"] and "agent_prompt_template_file" not in agent_env:
                 agent_env["agent_prompt_template_file"] = "agent_revise.j2"
@@ -150,7 +163,7 @@ def _process_file(
 
             prompt_path = os.path.join(template_dir, prompt_name)
             content = _render_generate_template(
-                file_record, context, prompt_path, j2_instance, agent_env, logger
+                file_record, context, prompt_path, j2_instance, agent_env
             )
         else:
             if logger:
@@ -174,16 +187,23 @@ def _process_file(
                 f"Blank content for file '{final_filename}'; saving empty file."
             )
 
+    save_kwargs = {}
+    if storage_adapter is not None:
+        save_kwargs["storage_adapter"] = storage_adapter
+    if org is not None:
+        save_kwargs["org"] = org
+    if workspace_root != Path("."):
+        save_kwargs["workspace_root"] = workspace_root
+    if manifest_writer is not None:
+        save_kwargs["manifest_writer"] = manifest_writer
+
     _save_file(
         content,
         final_filename,
         logger,
         start_idx,
         idx_len,
-        storage_adapter=storage_adapter,
-        org=org,
-        workspace_root=workspace_root,
-        manifest_writer=manifest_writer,
+        **save_kwargs,
     )
     return True
 
@@ -195,11 +215,11 @@ def _process_project_files(
     agent_env: Dict[str, Any],
     logger: Optional[Any] = None,
     *,
-    workspace_root: Path,
+    workspace_root: Path = Path("."),
     start_idx: int = 0,
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
-    manifest_writer: Optional[ManifestWriter] = None,  # NEW
+    manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
     Processes all file_records, creating fresh J2PromptTemplate instances
@@ -225,7 +245,10 @@ def _process_project_files(
             j2.templates_dir = (
                 [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
             )
-
+            if str(new_dir) != j2pt.templates_dir[0]:
+                j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
+                if logger:
+                    logger.debug(f"Updated templates_dir to {new_dir}")
             try:
                 _process_file(
                     rec,
@@ -271,6 +294,11 @@ def _process_project_files(
     # Sequential execution
     for rec in file_records:
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
+        if str(new_dir) != j2pt.templates_dir[0]:
+            j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
+            if logger:
+                logger.debug(f"Updated templates_dir to {new_dir}")
+
         j2_instance = J2PromptTemplate()
         j2_instance.templates_dir = (
             [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])

@@ -227,7 +227,7 @@ Expand a Design-of-Experiments spec into a `project_payloads.yaml` bundle.
 ```bash
 peagen doe gen <DOE_SPEC_YML> <TEMPLATE_PROJECT> \
   [--output project_payloads.yaml] \
-  [--context global_patch.yml] \
+  [-c PATH | --config PATH] \
   [--dry-run] [--force]
 ```
 

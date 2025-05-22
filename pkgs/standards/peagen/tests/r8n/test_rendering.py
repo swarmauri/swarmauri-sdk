@@ -48,41 +48,31 @@ class TestRendering:
             "PACKAGE_NAME": "TestPackage",
         }
 
-    @pytest.fixture(autouse=True)
-    def setup_j2pt_mock(self, monkeypatch):
-        """Set up a mock j2pt for all tests in this class"""
-        mock_j2pt = MagicMock()
-        # Patch j2pt within the _rendering module
-        monkeypatch.setattr('peagen._rendering.j2pt', mock_j2pt)
-        return mock_j2pt
+    @pytest.fixture
+    def j2_instance(self):
+        """Provide a mock J2 instance"""
+        return MagicMock()
 
     def test_render_copy_template_success(
-        self, file_record, context, mock_logger, setup_j2pt_mock
+        self, file_record, context, j2_instance, mock_logger
     ):
         """Test successful rendering of a copy template"""
-        # Setup the mock
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.fill.return_value = "Hello, World!"
+        j2_instance.fill.return_value = "Hello, World!"
 
-        # Call the function without j2_instance parameter
-        result = _render_copy_template(file_record, context, mock_logger)
+        result = _render_copy_template(file_record, context, j2_instance, mock_logger)
 
         # Assertions
         assert result == "Hello, World!"
-        mock_j2pt.set_template.assert_called_once()
-        mock_j2pt.fill.assert_called_once_with(context)
+        j2_instance.set_template.assert_called_once()
+        j2_instance.fill.assert_called_once_with(context)
         mock_logger.error.assert_not_called()
 
-    def test_render_copy_template_exception(
-        self, file_record, context, mock_logger, setup_j2pt_mock
+    def test_render_copy_template_exception
+        self, file_record, context, j2_instance, mock_logger
     ):
         """Test handling of exceptions during copy template rendering"""
-        # Setup the mock
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.set_template.side_effect = Exception("Template error")
-
-        # Call the function without j2_instance parameter
-        result = _render_copy_template(file_record, context, mock_logger)
+        j2_instance.set_template.side_effect = Exception("Template error")
+        result = _render_copy_template(file_record, context, j2_instance, mock_logger)
 
         # Assertions
         assert result == ""
@@ -90,54 +80,46 @@ class TestRendering:
         error_msg = mock_logger.error.call_args[0][0]
         assert "Failed" in error_msg and "render copy template" in error_msg
 
-    def test_render_copy_template_no_logger(
-        self, file_record, context, setup_j2pt_mock
-    ):
+    def test_render_copy_template_no_logger(self, file_record, context, j2_instance):
         """Test rendering with no logger provided"""
-        # Setup the mock
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.set_template.side_effect = Exception("Template error")
+        j2_instance.set_template.side_effect = Exception("Template error")
 
-        # Call the function without j2_instance parameter
-        result = _render_copy_template(file_record, context)
+        result = _render_copy_template(file_record, context, j2_instance)
 
         # Assertions
         assert result == ""
 
-    @patch("peagen._external.call_external_agent")
+    @patch("peagen._external.call_external_agent")  # Fixed patch target
     def test_render_generate_template_success(
-        self, mock_call_agent, file_record, context, mock_logger, setup_j2pt_mock
+        self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
         """Test successful rendering of a generate template"""
-        # Setup the mocks
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.fill.return_value = "Rendered prompt"
+        # Set up the mocks
+        j2_instance.fill.return_value = "Rendered prompt"
         mock_call_agent.return_value = "Generated content"
 
         # Call the function without j2_instance parameter
         result = _render_generate_template(
-            file_record, context, "agent_prompt.j2", {}, mock_logger
+            file_record, context, "agent_prompt.j2", j2_instance, {}, mock_logger
         )
 
         # Assertions
         assert result == "Generated content"
-        mock_j2pt.set_template.assert_called_once()
-        mock_j2pt.fill.assert_called_once_with(context)
+        j2_instance.set_template.assert_called_once()
+        j2_instance.fill.assert_called_once_with(context)
         mock_call_agent.assert_called_once_with("Rendered prompt", {}, mock_logger)
         mock_logger.error.assert_not_called()
 
     @patch("peagen._external.call_external_agent")
     def test_render_generate_template_exception(
-        self, mock_call_agent, file_record, context, mock_logger, setup_j2pt_mock
+        self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
         """Test handling of exceptions during generate template rendering"""
-        # Setup the mocks
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.set_template.side_effect = Exception("Template error")
+        j2_instance.set_template.side_effect = Exception("Template error")
 
         # Call the function without j2_instance parameter
         result = _render_generate_template(
-            file_record, context, "agent_prompt.j2", {}, mock_logger
+            file_record, context, "agent_prompt.j2", j2_instance, {}, mock_logger
         )
 
         # Assertions
@@ -151,12 +133,11 @@ class TestRendering:
 
     @patch("peagen._external.call_external_agent")
     def test_render_generate_template_with_agent_env(
-        self, mock_call_agent, file_record, context, mock_logger, setup_j2pt_mock
+        self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
         """Test generate template rendering with custom agent environment"""
-        # Setup the mocks
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.fill.return_value = "Rendered prompt"
+        # Set up the mocks
+        j2_instance.fill.return_value = "Rendered prompt"
         mock_call_agent.return_value = "Generated content"
 
         # Define custom agent environment
@@ -168,7 +149,7 @@ class TestRendering:
 
         # Call the function without j2_instance parameter
         result = _render_generate_template(
-            file_record, context, "agent_prompt.j2", agent_env, mock_logger
+            file_record, context, "agent_prompt.j2", j2_instance, agent_env, mock_logger
         )
 
         # Assertions
@@ -179,17 +160,13 @@ class TestRendering:
 
     @patch("peagen._external.call_external_agent")
     def test_render_generate_template_no_logger(
-        self, mock_call_agent, file_record, context, setup_j2pt_mock
+        self, mock_call_agent, file_record, context, j2_instance
     ):
         """Test generate template rendering with no logger provided"""
-        # Setup the mocks
-        mock_j2pt = setup_j2pt_mock
-        mock_j2pt.set_template.side_effect = Exception("Template error")
+        j2_instance.set_template.side_effect = Exception("Template error")
 
-        # Call the function without j2_instance parameter
-        result = _render_generate_template(
-            file_record, context, "agent_prompt.j2", {}
-        )
+        # This should not raise an exception even without a logger
+        result = _render_generate_template(file_record, context, "agent_prompt.j2", j2_instance, {})
 
         # Assertions
         assert result == ""

@@ -7,7 +7,6 @@ The real templates live in:
         ├── project/
         ├── template-set/
         ├── doe-spec/
-        ├── eval-pool/
         └── ci/
 
 Each folder may contain plain files or Jinja-2 templates
@@ -150,24 +149,6 @@ def init_doe_spec(
     }
     _render_scaffold("doe_spec", path, context, force)
     _summary(path, "peagen experiment --spec ... --template project.yaml")
-
-
-# ── init eval-pool ───────────────────────────────────────────────────────────
-@init_app.command("eval-pool", help="Create an evaluator pool stub.")
-def init_eval_pool(
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    name: Optional[str] = typer.Option(None, "--name"),
-    metric: str = typer.Option("BLEU", "--metric"),
-    lang: str = typer.Option("python", "--lang", metavar="[python|node|rust]"),
-    force: bool = typer.Option(False, "--force"),
-):
-    context = {
-        "pool_name": name or path.name,
-        "metric": metric,
-        "lang": lang,
-    }
-    _render_scaffold("eval_pool", path, context, force)
-    _summary(path, "docker build -t eval_<pool>:0.1 .")
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────

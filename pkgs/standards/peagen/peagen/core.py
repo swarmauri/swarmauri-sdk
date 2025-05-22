@@ -55,7 +55,6 @@ class Peagen(ComponentBase):
     additional_package_dirs: List[Path] = Field(
         default_factory=list,
         description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
-
     )
 
     # New: scratch workspace chosen by process.py
@@ -87,8 +86,8 @@ class Peagen(ComponentBase):
     # Internal state
     projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
     dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
-    in_degree: Dict[str, int]            = Field(default_factory=dict, exclude=True)
-    slug_map: Dict[str, str]             = Field(default_factory=dict, exclude=True)
+    in_degree: Dict[str, int] = Field(default_factory=dict, exclude=True)
+    slug_map: Dict[str, str] = Field(default_factory=dict, exclude=True)
 
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: SubclassUnion["LoggerBase"] = Logger(
@@ -139,7 +138,7 @@ class Peagen(ComponentBase):
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
-            ns_dirs.append(os.fspath(p))
+            ns_dirs.append(p)
 
         # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
@@ -291,7 +290,7 @@ class Peagen(ComponentBase):
                 continue
 
             try:
-                self.j2pt.set_template(FilePath(ptree_template_path))
+                self.j2pt.set_template(ptree_template_path)
                 rendered_yaml_str = self.j2pt.fill(project_only_context)
             except Exception as e:
                 self.logger.error(
@@ -401,7 +400,6 @@ class Peagen(ComponentBase):
             # Pass workspace_root into every file save/upload call
             # ------------------------------------------------------
 
-
             # choose workspace_root or fallback to base_dir
             root = self.workspace_root or Path(self.base_dir)
 
@@ -412,7 +410,6 @@ class Peagen(ComponentBase):
                     if hasattr(self.storage_adapter, attr):
                         workspace_uri = str(getattr(self.storage_adapter, attr))
                         break
-
 
             manifest_meta: Dict[str, Any] = {
                 "schema_version": "3.1.0",
@@ -447,11 +444,14 @@ class Peagen(ComponentBase):
             )
 
             # --------  finalise manifest
-            final_path = manifest_writer.finalise()
-            self.logger.info(
-                f"Manifest finalised → \n\t{Fore.YELLOW}{final_path}{Style.RESET_ALL} "
-                f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
-            )
+            if manifest_writer.path.exists():
+                final_path = manifest_writer.finalise()
+                self.logger.info(
+                    f"Manifest finalised → \n\t{Fore.YELLOW}{final_path}{Style.RESET_ALL} "
+                    f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
+                )
+            else:
+                self.logger.warning("Manifest file missing; skipping finalise.")
 
             # ────────────────────────────────────────────────────────────
             #  Log status

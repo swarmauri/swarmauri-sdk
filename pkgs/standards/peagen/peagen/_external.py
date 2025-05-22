@@ -125,11 +125,11 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
     Optionally splits the content into chunks. Returns either a single chunk
     or the full content.
     """
-    try:
-        # Remove any unwanted <think> blocks
-        pattern = r"<think>[\s\S]*?</think>"
-        cleaned_text = re.sub(pattern, "", full_content).strip()
+    # Remove any unwanted <think> blocks first
+    pattern = r"<think>[\s\S]*?</think>"
+    cleaned_text = re.sub(pattern, "", full_content).strip()
 
+    try:
         from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
 
         chunker = MdSnippetChunker()
@@ -149,8 +149,8 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
             logger.warning(
                 "MdSnippetChunker not found. Returning full content without chunking."
             )
-        return full_content
+        return cleaned_text
     except Exception as e:
         if logger:
             logger.error(f"[ERROR] Failed to chunk content: {e}")
-        return full_content
+        return cleaned_text
