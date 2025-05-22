@@ -12,6 +12,7 @@ from swarmauri_workflow_statedriven.conditions.base import Condition
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 
+
 class WorkflowBase:
     """
     File: workflows/base.py
@@ -52,25 +53,18 @@ class WorkflowBase:
         )
         self.nodes[name] = node
 
-    def add_transition(
-        self,
-        source: str,
-        target: str,
-        condition: Condition
-    ) -> None:
+    def add_transition(self, source: str, target: str, condition: Condition) -> None:
         """
         Method: add_transition
         Registers a guarded, directed edge between two existing states.
         """
         if source not in self.nodes or target not in self.nodes:
-            raise InvalidTransitionError(f"Cannot add transition: '{source}' → '{target}'")
+            raise InvalidTransitionError(
+                f"Cannot add transition: '{source}' → '{target}'"
+            )
         self.transitions.append(Transition(source, target, condition))
 
-    def run(
-        self,
-        start: str,
-        initial_input: Any
-    ) -> Dict[str, Any]:
+    def run(self, start: str, initial_input: Any) -> Dict[str, Any]:
         """
         Method: run
         Single‐threaded execution loop.
@@ -86,7 +80,9 @@ class WorkflowBase:
             node = self.nodes[state_name]
 
             # ① Run the node (handles input_mode, split, merge, batch internally)
-            print(f'[DEBUG] Running {node.name} with \n\tdata: {data}\n\tresults: {results}')
+            print(
+                f"[DEBUG] Running {node.name} with \n\tdata: {data}\n\tresults: {results}"
+            )
             output = node.run(self.state_manager, data, results)
 
             # ② If split mode returned None, that work was re-enqueued
@@ -115,10 +111,7 @@ class WorkflowBase:
         return results
 
     def run_parallel(
-        self,
-        start: str,
-        initial_input: Any,
-        max_workers: int = None
+        self, start: str, initial_input: Any, max_workers: int = None
     ) -> Dict[str, Any]:
         """
         Method: run_parallel

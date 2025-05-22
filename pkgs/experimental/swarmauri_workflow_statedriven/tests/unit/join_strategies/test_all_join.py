@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.join_strategies.all_join import AllJoinStrategy
 
+
 @pytest.mark.unit
 def test_init_has_zero_expected_count():
     """
@@ -15,6 +16,7 @@ def test_init_has_zero_expected_count():
     assert hasattr(strategy, "expected_count")
     assert strategy.expected_count == 0
 
+
 @pytest.mark.unit
 def test_configure_sets_expected_count():
     """
@@ -25,6 +27,7 @@ def test_configure_sets_expected_count():
     strategy = AllJoinStrategy()
     strategy.configure(expected_count=3)
     assert strategy.expected_count == 3
+
 
 @pytest.mark.unit
 def test_is_satisfied_false_when_buffer_less_than_configured():
@@ -38,6 +41,7 @@ def test_is_satisfied_false_when_buffer_less_than_configured():
     buffer = [1, 2, 3]
     assert strategy.is_satisfied(buffer) is False
 
+
 @pytest.mark.unit
 def test_is_satisfied_true_when_buffer_equals_configured():
     """
@@ -50,6 +54,7 @@ def test_is_satisfied_true_when_buffer_equals_configured():
     buffer = ["a", "b"]
     assert strategy.is_satisfied(buffer) is True
 
+
 @pytest.mark.unit
 def test_is_satisfied_true_when_buffer_exceeds_configured():
     """
@@ -61,6 +66,7 @@ def test_is_satisfied_true_when_buffer_exceeds_configured():
     strategy.configure(expected_count=2)
     buffer = [0, 1, 2]
     assert strategy.is_satisfied(buffer) is True
+
 
 @pytest.mark.unit
 def test_mark_complete_no_effect():
@@ -78,6 +84,7 @@ def test_mark_complete_no_effect():
     assert strategy.expected_count == 1
     assert strategy.is_satisfied([]) is False
     assert strategy.is_satisfied([42]) is True
+
 
 @pytest.mark.unit
 def test_reset_does_not_change_expected_count():

@@ -6,10 +6,12 @@ from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
 from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 
+
 class DummyAgent:
     """
     Stub agent with exec() and batch().
     """
+
     def __init__(self):
         self.calls = []
 
@@ -21,10 +23,12 @@ class DummyAgent:
         self.calls.append(tuple(data_list))
         return [f"A:{item}" for item in data_list]
 
+
 class DummyTool:
     """
     Stub tool with run() and batch().
     """
+
     def __init__(self):
         self.calls = []
 
@@ -36,12 +40,15 @@ class DummyTool:
         self.calls.append(tuple(data_list))
         return [f"T:{item}" for item in data_list]
 
+
 class EchoInputMode(InputMode):
     """
     InputMode that prefixes incoming data with 'prep:'.
     """
+
     def prepare(self, state_manager, node_name, data, results):
         return f"prep:{data}"
+
 
 @pytest.mark.unit
 def test_init_requires_exactly_one_backend():
@@ -56,6 +63,7 @@ def test_init_requires_exactly_one_backend():
     # both agent and tool
     with pytest.raises(ValueError):
         Node("n2", agent=DummyAgent(), tool=DummyTool(), input_mode=FirstInputMode())
+
 
 @pytest.mark.unit
 def test_execute_delegates_to_agent_or_tool():
@@ -74,6 +82,7 @@ def test_execute_delegates_to_agent_or_tool():
     assert node_t.execute("bar") == "T:bar"
     assert tool.calls == ["bar"]
 
+
 @pytest.mark.unit
 def test_batch_uses_batch_or_fallback():
     """
@@ -84,23 +93,25 @@ def test_batch_uses_batch_or_fallback():
     # agent with batch()
     agent = DummyAgent()
     node_a = Node("nA", agent=agent, input_mode=FirstInputMode())
-    out = node_a.batch(["x","y"])
-    assert out == ["A:x","A:y"]
-    assert agent.calls == [("x","y")]
+    out = node_a.batch(["x", "y"])
+    assert out == ["A:x", "A:y"]
+    assert agent.calls == [("x", "y")]
 
     # agent without batch() falls back to exec()
     class NoBatchAgent:
         def __init__(self):
             self.calls = []
+
         def exec(self, data):
             self.calls.append(data)
             return data.upper()
 
     nb_agent = NoBatchAgent()
     node_nb = Node("nNB", agent=nb_agent, input_mode=FirstInputMode())
-    out2 = node_nb.batch(["a","b"])
-    assert out2 == ["A","B"]  # "a".upper() -> "A", etc.
-    assert nb_agent.calls == ["a","b"]
+    out2 = node_nb.batch(["a", "b"])
+    assert out2 == ["A", "B"]  # "a".upper() -> "A", etc.
+    assert nb_agent.calls == ["a", "b"]
+
 
 @pytest.mark.unit
 def test_prepare_input_applies_input_mode():
@@ -116,6 +127,7 @@ def test_prepare_input_applies_input_mode():
     prepared = node.prepare_input(state_manager=None, data="data", results={})
     assert prepared == "prep:data"
 
+
 @pytest.mark.unit
 def test_run_dispatches_execute_and_batch():
     """
@@ -123,16 +135,27 @@ def test_run_dispatches_execute_and_batch():
     Class: Node
     Method: run
     """
+
     # scalar path with custom input_mode
     class PassAgent:
         def exec(self, x):
             return f"exec:{x}"
+
     node1 = Node("n1", agent=PassAgent(), input_mode=EchoInputMode())
+
     class DummySM:
-        def update_state(self, *a, **k): pass
-        def buffer_input(self, *a, **k): pass
-        def get_buffer(self, *a, **k): return []
-        def pop_buffer(self, *a, **k): return []
+        def update_state(self, *a, **k):
+            pass
+
+        def buffer_input(self, *a, **k):
+            pass
+
+        def get_buffer(self, *a, **k):
+            return []
+
+        def pop_buffer(self, *a, **k):
+            return []
+
     sm = DummySM()
     results = {}
     out1 = node1.run(sm, "orig", results)
@@ -140,11 +163,16 @@ def test_run_dispatches_execute_and_batch():
 
     # batch path
     class BatchAgent:
-        def exec(self, x): raise AssertionError("should not use exec")
-        def batch(self, xs): return [f"b:{i}" for i in xs]
+        def exec(self, x):
+            raise AssertionError("should not use exec")
+
+        def batch(self, xs):
+            return [f"b:{i}" for i in xs]
+
     node2 = Node("n2", agent=BatchAgent(), input_mode=IdentityInputMode())
-    out2 = node2.run(sm, ["p","q"], results)
-    assert out2 == ["b:p","b:q"]
+    out2 = node2.run(sm, ["p", "q"], results)
+    assert out2 == ["b:p", "b:q"]
+
 
 @pytest.mark.unit
 def test_validate_default_returns_true():

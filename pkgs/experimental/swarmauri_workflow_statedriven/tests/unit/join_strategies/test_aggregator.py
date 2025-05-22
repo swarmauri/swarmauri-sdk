@@ -3,6 +3,7 @@
 import pytest
 from swarmauri_workflow_statedriven.join_strategies.aggregator import AggregatorStrategy
 
+
 @pytest.mark.unit
 def test_init_creates_instance():
     """
@@ -12,6 +13,7 @@ def test_init_creates_instance():
     """
     strategy = AggregatorStrategy()
     assert isinstance(strategy, AggregatorStrategy)
+
 
 @pytest.mark.unit
 def test_is_satisfied_false_on_empty_buffer():
@@ -24,6 +26,7 @@ def test_is_satisfied_false_on_empty_buffer():
     buffer = []
     assert strategy.is_satisfied(buffer) is False
 
+
 @pytest.mark.unit
 def test_is_satisfied_true_on_non_empty_buffer():
     """
@@ -34,6 +37,7 @@ def test_is_satisfied_true_on_non_empty_buffer():
     strategy = AggregatorStrategy()
     buffer = [1, 2, 3]
     assert strategy.is_satisfied(buffer) is True
+
 
 @pytest.mark.unit
 def test_aggregate_returns_copy_of_buffer():
@@ -49,6 +53,7 @@ def test_aggregate_returns_copy_of_buffer():
     assert result == original
     # ...but be a new list (shallow copy)
     assert result is not original
+
 
 @pytest.mark.unit
 def test_reset_does_not_affect_behavior():

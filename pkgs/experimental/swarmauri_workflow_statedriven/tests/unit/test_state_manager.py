@@ -4,6 +4,7 @@ import pytest
 from swarmauri_workflow_statedriven.state_manager import StateManager
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
 
+
 @pytest.mark.unit
 def test_init():
     """
@@ -16,6 +17,7 @@ def test_init():
     assert sm.logs == []
     assert sm.join_buffers == {}
 
+
 @pytest.mark.unit
 def test_update_and_get_state():
     """
@@ -27,6 +29,7 @@ def test_update_and_get_state():
     sm.update_state("A", 42)
     assert sm.get_state("A") == 42
 
+
 @pytest.mark.unit
 def test_get_state_raises_when_missing():
     """
@@ -37,6 +40,7 @@ def test_get_state_raises_when_missing():
     sm = StateManager()
     with pytest.raises(WorkflowError):
         sm.get_state("unknown")
+
 
 @pytest.mark.unit
 def test_buffer_and_get_buffer():
@@ -52,6 +56,7 @@ def test_buffer_and_get_buffer():
     assert sm.get_buffer("T") == ["first", "second"]
     # get_buffer for unknown key returns empty list
     assert sm.get_buffer("nope") == []
+
 
 @pytest.mark.unit
 def test_pop_buffer_clears_buffer():
@@ -69,6 +74,7 @@ def test_pop_buffer_clears_buffer():
     assert sm.get_buffer("X") == []
     # pop_buffer on missing key returns empty list
     assert sm.pop_buffer("nope") == []
+
 
 @pytest.mark.unit
 def test_log_appends_messages():

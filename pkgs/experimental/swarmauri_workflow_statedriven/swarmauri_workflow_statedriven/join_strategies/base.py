@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+
 class JoinStrategy(ABC):
     """
     Base class for join strategies determining when a converging state

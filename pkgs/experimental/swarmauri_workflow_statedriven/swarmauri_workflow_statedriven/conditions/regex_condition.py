@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
+
 class RegexCondition(Condition):
     """
     File: regex_condition.py

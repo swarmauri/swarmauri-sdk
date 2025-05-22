@@ -7,6 +7,7 @@ from swarmauri_workflow_statedriven.validator import (
     validate_design,
 )
 
+
 @pytest.mark.unit
 def test_always_valid_always_returns_true():
     """
@@ -15,6 +16,7 @@ def test_always_valid_always_returns_true():
     """
     assert always_valid({}) is True
     assert always_valid({"anything": 123}) is True
+
 
 @pytest.mark.unit
 def test_validate_requirements_false_when_phrase_missing():
@@ -27,7 +29,11 @@ def test_validate_requirements_false_when_phrase_missing():
     # Empty string
     assert validate_requirements({"Requirements Gathering": ""}) is False
     # Irrelevant content
-    assert validate_requirements({"Requirements Gathering": "collect user stories"}) is False
+    assert (
+        validate_requirements({"Requirements Gathering": "collect user stories"})
+        is False
+    )
+
 
 @pytest.mark.unit
 def test_validate_requirements_true_when_phrase_present():
@@ -42,6 +48,7 @@ def test_validate_requirements_true_when_phrase_present():
     state = {"Requirements Gathering": "Include system Design and architecture."}
     assert validate_requirements(state) is True
 
+
 @pytest.mark.unit
 def test_validate_design_false_when_word_missing():
     """
@@ -54,6 +61,7 @@ def test_validate_design_false_when_word_missing():
     assert validate_design({"System Design": ""}) is False
     # Irrelevant content
     assert validate_design({"System Design": "architecture sketched"}) is False
+
 
 @pytest.mark.unit
 def test_validate_design_true_when_word_present():

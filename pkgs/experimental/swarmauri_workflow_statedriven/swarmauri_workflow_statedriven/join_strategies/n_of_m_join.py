@@ -3,6 +3,7 @@
 from typing import Any, List
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
 
+
 class NofMJoinStrategy(JoinStrategy):
     """
     File: join_strategies/n_of_m_join.py

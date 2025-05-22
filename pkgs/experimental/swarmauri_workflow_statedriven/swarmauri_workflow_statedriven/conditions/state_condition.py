@@ -3,6 +3,7 @@
 from typing import Any, Dict
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
+
 class StateValueCondition(Condition):
     """
     File: swarmauri/workflows/conditions/state_condition.py

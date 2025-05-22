@@ -1,9 +1,11 @@
 from typing import Any, List, Literal, Union
 
 import re
+
 try:
     import spacy
 except Exception:  # pragma: no cover - spaCy not installed
+
     class _DummyDoc:
         def __init__(self, text: str) -> None:
             self.text = text

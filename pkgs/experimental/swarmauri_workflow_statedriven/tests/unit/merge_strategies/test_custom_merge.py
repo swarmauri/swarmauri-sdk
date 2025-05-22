@@ -1,11 +1,15 @@
 # File: tests/workflows/merge_strategies/test_custom_merge.py
 
 import pytest
-from swarmauri_workflow_statedriven.merge_strategies.custom_merge import CustomMergeStrategy
+from swarmauri_workflow_statedriven.merge_strategies.custom_merge import (
+    CustomMergeStrategy,
+)
+
 
 def sample_fn(inputs):
     # Example: return the count of inputs
     return len(inputs)
+
 
 @pytest.mark.unit
 def test_init_sets_function():
@@ -16,6 +20,7 @@ def test_init_sets_function():
     """
     strategy = CustomMergeStrategy(sample_fn)
     assert strategy.fn is sample_fn
+
 
 @pytest.mark.unit
 def test_merge_applies_function_to_inputs():
@@ -29,6 +34,7 @@ def test_merge_applies_function_to_inputs():
     result = strategy.merge([1, 2, 3])
     assert result == 3
 
+
 @pytest.mark.unit
 def test_merge_with_empty_list():
     """
@@ -40,6 +46,7 @@ def test_merge_with_empty_list():
     # Empty input list → sample_fn returns 0
     assert strategy.merge([]) == 0
 
+
 @pytest.mark.unit
 def test_merge_propagates_exception_from_fn():
     """
@@ -47,8 +54,10 @@ def test_merge_propagates_exception_from_fn():
     Class: CustomMergeStrategy
     Method: merge
     """
+
     def error_fn(_):
         raise RuntimeError("merge error")
+
     strategy = CustomMergeStrategy(error_fn)
     with pytest.raises(RuntimeError) as exc:
         strategy.merge([42])

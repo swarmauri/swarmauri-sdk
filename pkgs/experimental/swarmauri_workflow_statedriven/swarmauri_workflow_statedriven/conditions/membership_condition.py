@@ -3,6 +3,7 @@
 from typing import Any, Dict
 from swarmauri_workflow_statedriven.conditions.base import Condition
 
+
 class MembershipCondition(Condition):
     """
     File: membership_condition.py

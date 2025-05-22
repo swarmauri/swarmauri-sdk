@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+
 class MergeStrategy(ABC):
     """
     Base class for merge strategies combining multiple buffered inputs

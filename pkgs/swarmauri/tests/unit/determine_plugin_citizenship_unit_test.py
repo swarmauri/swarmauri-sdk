@@ -24,14 +24,22 @@ def test_third_class_detection():
 
 @pytest.mark.unit
 def test_first_class_detection():
-    ep = EntryPoint(name="DummyAgent", value="pkg.agent:DummyAgent", group="swarmauri.agents")
-    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY["swarmauri.agents.DummyAgent"] = "pkg.agent:DummyAgent"
+    ep = EntryPoint(
+        name="DummyAgent", value="pkg.agent:DummyAgent", group="swarmauri.agents"
+    )
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY["swarmauri.agents.DummyAgent"] = (
+        "pkg.agent:DummyAgent"
+    )
     assert determine_plugin_citizenship(ep) == "first"
 
 
 @pytest.mark.unit
 def test_second_class_detection():
-    ep = EntryPoint(name="CommunityAgent", value="pkg.agent:CommunityAgent", group="swarmauri.agents")
+    ep = EntryPoint(
+        name="CommunityAgent",
+        value="pkg.agent:CommunityAgent",
+        group="swarmauri.agents",
+    )
     assert determine_plugin_citizenship(ep) == "second"
 
 
