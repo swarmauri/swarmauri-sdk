@@ -21,6 +21,7 @@ class TestPeagen:
             template_base_dir="/test/templates",
         )
         instance.logger = mock_logger
+        instance.j2pt = MagicMock()
         return instance
 
     def test_initialization(self):
@@ -181,13 +182,15 @@ class TestPeagen:
         ]
 
         # Use patch instead of patch.object
+
         with patch(
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
-                with patch(
-                    "swarmauri_prompt_j2prompttemplate.j2pt.fill",
+            with patch.object(basic_peagen.j2pt, "set_template"):
+                with patch.object(
+                    basic_peagen.j2pt,
+                    "fill",
                     return_value=rendered_yaml,
                 ):
                     # Mock YAML parsing of rendered template
@@ -195,7 +198,8 @@ class TestPeagen:
 
                     # Mock topological sorting
                     with patch(
-                        "peagen.core._topological_sort", return_value=file_records
+                        "peagen.core._topological_sort",
+                        return_value=file_records,
                     ):
                         # Mock file processing
                         with patch("peagen.core._process_project_files"):
@@ -236,12 +240,15 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
-                with patch(
-                    "swarmauri_prompt_j2prompttemplate.j2pt.fill",
+            with patch.object(basic_peagen.j2pt, "set_template"):
+                with patch.object(
+                    basic_peagen.j2pt,
+                    "fill",
                     return_value="rendered content",
                 ):
-                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
+                    with patch(
+                        "yaml.safe_load", return_value={"FILES": file_records}
+                    ):
                         # Use non-transitive sort but with start_file
                         with patch("peagen.core._config", {"transitive": False}):
                             with patch(
@@ -287,14 +294,18 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
-                with patch(
-                    "swarmauri_prompt_j2prompttemplate.j2pt.fill",
+            with patch.object(basic_peagen.j2pt, "set_template"):
+                with patch.object(
+                    basic_peagen.j2pt,
+                    "fill",
                     return_value="rendered content",
                 ):
-                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
+                    with patch(
+                        "yaml.safe_load", return_value={"FILES": file_records}
+                    ):
                         with patch(
-                            "peagen.core._topological_sort", return_value=file_records
+                            "peagen.core._topological_sort",
+                            return_value=file_records,
                         ):
                             with patch("peagen.core._process_project_files"):
                                 # Test with start_idx=1
@@ -340,12 +351,15 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
-                with patch(
-                    "swarmauri_prompt_j2prompttemplate.j2pt.fill",
+            with patch.object(basic_peagen.j2pt, "set_template"):
+                with patch.object(
+                    basic_peagen.j2pt,
+                    "fill",
                     return_value="rendered content",
                 ):
-                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
+                    with patch(
+                        "yaml.safe_load", return_value={"FILES": file_records}
+                    ):
                         # Use transitive sort with start_file
                         with patch("peagen.core._config", {"transitive": True}):
                             with patch(
