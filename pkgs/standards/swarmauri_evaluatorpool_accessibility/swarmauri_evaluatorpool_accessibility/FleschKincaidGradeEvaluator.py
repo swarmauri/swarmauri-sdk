@@ -114,26 +114,13 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         Returns:
             The extracted text as a string
         """
-        # Get the program's output
-        output = program.get_output()
-
-        # If output is already a string, use it directly
-        if isinstance(output, str):
-            return output
-
-        # If output is a dictionary, look for text content
-        if isinstance(output, dict):
-            if "text" in output:
-                return str(output["text"])
-            if "content" in output:
-                return str(output["content"])
-
-        # If output is a list, join elements as strings
-        if isinstance(output, list):
-            return " ".join(str(item) for item in output)
-
-        # Fall back to string representation
-        return str(output)
+        try:
+            source_files = program.get_source_files()
+            if isinstance(source_files, dict):
+                return " \n".join(str(v) for v in source_files.values())
+        except Exception as exc:
+            logger.debug(f"Failed to obtain program text: {exc}")
+        return ""
 
     def _count_sentences(self, text: str) -> int:
         """
