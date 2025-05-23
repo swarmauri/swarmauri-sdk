@@ -146,7 +146,6 @@ def _process_file(
     context = _create_context(file_record, global_attrs, logger)
     final_filename = os.path.normpath(file_record.get("RENDERED_FILE_NAME"))
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
-
     try:
         if process_type == "COPY":
             content = _render_copy_template(file_record, context, j2_instance)
@@ -235,20 +234,23 @@ def _process_project_files(
             rec["RENDERED_FILE_NAME"]: i + start_idx
             for i, rec in enumerate(file_records)
         }
-
         def _worker(fname: str) -> None:
             rec = entry_map[fname]
             idx = idx_map[fname]
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
+            j2 = J2PromptTemplate()
+            try:
+                if j2pt.templates_dir:
+                    j2.templates_dir = (
+                        [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
+                    )
+                    if str(new_dir) != j2pt.templates_dir[0]:
+                        j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
+                    if logger:
+                        logger.debug(f"Updated templates_dir to {new_dir}")
+            except Exception as e:
+                print(str(e))
 
-            j2 = j2pt.copy(deep=False)
-            j2.templates_dir = (
-                [str(new_dir)] + [workspace_root] + list(j2.templates_dir[1:])
-            )
-            if str(new_dir) != j2pt.templates_dir[0]:
-                j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
-                if logger:
-                    logger.debug(f"Updated templates_dir to {new_dir}")
             try:
                 _process_file(
                     rec,
