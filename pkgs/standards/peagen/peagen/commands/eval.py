@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
+from urllib.parse import urlparse
 
 import typer
 
@@ -14,6 +15,8 @@ from importlib import import_module
 from peagen.cli_common import PathOrURI, temp_workspace, load_peagen_toml
 from peagen.plugin_registry import registry
 from peagen.eval import DefaultEvaluatorPool
+from peagen.storage_adapters import make_adapter_for_uri
+from peagen._source_packages import _git_clone_to, _strip_git_dir
 from swarmauri_standard.programs.Program import Program
 
 
@@ -102,25 +105,37 @@ def eval_cmd(
             raise ValueError(f"Invalid evaluator spec for '{name}': {spec}")
         pool_inst.add_evaluator(evaluator, name=name)
 
-    # ── collect programs -------------------------------------------------------
+    def _evaluate(ws_path: Path):
+        program_paths: List[Path] = []
+        programs: List[Program] = []
+        for p in ws_path.glob(program_glob):
+            if p.is_file():
+                program_paths.append(p)
+                programs.append(Program.from_workspace(p.parent))
+
+        if async_:
+            res = asyncio.run(pool_inst.evaluate_async(programs))
+        else:
+            res = pool_inst.evaluate(programs)
+        return program_paths, res
+
     workspace_path = Path(PathOrURI(workspace_uri))
     if "://" in workspace_uri:
-        # TODO: remote fetch logic via program.fetch helpers
-        with temp_workspace():
-            ...
-
-    program_paths: List[Path] = []
-    programs      : List[Program] = []
-    for p in workspace_path.glob(program_glob):
-        if p.is_file():
-            program_paths.append(p)
-            programs.append(Program.from_workspace(p.parent))
-
-    # ── run evaluation ---------------------------------------------------------
-    if async_:
-        results = asyncio.run(pool_inst.evaluate_async(programs))
+        parsed = urlparse(workspace_uri)
+        with temp_workspace("peagen_eval_") as ws:
+            if parsed.scheme in registry.get("storage_adapters", {}):
+                adapter = make_adapter_for_uri(workspace_uri)
+                prefix = getattr(adapter, "_prefix", "")
+                adapter.download_prefix(prefix, ws)
+            else:
+                _git_clone_to(ws, workspace_uri)
+                _strip_git_dir(ws)
+            workspace_path = ws
+            program_paths, results = _evaluate(workspace_path)
     else:
-        results = pool_inst.evaluate(programs)
+        program_paths, results = _evaluate(workspace_path)
+
+
 
     # optionally skip programs that totally failed
     if skip_failed:
