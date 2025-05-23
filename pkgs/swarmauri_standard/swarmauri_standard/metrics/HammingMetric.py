@@ -225,7 +225,9 @@ class HammingMetric(MetricBase):
             abs(dist_xy - dist_yx) < 1e-10
         )  # Using small epsilon for float comparison
 
-    def check_triangle_inequality(self, x: MetricInput, y: MetricInput, z: MetricInput) -> bool:
+    def check_triangle_inequality(
+        self, x: MetricInput, y: MetricInput, z: MetricInput
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the triangle inequality axiom:
         d(x,z) ≤ d(x,y) + d(y,z).

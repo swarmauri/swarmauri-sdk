@@ -67,7 +67,8 @@ class CloudQdrantVectorStore(
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections
         collection_exists = any(
-            collection.name == self.collection_name for collection in existing_collections
+            collection.name == self.collection_name
+            for collection in existing_collections
         )
 
         if not collection_exists:

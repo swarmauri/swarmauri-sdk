@@ -1,5 +1,5 @@
 import logging
-from swarmauri_base import SubclassUnion
+from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_core.logger_handlers.IHandler import IHandler
 from swarmauri_base.ObserveBase import ObserveBase
@@ -9,7 +9,7 @@ from typing import Optional, Union
 @ObserveBase.register_model()
 class HandlerBase(IHandler, ObserveBase):
     level: int = logging.INFO
-    formatter: Optional[Union[str, SubclassUnion[FormatterBase]]] = None
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
 
     def compile_handler(self) -> logging.Handler:
         """

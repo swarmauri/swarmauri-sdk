@@ -14,8 +14,8 @@ from peagen.schemas import (
     PEAGEN_TOML_V1_SCHEMA,
     DOE_SPEC_V1_SCHEMA,
     MANIFEST_V3_SCHEMA,
-    PTREE_V1_SCHEMA,            # ← new
-    PROJECTS_PAYLOAD_V1_SCHEMA, # ← new
+    PTREE_V1_SCHEMA,  # ← new
+    PROJECTS_PAYLOAD_V1_SCHEMA,  # ← new
 )
 
 from peagen.cli_common import load_peagen_toml
@@ -27,13 +27,13 @@ validate_app = typer.Typer(help="Validation utilities for Peagen artefacts.")
 #  Shared helpers
 # ─────────────────────────────────────────────────────────────────────────────
 def _path(err) -> str:
-    """Return dotted-path to failing node.  
+    """Return dotted-path to failing node.
     File: **validate.py** • Method: **_path**"""
     return ".".join(str(p) for p in err.absolute_path) or "(root)"
 
 
 def _print_errors(errors) -> None:
-    """Emit every jsonschema error.  
+    """Emit every jsonschema error.
     File: **validate.py** • Method: **_print_errors**"""
     for err in errors:
         typer.echo(f"   • {_path(err)} – {err.message}", err=True)
@@ -42,7 +42,7 @@ def _print_errors(errors) -> None:
 
 
 def _validate(data: dict, schema: dict, label: str) -> None:
-    """Run Draft7 validation and pretty-print errors.  
+    """Run Draft7 validation and pretty-print errors.
     File: **validate.py** • Method: **_validate**"""
     validator = Draft7Validator(schema)
     errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
@@ -148,7 +148,9 @@ def validate_ptree(
     except yaml.YAMLError as exc:
         typer.echo(f"❌  YAML parsing error – {exc}", err=True)
         raise typer.Exit(1)
-    _validate(data, PTREE_V1_SCHEMA, "ptree")   # schema file :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+    _validate(
+        data, PTREE_V1_SCHEMA, "ptree"
+    )  # schema file :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -173,4 +175,6 @@ def validate_projects_payload(
     except yaml.YAMLError as exc:
         typer.echo(f"❌  YAML parsing error – {exc}", err=True)
         raise typer.Exit(1)
-    _validate(data, PROJECTS_PAYLOAD_V1_SCHEMA, "projects-payload")   # schema file :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+    _validate(
+        data, PROJECTS_PAYLOAD_V1_SCHEMA, "projects-payload"
+    )  # schema file :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}

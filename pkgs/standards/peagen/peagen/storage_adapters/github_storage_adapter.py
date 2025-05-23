@@ -126,7 +126,9 @@ class GithubStorageAdapter:
             return buffer
         except GithubException as exc:
             if exc.status == 404:
-                raise FileNotFoundError(f"{key}: not found in {self._repo.full_name}@{self._branch}")
+                raise FileNotFoundError(
+                    f"{key}: not found in {self._repo.full_name}@{self._branch}"
+                )
             raise
 
     # ---------------------------------------------------------------- upload_dir
@@ -158,9 +160,9 @@ class GithubStorageAdapter:
                     stack.append(item.path)
                 else:
                     key = item.path
-                    if self._prefix and key.startswith(self._prefix.rstrip('/') + '/'):
-                        key = key[len(self._prefix.rstrip('/')) + 1 :]
-                    if key.startswith(prefix.rstrip('/')):
+                    if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
+                        key = key[len(self._prefix.rstrip("/")) + 1 :]
+                    if key.startswith(prefix.rstrip("/")):
                         yield key
 
     # ---------------------------------------------------------------- download_prefix
@@ -186,11 +188,7 @@ class GithubStorageAdapter:
         prefix = parts[2] if len(parts) > 2 else ""
 
         cfg = load_peagen_toml()
-        gh_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("github", {})
-        )
+        gh_cfg = cfg.get("storage", {}).get("adapters", {}).get("github", {})
 
         token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 

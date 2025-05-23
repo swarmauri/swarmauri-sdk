@@ -2,7 +2,6 @@ import logging
 import math
 from typing import List, Literal, Sequence, Union
 
-import numpy as np
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase

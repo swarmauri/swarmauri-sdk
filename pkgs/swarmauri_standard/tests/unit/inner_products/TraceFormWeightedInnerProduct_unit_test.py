@@ -36,7 +36,9 @@ def hermitian_weight_matrix() -> np.ndarray:
     np.ndarray
         A 3x3 hermitian weight matrix
     """
-    return np.array([[2.0, 0.5 + 0.5j, 1.0], [0.5 - 0.5j, 3.0, 0.0], [1.0, 0.0, 1.0]], dtype=complex)
+    return np.array(
+        [[2.0, 0.5 + 0.5j, 1.0], [0.5 - 0.5j, 3.0, 0.0], [1.0, 0.0, 1.0]], dtype=complex
+    )
 
 
 @pytest.fixture

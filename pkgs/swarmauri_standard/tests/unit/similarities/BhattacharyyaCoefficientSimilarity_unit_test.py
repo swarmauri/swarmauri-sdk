@@ -211,7 +211,11 @@ def test_similarities_with_dictionaries(similarity_instance):
         ([0.2, 0.3, 0.5], [0.2, 0.3, 0.5], 0.0),  # Identical: dissimilarity = 0
         ([1.0, 0.0, 0.0], [0.0, 0.0, 1.0], 1.0),  # Disjoint: dissimilarity = 1
         ([0.5, 0.5, 0.0], [0.0, 0.5, 0.5], 0.5),  # Partial overlap
-        ([0.1, 0.4, 0.3, 0.2], [0.2, 0.3, 0.4, 0.1], 0.02433696449782996),  # Small dissimilarity
+        (
+            [0.1, 0.4, 0.3, 0.2],
+            [0.2, 0.3, 0.4, 0.1],
+            0.02433696449782996,
+        ),  # Small dissimilarity
     ],
 )
 def test_dissimilarity(similarity_instance, p, q, expected):

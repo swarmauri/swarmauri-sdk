@@ -31,7 +31,7 @@ class GaussianRBFSimilarity(SimilarityBase):
 
     type: Literal["GaussianRBFSimilarity"] = "GaussianRBFSimilarity"
     gamma: float
-    
+
     def __init__(self, gamma: float = 1.0, **kwargs):
         """
         Initialize the Gaussian RBF similarity measure.
