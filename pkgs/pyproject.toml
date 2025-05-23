@@ -48,6 +48,7 @@ members = [
     "standards/swarmauri_evaluator_externalimports",
     "standards/swarmauri_evaluator_subprocess",
     "standards/swarmauri_evaluatorpool_accessibility",
+    "standards/swarmauri_evaluatorpool_generic",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
@@ -144,6 +145,7 @@ swarmauri_evaluator_anyusage = { workspace = true }
 swarmauri_evaluator_externalimports = { workspace = true }
 swarmauri_evaluator_subprocess = { workspace = true }
 swarmauri_evaluatorpool_accessibility = { workspace = true }
+swarmauri_evaluatorpool_generic = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
 peagen = { workspace = true }
