@@ -138,7 +138,7 @@ class Peagen(ComponentBase):
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
-            ns_dirs.append(p)
+            ns_dirs.append(os.fspath(p))
 
         # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
