@@ -1,0 +1,43 @@
+# doe_spec.yaml
+# ───────────────────────────────────────────────────────────────
+schemaVersion: "1.0.1"
+FACTORS:
+
+  COMPONENT:
+    description: "Variant of the component, driving both its name and its requirements"
+    code: CMP
+    type: composite
+    levels:
+      - name: SearchWord
+        requirements:
+          - "Highlight the line where the word appears."
+          - "Return word or phrase count."
+      - name: RegexSearch
+        requirements:
+          - "Support regex groups."
+          - "Return all match spans."
+      - name: ReadabilityIndex
+        requirements:
+          - "Compute automated readability score."
+          - "Support multiple languages."
+
+    patches:
+      # 1) rename the project
+      - op: replace
+        path: /PROJECTS/0/NAME
+        value: "{{ BASE_NAME }}-{{ CMP.name }}-{{ EXP_ID }}"
+
+      # 2) set project-level requirements
+      - op: add
+        path: /PROJECTS/0/PACKAGES/0/EXTRAS/REQUIREMENTS
+        value: "{{ CMP.requirements }}"
+
+      # 3) rename package key
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/NAME
+        value: "component_{{ CMP.name | lower }}"
+
+      # 4) rename module key
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/MODULES/0/NAME
+        value: "{{ CMP.name }}Tool"

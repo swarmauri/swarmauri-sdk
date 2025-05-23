@@ -1,0 +1,17 @@
+from abc import ABC, abstractmethod
+<!-- if importing another swarmauri module, ensure import starts with a swarmauri_ prefix 
+
+For example:
+
+from swarmauri_core.<RESOURCE_KIND>.<INTERFACE> import <INTERFACE_CLASS>
+from swarmauri_core.example_resource_kind.IExampleResourceKind import IExampleResourceKind
+-->
+
+
+class {{ MOD.NAME }}(ABC):
+    """
+    <!-- Add docstrings here -->
+    """
+    
+    # Methods
+    <!-- Include additional methods here. All methods should include complete implementation logic. -->

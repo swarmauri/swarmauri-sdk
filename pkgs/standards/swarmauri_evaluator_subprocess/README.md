@@ -1,0 +1,1 @@
+pip install swarmauri_evaluator_subprocess

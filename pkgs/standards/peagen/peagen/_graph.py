@@ -1,6 +1,38 @@
+"""Graph utilities for dependency resolution."""
+
 import heapq
-from typing import List, Dict, Any
 from collections import defaultdict
+from typing import Any, Dict, List
+
+
+# development method, may be unstable
+def get_immediate_dependencies(
+    payload: List[Dict[str, Any]], target_file: str
+) -> List[str]:
+    """
+    @dev development method, may be unstable
+
+    ---
+
+    Returns a list of files that `target_file` directly depends on (one‑hop parents).
+
+    Args:
+      payload: List of record dicts, each with "RENDERED_FILE_NAME" and EXTRAS["DEPENDENCIES"].
+      target_file: The filename whose direct dependencies you want.
+
+    Raises:
+      ValueError: if `target_file` isn’t present in the payload.
+
+    Returns:
+      A list of filenames that `target_file` depends on directly.
+    """
+    # Build the forward graph to get all nodes
+    forward_graph, _, all_nodes = _build_forward_graph(payload)
+    if target_file not in all_nodes:
+        raise ValueError(f"File '{target_file}' not found in payload.")
+    # Invert to get direct dependency mapping
+    reverse_graph = _build_reverse_graph(forward_graph)
+    return reverse_graph[target_file]
 
 
 def _build_forward_graph(payload: List[Dict[str, Any]]):
@@ -22,7 +54,7 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
     # Build edges: (dep -> file)
     for entry in payload:
         file_node = entry["RENDERED_FILE_NAME"]
-        extras = entry.get("EXTRAS", [])
+        extras = entry.get("EXTRAS", {})
         deps = extras.get("DEPENDENCIES", [])
         if deps:
             for dep in deps:
@@ -122,8 +154,11 @@ def _transitive_dependency_sort(
     if target_file not in all_nodes:
         raise ValueError(f"File '{target_file}' not found in payload.")
 
-    # Get all files that eventually lead to target_file (and target_file itself)
-    dep_set = _get_transitive_dependencies(target_file, forward_graph)
+    # Build the reverse graph
+    reverse_graph = _build_reverse_graph(forward_graph)
+
+    # Get all files that target_file depends on (and target_file itself)
+    dep_set = _get_transitive_dependencies(target_file, reverse_graph)
 
     # Filter payload to just those in dep_set
     sub_payload = [rec for rec in payload if rec["RENDERED_FILE_NAME"] in dep_set]

@@ -1,3 +1,9 @@
+"""CLI banner utilities for Peagen.
+
+Provides a colourful ASCII banner and additional version
+information shown when the CLI starts.
+"""
+
 from ._config import __version__, __package_name__
 import typer
 import datetime
@@ -24,9 +30,7 @@ def _print_banner():
     package_info = (
         f"{Fore.BLUE}{Style.BRIGHT}Package Name: {__package_name__}{Style.RESET_ALL}"
     )
-    tagline = (
-        f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri scaffolding tool to simplify code gen."
-    )
+    tagline = f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri template-driven, dependency-aware render engine."
     repo_info = (
         Fore.YELLOW
         + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen"

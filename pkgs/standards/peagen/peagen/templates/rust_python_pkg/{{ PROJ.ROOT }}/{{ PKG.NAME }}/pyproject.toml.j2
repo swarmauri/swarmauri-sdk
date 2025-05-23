@@ -1,0 +1,56 @@
+[build-system]
+requires = ["meson-python", "ninja", "pybind11"]
+build-backend = "mesonpy"
+
+[project]
+name = "{{ PKG.NAME }}"
+version = "0.1.0"
+description = "{{ PKG.DESCRIPTION }}"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [{% if PKG.EXTRAS.AUTHORS %}
+    {% for author in PKG.EXTRAS.AUTHORS %}
+    {name = "{{ author.NAME }}", email = "{{ author.EMAIL }}"},
+    {% endfor %}
+    {% endif %}
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Development Status :: 3 - Alpha"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "uv"]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

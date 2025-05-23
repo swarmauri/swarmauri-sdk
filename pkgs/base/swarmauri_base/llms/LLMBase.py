@@ -1,8 +1,9 @@
 from abc import abstractmethod
-from typing import Optional, List, Literal
-from pydantic import ConfigDict, model_validator, Field
+from typing import Dict, List, Literal, Optional
 
+from pydantic import Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.llms.IPredict import IPredict
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -10,8 +11,16 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 class LLMBase(IPredict, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.LLM.value, frozen=True)
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["LLMBase"] = "LLMBase"
+
+    api_key: Optional[SecretStr] = None
+    name: str = ""
+    timeout: float = 600.0
+    include_usage: bool = True
+
+    # Base URL to be overridden by subclasses
+    BASE_URL: Optional[str] = None
+    _headers: Dict[str, str] = PrivateAttr(default=None)
 
     @model_validator(mode="after")
     @classmethod

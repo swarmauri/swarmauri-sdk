@@ -1,116 +1,184 @@
-"""
-core.py
+"""Core workflow logic for Peagen.
 
-This module defines the main class for the file generation workflow.
-The Peagen class encapsulates the overall workflow:
-  - Loading global project data from a YAML file.
-  - Rendering project YAML from a .yaml.j2 template.
-  - Expanding file records (with package and module context).
-  - Building and ordering a dependency graph.
-  - Processing files (via "COPY" or "GENERATE" modes).
-  - Querying dependencies and dependents.
-  - Updating and saving both the global projects YAML and the template (.yaml.j2) file.
-  - Starting processing from an arbitrary point (project, package, module, or file).
-
-This class uses helper methods from modules such as:
-  - rendering.py (for rendering templates and fields)
-  - processing.py (for processing file records)
-  - graph.py (for dependency graph construction and topological sorting)
-  - updates.py (for updating and saving configuration data)
-  - dependencies.py (for resolving and querying dependencies)
-  - external.py (for calling external agents and chunking content)
+This module contains the ``Peagen`` class which orchestrates file
+generation, package handling and Jinja environment setup.
 """
 
-from colorama import init as colorama_init, Fore, Style
+from __future__ import annotations
+
 import os
-import yaml
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import FilePath
-
+from datetime import datetime, timezone
 from pathlib import Path
+from importlib import import_module
+from types import ModuleType
+from typing import Any, Dict, List, Optional, Tuple
 
-# Import helper modules from our package.
-from ._processing import _process_project_files
-from ._graph import _topological_sort, _transitive_dependency_sort
-from ._Jinja2PromptTemplate import j2pt
-from ._config import _config
-
+import peagen.plugin_registry
 import peagen.templates
-from pydantic import Field, ConfigDict, model_validator
-from swarmauri_base.ComponentBase import ComponentBase
+import yaml
+from colorama import Fore, Style
+from colorama import init as colorama_init
+from pydantic import ConfigDict, Field, model_validator
 from swarmauri_base import SubclassUnion
-from swarmauri_standard.loggers.Logger import Logger
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
+from swarmauri_prompt_j2prompttemplate import j2pt
+
+from swarmauri_standard.loggers.Logger import Logger
+
+from .manifest_writer import ManifestWriter
+from .slug_utils import slugify
+from ._config import __logger_name__, _config, __version__
+from ._graph import _topological_sort, _transitive_dependency_sort
+from ._processing import _process_project_files
 
 colorama_init(autoreset=True)
 
 
 class Peagen(ComponentBase):
+    """Encapsulates payload → file-generation workflow."""
+
+    # ── Inputs / ctor params ────────────────────────────────────────────
     projects_payload_path: str
     template_base_dir: Optional[str] = None
+    org: Optional[str] = None
+
+    storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)  # adjust type as needed
+    j2pt: Any = Field(default_factory=lambda: j2pt)
 
-    # Derived attributes with default factories:
+    # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    additional_package_dirs: List[Path] = Field(exclude=True, default=list)
-    projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
-    dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
-    in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
 
-    # These will be computed in the validator:
+    # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
+    additional_package_dirs: List[Path] = Field(
+        default_factory=list,
+        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
+    )
+
+    # New: scratch workspace chosen by process.py
+    workspace_root: Optional[Path] = Field(
+        default=None,
+        exclude=True,
+        description="Workspace where generated & copied files live.",
+    )
+
+    # New: **authoritative list** of external packages copied into workspace.
+    source_packages: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Each item: {type:'git'|'local'|'bundle'|'uri', uri/archive, ref?, dest, "
+            "expose_to_jinja?, checksum?}. 'dest' is relative to workspace_root."
+        ),
+    )
+
+    # New: template-sets installed for this run
+    template_sets: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Manifest entries for installed template-sets. "
+            "Each item: {name, type:'pip'|'git'|'local'|'bundle', "
+            "target, ref?, bundle_file?}."
+        ),
+    )
+
+    # Internal state
+    projects_list: List[Dict[str, Any]] = Field(default_factory=list, exclude=True)
+    dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, exclude=True)
+    in_degree: Dict[str, int] = Field(default_factory=dict, exclude=True)
+    slug_map: Dict[str, str] = Field(default_factory=dict, exclude=True)
+
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: SubclassUnion[LoggerBase] = Logger(
-        name=Fore.GREEN + "pfg" + Style.RESET_ALL
+    logger: SubclassUnion["LoggerBase"] = Logger(
+        name=Fore.GREEN + __logger_name__ + Style.RESET_ALL
     )
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    version: str = "0.1.0"
+    version: str = __version__
 
+    # ──────────────────────────────────────────────────────────────────
+    # Environment setup (called automatically by Pydantic)
+    # ──────────────────────────────────────────────────────────────────
     @model_validator(mode="after")
-    def setup_env(self) -> "Peagen":
-        # Gather all physical directories that provide peagen.templates:
-        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs
-        initial_dirs = []
-        initial_dirs.extend(self.additional_package_dirs)
-        namespace_dirs.append(self.base_dir)  # include current working directory
-        initial_dirs.append(self.base_dir)
+    def _setup_env(self) -> "Peagen":
+        """
+        Build the Jinja search path (`namespace_dirs`) **purely from directories
+        that exist inside the workspace** plus built-ins & plugin templates.
+        """
+        # ── Auto-convert any leftover `additional_package_dirs`
+        #    into synthetic 'local' TEMPLATE_SET entries, so they get
+        #    written to the manifest without CLI help.
+        # -----------------------------------------------------------
+        ns_dirs: List[str] = list(peagen.templates.__path__)
+
+        # 1) Template-set plugins discovered via registry
+        from peagen.plugin_registry import registry
+
+        for plugin in registry.get("template_sets", {}).values():
+            pkg: ModuleType = (
+                plugin
+                if isinstance(plugin, ModuleType)
+                else import_module(plugin.__module__.split(".", 1)[0])
+            )
+            if hasattr(pkg, "__path__"):
+                ns_dirs.extend(str(p) for p in pkg.__path__)
+
+        # 2) Workspace itself – always first so includes can reference freshly generated files
+        if self.workspace_root is not None:
+            ns_dirs.insert(0, os.fspath(self.workspace_root))
+
+        # 3) Source-package *dest* folders exposed to Jinja
+        for spec in self.source_packages:
+            if spec.get("expose_to_jinja"):
+                ns_dirs.append(
+                    os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                )
+
+        # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
+        for p in self.additional_package_dirs:
+            ns_dirs.append(os.fspath(p))
+
+        # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
-            namespace_dirs.append(self.template_base_dir)
-            initial_dirs.append(self.template_base_dir)
-        self.namespace_dirs = namespace_dirs
-        # Update the prompt template engine's templates directory list.
-        self.j2pt.templates_dir = initial_dirs
+            ns_dirs.append(self.template_base_dir)
+        ns_dirs.append(self.base_dir)
+
+        # Finalise
+        self.namespace_dirs = ns_dirs
+        # j2pt expects *template search dirs* in templates_dir attr
+        self.j2pt.templates_dir = ns_dirs
+
         return self
 
-    # ---------------------
-    # J2PT Methods
-    # ---------------------
-
-    def update_templates_dir(self, package_specific_template_dir):
+    # ──────────────────────────────────────────────────────────────────
+    # Public helpers (unchanged except for search-path logic)
+    # ──────────────────────────────────────────────────────────────────
+    def update_templates_dir(self, package_specific_template_dir: str | Path) -> None:
+        """
+        Update Jinja search path for a package-specific render call.
+        Still honours source_packages so templates can {% include %} from them.
+        """
         dirs = [
-            package_specific_template_dir,
+            os.fspath(package_specific_template_dir),
             self.base_dir,
+            *[
+                os.fspath(Path(self.workspace_root or ".") / spec["dest"])
+                for spec in self.source_packages
+                if spec.get("expose_to_jinja")
+            ],
         ]
-        dirs.extend(self.additional_package_dirs)
-        dirs = [os.path.normpath(_d) for _d in dirs]
-        self.j2pt.templates_dir = dirs
+        dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
+        self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
 
-    def get_template_dir_any(self, template_set: str) -> Path:
-        """
-        Searches each directory in `self.namespace_dirs` for a subfolder
-        named `template_set`. Returns the first match as a *Path*, or raises a ValueError.
-        """
-        for base_dir in self.namespace_dirs:
-            # base_dir could be a string or Path – let's ensure it's a Path:
-            base_dir_path = Path(base_dir)
-            candidate = base_dir_path / template_set
+    def locate_template_set(self, template_set: str) -> Path:
+        """Search `namespace_dirs` for the given template-set folder."""
+        for base in self.namespace_dirs:
+            candidate = Path(base) / template_set
             if candidate.is_dir():
-                # Return a resolved Path object (absolute)
                 return candidate.resolve()
         raise ValueError(
-            f"Template set '{template_set}' not found in any of: {self.namespace_dirs}"
+            f"Template set '{template_set}' not found in: {self.namespace_dirs}"
         )
 
     # ---------------------
@@ -140,6 +208,12 @@ class Peagen(ComponentBase):
                 + Style.RESET_ALL
                 + f" projects from '{self.projects_payload_path}'."
             )
+            # build slug map for quick lookup
+            self.slug_map = {
+                slugify(p.get("NAME", "")): p.get("NAME", "")
+                for p in self.projects_list
+                if p.get("NAME")
+            }
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
@@ -161,6 +235,10 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
+    # -------------------------------------------------------------------
+    # Remaining methods (process_single_project, etc.) are unchanged.
+    # -------------------------------------------------------------------
+
     def process_single_project(
         self,
         project: Dict[str, Any],
@@ -168,19 +246,15 @@ class Peagen(ComponentBase):
         start_file: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        1) For each package in the project, render its ptree.yaml.j2 to get file records.
-        2) Combine those records into a single list.
-        3) Depending on _config['transitive']:
-           - If transitive=True and start_file is set, use _transitive_dependency_sort.
-           - If transitive=True and start_file is not set, use _topological_sort.
-           - If transitive=False, always use _topological_sort.
-        4) Even if transitive=False, still honor start_file by skipping up to that file's index in the sorted list.
-        5) Skip start_idx files.
-        6) Process the remaining files.
+        Render & generate all files for *project*.
+
+        Streaming manifests:
+        --------------------
+        *   A ManifestWriter is created before file processing begins.
+        *   Each file save triggers writer.add(…).
+        *   On successful completion we call writer.finalise().
         """
-
         all_file_records = []
-
         packages = project.get("PACKAGES", [])
         project_name = project.get("NAME", "UnnamedProject")
 
@@ -188,8 +262,7 @@ class Peagen(ComponentBase):
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------
         for pkg in packages:
-            project_only_context = {}
-            project_only_context["PROJ"] = project.copy()
+            project_only_context = {"PROJ": project.copy()}
             project_only_context["PROJ"]["PKGS"] = [pkg]
 
             pkg_template_set = (
@@ -199,7 +272,7 @@ class Peagen(ComponentBase):
             )
 
             try:
-                template_dir = self.get_template_dir_any(pkg_template_set)
+                template_dir = self.locate_template_set(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
                 self.logger.error(
@@ -216,7 +289,7 @@ class Peagen(ComponentBase):
                 continue
 
             try:
-                self.j2pt.set_template(FilePath(ptree_template_path))
+                self.j2pt.set_template(ptree_template_path)
                 rendered_yaml_str = self.j2pt.fill(project_only_context)
             except Exception as e:
                 self.logger.error(
@@ -260,8 +333,6 @@ class Peagen(ComponentBase):
 
         try:
             if transitive:
-                # If transitive is True and a specific file is given,
-                # return only the transitive closure for that file.
                 if start_file:
                     sorted_records = _transitive_dependency_sort(
                         all_file_records, start_file
@@ -271,14 +342,12 @@ class Peagen(ComponentBase):
                         f"yielding {len(sorted_records)} files."
                     )
                 else:
-                    # Otherwise, do a full topological sort
                     sorted_records = _topological_sort(all_file_records)
                     self.logger.info(
                         f"Full transitive sort ({len(sorted_records)} files) "
                         f"on project '{project_name}'."
                     )
             else:
-                # transitive=False => always a full topological sort
                 sorted_records = _topological_sort(all_file_records)
                 self.logger.info(
                     f"Non-transitive sort ({len(sorted_records)} files) "
@@ -287,10 +356,8 @@ class Peagen(ComponentBase):
 
             # ------------------------------------------------------
             # PHASE 3: HANDLE start_file EVEN IF NOT TRANSITIVE
-            # (i.e., skip up to that file in the sorted list)
             # ------------------------------------------------------
             if start_file and not transitive:
-                # Find the first occurrence of `start_file` by name in the sorted list
                 found_index = next(
                     (
                         i
@@ -314,30 +381,83 @@ class Peagen(ComponentBase):
             # PHASE 4: SKIP start_idx FILES
             # ------------------------------------------------------
             if start_idx > 0:
-                # Make sure we do not exceed length
                 to_process_count = max(0, len(sorted_records) - start_idx)
                 self.logger.info(
                     f"Skipping first {start_idx} file(s). "
                     f"Processing {to_process_count} remaining files for '{project_name}'."
                 )
                 sorted_records = sorted_records[start_idx:]
-
         except Exception as e:
             self.logger.error(f"[{project_name}] Failed to topologically sort: {e}")
             return ([], 0)
 
         # ------------------------------------------------------
-        # PHASE 5: PROCESS THE SORTED FILES
+        # PHASE 5: PROCESS THE SORTED FILES (propagate original start_idx)
         # ------------------------------------------------------
         if not self.dry_run and sorted_records:
+            # ------------------------------------------------------
+            # Pass workspace_root into every file save/upload call
+            # ------------------------------------------------------
+
+            # choose workspace_root or fallback to base_dir
+            root = self.workspace_root or Path(self.base_dir)
+
+            workspace_uri = ""
+            if self.storage_adapter:
+                # best-effort generic inference
+                for attr in ("workspace_uri", "base_uri", "root_uri"):
+                    if hasattr(self.storage_adapter, attr):
+                        workspace_uri = str(getattr(self.storage_adapter, attr))
+                        break
+
+            manifest_meta: Dict[str, Any] = {
+                "schema_version": "3.1.0",
+                "workspace_uri": workspace_uri,
+                "project": project_name,
+                "source_packages": self.source_packages,
+                "template_sets": self.template_sets,
+                "peagen_version": __version__,
+            }
+
+            project_slug = slugify(project_name)
+            self.slug_map.setdefault(project_slug, project_name)
+            manifest_writer: Optional[ManifestWriter] = None
+            manifest_writer = ManifestWriter(
+                slug=project_slug,
+                adapter=self.storage_adapter,
+                tmp_root=root / ".peagen",
+                meta=manifest_meta,
+            )
+
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
-                template_dir=template_dir,  # Each record has its own TEMPLATE_SET
+                template_dir=template_dir,
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=0,
+                storage_adapter=self.storage_adapter,
+                org=self.org,
+                workspace_root=root,
+                start_idx=start_idx,
+                manifest_writer=manifest_writer,
             )
-            self.logger.info(f"Completed file generation workflow on '{project_name}'.")
+
+            # --------  finalise manifest
+            if manifest_writer.path.exists():
+                final_path = manifest_writer.finalise()
+                self.logger.info(
+                    f"Manifest finalised → \n\t{Fore.YELLOW}{final_path}{Style.RESET_ALL} "
+                    f"({len(sorted_records)} files, {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S UTC})"
+                )
+            else:
+                self.logger.warning("Manifest file missing; skipping finalise.")
+
+            # ────────────────────────────────────────────────────────────
+            #  Log status
+            # ────────────────────────────────────────────────────────────
+            self.logger.info(
+                f"Completed file generation workflow for org='{self.org}', "
+                f"project='{project_name}'."
+            )
 
         return (sorted_records, start_idx)

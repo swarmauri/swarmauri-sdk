@@ -11,6 +11,7 @@ resolution-markers = [
 members = [
     "catoml",
     "cayaml",
+    "jaml",
     "peagen",
     "swarmauri",
     "swarmauri-base",
@@ -19,6 +20,11 @@ members = [
     "swarmauri-embedding-doc2vec",
     "swarmauri-embedding-mlm",
     "swarmauri-embedding-nmf",
+    "swarmauri-evaluator-abstractmethods",
+    "swarmauri-evaluator-anyusage",
+    "swarmauri-evaluator-externalimports",
+    "swarmauri-evaluator-subprocess",
+    "swarmauri-evaluatorpool-accessibility",
     "swarmauri-llm-leptonai",
     "swarmauri-measurement-mutualinformation",
     "swarmauri-measurement-tokencountestimator",
@@ -31,6 +37,7 @@ members = [
     "swarmauri-parser-keywordextractor",
     "swarmauri-parser-pypdf2",
     "swarmauri-parser-pypdftk",
+    "swarmauri-parser-slate",
     "swarmauri-parser-textblob",
     "swarmauri-prompt-j2prompttemplate",
     "swarmauri-standard",
@@ -65,6 +72,7 @@ members = [
     "swarmauri-tool-matplotlib",
     "swarmauri-tool-psutil",
     "swarmauri-tool-qrcodegenerator",
+    "swarmauri-tool-searchword",
     "swarmauri-tool-sentencecomplexity",
     "swarmauri-tool-sentimentanalysis",
     "swarmauri-tool-smogindex",
@@ -84,6 +92,7 @@ members = [
     "swarmauri-vectorstore-pinecone",
     "swarmauri-vectorstore-qdrant",
     "swarmauri-vectorstore-redis",
+    "swarmauri-workflow-statedriven",
 ]
 
 [[package]]
@@ -233,12 +242,54 @@ wheels = [
 ]
 
 [[package]]
+name = "appdirs"
+version = "1.4.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/d8/05696357e0311f5b5c316d7b95f46c669dd9c15aaeecbb48c7d0aeb88c40/appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41", size = 13470 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/00/2344469e2084fb287c2e0b57b72910309874c3245463acd6cf5e3db69324/appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128", size = 9566 },
+]
+
+[[package]]
 name = "appnope"
 version = "0.1.4"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/35/5d/752690df9ef5b76e169e68d6a129fa6d08a7100ca7f754c89495db3c6019/appnope-0.1.4.tar.gz", hash = "sha256:1de3860566df9caf38f01f86f65e0e13e379af54f9e4bee1e66b48f2efffd1ee", size = 4170 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/29/5ecc3a15d5a33e31b26c11426c45c501e439cb865d0bff96315d86443b78/appnope-0.1.4-py2.py3-none-any.whl", hash = "sha256:502575ee11cd7a28c0205f379b525beefebab9d161b7c964670864014ed7213c", size = 4321 },
+]
+
+[[package]]
+name = "argon2-cffi"
+version = "23.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "argon2-cffi-bindings" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/fa/57ec2c6d16ecd2ba0cf15f3c7d1c3c2e7b5fcb83555ff56d7ab10888ec8f/argon2_cffi-23.1.0.tar.gz", hash = "sha256:879c3e79a2729ce768ebb7d36d4609e3a78a4ca2ec3a9f12286ca057e3d0db08", size = 42798 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/6a/e8a041599e78b6b3752da48000b14c8d1e8a04ded09c88c714ba047f34f5/argon2_cffi-23.1.0-py3-none-any.whl", hash = "sha256:c670642b78ba29641818ab2e68bd4e6a78ba53b7eff7b4c3815ae16abf91c7ea", size = 15124 },
+]
+
+[[package]]
+name = "argon2-cffi-bindings"
+version = "21.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cffi" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b9/e9/184b8ccce6683b0aa2fbb7ba5683ea4b9c5763f1356347f1312c32e3c66e/argon2-cffi-bindings-21.2.0.tar.gz", hash = "sha256:bb89ceffa6c791807d1305ceb77dbfacc5aa499891d2c55661c6459651fc39e3", size = 1779911 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/13/838ce2620025e9666aa8f686431f67a29052241692a3dd1ae9d3692a89d3/argon2_cffi_bindings-21.2.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:ccb949252cb2ab3a08c02024acb77cfb179492d5701c7cbdbfd776124d4d2367", size = 29658 },
+    { url = "https://files.pythonhosted.org/packages/b3/02/f7f7bb6b6af6031edb11037639c697b912e1dea2db94d436e681aea2f495/argon2_cffi_bindings-21.2.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9524464572e12979364b7d600abf96181d3541da11e23ddf565a32e70bd4dc0d", size = 80583 },
+    { url = "https://files.pythonhosted.org/packages/ec/f7/378254e6dd7ae6f31fe40c8649eea7d4832a42243acaf0f1fff9083b2bed/argon2_cffi_bindings-21.2.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b746dba803a79238e925d9046a63aa26bf86ab2a2fe74ce6b009a1c3f5c8f2ae", size = 86168 },
+    { url = "https://files.pythonhosted.org/packages/74/f6/4a34a37a98311ed73bb80efe422fed95f2ac25a4cacc5ae1d7ae6a144505/argon2_cffi_bindings-21.2.0-cp36-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:58ed19212051f49a523abb1dbe954337dc82d947fb6e5a0da60f7c8471a8476c", size = 82709 },
+    { url = "https://files.pythonhosted.org/packages/74/2b/73d767bfdaab25484f7e7901379d5f8793cccbb86c6e0cbc4c1b96f63896/argon2_cffi_bindings-21.2.0-cp36-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:bd46088725ef7f58b5a1ef7ca06647ebaf0eb4baff7d1d0d177c6cc8744abd86", size = 83613 },
+    { url = "https://files.pythonhosted.org/packages/4f/fd/37f86deef67ff57c76f137a67181949c2d408077e2e3dd70c6c42912c9bf/argon2_cffi_bindings-21.2.0-cp36-abi3-musllinux_1_1_i686.whl", hash = "sha256:8cd69c07dd875537a824deec19f978e0f2078fdda07fd5c42ac29668dda5f40f", size = 84583 },
+    { url = "https://files.pythonhosted.org/packages/6f/52/5a60085a3dae8fded8327a4f564223029f5f54b0cb0455a31131b5363a01/argon2_cffi_bindings-21.2.0-cp36-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:f1152ac548bd5b8bcecfb0b0371f082037e47128653df2e8ba6e914d384f3c3e", size = 88475 },
+    { url = "https://files.pythonhosted.org/packages/8b/95/143cd64feb24a15fa4b189a3e1e7efbaeeb00f39a51e99b26fc62fbacabd/argon2_cffi_bindings-21.2.0-cp36-abi3-win32.whl", hash = "sha256:603ca0aba86b1349b147cab91ae970c63118a0f30444d4bc80355937c950c082", size = 27698 },
+    { url = "https://files.pythonhosted.org/packages/37/2c/e34e47c7dee97ba6f01a6203e0383e15b60fb85d78ac9a15cd066f6fe28b/argon2_cffi_bindings-21.2.0-cp36-abi3-win_amd64.whl", hash = "sha256:b2ef1c30440dbbcba7a5dc3e319408b59676e2e039e2ae11a8775ecf482b192f", size = 30817 },
+    { url = "https://files.pythonhosted.org/packages/5a/e4/bf8034d25edaa495da3c8a3405627d2e35758e44ff6eaa7948092646fdcc/argon2_cffi_bindings-21.2.0-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:e415e3f62c8d124ee16018e491a009937f8cf7ebf5eb430ffc5de21b900dad93", size = 53104 },
 ]
 
 [[package]]
@@ -474,7 +525,7 @@ wheels = [
 
 [[package]]
 name = "catoml"
-version = "0.1.1.dev9"
+version = "0.1.1.dev21"
 source = { editable = "catoml" }
 
 [package.dev-dependencies]
@@ -509,7 +560,7 @@ dev = [
 
 [[package]]
 name = "cayaml"
-version = "0.1.0.dev8"
+version = "0.1.0.dev10"
 source = { editable = "cayaml" }
 
 [package.dev-dependencies]
@@ -1795,6 +1846,45 @@ wheels = [
 ]
 
 [[package]]
+name = "jaml"
+version = "0.1.0.dev8"
+source = { editable = "jaml" }
+dependencies = [
+    { name = "lark" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "lark" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "jedi"
 version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1852,14 +1942,14 @@ wheels = [
 
 [[package]]
 name = "jinja2"
-version = "3.1.5"
+version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markupsafe" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/af/92/b3130cbbf5591acf9ade8708c365f3238046ac7cb8ccba6e81abccb0ccff/jinja2-3.1.5.tar.gz", hash = "sha256:8fefff8dc3034e27bb80d67c671eb8a9bc424c0ef4c0826edbff304cceff43bb", size = 244674 }
+sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/0f/2ba5fbcd631e3e88689309dbe978c5769e883e4b84ebfe7da30b43275c5a/jinja2-3.1.5-py3-none-any.whl", hash = "sha256:aba0f4dc9ed8013c424088f68a5c226f7d6097ed89b246d7749c2ec4175c6adb", size = 134596 },
+    { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899 },
 ]
 
 [[package]]
@@ -1913,6 +2003,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/64/33/60135848598c076ce4b231e1b1895170f45fbcaeaa2c9d5e38b04db70c35/joblib-1.4.2.tar.gz", hash = "sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e", size = 2116621 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/91/29/df4b9b42f2be0b623cbd5e2140cafcaa2bef0759a00b7b70104dcfe2fb51/joblib-1.4.2-py3-none-any.whl", hash = "sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6", size = 301817 },
+]
+
+[[package]]
+name = "jsonpatch"
+version = "1.33"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jsonpointer" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/78/18813351fe5d63acad16aec57f94ec2b70a09e53ca98145589e185423873/jsonpatch-1.33.tar.gz", hash = "sha256:9fcd4009c41e6d12348b4a0ff2563ba56a2923a7dfee731d004e212e1ee5030c", size = 21699 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/73/07/02e16ed01e04a374e644b575638ec7987ae846d25ad97bcc9945a3ee4b0e/jsonpatch-1.33-py2.py3-none-any.whl", hash = "sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade", size = 12898 },
+]
+
+[[package]]
+name = "jsonpointer"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/0a/eebeb1fa92507ea94016a2a790b93c2ae41a7e18778f85471dc54475ed25/jsonpointer-3.0.0.tar.gz", hash = "sha256:2b2d729f2091522d61c3b31f82e11870f60b68f43fbc705cb76bf4b832af59ef", size = 9114 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/92/5e77f98553e9e75130c78900d000368476aed74276eb8ae8796f65f00918/jsonpointer-3.0.0-py2.py3-none-any.whl", hash = "sha256:13e088adc14fca8b6aa8177c044e12701e6ad4b28ff10e65f2267a90109c9942", size = 7595 },
 ]
 
 [[package]]
@@ -2103,6 +2214,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/ce/3f144716a9f2cbf42aa86ebc8b085a184be25c80aa453eea17c294d239c1/language_data-1.3.0.tar.gz", hash = "sha256:7600ef8aa39555145d06c89f0c324bf7dab834ea0b0a439d8243762e3ebad7ec", size = 5129310 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/e9/5a5ffd9b286db82be70d677d0a91e4d58f7912bb8dd026ddeeb4abe70679/language_data-1.3.0-py3-none-any.whl", hash = "sha256:e2ee943551b5ae5f89cd0e801d1fc3835bb0ef5b7e9c3a4e8e17b2b214548fbf", size = 5385760 },
+]
+
+[[package]]
+name = "lark"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/60/bc7622aefb2aee1c0b4ba23c1446d3e30225c8770b38d7aedbfb65ca9d5a/lark-1.2.2.tar.gz", hash = "sha256:ca807d0162cd16cef15a8feecb862d7319e7a09bdb13aef927968e45040fed80", size = 252132 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/00/d90b10b962b4277f5e64a78b6609968859ff86889f5b898c1a778c06ec00/lark-1.2.2-py3-none-any.whl", hash = "sha256:c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c", size = 111036 },
 ]
 
 [[package]]
@@ -2319,6 +2439,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979 },
+]
+
+[[package]]
+name = "minio"
+version = "7.2.15"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "argon2-cffi" },
+    { name = "certifi" },
+    { name = "pycryptodome" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9e/68/86a1cef80396e6a35a6fc4fafee5d28578c1a137bddd3ca2aa86f9b26a22/minio-7.2.15.tar.gz", hash = "sha256:5247df5d4dca7bfa4c9b20093acd5ad43e82d8710ceb059d79c6eea970f49f79", size = 138040 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/6f/3690028e846fe432bfa5ba724a0dc37ec9c914965b7733e19d8ca2c4c48d/minio-7.2.15-py3-none-any.whl", hash = "sha256:c06ef7a43e5d67107067f77b6c07ebdd68733e5aa7eed03076472410ca19d876", size = 95075 },
 ]
 
 [[package]]
@@ -3159,15 +3295,36 @@ wheels = [
 ]
 
 [[package]]
+name = "pdfminer3k"
+version = "1.3.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "ply" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/cd/7ebbf829d7b2dcdaa6ee759e3daa36e3e5d1ee3464f76879c4a4d79ee0f9/pdfminer3k-1.3.4.tar.gz", hash = "sha256:ba3e43d4d800d434442687c88b3391b09d136acafd00304963a1386de294d4c6", size = 94873 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/15/5ac4faa314c38b335cf4db37fc02dc02c14bf67f7641bea2fa5e5b7d4ff4/pdfminer3k-1.3.4-py3-none-any.whl", hash = "sha256:7b669a36b1c4c66aa2d66519c800285659dac5a31e8fa760c13977b16218e5e0", size = 100774 },
+]
+
+[[package]]
 name = "peagen"
-version = "0.1.2.dev3"
+version = "0.1.2.dev10"
 source = { editable = "standards/peagen" }
 dependencies = [
+    { name = "colorama" },
+    { name = "httpx" },
     { name = "inflect" },
     { name = "jinja2" },
+    { name = "jsonpatch" },
+    { name = "minio" },
+    { name = "pika" },
+    { name = "pygithub" },
     { name = "python-dotenv" },
+    { name = "redis" },
+    { name = "swarmauri" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
+    { name = "swarmauri-prompt-j2prompttemplate" },
     { name = "swarmauri-standard" },
     { name = "typer" },
 ]
@@ -3175,6 +3332,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "flake8" },
+    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-benchmark" },
@@ -3182,17 +3340,25 @@ dev = [
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
-    { name = "requests" },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "colorama" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "inflect" },
-    { name = "jinja2" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "jsonpatch", specifier = ">=1.33" },
+    { name = "minio" },
+    { name = "pika" },
+    { name = "pygithub" },
     { name = "python-dotenv" },
+    { name = "redis" },
+    { name = "swarmauri", editable = "swarmauri" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-prompt-j2prompttemplate", editable = "standards/swarmauri_prompt_j2prompttemplate" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
     { name = "typer" },
 ]
@@ -3200,6 +3366,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "flake8", specifier = ">=7.0" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },
@@ -3207,7 +3374,6 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
-    { name = "requests", specifier = ">=2.32.3" },
     { name = "ruff", specifier = ">=0.9.9" },
 ]
 
@@ -3221,6 +3387,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772 },
+]
+
+[[package]]
+name = "pika"
+version = "1.3.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/db/db/d4102f356af18f316c67f2cead8ece307f731dd63140e2c71f170ddacf9b/pika-1.3.2.tar.gz", hash = "sha256:b2a327ddddf8570b4965b3576ac77091b850262d34ce8c1d8cb4e4146aa4145f", size = 145029 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f9/f3/f412836ec714d36f0f4ab581b84c491e3f42c6b5b97a6c6ed1817f3c16d0/pika-1.3.2-py3-none-any.whl", hash = "sha256:0779a7c1fafd805672796085560d290213a465e4f6f76a6fb19e378d8041a14f", size = 155415 },
 ]
 
 [[package]]
@@ -3335,6 +3510,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
+]
+
+[[package]]
+name = "ply"
+version = "3.11"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz", hash = "sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3", size = 159130 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/58/35da89ee790598a0700ea49b2a66594140f44dec458c07e8e3d4979137fc/ply-3.11-py2.py3-none-any.whl", hash = "sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce", size = 49567 },
 ]
 
 [[package]]
@@ -3583,6 +3767,30 @@ wheels = [
 ]
 
 [[package]]
+name = "pycryptodome"
+version = "3.23.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/a6/8452177684d5e906854776276ddd34eca30d1b1e15aa1ee9cefc289a33f5/pycryptodome-3.23.0.tar.gz", hash = "sha256:447700a657182d60338bab09fdb27518f8856aecd80ae4c6bdddb67ff5da44ef", size = 4921276 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/6c/a1f71542c969912bb0e106f64f60a56cc1f0fabecf9396f45accbe63fa68/pycryptodome-3.23.0-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:187058ab80b3281b1de11c2e6842a357a1f71b42cb1e15bce373f3d238135c27", size = 2495627 },
+    { url = "https://files.pythonhosted.org/packages/6e/4e/a066527e079fc5002390c8acdd3aca431e6ea0a50ffd7201551175b47323/pycryptodome-3.23.0-cp37-abi3-macosx_10_9_x86_64.whl", hash = "sha256:cfb5cd445280c5b0a4e6187a7ce8de5a07b5f3f897f235caa11f1f435f182843", size = 1640362 },
+    { url = "https://files.pythonhosted.org/packages/50/52/adaf4c8c100a8c49d2bd058e5b551f73dfd8cb89eb4911e25a0c469b6b4e/pycryptodome-3.23.0-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:67bd81fcbe34f43ad9422ee8fd4843c8e7198dd88dd3d40e6de42ee65fbe1490", size = 2182625 },
+    { url = "https://files.pythonhosted.org/packages/5f/e9/a09476d436d0ff1402ac3867d933c61805ec2326c6ea557aeeac3825604e/pycryptodome-3.23.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c8987bd3307a39bc03df5c8e0e3d8be0c4c3518b7f044b0f4c15d1aa78f52575", size = 2268954 },
+    { url = "https://files.pythonhosted.org/packages/f9/c5/ffe6474e0c551d54cab931918127c46d70cab8f114e0c2b5a3c071c2f484/pycryptodome-3.23.0-cp37-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:aa0698f65e5b570426fc31b8162ed4603b0c2841cbb9088e2b01641e3065915b", size = 2308534 },
+    { url = "https://files.pythonhosted.org/packages/18/28/e199677fc15ecf43010f2463fde4c1a53015d1fe95fb03bca2890836603a/pycryptodome-3.23.0-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:53ecbafc2b55353edcebd64bf5da94a2a2cdf5090a6915bcca6eca6cc452585a", size = 2181853 },
+    { url = "https://files.pythonhosted.org/packages/ce/ea/4fdb09f2165ce1365c9eaefef36625583371ee514db58dc9b65d3a255c4c/pycryptodome-3.23.0-cp37-abi3-musllinux_1_2_i686.whl", hash = "sha256:156df9667ad9f2ad26255926524e1c136d6664b741547deb0a86a9acf5ea631f", size = 2342465 },
+    { url = "https://files.pythonhosted.org/packages/22/82/6edc3fc42fe9284aead511394bac167693fb2b0e0395b28b8bedaa07ef04/pycryptodome-3.23.0-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:dea827b4d55ee390dc89b2afe5927d4308a8b538ae91d9c6f7a5090f397af1aa", size = 2267414 },
+    { url = "https://files.pythonhosted.org/packages/59/fe/aae679b64363eb78326c7fdc9d06ec3de18bac68be4b612fc1fe8902693c/pycryptodome-3.23.0-cp37-abi3-win32.whl", hash = "sha256:507dbead45474b62b2bbe318eb1c4c8ee641077532067fec9c1aa82c31f84886", size = 1768484 },
+    { url = "https://files.pythonhosted.org/packages/54/2f/e97a1b8294db0daaa87012c24a7bb714147c7ade7656973fd6c736b484ff/pycryptodome-3.23.0-cp37-abi3-win_amd64.whl", hash = "sha256:c75b52aacc6c0c260f204cbdd834f76edc9fb0d8e0da9fbf8352ef58202564e2", size = 1799636 },
+    { url = "https://files.pythonhosted.org/packages/18/3d/f9441a0d798bf2b1e645adc3265e55706aead1255ccdad3856dbdcffec14/pycryptodome-3.23.0-cp37-abi3-win_arm64.whl", hash = "sha256:11eeeb6917903876f134b56ba11abe95c0b0fd5e3330def218083c7d98bbcb3c", size = 1703675 },
+    { url = "https://files.pythonhosted.org/packages/d9/12/e33935a0709c07de084d7d58d330ec3f4daf7910a18e77937affdb728452/pycryptodome-3.23.0-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:ddb95b49df036ddd264a0ad246d1be5b672000f12d6961ea2c267083a5e19379", size = 1623886 },
+    { url = "https://files.pythonhosted.org/packages/22/0b/aa8f9419f25870889bebf0b26b223c6986652bdf071f000623df11212c90/pycryptodome-3.23.0-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d8e95564beb8782abfd9e431c974e14563a794a4944c29d6d3b7b5ea042110b4", size = 1672151 },
+    { url = "https://files.pythonhosted.org/packages/d4/5e/63f5cbde2342b7f70a39e591dbe75d9809d6338ce0b07c10406f1a140cdc/pycryptodome-3.23.0-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:14e15c081e912c4b0d75632acd8382dfce45b258667aa3c67caf7a4d4c13f630", size = 1664461 },
+    { url = "https://files.pythonhosted.org/packages/d6/92/608fbdad566ebe499297a86aae5f2a5263818ceeecd16733006f1600403c/pycryptodome-3.23.0-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a7fc76bf273353dc7e5207d172b83f569540fc9a28d63171061c42e361d22353", size = 1702440 },
+    { url = "https://files.pythonhosted.org/packages/d1/92/2eadd1341abd2989cce2e2740b4423608ee2014acb8110438244ee97d7ff/pycryptodome-3.23.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:45c69ad715ca1a94f778215a11e66b7ff989d792a4d63b68dc586a1da1392ff5", size = 1803005 },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.10.6"
 source = { registry = "https://pypi.org/simple" }
@@ -3655,6 +3863,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/86/aa/837821ecf0c022bbb74ca132e117c358321e72e7f9702d1b6a03758545e2/pydantic_core-2.27.2-pp310-pypy310_pp73-musllinux_1_1_armv7l.whl", hash = "sha256:0296abcb83a797db256b773f45773da397da75a08f5fcaef41f2044adec05f50", size = 2116582 },
     { url = "https://files.pythonhosted.org/packages/81/b0/5e74656e95623cbaa0a6278d16cf15e10a51f6002e3ec126541e95c29ea3/pydantic_core-2.27.2-pp310-pypy310_pp73-musllinux_1_1_x86_64.whl", hash = "sha256:0d75070718e369e452075a6017fbf187f788e17ed67a3abd47fa934d001863d9", size = 2151985 },
     { url = "https://files.pythonhosted.org/packages/63/37/3e32eeb2a451fddaa3898e2163746b0cffbbdbb4740d38372db0490d67f3/pydantic_core-2.27.2-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:7e17b560be3c98a8e3aa66ce828bdebb9e9ac6ad5466fba92eb74c4c95cb1151", size = 2004715 },
+]
+
+[[package]]
+name = "pyee"
+version = "11.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/54/20/3e646860d5a2f9c24b23b1964fb7c65312236883fa7b62d0f64456addc93/pyee-11.1.1.tar.gz", hash = "sha256:82e1eb1853f8497c4ff1a0c7fa26b9cd2f1253e2b6ffb93b4700fda907017302", size = 30002 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/99/7e80837f60b13227f03334e3b0537d650dea2c0cea44c543b0a2e719a48f/pyee-11.1.1-py3-none-any.whl", hash = "sha256:9e4cdd7c2f9fcf247db94bad39a260aceffefdbe52286ce71be01959de34a5c2", size = 15300 },
 ]
 
 [[package]]
@@ -3779,6 +3999,24 @@ name = "pypika"
 version = "0.48.9"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c7/2c/94ed7b91db81d61d7096ac8f2d325ec562fc75e35f3baea8749c85b28784/PyPika-0.48.9.tar.gz", hash = "sha256:838836a61747e7c8380cd1b7ff638694b7a7335345d0f559b04b2cd832ad5378", size = 67259 }
+
+[[package]]
+name = "pyppeteer"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "appdirs" },
+    { name = "certifi" },
+    { name = "importlib-metadata" },
+    { name = "pyee" },
+    { name = "tqdm" },
+    { name = "urllib3" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/fe/6d0bbf58c8e9348f7ab35ea172b1339cef102385b345cf35e13578e8df19/pyppeteer-2.0.0.tar.gz", hash = "sha256:4af63473ff36a746a53347b2336a49efda669bcd781e400bc1799b81838358d9", size = 71077 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3d/ee/fb2757a38025421fd3844a0ed0a230b78c9c04a66355024436cf3005a70c/pyppeteer-2.0.0-py3-none-any.whl", hash = "sha256:96f4c574fb36f1d15e02746303ab742b98941f0da58337187e7c1d2ef982adea", size = 82891 },
+]
 
 [[package]]
 name = "pyproject-hooks"
@@ -4437,6 +4675,17 @@ wheels = [
 ]
 
 [[package]]
+name = "slate3k"
+version = "0.5.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pdfminer3k" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/e3/f27cac1dd24617894cf7ddb5da13beca27c9236736466bebaf5dd2a902c1/slate3k-0.5.3-py2.py3-none-any.whl", hash = "sha256:c40b47fdcccaedb3ef4fd8dcc058d7e10c5967b33c69858aabf3b1fb3467d6eb", size = 7851 },
+]
+
+[[package]]
 name = "smart-open"
 version = "7.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4600,7 +4849,7 @@ wheels = [
 
 [[package]]
 name = "swarmauri"
-version = "0.7.4.dev1"
+version = "0.7.4.dev11"
 source = { editable = "swarmauri" }
 dependencies = [
     { name = "httpx" },
@@ -4693,7 +4942,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-base"
-version = "0.7.4.dev1"
+version = "0.7.4.dev12"
 source = { editable = "base" }
 dependencies = [
     { name = "numpy" },
@@ -4748,7 +4997,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-core"
-version = "0.7.4.dev1"
+version = "0.7.4.dev12"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
@@ -4785,7 +5034,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
@@ -4832,7 +5081,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_embedding_doc2vec" }
 dependencies = [
     { name = "gensim" },
@@ -4879,7 +5128,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4928,7 +5177,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
@@ -4974,8 +5223,233 @@ dev = [
 ]
 
 [[package]]
+name = "swarmauri-evaluator-abstractmethods"
+version = "0.1.1.dev5"
+source = { editable = "standards/swarmauri_evaluator_abstractmethods" }
+dependencies = [
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-evaluator-anyusage"
+version = "0.1.1.dev5"
+source = { editable = "standards/swarmauri_evaluator_anyusage" }
+dependencies = [
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-evaluator-externalimports"
+version = "0.1.1.dev4"
+source = { editable = "standards/swarmauri_evaluator_externalimports" }
+dependencies = [
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-evaluator-subprocess"
+version = "0.1.0"
+source = { editable = "standards/swarmauri_evaluator_subprocess" }
+dependencies = [
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-evaluatorpool-accessibility"
+version = "0.1.0"
+source = { editable = "standards/swarmauri_evaluatorpool_accessibility" }
+dependencies = [
+    { name = "beautifulsoup4" },
+    { name = "markdown" },
+    { name = "nltk" },
+    { name = "pydantic" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beautifulsoup4" },
+    { name = "markdown" },
+    { name = "nltk" },
+    { name = "pydantic" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
@@ -5022,7 +5496,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_measurement_mutualinformation" }
 dependencies = [
     { name = "pandas" },
@@ -5069,7 +5543,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5151,7 +5625,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-ocr-pytesseract"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_ocr_pytesseract" }
 dependencies = [
     { name = "pytesseract" },
@@ -5198,7 +5672,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -5245,7 +5719,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-bertembedding"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_parser_bertembedding" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5343,7 +5817,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
@@ -5390,7 +5864,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-keywordextractor"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_parser_keywordextractor" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5437,7 +5911,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },
@@ -5484,7 +5958,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
@@ -5530,8 +6004,53 @@ dev = [
 ]
 
 [[package]]
+name = "swarmauri-parser-slate"
+version = "0.1.0.dev13"
+source = { editable = "community/swarmauri_parser_slate" }
+dependencies = [
+    { name = "slate3k" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "slate3k", specifier = ">=0.5" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "swarmauri-parser-textblob"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_parser_textblob" }
 dependencies = [
     { name = "nltk" },
@@ -5580,7 +6099,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-prompt-j2prompttemplate"
-version = "0.7.2.dev1"
+version = "0.7.2.dev7"
 source = { editable = "standards/swarmauri_prompt_j2prompttemplate" }
 dependencies = [
     { name = "jinja2" },
@@ -5605,7 +6124,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jinja2", specifier = ">=3.0" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pydantic", specifier = ">=1.8.2" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
@@ -5627,7 +6146,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-standard"
-version = "0.7.4.dev1"
+version = "0.7.4.dev7"
 source = { editable = "swarmauri_standard" }
 dependencies = [
     { name = "aiofiles" },
@@ -5637,6 +6156,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pillow" },
     { name = "pydantic" },
+    { name = "rich" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "toml" },
@@ -5669,6 +6189,7 @@ requires-dist = [
     { name = "pandas" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "pydantic", specifier = ">=2.9.2" },
+    { name = "rich" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "toml", specifier = ">=0.10.2" },
@@ -5693,7 +6214,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5736,7 +6257,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-captchagenerator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_captchagenerator" }
 dependencies = [
     { name = "captcha" },
@@ -5783,7 +6304,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_dalechallreadability" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5830,7 +6351,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_downloadpdf" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5875,7 +6396,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_entityrecognition" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5926,7 +6447,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },
@@ -5973,7 +6494,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_gmail" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -6020,7 +6541,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterclearoutput"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterclearoutput" }
 dependencies = [
     { name = "nbconvert" },
@@ -6067,7 +6588,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplay"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterdisplay" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6115,7 +6636,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplayhtml"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterdisplayhtml" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6163,7 +6684,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecuteandconvert"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexecuteandconvert" }
 dependencies = [
     { name = "nbconvert" },
@@ -6210,14 +6731,13 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutecell"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexecutecell" }
 dependencies = [
     { name = "ipykernel" },
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "jupyter-client" },
-    { name = "pydantic" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -6242,7 +6762,6 @@ requires-dist = [
     { name = "ipykernel", specifier = "==6.29.5" },
     { name = "ipython", specifier = ">=8.32.0" },
     { name = "jupyter-client", specifier = ">=8.6.3" },
-    { name = "pydantic", specifier = "==2.10.6" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
@@ -6264,7 +6783,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebook" }
 dependencies = [
     { name = "ipykernel" },
@@ -6315,7 +6834,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebookwithparameters"
-version = "1.1.4.dev1"
+version = "1.1.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebookwithparameters" }
 dependencies = [
     { name = "papermill" },
@@ -6362,7 +6881,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6409,7 +6928,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportlatex"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexportlatex" }
 dependencies = [
     { name = "nbconvert" },
@@ -6456,7 +6975,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.1.4.dev1"
+version = "1.1.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6505,7 +7024,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6552,7 +7071,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
@@ -6599,13 +7118,14 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetiopubmessage"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupytergetiopubmessage" }
 dependencies = [
     { name = "jupyter-client" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
+    { name = "websocket-client" },
 ]
 
 [package.dev-dependencies]
@@ -6628,6 +7148,7 @@ requires-dist = [
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
+    { name = "websocket-client", specifier = ">=1.8.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -6646,7 +7167,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
@@ -6695,7 +7216,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterreadnotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterreadnotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6742,7 +7263,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterruncell"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterruncell" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6790,7 +7311,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytershutdownkernel"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupytershutdownkernel" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6837,7 +7358,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterstartkernel"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterstartkernel" }
 dependencies = [
     { name = "ipykernel" },
@@ -6886,7 +7407,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6937,7 +7458,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterwritenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_jupyterwritenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6984,7 +7505,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-lexicaldensity"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_lexicaldensity" }
 dependencies = [
     { name = "nltk" },
@@ -7033,7 +7554,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_tool_matplotlib" }
 dependencies = [
     { name = "matplotlib" },
@@ -7080,7 +7601,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_psutil" }
 dependencies = [
     { name = "psutil" },
@@ -7127,7 +7648,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_qrcodegenerator" }
 dependencies = [
     { name = "qrcode" },
@@ -7173,8 +7694,55 @@ dev = [
 ]
 
 [[package]]
+name = "swarmauri-tool-searchword"
+version = "0.1.0.dev11"
+source = { editable = "community/swarmauri_tool_searchword" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_sentencecomplexity" }
 dependencies = [
     { name = "nltk" },
@@ -7221,7 +7789,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_sentimentanalysis" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7272,7 +7840,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_smogindex" }
 dependencies = [
     { name = "nltk" },
@@ -7321,7 +7889,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
@@ -7368,7 +7936,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -7415,7 +7983,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_tool_zapierhook" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7460,7 +8028,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-github"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_toolkit_github" }
 dependencies = [
     { name = "pygithub" },
@@ -7507,7 +8075,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-jupytertoolkit"
-version = "0.2.4.dev1"
+version = "0.2.4.dev13"
 source = { editable = "community/swarmauri_toolkit_jupytertoolkit" }
 dependencies = [
     { name = "pydantic" },
@@ -7594,7 +8162,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-typing"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "typing" }
 
 [package.dev-dependencies]
@@ -7631,7 +8199,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
@@ -7680,7 +8248,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_cloudweaviate" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7729,7 +8297,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7776,7 +8344,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_duckdb" }
 dependencies = [
     { name = "duckdb" },
@@ -7825,7 +8393,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-mlm"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7876,7 +8444,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_neo4j" }
 dependencies = [
     { name = "neo4j" },
@@ -7925,7 +8493,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-persistentchromadb"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_persistentchromadb" }
 dependencies = [
     { name = "chromadb" },
@@ -7974,7 +8542,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
@@ -8023,7 +8591,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-qdrant"
-version = "0.7.4.dev1"
+version = "0.7.4.dev10"
 source = { editable = "community/swarmauri_vectorstore_qdrant" }
 dependencies = [
     { name = "qdrant-client" },
@@ -8072,7 +8640,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.7.4.dev1"
+version = "0.7.4.dev13"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },
@@ -8104,6 +8672,55 @@ requires-dist = [
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-embedding-doc2vec", editable = "standards/swarmauri_embedding_doc2vec" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-workflow-statedriven"
+version = "0.1.0.dev1"
+source = { editable = "experimental/swarmauri_workflow_statedriven" }
+dependencies = [
+    { name = "pyppeteer" },
+    { name = "swarmauri" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pyppeteer" },
+    { name = "swarmauri", editable = "swarmauri" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
 ]
 
@@ -8611,11 +9228,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.3.0"
+version = "1.26.20"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/aa/63/e53da845320b757bf29ef6a9062f5c669fe997973f966045cb019c3f4b66/urllib3-2.3.0.tar.gz", hash = "sha256:f8c5449b3cf0861679ce7e0503c7b44b5ec981bec0d1d3795a07f1ba96f0204d", size = 307268 }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/e8/6ff5e6bc22095cfc59b6ea711b687e2b7ed4bdb373f7eeec370a97d7392f/urllib3-1.26.20.tar.gz", hash = "sha256:40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32", size = 307380 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/19/4ec628951a74043532ca2cf5d97b7b14863931476d117c471e8e2b1eb39f/urllib3-2.3.0-py3-none-any.whl", hash = "sha256:1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df", size = 128369 },
+    { url = "https://files.pythonhosted.org/packages/33/cf/8435d5a7159e2a9c83a95896ed596f68cf798005fe107cc655b5c5c14704/urllib3-1.26.20-py2.py3-none-any.whl", hash = "sha256:0ed14ccfbf1c30a9072c7ca157e4319b70d65f623e91e7b32fadb2853431016e", size = 144225 },
 ]
 
 [[package]]
@@ -8811,50 +9428,32 @@ wheels = [
 
 [[package]]
 name = "websockets"
-version = "15.0"
+version = "10.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2e/7a/8bc4d15af7ff30f7ba34f9a172063bfcee9f5001d7cef04bee800a658f33/websockets-15.0.tar.gz", hash = "sha256:ca36151289a15b39d8d683fd8b7abbe26fc50be311066c5f8dcf3cb8cee107ab", size = 175574 }
+sdist = { url = "https://files.pythonhosted.org/packages/85/dc/549a807a53c13fd4a8dac286f117a7a71260defea9ec0c05d6027f2ae273/websockets-10.4.tar.gz", hash = "sha256:eef610b23933c54d5d921c92578ae5f89813438fded840c2e9809d378dc765d3", size = 84877 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/f1/b20cc4c1ff84911c791f36fa511a78203836bb4d603f56290de08c067437/websockets-15.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5e6ee18a53dd5743e6155b8ff7e8e477c25b29b440f87f65be8165275c87fef0", size = 174701 },
-    { url = "https://files.pythonhosted.org/packages/f9/e8/4de59ee85ec86052ca574f4e5327ef948e4f77757d3c9c1503f5a0e9c039/websockets-15.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ee06405ea2e67366a661ed313e14cf2a86e84142a3462852eb96348f7219cee3", size = 172358 },
-    { url = "https://files.pythonhosted.org/packages/2f/ea/b0f95815cdc83d61b1a895858671c6af38a76c23f3ea5d91e2ba11bbedc7/websockets-15.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8711682a629bbcaf492f5e0af72d378e976ea1d127a2d47584fa1c2c080b436b", size = 172610 },
-    { url = "https://files.pythonhosted.org/packages/09/ed/c5d8f1f296f475c00611a40eff6a952248785efb125f91a0b29575f36ba6/websockets-15.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:94c4a9b01eede952442c088d415861b0cf2053cbd696b863f6d5022d4e4e2453", size = 181579 },
-    { url = "https://files.pythonhosted.org/packages/b7/fc/2444b5ae792d92179f20cec53475bcc25d1d7f00a2be9947de9837ef230a/websockets-15.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:45535fead66e873f411c1d3cf0d3e175e66f4dd83c4f59d707d5b3e4c56541c4", size = 180588 },
-    { url = "https://files.pythonhosted.org/packages/ff/b5/0945a31562d351cff26d76a2ae9a4ba4536e698aa059a4262afd793b2a1d/websockets-15.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0e389efe46ccb25a1f93d08c7a74e8123a2517f7b7458f043bd7529d1a63ffeb", size = 180902 },
-    { url = "https://files.pythonhosted.org/packages/b6/7c/e9d844b87754bc83b294cc1c695cbc6c5d42e329b85d2bf2d7bb9554d09c/websockets-15.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:67a04754d121ea5ca39ddedc3f77071651fb5b0bc6b973c71c515415b44ed9c5", size = 181282 },
-    { url = "https://files.pythonhosted.org/packages/9e/6c/6a5d3272f494fa2fb4806b896ecb312bd6c72bab632df4ace19946c079dc/websockets-15.0-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:bd66b4865c8b853b8cca7379afb692fc7f52cf898786537dfb5e5e2d64f0a47f", size = 180694 },
-    { url = "https://files.pythonhosted.org/packages/b2/32/1fb4b62c2ec2c9844d4ddaa4021d993552c7c493a0acdcec95551679d501/websockets-15.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:a4cc73a6ae0a6751b76e69cece9d0311f054da9b22df6a12f2c53111735657c8", size = 180631 },
-    { url = "https://files.pythonhosted.org/packages/e4/9b/5ef1ddb8857ce894217bdd9572ad98c1cef20d8f9f0f43823b782b7ded6b/websockets-15.0-cp310-cp310-win32.whl", hash = "sha256:89da58e4005e153b03fe8b8794330e3f6a9774ee9e1c3bd5bc52eb098c3b0c4f", size = 175664 },
-    { url = "https://files.pythonhosted.org/packages/29/63/c320572ccf813ed2bc3058a0e0291ee95eb258dc5e6b3446ca45dc1af0fd/websockets-15.0-cp310-cp310-win_amd64.whl", hash = "sha256:4ff380aabd7a74a42a760ee76c68826a8f417ceb6ea415bd574a035a111fd133", size = 176109 },
-    { url = "https://files.pythonhosted.org/packages/ee/16/81a7403c8c0a33383de647e89c07824ea6a654e3877d6ff402cbae298cb8/websockets-15.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:dd24c4d256558429aeeb8d6c24ebad4e982ac52c50bc3670ae8646c181263965", size = 174702 },
-    { url = "https://files.pythonhosted.org/packages/ef/40/4629202386a3bf1195db9fe41baeb1d6dfd8d72e651d9592d81dae7fdc7c/websockets-15.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f83eca8cbfd168e424dfa3b3b5c955d6c281e8fc09feb9d870886ff8d03683c7", size = 172359 },
-    { url = "https://files.pythonhosted.org/packages/7b/33/dfb650e822bc7912d8c542c452497867af91dec81e7b5bf96aca5b419d58/websockets-15.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4095a1f2093002c2208becf6f9a178b336b7572512ee0a1179731acb7788e8ad", size = 172604 },
-    { url = "https://files.pythonhosted.org/packages/2e/52/666743114513fcffd43ee5df261a1eb5d41f8e9861b7a190b730732c19ba/websockets-15.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fb915101dfbf318486364ce85662bb7b020840f68138014972c08331458d41f3", size = 182145 },
-    { url = "https://files.pythonhosted.org/packages/9c/63/5273f146b13aa4a057a95ab0855d9990f3a1ced63693f4365135d1abfacc/websockets-15.0-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:45d464622314973d78f364689d5dbb9144e559f93dca11b11af3f2480b5034e1", size = 181152 },
-    { url = "https://files.pythonhosted.org/packages/0f/ae/075697f3f97de7c26b73ae96d952e13fa36393e0db3f028540b28954e0a9/websockets-15.0-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ace960769d60037ca9625b4c578a6f28a14301bd2a1ff13bb00e824ac9f73e55", size = 181523 },
-    { url = "https://files.pythonhosted.org/packages/25/87/06d091bbcbe01903bed3dad3bb4a1a3c516f61e611ec31fffb28abe4974b/websockets-15.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:c7cd4b1015d2f60dfe539ee6c95bc968d5d5fad92ab01bb5501a77393da4f596", size = 181791 },
-    { url = "https://files.pythonhosted.org/packages/77/08/5063b6cc1b2aa1fba2ee3b578b777db22fde7145f121d07fd878811e983b/websockets-15.0-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:4f7290295794b5dec470867c7baa4a14182b9732603fd0caf2a5bf1dc3ccabf3", size = 181231 },
-    { url = "https://files.pythonhosted.org/packages/86/ff/af23084df0a7405bb2add12add8c17d6192a8de9480f1b90d12352ba2b7d/websockets-15.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:3abd670ca7ce230d5a624fd3d55e055215d8d9b723adee0a348352f5d8d12ff4", size = 181191 },
-    { url = "https://files.pythonhosted.org/packages/21/ce/b2bdfcf49201dee0b899edc6a814755763ec03d74f2714923d38453a9e8d/websockets-15.0-cp311-cp311-win32.whl", hash = "sha256:110a847085246ab8d4d119632145224d6b49e406c64f1bbeed45c6f05097b680", size = 175666 },
-    { url = "https://files.pythonhosted.org/packages/8d/7b/444edcd5365538c226b631897975a65bbf5ccf27c77102e17d8f12a306ea/websockets-15.0-cp311-cp311-win_amd64.whl", hash = "sha256:8d7bbbe2cd6ed80aceef2a14e9f1c1b61683194c216472ed5ff33b700e784e37", size = 176105 },
-    { url = "https://files.pythonhosted.org/packages/22/1e/92c4547d7b2a93f848aedaf37e9054111bc00dc11bff4385ca3f80dbb412/websockets-15.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:cccc18077acd34c8072578394ec79563664b1c205f7a86a62e94fafc7b59001f", size = 174709 },
-    { url = "https://files.pythonhosted.org/packages/9f/37/eae4830a28061ba552516d84478686b637cd9e57d6a90b45ad69e89cb0af/websockets-15.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:d4c22992e24f12de340ca5f824121a5b3e1a37ad4360b4e1aaf15e9d1c42582d", size = 172372 },
-    { url = "https://files.pythonhosted.org/packages/46/2f/b409f8b8aa9328d5a47f7a301a43319d540d70cf036d1e6443675978a988/websockets-15.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1206432cc6c644f6fc03374b264c5ff805d980311563202ed7fef91a38906276", size = 172607 },
-    { url = "https://files.pythonhosted.org/packages/d6/81/d7e2e4542d4b4df849b0110df1b1f94f2647b71ab4b65d672090931ad2bb/websockets-15.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5d3cc75ef3e17490042c47e0523aee1bcc4eacd2482796107fd59dd1100a44bc", size = 182422 },
-    { url = "https://files.pythonhosted.org/packages/b6/91/3b303160938d123eea97f58be363f7dbec76e8c59d587e07b5bc257dd584/websockets-15.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b89504227a5311610e4be16071465885a0a3d6b0e82e305ef46d9b064ce5fb72", size = 181362 },
-    { url = "https://files.pythonhosted.org/packages/f2/8b/df6807f1ca339c567aba9a7ab03bfdb9a833f625e8d2b4fc7529e4c701de/websockets-15.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:56e3efe356416bc67a8e093607315951d76910f03d2b3ad49c4ade9207bf710d", size = 181787 },
-    { url = "https://files.pythonhosted.org/packages/21/37/e6d3d5ebb0ebcaf98ae84904205c9dcaf3e0fe93e65000b9f08631ed7309/websockets-15.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:0f2205cdb444a42a7919690238fb5979a05439b9dbb73dd47c863d39640d85ab", size = 182058 },
-    { url = "https://files.pythonhosted.org/packages/c9/df/6aca296f2be4c638ad20908bb3d7c94ce7afc8d9b4b2b0780d1fc59b359c/websockets-15.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:aea01f40995fa0945c020228ab919b8dfc93fc8a9f2d3d705ab5b793f32d9e99", size = 181434 },
-    { url = "https://files.pythonhosted.org/packages/88/f1/75717a982bab39bbe63c83f9df0e7753e5c98bab907eb4fb5d97fe5c8c11/websockets-15.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:a9f8e33747b1332db11cf7fcf4a9512bef9748cb5eb4d3f7fbc8c30d75dc6ffc", size = 181431 },
-    { url = "https://files.pythonhosted.org/packages/e7/15/cee9e63ed9ac5bfc1a3ae8fc6c02c41745023c21eed622eef142d8fdd749/websockets-15.0-cp312-cp312-win32.whl", hash = "sha256:32e02a2d83f4954aa8c17e03fe8ec6962432c39aca4be7e8ee346b05a3476904", size = 175678 },
-    { url = "https://files.pythonhosted.org/packages/4e/00/993974c60f40faabb725d4dbae8b072ef73b4c4454bd261d3b1d34ace41f/websockets-15.0-cp312-cp312-win_amd64.whl", hash = "sha256:ffc02b159b65c05f2ed9ec176b715b66918a674bd4daed48a9a7a590dd4be1aa", size = 176119 },
-    { url = "https://files.pythonhosted.org/packages/42/52/359467c7ca12721a04520da9ba9fc29da2cd176c30992f6f81fa881bb3e5/websockets-15.0-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:b499caef4bca9cbd0bd23cd3386f5113ee7378094a3cb613a2fa543260fe9506", size = 172384 },
-    { url = "https://files.pythonhosted.org/packages/7c/ff/36fd8a45fac404d8f109e03ca06328f49847d71c0c048414c76bb2db91c4/websockets-15.0-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:17f2854c6bd9ee008c4b270f7010fe2da6c16eac5724a175e75010aacd905b31", size = 172616 },
-    { url = "https://files.pythonhosted.org/packages/b1/a8/65496a87984815e2837835d5ac3c9f81ea82031036877e8f80953c59dbd9/websockets-15.0-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:89f72524033abbfde880ad338fd3c2c16e31ae232323ebdfbc745cbb1b3dcc03", size = 173871 },
-    { url = "https://files.pythonhosted.org/packages/23/89/9441e1e0818d46fe22d78b3e5c8fe2316516211330e138231c90dce5559e/websockets-15.0-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:1657a9eecb29d7838e3b415458cc494e6d1b194f7ac73a34aa55c6fb6c72d1f3", size = 173477 },
-    { url = "https://files.pythonhosted.org/packages/2f/1b/80460b3ac9795ef7bbaa074c603d64e009dbb2ceb11008416efab0dcc811/websockets-15.0-pp310-pypy310_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e413352a921f5ad5d66f9e2869b977e88d5103fc528b6deb8423028a2befd842", size = 173425 },
-    { url = "https://files.pythonhosted.org/packages/56/d1/8da7e733ed266f342e8c544c3b8338449de9b860d85d9a0bfd4fe1857d6e/websockets-15.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:8561c48b0090993e3b2a54db480cab1d23eb2c5735067213bb90f402806339f5", size = 176160 },
-    { url = "https://files.pythonhosted.org/packages/e8/b2/31eec524b53f01cd8343f10a8e429730c52c1849941d1f530f8253b6d934/websockets-15.0-py3-none-any.whl", hash = "sha256:51ffd53c53c4442415b613497a34ba0aa7b99ac07f1e4a62db5dcd640ae6c3c3", size = 169023 },
+    { url = "https://files.pythonhosted.org/packages/14/88/81c08fb3418c5aedf3776333f29443599729509a4f673d6598dd769d3d6b/websockets-10.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d58804e996d7d2307173d56c297cf7bc132c52df27a3efaac5e8d43e36c21c48", size = 100633 },
+    { url = "https://files.pythonhosted.org/packages/68/bd/c8bd8354fc629863a2db39c9182d40297f47dfb2ed3e178bc83041ce044b/websockets-10.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:bc0b82d728fe21a0d03e65f81980abbbcb13b5387f733a1a870672c5be26edab", size = 97870 },
+    { url = "https://files.pythonhosted.org/packages/20/7a/bd0ce7ac1cfafc76c84d6e8051bcbd0f7def8e45207230833bd6ff77a41d/websockets-10.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ba089c499e1f4155d2a3c2a05d2878a3428cf321c848f2b5a45ce55f0d7d310c", size = 97945 },
+    { url = "https://files.pythonhosted.org/packages/25/a7/4e32f8edfc26339d8d170fe539e0b83a329c42d974dacfe07a0566390aef/websockets-10.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:33d69ca7612f0ddff3316b0c7b33ca180d464ecac2d115805c044bf0a3b0d032", size = 107446 },
+    { url = "https://files.pythonhosted.org/packages/1c/4b/cab8fed34c3a29d4594ff77234f6e6b45feb35331f1c12fccf92ca5486dd/websockets-10.4-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:62e627f6b6d4aed919a2052efc408da7a545c606268d5ab5bfab4432734b82b4", size = 106455 },
+    { url = "https://files.pythonhosted.org/packages/4d/6f/2388f9304cdaa0215b6388f837c6dbfe6d63ac1bba8c196e3b14eea1831e/websockets-10.4-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38ea7b82bfcae927eeffc55d2ffa31665dc7fec7b8dc654506b8e5a518eb4d50", size = 106763 },
+    { url = "https://files.pythonhosted.org/packages/0c/56/b2d373ed19b4e7b6c5c7630d598ba10473fa6131e67e69590214ab18bc09/websockets-10.4-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:e0cb5cc6ece6ffa75baccfd5c02cffe776f3f5c8bf486811f9d3ea3453676ce8", size = 111489 },
+    { url = "https://files.pythonhosted.org/packages/a1/f6/83da14582fbb0496c47a4c039bd6e802886a0c300e9795c0f839fd1498e3/websockets-10.4-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:ae5e95cfb53ab1da62185e23b3130e11d64431179debac6dc3c6acf08760e9b1", size = 110721 },
+    { url = "https://files.pythonhosted.org/packages/37/02/ef21ca4698c2fd950250e5ac397fd07b0c9f16bbd073d0ea64c25baef9c1/websockets-10.4-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:7c584f366f46ba667cfa66020344886cf47088e79c9b9d39c84ce9ea98aaa331", size = 111343 },
+    { url = "https://files.pythonhosted.org/packages/a1/6f/60e5f6e114b6077683d74da5df0d4af647a9e6d2a18b4698f577b2cb7c14/websockets-10.4-cp310-cp310-win32.whl", hash = "sha256:b029fb2032ae4724d8ae8d4f6b363f2cc39e4c7b12454df8df7f0f563ed3e61a", size = 100918 },
+    { url = "https://files.pythonhosted.org/packages/1e/76/163a18626001465a309bf74b6aeb301d7092e304637fe00f89d7efc75c44/websockets-10.4-cp310-cp310-win_amd64.whl", hash = "sha256:8dc96f64ae43dde92530775e9cb169979f414dcf5cff670455d81a6823b42089", size = 101442 },
+    { url = "https://files.pythonhosted.org/packages/60/3a/6dccbe2725d13c398b90cbebeea684cda7792e6d874f96417db900556ad0/websockets-10.4-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:47a2964021f2110116cc1125b3e6d87ab5ad16dea161949e7244ec583b905bb4", size = 100656 },
+    { url = "https://files.pythonhosted.org/packages/d1/60/0a6cb94e25b981e428c1cdcc2b0a406ac6e1dfc78d8a81c8a4ee7510e853/websockets-10.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:e789376b52c295c4946403bd0efecf27ab98f05319df4583d3c48e43c7342c2f", size = 97896 },
+    { url = "https://files.pythonhosted.org/packages/cc/19/2f003f9f81c0fab2eabb81d8fc2fce5fb5b5714f1b4abfe897cb209e031d/websockets-10.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7d3f0b61c45c3fa9a349cf484962c559a8a1d80dae6977276df8fd1fa5e3cb8c", size = 97947 },
+    { url = "https://files.pythonhosted.org/packages/5d/3c/fc1725524e48f624df77f5998b1c7070fdddec3ae67a2ffbc99ffd116269/websockets-10.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f55b5905705725af31ccef50e55391621532cd64fbf0bc6f4bac935f0fccec46", size = 108024 },
+    { url = "https://files.pythonhosted.org/packages/68/ec/3267f8bbe8a4a5e181ab3fc67cc137f0966ab9e9a4da14ffc603f320b9e6/websockets-10.4-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:00c870522cdb69cd625b93f002961ffb0c095394f06ba8c48f17eef7c1541f96", size = 107020 },
+    { url = "https://files.pythonhosted.org/packages/d5/5d/d0b039f0db0bb1fea93437721cf3cd8a244ad02a86960c38a3853d5e1fab/websockets-10.4-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8f38706e0b15d3c20ef6259fd4bc1700cd133b06c3c1bb108ffe3f8947be15fa", size = 107398 },
+    { url = "https://files.pythonhosted.org/packages/d1/c6/9489869aa591e6a8941b0af2302f8383e199e90477559a510713d41bfa45/websockets-10.4-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:f2c38d588887a609191d30e902df2a32711f708abfd85d318ca9b367258cfd0c", size = 112842 },
+    { url = "https://files.pythonhosted.org/packages/0c/f0/195097822f8edc4ffa355f6463a1890928577517382c0baededc760f9397/websockets-10.4-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:fe10ddc59b304cb19a1bdf5bd0a7719cbbc9fbdd57ac80ed436b709fcf889106", size = 112118 },
+    { url = "https://files.pythonhosted.org/packages/19/a3/02ce75ffca3ef147cc0f44647c67acb3171b5a09910b5b9f083b5ca395a6/websockets-10.4-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:90fcf8929836d4a0e964d799a58823547df5a5e9afa83081761630553be731f9", size = 112714 },
+    { url = "https://files.pythonhosted.org/packages/b0/fc/a818cddc63589e12d5eff9b51a59aad82e2adf35279493248a3742c41f85/websockets-10.4-cp311-cp311-win32.whl", hash = "sha256:b9968694c5f467bf67ef97ae7ad4d56d14be2751000c1207d31bf3bb8860bae8", size = 100918 },
+    { url = "https://files.pythonhosted.org/packages/27/bb/6327e8c7d4dd7d5b450b409a461be278968ce05c54da13da581ac87661db/websockets-10.4-cp311-cp311-win_amd64.whl", hash = "sha256:a7a240d7a74bf8d5cb3bfe6be7f21697a28ec4b1a437607bae08ac7acf5b4882", size = 101444 },
 ]
 
 [[package]]

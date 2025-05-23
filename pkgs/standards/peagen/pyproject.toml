@@ -1,6 +1,6 @@
 [project]
 name = "peagen"
-version = "0.1.2.dev3"
+version = "0.1.2"
 description = "Swarmauri's Peagan - An AI-driven contextual, dependency-based scaffolding tool for rapid content generation."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
@@ -14,13 +14,22 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "PyGithub", # this storage adapter needs to be pushed to its own standalone
+    "redis", # this publisher needs to be pushed to its own standalone
+    "minio", # this storage adapter needs to be pushed to its own standalone
     "python-dotenv",
-    "jinja2",
+    "jinja2>=3.1.6",
+    "jsonpatch>=1.33",
     "inflect",
     "typer",
+    "colorama",
+    "httpx>=0.27.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+    "swarmauri",
+    "swarmauri_prompt_j2prompttemplate",
+    "pika",
 ]
 
 
@@ -49,9 +58,6 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-# [project.entry-points.'swarmauri.workflows']
-# Ptree_Dag = "Ptree_Dag:PtreeDag"
-
 [project.scripts]
 peagen = "peagen.cli:app"
 
@@ -66,9 +72,29 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-    "requests>=2.32.3",
+    "httpx>=0.27.0",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+[project.entry-points."peagen.template_sets"]
+init-project       = "peagen.scaffold.project"
+init-template-set  = "peagen.scaffold.template_set"
+init-doe-spec      = "peagen.scaffold.doe_spec"
+init-ci            = "peagen.scaffold.ci"
+
+[project.entry-points."peagen.storage_adapters"]
+minio   = "peagen.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
+file    = "peagen.storage_adapters.file_storage_adapter:FileStorageAdapter"
+github    = "peagen.storage_adapters.github_storage_adapter:GithubStorageAdapter"
+gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
+
+[project.entry-points."peagen.publishers"]
+redis   = "peagen.publishers.redis_publisher:RedisPublisher"
+webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
+
+[tool.setuptools.package-data]
+"peagen.schemas" = ["*.json", "extras/*.json"]

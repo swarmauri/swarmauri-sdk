@@ -1,0 +1,752 @@
+PROJECTS:
+  - NAME: "VectorSpaceFoundation"
+    ROOT: "pkgs"
+    PACKAGES:
+      # Core Interfaces
+      - NAME: "core/swarmauri_core"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_core"
+        MODULES:
+          - NAME: "IInnerProduct"
+            EXTRAS:
+              PURPOSE: "Defines the contract for inner product operations."
+              DESCRIPTION: "Interface requiring the implementation of a method to compute the inner product between two vectors."
+              RESOURCE_KIND: "inner_products"
+              REQUIREMENTS:
+                - "Must implement a method for inner product calculation called compute"
+                - "Must have a check for conjugate symmetry, prefix with check_"
+                - "Must have a check for linearity first argument, prefix with check_"
+                - "Must have a check for positivity, prefix with check_"
+                - "Must support input types: vectors, matrices, callables"
+                - "Never use Any for type annotation."
+                - 'Do not import IVector, only use type literal \"IVector\"'
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+
+          - NAME: "ISeminorm"
+            EXTRAS:
+              PURPOSE: "Defines interface for seminorm structure."
+              DESCRIPTION: "Specifies rules for seminorms, which relax the norm’s definiteness property."
+              RESOURCE_KIND: "seminorms"
+              REQUIREMENTS:
+                - "Must implement a method called compute"
+                - "Must have a check for triangle inequality, prefix with check_"
+                - "Must have a check for scalar homogeneity, prefix with check_"
+                - "Must support input types: vectors, matrices, sequences, strings, callables"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "INorm"
+            EXTRAS:
+              PURPOSE: "Interface for norm computations on vector spaces."
+              DESCRIPTION: "Contract for norm behavior, enforcing point-separating distance logic."
+              RESOURCE_KIND: "norms"
+              REQUIREMENTS:
+                - "Must implement a method for compute"
+                - "Must have individuals checks for verifying non-negativity, triangle inequality, absolute homogeneity, prefix with check_"
+                - "Must have a check for definiteness: norm(x)=0 iff x=0, prefix with check_"
+                - "Must support input types: vectors, matrices, sequences, strings, callables"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "IUseInnerProduct"
+            EXTRAS:
+              PURPOSE: "Indicates dependency on inner product structure."
+              DESCRIPTION: "Abstract interface marking components using inner product geometry."
+              RESOURCE_KIND: "norms"
+              REQUIREMENTS:
+                - "Must inject or define a compatible IInnerProduct"
+                - "Must support angle between vectors, prefix with check_"
+                - "Must support verify_orthogonality, prefix with check_"
+                - "Must support xy project, prefix with check_"
+                - "Must support verify_parallelogram_law, prefix with check_"
+                - "Never use Any for type annotation."
+                - "Use type literal for IInnerProduct"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/inner_products/IInnerProduct.py"
+
+          - NAME: "IPseudometric"
+            EXTRAS:
+              PURPOSE: "Pseudometric contract for relaxed metric structure."
+              DESCRIPTION: "Supports non-negative distance functions that satisfy symmetry and triangle inequality but may not distinguish distinct points (d(x,y)=0 doesn't imply x=y)."
+              RESOURCE_KIND: "pseudometrics"
+              REQUIREMENTS:
+                - "Must support distance() and distances()"
+                - "Must have a check for non-negativity: d(x,y) ≥ 0, prefix with check_"
+                - "Must have a check for symmetry: d(x,y) = d(y,x), prefix with check_"
+                - "Must have a check for triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)"
+                - "Must have a check weak identity of indiscernibles. d(x,y) = 0 for x ≠ y (points not separated), prefix with check_"
+                - "Must support input types: vectors, matrices, sequences, strings, callables"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "IMetric"
+            EXTRAS:
+              PURPOSE: "Defines the interface for proper metric spaces."
+              DESCRIPTION: "Contract enforcing full metric axioms: point separation, symmetry, triangle inequality, and non-negativity."
+              RESOURCE_KIND: "metrics"
+              REQUIREMENTS:
+                - "Must support distance() and distances()"
+                - "Must have a check for non-negativity: d(x,y) ≥ 0, prefix with check_"
+                - "Must have a check for full identity-of-indiscernibles. point separation: d(x,y) = 0 if and only if x = y, prefix with check_"
+                - "Must have a check for a check for symmetry: d(x,y) = d(y,x), prefix with check_"
+                - "Must have a check for triangle inequality: d(x,z) ≤ d(x,y) + d(y,z), prefix with check_"
+                - "Must support input types: vectors, matrices, sequences, strings, callables"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "ISimilarity"
+            EXTRAS:
+              PURPOSE: "Defines abstract similarity measures."
+              DESCRIPTION: "Supports direction-based or bounded comparisons like cosine similarity."
+              RESOURCE_KIND: "similarities"
+              REQUIREMENTS:
+                - "Must support similarity(), similarities(), dissimilarity(), dissimilarities()"
+                - "Must check for boundedness, prefix with check_"
+                - "Must have a check for reflexivity, prefix with check_"
+                - "Must have a check for symmetry, prefix with check_"
+                - "Must have check for identity of discernibles s(x,y)=1⟺x=y., prefix with check_"
+                - "Must support input types: vectors, matrices, sequences, strings, callables"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "ITensor"
+            EXTRAS:
+              PURPOSE: "Core interface for tensorial algebra components."
+              DESCRIPTION: "Specifies required tensor operations and structural properties."
+              RESOURCE_KIND: "tensors"
+              REQUIREMENTS:
+                - "Provide methods for getting shape and reshaping"
+                - "Support getting dtype"
+                - "Support numpy-like splicing and slicing"
+                - "Do not import numpy. This only contains core interfaces."
+                - "Must support getting and setting elements via indexing/slicing"
+                - "Must support tensor operations using special double underscore methods"
+                - "Must support transpose"
+                - "Must support broadcasting to a new shape via a broadcast()"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector & IMatrix"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+                - "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+
+          - NAME: "IMatrix"
+            EXTRAS:
+              PURPOSE: "Interface abstraction for matrix operations."
+              DESCRIPTION: "General interface for linear operators and 2D structures."
+              RESOURCE_KIND: "matrices"
+              REQUIREMENTS:
+                - "Must support numpy like splicing and slicing."
+                - "Do not import numpy. This only contains core interfaces."
+                - "Must support getting and setting elements via indexing/slicing"
+                - "Must support row and column access"
+                - "Must support getting shape and reshape"
+                - "Must support getting dtype"
+                - "Must support tolist"
+                - "Must support matrix operations using special double underscore methods"
+                - "Never use Any for type annotation."
+                - "Use type literal for IVector"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/vectors/IVector.py"
+
+
+      # Base Classes
+      - NAME: "base/swarmauri_base"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_base"
+        MODULES:
+          - NAME: "InnerProductBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for inner product implementations."
+              DESCRIPTION: "Abstract base implementing partial methods for inner product calculation."
+              RESOURCE_KIND: "inner_products"
+              INTERFACE_NAME: "IInnerProduct"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/inner_products/IInnerProduct.py"
+              REQUIREMENTS:
+                - "Must inherit from IInnerProduct"
+  
+          - NAME: "SeminormBase"
+            EXTRAS:
+              PURPOSE: "Reusable logic for defining seminorms."
+              DESCRIPTION: "Base class providing tools for evaluating seminorms in pa rtial vector spaces."
+              RESOURCE_KIND: "seminorms"
+              INTERFACE_NAME: "ISeminorm"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/seminorms/ISeminorm.py"
+              REQUIREMENTS:
+                - "Inherit from ISeminorm"
+
+          - NAME: "NormBase"
+            EXTRAS:
+              PURPOSE: "Template logic for norm behaviors."
+              DESCRIPTION: "Implements common normalization patterns across vector norms."
+              RESOURCE_KIND: "norms"
+              INTERFACE_NAME: "INorm"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/norms/INorm.py"
+              REQUIREMENTS:
+                - "Implements INorm"
+
+          - NAME: "UseInnerProductMixin"
+            EXTRAS:
+              PURPOSE: "Base for structures dependent on inner products."
+              DESCRIPTION: "Provides internal reference to an inner product object."
+              RESOURCE_KIND: "norms"
+              INTERFACE_NAME: "IUseInnerProduct"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/norms/IUseInnerProduct.py"
+              REQUIREMENTS:
+                - "Must contain a reference to IInnerProduct"
+
+          - NAME: "PseudometricBase"
+            EXTRAS:
+              PURPOSE: "Handles generalized metric structures."
+              DESCRIPTION: "Abstract base implementing pseudometric behavior with symmetry and triangle inequality, but without the separation property."
+              RESOURCE_KIND: "pseudometrics"
+              INTERFACE_NAME: "IPseudometric"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/pseudometrics/IPseudometric.py"
+              REQUIREMENTS:
+                - "Inherit IPseudometric"
+
+          - NAME: "MetricBase"
+            EXTRAS:
+              PURPOSE: "Metric space boilerplate."
+              DESCRIPTION: "Provides reusable code for distance calculations in metric-compliant classes."
+              RESOURCE_KIND: "metrics"
+              INTERFACE_NAME: "IMetric"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/metrics/IMetric.py"
+              REQUIREMENTS:
+                - "Satisfy all metric axioms"
+
+          - NAME: "SimilarityBase"
+            EXTRAS:
+              PURPOSE: "Foundation for directional or feature-based similarity."
+              DESCRIPTION: "Implements bounds, reflexivity and optional symmetry for similarity scoring."
+              RESOURCE_KIND: "similarities"
+              INTERFACE_NAME: "ISimilarity"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/similarities/ISimilarity.py"
+              REQUIREMENTS:
+                - "Inherit ISimilarity"
+
+          - NAME: "TensorBase"
+            EXTRAS:
+              PURPOSE: "Tensor structure implementation starter."
+              DESCRIPTION: "Includes reshaping, contraction, broadcasting tools."
+              BASE_NAME: "HandlerBase"
+              RESOURCE_KIND: "tensors"
+              INTERFACE_NAME: "ITensor"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/tensors/ITensor.py"
+              REQUIREMENTS:
+                - "Inherit ITensor"
+
+          - NAME: "MatrixBase"
+            EXTRAS:
+              PURPOSE: "Provides base logic for matrix operations."
+              DESCRIPTION: "Abstracts matrix multiplication, transposition, and trace."
+              RESOURCE_KIND: "matrices"
+              INTERFACE_NAME: "IMatrix"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/matrices/IMatrix.py"
+              REQUIREMENTS:
+                - "Inherit IMatrix"
+                - "Must support matrix arithmetic by implementing python special methods"
+
+      # Concrete Inner Products
+      - NAME: "swarmauri_standard/swarmauri_standard"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard"
+        MODULES:
+          - NAME: "EuclideanInnerProduct"
+            EXTRAS:
+              PURPOSE: "Computes L2 inner product over real-valued vectors."
+              DESCRIPTION: "Standard dot product used in Euclidean geometry for real vector spaces."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Input vectors must be real and finite-dimensional"
+
+          - NAME: "HermitianInnerProduct"
+            EXTRAS:
+              PURPOSE: "Handles complex inner products with Hermitian symmetry."
+              DESCRIPTION: "Supports inner product with conjugate symmetry and L2 structure for complex vectors."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Input vectors must be complex"
+                - "Implements conjugate symmetry"
+
+          - NAME: "FrobeniusRealInnerProduct"
+            EXTRAS:
+              PURPOSE: "Matrix inner product via trace on real matrices."
+              DESCRIPTION: "Frobenius inner product for real-valued matrices using sum of element-wise products."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Matrix inputs must be real and same shape"
+
+          - NAME: "FrobeniusComplexInnerProduct"
+            EXTRAS:
+              PURPOSE: "Frobenius inner product on complex matrices."
+              DESCRIPTION: "Computes trace-based inner product with conjugate symmetry for complex matrices."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Input matrices must support conjugation"
+
+          - NAME: "SobolevH1InnerProduct"
+            EXTRAS:
+              PURPOSE: "Defines the H1 Sobolev space inner product."
+              DESCRIPTION: "Combines L2 norms of a function and its derivative to compute smoothness-aware inner product."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Requires access to function and first derivative"
+
+          - NAME: "RKHSInnerProduct"
+            EXTRAS:
+              PURPOSE: "Implements inner product from a reproducing kernel."
+              DESCRIPTION: "Induces an inner product via kernel evaluation in a Reproducing Kernel Hilbert Space (RKHS)."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Kernel must be positive-definite"
+
+          - NAME: "WeightedL2InnerProduct"
+            EXTRAS:
+              PURPOSE: "Weighted L2 inner product for real/complex functions."
+              DESCRIPTION: "Defines inner product with position-dependent weights for weighted L2 spaces."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Weight function must be strictly positive"
+
+          - NAME: "TraceFormWeightedInnerProduct"
+            EXTRAS:
+              PURPOSE: "Inner product using weighted trace of matrix product."
+              DESCRIPTION: "Matrix-based inner product where trace is modulated by an external weight matrix."
+              BASE_NAME: "InnerProductBase"
+              RESOURCE_KIND: "inner_products"
+              BASE_FILE: "pkgs/base/swarmauri_base/inner_products/InnerProductBase.py"
+              REQUIREMENTS:
+                - "Input matrices and weight matrix must align"
+
+      # Concrete Seminorms
+          - NAME: "CoordinateProjectionSeminorm" # induced by EuclideanInnerProduct
+            EXTRAS:
+              PURPOSE: "Seminorm via projection onto a subset of coordinates."
+              DESCRIPTION: "Ignores certain components of the vector, resulting in possible degeneracy."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS:
+                - "Must define a projection index set"
+
+          - NAME: "PartialSumSeminorm" # not induced by any inner method
+            EXTRAS:
+              PURPOSE: "Seminorm computed via summing only part of the vector."
+              DESCRIPTION: "Evaluates norm on a partial segment of input, ignoring rest."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS:
+                - "Define summation index range"
+
+          - NAME: "LpSeminorm" # not induced by any inner method
+            EXTRAS:
+              PURPOSE: "Non-point-separating variant of Lp norm."
+              DESCRIPTION: "Computes Lp-like seminorm that might not distinguish all vectors."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS:
+                - "p must be in (0, ∞)"
+
+          - NAME: "PointEvaluationSeminorm" # induced by RKHSInnerProduct
+            EXTRAS:
+              PURPOSE: "Evaluates a function at a single point."
+              DESCRIPTION: "Assigns seminorm by checking value at a fixed coordinate or input."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS:
+                - "Point of evaluation must be in function domain"
+
+          - NAME: "TraceSeminorm" # induced by TraceFormWeightedInnerProduct
+            EXTRAS:
+              PURPOSE: "Computes trace norm with possible degeneracy."
+              DESCRIPTION: "Uses trace of a matrix in seminorm computation without guaranteeing positive-definiteness."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS:
+                - "Matrix must support trace operation"
+
+          - NAME: "ZeroSeminorm"                # induced by no inner product, maps everything to zero
+            EXTRAS:
+              PURPOSE: "Trivial seminorm assigning zero to all inputs."
+              DESCRIPTION: "Returns 0 for any argument; degenerate seminorm that does not separate points."
+              BASE_NAME: "SeminormBase"
+              RESOURCE_KIND: "seminorms"
+              BASE_FILE: "pkgs/base/swarmauri_base/seminorms/SeminormBase.py"
+              REQUIREMENTS: []                 # no preconditions
+
+
+      # Concrete Norms
+          - NAME: "L1ManhattanNorm" # Not induced by inner product
+            EXTRAS:
+              PURPOSE: "Computes L1 (Manhattan) norm for real vectors."
+              DESCRIPTION: "Sums absolute values of components in real vector space."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "Supports vector inputs"
+
+          - NAME: "L2EuclideanNorm" # not induced by inner product
+            EXTRAS:
+              PURPOSE: "Computes Euclidean norm (L2) for real-valued vectors."
+              DESCRIPTION: "Square root of sum of squares of vector components."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "Vector must support element-wise squaring"
+              DEPEDNENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/inner_products/EuclideanInnerProduct.py"
+
+          - NAME: "SobolevNorm" # induced by inner product
+            EXTRAS:
+              PURPOSE: "Combines function and derivative norms."
+              DESCRIPTION: "Sobolev norm accounts for smoothness via L2 of function and its derivatives."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "Function and derivatives must be computable"
+
+          - NAME: "LInfNorm" # not induced by inner product
+            EXTRAS:
+              PURPOSE: "Supremum norm on real-valued functions."
+              DESCRIPTION: "Measures the largest absolute value in a function's domain."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "Domain must be bounded"
+
+          - NAME: "SupremumComplexNorm" # not induced by inner product
+            EXTRAS:
+              PURPOSE: "Supremum norm on complex-valued functions."
+              DESCRIPTION: "Computes max absolute value in the complex interval [a, b]."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "Function must return complex numbers"
+
+          - NAME: "GeneralLpNorm" # not induced by inner product
+            EXTRAS:
+              PURPOSE: "Lp norm with parameter p in (1, ∞)."
+              DESCRIPTION: "Parameterized norm for various magnitudes of p on real-valued functions."
+              BASE_NAME: "NormBase"
+              RESOURCE_KIND: "norms"
+              BASE_FILE: "pkgs/base/swarmauri_base/norms/NormBase.py"
+              REQUIREMENTS:
+                - "p must be finite and greater than 1"
+
+      # Concrete Pseudometrics
+          - NAME: "ZeroPseudometric" # induced by seminorm
+            EXTRAS:
+              PURPOSE: "Always returns 0 regardless of input."
+              DESCRIPTION: "Trivial pseudometric assigning zero distance between all points. Valid mathematical structure that satisfies all pseudometric axioms."
+              BASE_NAME: "PseudometricBase"
+              RESOURCE_KIND: "pseudometrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py"
+              REQUIREMENTS:
+                - "Must return 0 for all input pairs"
+                - "Must handle arbitrary input types"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/seminorms/ZeroSeminorm.py"
+
+          - NAME: "EquivalenceRelationPseudometric"  # not induced by seminorm
+            EXTRAS:
+              PURPOSE: "Defines distance via equivalence classes."
+              DESCRIPTION: "Zero distance for equivalent points under an equivalence relation, and distance 1 for non-equivalent points. Creates a quotient space."
+              BASE_NAME: "PseudometricBase"
+              RESOURCE_KIND: "pseudometrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py"
+              REQUIREMENTS:
+                - "Must provide equivalence function satisfying reflexivity, symmetry, and transitivity"
+                - "Must return 0 for equivalent points and 1 for non-equivalent points"
+
+          - NAME: "ProjectionPseudometricR2"  # induced by seminorm
+            EXTRAS:
+              PURPOSE: "Measures pseudometric via projection in ℝ²."
+              DESCRIPTION: "Uses one coordinate (e.g. x-axis) for distance calculation while ignoring other dimensions, resulting in a valid pseudometric."
+              BASE_NAME: "PseudometricBase"
+              RESOURCE_KIND: "pseudometrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py"
+              REQUIREMENTS:
+                - "Input must be 2D vectors or points"
+                - "Must specify which coordinate to use for projection"
+                - "Must handle coordinates with same projected value"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/seminorms/PartialSumSeminorm.py"
+
+          - NAME: "FunctionDifferencePseudometric"  # induced by seminorm
+            EXTRAS:
+              PURPOSE: "Measures output difference of functions."
+              DESCRIPTION: "Distance between two functions based on their value differences on a specific set of points, not necessarily their entire domain."
+              BASE_NAME: "PseudometricBase"
+              RESOURCE_KIND: "pseudometrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py"
+              REQUIREMENTS:
+                - "Functions must be defined on same domain"
+                - "Must specify evaluation points or sampling strategy"
+                - "Must handle functions equal on sample points but different elsewhere"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/seminorms/PointEvaluationSeminorm.py"
+
+          - NAME: "LpPseudometric" # induced by seminorm
+            EXTRAS:
+              PURPOSE: "Lp-style pseudometric without point separation."
+              DESCRIPTION: "Defines pseudometric over function space using Lp integration, possibly on a subset of coordinates or domain."
+              BASE_NAME: "PseudometricBase"
+              RESOURCE_KIND: "pseudometrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py"
+              REQUIREMENTS:
+                - "p parameter must be in [1, ∞]"
+                - "Must specify domain or coordinates to include"
+                - "Must handle values that differ outside measured domain"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/seminorms/LpSeminorm.py"
+
+      # Concrete Metrics
+          - NAME: "EuclideanMetric"
+            EXTRAS:
+              PURPOSE: "Standard Euclidean distance."
+              DESCRIPTION: "Computes L2-based distance between vectors."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Input vectors must be same dimension"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/L2EuclideanNorm.py"
+
+          - NAME: "SobolevMetric"
+            EXTRAS:
+              PURPOSE: "Metric derived from Sobolev norm."
+              DESCRIPTION: "Accounts for both value and smoothness differences between functions."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Input must support derivatives"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/SobolevNorm.py"
+
+          - NAME: "FrobeniusMetric"
+            EXTRAS:
+              PURPOSE: "Matrix distance using Frobenius norm."
+              DESCRIPTION: "Sum of squared differences of matrix entries."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Matrix inputs must align in shape"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/L2EuclideanNorm.py"
+
+          - NAME: "AbsoluteValueMetric"
+            EXTRAS:
+              PURPOSE: "Distance on real numbers via absolute value."
+              DESCRIPTION: "Simplest valid metric using subtraction modulus."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Input must be scalar"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/L1ManhattanNorm.py"
+
+          - NAME: "DiscreteMetric"
+            EXTRAS:
+              PURPOSE: "1 if different, 0 if same."
+              DESCRIPTION: "Basic binary metric for distinguishing points."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Works with any hashable types"
+
+          - NAME: "LpMetric"
+            EXTRAS:
+              PURPOSE: "Parameterized distance using Lp norm."
+              DESCRIPTION: "Generalized Lp metric across vector spaces or sequences."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/GeneralLpNorm.py"
+              REQUIREMENTS:
+                - "p ∈ (1, ∞)"
+
+          - NAME: "HammingMetric"
+            EXTRAS:
+              PURPOSE: "Counts mismatched positions in sequences."
+              DESCRIPTION: "Used for binary/bitwise data and categorical vectors."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Inputs must be of equal length"
+
+          - NAME: "SupremumMetric"
+            EXTRAS:
+              PURPOSE: "Distance via max deviation."
+              DESCRIPTION: "L∞-based metric measuring largest component difference."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              DEPENDENCIES:
+                - "pkgs/swarmauri_standard/swarmauri_standard/norms/SupremumComplexNorm.py"
+              REQUIREMENTS:
+                - "Works on bounded vector spaces"
+
+          - NAME: "LevenshteinMetric"
+            EXTRAS:
+              PURPOSE: "Minimum edits to convert one string to another."
+              DESCRIPTION: "Used in NLP and bioinformatics for measuring string similarity."
+              BASE_NAME: "MetricBase"
+              RESOURCE_KIND: "metrics"
+              BASE_FILE: "pkgs/base/swarmauri_base/metrics/MetricBase.py"
+              REQUIREMENTS:
+                - "Inputs must be strings"
+
+      # Concrete Similarity Functions
+          - NAME: "CosineSimilarity"
+            EXTRAS:
+              PURPOSE: "Compares direction between vectors."
+              DESCRIPTION: "Dot product over norm product to measure similarity."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Non-zero vectors only"
+
+          - NAME: "TriangleCosineSimilarity"
+            EXTRAS:
+              PURPOSE: "Compares direction between vectors."
+              DESCRIPTION: "Dot product over norm product to measure similarity."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Non-zero vectors only"
+                - "Must use a tighter bounded derived from spherical law of cosines"
+
+          - NAME: "JaccardIndexSimilarity"
+            EXTRAS:
+              PURPOSE: "Similarity based on set intersection/union."
+              DESCRIPTION: "Used for binary attributes or sets."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Inputs must be sets"
+
+          - NAME: "DiceSimilarity"
+            EXTRAS:
+              PURPOSE: "Overlap-based set similarity."
+              DESCRIPTION: "Weighted similarity using shared elements."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Supports multisets or sets"
+
+          - NAME: "OverlapCoefficientSimilarity"
+            EXTRAS:
+              PURPOSE: "Ratio of overlap to smaller set."
+              DESCRIPTION: "Sensitive to complete inclusion."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Finite, non-empty sets"
+
+          - NAME: "TanimotoSimilarity"
+            EXTRAS:
+              PURPOSE: "Generalization of Jaccard for real vectors."
+              DESCRIPTION: "Used in cheminformatics for fingerprint similarity."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Vectors must be non-zero"
+
+          - NAME: "GaussianRBFSimilarity"
+            EXTRAS:
+              PURPOSE: "RBF kernel similarity."
+              DESCRIPTION: "Exponential similarity decaying with squared Euclidean distance."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Gamma > 0 must be defined"
+
+          - NAME: "ExponentialDistanceSimilarity"
+            EXTRAS:
+              PURPOSE: "Exponentially decaying similarity from distance."
+              DESCRIPTION: "Supports arbitrary distance measures."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Distance function required"
+
+          - NAME: "BhattacharyyaCoefficientSimilarity"
+            EXTRAS:
+              PURPOSE: "Measures overlap of probability distributions."
+              DESCRIPTION: "Used for comparing histograms or densities."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Distributions must be normalized"
+
+          - NAME: "HellingerAffinitySimilarity"
+            EXTRAS:
+              PURPOSE: "Square-root based similarity of distributions."
+              DESCRIPTION: "Works over discrete probability vectors."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Values must be non-negative and sum to 1"
+
+          - NAME: "BrayCurtisSimilarity"
+            EXTRAS:
+              PURPOSE: "Normalized sum difference."
+              DESCRIPTION: "Used in ecology to compare sample compositions."
+              BASE_NAME: "SimilarityBase"
+              RESOURCE_KIND: "similarities"
+              BASE_FILE: "pkgs/base/swarmauri_base/similarities/SimilarityBase.py"
+              REQUIREMENTS:
+                - "Input vectors must be non-negative"

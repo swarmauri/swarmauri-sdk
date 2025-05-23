@@ -71,8 +71,9 @@ This specification addresses:
    4.1 [PROJECTS_PAYLOAD.YAML](#41-projects_payloadyaml)  
    4.2 [PTREE.YAML.J2](#42-ptreeyamlj2)  
    4.3 [AGENT_DEFAULT.J2](#43-agent_defaultj2)  
-   4.4 [FILE TEMPLATES](#44-file-templates)  
-   4.5 [Context Production and Consumption Summary](#45-context-production-and-consumption-summary)  
+   4.4 [FILE TEMPLATES](#44-file-templates)
+   4.5 [Template Set Extras Reference](#45-template-set-extras-reference)
+   4.6 [Context Production and Consumption Summary](#46-context-production-and-consumption-summary)
 5. [Conceptual Generation Mechanics](#5-conceptual-generation-mechanics)  
    5.1 [Process Flow](#51-process-flow)  
    5.2 [Rationale for a Conceptual Approach](#52-rationale-for-a-conceptual-approach)  
@@ -201,7 +202,16 @@ This template serves as the default for generating file content. It merges the r
 
 ---
 
-### 4.5. Context Production and Consumption Summary
+### 4.5. Template Set Extras Reference
+
+Each template set can interpret custom keys within the `EXTRAS` container. A small
+`EXTRAS.md` file resides in every template set directory under
+`peagen/templates/<TEMPLATE_SET>/`. These documents list the extra keys that are
+understood by that template set.
+
+---
+
+### 4.6. Context Production and Consumption Summary
 
 - **PROJECTS_PAYLOAD.YAML**  
   – Produces the PROJECT, PKG, and MOD contexts. Only the minimal keys (NAME, ROOT, TEMPLATE_SET for projects; NAME and MODULES for packages; NAME for modules) are defined at the top level. All additional metadata is nested under EXTRAS.

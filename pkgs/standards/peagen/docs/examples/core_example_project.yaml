@@ -1,0 +1,18 @@
+PROJECTS:
+  - NAME: "ExampleParserProject"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "swarmauri_core"
+    PACKAGES:
+      - NAME: "core/swarmauri_core"
+        MODULES:
+          - NAME: "IParser"
+            EXTRAS:
+              PURPOSE: "An abstract class with abstractmethods for core interfaces."
+              DESCRIPTION: "Declares interface contract for subclasses via abstractmethods."
+              REQUIREMENTS:
+              - "Include abstractmethods for: dump, dumps, load, loads"
+              - "Include abstractmethods for: round_trip_dump, round_trip_dumps, round_trip_load, round_trip_loads"
+              - "Include pass keyword for all abstractmethods"
+              RESOURCE_KIND: "parsers"
+            
+

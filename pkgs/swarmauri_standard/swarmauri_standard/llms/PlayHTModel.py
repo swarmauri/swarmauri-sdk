@@ -40,12 +40,17 @@ class PlayHTModel(LLMBase):
     Provider resourses: https://docs.play.ht/reference/api-getting-started
     """
 
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "Play3.0-mini",
+        "PlayHT2.0-turbo",
+        "PlayHT1.0",
+        "PlayHT2.0",
+    ]
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
     api_key: SecretStr
     user_id: str
-    name: str = ""
+    name: str = "Play3.0-mini"
     type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
     timeout: float = 600.0
@@ -67,8 +72,6 @@ class PlayHTModel(LLMBase):
             "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
         self.allowed_voices = self._get_allowed_voices(self.name)
         self._validate_voice_in_allowed_voices()
@@ -103,6 +106,7 @@ class PlayHTModel(LLMBase):
 
         with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
             voice_response = client.get("/voices", headers=self._headers)
+            voice_response.raise_for_status()
 
         for item in json.loads(voice_response.text):
             voice_engine = item.get("voice_engine")
