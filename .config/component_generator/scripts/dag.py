@@ -1,3 +1,10 @@
+"""Generate project files from JSON payloads.
+
+This script loads project payloads describing files to copy or generate and
+processes them using Jinja2 templates. It provides helper functions to resolve
+placeholders, perform topological sorting, and save the resulting files.
+"""
+
 import os
 import json
 import re

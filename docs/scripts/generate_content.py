@@ -1,3 +1,10 @@
+"""Generate Markdown documentation for package modules.
+
+This script traverses a Python package, creates Markdown files for each module
+and class, and updates ``mkdocs.yml`` with a navigation structure. It also
+ensures a home page exists in the documentation directory.
+"""
+
 import os
 import pkgutil
 import importlib
