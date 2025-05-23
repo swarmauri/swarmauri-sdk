@@ -18,7 +18,7 @@ import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator, FilePath
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
@@ -289,12 +289,8 @@ class Peagen(ComponentBase):
                 continue
 
             try:
-                self.j2pt.set_template(ptree_template_path)
-                print(self.j2pt.templates_dir)
-                print(ptree_template_path)
-                print(project_only_context)
+                self.j2pt.set_template(FilePath(ptree_template_path))
                 rendered_yaml_str = self.j2pt.fill(project_only_context)
-                print(rendered_yaml_str)
             except Exception as e:
                 self.logger.error(
                     f"[{project_name}] Ptree render failure for package "
