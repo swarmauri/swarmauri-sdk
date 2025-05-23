@@ -1,6 +1,6 @@
 import logging
 from logging.handlers import MemoryHandler
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
@@ -108,29 +108,3 @@ class MemoryLoggingHandler(HandlerBase):
         if self._memory_handler:
             self._memory_handler.setTarget(target_handler)
         self._target_handler = target_handler
-
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Convert the handler configuration to a dictionary.
-
-        Returns:
-            Dict[str, Any]: Dictionary representation of the handler.
-        """
-        # Start with base attributes
-        result = {
-            "type": self.type,
-            "level": self.level,
-            "formatter": str(self.formatter) if self.formatter else None,
-        }
-
-        # Add MemoryLoggingHandler specific attributes
-        result.update(
-            {
-                "capacity": self.capacity,
-                "flushLevel": self.flushLevel,
-                "target": self.target.to_dict()
-                if hasattr(self.target, "to_dict")
-                else self.target,
-            }
-        )
-        return result
