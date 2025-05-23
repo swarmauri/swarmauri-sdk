@@ -1,4 +1,3 @@
-import logging
 import re
 import string
 from typing import Any, Dict, Literal, Tuple
@@ -7,7 +6,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
-logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(EvaluatorBase, "GunningFogEvaluator")
@@ -52,7 +50,8 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         """
         text = self._get_program_text(program)
         if not text or not isinstance(text, str):
-            logger.warning("Program text is empty or not a string")
+            if self.logger:
+                self.logger.warning("Program text is empty or not a string")
             return 0.0, {"error": "No valid text to analyze"}
 
         # Count sentences, words, and complex words
@@ -62,7 +61,8 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
 
         # Avoid division by zero
         if sentences == 0 or words == 0:
-            logger.warning("Text has no sentences or words")
+            if self.logger:
+                self.logger.warning("Text has no sentences or words")
             return 0.0, {
                 "sentences": sentences,
                 "words": words,
@@ -90,7 +90,8 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
             "percent_complex_words": percent_complex_words,
         }
 
-        logger.debug(f"Computed Gunning Fog Index: {gunning_fog_index:.2f}")
+        if self.logger:
+            self.logger.debug(f"Computed Gunning Fog Index: {gunning_fog_index:.2f}")
         return normalized_score, metadata
 
     def _get_program_text(self, program: Program) -> str:
@@ -100,7 +101,8 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
             if isinstance(source_files, dict):
                 return " \n".join(str(v) for v in source_files.values())
         except Exception as exc:
-            logger.debug(f"Failed to obtain program text: {exc}")
+            if self.logger:
+                self.logger.debug(f"Failed to obtain program text: {exc}")
         return ""
 
     def _count_sentences(self, text: str) -> int:

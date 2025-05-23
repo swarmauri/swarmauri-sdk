@@ -1,4 +1,3 @@
-import logging
 import re
 from typing import Any, Dict, Literal, Tuple
 
@@ -7,7 +6,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
-logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(EvaluatorBase, "ColemanLiauIndexEvaluator")

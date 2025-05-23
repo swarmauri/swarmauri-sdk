@@ -1,6 +1,5 @@
 # File: peagen/evaluators/AutomatedReadabilityIndexEvaluator.py
 
-import logging
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Tuple
@@ -11,7 +10,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
-logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(
@@ -101,7 +99,8 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
                 else:  # plain text
                     segments.append(data)
             except Exception as exc:
-                logger.error("Error parsing %s: %s", rel_path, exc)
+                if self.logger:
+                    self.logger.error("Error parsing %s: %s", rel_path, exc)
 
         return " ".join(segments)
 
