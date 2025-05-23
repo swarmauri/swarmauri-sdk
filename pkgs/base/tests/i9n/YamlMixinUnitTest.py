@@ -1,11 +1,14 @@
+"""Integration tests for the ``YamlMixin`` helpers."""
+
 import yaml
 import pytest
 
 from swarmauri_base.YamlMixin import YamlMixin
 
 
-# Integration model combining several features
 class IntegrationModel(YamlMixin):
+    """Model used to validate YAML round-trip behavior."""
+
     name: str
     age: int
     api_key: str = None
@@ -14,6 +17,7 @@ class IntegrationModel(YamlMixin):
 
 @pytest.mark.i9n
 def test_integration_yaml_roundtrip():
+    """Validate YAML dumping and reloading."""
     input_yaml = """
     name: Diana
     age: 40
@@ -41,6 +45,8 @@ def test_integration_yaml_roundtrip():
 
 @pytest.mark.i9n
 def test_integration_yaml_parsing_and_dumping():
+    """Ensure nested data is parsed and dumped correctly."""
+
     # More complex YAML with nested lists and dictionaries.
     complex_yaml = """
     name: Eve

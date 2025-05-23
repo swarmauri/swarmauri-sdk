@@ -1,13 +1,16 @@
+"""Unit tests for ``ServiceMixin``."""
+
 import pytest
 from swarmauri_base.ServiceMixin import ServiceMixin
 
 
 class DummyService(ServiceMixin):
-    pass
+    """Simple service used for testing."""
 
 
 @pytest.mark.unit
 def test_service_mixin_defaults():
+    """Verify default attribute values and ID uniqueness."""
     first = DummyService()
     second = DummyService()
     assert isinstance(first.id, str) and first.id
