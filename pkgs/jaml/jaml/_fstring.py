@@ -61,8 +61,6 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 
 
 # utils.py
-from typing import Any, Dict, Optional
-import re
 
 
 # ────────────────────────────────────────────────────────────────────────────────

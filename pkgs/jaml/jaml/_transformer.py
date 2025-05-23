@@ -1,5 +1,5 @@
 from lark import Transformer, Token, Tree, v_args
-from typing import Any, List, Union
+from typing import Any, List, Union, TYPE_CHECKING
 from ._ast_nodes import (
     BaseNode,
     StartNode,
@@ -43,6 +43,9 @@ from ._ast_nodes import (
     ReservedFuncNode,
 )
 from ._config import Config
+
+if TYPE_CHECKING:
+    from ._ast_nodes import MLArrayItemNode, SLArrayItemNode
 
 
 class ConfigTransformer(Transformer):
@@ -119,8 +122,8 @@ class ConfigTransformer(Transformer):
             if not isinstance(line, AssignmentNode):
                 continue
 
-            key = line.identifier.value
-            value = line.value
+            # key = line.identifier.value  # unused for now
+            # value = line.value  # unused for now
 
             # (static scalars, arrays, else-as-AST logic remains unchanged)
             # … [rest of existing priming logic] …
