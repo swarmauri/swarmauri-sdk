@@ -56,4 +56,5 @@ cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
 
 [evaluation.evaluators.coleman_liau]
 cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
+target_grade_level = 12
 

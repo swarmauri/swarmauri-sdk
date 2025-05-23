@@ -91,7 +91,13 @@ def eval_cmd(
                 else spec["cls"].rsplit(".", 1)
             )
             EvalCls = getattr(import_module(mod), cls)
-            evaluator = EvalCls(**spec.get("args", {}))
+
+            args = {}
+            if isinstance(spec.get("args"), dict):
+                args.update(spec["args"])
+            args.update({k: v for k, v in spec.items() if k not in {"cls", "args"}})
+
+            evaluator = EvalCls(**args)
         else:
             raise ValueError(f"Invalid evaluator spec for '{name}': {spec}")
         pool_inst.add_evaluator(evaluator, name=name)
