@@ -15,6 +15,8 @@ class ContainerNewSessionTool(ToolBase):
     description: str = "Start a new Docker or Kubernetes container running a shell."
     type: Literal["ContainerNewSessionTool"] = "ContainerNewSessionTool"
 
+    driver: Literal["docker", "kubernetes"] = "docker"
+
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
@@ -29,19 +31,11 @@ class ContainerNewSessionTool(ToolBase):
                 description="Container image to launch",
                 required=True,
             ),
-            Parameter(
-                name="driver",
-                input_type="string",
-                description="Container driver: docker or kubernetes",
-                required=False,
-                enum=["docker", "kubernetes"],
-                default="docker",
-            ),
         ]
     )
 
-    def __call__(self, container_name: str, image: str, driver: str = "docker") -> dict:
-        if driver == "docker":
+    def __call__(self, container_name: str, image: str) -> dict:
+        if self.driver == "docker":
             cmd = [
                 "docker",
                 "run",

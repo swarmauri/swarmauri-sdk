@@ -15,6 +15,8 @@ class ContainerFeedCharsTool(ToolBase):
     description: str = "Run a shell command inside a Docker or Kubernetes container."
     type: Literal["ContainerFeedCharsTool"] = "ContainerFeedCharsTool"
 
+    driver: Literal["docker", "kubernetes"] = "docker"
+
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
@@ -29,19 +31,11 @@ class ContainerFeedCharsTool(ToolBase):
                 description="Shell command to execute",
                 required=True,
             ),
-            Parameter(
-                name="driver",
-                input_type="string",
-                description="Container driver: docker or kubernetes",
-                required=False,
-                enum=["docker", "kubernetes"],
-                default="docker",
-            ),
         ]
     )
 
-    def __call__(self, container_name: str, command: str, driver: str = "docker") -> dict:
-        if driver == "docker":
+    def __call__(self, container_name: str, command: str) -> dict:
+        if self.driver == "docker":
             cmd = ["docker", "exec", container_name, "sh", "-c", command]
         else:
             cmd = ["kubectl", "exec", container_name, "--", "sh", "-c", command]
