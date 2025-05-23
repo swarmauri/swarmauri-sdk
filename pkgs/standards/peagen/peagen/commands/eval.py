@@ -22,7 +22,7 @@ eval_app = typer.Typer(help="Evaluate programs using an EvaluatorPool.")
 @eval_app.command("eval")
 def eval_cmd(
     workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
-    program_glob: str = typer.Argument("**/*.prog", help="Program glob pattern"),
+    program_glob: str = typer.Argument("**/*.*", help="Program glob pattern"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p"),
     config: Optional[Path] = typer.Option(None, "--config", "-c", exists=True),
     max_workers: int = typer.Option(10, "--max-workers"),
