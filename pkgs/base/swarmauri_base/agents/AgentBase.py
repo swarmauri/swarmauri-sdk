@@ -1,4 +1,4 @@
-# File: swarmauri_core/agents/AgentBase.py
+"""Abstract agent implementations for the SwarmAuri SDK."""
 
 from typing import Any, Optional, Dict, List, Union, Literal
 import asyncio

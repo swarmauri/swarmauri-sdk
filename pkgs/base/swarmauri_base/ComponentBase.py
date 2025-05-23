@@ -1,6 +1,7 @@
 # swarmauri_base/ComponentBase.py
 """Core base component and resource type definitions."""
 
+
 from enum import Enum
 from typing import (
     ClassVar,

@@ -513,6 +513,7 @@ class DynamicBase(BaseModel):
 
     @classmethod
     def _recreate_models(cls):
+        """Rebuild registered ``pydantic`` models after registry changes."""
         with cls._lock:
             models_with_fields = cls._generate_models_with_fields()
             glogger.debug(
@@ -567,6 +568,7 @@ class DynamicBase(BaseModel):
         """
 
         def decorator(model_cls: Type[BaseModel]):
+            """Register ``model_cls`` as a base model."""
             model_name = model_cls.__name__
             if model_name in cls._registry:
                 glogger.warning(
@@ -601,6 +603,7 @@ class DynamicBase(BaseModel):
         """
 
         def decorator(subclass: Type["DynamicBase"]):
+            """Register ``subclass`` as a subtype."""
             if resource_type is None:
                 resource_types = [
                     base for base in subclass.__bases__ if base is not cls
