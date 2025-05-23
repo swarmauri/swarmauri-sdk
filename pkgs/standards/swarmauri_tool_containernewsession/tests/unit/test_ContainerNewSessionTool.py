@@ -29,8 +29,8 @@ def test_serialization():
 @patch("subprocess.run")
 def test_call(mock_run):
     mock_run.return_value = MagicMock(returncode=0, stdout="ok", stderr="")
-    tool = Tool()
-    result = tool(container_name="c1", image="ubuntu")
+    tool = Tool(container_name="c1", image="ubuntu")
+    result = tool()
     mock_run.assert_called_once()
     assert result["session_name"] == "c1"
     assert result["stdout"] == "ok"
