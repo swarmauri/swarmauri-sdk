@@ -96,5 +96,8 @@ redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
 rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
+[project.entry-points."peagen.evaluator_pools"]
+default = "swarmauri_standard.evaluator_pools.EvaluatorPool:EvaluatorPool"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
