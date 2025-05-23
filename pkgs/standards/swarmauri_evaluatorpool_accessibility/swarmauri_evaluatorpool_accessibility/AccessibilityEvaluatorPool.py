@@ -1,7 +1,6 @@
 # File: swarmauri_standard/evaluator_pools/AccessibilityEvaluatorPool.py
 from __future__ import annotations
 
-import logging
 from typing import Any, Dict, List, Literal, Sequence
 
 from swarmauri_base.ComponentBase import ComponentBase
@@ -22,7 +21,6 @@ from . import (          # noqa: E402
     GunningFogEvaluator,
 )
 
-logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(EvaluatorPoolBase, "AccessibilityEvaluatorPool")
@@ -67,10 +65,11 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         # custom aggregation that flips “lower-is-better” metrics
         self.set_aggregation_function(self._accessibility_aggregation)
 
-        logger.info(
-            "AccessibilityEvaluatorPool initialised with %d evaluators",
-            self.get_evaluator_count(),
-        )
+        if self.logger:
+            self.logger.info(
+                "AccessibilityEvaluatorPool initialised with %d evaluators",
+                self.get_evaluator_count(),
+            )
 
     # ------------------------------------------------------------------ #
     # built-in evaluator registration
@@ -91,7 +90,8 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
                 # default weight = 1 unless already provided
                 self.weights.setdefault(cls.__name__, 1.0)
             except Exception as exc:  # pragma: no cover
-                logger.error("Failed to instantiate %s: %s", cls.__name__, exc)
+                if self.logger:
+                    self.logger.error("Failed to instantiate %s: %s", cls.__name__, exc)
 
     # ------------------------------------------------------------------ #
     # evaluation – we just rely on the base-class dispatcher
