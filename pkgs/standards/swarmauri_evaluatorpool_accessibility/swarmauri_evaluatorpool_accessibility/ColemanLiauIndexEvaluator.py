@@ -15,7 +15,7 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     """
     Coleman–Liau Index evaluator compliant with the Program/Evaluator contracts.
 
-    • ``evaluate()`` always returns a **dict** containing at least ``score``.
+    • ``evaluate()`` returns ``{"score": float, "metadata": dict}``.
     • ``_compute_score()`` returns ``Tuple[float, Dict[str, Any]]`` for internal use.
     """
 
@@ -29,24 +29,9 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # Public API – called by the pool / runner
     # ──────────────────────────────────────────────────────────────────────
     def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
-        """
-        Wraps ``_compute_score`` so downstream code can safely use ``.get("score")``.
-        """
-        result = self._compute_score(program, **kwargs)
-
-        # Legacy tuple → dict shim
-        if isinstance(result, tuple):
-            score, meta = result
-            meta = meta or {}
-            meta["score"] = score
-            return meta
-
-        # Already a dict
-        if isinstance(result, dict):
-            return result
-
-        # Fallback (should never happen)
-        return {"score": float(result)}
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
 
     # ──────────────────────────────────────────────────────────────────────
     # Core scoring logic
