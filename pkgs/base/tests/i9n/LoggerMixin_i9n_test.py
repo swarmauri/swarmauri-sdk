@@ -1,3 +1,5 @@
+"""Integration tests for ``LoggerMixin`` behavior."""
+
 import io
 import logging
 import pytest
@@ -10,14 +12,10 @@ from swarmauri_base import register_type
 
 
 class DummyModel(LoggerMixin):
-    """Dummy model for integration testing of LoggerMixin.
+    """Model used to verify logging integration.
 
-    This model demonstrates logging behavior in a simulated real-world scenario.
-
-    Attributes
-    ----------
-    name : str
-        An example field.
+    Attributes:
+        name (str): Example field to log.
     """
 
     name: str
@@ -25,20 +23,14 @@ class DummyModel(LoggerMixin):
 
 @register_type()
 class DummyHandler(HandlerBase):
-    """Dummy handler model that wraps a custom StreamHandler.
-
-    This dummy model implements the required compile_handler() method.
-    """
+    """Handler wrapper that builds a ``StreamHandler``."""
 
     stream: Any = None
     level: int = logging.INFO
     format: str = "[%(name)s][%(levelname)s] %(message)s"
 
     def compile_handler(self) -> logging.Handler:
-        """
-        Compiles a logging handler using the specified level and format.
-        In this example, a StreamHandler is created.
-        """
+        """Create and configure the logging handler."""
         handler = logging.StreamHandler(self.stream)
         handler.setLevel(self.level)
         formatter = logging.Formatter(self.format)
@@ -48,12 +40,7 @@ class DummyHandler(HandlerBase):
 
 @pytest.mark.i9n
 def test_logging_output():
-    """Test logging output using a custom StreamHandler provided via LoggerBase.handlers.
-
-    This test creates an in-memory stream and a custom StreamHandler. It then wraps the handler
-    in a dummy handler model and passes it via the LoggerBase constructor. When a log message is emitted,
-    LoggerBase compiles the logger with the provided handler.
-    """
+    """Verify logging output using a custom handler."""
     # Create an in-memory stream
     log_stream = io.StringIO()
 
