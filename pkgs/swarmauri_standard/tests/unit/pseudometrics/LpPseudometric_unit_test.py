@@ -3,6 +3,7 @@ import math
 
 import numpy as np
 import pytest
+from unittest.mock import Mock
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 
 from swarmauri_standard.pseudometrics.LpPseudometric import LpPseudometric
@@ -252,10 +253,10 @@ def test_check_weak_identity_different_points_with_coordinates():
 
 
 @pytest.mark.unit
-def test_convert_to_array_ivector(mocker):
+def test_convert_to_array_ivector():
     """Test _convert_to_array method with IVector."""
     pseudometric = LpPseudometric()
-    mock_vector = mocker.Mock()
+    mock_vector = Mock()
     mock_vector.to_array.return_value = [1, 2, 3]
 
     result = pseudometric._convert_to_array(mock_vector)
@@ -264,10 +265,10 @@ def test_convert_to_array_ivector(mocker):
 
 
 @pytest.mark.unit
-def test_convert_to_array_imatrix(mocker):
+def test_convert_to_array_imatrix():
     """Test _convert_to_array method with IMatrix."""
     pseudometric = LpPseudometric()
-    mock_matrix = mocker.Mock()
+    mock_matrix = Mock()
     mock_matrix.to_array.return_value = [[1, 2], [3, 4]]
 
     result = pseudometric._convert_to_array(mock_matrix)

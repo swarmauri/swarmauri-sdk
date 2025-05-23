@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+from unittest.mock import MagicMock
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
 
@@ -165,17 +166,17 @@ def test_logging(zero_pseudometric, caplog):
 
 
 @pytest.mark.unit
-def test_with_mock_vector_and_matrix(mocker):
+def test_with_mock_vector_and_matrix():
     """
     Test with mocked IVector and IMatrix objects to ensure compatibility.
     """
     zero_pseudometric = ZeroPseudometric()
 
-    # Create proper mock objects using mocker
-    mock_vector1 = mocker.MagicMock(spec=IVector)
-    mock_vector2 = mocker.MagicMock(spec=IVector)
-    mock_matrix1 = mocker.MagicMock(spec=IMatrix)
-    mock_matrix2 = mocker.MagicMock(spec=IMatrix)
+    # Create proper mock objects using unittest.mock
+    mock_vector1 = MagicMock(spec=IVector)
+    mock_vector2 = MagicMock(spec=IVector)
+    mock_matrix1 = MagicMock(spec=IMatrix)
+    mock_matrix2 = MagicMock(spec=IMatrix)
 
     # Test distance with different combinations
     assert zero_pseudometric.distance(mock_vector1, mock_vector2) == 0.0
