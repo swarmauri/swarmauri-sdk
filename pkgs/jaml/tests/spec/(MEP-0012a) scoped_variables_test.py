@@ -73,7 +73,8 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     # Provide context at render-time:
     ctx = {"user": {"name": "Azzy", "age": 9}}
 
-    rendered = data.render(context=ctx)
+    data = round_trip_loads(toml_str)
+    data.render(context=ctx)
     reserialized = data.render()
     # Expect "User: Azzy, Age: 9"
     assert "User: Azzy, Age: 9" in reserialized
@@ -139,8 +140,7 @@ config_path = f"${base}" + "/dynamic/config.toml"
 """
     ctx = {"base": "/custom"}
     data = round_trip_loads(toml_str)
-    rendered = data.render(context=ctx)
-    reserialized = rendered.dumps()
+    reserialized = data.render(context=ctx).dumps()
     assert (
         "/opt/dynamic/config.toml" in reserialized
         or "/custom/dynamic/config.toml" in reserialized
@@ -166,7 +166,7 @@ file = f"${path}/config.toml"
 """
     ctx = {"path": "/render-time"}
     data = round_trip_loads(toml_str)
-    rendered = data.render(context=ctx)
+    data.render(context=ctx)
     reserialized = data.dumps()
     assert "/render-time/config.toml" in reserialized
 
@@ -191,6 +191,5 @@ file = f"${path}/config.toml" # This comment may cause a failure
     ctx = {"path": "/render-time"}
 
     data = round_trip_loads(toml_str)
-    rendered = data.render(context=ctx)
-    reserialized = rendered.dumps()
+    reserialized = data.render(context=ctx).dumps()
     assert "/render-time/config.toml" in reserialized
