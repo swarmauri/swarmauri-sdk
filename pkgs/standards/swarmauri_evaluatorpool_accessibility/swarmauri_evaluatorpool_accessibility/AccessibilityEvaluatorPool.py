@@ -235,6 +235,7 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
             ".tar",
             ".gz",
             ".rar",
+            ".gitignore",
         }
 
         file_ext = Path(file_path).suffix.lower()
