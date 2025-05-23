@@ -12,51 +12,47 @@ import importlib.resources as res
 
 MANIFEST_V3_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("manifest.schema.v3.json")
-       .read_text(encoding="utf-8")
+    .joinpath("manifest.schema.v3.json")
+    .read_text(encoding="utf-8")
 )
 
 MANIFEST_V3_1_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("manifest.schema.v3.1.json")
-       .read_text(encoding="utf-8")
+    .joinpath("manifest.schema.v3.1.json")
+    .read_text(encoding="utf-8")
 )
 
 PEAGEN_TOML_V1_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("peagen.toml.schema.v1.json")
-       .read_text(encoding="utf-8")
+    .joinpath("peagen.toml.schema.v1.json")
+    .read_text(encoding="utf-8")
 )
 
 PEAGEN_TOML_V1_1_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("peagen.toml.schema.v1.1.0.json")
-       .read_text(encoding="utf-8")
+    .joinpath("peagen.toml.schema.v1.1.0.json")
+    .read_text(encoding="utf-8")
 )
 
 DOE_SPEC_V1_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("doe_spec.schema.v1.json")
-       .read_text(encoding="utf-8")
+    .joinpath("doe_spec.schema.v1.json")
+    .read_text(encoding="utf-8")
 )
 
 
 PTREE_V1_SCHEMA = json.loads(
-    res.files(__package__)
-       .joinpath("ptree.schema.v1.json")
-       .read_text(encoding="utf-8")
+    res.files(__package__).joinpath("ptree.schema.v1.json").read_text(encoding="utf-8")
 )
 
 PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
     res.files(__package__)
-       .joinpath("projects_payload.schema.v1.json")
-       .read_text(encoding="utf-8")
+    .joinpath("projects_payload.schema.v1.json")
+    .read_text(encoding="utf-8")
 )
 
 EVENT_V1_SCHEMA = json.loads(
-    res.files(__package__)
-       .joinpath("event.schema.v1.json")
-       .read_text(encoding="utf-8")
+    res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
 )
 
 # ── EXTRAS schemas ─────────────────────────────────────────────

@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.0.0",
+  "schemaVersion": "3.0.0",
   "workspace_uri": "minio://149.255.38.126:9000/test",
   "project": "ExampleParserProject",
   "generated": [

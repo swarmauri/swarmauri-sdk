@@ -1,4 +1,4 @@
-"""Convenience re-exports for the SwarmAuri base package."""
+"""Expose common dynamic base utilities for convenience."""
 
 from swarmauri_base.DynamicBase import (
     SubclassUnion,

@@ -28,6 +28,7 @@ def vectors():
     real_v2 = Vector(value=[4, 5, 6])
     return v1, v2, real_v1, real_v2
 
+
 @pytest.fixture
 def lp_metric_2():
     """

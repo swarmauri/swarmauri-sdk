@@ -1,8 +1,6 @@
 import os
-import sys
 import tempfile
 from unittest.mock import MagicMock, patch
-import inspect
 
 import pytest
 from peagen._rendering import _render_copy_template, _render_generate_template
@@ -67,7 +65,7 @@ class TestRendering:
         j2_instance.fill.assert_called_once_with(context)
         mock_logger.error.assert_not_called()
 
-    def test_render_copy_template_exception
+    def test_render_copy_template_exception(
         self, file_record, context, j2_instance, mock_logger
     ):
         """Test handling of exceptions during copy template rendering"""
@@ -166,7 +164,10 @@ class TestRendering:
         j2_instance.set_template.side_effect = Exception("Template error")
 
         # This should not raise an exception even without a logger
-        result = _render_generate_template(file_record, context, "agent_prompt.j2", j2_instance, {})
+        result = _render_generate_template(
+            file_record, context, "agent_prompt.j2", j2_instance, {}
+        )
 
         # Assertions
         assert result == ""
+        mock_call_agent.assert_not_called()

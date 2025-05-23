@@ -1,6 +1,7 @@
 import pytest
 from peagen.slug_utils import slugify
 
+
 @pytest.mark.unit
 class TestSlugify:
     def test_basic(self):

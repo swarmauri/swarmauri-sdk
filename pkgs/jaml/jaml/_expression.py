@@ -49,7 +49,7 @@ def _lookup(path: str, *envs: Dict[str, Any]) -> Optional[Any]:
 def _tok_to_py(
     tok: Token,
     g: Dict[str, Any],
-    l: Dict[str, Any],
+    local_env: Dict[str, Any],
     c: Dict[str, Any],
 ) -> str:
     """Convert a Lark token to a Python snippet (or placeholder)."""
@@ -87,7 +87,7 @@ def _tok_to_py(
             return tok.value
 
         # Global (@{…}) or local (%{…})
-        val = _lookup(inner, g) if marker == "@" else _lookup(inner, l, g)
+        val = _lookup(inner, g) if marker == "@" else _lookup(inner, local_env, g)
         if val is None:
             return tok.value
         if hasattr(val, "evaluate"):

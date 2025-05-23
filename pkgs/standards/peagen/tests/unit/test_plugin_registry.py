@@ -24,7 +24,9 @@ def _make_ep(name: str, module_name: str, obj_name: str, group: str):
 
 @pytest.mark.unit
 def test_discover_and_register_plugins(monkeypatch):
-    ep1, cls1 = _make_ep("builtin", "peagen.builtin_mod", "Builtin", "peagen.storage_adapters")
+    ep1, cls1 = _make_ep(
+        "builtin", "peagen.builtin_mod", "Builtin", "peagen.storage_adapters"
+    )
     ep2, cls2 = _make_ep("external", "ext.mod", "External", "peagen.storage_adapters")
 
     def fake_entry_points(group: str):

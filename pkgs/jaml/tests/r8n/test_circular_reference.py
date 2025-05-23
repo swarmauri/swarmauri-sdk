@@ -13,7 +13,7 @@ b = f"%{a}"
     """.strip()
 
     with pytest.raises(ValueError, match="Circular reference detected: a -> b -> a"):
-        ast = round_trip_loads(jml)
+        round_trip_loads(jml)
 
 
 @pytest.mark.unit
@@ -33,7 +33,7 @@ c = f"%{a}"
         ValueError,
         match="Circular reference detected: config.a -> config.b -> config.nested.c -> config.a",
     ):
-        ast = round_trip_loads(jml)
+        round_trip_loads(jml)
 
 
 @pytest.mark.unit
@@ -50,4 +50,4 @@ z = f"%{x}"
     with pytest.raises(
         ValueError, match="Circular reference detected: x -> y -> z -> x"
     ):
-        ast = round_trip_loads(jml)
+        round_trip_loads(jml)

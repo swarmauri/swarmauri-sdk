@@ -279,4 +279,3 @@ def _publish_event(uri: str, output: Path, count: int, config: Optional[str]) ->
             "count": count,
         },
     )
-

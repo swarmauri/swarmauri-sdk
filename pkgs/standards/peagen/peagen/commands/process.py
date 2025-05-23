@@ -114,12 +114,16 @@ def process_cmd(
     template_sets_cfg = toml_cfg.get("template_sets", [])
     if bundles:
         for b in bundles.split(","):
-            template_sets_cfg.append({"name": Path(b).stem, "type": "bundle", "target": b.strip()})
+            template_sets_cfg.append(
+                {"name": Path(b).stem, "type": "bundle", "target": b.strip()}
+            )
 
     if additional_package_dirs:
         for p in additional_package_dirs.split(","):
             pp = Path(p).expanduser()
-            template_sets_cfg.append({"name": pp.stem, "type": "local", "target": str(pp)})
+            template_sets_cfg.append(
+                {"name": pp.stem, "type": "local", "target": str(pp)}
+            )
 
     # ── LLM CONFIG ──────────────────────────────────────────────────────
     llm_cfg = toml_cfg.get("llm", {})

@@ -23,6 +23,7 @@ def test_null_logging_handler_default_level():
     handler = NullLoggingHandler()
     assert handler.level == logging.INFO
 
+
 @pytest.mark.unit
 def test_null_logging_handler_custom_level():
     """

@@ -22,13 +22,6 @@ def test_section_headers_with_clauses():
     # The base external context used during rendering.
     BASE_CONTEXT = {"env": "production"}
 
-    expected_result = r"""
-    [[prod]]
-    type = "python"
-
-
-    """
-
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")
     print(data, "\n\n")

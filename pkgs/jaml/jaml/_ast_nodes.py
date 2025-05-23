@@ -1,17 +1,18 @@
 from typing import Any, Dict, List, Optional
 
+import logging
 import re
 from lark import Tree
-import logging
-
-logger = logging.getLogger(__name__)  # put this with your other imports
-logger.setLevel(logging.DEBUG)  # caller can override
 
 from ._make_static import make_static_section
 from ._fstring import _evaluate_f_string, _lookup
 from ._substitute import _substitute_vars
 from ._expression import evaluate_expression_tree
 from ._comprehension import iter_environments, _evaluate_comprehension
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # caller can override
 
 
 class BaseNode:
@@ -383,13 +384,13 @@ class ComprehensionHeaderNode(BaseNode):
         logger.debug("ComprehensionHeaderNode.render() triggered.")
         self._evaluate(global_env, local_env or {}, context or {})
 
-    def _evaluate(self, g: Dict, l: Dict, ctx: Dict):
+    def _evaluate(self, g: Dict, local_env: Dict, ctx: Dict):
         logger.debug("ComprehensionHeaderNode._evaluate() triggered.")
         self.header_envs: List[tuple[str, dict]] = []
 
-        for env in iter_environments(self.clauses, g, l, ctx):
+        for env in iter_environments(self.clauses, g, local_env, ctx):
             logger.debug(f"ComprehensionHeaderNode._evaluate() env: {env}.")
-            scope = {**l, **env}
+            scope = {**local_env, **env}
             if ctx is None:
                 self.header_expr.resolve(g, scope)
             else:

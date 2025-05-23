@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
+
 class ManifestWriter:
     """
     Streams JSON-Lines during file generation, then composes a final
@@ -34,7 +35,7 @@ class ManifestWriter:
         slug         Project slug (e.g. ``"ExampleParserProject"``).
         adapter      Storage adapter implementing ``upload(key, file)``.
         tmp_root     Workspace/.peagen directory (created if absent).
-        meta         Static fields for the final manifest (schema_version,
+        meta         Static fields for the final manifest (schemaVersion,
                      workspace_uri, project, source_packages, peagen_version…)
         """
         tmp_root.mkdir(parents=True, exist_ok=True)

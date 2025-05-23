@@ -16,7 +16,9 @@ def _init_git_repo(repo: Path) -> str:
     (repo / "file.txt").write_text("hello", encoding="utf-8")
     subprocess.check_call(["git", "add", "file.txt"], cwd=repo)
     subprocess.check_call(["git", "commit", "-m", "init"], cwd=repo)
-    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo).decode().strip()
+    sha = (
+        subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo).decode().strip()
+    )
     return sha
 
 

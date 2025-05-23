@@ -31,7 +31,7 @@ def test_conditional_table_header():
     print(data, "\n\n")
     assert """"prod" if @{env}=="production" else null""" in data
 
-    resolved_config = data.resolve()
+    data.resolve()
     assert "prod" in data
     assert "type" in data["prod"]
 

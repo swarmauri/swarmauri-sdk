@@ -1,6 +1,9 @@
 # jaml/_helpers.py  (new small util module)
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ._ast_nodes import TableArraySectionNode, SectionNode
 
 
 def make_static_table_array(header_str: str, scope: Dict) -> "TableArraySectionNode":

@@ -37,7 +37,7 @@ class RotatingFileLoggingHandler(HandlerBase):
     delay : bool
         If True, the file opening is deferred until the first log record is emitted.
     """
-    
+
     type: Literal["RotatingFileLoggingHandler"] = "RotatingFileLoggingHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
@@ -69,9 +69,9 @@ class RotatingFileLoggingHandler(HandlerBase):
             maxBytes=self.maxBytes,
             backupCount=self.backupCount,
             encoding=self.encoding,
-            delay=self.delay
+            delay=self.delay,
         )
-        
+
         # Set the logging level
         handler.setLevel(self.level)
         # Apply formatter
