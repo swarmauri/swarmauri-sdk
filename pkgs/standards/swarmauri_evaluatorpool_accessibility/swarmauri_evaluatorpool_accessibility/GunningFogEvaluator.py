@@ -27,6 +27,14 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
 
     type: Literal["GunningFogEvaluator"] = "GunningFogEvaluator"
 
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
+
     def _compute_score(
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
@@ -42,7 +50,7 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
                 - float: The Gunning Fog Index score (lower is better for readability)
                 - Dict[str, Any]: Metadata including sentence count, word count, and complex word count
         """
-        text = program.get_text()
+        text = self._get_program_text(program)
         if not text or not isinstance(text, str):
             logger.warning("Program text is empty or not a string")
             return 0.0, {"error": "No valid text to analyze"}
@@ -84,6 +92,16 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
 
         logger.debug(f"Computed Gunning Fog Index: {gunning_fog_index:.2f}")
         return normalized_score, metadata
+
+    def _get_program_text(self, program: Program) -> str:
+        """Return a concatenated text representation of the program."""
+        try:
+            source_files = program.get_source_files()
+            if isinstance(source_files, dict):
+                return " \n".join(str(v) for v in source_files.values())
+        except Exception as exc:
+            logger.debug(f"Failed to obtain program text: {exc}")
+        return ""
 
     def _count_sentences(self, text: str) -> int:
         """

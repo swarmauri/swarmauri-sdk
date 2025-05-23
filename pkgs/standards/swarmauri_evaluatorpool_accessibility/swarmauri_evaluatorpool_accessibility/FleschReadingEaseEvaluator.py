@@ -38,6 +38,14 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     type: Literal["FleschReadingEaseEvaluator"] = "FleschReadingEaseEvaluator"
     _cmu_dict = PrivateAttr(default=None)
 
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
+
     def __init__(self, **kwargs):
         """Initialize the Flesch Reading Ease evaluator."""
         super().__init__(**kwargs)
@@ -81,7 +89,7 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             ValueError: If the text cannot be processed
         """
         # Extract text from the program
-        text = program.get_content()
+        text = self._get_program_text(program)
         if not text or not isinstance(text, str):
             logger.warning("Program content is empty or not a string")
             return 0.0, {"error": "No valid text content found"}
@@ -134,6 +142,16 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             f"Flesch Reading Ease score: {fre_score:.2f} ({metadata['readability_interpretation']})"
         )
         return fre_score, metadata
+
+    def _get_program_text(self, program: Program) -> str:
+        """Return program text by joining its source files."""
+        try:
+            source_files = program.get_source_files()
+            if isinstance(source_files, dict):
+                return " \n".join(str(v) for v in source_files.values())
+        except Exception as exc:
+            logger.debug(f"Failed to obtain program text: {exc}")
+        return ""
 
     def _clean_text(self, text: str) -> str:
         """
