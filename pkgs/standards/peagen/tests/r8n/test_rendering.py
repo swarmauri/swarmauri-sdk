@@ -67,7 +67,7 @@ class TestRendering:
         j2_instance.fill.assert_called_once_with(context)
         mock_logger.error.assert_not_called()
 
-    def test_render_copy_template_exception
+    def test_render_copy_template_exception(
         self, file_record, context, j2_instance, mock_logger
     ):
         """Test handling of exceptions during copy template rendering"""
@@ -170,3 +170,4 @@ class TestRendering:
 
         # Assertions
         assert result == ""
+        mock_call_agent.assert_not_called()
