@@ -2,7 +2,7 @@ import logging
 from logging.handlers import MemoryHandler
 from typing import Any, Literal, Optional, Union
 
-from swarmauri_base.DynamicBase import SubclassUnion
+from swarmauri_base.DynamicBase import FullUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 
@@ -21,7 +21,7 @@ class MemoryLoggingHandler(HandlerBase):
     type: Literal["MemoryLoggingHandler"] = "MemoryLoggingHandler"
     capacity: int = 100  # Default buffer size
     flushLevel: int = logging.ERROR  # Default flush level
-    target: Optional[Union[str, SubclassUnion[HandlerBase]]] = None
+    target: Optional[Union[str, FullUnion[HandlerBase]]] = None
 
     def __init__(self, **data: Any):
         """
