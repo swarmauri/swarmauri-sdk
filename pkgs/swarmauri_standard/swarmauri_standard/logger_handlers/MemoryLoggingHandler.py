@@ -21,7 +21,7 @@ class MemoryLoggingHandler(HandlerBase):
     type: Literal["MemoryLoggingHandler"] = "MemoryLoggingHandler"
     capacity: int = 100  # Default buffer size
     flushLevel: int = logging.ERROR  # Default flush level
-    target: Optional[Union[str, FullUnion[HandlerBase]]] = None
+    target: Optional[FullUnion[HandlerBase]] = None
 
     def __init__(self, **data: Any):
         """
