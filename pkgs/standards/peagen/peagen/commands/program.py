@@ -31,6 +31,7 @@ from rich.tree import Tree
 from peagen._source_packages import _materialise_source_pkg
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
 from peagen.storage_adapters import make_adapter_for_uri
+from swarmauri_standard.loggers.Logger import Logger
 
 program_app = typer.Typer(
     name="program",
@@ -90,6 +91,8 @@ def fetch(
     """
     Reconstruct a complete workspace from manifest(s).
     """
+    self = Logger(name="fetch")
+    self.logger.info("Entering fetch command")
     if out_dir is None:
         out_dir = Path(tempfile.mkdtemp(prefix="peagen_ws_")).resolve()
     else:
@@ -109,6 +112,7 @@ def fetch(
         _materialise_workspace(manifest, out_dir)
 
     typer.echo(f"workspace: {out_dir}")
+    self.logger.info("Exiting fetch command")
 
 
 # ───────────────────────────────────────────────────────────── patch ──
@@ -125,6 +129,8 @@ def patch(
     """
     Overlay another workspace and/or program_apply JSON-Patch in-place.
     """
+    self = Logger(name="patch")
+    self.logger.info("Entering patch command")
     workspace = workspace.resolve()
 
     if overlay:
@@ -138,6 +144,8 @@ def patch(
         _json_to_tree(doc, workspace)
         typer.echo("json-patch program_applied")
 
+    self.logger.info("Exiting patch command")
+
 
 # ─────────────────────────────────────────────────────────── inspect ──
 @program_app.command()
@@ -150,6 +158,8 @@ def inspect(
     """
     Display information about a workspace.
     """
+    self = Logger(name="inspect")
+    self.logger.info("Entering inspect command")
     workspace = workspace.resolve()
     if tree:
         _print_tree(workspace)
@@ -158,6 +168,8 @@ def inspect(
     if manifest:
         for mf in (workspace / ".peagen").glob("*_manifest.json"):
             rprint(json.loads(mf.read_text()))
+
+    self.logger.info("Exiting inspect command")
 
 
 # ───────────────────────────────────────────────────────────── diff ──
@@ -170,6 +182,8 @@ def diff(
     """
     File-level diff between two workspaces OR two manifest URIs.
     """
+    self = Logger(name="diff")
+    self.logger.info("Entering diff command")
     left_dir = _ensure_workspace(left)
     right_dir = _ensure_workspace(right)
 
@@ -180,6 +194,8 @@ def diff(
         md.write_text(table_md, encoding="utf-8")
     else:
         typer.echo(table_md)
+
+    self.logger.info("Exiting diff command")
 
 
 # ─────────────────────────────────────────────────────────── validate ──
@@ -197,6 +213,8 @@ def validate(
     """
     JSON-Schema + (optional) license compliance validation.
     """
+    self = Logger(name="validate")
+    self.logger.info("Entering validate command")
     man_paths = (
         [target]
         if target.suffix == ".json"
@@ -229,6 +247,7 @@ def validate(
             raise typer.Exit(1)
 
     typer.echo("license ✅")
+    self.logger.info("Exiting validate command")
 
 
 # ───────────────────────────────────── helper implementations ──
