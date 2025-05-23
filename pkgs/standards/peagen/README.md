@@ -220,6 +220,17 @@ peagen templates
 ![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
 
 
+### `peagen eval`
+
+Run a generated workspace through an evaluator pool.
+
+```bash
+peagen eval <WORKSPACE_DIR> --pool package.module:PoolClass
+```
+
+The command loads `PoolClass`, evaluates the workspace as a `Program`, and prints JSON results.
+
+
 ### `peagen doe gen`
 
 Expand a Design-of-Experiments spec into a `project_payloads.yaml` bundle.
