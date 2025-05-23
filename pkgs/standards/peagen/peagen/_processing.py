@@ -39,6 +39,8 @@ def _save_file(
     3.  Stream a manifest line via ManifestWriter (if provided).
     """
     full_path = workspace_root / filepath
+    if logger:
+        logger.debug(f"Saving file to {full_path}")
     try:
         os.makedirs(full_path.parent, exist_ok=True)
         with open(str(full_path), "w", encoding="utf-8") as f:
@@ -51,6 +53,7 @@ def _save_file(
     if logger:
         fname = os.path.relpath(full_path, workspace_root)
         logger.info(f"({start_idx + 1}/{idx_len}) File saved: {fname}")
+        logger.debug(f"Saved content length: {len(content)} bytes")
 
     if storage_adapter:  # remote upload
         key = os.path.normpath(filepath.lstrip("/"))
@@ -58,6 +61,9 @@ def _save_file(
             storage_adapter.upload(key, fsrc)
         if logger:
             logger.info(f"({start_idx + 1}/{idx_len}) Uploaded → {key}")
+            logger.debug(
+                f"Uploaded file '{full_path}' using storage_adapter '{type(storage_adapter).__name__}'"
+            )
 
     if manifest_writer:  # manifest line
         manifest_writer.add(
@@ -66,6 +72,8 @@ def _save_file(
                 "saved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             }
         )
+        if logger:
+            logger.debug(f"Manifest entry added for {filepath}")
 
 
 def _create_context(
@@ -76,6 +84,13 @@ def _create_context(
     """
     Builds the rendering context for a single file record.
     """
+    if logger:
+        logger.debug(
+            "Building context for file '%s' from project '%s'",
+            file_record.get("RENDERED_FILE_NAME"),
+            project_global_attributes.get("NAME"),
+        )
+
     project_name = file_record.get("PROJECT_NAME")
     package_name = file_record.get("PACKAGE_NAME")
     module_name = file_record.get("MODULE_NAME")
@@ -136,6 +151,12 @@ def _process_file(
     """
     Render one file_record (COPY | GENERATE).
     """
+    if logger:
+        logger.debug(
+            "Processing file %s (%s)",
+            file_record.get("RENDERED_FILE_NAME"),
+            file_record.get("PROCESS_TYPE", "COPY").upper(),
+        )
     if j2_instance is None:
         j2_instance = J2PromptTemplate()
         if j2pt.templates_dir:
@@ -148,7 +169,9 @@ def _process_file(
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
     try:
         if process_type == "COPY":
-            content = _render_copy_template(file_record, context, j2_instance)
+            if logger:
+                logger.debug(f"Rendering COPY template for {final_filename}")
+            content = _render_copy_template(file_record, context, j2_instance, logger)
         elif process_type == "GENERATE":
             if _config["revise"] and "agent_prompt_template_file" not in agent_env:
                 agent_env["agent_prompt_template_file"] = "agent_revise.j2"
@@ -161,8 +184,12 @@ def _process_file(
                 )
 
             prompt_path = os.path.join(template_dir, prompt_name)
+            if logger:
+                logger.debug(
+                    f"Rendering GENERATE template '{prompt_name}' for {final_filename}"
+                )
             content = _render_generate_template(
-                file_record, context, prompt_path, j2_instance, agent_env
+                file_record, context, prompt_path, j2_instance, agent_env, logger
             )
         else:
             if logger:
@@ -204,6 +231,8 @@ def _process_file(
         idx_len,
         **save_kwargs,
     )
+    if logger:
+        logger.debug(f"Finished processing {final_filename}")
     return True
 
 
@@ -225,6 +254,12 @@ def _process_project_files(
     and either parallel- or sequentially executing _process_file.
     """
     idx_len = len(file_records) + start_idx
+    if logger:
+        logger.debug(
+            "Processing %d file records with %s workers",
+            len(file_records),
+            _config.get("workers", 0),
+        )
     workers = _config.get("workers", 0)
 
     if workers and workers > 0:
@@ -239,6 +274,8 @@ def _process_project_files(
             idx = idx_map[fname]
             new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
             j2 = J2PromptTemplate()
+            if logger:
+                logger.debug(f"Worker processing {fname}")
             try:
                 if j2pt.templates_dir:
                     j2.templates_dir = (
@@ -306,6 +343,8 @@ def _process_project_files(
             [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
         )
 
+        if logger:
+            logger.debug(f"Sequentially processing {rec.get('RENDERED_FILE_NAME')}")
         if not _process_file(
             rec,
             global_attrs,
