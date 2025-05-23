@@ -22,6 +22,8 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse, urlunparse
+import hashlib
+import jsonpatch
 
 import typer
 from jsonschema import ValidationError, validate as json_validate
