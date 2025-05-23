@@ -1,12 +1,15 @@
 from collections.abc import MutableMapping
 from copy import deepcopy
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, List, TYPE_CHECKING
 
 from ._fstring import _evaluate_f_string
 import logging
 
-logger = logging.getLogger(__name__)  # put this with your other imports
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # caller can override
+
+if TYPE_CHECKING:
+    from ._ast_nodes import BaseNode
 
 
 class SectionProxy(MutableMapping):
