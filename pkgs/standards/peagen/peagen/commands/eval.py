@@ -19,7 +19,7 @@ eval_app = typer.Typer(help="Evaluate programs using an EvaluatorPool.")
 
 @eval_app.command("eval")
 def eval_cmd(
-    workspace_uri: PathOrURI = typer.Argument(..., help="Workspace path or URI"),
+    workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
     program_glob: str = typer.Argument("**/*.prog", help="Program glob pattern"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p"),
     config: Optional[Path] = typer.Option(None, "--config", "-c", exists=True),
@@ -48,7 +48,7 @@ def eval_cmd(
     pool_inst = PoolCls()
     pool_inst.initialize()
 
-    workspace_path = Path(workspace_uri)
+    workspace_path = Path(PathOrURI(workspace_uri))
     if "://" in str(workspace_uri):
         with temp_workspace():
             # Reuse program.fetch helpers
@@ -58,7 +58,7 @@ def eval_cmd(
         if prog_path.is_file():
             programs.append(Program.from_workspace(prog_path.parent))
 
-    results = pool_inst.evaluate_programs(programs)
+    results = pool_inst.evaluate(programs)
 
     manifest = {
         "schemaVersion": "1.0.0",
