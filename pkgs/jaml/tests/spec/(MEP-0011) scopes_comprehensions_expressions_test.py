@@ -31,7 +31,7 @@ url = f"@{base}/config.toml"
     print(resolved_config)
     assert resolved_config["config"]["url"] == "/home/alt/config.toml"
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -95,7 +95,7 @@ greeting = f"Hello, %{name}!"
     print(resolved_config)
     assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -123,7 +123,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
         resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
     )
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render(context={"user": {"name": "Alice", "age": 30}})
     assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
 
@@ -193,7 +193,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     print("[DEBUG SETTER]:")
     print(data)
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
@@ -223,7 +223,7 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     print(resolved_config)
     assert resolved_config["items"]["list_config"] == ["item_5", "item_10", "item_15"]
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -260,7 +260,7 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
         "item_15": 45,
     }
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -298,7 +298,7 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
         "item_15": 45,
     }
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     assert rendered_data["items"]["dict_config"] == {
         "item_5": 15,
@@ -329,7 +329,7 @@ result = <( 3 + 4 )>
     print(data)
     assert resolved_config["calc"]["result"] == 11
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     assert rendered_data["calc"]["result"] == 11
 
@@ -379,7 +379,7 @@ result = <( 3 + 4 )>
     )
     assert resolved_config["calc"]["result"] == 11
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
@@ -410,7 +410,7 @@ status = f"{'Yes' if true else 'No'}"
     print(resolved_config)
     assert resolved_config["cond"]["status"] == "No"
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -437,7 +437,7 @@ status = <('Yes' if true else 'No')>"""
     print(resolved_config)
     assert resolved_config["cond"]["status"] == "No"
 
-    out = data.dumps()
+    data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)

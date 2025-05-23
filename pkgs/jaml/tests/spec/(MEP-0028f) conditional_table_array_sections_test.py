@@ -45,14 +45,6 @@ for module in package.modules if package.active]]"""
         ],
     }
 
-    expected_result = r"""
-    rootDir = "src"
-
-    [[file.auth.login.source]]
-
-    [[file.auth.signup.source]]
-
-    """
 
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")
