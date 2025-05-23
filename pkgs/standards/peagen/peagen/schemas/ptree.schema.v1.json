@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/ptree.schema.json",
+  "title": "Ptree Schema (v1.0.0)",
+  "schemaVersion": "1.0.0",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Ptree schema version"
+    },
+    "ptree": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FILE_NAME": {
+            "type": "string"
+          },
+          "RENDERED_FILE_NAME": {
+            "type": "string"
+          },
+          "PROCESS_TYPE": {
+            "type": "string",
+            "enum": ["COPY", "GENERATE"],
+            "description": "Must be either COPY or GENERATE"
+          },
+          "AGENT_PROMPT_TEMPLATE": {
+            "type": "string"
+          },
+          "PROJECT_NAME": {
+            "type": "string"
+          },
+          "PACKAGE_NAME": {
+            "type": "string"
+          },
+          "MODULE_NAME": {
+            "type": ["string", "null"]
+          },
+          "EXTRAS": {
+            "anyOf": [
+              { "$ref": "extras/component.schema.v1.json" },
+              { "$ref": "extras/cpp_python_pkg.schema.v1.json" },
+              { "$ref": "extras/no_requirements.schema.v1.json" },
+              { "$ref": "extras/python_api_gw.schema.v1.json" },
+              { "$ref": "extras/python_api_gw_service.schema.v1.json" },
+              { "$ref": "extras/python_orm.schema.v1.json" },
+              { "$ref": "extras/pythonpkg.schema.v1.json" },
+              { "$ref": "extras/react_atom.schema.v1.json" },
+              { "$ref": "extras/rust_python_pkg.schema.v1.json" },
+              { "$ref": "extras/svelte_atom.schema.v1.json" },
+              { "$ref": "extras/swarmauri_base.schema.v1.json" },
+              { "$ref": "extras/swarmauri_core.schema.v1.json" },
+              { "$ref": "extras/swarmauri_standard.schema.v1.json" },
+              { "$ref": "extras/swarmauri_standard_standalone.schema.v1.json" },
+              { "$ref": "extras/test3.schema.v1.json" },
+              { "$ref": "extras/test5.schema.v1.json" },
+              { "$ref": "extras/vue_atom.schema.v1.json" }
+            ]
+          }
+        },
+        "required": [
+          "FILE_NAME",
+          "RENDERED_FILE_NAME",
+          "PROCESS_TYPE",
+          "AGENT_PROMPT_TEMPLATE",
+          "PROJECT_NAME",
+          "PACKAGE_NAME",
+          "MODULE_NAME",
+          "EXTRAS"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["schemaVersion", "ptree"],
+  "additionalProperties": false
+}

@@ -1,7 +1,9 @@
 from typing import List, Dict, Any, Literal
 from pydantic import Field
 import time
+import json
 import logging
+import importlib
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -26,9 +28,11 @@ class JupyterGetIOPubMessageTool(ToolBase):
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
-                name="kernel_client",
-                input_type="object",
-                description="A Jupyter kernel client instance used to retrieve IOPub messages.",
+                name="channels_url",
+                input_type="string",
+                description=(
+                    "WebSocket URL for the kernel channels endpoint (/api/kernels/{id}/channels)."
+                ),
                 required=True,
             ),
             Parameter(
@@ -46,16 +50,16 @@ class JupyterGetIOPubMessageTool(ToolBase):
     )
     type: Literal["JupyterGetIOPubMessageTool"] = "JupyterGetIOPubMessageTool"
 
-    def __call__(self, kernel_client: Any, timeout: float = 5.0) -> Dict[str, Any]:
+    def __call__(self, channels_url: str, timeout: float = 5.0) -> Dict[str, Any]:
         """
-        Retrieves IOPub messages from the specified Jupyter kernel client within a given timeout.
+        Retrieve IOPub messages from the kernel's WebSocket ``channels`` endpoint.
 
-        This method listens on the kernel client's IOPub channel for output, errors, and logging
-        data. It collects all relevant messages until it either encounters an idle signal, or
-        the timeout is reached. Message parsing errors are logged and handled gracefully.
+        This method connects to ``/api/kernels/{id}/channels`` via WebSocket and
+        listens for messages until the kernel becomes idle or the timeout
+        expires. Message parsing errors are logged and collected.
 
         Args:
-            kernel_client (Any): A Jupyter kernel client instance to retrieve IOPub messages from.
+            channels_url (str): WebSocket URL to ``/api/kernels/{id}/channels``.
             timeout (float, optional): Time in seconds to wait for IOPub messages. Defaults to 5.0.
 
         Returns:
@@ -67,9 +71,11 @@ class JupyterGetIOPubMessageTool(ToolBase):
                 - "timeout_exceeded": Boolean indicating whether a timeout occurred
 
         Example:
-            >>> # Suppose 'kc' is a properly initialized Jupyter kernel client:
             >>> tool = JupyterGetIOPubMessageTool()
-            >>> result = tool(kc, timeout=3.0)
+            >>> result = tool(
+            ...     "ws://localhost:8888/api/kernels/12345/channels",
+            ...     timeout=3.0,
+            ... )
             >>> print(result["stdout"])
             ['Hello world!']
         """
@@ -79,15 +85,19 @@ class JupyterGetIOPubMessageTool(ToolBase):
         )
         start_time = time.time()
 
+        websocket_module = importlib.import_module("websocket")
+        ws = websocket_module.create_connection(channels_url, timeout=timeout)
+        ws.settimeout(0.1)
+
         # Containers for captured data
         stdout_messages = []
         stderr_messages = []
         logs = []
         execution_results = []
 
-        # Continue to retrieve messages until idle or timeout
-        while True:
-            try:
+        try:
+            # Continue to retrieve messages until idle or timeout
+            while True:
                 # Check elapsed time for timeout
                 if (time.time() - start_time) > timeout:
                     logger.warning("Timeout exceeded while waiting for IOPub messages.")
@@ -99,10 +109,17 @@ class JupyterGetIOPubMessageTool(ToolBase):
                         "timeout_exceeded": True,
                     }
 
-                # Attempt to get a single message from the IOPub channel (with a short block)
-                msg = kernel_client.get_iopub_msg(timeout=0.1)
-                if not msg:
-                    continue  # No message received yet, keep checking
+                try:
+                    raw_msg = ws.recv()
+                except websocket_module.WebSocketTimeoutException:
+                    continue
+
+                try:
+                    msg = json.loads(raw_msg)
+                except Exception as exc:
+                    logger.error("Error parsing IOPub message: %s", str(exc))
+                    logs.append({"error": f"Error parsing IOPub message: {str(exc)}"})
+                    continue
 
                 msg_type = msg["msg_type"]
                 msg_content = msg["content"]
@@ -143,10 +160,8 @@ class JupyterGetIOPubMessageTool(ToolBase):
                     # Other messages (e.g., clear_output, update_display_data) can be logged
                     logs.append({"type": msg_type, "content": msg_content})
 
-            except Exception as e:
-                logger.error("Error parsing IOPub message: %s", str(e))
-                logs.append({"error": f"Error parsing IOPub message: {str(e)}"})
-                # If there's an error, we continue listening unless time is up
+        finally:
+            ws.close()
 
         # Successfully captured messages without timeout
         return {

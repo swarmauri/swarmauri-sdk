@@ -1,4 +1,4 @@
-# swarmauri_base/ObserveBase.py
+"""Base class for observable SwarmAuri components."""
 
 from typing import (
     ClassVar,

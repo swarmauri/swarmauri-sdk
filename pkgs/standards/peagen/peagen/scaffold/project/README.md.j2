@@ -1,0 +1,33 @@
+# {{ project_slug }}
+
+Generated with **`peagen init project`**.
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .                 # ⬅ uses pyproject.toml
+peagen process
+```
+
+### Scaffold engine impact
+
+* **`peagen init project --env pip`** now drops:
+  * **`pyproject.toml`** (always)
+  * **`environment.yml`** (only if `--env conda` is *not* selected)
+* The older `requirements.txt.j2` file is removed from the `project/` template
+  directory—no code changes are needed elsewhere.
+
+Once this template is in `peagen/scaffolding/project/`, running
+
+```bash
+peagen init project myproj --template-set minimal-fast
+```
+produces a repo that you install with:
+
+```bash
+pip install -e .
+peagen process
+```
+and the appropriate dependencies are resolved via the generated pyproject.toml.

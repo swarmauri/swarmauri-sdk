@@ -35,6 +35,7 @@ members = [
     "typing",
     "cayaml",
     "catoml",
+    "jaml",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -42,6 +43,11 @@ members = [
     "standards/swarmauri_tool_matplotlib",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
+    "standards/swarmauri_evaluator_abstractmethods",
+    "standards/swarmauri_evaluator_anyusage",
+    "standards/swarmauri_evaluator_externalimports",
+    "standards/swarmauri_evaluator_subprocess",
+    "standards/swarmauri_evaluatorpool_accessibility",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
@@ -104,6 +110,13 @@ members = [
     "community/swarmauri_toolkit_jupytertoolkit",
     "community/swarmauri_tool_jupyterexportlatex",
     "community/swarmauri_tool_jupytergetiopubmessage",
+    "community/swarmauri_parser_slate",
+    "community/swarmauri_tool_searchword",
+    "standards/swarmauri_tool_containernewsession",
+    "standards/swarmauri_tool_containerfeedchars",
+    "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_toolkit_containertoolkit",
+    "experimental/swarmauri_workflow_statedriven"
 
 ]
 
@@ -115,7 +128,7 @@ swarmauri = { workspace = true }
 typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
-
+jaml = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
@@ -126,6 +139,11 @@ swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_prompt_j2prompttemplate = { workspace = true }
+swarmauri_evaluator_abstractmethods = { workspace = true }
+swarmauri_evaluator_anyusage = { workspace = true }
+swarmauri_evaluator_externalimports = { workspace = true }
+swarmauri_evaluator_subprocess = { workspace = true }
+swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
 peagen = { workspace = true }
@@ -188,6 +206,13 @@ swarmauri_tool_jupyterclearoutput = { workspace = true }
 swarmauri_tool_jupyterexportlatex = { workspace = true }
 swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_parser_slate = { workspace = true }
+swarmauri_tool_searchword = { workspace = true }
+swarmauri_tool_containernewsession = { workspace = true }
+swarmauri_tool_containerfeedchars = { workspace = true }
+swarmauri_tool_containermakepr = { workspace = true }
+swarmauri_toolkit_containertoolkit = { workspace = true }
+swarmauri_workflow_statedriven = { workspace = true }
 
 
 [tool.pytest.ini_options]

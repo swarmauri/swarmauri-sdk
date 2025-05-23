@@ -4,9 +4,9 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
@@ -34,8 +34,8 @@ class DeepSeekModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["deepseek-chat", "deepseek-reasoner"]
+    name: str = "deepseek-chat"
 
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()
@@ -56,9 +56,6 @@ class DeepSeekModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

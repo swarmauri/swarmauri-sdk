@@ -5,6 +5,14 @@
 # ]
 # ///
 
+"""bump_pyproject_version.py
+
+Bump or set a version in ``pyproject.toml``.
+
+Call this script with the file path and either ``--bump`` or ``--set`` to
+increment or assign the version using semantic versioning rules.
+"""
+
 import sys
 import argparse
 from packaging.version import Version, InvalidVersion
@@ -28,8 +36,11 @@ def read_pyproject_version(file_path):
     try:
         version = doc["project"]["version"]
     except KeyError:
-        raise KeyError("No version found under [\"project\"][version] in the given pyproject.toml")
+        raise KeyError(
+            'No version found under ["project"][version] in the given pyproject.toml'
+        )
     return version, doc
+
 
 def bump_version(current_version, bump_type):
     """
@@ -83,9 +94,12 @@ def bump_version(current_version, bump_type):
             patch += 1
             new_version = f"{major}.{minor}.{patch}.dev1"
     else:
-        raise ValueError("bump_type must be one of: 'major', 'minor', 'patch', or 'finalize'")
+        raise ValueError(
+            "bump_type must be one of: 'major', 'minor', 'patch', or 'finalize'"
+        )
 
     return new_version
+
 
 def set_version(current_version, new_version):
     """
@@ -108,9 +122,12 @@ def set_version(current_version, new_version):
         raise ValueError(f"Invalid version provided: {e}")
 
     if new_ver < current_ver:
-        raise ValueError("You cannot bump the version downwards. The target version must be higher than the current version.")
-    
+        raise ValueError(
+            "You cannot bump the version downwards. The target version must be higher than the current version."
+        )
+
     return new_version
+
 
 def update_pyproject_version(file_path, new_version):
     """
@@ -129,16 +146,25 @@ def update_pyproject_version(file_path, new_version):
         f.write(dumps(doc))
     print(f"Bumped version from {current_version} to {new_version} in {file_path}.")
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Bump or set version in pyproject.toml using semantic versioning. Supports .dev versions and finalizing dev releases."
     )
     parser.add_argument("file", help="Path to the pyproject.toml file")
-    
+
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--bump", choices=["major", "minor", "patch", "finalize"], help="Type of version bump (use 'finalize' to remove the .dev segment from a dev release)")
-    group.add_argument("--set", dest="set_version", help="Set the version explicitly (e.g. 0.2.0 or 0.2.0.dev1)")
-    
+    group.add_argument(
+        "--bump",
+        choices=["major", "minor", "patch", "finalize"],
+        help="Type of version bump (use 'finalize' to remove the .dev segment from a dev release)",
+    )
+    group.add_argument(
+        "--set",
+        dest="set_version",
+        help="Set the version explicitly (e.g. 0.2.0 or 0.2.0.dev1)",
+    )
+
     args = parser.parse_args()
 
     current_version, _ = read_pyproject_version(args.file)
@@ -151,11 +177,12 @@ def main():
         else:
             print("No operation specified.")
             sys.exit(1)
-        
+
         update_pyproject_version(args.file, new_version)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

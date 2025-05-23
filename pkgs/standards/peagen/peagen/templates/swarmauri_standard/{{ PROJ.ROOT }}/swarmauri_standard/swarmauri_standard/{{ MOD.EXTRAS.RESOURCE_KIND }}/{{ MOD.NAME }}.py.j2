@@ -1,0 +1,10 @@
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+@ComponentBase.register_type({{ MOD.EXTRAS.BASE_NAME }}, "{{ MOD.NAME }}")
+class {{ MOD.NAME }}({% if FILE.EXTRAS.MIXINS %}{{ FILE.EXTRAS.MIXINS|join(', ') }},{% endif %}{{ MOD.EXTRAS.BASE_NAME }}):
+    type: Literal["{{ MOD.NAME }}"] = "{{ MOD.NAME }}"
+    <!-- Add additional attributes here -->
+    
+    # Methods
+    <!-- Include additional methods here. All methods should include complete implementation logic. -->

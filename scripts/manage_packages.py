@@ -34,7 +34,9 @@ def poetry_lock(directory=None, file=None):
     run_command(" ".join(command), cwd=location)
 
 
-def poetry_install(directory=None, file=None, extras=None, with_dev=False, all_extras=False):
+def poetry_install(
+    directory=None, file=None, extras=None, with_dev=False, all_extras=False
+):
     """Run `poetry install` in the specified directory or file."""
     location = directory if directory else os.path.dirname(file)
     print(f"Installing dependencies in {location}...")
@@ -70,7 +72,9 @@ def recursive_build(directory=None, file=None):
     print("Building specified packages...")
     for package_path in dependencies:
         full_path = os.path.join(base_dir, package_path)
-        if os.path.isdir(full_path) and os.path.isfile(os.path.join(full_path, "pyproject.toml")):
+        if os.path.isdir(full_path) and os.path.isfile(
+            os.path.join(full_path, "pyproject.toml")
+        ):
             print(f"Building package: {full_path}")
             run_command("poetry build", cwd=full_path)
         else:
@@ -100,7 +104,10 @@ def set_version(version, directory=None, file=None):
                 if "tool" in data and "poetry" in data["tool"]:
                     data["tool"]["poetry"]["version"] = version
                 else:
-                    print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
+                    print(
+                        f"Error: Invalid pyproject.toml structure in {pyproject_path}.",
+                        file=sys.stderr,
+                    )
                     continue
 
                 # Write the updated content back to the file
@@ -119,7 +126,10 @@ def set_version(version, directory=None, file=None):
         if "tool" in data and "poetry" in data["tool"]:
             data["tool"]["poetry"]["version"] = version
         else:
-            print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
+            print(
+                f"Error: Invalid pyproject.toml structure in {pyproject_path}.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         # Write the updated content back to the file
@@ -137,12 +147,16 @@ def set_dependency_versions(version, directory=None, file=None):
         for root, _, files in os.walk(directory):
             if "pyproject.toml" in files:
                 pyproject_path = os.path.join(root, "pyproject.toml")
-                print(f"Setting dependency versions to {version} in {pyproject_path}...")
+                print(
+                    f"Setting dependency versions to {version} in {pyproject_path}..."
+                )
 
                 with open(pyproject_path, "r") as f:
                     data = toml.load(f)
 
-                dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+                dependencies = (
+                    data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+                )
                 updated_dependencies = {}
 
                 for dep_name, dep_value in dependencies.items():
@@ -156,12 +170,18 @@ def set_dependency_versions(version, directory=None, file=None):
 
                         # Update the version in the dependency's pyproject.toml
                         dependency_path = os.path.join(root, dep_value["path"])
-                        dependency_pyproject = os.path.join(dependency_path, "pyproject.toml")
+                        dependency_pyproject = os.path.join(
+                            dependency_path, "pyproject.toml"
+                        )
                         if os.path.isfile(dependency_pyproject):
-                            print(f"Updating version in {dependency_pyproject} to {version}...")
+                            print(
+                                f"Updating version in {dependency_pyproject} to {version}..."
+                            )
                             set_version(version=version, file=dependency_pyproject)
                         else:
-                            print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
+                            print(
+                                f"Warning: pyproject.toml not found at {dependency_pyproject}"
+                            )
 
                     else:
                         # Leave other dependencies unchanged
@@ -195,13 +215,17 @@ def set_dependency_versions(version, directory=None, file=None):
                 updated_dependencies[dep_name] = updated_dep
 
                 # Update the version in the dependency's pyproject.toml
-                dependency_path = os.path.join(os.path.dirname(pyproject_path), dep_value["path"])
+                dependency_path = os.path.join(
+                    os.path.dirname(pyproject_path), dep_value["path"]
+                )
                 dependency_pyproject = os.path.join(dependency_path, "pyproject.toml")
                 if os.path.isfile(dependency_pyproject):
                     print(f"Updating version in {dependency_pyproject} to {version}...")
                     set_version(version=version, file=dependency_pyproject)
                 else:
-                    print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
+                    print(
+                        f"Warning: pyproject.toml not found at {dependency_pyproject}"
+                    )
 
             else:
                 # Leave other dependencies unchanged
@@ -215,10 +239,6 @@ def set_dependency_versions(version, directory=None, file=None):
             toml.dump(data, f)
 
         print(f"Dependency versions set to {version} in {pyproject_path}.")
-
-
-
-
 
 
 def publish_package(directory=None, file=None, username=None, password=None):
@@ -259,7 +279,9 @@ def publish_from_dependencies(directory=None, file=None, username=None, password
     print("Building and publishing packages based on path dependencies...")
     for package_path in dependencies:
         full_path = os.path.join(base_dir, package_path)
-        if os.path.isdir(full_path) and os.path.isfile(os.path.join(full_path, "pyproject.toml")):
+        if os.path.isdir(full_path) and os.path.isfile(
+            os.path.join(full_path, "pyproject.toml")
+        ):
             print(f"Building and publishing package: {full_path}")
             run_command("poetry build", cwd=full_path)
             run_command(
@@ -271,61 +293,103 @@ def publish_from_dependencies(directory=None, file=None, username=None, password
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage Python packages in a monorepo.")
-    subparsers = parser.add_subparsers(dest="action", required=True, help="Action to perform.")
+    parser = argparse.ArgumentParser(
+        description="Manage Python packages in a monorepo."
+    )
+    subparsers = parser.add_subparsers(
+        dest="action", required=True, help="Action to perform."
+    )
 
     # Shared arguments for directory and file
     location_parser = argparse.ArgumentParser(add_help=False)
-    location_parser.add_argument("--directory", type=str, help="Path to the directory containing pyproject.toml.")
-    location_parser.add_argument("--file", type=str, help="Path to the pyproject.toml file.")
+    location_parser.add_argument(
+        "--directory", type=str, help="Path to the directory containing pyproject.toml."
+    )
+    location_parser.add_argument(
+        "--file", type=str, help="Path to the pyproject.toml file."
+    )
 
     # Poetry lock
-    subparsers.add_parser("poetry-lock", parents=[location_parser], help="Run `poetry lock`.")
+    subparsers.add_parser(
+        "poetry-lock", parents=[location_parser], help="Run `poetry lock`."
+    )
 
     # Poetry install
-    install_parser = subparsers.add_parser("poetry-install", parents=[location_parser], help="Run `poetry install`.")
-    install_parser.add_argument("--extras", type=str, help="Extras to include (e.g., full, dev).")
-    install_parser.add_argument("--dev", action="store_true", help="Include dev dependencies.")
-    install_parser.add_argument("--all-extras", action="store_true", help="Include all extras.")
+    install_parser = subparsers.add_parser(
+        "poetry-install", parents=[location_parser], help="Run `poetry install`."
+    )
+    install_parser.add_argument(
+        "--extras", type=str, help="Extras to include (e.g., full, dev)."
+    )
+    install_parser.add_argument(
+        "--dev", action="store_true", help="Include dev dependencies."
+    )
+    install_parser.add_argument(
+        "--all-extras", action="store_true", help="Include all extras."
+    )
 
     # Extract path dependencies
     subparsers.add_parser(
-        "extract-path-dependencies", parents=[location_parser], help="Extract path dependencies from pyproject.toml."
+        "extract-path-dependencies",
+        parents=[location_parser],
+        help="Extract path dependencies from pyproject.toml.",
     )
 
     # Recursive build
     subparsers.add_parser(
-        "recursive-build", parents=[location_parser], help="Recursively build packages based on path dependencies."
+        "recursive-build",
+        parents=[location_parser],
+        help="Recursively build packages based on path dependencies.",
     )
 
     # Show pip freeze
-    subparsers.add_parser("show-pip-freeze", help="Show installed packages using pip freeze.")
+    subparsers.add_parser(
+        "show-pip-freeze", help="Show installed packages using pip freeze."
+    )
 
     # Set dependency versions
     version_parser = subparsers.add_parser(
-        "set-dependency-versions", parents=[location_parser], help="Set dependency versions and update paths."
+        "set-dependency-versions",
+        parents=[location_parser],
+        help="Set dependency versions and update paths.",
     )
-    version_parser.add_argument("--version", type=str, required=True, help="The new version.")
+    version_parser.add_argument(
+        "--version", type=str, required=True, help="The new version."
+    )
 
     # Set version
     set_version_parser = subparsers.add_parser(
-        "set-version", parents=[location_parser], help="Set the version in pyproject.toml."
+        "set-version",
+        parents=[location_parser],
+        help="Set the version in pyproject.toml.",
     )
-    set_version_parser.add_argument("--version", type=str, required=True, help="The new version.")
+    set_version_parser.add_argument(
+        "--version", type=str, required=True, help="The new version."
+    )
 
     # Publish
-    publish_parser = subparsers.add_parser("publish", parents=[location_parser], help="Publish package to PyPI.")
-    publish_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
-    publish_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
+    publish_parser = subparsers.add_parser(
+        "publish", parents=[location_parser], help="Publish package to PyPI."
+    )
+    publish_parser.add_argument(
+        "--username", type=str, required=True, help="PyPI username."
+    )
+    publish_parser.add_argument(
+        "--password", type=str, required=True, help="PyPI password."
+    )
 
     # Publish from dependencies
     publish_deps_parser = subparsers.add_parser(
         "publish-from-dependencies",
         parents=[location_parser],
-        help="Build and publish packages based on path dependencies from pyproject.toml."
+        help="Build and publish packages based on path dependencies from pyproject.toml.",
     )
-    publish_deps_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
-    publish_deps_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
+    publish_deps_parser.add_argument(
+        "--username", type=str, required=True, help="PyPI username."
+    )
+    publish_deps_parser.add_argument(
+        "--password", type=str, required=True, help="PyPI password."
+    )
 
     args = parser.parse_args()
 
@@ -334,10 +398,18 @@ def main():
         poetry_lock(directory=args.directory, file=args.file)
 
     elif args.action == "poetry-install":
-        poetry_install(directory=args.directory, file=args.file, extras=args.extras, with_dev=args.dev, all_extras=args.all_extras)
+        poetry_install(
+            directory=args.directory,
+            file=args.file,
+            extras=args.extras,
+            with_dev=args.dev,
+            all_extras=args.all_extras,
+        )
 
     elif args.action == "extract-path-dependencies":
-        pyproject_path = args.file if args.file else os.path.join(args.directory, "pyproject.toml")
+        pyproject_path = (
+            args.file if args.file else os.path.join(args.directory, "pyproject.toml")
+        )
         dependencies = extract_path_dependencies(pyproject_path)
         print(",".join(dependencies))
 
@@ -348,16 +420,28 @@ def main():
         show_pip_freeze()
 
     elif args.action == "set-dependency-versions":
-        set_dependency_versions(version=args.version, directory=args.directory, file=args.file)
+        set_dependency_versions(
+            version=args.version, directory=args.directory, file=args.file
+        )
 
     elif args.action == "set-version":
         set_version(version=args.version, directory=args.directory, file=args.file)
 
     elif args.action == "publish":
-        publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
+        publish_package(
+            directory=args.directory,
+            file=args.file,
+            username=args.username,
+            password=args.password,
+        )
 
     elif args.action == "publish-from-dependencies":
-        publish_from_dependencies(directory=args.directory, file=args.file, username=args.username, password=args.password)
+        publish_from_dependencies(
+            directory=args.directory,
+            file=args.file,
+            username=args.username,
+            password=args.password,
+        )
 
 
 if __name__ == "__main__":

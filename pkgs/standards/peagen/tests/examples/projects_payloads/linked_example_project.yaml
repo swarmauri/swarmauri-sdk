@@ -1,0 +1,40 @@
+schemaVersion: "1.0.0"
+PROJECTS:
+  - NAME: "EVsProject"
+    ROOT: "pkgs"
+    PACKAGES:
+
+      # Core Interfaces
+      - NAME: "core/swarmauri_core"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_core"
+        MODULES:
+          # Existing interfaces...
+          - NAME: "IEvaluate"
+            EXTRAS:
+              PURPOSE: "Defines the contract for evaluation functions in EV pools."
+              DESCRIPTION: "Interface requiring implementation of methods to evaluate program fitness."
+              RESOURCE_KIND: "evaluators"
+              REQUIREMENTS:
+                - "Must implement method: def evaluate(self, program: Program, **kwargs) -> Tuple[float, Dict[str,Any]]"
+                - "Must be stateless (no shared mutable or global state) to allow parallel execution"
+                - "Must support multiple feature dimensions and return a scalar score plus metadata"
+                - "Must document all input and output types explicitly (never use Any)"
+                - "Must raise EvaluationError on failure"
+
+      # Base Classes
+      - NAME: "base/swarmauri_base"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_base"
+        MODULES:
+          # Existing base classes...
+          - NAME: "EvaluatorBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for evaluation function implementations."
+              DESCRIPTION: "Abstract base implementing template methods, logging, and partial evaluation workflow."
+              RESOURCE_KIND: "evaluators"
+              INTERFACE_NAME: "IEvaluate"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/evaluators/IEvaluate.py"
+              REQUIREMENTS:
+                - "Must inherit from IEvaluate"
+                - "Must implement protected _compute_score(self, program: Program, **kwargs) -> Tuple[float, Dict]"
+                - "Must wrap _compute_score in evaluate(), capturing execution time and exceptions"
+                - "Must provide default metadata‐aware aggregation (e.g. average of sub-scores)"

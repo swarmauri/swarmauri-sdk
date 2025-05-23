@@ -1,3 +1,12 @@
+"""create_component.py
+
+Generate a component skeleton from Jinja2 templates.
+
+Provide a templates directory, an output path and a list of KEY=VALUE
+placeholders. The script renders each template with these placeholders to
+produce the component structure.
+"""
+
 import argparse
 from pathlib import Path
 import shutil

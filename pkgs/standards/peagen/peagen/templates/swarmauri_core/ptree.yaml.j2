@@ -14,8 +14,8 @@
 # -------------------------
 {% for MOD in PKG.MODULES %}
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/core/swarmauri_core/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/core/swarmauri_core/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py"
   PROCESS_TYPE: "COPY"
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -26,8 +26,8 @@
     DESCRIPTION: "This file makes the directory a Python package."
     DEPENDENCIES: []
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/core/swarmauri_core/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/core/swarmauri_core/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
@@ -52,7 +52,7 @@
             {%- if parts | length > 2 %}
               - "{{ PROJ.ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
             {%- else %}
-              - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
+              - "{{ PROJ.ROOT }}/core/swarmauri_core/{{ dep }}"
             {%- endif %}
           {%- endif %}
         {%- endfor %}

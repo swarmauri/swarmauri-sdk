@@ -1,3 +1,10 @@
+"""Generate Markdown documentation for package modules.
+
+This script traverses a Python package, creates Markdown files for each module
+and class, and updates ``mkdocs.yml`` with a navigation structure. It also
+ensures a home page exists in the documentation directory.
+"""
+
 import os
 import pkgutil
 import importlib
@@ -5,6 +12,7 @@ import inspect
 import yaml
 
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
+
 
 def ensure_home_page(docs_dir: str):
     """
@@ -19,6 +27,7 @@ def ensure_home_page(docs_dir: str):
         print(f"Created a new home page at {home_file_path}")
     else:
         print(f"Home page already exists at {home_file_path}")
+
 
 def generate_docs(package_name: str, output_dir: str) -> dict:
     """
@@ -35,7 +44,9 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
 
     # Ensure it's a proper package
     if not hasattr(root_package, "__path__"):
-        raise ValueError(f"'{package_name}' is not a package or has no __path__ attribute.")
+        raise ValueError(
+            f"'{package_name}' is not a package or has no __path__ attribute."
+        )
 
     package_path = root_package.__path__
 
@@ -72,7 +83,9 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
             md_file.write("      show_inheritance: false\n")
             # Exclude children so we don't double-document classes
             md_file.write("      filters:\n")
-            md_file.write("        - '!.*'  # exclude everything but the module docstring\n\n")
+            md_file.write(
+                "        - '!.*'  # exclude everything but the module docstring\n\n"
+            )
 
             if class_names:
                 md_file.write("## Classes\n\n")
@@ -80,10 +93,12 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
                     # Link to a separate class doc
                     md_file.write(f"- [`{cls_name}`]({cls_name}.md)\n")
                 md_file.write("\n")
-        
+
         # ---- Write separate files for each class ----
         for cls_name, _ in classes:
-            class_file_path = os.path.join(os.path.dirname(doc_file_path), f"{cls_name}.md")
+            class_file_path = os.path.join(
+                os.path.dirname(doc_file_path), f"{cls_name}.md"
+            )
             with open(class_file_path, "w", encoding="utf-8") as cls_md_file:
                 cls_md_file.write(f"# Class `{module_name}.{cls_name}`\n\n")
                 cls_md_file.write(f"::: {module_name}.{cls_name}\n")
@@ -101,7 +116,7 @@ def build_nav(
     docs_dir: str,
     local_output_dir: str,
     top_label: str = "core",
-    home_page: str = "index.md"
+    home_page: str = "index.md",
 ) -> list:
     """
     Return a nav structure that looks like:
@@ -118,38 +133,34 @@ def build_nav(
 
     # We'll build a single top-level list containing one dictionary: { core: [...] }.
     # 1) Start with "Home" => index.md
-    core_items = [{"Home": os.path.join(
-                local_output_dir,
-                home_page
-            )}]
+    core_items = [{"Home": os.path.join(local_output_dir, home_page)}]
 
     # 2) For each module, add each class to the nav at the same level
     for module_name in sorted_modules:
         class_names = sorted(module_classes_map[module_name])
         for cls_name in class_names:
             # E.g. "src/swarmauri_core/ComponentBase/ComponentBase.md"
-            if len(module_name.split('.')) > 2:
+            if len(module_name.split(".")) > 2:
                 print(module_name)
-                module_name = '/'.join(module_name.split('.')[:2])
+                module_name = "/".join(module_name.split(".")[:2])
                 class_md_path = os.path.join(
-                    local_output_dir,
-                    module_name,
-                    f"{cls_name}.md"
+                    local_output_dir, module_name, f"{cls_name}.md"
                 )
             else:
-                module_name = '/'.join(module_name.split('.')[:1])
+                module_name = "/".join(module_name.split(".")[:1])
                 class_md_path = os.path.join(
-                    local_output_dir,
-                    module_name,
-                    f"{cls_name}.md"
+                    local_output_dir, module_name, f"{cls_name}.md"
                 )
-            
+
             core_items.append({cls_name: class_md_path})
 
     # Wrap everything under the top_label (e.g. "core")
     return [{top_label: core_items}]
 
-def write_nav_to_mkdocs_yml(mkdocs_yml_path: str, new_nav: list, replace_nav: bool = True):
+
+def write_nav_to_mkdocs_yml(
+    mkdocs_yml_path: str, new_nav: list, replace_nav: bool = True
+):
     """
     Load mkdocs.yml and either replace or append to the existing 'nav' key with new_nav.
     :param replace_nav: If True, we replace the entire nav with 'new_nav'.
@@ -194,13 +205,19 @@ def generate(
     home_page_dir = os.path.join(docs_dir, package_name)
     home_page_file_path = os.path.join(package_name, home_page)
     ensure_home_page(home_page_dir)
-    
 
     # Step 2: Generate doc files
     module_classes_map = generate_docs(package_name, docs_dir)
 
     # Step 3: Build a nav structure
-    new_nav_structure = build_nav(package_name, module_classes_map, docs_dir, local_output_dir, top_label, home_page_file_path)
+    new_nav_structure = build_nav(
+        package_name,
+        module_classes_map,
+        docs_dir,
+        local_output_dir,
+        top_label,
+        home_page_file_path,
+    )
 
     # Step 4: Write to mkdocs.yml
     write_nav_to_mkdocs_yml(mkdocs_yml_path, new_nav_structure, replace_nav=replace_nav)
