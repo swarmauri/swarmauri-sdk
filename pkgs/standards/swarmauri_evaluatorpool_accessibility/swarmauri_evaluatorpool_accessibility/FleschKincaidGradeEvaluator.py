@@ -28,6 +28,14 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
 
     type: Literal["FleschKincaidGradeEvaluator"] = "FleschKincaidGradeEvaluator"
 
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
+
     def _compute_score(
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:

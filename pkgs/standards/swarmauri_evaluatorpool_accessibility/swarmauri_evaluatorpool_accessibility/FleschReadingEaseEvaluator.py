@@ -38,6 +38,14 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     type: Literal["FleschReadingEaseEvaluator"] = "FleschReadingEaseEvaluator"
     _cmu_dict = PrivateAttr(default=None)
 
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
+
     def __init__(self, **kwargs):
         """Initialize the Flesch Reading Ease evaluator."""
         super().__init__(**kwargs)
