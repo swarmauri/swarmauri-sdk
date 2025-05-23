@@ -411,7 +411,7 @@ class Peagen(ComponentBase):
                         break
 
             manifest_meta: Dict[str, Any] = {
-                "schema_version": "3.1.0",
+                "schemaVersion": "3.1.0",
                 "workspace_uri": workspace_uri,
                 "project": project_name,
                 "source_packages": self.source_packages,

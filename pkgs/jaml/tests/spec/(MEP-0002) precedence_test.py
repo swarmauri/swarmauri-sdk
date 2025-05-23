@@ -130,7 +130,6 @@ def test_operator_precedence():
 
     # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
     token_types = [t.type for t in tokens]
-    token_values = [t.value for t in tokens]
     assert token_types == ["IDENTIFIER", "HSPACES", "SETTER", "HSPACES", "INTEGER"]
 
 
