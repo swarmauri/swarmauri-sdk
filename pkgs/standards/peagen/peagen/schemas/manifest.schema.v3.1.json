@@ -5,7 +5,7 @@
   "schemaVersion": "3.1.0",
   "type": "object",
   "required": [
-    "schema_version",
+    "schemaVersion",
     "workspace_uri",
     "project",
     "generated",
@@ -15,9 +15,10 @@
     "generated_at"
   ],
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "3.1.0",
-      "description": "Hard-coded version tag; bump only on breaking changes."
+      "description": "Hard-coded version tag; bump only on breaking changes.",
+      "$comment": "Used to detect format version; camelCase per IP-0003."
     },
     "workspace_uri": {
       "type": "string",
@@ -94,7 +95,9 @@
     },
     "peagen_version": {
       "type": "string",
-      "description": "Semantic version of the Peagen CLI that produced the manifest."
+      "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)$",
+      "description": "Semantic version of the Peagen CLI that produced the manifest.",
+      "$comment": "Semantic version (MAJOR.MINOR.PATCH) of the Peagen CLI that generated this artefact."
     },
     "generated_at": {
       "type": "string",

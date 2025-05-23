@@ -27,6 +27,13 @@
   },
   "required": ["schemaVersion", "PROJECTS"],
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "required": ["PROJECTS"] },
+      "then": { "required": ["SOURCE"] },
+      "$comment": "DOE expansions must record the originating SOURCE for provenance."
+    }
+  ],
   "definitions": {
     "projectEntry": {
       "type": "object",
@@ -56,7 +63,11 @@
             "LLM_FACTORS":    { "type": "object", "additionalProperties": true },
             "factors":        { "type": "object", "additionalProperties": true },
             "spec_name":      { "type": "string" },
-            "peagen_version": { "type": "string" }
+            "peagen_version": {
+              "type": "string",
+              "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)$",
+              "$comment": "Semantic version (MAJOR.MINOR.PATCH) of the Peagen CLI that generated this artefact."
+            }
           },
           "required": ["design_id", "LLM_FACTORS", "factors", "spec_name", "peagen_version"],
           "additionalProperties": true
@@ -160,10 +171,13 @@
       "properties": {
         "spec":           { "type": "string" },
         "template":       { "type": "string" },
-        "context":        { "type": ["string", "null"] },
+        "context":        {
+          "type": ["string", "null"],
+          "$comment": "Null permitted when the context is implicit"
+        },
         "spec_checksum":  { "type": "string" }
       },
-      "required": ["spec", "template", "context", "spec_checksum"],
+      "required": ["spec", "template", "spec_checksum"],
       "additionalProperties": true
     }
   }
