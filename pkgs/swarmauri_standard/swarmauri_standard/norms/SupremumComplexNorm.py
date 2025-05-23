@@ -250,7 +250,6 @@ class SupremumComplexNorm(NormBase):
                 except TypeError:
                     raise TypeError("Inputs cannot be added")
 
-
             # Compute norms
             norm_x = abs(self.compute(x))
             norm_y = abs(self.compute(y))

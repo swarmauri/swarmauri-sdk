@@ -19,7 +19,6 @@ from peagen.cli_common import load_peagen_toml
 from peagen._api_key import _resolve_api_key
 from peagen._config import _config
 from peagen.core import Peagen
-from pydantic import FilePath
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
 revise_app = typer.Typer(help="Revise an existing Peagen project.")
@@ -164,7 +163,11 @@ def revise(
     _config["revise"] = True
     _config["transitive"] = transitive
     toml_cfg = load_peagen_toml()
-    plugin_mode = plugin_mode if plugin_mode is not None else toml_cfg.get("plugins", {}).get("mode")
+    plugin_mode = (
+        plugin_mode
+        if plugin_mode is not None
+        else toml_cfg.get("plugins", {}).get("mode")
+    )
     _config["plugin_mode"] = plugin_mode
 
     # Resolve the appropriate API key

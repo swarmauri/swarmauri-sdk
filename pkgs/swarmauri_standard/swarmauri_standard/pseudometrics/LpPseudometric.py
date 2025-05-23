@@ -1,4 +1,3 @@
-
 import logging
 import math
 from typing import Callable, List, Literal, Optional, Sequence, Tuple, TypeVar, Union
@@ -6,6 +5,7 @@ from typing import Callable, List, Literal, Optional, Sequence, Tuple, TypeVar, 
 
 try:
     import numpy as np  # type: ignore
+
     _NP_AVAILABLE = True
 except Exception:  # pragma: no cover - numpy may not be installed
     _NP_AVAILABLE = False
@@ -255,10 +255,14 @@ class LpPseudometric(PseudometricBase):
                         f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
                     )
             else:  # pragma: no cover - numpy fallback
-                if isinstance(x_arr[0], (list, tuple)) != isinstance(y_arr[0], (list, tuple)):
+                if isinstance(x_arr[0], (list, tuple)) != isinstance(
+                    y_arr[0], (list, tuple)
+                ):
                     raise ValueError("Inputs must have the same shape")
                 if isinstance(x_arr[0], (list, tuple)):
-                    if len(x_arr) != len(y_arr) or any(len(a) != len(b) for a, b in zip(x_arr, y_arr)):
+                    if len(x_arr) != len(y_arr) or any(
+                        len(a) != len(b) for a, b in zip(x_arr, y_arr)
+                    ):
                         raise ValueError("Inputs must have the same shape")
                 else:
                     if len(x_arr) != len(y_arr):
@@ -285,15 +289,29 @@ class LpPseudometric(PseudometricBase):
 
             # Handle special cases for common p values with scaling
             if math.isclose(self.p, 1.0):
-                total = np.sum(diff * scaling_factor) if _NP_AVAILABLE else sum(d * scaling_factor for d in diff)
+                total = (
+                    np.sum(diff * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum(d * scaling_factor for d in diff)
+                )
                 return float(total)
             elif math.isclose(self.p, 2.0):
-                total = np.sum((diff**2) * scaling_factor) if _NP_AVAILABLE else sum((d**2) * scaling_factor for d in diff)
+                total = (
+                    np.sum((diff**2) * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum((d**2) * scaling_factor for d in diff)
+                )
                 return float(np.sqrt(total) if _NP_AVAILABLE else math.sqrt(total))
-            elif (_NP_AVAILABLE and np.isinf(self.p)) or (not _NP_AVAILABLE and math.isinf(self.p)):
+            elif (_NP_AVAILABLE and np.isinf(self.p)) or (
+                not _NP_AVAILABLE and math.isinf(self.p)
+            ):
                 return float(np.max(diff) if _NP_AVAILABLE else max(diff))
             else:
-                total = np.sum((diff**self.p) * scaling_factor) if _NP_AVAILABLE else sum((d**self.p) * scaling_factor for d in diff)
+                total = (
+                    np.sum((diff**self.p) * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum((d**self.p) * scaling_factor for d in diff)
+                )
                 return float((total) ** (1.0 / self.p))
 
         except Exception as e:

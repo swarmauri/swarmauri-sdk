@@ -13,10 +13,10 @@ validate : schema + license compliance checks
 
 from __future__ import annotations
 
-import json, io, os, pathlib
+import json
+import pathlib
 import shutil
 import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -27,17 +27,13 @@ from rich.tree import Tree
 from urllib.parse import urlparse, urlunparse
 
 from peagen._source_packages import (
-    materialise_packages,
     _materialise_source_pkg,
 )
-from peagen._template_sets import install_template_sets
-import importlib
 from peagen.storage_adapters import make_adapter_for_uri
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
 from jsonschema import validate as json_validate, ValidationError
-import hashlib, difflib, textwrap, jsonpatch, yaml, subprocess
-
-
+import hashlib
+import jsonpatch
 
 
 program_app = typer.Typer(
@@ -58,13 +54,14 @@ def fetch(
         False, help="Skip cloning/copying `source_packages` (debug only)"
     ),
     install_template_sets: bool = typer.Option(
-        True, "--install-template-sets/--no-install-template-sets",
+        True,
+        "--install-template-sets/--no-install-template-sets",
         help="Install template sets before fetching",
-        ),
-#     evaluator_pool: Optional[str] = typer.Option(
-#         None,
-#         help="Evaluator pool class path 'module:Class' to run after fetch",
-#     ),
+    ),
+    #     evaluator_pool: Optional[str] = typer.Option(
+    #         None,
+    #         help="Evaluator pool class path 'module:Class' to run after fetch",
+    #     ),
 ):
     """
     Reconstruct a complete workspace from manifest(s).
@@ -85,6 +82,7 @@ def fetch(
         _materialise_workspace(manifest, out_dir)
 
     typer.echo(f"workspace: {out_dir}")
+
 
 #     Future example of integration:
 #     if evaluator_pool:
@@ -223,7 +221,7 @@ def _download_manifest(uri: str) -> dict:
     Fetch *one* manifest JSON from *uri*.
 
     Fix 2025-05-20: scopes the storage-adapter to the **directory
-    containing** the manifest (instead of the object itself).  
+    containing** the manifest (instead of the object itself).
     This prevents the double-prefix path reported in the stack-trace
     where `<prefix>/<file> + <prefix>/<file>` was requested.
     """
@@ -233,7 +231,7 @@ def _download_manifest(uri: str) -> dict:
 
     # Split object path into directory + filename
     p = urlparse(uri)
-    dir_path, key_name = p.path.rsplit("/", 1)           # “…/.peagen”, “foo_manifest.json”
+    dir_path, key_name = p.path.rsplit("/", 1)  # “…/.peagen”, “foo_manifest.json”
     dir_uri = urlunparse((p.scheme, p.netloc, dir_path, "", "", ""))
 
     # Build adapter scoped to the directory (bucket + prefix *without* the file)
@@ -244,13 +242,12 @@ def _download_manifest(uri: str) -> dict:
     return json.load(data)
 
 
-
-
 def _materialise_workspace(manifest: dict, dest: Path):
-    uri      = manifest["workspace_uri"]
-    adapter  = make_adapter_for_uri(uri)
-    prefix   = getattr(adapter, "_prefix", "")
-    adapter.download_prefix(prefix, dest)   # pulls ALL generated files
+    uri = manifest["workspace_uri"]
+    adapter = make_adapter_for_uri(uri)
+    prefix = getattr(adapter, "_prefix", "")
+    adapter.download_prefix(prefix, dest)  # pulls ALL generated files
+
 
 def _overlay_dir(src: Path, dst: Path):
     delete_list = src / ".peagen-delete"

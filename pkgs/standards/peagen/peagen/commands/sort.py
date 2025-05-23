@@ -99,7 +99,11 @@ def sort(
 
     _config["transitive"] = transitive
     toml_cfg = load_peagen_toml()
-    plugin_mode = plugin_mode if plugin_mode is not None else toml_cfg.get("plugins", {}).get("mode")
+    plugin_mode = (
+        plugin_mode
+        if plugin_mode is not None
+        else toml_cfg.get("plugins", {}).get("mode")
+    )
     _config["plugin_mode"] = plugin_mode
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]

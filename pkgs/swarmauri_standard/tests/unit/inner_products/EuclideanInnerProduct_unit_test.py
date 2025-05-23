@@ -49,7 +49,11 @@ def test_resource_attribute(euclidean_inner_product):
         ([0, 0, 0], [1, 2, 3], 0),  # Zero vector
         ([1, 1, 1], [1, 1, 1], 3),  # Unit vectors
         ([-1, -2, -3], [4, 5, 6], -32),  # Negative values
-        (np.array([1.5, 2.5]), np.array([3.5, 4.5]), 16.5),  # Float values - Fixed value
+        (
+            np.array([1.5, 2.5]),
+            np.array([3.5, 4.5]),
+            16.5,
+        ),  # Float values - Fixed value
     ],
 )
 def test_compute_valid_inputs(euclidean_inner_product, a, b, expected):

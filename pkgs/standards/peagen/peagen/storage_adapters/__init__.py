@@ -4,8 +4,9 @@
 from urllib.parse import urlparse
 from peagen.plugin_registry import registry
 
+
 def make_adapter_for_uri(uri: str):
-    scheme = urlparse(uri).scheme or "file"      # 'file' if path like /home/...
+    scheme = urlparse(uri).scheme or "file"  # 'file' if path like /home/...
     try:
         adapter_cls = registry["storage_adapters"][scheme]
     except KeyError:

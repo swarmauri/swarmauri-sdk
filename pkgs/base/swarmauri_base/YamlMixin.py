@@ -7,6 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 class YamlMixin(BaseModel):
     """Provide YAML-based validation and serialization helpers."""
+
     @classmethod
     def model_validate_yaml(cls, yaml_data: str):
         """Validate a model from a YAML string."""
