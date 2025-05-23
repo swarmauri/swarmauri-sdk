@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import typer
 
 from importlib import import_module
+from swarmauri_standard.loggers.Logger import Logger
 
 from peagen.cli_common import PathOrURI, temp_workspace, load_peagen_toml
 from peagen.plugin_registry import registry
@@ -43,6 +44,9 @@ def eval_cmd(
         1. <workspace_uri>/.peagen.toml\n
         2. <current working directory>/.peagen.toml
     """
+
+    self = Logger(name="eval_cmd")
+    self.logger.info("Entering eval command")
 
     # ── locate .peagen.toml ----------------------------------------------------
     if config is not None:
@@ -170,4 +174,7 @@ def eval_cmd(
 
     # ── strict / CI gate -------------------------------------------------------
     if strict and any(r.score == 0 for _, r in paired):
+        self.logger.info("Exiting eval command")
         raise typer.Exit(3)
+
+    self.logger.info("Exiting eval command")

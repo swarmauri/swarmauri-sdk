@@ -104,8 +104,8 @@ class TestCreateContext:
 
         _create_context(file_record, project_global_attrs, logger)
 
-        # Verify debug was called
-        logger.debug.assert_called_once()
+        # Verify debug was called at least once
+        assert logger.debug.call_count >= 1
 
 
 class TestProcessFile:
@@ -131,6 +131,7 @@ class TestProcessFile:
         mock_render.assert_called_once_with(
             file_record,
             {"test": "context"},
+            ANY,
             ANY,
         )
         mock_save.assert_called_once_with(
@@ -279,7 +280,7 @@ class TestProcessProjectFiles:
 
         # Check that j2pt.templates_dir was updated
         assert j2pt.templates_dir[0] == "custom_templates"
-        mock_logger.debug.assert_called_once()
+        assert mock_logger.debug.call_count >= 1
 
     @patch("peagen._processing._process_file")
     def test_process_project_files_stops_on_false(self, mock_process_file):

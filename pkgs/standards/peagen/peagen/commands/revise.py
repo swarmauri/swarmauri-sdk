@@ -189,6 +189,7 @@ def revise(
             additional_package_dirs=additional_dirs_list,
             agent_env=agent_env,
         )
+        pea.logger.info("Entering revise command")
         if verbose == 1:
             pea.logger.set_level(30)  # INFO
         elif verbose == 2:
@@ -217,6 +218,8 @@ def revise(
         else:
             pea.process_all_projects()
             pea.logger.info("Processed all projects successfully.")
+        pea.logger.info("Exiting revise command")
     except KeyboardInterrupt:
+        pea.logger.info("Exiting revise command")
         typer.echo("\n  Interrupted... exited.")
         raise typer.Exit(code=1)
