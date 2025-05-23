@@ -100,7 +100,12 @@ def eval_cmd(
             evaluator = EvalCls(**args)
         else:
             raise ValueError(f"Invalid evaluator spec for '{name}': {spec}")
-        pool_inst.add_evaluator(evaluator, name=name)
+        print(name, pool_inst.get_evaluator_names())
+        if name not in pool_inst.get_evaluator_names():
+            pool_inst.add_evaluator(evaluator, name=name)
+        else:
+            # TODO: if the evaluator is already present then we need to update the configs of the evaluator
+            pool_inst.get_evaluator(name)
 
     # ── collect programs -------------------------------------------------------
     workspace_path = Path(PathOrURI(workspace_uri))
