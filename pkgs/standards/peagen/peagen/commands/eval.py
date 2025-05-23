@@ -128,7 +128,7 @@ def eval_cmd(
         "evaluators": pool_inst.get_evaluator_names(),
         "results": [
             {
-                "program_path": str(pp),
+                "file_path": str(pp),
                 "score": rr.score,
                 "metadata": rr.metadata,
             }

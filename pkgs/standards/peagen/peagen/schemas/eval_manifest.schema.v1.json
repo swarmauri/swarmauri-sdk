@@ -46,11 +46,15 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["program_path", "scores"],
+        "required": ["scores"],
         "properties": {
           "program_path": {
             "type": "string",
-            "description": "Relative path from workspace root."
+            "description": "Relative path from workspace root representing the program evaluated."
+          },
+          "file_path": {
+            "type": "string",
+            "description": "Relative path from workspace root for an individual file evaluated."
           },
           "scores": {
             "type": "object",
@@ -68,6 +72,10 @@
             "additionalProperties": true
           }
         },
+        "oneOf": [
+          {"required": ["program_path"]},
+          {"required": ["file_path"]}
+        ],
         "additionalProperties": false
       }
     }
