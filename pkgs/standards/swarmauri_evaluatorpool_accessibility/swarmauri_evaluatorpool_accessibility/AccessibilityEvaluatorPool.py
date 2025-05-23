@@ -245,18 +245,19 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         return True
 
     def _calculate_overall_score(self, evaluator_scores: Dict[str, float]) -> float:
-        """
-        Calculate the overall weighted score based on individual evaluator scores.
+        """Return a weighted accessibility score aggregated across evaluators.
 
-        Parameters
-        ----------
-        evaluator_scores : Dict[str, float]
-            Dictionary mapping evaluator names to their scores
+        The FleschReadingEaseEvaluator produces higher values for more
+        accessible text, while the other evaluators use the opposite scale.
+        This method normalizes those differences so the final score always
+        increases with accessibility.
 
-        Returns
-        -------
-        float
-            The overall weighted score between 0 and 1
+        Args:
+            evaluator_scores (Dict[str, float]):
+                Mapping of evaluator names to their raw scores.
+
+        Returns:
+            float: The overall accessibility score clamped between 0 and 1.
         """
         if not evaluator_scores:
             return 0.0
@@ -267,7 +268,15 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         for evaluator_name, score in evaluator_scores.items():
             # Get weight for this evaluator, default to 1.0 if not specified
             weight = self.weights.get(evaluator_name, 1.0)
-            weighted_sum += score * weight
+
+            if evaluator_name == "FleschReadingEaseEvaluator":
+                normalized = score / 100.0
+            else:
+                normalized = 1.0 - score
+
+            normalized = max(0.0, min(1.0, normalized))
+
+            weighted_sum += normalized * weight
             total_weight += weight
 
         # Avoid division by zero
@@ -298,23 +307,22 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         # Other configuration options can be added here
 
     def add_evaluator(self, evaluator: EvaluatorBase, weight: float = 1.0) -> None:
-        """
-        Add an evaluator to the pool with an optional weight.
+        """Disallow dynamic registration of additional evaluators.
 
-        Parameters
-        ----------
-        evaluator : EvaluatorBase
-            The evaluator to add
-        weight : float, default=1.0
-            The weight to assign to this evaluator
-        """
-        if not isinstance(evaluator, EvaluatorBase):
-            raise TypeError(f"Expected EvaluatorBase instance, got {type(evaluator)}")
+        This pool's scoring assumes a fixed set of evaluators. Altering that set
+        would invalidate score aggregation, so this method always raises a
+        ``RuntimeError``.
 
-        self.evaluators.append(evaluator)
-        evaluator_name = evaluator.__class__.__name__
-        self.weights[evaluator_name] = weight
-        logger.info(f"Added evaluator {evaluator_name} with weight {weight}")
+        Args:
+            evaluator (EvaluatorBase): Ignored.
+            weight (float): Ignored.
+
+        Raises:
+            RuntimeError: Always, to prevent modifying the evaluator set.
+        """
+        raise RuntimeError(
+            "AccessibilityEvaluatorPool does not support adding evaluators"
+        )
 
     def remove_evaluator(self, evaluator_name: str) -> bool:
         """
