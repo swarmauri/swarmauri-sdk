@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_containermakepr"
-version = "0.7.4"
+version = "0.7.5.dev1"
 description = "Create GitHub pull requests from containers."
 license = "Apache-2.0"
 readme = "README.md"

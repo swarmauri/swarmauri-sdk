@@ -69,7 +69,9 @@ def eval_cmd(
                 "score": r.score,
                 "metadata": r.metadata,
             }
-            for p, r in zip([str(p) for p in workspace_path.glob(program_glob)], results)
+            for p, r in zip(
+                [str(p) for p in workspace_path.glob(program_glob)], results
+            )
         ],
     }
 
