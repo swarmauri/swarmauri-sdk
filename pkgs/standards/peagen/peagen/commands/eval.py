@@ -8,6 +8,8 @@ from typing import Optional
 
 import typer
 
+from importlib import import_module
+
 from peagen.cli_common import PathOrURI, temp_workspace, load_peagen_toml
 from peagen.plugin_registry import registry
 from peagen.eval import DefaultEvaluatorPool
@@ -40,8 +42,11 @@ def eval_cmd(
         if pool_ref in registry.get("evaluator_pools", {}):
             PoolCls = registry["evaluator_pools"][pool_ref]
         else:
-            mod_name, cls_name = pool_ref.rsplit(".", 1)
-            PoolCls = getattr(__import__(mod_name, fromlist=[cls_name]), cls_name)
+            if ":" in pool_ref:
+                mod_name, cls_name = pool_ref.split(":", 1)
+            else:
+                mod_name, cls_name = pool_ref.rsplit(".", 1)
+            PoolCls = getattr(import_module(mod_name), cls_name)
     else:
         PoolCls = DefaultEvaluatorPool
 
