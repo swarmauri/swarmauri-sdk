@@ -15,6 +15,8 @@ class ContainerMakePrTool(ToolBase):
     description: str = "Create a GitHub pull request from a container."
     type: Literal["ContainerMakePrTool"] = "ContainerMakePrTool"
 
+    driver: Literal["docker", "kubernetes"] = "docker"
+
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
@@ -35,19 +37,11 @@ class ContainerMakePrTool(ToolBase):
                 description="Pull request body",
                 required=True,
             ),
-            Parameter(
-                name="driver",
-                input_type="string",
-                description="Container driver: docker or kubernetes",
-                required=False,
-                enum=["docker", "kubernetes"],
-                default="docker",
-            ),
         ]
     )
 
-    def __call__(self, container_name: str, title: str, body: str, driver: str = "docker") -> dict:
-        if driver == "docker":
+    def __call__(self, container_name: str, title: str, body: str) -> dict:
+        if self.driver == "docker":
             cmd = [
                 "docker",
                 "exec",
