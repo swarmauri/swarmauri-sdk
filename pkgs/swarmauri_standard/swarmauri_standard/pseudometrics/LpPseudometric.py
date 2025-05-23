@@ -1,10 +1,15 @@
-
 import logging
 import math
 from typing import Callable, List, Literal, Optional, Sequence, Tuple, TypeVar, Union
 
 
-import numpy as np
+try:
+    import numpy as np  # type: ignore
+
+    _NP_AVAILABLE = True
+except Exception:  # pragma: no cover - numpy may not be installed
+    _NP_AVAILABLE = False
+    np = None  # type: ignore
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
@@ -17,8 +22,13 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 # Type aliases
-VectorType = Union[IVector, List[float], Tuple[float, ...], np.ndarray]
-MatrixType = Union[IMatrix, List[List[float]], np.ndarray]
+if _NP_AVAILABLE:
+    VectorType = Union[IVector, List[float], Tuple[float, ...], np.ndarray]
+    MatrixType = Union[IMatrix, List[List[float]], np.ndarray]
+else:  # pragma: no cover - numpy fallback
+    VectorType = Union[IVector, List[float], Tuple[float, ...]]
+    MatrixType = Union[IMatrix, List[List[float]]]
+
 InputType = Union[VectorType, MatrixType, Sequence[T], str, Callable]
 
 
@@ -105,7 +115,7 @@ class LpPseudometric(PseudometricBase):
             f"Initialized LpPseudometric with p={p}, domain={domain}, coordinates={coordinates}"
         )
 
-    def _convert_to_array(self, x: InputType) -> np.ndarray:
+    def _convert_to_array(self, x: InputType):
         """
         Convert input to a numpy array for computation.
 
@@ -126,12 +136,14 @@ class LpPseudometric(PseudometricBase):
         """
         # Check for IVector and IMatrix first, using isinstance or hasattr
         if hasattr(x, "to_array") and callable(x.to_array):
-            return np.array(x.to_array())
-        elif isinstance(x, (list, tuple, np.ndarray)):
-            return np.array(x, dtype=float)
+            arr = x.to_array()
+        elif _NP_AVAILABLE and isinstance(x, np.ndarray):
+            arr = x
+        elif isinstance(x, (list, tuple)):
+            arr = list(x)
         elif isinstance(x, str):
             # Convert string to array of character codes
-            return np.array([ord(c) for c in x], dtype=float)
+            arr = [ord(c) for c in x]
         elif callable(x):
             if self.domain is None:
                 raise ValueError("Domain must be specified when using callable inputs")
@@ -139,17 +151,23 @@ class LpPseudometric(PseudometricBase):
             # Sample the function over the domain
             a, b = self.domain
             # Use 100 sample points by default
-            sample_points = np.linspace(a, b, 100)
-            return np.array([x(t) for t in sample_points], dtype=float)
+            if _NP_AVAILABLE:
+                sample_points = np.linspace(a, b, 100)
+            else:  # pragma: no cover - numpy fallback
+                step = (b - a) / 99
+                sample_points = [a + step * i for i in range(100)]
+            arr = [x(t) for t in sample_points]
         else:
             try:
                 # Try to convert to array as a last resort
-                return np.array(x, dtype=float)
+                arr = list(x)
             except Exception:
                 raise TypeError(f"Unsupported input type for LpPseudometric: {type(x)}")
+        if _NP_AVAILABLE:
+            return np.array(arr, dtype=float)
+        return arr
 
-
-    def _filter_coordinates(self, arr: np.ndarray) -> np.ndarray:
+    def _filter_coordinates(self, arr):
         """
         Filter array to include only specified coordinates.
 
@@ -166,24 +184,38 @@ class LpPseudometric(PseudometricBase):
         if self.coordinates is None:
             return arr
 
-        if len(arr.shape) == 1:
-            # For 1D arrays, select specific indices
-            if max(self.coordinates) >= arr.shape[0]:
+        coord_max = max(self.coordinates)
+
+        if _NP_AVAILABLE and hasattr(arr, "shape"):
+            if len(arr.shape) == 1:
+                if coord_max >= arr.shape[0]:
+                    raise ValueError(
+                        f"Coordinate index out of bounds: max index {coord_max}, array shape {arr.shape}"
+                    )
+                return arr[self.coordinates]
+            elif len(arr.shape) == 2:
+                if coord_max >= arr.shape[0]:
+                    raise ValueError(
+                        f"Coordinate index out of bounds: max index {coord_max}, array shape {arr.shape}"
+                    )
+                return arr[self.coordinates, :]
+            else:
                 raise ValueError(
-                    f"Coordinate index out of bounds: max index {max(self.coordinates)}, array shape {arr.shape}"
+                    f"Cannot filter coordinates for array with shape {arr.shape}"
                 )
-            return arr[self.coordinates]
-        elif len(arr.shape) == 2:
-            # For 2D arrays, select specific rows
-            if max(self.coordinates) >= arr.shape[0]:
-                raise ValueError(
-                    f"Coordinate index out of bounds: max index {max(self.coordinates)}, array shape {arr.shape}"
-                )
-            return arr[self.coordinates, :]
-        else:
-            raise ValueError(
-                f"Cannot filter coordinates for array with shape {arr.shape}"
-            )
+        else:  # pragma: no cover - numpy fallback
+            if isinstance(arr[0], (list, tuple)):
+                if coord_max >= len(arr):
+                    raise ValueError(
+                        f"Coordinate index out of bounds: max index {coord_max}, array length {len(arr)}"
+                    )
+                return [arr[i] for i in self.coordinates]
+            else:
+                if coord_max >= len(arr):
+                    raise ValueError(
+                        f"Coordinate index out of bounds: max index {coord_max}, array length {len(arr)}"
+                    )
+                return [arr[i] for i in self.coordinates]
 
     def distance(self, x: InputType, y: InputType) -> float:
         """
@@ -217,10 +249,24 @@ class LpPseudometric(PseudometricBase):
             y_arr = self._convert_to_array(y)
 
             # Check if dimensions are compatible
-            if x_arr.shape != y_arr.shape:
-                raise ValueError(
-                    f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
-                )
+            if _NP_AVAILABLE and hasattr(x_arr, "shape") and hasattr(y_arr, "shape"):
+                if x_arr.shape != y_arr.shape:
+                    raise ValueError(
+                        f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
+                    )
+            else:  # pragma: no cover - numpy fallback
+                if isinstance(x_arr[0], (list, tuple)) != isinstance(
+                    y_arr[0], (list, tuple)
+                ):
+                    raise ValueError("Inputs must have the same shape")
+                if isinstance(x_arr[0], (list, tuple)):
+                    if len(x_arr) != len(y_arr) or any(
+                        len(a) != len(b) for a, b in zip(x_arr, y_arr)
+                    ):
+                        raise ValueError("Inputs must have the same shape")
+                else:
+                    if len(x_arr) != len(y_arr):
+                        raise ValueError("Inputs must have the same shape")
 
             # Filter coordinates if specified
             if self.coordinates is not None:
@@ -228,7 +274,10 @@ class LpPseudometric(PseudometricBase):
                 y_arr = self._filter_coordinates(y_arr)
 
             # Calculate the difference
-            diff = np.abs(x_arr - y_arr)
+            if _NP_AVAILABLE and hasattr(x_arr, "__sub__"):
+                diff = np.abs(x_arr - y_arr)
+            else:  # pragma: no cover - numpy fallback
+                diff = [abs(a - b) for a, b in zip(x_arr, y_arr)]
 
             # Apply normalization factor for callable inputs (domain integration)
             scaling_factor = 1.0
@@ -240,16 +289,30 @@ class LpPseudometric(PseudometricBase):
 
             # Handle special cases for common p values with scaling
             if math.isclose(self.p, 1.0):
-                return float(np.sum(diff * scaling_factor))
-            elif math.isclose(self.p, 2.0):
-                return float(np.sqrt(np.sum((diff**2) * scaling_factor)))
-            elif np.isinf(self.p):
-                return float(np.max(diff))
-            else:
-                # General case for any p
-                return float(
-                    (np.sum((diff**self.p) * scaling_factor)) ** (1.0 / self.p)
+                total = (
+                    np.sum(diff * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum(d * scaling_factor for d in diff)
                 )
+                return float(total)
+            elif math.isclose(self.p, 2.0):
+                total = (
+                    np.sum((diff**2) * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum((d**2) * scaling_factor for d in diff)
+                )
+                return float(np.sqrt(total) if _NP_AVAILABLE else math.sqrt(total))
+            elif (_NP_AVAILABLE and np.isinf(self.p)) or (
+                not _NP_AVAILABLE and math.isinf(self.p)
+            ):
+                return float(np.max(diff) if _NP_AVAILABLE else max(diff))
+            else:
+                total = (
+                    np.sum((diff**self.p) * scaling_factor)
+                    if _NP_AVAILABLE
+                    else sum((d**self.p) * scaling_factor for d in diff)
+                )
+                return float((total) ** (1.0 / self.p))
 
         except Exception as e:
             logger.error(f"Error calculating Lp pseudometric distance: {str(e)}")

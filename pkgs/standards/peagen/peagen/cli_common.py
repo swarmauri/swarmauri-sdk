@@ -14,6 +14,7 @@ import click
 import typer
 import logging
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 0. temp_workspace
 # ─────────────────────────────────────────────────────────────────────────────
@@ -22,7 +23,7 @@ def temp_workspace(prefix: str = "peagen_"):
     """Yield a temporary directory that is removed on exit."""
     dirpath = pathlib.Path(tempfile.mkdtemp(prefix=prefix))
     try:
-        yield dirpath          # ←  every path you write will be under here
+        yield dirpath  # ←  every path you write will be under here
     finally:
         try:
             shutil.rmtree(dirpath)

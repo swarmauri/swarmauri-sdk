@@ -62,11 +62,13 @@ def install_template_sets(specs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             version = _ver(name)
         except Exception:
             pass
-        installed.append({
-            "name": name,
-            "type": typ,
-            "version": version,
-            "source": target,
-        })
+        installed.append(
+            {
+                "name": name,
+                "type": typ,
+                "version": version,
+                "source": target,
+            }
+        )
     shutil.rmtree(tmp_root, ignore_errors=True)
     return installed

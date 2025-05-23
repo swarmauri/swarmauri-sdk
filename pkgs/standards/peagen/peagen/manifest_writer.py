@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
+
 class ManifestWriter:
     """
     Streams JSON-Lines during file generation, then composes a final

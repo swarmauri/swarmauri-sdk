@@ -6,7 +6,6 @@ import numpy as np
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
-from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ class WeightedL2InnerProduct(InnerProductBase):
             logger.error("Weight function must be provided")
             raise ValueError("Weight function must be provided")
 
-        kwargs['weight_function'] = weight_function
+        kwargs["weight_function"] = weight_function
         super().__init__(**kwargs)
 
         logger.info("WeightedL2InnerProduct initialized with custom weight function")

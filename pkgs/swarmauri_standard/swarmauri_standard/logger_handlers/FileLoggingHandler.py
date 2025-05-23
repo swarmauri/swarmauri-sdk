@@ -28,7 +28,7 @@ class FileLoggingHandler(HandlerBase):
         max_bytes: Maximum file size before rotation (0 means no rotation).
         backup_count: Number of backup files to keep when rotating.
     """
-    
+
     type: Literal["FileLoggingHandler"] = "FileLoggingHandler"
     level: int = logging.INFO
     formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None

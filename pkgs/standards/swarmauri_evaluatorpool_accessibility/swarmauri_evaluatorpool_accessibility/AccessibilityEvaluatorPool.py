@@ -75,9 +75,7 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
                         self.evaluators.append(evaluator)
                         self.weights.setdefault(obj.__name__, 1.0)
                     except Exception as e:  # pragma: no cover - best effort
-                        logger.warning(
-                            f"Failed to instantiate evaluator {name}: {e}"
-                        )
+                        logger.warning(f"Failed to instantiate evaluator {name}: {e}")
         except Exception as e:  # pragma: no cover - best effort
             logger.warning(f"Failed automatic evaluator registration: {e}")
 

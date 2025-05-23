@@ -6,11 +6,10 @@ generation, package handling and Jinja environment setup.
 
 from __future__ import annotations
 
-import json, os, sys
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import import_module
-from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -19,7 +18,7 @@ import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, FilePath, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
@@ -138,7 +137,7 @@ class Peagen(ComponentBase):
 
         # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
         for p in self.additional_package_dirs:
-            ns_dirs.append(p)
+            ns_dirs.append(os.fspath(p))
 
         # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:

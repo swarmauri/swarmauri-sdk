@@ -239,7 +239,6 @@ def add_template_set(
         )
 
 
-
 @template_sets_app.command(
     "remove",
     help="Uninstall the package that owns a template-set.",

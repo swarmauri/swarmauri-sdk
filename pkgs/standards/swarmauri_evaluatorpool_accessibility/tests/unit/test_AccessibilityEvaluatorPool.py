@@ -268,7 +268,6 @@ def test_auto_register_evaluators(monkeypatch):
     import swarmauri_evaluatorpool_accessibility as pkg
 
     class DummyEvaluator(EvaluatorBase):
-
         def _compute_score(self, program: Program, **kwargs):
             return 0.0, {}
 
