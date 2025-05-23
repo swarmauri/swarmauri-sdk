@@ -67,7 +67,9 @@ def test_subprocess_evaluator_import():
         # Test direct import from package
         from swarmauri_evaluator_subprocess import SubprocessEvaluator as evaluator
 
-        logger.info(f"Successfully imported SubprocessEvaluator from package - {evaluator}")
+        logger.info(
+            f"Successfully imported SubprocessEvaluator from package - {evaluator}"
+        )
         assert True
     except ImportError as e:
         logger.error(f"Failed to import SubprocessEvaluator: {e}")

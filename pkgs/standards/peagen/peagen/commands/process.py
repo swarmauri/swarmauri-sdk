@@ -88,15 +88,6 @@ def process_cmd(
         None, "--artifacts", "-a", help="dir://PATH or s3://ENDPOINT"
     ),
     org: Optional[str] = typer.Option(None, "--org", "-o", help="Organization slug."),
-    access_key: Optional[str] = typer.Option(
-        None, "--access-key", help="S3/MinIO access key."
-    ),
-    secret_key: Optional[str] = typer.Option(
-        None, "--secret-key", help="S3/MinIO secret key."
-    ),
-    insecure: bool = typer.Option(
-        False, "--insecure", help="When using s3://, disable TLS."
-    ),
     plugin_mode: Optional[str] = typer.Option(
         None, "--plugin-mode", help="Plugin mode to use."
     ),

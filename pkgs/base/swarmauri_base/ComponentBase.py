@@ -1,4 +1,4 @@
-# swarmauri_base/ComponentBase.py
+"""Base component abstractions for the SwarmAuri SDK."""
 
 from enum import Enum
 from typing import (
@@ -48,6 +48,7 @@ class ComponentBase(LoggerMixin, YamlMixin, ServiceMixin, DynamicBase):
 # Resource Types Enum (This should become ResourceKinds)
 ###########################################
 class ResourceTypes(Enum):
+    """Enumeration of core component resource types."""
     UNIVERSAL_BASE = "ComponentBase"
     AGENT = "Agent"
     AGENT_FACTORY = "AgentFactory"

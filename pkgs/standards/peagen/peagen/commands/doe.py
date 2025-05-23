@@ -102,8 +102,8 @@ def experiment_generate(
     output: Path = typer.Option(
         "project_payloads.yaml", "--output", "-o", help="Where to write bundle"
     ),
-    context: Optional[Path] = typer.Option(
-        None, "--context", "-c", exists=True, help="Optional global JSON-patch file"
+    config: Optional[str] = typer.Option(
+        ".peagen.toml", "-c", "--config", help="Alternate .peagen.toml path."
     ),
     notify: Optional[str] = typer.Option(
         None, "--notify", help="Bus URI to publish completion event"
@@ -120,7 +120,7 @@ def experiment_generate(
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
     """
 
-    toml_cfg = load_peagen_toml()
+    toml_cfg = load_peagen_toml(Path(config) if config else Path.cwd())
     pubs_cfg = toml_cfg.get("publishers", {})
     default_pub = pubs_cfg.get("default_publisher")
 
@@ -139,9 +139,6 @@ def experiment_generate(
     # 1. ---------- load files -------------------------------------------------
     spec_obj = _load_yaml(spec)
     template_obj = _load_yaml(template)
-    ctx_patch = []
-    if context:
-        ctx_patch = _load_yaml(context)
 
     # validate spec unless skipped
     if not skip_validate:
@@ -194,10 +191,6 @@ def experiment_generate(
     for idx, point in enumerate(design_points):
         proj = deepcopy(template_obj)
 
-        # global context patch first
-        if ctx_patch:
-            _apply_json_patch(proj, ctx_patch)
-
         # apply factor-specific patches
         for patch_rule in spec_obj.get("PATCHES", []):
             when: Dict = patch_rule.get("when", {})
@@ -224,7 +217,6 @@ def experiment_generate(
         "SOURCE": {
             "spec": str(spec),
             "template": str(template),
-            "context": str(context) if context else None,
             "spec_checksum": _sha256(spec),
         },
     }
@@ -251,17 +243,17 @@ def experiment_generate(
     typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
 
     if notify:
-        _publish_event(notify, output, len(projects))
+        _publish_event(notify, output, len(projects), config)
 
 
 # --------------------------------------------------------------------- notifier
-def _publish_event(uri: str, output: Path, count: int) -> None:
+def _publish_event(uri: str, output: Path, count: int, config: Optional[str]) -> None:
     """Publish a ``peagen.experiment.done`` event using the configured publisher."""
 
     nt = urlparse(uri)
     pub_name = nt.scheme or uri
 
-    toml_cfg = load_peagen_toml()
+    toml_cfg = load_peagen_toml(Path(config) if config else Path.cwd())
     pubs_cfg = toml_cfg.get("publishers", {})
     adapters_cfg = pubs_cfg.get("adapters", {})
 

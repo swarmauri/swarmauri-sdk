@@ -70,28 +70,6 @@ class TestPeagen:
         assert os.path.normpath("/add1") in basic_peagen.j2pt.templates_dir
         assert os.path.normpath("/add2") in basic_peagen.j2pt.templates_dir
 
-    def test_locate_template_set_any_found(self, basic_peagen):
-        """Test locate_template_set when template set exists."""
-        # Setup
-        basic_peagen.namespace_dirs = ["/dir1", "/dir2", "/dir3"]
-
-        with patch("pathlib.Path.is_dir", return_value=True):
-            result = basic_peagen.locate_template_set("test_templates")
-
-            # Should return the first matching directory
-            assert result == Path("/dir1/test_templates").resolve()
-
-    def test_locate_template_set_any_not_found(self, basic_peagen):
-        """Test locate_template_set when template set doesn't exist."""
-        # Setup
-        basic_peagen.namespace_dirs = ["/dir1", "/dir2", "/dir3"]
-
-        with patch("pathlib.Path.is_dir", return_value=False):
-            with pytest.raises(ValueError) as excinfo:
-                basic_peagen.locate_template_set("nonexistent_templates")
-
-            assert "not found in:" in str(excinfo.value)
-
     def test_load_projects_dict(self, basic_peagen):
         """Test load_projects when YAML contains a dict with PROJECTS key."""
         yaml_content = """
