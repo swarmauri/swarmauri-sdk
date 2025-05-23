@@ -22,7 +22,7 @@ from pydantic import ConfigDict, Field, model_validator
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
-from swarmauri_prompt_j2prompttemplate import j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from swarmauri_standard.loggers.Logger import Logger
 
@@ -45,7 +45,7 @@ class Peagen(ComponentBase):
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)
+    j2pt: Any = Field(default_factory=lambda: J2PromptTemplate())
 
     # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
@@ -290,7 +290,11 @@ class Peagen(ComponentBase):
 
             try:
                 self.j2pt.set_template(ptree_template_path)
+                print(self.j2pt.templates_dir)
+                print(ptree_template_path)
+                print(project_only_context)
                 rendered_yaml_str = self.j2pt.fill(project_only_context)
+                print(rendered_yaml_str)
             except Exception as e:
                 self.logger.error(
                     f"[{project_name}] Ptree render failure for package "
