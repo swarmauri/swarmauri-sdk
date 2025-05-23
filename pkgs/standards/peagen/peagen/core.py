@@ -193,6 +193,8 @@ class Peagen(ComponentBase):
         Returns:
           list[dict]: A list of project dictionaries.
         """
+        if self.logger:
+            self.logger.debug(f"Loading projects from {self.projects_payload_path}")
         try:
             with open(self.projects_payload_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
@@ -226,11 +228,15 @@ class Peagen(ComponentBase):
         and (optionally) handles dependency ordering.
         """
 
+        if self.logger:
+            self.logger.debug("Beginning processing of all projects")
         sorted_records = []
         if not self.projects_list:
             self.load_projects()
         self.logger.debug(f"Projects loaded: '{self.projects_list}'")
         for project in self.projects_list:
+            if self.logger:
+                self.logger.debug(f"Starting project {project.get('NAME')}")
             file_records, start_idx = self.process_single_project(project)
             sorted_records.append(file_records)
         return sorted_records
@@ -254,6 +260,8 @@ class Peagen(ComponentBase):
         *   Each file save triggers writer.add(…).
         *   On successful completion we call writer.finalise().
         """
+        if self.logger:
+            self.logger.debug(f"Processing project {project.get('NAME')}")
         all_file_records = []
         packages = project.get("PACKAGES", [])
         project_name = project.get("NAME", "UnnamedProject")
@@ -441,6 +449,10 @@ class Peagen(ComponentBase):
                 start_idx=start_idx,
                 manifest_writer=manifest_writer,
             )
+            if self.logger:
+                self.logger.debug(
+                    f"Processed {len(sorted_records)} files for project '{project_name}'"
+                )
 
             # --------  finalise manifest
             if manifest_writer.path.exists():
@@ -460,4 +472,8 @@ class Peagen(ComponentBase):
                 f"project='{project_name}'."
             )
 
+        if self.logger:
+            self.logger.debug(
+                f"Returning {len(sorted_records)} sorted records for project '{project_name}'"
+            )
         return (sorted_records, start_idx)

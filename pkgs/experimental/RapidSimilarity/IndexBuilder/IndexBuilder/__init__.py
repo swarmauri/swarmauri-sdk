@@ -1,4 +1,5 @@
-from .tree_index import tree_indexfrom .hash_index import hash_index
+from .tree_index import tree_index
+from .hash_index import hash_index
 
 __all__ = [
     "tree_index",
