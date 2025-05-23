@@ -6,6 +6,7 @@ from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 from ._lark_parser import parser  # Assuming lark_parser.py defines parser
 from ._transformer import ConfigTransformer
 from ._config import Config
+from ._utils import _strip_quotes
 
 # -------------------------------------
 # 1) File Extension Helper
@@ -80,8 +81,9 @@ def loads(s: str) -> Dict[str, Any]:
     transformer = ConfigTransformer()
     transformer._context = type("Context", (), {"text": s})
     config = transformer.transform(parse_tree)
-    config.resolve()  # Resolve static expressions
-    return config._data  # Return plain dictionary
+    # Resolve static expressions and strip any surrounding quotes from literals
+    result = config.resolve()
+    return _strip_quotes(result)
 
 
 def load(fp: IO[str]) -> Dict[str, Any]:
