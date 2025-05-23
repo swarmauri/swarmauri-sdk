@@ -1,3 +1,5 @@
+"""Convenience re-exports for the SwarmAuri base package."""
+
 from swarmauri_base.DynamicBase import (
     SubclassUnion,
     FullUnion,
