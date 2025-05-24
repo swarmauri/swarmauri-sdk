@@ -175,8 +175,6 @@ class TestProcessFile:
         )
 
     @patch("peagen._processing._create_context")
-    @patch("peagen._processing._render_generate_template")
-    @patch("peagen._processing._create_context")
     def test_process_unknown_type(self, mock_create_context):
         """Test processing a file with unknown PROCESS_TYPE."""
         file_record = {"PROCESS_TYPE": "UNKNOWN", "RENDERED_FILE_NAME": "file.txt"}
