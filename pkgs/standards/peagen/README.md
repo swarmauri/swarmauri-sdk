@@ -109,7 +109,7 @@ peagen --help
 peagen --help
 ```
 
-![image](https://github.com/user-attachments/assets/52ce6b30-c7cc-4f9e-b9e4-8dde8f034b9c)
+_Insert screenshot of `peagen --help` command output here._
 
 
 ### Configuring `OPENAI_API_KEY`
@@ -182,7 +182,7 @@ peagen process <PROJECTS_YAML> \
   [-v | -vv]
 ```
     
-![image](https://github.com/user-attachments/assets/1f52f066-8caa-4070-ab63-63350f95b0ee)
+_Insert screenshot of `peagen process` command output here._
 
 ### `peagen sort`
 
@@ -195,7 +195,7 @@ peagen sort <PROJECTS_YAML> \
   [-v | -vv]
 ```
 
-![image](https://github.com/user-attachments/assets/216369fb-b9e9-4ab9-84ca-5f13f7dfbc88)
+_Insert screenshot of `peagen sort` command output here._
 
 ### `peagen revise`
 
@@ -207,7 +207,7 @@ peagen revise <PROJECTS_YAML> \
   [-v | -vv]
 ```
 
-![image](https://github.com/user-attachments/assets/61292165-fb36-4662-8836-7971b2a7e7d0)
+_Insert screenshot of `peagen revise` command output here._
 
 ### `peagen templates`
 
@@ -217,7 +217,7 @@ List available template sets and their directories:
 peagen templates
 ```
 
-![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
+_Insert screenshot of `peagen templates` command output here._
 
 
 ### `peagen doe gen`
