@@ -134,6 +134,7 @@ nav:
   - Base: concept/base.md
   - Standard: concept/standard.md
   - Swarmauri: concept/swarmauri.md
+  - Evaluator Pools: concept/evaluator_pools.md
 
 - API Documentation:
   - api/index.md
