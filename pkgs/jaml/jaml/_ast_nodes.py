@@ -396,7 +396,12 @@ class ComprehensionHeaderNode(BaseNode):
             else:
                 self.header_expr.render(g, scope, ctx)
 
-            self.header_envs.append(env)
+            header_value = (
+                self.header_expr.evaluate()
+                if hasattr(self.header_expr, "evaluate")
+                else self.header_expr
+            )
+            self.header_envs.append((header_value, env))
         logger.debug(f"ComprehensionHeaderNode.header_envs {self.header_envs}.")
 
         if not self.header_envs:
@@ -735,6 +740,7 @@ class AliasClauseNode(BaseNode):
 
         self.resolved = alias_name  # plain string – e.g. "package"
         self.value = alias_name  # let callers read .value directly
+        return alias_name
 
     def evaluate(self) -> Any:
         logger.debug("AliasClauseNode.evaluate() triggered.")
@@ -1414,6 +1420,16 @@ class FStringNode(BaseNode):
             self.origin, global_data=global_env, local_data=local_env, context={}
         )
         self.value = self.resolved
+
+    def render(self, global_env, local_env=None, context=None):
+        self.resolved = _evaluate_f_string(
+            self.origin,
+            global_data=global_env,
+            local_data=local_env,
+            context=context or {},
+        )
+        self.value = self.resolved
+        return self.resolved
 
     def evaluate(self):
         return self.resolved if self.resolved is not None else self.origin

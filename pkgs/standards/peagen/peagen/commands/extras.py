@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import List
+from swarmauri_standard.loggers.Logger import Logger
 
 import typer
 
@@ -36,6 +37,8 @@ def _build_schema(keys: List[str], set_name: str) -> dict:
 @extras_app.command("generate")
 def generate() -> None:
     """Regenerate EXTRAS schema files from templates."""
+    self = Logger(name="extras_generate")
+    self.logger.info("Entering extras_generate command")
     base = Path(__file__).resolve().parents[1]
     templates_root = base / "templates"
     schemas_dir = base / "schemas" / "extras"
@@ -48,3 +51,4 @@ def generate() -> None:
         out_path = schemas_dir / f"{set_name}.schema.v1.json"
         out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
         typer.echo(f"✅ Wrote {out_path}")
+    self.logger.info("Exiting extras_generate command")

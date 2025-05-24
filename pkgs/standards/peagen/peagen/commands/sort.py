@@ -126,6 +126,8 @@ def sort(
         dry_run=True,
     )
 
+    pea.logger.info("Entering sort command")
+
     if verbose == 1:
         pea.logger.set_level(30)  # INFO
     elif verbose == 2:
@@ -192,3 +194,5 @@ def sort(
                     pea.logger.info(f"\t\tDependencies: {dep_str}")
                 else:
                     pea.logger.info(f"\t{idx}) {name}")
+
+    pea.logger.info("Exiting sort command")

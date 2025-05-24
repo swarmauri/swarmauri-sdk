@@ -337,6 +337,7 @@ class Config(MutableMapping):
         from ._eval import safe_eval
         from ._fstring import _eval_fstrings
         from ._comprehension import _eval_comprehensions
+        from ._utils import _strip_quotes
 
         _eval_fstrings(self._data)
 
@@ -375,6 +376,12 @@ class Config(MutableMapping):
 
                 expr_py = re.sub(r"[@%]\{([^}]+)\}", _scoped_repl, expr)
                 expr_py = expr_py.replace("null", "None")
+                if "${" in expr_py:
+                    logger.debug(
+                        "skipping header expression with context placeholders: %s",
+                        expr_py,
+                    )
+                    continue
                 logger.debug("executing safe_eval on expr_py=%s", expr_py)
                 try:
                     result = safe_eval(expr_py, {})
@@ -457,7 +464,7 @@ class Config(MutableMapping):
                 final[k] = v
             else:
                 final[k] = _expand(v, collapsed)
-        return final
+        return _strip_quotes(final)
 
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """

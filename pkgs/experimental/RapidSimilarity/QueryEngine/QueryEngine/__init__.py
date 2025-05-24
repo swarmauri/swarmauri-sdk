@@ -1,4 +1,5 @@
-from .exact_query import exact_queryfrom .approx_query import approx_query
+from .exact_query import exact_query
+from .approx_query import approx_query
 
 __all__ = [
     "exact_query",

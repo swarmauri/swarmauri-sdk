@@ -68,8 +68,8 @@ File Processing
   - Renders static COPY templates, or
   - Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
 
-#### Resume & Revision Support
-Allows resuming from any file index or template, and writing revisions back to project YAML or templates when peagen revise is used.
+#### Resume Support
+Allows resuming from any file index or template.
 
 #### Key Public Methods
 All methods below belong to core.py, class Peagen:
@@ -196,18 +196,6 @@ peagen sort <PROJECTS_YAML> \
 ```
 
 ![image](https://github.com/user-attachments/assets/216369fb-b9e9-4ab9-84ca-5f13f7dfbc88)
-
-### `peagen revise`
-
-Update project YAML or templates based on previous run metadata.
-
-```bash
-peagen revise <PROJECTS_YAML> \
-  [--project-name <NAME>] \
-  [-v | -vv]
-```
-
-![image](https://github.com/user-attachments/assets/61292165-fb36-4662-8836-7971b2a7e7d0)
 
 ### `peagen templates`
 

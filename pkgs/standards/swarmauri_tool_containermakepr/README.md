@@ -30,5 +30,6 @@ pip install swarmauri_tool_containermakepr
 ```python
 from swarmauri_tool_containermakepr import ContainerMakePrTool
 
-ContainerMakePrTool()(container_name="my-container", title="Update", body="PR body")
+tool = ContainerMakePrTool(container_name="my-container")
+tool(title="Update", body="PR body")
 ```

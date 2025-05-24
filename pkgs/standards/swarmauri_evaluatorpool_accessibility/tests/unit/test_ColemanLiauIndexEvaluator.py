@@ -259,3 +259,14 @@ def test_edge_case_identical_target_and_max_grade_level():
     # With identical target and max, the score should be 1.0 for target and 0.0 otherwise
     assert evaluator._calculate_score(10) == 1.0
     assert evaluator._calculate_score(9) < 1.0
+
+
+@pytest.mark.unit
+def test_evaluate_returns_score_and_metadata(evaluator, mock_program):
+    """evaluate() should return a dict with 'score' and 'metadata'."""
+    mock_program.output = "Hello world."
+
+    result = evaluator.evaluate(mock_program)
+
+    assert set(result.keys()) == {"score", "metadata"}
+    assert isinstance(result["metadata"], dict)

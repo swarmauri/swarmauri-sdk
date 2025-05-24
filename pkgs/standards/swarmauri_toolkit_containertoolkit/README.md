@@ -30,6 +30,6 @@ pip install swarmauri_toolkit_containertoolkit
 ```python
 from swarmauri_toolkit_containertoolkit import ContainerToolkit
 
-toolkit = ContainerToolkit()
+toolkit = ContainerToolkit(container_name="my-container", image="ubuntu:latest")
 print(toolkit.tools.keys())
 ```

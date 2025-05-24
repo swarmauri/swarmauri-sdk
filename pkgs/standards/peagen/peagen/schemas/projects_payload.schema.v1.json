@@ -18,22 +18,29 @@
           { "$ref": "#/definitions/projectGroup" }
         ]
       },
-      "description": "Either individual project entries with experiments :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1} or grouped payloads with META :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}"
+      "description": "Either individual project entries with experiments or grouped payloads with META"
     },
     "SOURCE": {
       "$ref": "#/definitions/source",
-      "description": "Optional metadata about spec/template and checksum :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}"
+      "description": "Optional metadata about spec/template and checksum"
     }
   },
   "required": ["schemaVersion", "PROJECTS"],
   "additionalProperties": false,
   "allOf": [
     {
-      "if": { "required": ["PROJECTS"] },
-      "then": { "required": ["SOURCE"] },
-      "$comment": "DOE expansions must record the originating SOURCE for provenance."
+      "if": {
+        "properties": {
+          "PROJECTS": {
+            "contains": { "required": ["EXPERIMENT"] }
+          }
+        },
+        "required": ["PROJECTS"]
+      },
+      "then": { "required": ["SOURCE"] }
     }
   ],
+
   "definitions": {
     "projectEntry": {
       "type": "object",
@@ -46,9 +53,10 @@
         },
         "EXPERIMENT": { "$ref": "#/definitions/experiment" }
       },
-      "required": ["NAME", "ROOT", "PACKAGES", "EXPERIMENT"],
+      "required": ["NAME", "ROOT", "PACKAGES"],
       "additionalProperties": true
     },
+
     "projectGroup": {
       "type": "object",
       "properties": {
@@ -65,43 +73,22 @@
             "spec_name":      { "type": "string" },
             "peagen_version": {
               "type": "string",
-              "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)$",
-              "$comment": "Semantic version (MAJOR.MINOR.PATCH) of the Peagen CLI that generated this artefact."
+              "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)$"
             }
           },
           "required": ["design_id", "LLM_FACTORS", "factors", "spec_name", "peagen_version"],
           "additionalProperties": true
         }
       },
-      "required": ["PROJECTS", "META"],
       "additionalProperties": true
     },
+
     "package": {
       "type": "object",
       "properties": {
-        "NAME":                   { "type": "string" },
-        "TEMPLATE_SET_OVERRIDE":  { "type": "string" },
-        "EXTRAS": {
-          "anyOf": [
-            { "$ref": "extras/component.schema.v1.json" },
-            { "$ref": "extras/cpp_python_pkg.schema.v1.json" },
-            { "$ref": "extras/no_requirements.schema.v1.json" },
-            { "$ref": "extras/python_api_gw.schema.v1.json" },
-            { "$ref": "extras/python_api_gw_service.schema.v1.json" },
-            { "$ref": "extras/python_orm.schema.v1.json" },
-            { "$ref": "extras/pythonpkg.schema.v1.json" },
-            { "$ref": "extras/react_atom.schema.v1.json" },
-            { "$ref": "extras/rust_python_pkg.schema.v1.json" },
-            { "$ref": "extras/svelte_atom.schema.v1.json" },
-            { "$ref": "extras/swarmauri_base.schema.v1.json" },
-            { "$ref": "extras/swarmauri_core.schema.v1.json" },
-            { "$ref": "extras/swarmauri_standard.schema.v1.json" },
-            { "$ref": "extras/swarmauri_standard_standalone.schema.v1.json" },
-            { "$ref": "extras/test3.schema.v1.json" },
-            { "$ref": "extras/test5.schema.v1.json" },
-            { "$ref": "extras/vue_atom.schema.v1.json" }
-          ]
-        },
+        "NAME":                  { "type": "string" },
+        "TEMPLATE_SET_OVERRIDE": { "type": "string" },
+        "EXTRAS":                { "type": "object" },
         "MODULES": {
           "type": "array",
           "items": { "$ref": "#/definitions/module" }
@@ -110,35 +97,17 @@
       "required": ["NAME", "TEMPLATE_SET_OVERRIDE", "MODULES"],
       "additionalProperties": true
     },
+
     "module": {
       "type": "object",
       "properties": {
         "NAME":   { "type": "string" },
-        "EXTRAS": {
-          "anyOf": [
-            { "$ref": "extras/component.schema.v1.json" },
-            { "$ref": "extras/cpp_python_pkg.schema.v1.json" },
-            { "$ref": "extras/no_requirements.schema.v1.json" },
-            { "$ref": "extras/python_api_gw.schema.v1.json" },
-            { "$ref": "extras/python_api_gw_service.schema.v1.json" },
-            { "$ref": "extras/python_orm.schema.v1.json" },
-            { "$ref": "extras/pythonpkg.schema.v1.json" },
-            { "$ref": "extras/react_atom.schema.v1.json" },
-            { "$ref": "extras/rust_python_pkg.schema.v1.json" },
-            { "$ref": "extras/svelte_atom.schema.v1.json" },
-            { "$ref": "extras/swarmauri_base.schema.v1.json" },
-            { "$ref": "extras/swarmauri_core.schema.v1.json" },
-            { "$ref": "extras/swarmauri_standard.schema.v1.json" },
-            { "$ref": "extras/swarmauri_standard_standalone.schema.v1.json" },
-            { "$ref": "extras/test3.schema.v1.json" },
-            { "$ref": "extras/test5.schema.v1.json" },
-            { "$ref": "extras/vue_atom.schema.v1.json" }
-          ]
-        }
+        "EXTRAS": { "type": "object" }
       },
       "required": ["NAME", "EXTRAS"],
       "additionalProperties": false
     },
+
     "experiment": {
       "type": "object",
       "properties": {
@@ -153,6 +122,7 @@
       "required": ["FACTORS"],
       "additionalProperties": true
     },
+
     "projectDefinition": {
       "type": "object",
       "properties": {
@@ -166,16 +136,16 @@
       "required": ["NAME", "ROOT", "PACKAGES"],
       "additionalProperties": true
     },
+
     "source": {
       "type": "object",
       "properties": {
-        "spec":           { "type": "string" },
-        "template":       { "type": "string" },
-        "context":        {
-          "type": ["string", "null"],
-          "$comment": "Null permitted when the context is implicit"
+        "spec":          { "type": "string" },
+        "template":      { "type": "string" },
+        "context": {
+          "type": ["string", "null"]
         },
-        "spec_checksum":  { "type": "string" }
+        "spec_checksum": { "type": "string" }
       },
       "required": ["spec", "template", "spec_checksum"],
       "additionalProperties": true

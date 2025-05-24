@@ -20,6 +20,7 @@ import shutil
 import textwrap
 from pathlib import Path
 from typing import Optional
+from swarmauri_standard.loggers.Logger import Logger
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
@@ -101,6 +102,8 @@ def init_project(
     with_eval_stub: bool = typer.Option(False, "--with-eval-stub"),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
 ):
+    self = Logger(name="init_project")
+    self.logger.info("Entering init_project command")
     project_root = path if isinstance(path, str) else path.name
     context = {
         "PROJECT_ROOT": project_root,
@@ -113,6 +116,7 @@ def init_project(
 
     _render_scaffold("project", path, context, force)
     _summary(path, "peagen process")
+    self.logger.info("Exiting init_project command")
 
 
 # ── init template-set ────────────────────────────────────────────────────────
@@ -124,6 +128,8 @@ def init_template_set(
     use_uv: bool = typer.Option(True, "--uv/--no-uv"),
     force: bool = typer.Option(False, "--force"),
 ):
+    self = Logger(name="init_template_set")
+    self.logger.info("Entering init_template_set command")
     context = {
         "PROJECT_ROOT": name,
         "org": org or "org",
@@ -132,6 +138,7 @@ def init_template_set(
 
     _render_scaffold("template_set", path, context, force)
     _summary(path, f"peagen template-sets add {path}")
+    self.logger.info("Exiting init_template_set command")
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
@@ -142,6 +149,8 @@ def init_doe_spec(
     org: Optional[str] = typer.Option(None, "--org"),
     force: bool = typer.Option(False, "--force"),
 ):
+    self = Logger(name="init_doe_spec")
+    self.logger.info("Entering init_doe_spec command")
     context = {
         "spec_name": name or path.name,
         "org": org or "org",
@@ -149,6 +158,7 @@ def init_doe_spec(
     }
     _render_scaffold("doe_spec", path, context, force)
     _summary(path, "peagen experiment --spec ... --template project.yaml")
+    self.logger.info("Exiting init_doe_spec command")
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────
@@ -158,7 +168,10 @@ def init_ci(
     github: bool = typer.Option(True, "--github/--gitlab"),
     force: bool = typer.Option(False, "--force"),
 ):
+    self = Logger(name="init_ci")
+    self.logger.info("Entering init_ci command")
     kind = "ci-github" if github else "ci-gitlab"
     dst = Path(".")
     _render_scaffold("ci/" + kind, dst, {}, force)
     typer.echo("✅  CI file written.  Commit it to enable automatic runs.")
+    self.logger.info("Exiting init_ci command")

@@ -189,12 +189,20 @@ def test_should_evaluate_file(file_path, content, expected):
 @pytest.mark.parametrize(
     "scores, weights, expected",
     [
-        ({"A": 0.5, "B": 0.7}, {"A": 1.0, "B": 1.0}, 0.6),
-        ({"A": 0.5, "B": 0.7}, {"A": 2.0, "B": 1.0}, 0.567),
+        (
+            {"FleschReadingEaseEvaluator": 80},
+            {"FleschReadingEaseEvaluator": 1.0},
+            0.8,
+        ),
+        (
+            {"FleschReadingEaseEvaluator": 60, "OtherEvaluator": 0.7},
+            {"FleschReadingEaseEvaluator": 1.0, "OtherEvaluator": 1.0},
+            0.45,
+        ),
         ({}, {}, 0.0),
-        ({"A": 0.5}, {"A": 0}, 0.0),  # Zero weight
-        ({"A": 1.5}, {"A": 1.0}, 1.0),  # Clamping to max 1.0
-        ({"A": -0.5}, {"A": 1.0}, 0.0),  # Clamping to min 0.0
+        ({"OtherEvaluator": 0.5}, {"OtherEvaluator": 0}, 0.0),
+        ({"OtherEvaluator": 1.5}, {"OtherEvaluator": 1.0}, 0.0),
+        ({"OtherEvaluator": -0.5}, {"OtherEvaluator": 1.0}, 1.0),
     ],
 )
 def test_calculate_overall_score(scores, weights, expected):
@@ -217,21 +225,16 @@ def test_configure(evaluator_pool):
 
 @pytest.mark.unit
 def test_add_evaluator(evaluator_pool, mock_evaluator):
-    """Test adding an evaluator to the pool."""
+    """Ensure add_evaluator is disabled."""
     new_evaluator = Mock(spec=EvaluatorBase)
-    new_evaluator.__class__.__name__ = "NewEvaluator"
-
-    evaluator_pool.add_evaluator(new_evaluator, 1.5)
-
-    assert len(evaluator_pool.evaluators) == 2
-    assert evaluator_pool.weights["NewEvaluator"] == 1.5
-    assert new_evaluator in evaluator_pool.evaluators
+    with pytest.raises(RuntimeError):
+        evaluator_pool.add_evaluator(new_evaluator, 1.5)
 
 
 @pytest.mark.unit
 def test_add_invalid_evaluator(evaluator_pool):
-    """Test adding an invalid evaluator raises TypeError."""
-    with pytest.raises(TypeError):
+    """Adding any evaluator should raise RuntimeError."""
+    with pytest.raises(RuntimeError):
         evaluator_pool.add_evaluator("not_an_evaluator")
 
 
