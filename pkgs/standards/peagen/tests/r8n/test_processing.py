@@ -145,7 +145,6 @@ class TestProcessFile:
     @patch("peagen._processing._create_context")
     @patch("peagen._processing._render_generate_template")
     @patch("peagen._processing._save_file")
-    @patch("peagen._processing._config", {"revise": False})
     def test_process_generate_file(self, mock_save, mock_render, mock_create_context):
         """Test processing a file with PROCESS_TYPE 'GENERATE'."""
         file_record = {
@@ -169,45 +168,6 @@ class TestProcessFile:
         mock_render.assert_called_once()
         mock_save.assert_called_once_with(
             "Generated content",
-            "generated.py",
-            ANY,
-            0,
-            1,
-        )
-
-    @patch("peagen._processing._create_context")
-    @patch("peagen._processing._render_generate_template")
-    @patch("peagen._processing._save_file")
-    @patch(
-        "peagen._processing._config",
-        {"revise": True, "revision_notes": "Revision notes"},
-    )
-    def test_process_generate_file_with_revise(
-        self, mock_save, mock_render, mock_create_context
-    ):
-        """Test processing a file with PROCESS_TYPE 'GENERATE' in revise mode."""
-        file_record = {"PROCESS_TYPE": "GENERATE", "RENDERED_FILE_NAME": "generated.py"}
-        global_attrs = {}
-        agent_env = {}
-        mock_create_context.return_value = {"test": "context"}
-        mock_render.return_value = "Revised content"
-
-        _process_file(
-            file_record=file_record,
-            global_attrs=global_attrs,
-            template_dir="templates",
-            agent_env=agent_env,
-            logger=MagicMock(),
-        )
-
-        # Check that agent_env was updated with the agent_prompt_template_file
-        assert agent_env["agent_prompt_template_file"] == "agent_revise.j2"
-        mock_create_context.assert_called_once()
-        # Check that INJ context was set with revision notes
-        mock_render.assert_called_once()
-        assert mock_create_context.return_value["INJ"] == "Revision notes"
-        mock_save.assert_called_once_with(
-            "Revised content",
             "generated.py",
             ANY,
             0,

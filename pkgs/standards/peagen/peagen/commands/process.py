@@ -231,7 +231,7 @@ def process_cmd(
             }
         )
 
-    _config.update(truncate=trunc, revise=False, transitive=transitive, workers=workers)
+    _config.update(truncate=trunc, transitive=transitive, workers=workers)
 
     installed_sets = install_template_sets(template_sets_cfg)
     resolved_key = (

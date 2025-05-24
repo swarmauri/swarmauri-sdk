@@ -7,7 +7,6 @@ from peagen._banner import _print_banner
 from peagen.commands import (
     init_app,
     process_app,
-    revise_app,
     sort_app,
     template_sets_app,
     doe_app,
@@ -26,7 +25,6 @@ app.add_typer(doe_app, name="doe")
 app.add_typer(process_app)
 app.add_typer(program_app, name="program")
 app.add_typer(sort_app)
-app.add_typer(revise_app)
 app.add_typer(template_sets_app, name="template-set")
 app.add_typer(extras_app, name="extras-schemas")
 app.add_typer(validate_app, name="validate")

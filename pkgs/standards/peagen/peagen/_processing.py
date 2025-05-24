@@ -173,15 +173,10 @@ def _process_file(
                 logger.debug(f"Rendering COPY template for {final_filename}")
             content = _render_copy_template(file_record, context, j2_instance, logger)
         elif process_type == "GENERATE":
-            if _config["revise"] and "agent_prompt_template_file" not in agent_env:
-                agent_env["agent_prompt_template_file"] = "agent_revise.j2"
-            if _config["revise"]:
-                context["INJ"] = _config["revision_notes"]
-                prompt_name = agent_env["agent_prompt_template_file"]
-            else:
-                prompt_name = file_record.get(
-                    "AGENT_PROMPT_TEMPLATE", "agent_default.j2"
-                )
+            prompt_name = agent_env.get(
+                "agent_prompt_template_file",
+                file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2"),
+            )
 
             prompt_path = os.path.join(template_dir, prompt_name)
             if logger:
