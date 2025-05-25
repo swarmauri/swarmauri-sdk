@@ -51,6 +51,8 @@ members = [
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
+    "standards/swarmauri_prompt_sampler",
+    "standards/swarmauri_prompt_template_sampler",
     "standards/peagen",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
@@ -139,6 +141,8 @@ swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_prompt_j2prompttemplate = { workspace = true }
+swarmauri_prompt_sampler = { workspace = true }
+swarmauri_prompt_template_sampler = { workspace = true }
 swarmauri_evaluator_abstractmethods = { workspace = true }
 swarmauri_evaluator_anyusage = { workspace = true }
 swarmauri_evaluator_externalimports = { workspace = true }
