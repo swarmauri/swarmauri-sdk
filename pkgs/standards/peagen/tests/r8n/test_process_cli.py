@@ -1,7 +1,7 @@
 import pytest
 from typer.testing import CliRunner
 from peagen.commands.process import process_app
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 @pytest.mark.r8n

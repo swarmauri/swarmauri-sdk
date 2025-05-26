@@ -6,8 +6,6 @@ from typing import Any, Dict, List, Literal, Sequence
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.evaluator_pools.EvaluatorPoolBase import EvaluatorPoolBase
 from swarmauri_core.evaluators.IEvaluate import IEvaluate
-from swarmauri_core.evaluator_results.IEvalResult import IEvalResult
-from swarmauri_core.programs.IProgram import IProgram
 
 # ─────────────────────────────────────────────────────────────────────────────
 # bring the default evaluators into scope
