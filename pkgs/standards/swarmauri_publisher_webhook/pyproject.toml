@@ -1,9 +1,10 @@
 [project]
-name = "swarmauri_publisher_redis"
+name = "swarmauri_publisher_webhook"
 version = "0.1.0"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
+description = "A Webhook publisher implementation for Swarmauri."
 readme = "README.md"
 license = "Apache-2.0"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -49,7 +50,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.publishers']
-WebhookPublisher = "swarmauri_publisher_redis:WebhookPublisher"
+WebhookPublisher = "swarmauri_publisher_webhook:WebhookPublisher"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
