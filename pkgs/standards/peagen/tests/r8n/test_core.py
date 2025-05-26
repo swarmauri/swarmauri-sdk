@@ -246,9 +246,7 @@ class TestPeagen:
                     "fill",
                     return_value="rendered content",
                 ):
-                    with patch(
-                        "yaml.safe_load", return_value={"FILES": file_records}
-                    ):
+                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
                         # Use non-transitive sort but with start_file
                         with patch("peagen.core._config", {"transitive": False}):
                             with patch(
@@ -300,9 +298,7 @@ class TestPeagen:
                     "fill",
                     return_value="rendered content",
                 ):
-                    with patch(
-                        "yaml.safe_load", return_value={"FILES": file_records}
-                    ):
+                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
                         with patch(
                             "peagen.core._topological_sort",
                             return_value=file_records,
@@ -357,9 +353,7 @@ class TestPeagen:
                     "fill",
                     return_value="rendered content",
                 ):
-                    with patch(
-                        "yaml.safe_load", return_value={"FILES": file_records}
-                    ):
+                    with patch("yaml.safe_load", return_value={"FILES": file_records}):
                         # Use transitive sort with start_file
                         with patch("peagen.core._config", {"transitive": True}):
                             with patch(

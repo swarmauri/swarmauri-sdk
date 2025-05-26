@@ -23,6 +23,7 @@ eval_app = typer.Typer(help="Evaluate programs using an EvaluatorPool.")
 
 # ---------------------------------------------------------------------------
 
+
 @eval_app.command("eval")
 def eval_cmd(
     workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
@@ -52,7 +53,7 @@ def eval_cmd(
     if config is not None:
         cfg_path = config
     else:
-        ws_cfg  = Path(workspace_uri) / ".peagen.toml"
+        ws_cfg = Path(workspace_uri) / ".peagen.toml"
         cwd_cfg = Path.cwd() / ".peagen.toml"
         cfg_path = ws_cfg if ws_cfg.exists() else cwd_cfg
 
@@ -62,15 +63,15 @@ def eval_cmd(
             f"  {ws_cfg}\n  {cwd_cfg}"
         )
 
-    cfg       = load_peagen_toml(cfg_path)
-    eval_cfg  = cfg.get("evaluation", {})
+    cfg = load_peagen_toml(cfg_path)
+    eval_cfg = cfg.get("evaluation", {})
 
     # ── resolve EvaluatorPool --------------------------------------------------
     pool_ref = pool or eval_cfg.get("pool")
     if pool_ref:
         if pool_ref in registry.get("evaluator_pools", {}):
             PoolCls = registry["evaluator_pools"][pool_ref]
-        else:                                   # dotted-path or module:Class
+        else:  # dotted-path or module:Class
             mod_name, cls_name = (
                 pool_ref.split(":", 1) if ":" in pool_ref else pool_ref.rsplit(".", 1)
             )
@@ -79,13 +80,13 @@ def eval_cmd(
         PoolCls = DefaultEvaluatorPool
 
     pool_inst = PoolCls()
-    pool_inst.initialize()                      # thread-pool etc.
+    pool_inst.initialize()  # thread-pool etc.
 
     # ── register evaluators ----------------------------------------------------
     evaluators_cfg = eval_cfg.get("evaluators", {})
     for name, spec in evaluators_cfg.items():
         if isinstance(spec, str):
-            mod, cls = (spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1))
+            mod, cls = spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1)
             EvalCls = getattr(import_module(mod), cls)
             evaluator = EvalCls()
         elif isinstance(spec, dict) and "cls" in spec:
@@ -130,7 +131,7 @@ def eval_cmd(
             ...
 
     program_paths: List[Path] = []
-    programs      : List[Program] = []
+    programs: List[Program] = []
     for p in workspace_path.glob(program_glob):
         if p.is_file():
             program_paths.append(p)
@@ -166,7 +167,7 @@ def eval_cmd(
     if json_out:
         typer.echo(json.dumps(manifest, indent=2))
     else:
-        out_dir  = out or workspace_path / ".peagen"
+        out_dir = out or workspace_path / ".peagen"
         out_dir.mkdir(parents=True, exist_ok=True)
         out_file = out_dir / "eval_manifest.json"
         out_file.write_text(json.dumps(manifest, indent=2))
