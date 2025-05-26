@@ -24,8 +24,8 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
 
 [project.entry-points.'swarmauri.publishers']
 RabbitMQPublisher = "swarmauri_publisher_rabbitmq.rabbitmq_publisher:RabbitMQPublisher"
