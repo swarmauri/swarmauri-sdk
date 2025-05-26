@@ -13,14 +13,13 @@ from swarmauri_core.programs.IProgram import IProgram
 # bring the default evaluators into scope
 # adjust the import paths if your project lays them out differently
 # ─────────────────────────────────────────────────────────────────────────────
-from . import (          # noqa: E402
+from . import (  # noqa: E402
     AutomatedReadabilityIndexEvaluator,
     ColemanLiauIndexEvaluator,
     FleschKincaidGradeEvaluator,
     FleschReadingEaseEvaluator,
     GunningFogEvaluator,
 )
-
 
 
 @ComponentBase.register_type(EvaluatorPoolBase, "AccessibilityEvaluatorPool")

@@ -7,7 +7,6 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
 
-
 @ComponentBase.register_type(EvaluatorBase, "GunningFogEvaluator")
 class GunningFogEvaluator(EvaluatorBase, ComponentBase):
     """
