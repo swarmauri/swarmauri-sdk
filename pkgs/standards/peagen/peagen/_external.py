@@ -15,7 +15,6 @@ import colorama
 from colorama import Fore, Style
 from dotenv import load_dotenv
 
-from ._config import _config
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
@@ -28,7 +27,11 @@ load_dotenv()
 
 
 def call_external_agent(
-    prompt: str, agent_env: Dict[str, str], logger: Optional[Any] = None
+    prompt: str,
+    agent_env: Dict[str, str],
+    logger: Optional[Any] = None,
+    *,
+    truncate: bool = False,
 ) -> str:
     """
     Sends the rendered prompt to an external agent (e.g., a language model) and returns the generated content.
@@ -62,7 +65,7 @@ def call_external_agent(
             f"{Fore.BLUE}{UNDERLINE}https://github.com/swarmauri/swarmauri-sdk/issues/1300{Style.RESET_ALL}\n"
         )
     # Log the prompt (truncated if configured)
-    truncated_prompt = prompt[:140] + "..." if _config["truncate"] else prompt
+    truncated_prompt = prompt[:140] + "..." if truncate else prompt
     if logger:
         logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
         logger.debug(f"Agent env: {agent_env}")

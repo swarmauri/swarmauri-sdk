@@ -55,6 +55,8 @@ def _render_generate_template(
     j2_instance: Any,
     agent_env: Dict[str, str] = {},
     logger: Optional[Any] = None,
+    *,
+    truncate: bool = False,
 ) -> str:
     """
     File: _rendering.py
@@ -70,7 +72,7 @@ def _render_generate_template(
         rendered_prompt = j2_instance.fill(context)
         from ._external import call_external_agent
 
-        return call_external_agent(rendered_prompt, agent_env, logger)
+        return call_external_agent(rendered_prompt, agent_env, logger, truncate=truncate)
     except Exception as e:
         if logger:
             e_split = str(e).split("not found")

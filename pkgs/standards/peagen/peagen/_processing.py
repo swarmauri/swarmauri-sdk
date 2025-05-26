@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
 
-from ._config import _config
 from ._graph import _build_forward_graph
 from ._rendering import _render_copy_template, _render_generate_template
 from .manifest_writer import ManifestWriter
@@ -147,6 +146,7 @@ def _process_file(
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
     manifest_writer: Optional[ManifestWriter] = None,  # NEW
+    truncate: bool = False,
 ) -> bool:
     """
     Render one file_record (COPY | GENERATE).
@@ -184,7 +184,13 @@ def _process_file(
                     f"Rendering GENERATE template '{prompt_name}' for {final_filename}"
                 )
             content = _render_generate_template(
-                file_record, context, prompt_path, j2_instance, agent_env, logger
+                file_record,
+                context,
+                prompt_path,
+                j2_instance,
+                agent_env,
+                logger,
+                truncate=truncate,
             )
         else:
             if logger:
@@ -243,6 +249,8 @@ def _process_project_files(
     storage_adapter: Optional[Any] = None,
     org: Optional[str] = None,
     manifest_writer: Optional[ManifestWriter] = None,
+    workers: int = 0,
+    truncate: bool = False,
 ) -> None:
     """
     Processes all file_records, creating fresh J2PromptTemplate instances
@@ -253,9 +261,8 @@ def _process_project_files(
         logger.debug(
             "Processing %d file records with %s workers",
             len(file_records),
-            _config.get("workers", 0),
+            workers,
         )
-    workers = _config.get("workers", 0)
 
     if workers and workers > 0:
         forward_graph, in_degree, _ = _build_forward_graph(file_records)
@@ -297,6 +304,7 @@ def _process_project_files(
                     org=org,
                     workspace_root=workspace_root,
                     manifest_writer=manifest_writer,  # NEW
+                    truncate=truncate,
                 )
             except Exception as e:
                 logger.warning(f"{e}")
@@ -353,6 +361,7 @@ def _process_project_files(
             org=org,
             workspace_root=workspace_root,
             manifest_writer=manifest_writer,
+            truncate=truncate,
         ):
             break
         start_idx += 1

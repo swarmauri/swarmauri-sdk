@@ -28,7 +28,7 @@ from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
 from .slug_utils import slugify
-from ._config import __logger_name__, _config, __version__
+from ._config import __logger_name__, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._processing import _process_project_files
 
@@ -221,7 +221,13 @@ class Peagen(ComponentBase):
             self.projects_list = []
         return self.projects_list
 
-    def process_all_projects(self) -> list:
+    def process_all_projects(
+        self,
+        *,
+        transitive: bool = False,
+        workers: int = 0,
+        truncate: bool = False,
+    ) -> list:
         """
         Processes all projects in self.projects_list.
         For each project, it renders the project YAML, processes file records,
@@ -237,7 +243,12 @@ class Peagen(ComponentBase):
         for project in self.projects_list:
             if self.logger:
                 self.logger.debug(f"Starting project {project.get('NAME')}")
-            file_records, start_idx = self.process_single_project(project)
+            file_records, start_idx = self.process_single_project(
+                project,
+                transitive=transitive,
+                workers=workers,
+                truncate=truncate,
+            )
             sorted_records.append(file_records)
         return sorted_records
 
@@ -250,6 +261,10 @@ class Peagen(ComponentBase):
         project: Dict[str, Any],
         start_idx: int = 0,
         start_file: Optional[str] = None,
+        *,
+        transitive: bool = False,
+        workers: int = 0,
+        truncate: bool = False,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Render & generate all files for *project*.
@@ -337,7 +352,7 @@ class Peagen(ComponentBase):
         # ------------------------------------------------------
         # PHASE 2: DECIDE WHICH TOPOLOGICAL SORT METHOD
         # ------------------------------------------------------
-        transitive = _config.get("transitive", False)
+        transitive = bool(transitive)
 
         try:
             if transitive:
@@ -448,6 +463,8 @@ class Peagen(ComponentBase):
                 workspace_root=root,
                 start_idx=start_idx,
                 manifest_writer=manifest_writer,
+                workers=workers,
+                truncate=truncate,
             )
             if self.logger:
                 self.logger.debug(

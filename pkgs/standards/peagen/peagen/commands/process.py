@@ -15,7 +15,6 @@ from urllib.parse import urlparse
 import typer
 
 from peagen._api_key import _resolve_api_key
-from peagen._config import _config
 from peagen._source_packages import materialise_packages
 from peagen._template_sets import install_template_sets
 from peagen.cli_common import (
@@ -104,7 +103,6 @@ def process_cmd(
     plugins_cfg = toml_cfg.get("plugins", {})
     plugin_mode = plugin_mode if plugin_mode is not None else plugins_cfg.get("mode")
     ctx.obj.plugin_mode = plugin_mode
-    _config["plugin_mode"] = plugin_mode
 
     # ── GENERAL ─────────────────────────────────────────────────────────
     workspace_cfg = toml_cfg.get("workspace", {})
@@ -231,7 +229,9 @@ def process_cmd(
             }
         )
 
-    _config.update(truncate=trunc, transitive=transitive, workers=workers)
+    ctx.obj.truncate = trunc
+    ctx.obj.transitive = transitive
+    ctx.obj.workers = workers
 
     installed_sets = install_template_sets(template_sets_cfg)
     resolved_key = (
@@ -280,10 +280,20 @@ def process_cmd(
         try:
             if project_name:
                 _process_single(
-                    pea, project_name, start_idx, start_file, transitive_only=transitive
+                    pea,
+                    project_name,
+                    start_idx,
+                    start_file,
+                    transitive_only=transitive,
+                    workers=workers,
+                    truncate=trunc,
                 )
             else:
-                pea.process_all_projects()
+                pea.process_all_projects(
+                    transitive=transitive,
+                    workers=workers,
+                    truncate=trunc,
+                )
         except KeyboardInterrupt:
             pea.logger.info("Exiting process command")
             typer.echo("\nInterrupted.  Bye.")
@@ -308,6 +318,8 @@ def _process_single(
     start_file: Optional[str],
     *,
     transitive_only: bool,
+    workers: int,
+    truncate: bool,
 ) -> None:
     """
     File: **process.py**
@@ -323,10 +335,18 @@ def _process_single(
         raise typer.Exit(1)
 
     if start_file:
-        pea.process_single_project(project, start_file=start_file)
+        pea.process_single_project(
+            project,
+            start_file=start_file,
+            transitive=transitive_only,
+            workers=workers,
+            truncate=truncate,
+        )
     else:
         pea.process_single_project(
             project,
             start_idx=start_idx or 0,
-            transitive_only=transitive_only,
+            transitive=transitive_only,
+            workers=workers,
+            truncate=truncate,
         )
