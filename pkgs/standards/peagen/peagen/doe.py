@@ -80,6 +80,16 @@ class DOEManager:
 
         for factor in self.spec.values():
             for pt in factor.get("patches", []):
+                # skip patch if 'when' condition evaluates to False
+                if "when" in pt:
+                    cond_tpl = Template(str(pt["when"]))
+                    cond_rendered = cond_tpl.render(**ctx)
+                    try:
+                        should_apply = bool(yaml.safe_load(cond_rendered))
+                    except Exception:
+                        should_apply = False
+                    if not should_apply:
+                        continue
                 raw_val = pt["value"]
 
                 # SPECIAL CASE: single-key mapping like { "CMP.requirements": null }

@@ -50,7 +50,8 @@
                 "properties": {
                   "op":   { "type": "string" },
                   "path": { "type": "string" },
-                  "value": {}
+                  "value": {},
+                  "when": {}
                 },
                 "required": ["op", "path"],
                 "additionalProperties": false
