@@ -3,12 +3,11 @@
 
 from __future__ import annotations
 
-from peagen.slug_utils import slugify
+import pathlib
 import secrets
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-import pathlib
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -26,6 +25,7 @@ from peagen.cli_common import (
 )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
+from peagen.slug_utils import slugify
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."
@@ -203,10 +203,25 @@ def process_cmd(
         typer.echo(f"❌ Unknown storage adapter '{adapter_name}'.")
         raise typer.Exit(1)
 
-    extra_store = dict(adapters_cfg.get(adapter_name, {}) or {})
-    extra_store.setdefault("bucket", org)
-    extra_store.setdefault("prefix", proj_prefix)
-    storage_adapter = StoreCls(**extra_store)
+    # Arguments for the storage adapter constructor
+    constructor_args = {}
+    constructor_args.update(dict(adapters_cfg.get(adapter_name, {}) or {}))
+
+    if adapter_name == "file":
+        if not artifacts:
+            typer.echo(
+                "❌ Configuration error: Output directory for file storage is not defined."
+            )
+            typer.echo(
+                "   Please specify it via --artifacts or in .peagen.toml under [storage.adapters.file].output_dir."
+            )
+            raise typer.Exit(1)
+        constructor_args["output_dir"] = artifacts  # Explicitly set/override output_dir
+    else:
+        constructor_args.setdefault("bucket", org)
+    constructor_args.setdefault("prefix", proj_prefix)
+
+    storage_adapter = StoreCls(**constructor_args)
 
     # ── PREPARE ENV & INSTANTIATE Peagen ────────────────────────────────
     projects_payload = PathOrURI(projects_payload)
@@ -218,7 +233,7 @@ def process_cmd(
             Path(p).expanduser() for p in additional_package_dirs.split(",")
         )
 
-    source_pkgs = toml_cfg.get("source_packages", {})
+    source_pkgs = toml_cfg.get("source_packages", [])
 
     if include_swarmauri:
         source_pkgs.append(
