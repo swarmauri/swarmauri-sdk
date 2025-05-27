@@ -14,3 +14,5 @@
 2. Run `peagen validate doe-spec doe_spec.yml` to check schema + checksum.
 3. Bump the **version** in `spec.yaml` when you publish a new design.
 4. Never mutate a version that has already been used in production runs.
+5. Put a patch under the factor if it depends on that factor alone; otherwise use
+   the global `PATCHES` block.
