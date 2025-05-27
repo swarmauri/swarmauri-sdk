@@ -17,6 +17,7 @@ from typing import Dict, List, Optional
 
 from peagen.commands.validate import _validate
 from peagen.schemas import DOE_SPEC_V1_SCHEMA
+from jinja2 import Template
 
 import typer
 import yaml
@@ -68,6 +69,56 @@ def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
 
 def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
     return key in spec_llm_keys or key in LLM_FALLBACK_KEYS
+
+
+def _get_from_context(expr: str, ctx: Dict[str, any]) -> any:
+    """Return nested ``expr`` like ``A.B.C`` from ``ctx``."""
+    val = ctx
+    for part in expr.split("."):
+        val = val[part]
+    return val
+
+
+def _render_factor_patches(
+    factors: Dict[str, Dict],
+    point: Dict[str, any],
+    base_name: str,
+    exp_id: str,
+) -> List[Dict]:
+    """Collect JSON-Patch ops defined inside each factor."""
+
+    ctx: Dict[str, any] = {**point, "BASE_NAME": base_name, "EXP_ID": exp_id}
+    for fname, f in factors.items():
+        code = f.get("code")
+        if code:
+            ctx[code] = point.get(fname)
+
+    ops: List[Dict] = []
+    for f in factors.values():
+        for pt in f.get("patches", []):
+            if "when" in pt:
+                cond = Template(str(pt["when"])).render(**ctx)
+                try:
+                    should_apply = bool(yaml.safe_load(cond))
+                except Exception:
+                    should_apply = False
+                if not should_apply:
+                    continue
+
+            raw_val = pt.get("value")
+
+            if isinstance(raw_val, dict) and len(raw_val) == 1:
+                key = next(iter(raw_val))
+                if "." in key:
+                    val = _get_from_context(key, ctx)
+                    ops.append({"op": pt["op"], "path": pt["path"], "value": val})
+                    continue
+
+            rendered = Template(str(raw_val)).render(**ctx)
+            val = yaml.safe_load(rendered)
+            ops.append({"op": pt["op"], "path": pt["path"], "value": val})
+
+    return ops
 
 
 # ---------------------------------------------------------------- print matrix
@@ -187,6 +238,17 @@ def experiment_generate(
         for oth in _matrix(other_map or {"_dummy": [None]})
     ]
 
+    base_name = (
+        template_obj.get("PROJECTS", [{}])[0].get("NAME", "")
+        if isinstance(template_obj, dict)
+        else ""
+    )
+    rich_factors: Dict[str, Dict] = {
+        k: v
+        for k, v in {**llm_map, **other_map}.items()
+        if isinstance(v, dict)
+    }
+
     # 3. ---------- generate projects -----------------------------------------
     projects = []
     spec_name = spec.stem
@@ -194,7 +256,10 @@ def experiment_generate(
     for idx, point in enumerate(design_points):
         proj = deepcopy(template_obj)
 
-        # apply factor-specific patches
+        patch_ops = _render_factor_patches(rich_factors, point, base_name, f"{idx:03d}")
+        if patch_ops:
+            _apply_json_patch(proj, patch_ops)
+
         for patch_rule in spec_obj.get("PATCHES", []):
             when: Dict = patch_rule.get("when", {})
             if all(point.get(k) == v for k, v in when.items()):
