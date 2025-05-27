@@ -234,9 +234,7 @@ def process_cmd(
     ctx.obj.workers = workers
 
     installed_sets = install_template_sets(template_sets_cfg)
-    resolved_key = (
-        _resolve_api_key(provider, api_key, env) if provider else None
-    )
+    resolved_key = _resolve_api_key(provider, api_key, env) if provider else None
     agent_env = {
         "provider": provider,
         "model_name": model_name,

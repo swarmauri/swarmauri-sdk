@@ -42,7 +42,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
         self.evaluators = {}
         self.lock = threading.RLock()
         self.executor = None
-        self.aggregation_func = lambda scores: sum(scores) / len(scores) if scores else 0.0
+        self.aggregation_func = (
+            lambda scores: sum(scores) / len(scores) if scores else 0.0
+        )
 
     def initialize(self) -> None:
         try:
@@ -110,7 +112,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             logger.exception("evaluate() failed")
             raise RuntimeError(f"Failed to evaluate programs: {e}") from e
 
-    async def evaluate_async(self, programs: Sequence[P], **kwargs) -> Sequence[IEvalResult]:
+    async def evaluate_async(
+        self, programs: Sequence[P], **kwargs
+    ) -> Sequence[IEvalResult]:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             self.executor, partial(self.evaluate, programs, **kwargs)
@@ -163,7 +167,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             raise ValueError("Cannot aggregate an empty score list")
         return self.aggregation_func(list(scores))
 
-    def set_aggregation_function(self, func: Callable[[Sequence[float]], float]) -> None:
+    def set_aggregation_function(
+        self, func: Callable[[Sequence[float]], float]
+    ) -> None:
         if not callable(func):
             raise TypeError("Aggregation function must be callable")
         # sanity-check signature

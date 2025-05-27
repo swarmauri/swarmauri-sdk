@@ -1,7 +1,7 @@
 import pytest
 from typer.testing import CliRunner
 from peagen.commands.process import process_app
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 @pytest.mark.r8n
@@ -10,15 +10,16 @@ def test_process_cli_allows_no_provider(tmp_path):
     payload.write_text("schemaVersion: '1.0'\nPROJECTS: []", encoding="utf-8")
     runner = CliRunner()
     dummy_registry = {
-        "storage_adapters": {"file": type("Dummy", (), {"__init__": lambda *a, **k: None})}
+        "storage_adapters": {
+            "file": type("Dummy", (), {"__init__": lambda *a, **k: None})
+        }
     }
-    with patch(
-        "peagen.commands.process.install_template_sets", return_value=[]
-    ), patch(
-        "peagen.commands.process.materialise_packages", return_value=[]
-    ), patch("peagen.commands.process.registry", dummy_registry), patch(
-        "peagen.commands.process.Peagen"
-    ) as MockPeagen:
+    with (
+        patch("peagen.commands.process.install_template_sets", return_value=[]),
+        patch("peagen.commands.process.materialise_packages", return_value=[]),
+        patch("peagen.commands.process.registry", dummy_registry),
+        patch("peagen.commands.process.Peagen") as MockPeagen,
+    ):
         MockPeagen.return_value.process_all_projects.return_value = []
         with patch(
             "peagen.commands.process.load_peagen_toml",
@@ -35,14 +36,15 @@ def test_process_cli_start_idx_and_file_error(tmp_path):
     payload.write_text("schemaVersion: '1.0'\nPROJECTS: []", encoding="utf-8")
     runner = CliRunner()
     dummy_registry = {
-        "storage_adapters": {"file": type("Dummy", (), {"__init__": lambda *a, **k: None})}
+        "storage_adapters": {
+            "file": type("Dummy", (), {"__init__": lambda *a, **k: None})
+        }
     }
-    with patch(
-        "peagen.commands.process.install_template_sets", return_value=[]
-    ), patch(
-        "peagen.commands.process.materialise_packages", return_value=[]
-    ), patch("peagen.commands.process.registry", dummy_registry), patch(
-        "peagen.commands.process.Peagen"
+    with (
+        patch("peagen.commands.process.install_template_sets", return_value=[]),
+        patch("peagen.commands.process.materialise_packages", return_value=[]),
+        patch("peagen.commands.process.registry", dummy_registry),
+        patch("peagen.commands.process.Peagen"),
     ):
         with patch(
             "peagen.commands.process.load_peagen_toml",
@@ -54,4 +56,3 @@ def test_process_cli_start_idx_and_file_error(tmp_path):
             )
         assert result.exit_code != 0
         assert "Invalid combination of flags" in result.output
-

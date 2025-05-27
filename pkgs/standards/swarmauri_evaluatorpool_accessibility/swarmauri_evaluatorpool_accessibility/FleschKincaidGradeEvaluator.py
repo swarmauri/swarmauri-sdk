@@ -7,7 +7,6 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
 
-
 @ComponentBase.register_type(EvaluatorBase, "FleschKincaidGradeEvaluator")
 class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
     """
@@ -77,7 +76,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         # Calculate the Flesch-Kincaid Grade Level
         if sentences == 0 or words == 0:
             if self.logger:
-                self.logger.warning("Text lacks sufficient content for FKGL calculation")
+                self.logger.warning(
+                    "Text lacks sufficient content for FKGL calculation"
+                )
             return 0.0, {
                 "error": "Text lacks sufficient content for analysis",
                 "sentences": sentences,

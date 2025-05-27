@@ -197,7 +197,9 @@ def test_compute_score_with_non_string_content(evaluator, mock_program):
         evaluator: The evaluator instance
         mock_program: A mock Program object
     """
-    mock_program.get_source_files.return_value = {"main.txt": 12345}  # Non-string content
+    mock_program.get_source_files.return_value = {
+        "main.txt": 12345
+    }  # Non-string content
 
     score, metadata = evaluator._compute_score(mock_program)
 
