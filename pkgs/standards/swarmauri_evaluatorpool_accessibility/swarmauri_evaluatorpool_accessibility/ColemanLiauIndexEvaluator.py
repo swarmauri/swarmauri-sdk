@@ -7,7 +7,6 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
 
-
 @ComponentBase.register_type(EvaluatorBase, "ColemanLiauIndexEvaluator")
 class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     """
@@ -34,9 +33,7 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # ──────────────────────────────────────────────────────────────────────
     # Core scoring logic
     # ──────────────────────────────────────────────────────────────────────
-    def _compute_score(
-        self, program: Program, **__
-    ) -> Tuple[float, Dict[str, Any]]:
+    def _compute_score(self, program: Program, **__) -> Tuple[float, Dict[str, Any]]:
         text = self._extract_text(program)
 
         if not text.strip():

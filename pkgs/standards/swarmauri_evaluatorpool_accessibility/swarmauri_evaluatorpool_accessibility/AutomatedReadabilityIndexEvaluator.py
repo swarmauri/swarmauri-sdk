@@ -11,10 +11,7 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
 
-
-@ComponentBase.register_type(
-    EvaluatorBase, "AutomatedReadabilityIndexEvaluator"
-)
+@ComponentBase.register_type(EvaluatorBase, "AutomatedReadabilityIndexEvaluator")
 class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
     """
     Computes the Automated Readability Index (ARI) for a Program’s textual sources.
@@ -23,9 +20,9 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
         { "score": <float>, "metadata": <dict> }
     """
 
-    type: Literal[
+    type: Literal["AutomatedReadabilityIndexEvaluator"] = (
         "AutomatedReadabilityIndexEvaluator"
-    ] = "AutomatedReadabilityIndexEvaluator"
+    )
     model_config = {"arbitrary_types_allowed": True, "exclude": {"logger"}}
 
     # ────────────────────────────────────────────────────────────────────
@@ -89,13 +86,9 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
             try:
                 if ext in (".md", ".markdown"):
                     html = markdown.markdown(data)
-                    segments.append(
-                        BeautifulSoup(html, "html.parser").get_text()
-                    )
+                    segments.append(BeautifulSoup(html, "html.parser").get_text())
                 elif ext in (".html", ".htm"):
-                    segments.append(
-                        BeautifulSoup(data, "html.parser").get_text()
-                    )
+                    segments.append(BeautifulSoup(data, "html.parser").get_text())
                 else:  # plain text
                     segments.append(data)
             except Exception as exc:

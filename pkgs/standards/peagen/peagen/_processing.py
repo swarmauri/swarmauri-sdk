@@ -264,6 +264,7 @@ def _process_project_files(
             rec["RENDERED_FILE_NAME"]: i + start_idx
             for i, rec in enumerate(file_records)
         }
+
         def _worker(fname: str) -> None:
             rec = entry_map[fname]
             idx = idx_map[fname]

@@ -1,8 +1,6 @@
-"""Configuration constants for Peagen."""
+from .WebhookPublisher import WebhookPublisher
 
-_config = {"truncate": False}
-__package_name__ = "peagen"
-__logger_name__ = "pea"
+__all__ = ["WebhookPublisher"]
 
 try:
     # For Python 3.8 and newer
@@ -12,7 +10,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version(__package_name__)
+    __version__ = version("swarmauri_publisher_webhook")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"

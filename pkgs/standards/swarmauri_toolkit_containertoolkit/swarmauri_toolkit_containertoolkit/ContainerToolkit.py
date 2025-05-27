@@ -12,7 +12,9 @@ from swarmauri_tool_containermakepr import ContainerMakePrTool
 class ContainerToolkit(ToolkitBase):
     tools: Dict[str, SubclassUnion[ToolBase]] = {}
 
-    def __init__(self, container_name: str | None = None, image: str | None = None, **kwargs):
+    def __init__(
+        self, container_name: str | None = None, image: str | None = None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.tools = {
             "ContainerNewSessionTool": ContainerNewSessionTool(
