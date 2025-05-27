@@ -87,7 +87,7 @@ def _evaluate_comprehension(node, global_env, context=None):
 
 
 def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]:
-    from ._ast_nodes import AliasClauseNode
+    from ._ast_nodes import AliasClauseNode, BaseNode
 
     clause_list = clauses.clauses
 
@@ -101,7 +101,11 @@ def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]
         iterable = clause.iterable
 
         # evaluate the iterable -------------------------------------------------
-        if hasattr(iterable, "render") and context is not None:
+        if (
+            context is not None
+            and hasattr(iterable, "render")
+            and type(iterable).render is not BaseNode.render
+        ):
             iterable_vals = iterable.render(global_env, {**local_env, **env}, context)
         else:
             if hasattr(iterable, "resolve"):

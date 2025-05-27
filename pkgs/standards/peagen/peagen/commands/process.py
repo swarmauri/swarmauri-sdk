@@ -159,7 +159,7 @@ def process_cmd(
         notify = default_publisher
 
     # ── SANITY CHECKS ───────────────────────────────────────────────────
-    if (start_idx and start_file) or (not provider or not model_name):
+    if start_idx and start_file:
         typer.echo("❌ Invalid combination of flags.")
         raise typer.Exit(1)
 
@@ -231,10 +231,10 @@ def process_cmd(
             }
         )
 
-    _config.update(truncate=trunc, revise=False, transitive=transitive, workers=workers)
+    _config.update(truncate=trunc, transitive=transitive, workers=workers)
 
     installed_sets = install_template_sets(template_sets_cfg)
-    resolved_key = _resolve_api_key(provider, api_key, env)
+    resolved_key = _resolve_api_key(provider, api_key, env) if provider else None
     agent_env = {
         "provider": provider,
         "model_name": model_name,
@@ -263,6 +263,8 @@ def process_cmd(
             workspace_root=ws,
         )
 
+        pea.logger.info("Entering process command")
+
         # ── LOG LEVEL ───────────────────────────────────────────────────
         if verbose >= 3:
             pea.logger.set_level(10)  # DEBUG
@@ -281,6 +283,7 @@ def process_cmd(
             else:
                 pea.process_all_projects()
         except KeyboardInterrupt:
+            pea.logger.info("Exiting process command")
             typer.echo("\nInterrupted.  Bye.")
             raise typer.Exit(1)
 
@@ -289,6 +292,8 @@ def process_cmd(
 
         if bus:
             bus.publish(channel, {"type": "process.done", "seconds": dur})
+
+        pea.logger.info("Exiting process command")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

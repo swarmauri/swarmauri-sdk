@@ -80,8 +80,7 @@ def loads(s: str) -> Dict[str, Any]:
     transformer = ConfigTransformer()
     transformer._context = type("Context", (), {"text": s})
     config = transformer.transform(parse_tree)
-    config.resolve()  # Resolve static expressions
-    return config._data  # Return plain dictionary
+    return config.resolve()  # Resolve and return plain dictionary
 
 
 def load(fp: IO[str]) -> Dict[str, Any]:

@@ -17,32 +17,43 @@ class ContainerNewSessionTool(ToolBase):
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
+    container_name: str | None = Field(
+        default=None, description="Name for the container or pod"
+    )
+    image: str | None = Field(default=None, description="Container image to launch")
+
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
                 name="container_name",
                 input_type="string",
                 description="Name for the container or pod",
-                required=True,
+                required=False,
             ),
             Parameter(
                 name="image",
                 input_type="string",
                 description="Container image to launch",
-                required=True,
+                required=False,
             ),
         ]
     )
 
-    def __call__(self, container_name: str, image: str) -> dict:
+    def __call__(
+        self, container_name: str | None = None, image: str | None = None
+    ) -> dict:
+        name = container_name or self.container_name
+        img = image or self.image
+        if name is None or img is None:
+            raise ValueError("container_name and image must be provided")
         if self.driver == "docker":
             cmd = [
                 "docker",
                 "run",
                 "-d",
                 "--name",
-                container_name,
-                image,
+                name,
+                img,
                 "sleep",
                 "infinity",
             ]
@@ -50,9 +61,9 @@ class ContainerNewSessionTool(ToolBase):
             cmd = [
                 "kubectl",
                 "run",
-                container_name,
+                name,
                 "--image",
-                image,
+                img,
                 "-i",
                 "--restart=Never",
                 "--command",
@@ -63,4 +74,4 @@ class ContainerNewSessionTool(ToolBase):
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(result.stderr.strip())
-        return {"session_name": container_name, "stdout": result.stdout.strip()}
+        return {"session_name": name, "stdout": result.stdout.strip()}

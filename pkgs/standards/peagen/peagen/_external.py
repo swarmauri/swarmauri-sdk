@@ -26,7 +26,6 @@ UNDERLINE = "\033[4m"
 
 load_dotenv()
 
-
 def call_external_agent(
     prompt: str, agent_env: Dict[str, str], logger: Optional[Any] = None
 ) -> str:
@@ -65,6 +64,7 @@ def call_external_agent(
     truncated_prompt = prompt[:140] + "..." if _config["truncate"] else prompt
     if logger:
         logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
+        logger.debug(f"Agent env: {agent_env}")
 
     # Extract configuration from agent_env
     provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
@@ -74,6 +74,8 @@ def call_external_agent(
 
     # Initialize the generic LLM manager
     llm_manager = GenericLLM()
+    if logger:
+        logger.debug(f"Requesting provider '{provider}' model '{model_name}'")
 
     # Special case for LlamaCpp which doesn't need an API key
     if provider.lower() == "llamacpp":
@@ -114,6 +116,8 @@ def call_external_agent(
 
     # Process and chunk the content
     content = chunk_content(result, logger)
+    if logger:
+        logger.debug(f"Received content length: {len(content)}")
 
     # Clean up
     del agent
@@ -134,23 +138,31 @@ def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
 
         chunker = MdSnippetChunker()
         chunks = chunker.chunk_text(cleaned_text)
+        if logger:
+            logger.debug(f"Chunker returned {len(chunks)} chunk(s)")
         if len(chunks) > 1:
             logger.warning(
                 "MdSnippetChunker found more than one snippet, took the first."
             )
+            if logger:
+                logger.debug("Returning first chunk of size %d", len(chunks[0][2]))
             return chunks[0][2]
         try:
             return chunks[0][2]
         except IndexError:
             logger.warning("MdSnippetChunker found no chunks, using cleaned_text.")
+            if logger:
+                logger.debug("Returning cleaned_text of length %d", len(cleaned_text))
             return cleaned_text
     except ImportError:
         if logger:
             logger.warning(
                 "MdSnippetChunker not found. Returning full content without chunking."
             )
+            logger.debug("Returning cleaned_text of length %d", len(cleaned_text))
         return cleaned_text
     except Exception as e:
         if logger:
             logger.error(f"[ERROR] Failed to chunk content: {e}")
+            logger.debug("Returning cleaned_text of length %d", len(cleaned_text))
         return cleaned_text

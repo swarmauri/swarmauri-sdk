@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 from typing import Any, Dict, Literal, Tuple
@@ -12,7 +11,6 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.programs.Program import Program
 
-logger = logging.getLogger(__name__)
 
 # Custom download dir for environments like CI
 NLTK_DATA_DIR = os.getenv("NLTK_DATA_DIR", "/tmp/nltk_data")
@@ -38,6 +36,14 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     type: Literal["FleschReadingEaseEvaluator"] = "FleschReadingEaseEvaluator"
     _cmu_dict = PrivateAttr(default=None)
 
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
+
     def __init__(self, **kwargs):
         """Initialize the Flesch Reading Ease evaluator."""
         super().__init__(**kwargs)
@@ -45,13 +51,15 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         try:
             nltk.data.find("tokenizers/punkt")
         except LookupError:
-            logger.info("Downloading NLTK punkt tokenizer")
+            if self.logger:
+                self.logger.info("Downloading NLTK punkt tokenizer")
             nltk.download("punkt", quiet=True, download_dir=NLTK_DATA_DIR)
 
         try:
             nltk.data.find("corpora/cmudict")
         except LookupError:
-            logger.info("Downloading CMU Pronouncing Dictionary")
+            if self.logger:
+                self.logger.info("Downloading CMU Pronouncing Dictionary")
             nltk.download("cmudict", quiet=True, download_dir=NLTK_DATA_DIR)
 
         # Load the CMU dictionary for syllable counting
@@ -81,9 +89,10 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             ValueError: If the text cannot be processed
         """
         # Extract text from the program
-        text = program.get_content()
+        text = self._get_program_text(program)
         if not text or not isinstance(text, str):
-            logger.warning("Program content is empty or not a string")
+            if self.logger:
+                self.logger.warning("Program content is empty or not a string")
             return 0.0, {"error": "No valid text content found"}
 
         # Clean the text (remove extra whitespace, etc.)
@@ -101,7 +110,8 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         word_count = len(words)
 
         if sentence_count == 0 or word_count == 0:
-            logger.warning("Text contains no sentences or words")
+            if self.logger:
+                self.logger.warning("Text contains no sentences or words")
             return 0.0, {"error": "Text contains no sentences or words"}
 
         # Count syllables in each word
@@ -130,10 +140,22 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
             "readability_interpretation": self._interpret_score(fre_score),
         }
 
-        logger.info(
-            f"Flesch Reading Ease score: {fre_score:.2f} ({metadata['readability_interpretation']})"
-        )
+        if self.logger:
+            self.logger.info(
+                f"Flesch Reading Ease score: {fre_score:.2f} ({metadata['readability_interpretation']})"
+            )
         return fre_score, metadata
+
+    def _get_program_text(self, program: Program) -> str:
+        """Return program text by joining its source files."""
+        try:
+            source_files = program.get_source_files()
+            if isinstance(source_files, dict):
+                return " \n".join(str(v) for v in source_files.values())
+        except Exception as exc:
+            if self.logger:
+                self.logger.debug(f"Failed to obtain program text: {exc}")
+        return ""
 
     def _clean_text(self, text: str) -> str:
         """

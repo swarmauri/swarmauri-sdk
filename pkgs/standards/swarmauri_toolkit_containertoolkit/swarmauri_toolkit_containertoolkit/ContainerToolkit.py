@@ -10,8 +10,21 @@ from swarmauri_tool_containermakepr import ContainerMakePrTool
 
 @ComponentBase.register_type(ToolkitBase, "ContainerToolkit")
 class ContainerToolkit(ToolkitBase):
-    tools: Dict[str, SubclassUnion[ToolBase]] = {
-        "ContainerNewSessionTool": ContainerNewSessionTool(),
-        "ContainerFeedCharsTool": ContainerFeedCharsTool(),
-        "ContainerMakePrTool": ContainerMakePrTool(),
-    }
+    tools: Dict[str, SubclassUnion[ToolBase]] = {}
+
+    def __init__(
+        self, container_name: str | None = None, image: str | None = None, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.tools = {
+            "ContainerNewSessionTool": ContainerNewSessionTool(
+                container_name=container_name,
+                image=image,
+            ),
+            "ContainerFeedCharsTool": ContainerFeedCharsTool(
+                container_name=container_name,
+            ),
+            "ContainerMakePrTool": ContainerMakePrTool(
+                container_name=container_name,
+            ),
+        }
