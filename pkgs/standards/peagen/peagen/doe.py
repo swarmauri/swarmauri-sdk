@@ -34,7 +34,7 @@ class DOEManager:
         Loads the DOE spec (with factors) and the base project template.
         """
         doc = yaml.safe_load(self.spec_path.read_text(encoding="utf-8"))
-        self.spec = doc.get("factors", {})
+        self.spec = doc.get("FACTORS", doc.get("factors", {}))
         tmpl = yaml.safe_load(self.template_path.read_text(encoding="utf-8"))
         projects = tmpl.get("PROJECTS", [])
         if not projects:
