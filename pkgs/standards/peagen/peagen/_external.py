@@ -26,7 +26,6 @@ UNDERLINE = "\033[4m"
 
 load_dotenv()
 
-
 def call_external_agent(
     prompt: str, agent_env: Dict[str, str], logger: Optional[Any] = None
 ) -> str:

@@ -1,8 +1,9 @@
 """Configuration constants for Peagen."""
 
-_config = {}
+_config = {"truncate": False}
 __package_name__ = "peagen"
 __logger_name__ = "pea"
+
 try:
     # For Python 3.8 and newer
     from importlib.metadata import version, PackageNotFoundError
