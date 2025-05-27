@@ -1,5 +1,4 @@
-# Extras Keys for swarmauri_standard_standalone
-
+# Extras Keys for swarmauri_community
 This template set recognizes the following EXTRAS keys:
 
 - RESOURCE_KIND
