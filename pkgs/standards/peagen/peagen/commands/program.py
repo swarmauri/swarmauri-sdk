@@ -16,31 +16,62 @@ from __future__ import annotations
 import json
 import pathlib
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import List, Optional
-
-import typer
-from rich import print as rprint
-from rich.tree import Tree
-
 from urllib.parse import urlparse, urlunparse
-
-from peagen._source_packages import (
-    _materialise_source_pkg,
-)
-from peagen.storage_adapters import make_adapter_for_uri
-from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
-from jsonschema import validate as json_validate, ValidationError
 import hashlib
 import jsonpatch
 
+import typer
+from jsonschema import ValidationError, validate as json_validate
+from rich import print as rprint
+from rich.tree import Tree
+
+from peagen._source_packages import _materialise_source_pkg
+from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
+from peagen.storage_adapters import make_adapter_for_uri
+from swarmauri_standard.loggers.Logger import Logger
 
 program_app = typer.Typer(
     name="program",
     help="Reconstruct, patch, inspect, diff, and validate Peagen workspaces.",
     no_args_is_help=True,
 )
+
+
+# ───────────────────────────────────────── helper ──────────────────────────
+def _install_template_sets(specs: List[dict], base_dir: Optional[Path] = None) -> None:
+    """
+    Install template-sets declared in a manifest.
+
+    Supports Git repositories (`type: git`) and PyPI packages (`type: pip`).
+
+    Args:
+        specs: List of template-set specification dictionaries.
+        base_dir: Directory where Git template-sets are cloned.
+                  Defaults to ~/.peagen/template_sets
+    """
+    base_dir = base_dir or (Path.home() / ".peagen" / "template_sets")
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    for spec in specs:
+        kind = spec.get("type", "git")
+        if kind == "git":
+            dest = base_dir / spec["name"]
+            if dest.exists():
+                continue  # already present
+            repo = spec["uri"]
+            subprocess.check_call(["git", "clone", "--depth", "1", repo, str(dest)])
+            if ref := spec.get("ref"):
+                subprocess.check_call(["git", "-C", str(dest), "checkout", ref])
+        elif kind == "pip":
+            pkg = spec["uri"]
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
+        else:
+            raise ValueError(f"Unknown template-set type: {kind}")
 
 
 # ───────────────────────────────────────────────────────────── fetch ──
@@ -53,19 +84,17 @@ def fetch(
     no_source: bool = typer.Option(
         False, help="Skip cloning/copying `source_packages` (debug only)"
     ),
-    install_template_sets: bool = typer.Option(
+    install_template_sets_flag: bool = typer.Option(
         True,
         "--install-template-sets/--no-install-template-sets",
         help="Install template sets before fetching",
     ),
-    #     evaluator_pool: Optional[str] = typer.Option(
-    #         None,
-    #         help="Evaluator pool class path 'module:Class' to run after fetch",
-    #     ),
 ):
     """
     Reconstruct a complete workspace from manifest(s).
     """
+    self = Logger(name="fetch")
+    self.logger.info("Entering fetch command")
     if out_dir is None:
         out_dir = Path(tempfile.mkdtemp(prefix="peagen_ws_")).resolve()
     else:
@@ -74,24 +103,18 @@ def fetch(
 
     for m_uri in manifests:
         manifest = _download_manifest(m_uri)
-        if install_template_sets and "template_sets" in manifest:
-            install_template_sets(manifest.get("template_sets", []))
+
+        if install_template_sets_flag and manifest.get("template_sets"):
+            _install_template_sets(manifest["template_sets"])
+
         if not no_source:
             for spec in manifest["source_packages"]:
                 _materialise_source_pkg(spec, out_dir, upload=False)
+
         _materialise_workspace(manifest, out_dir)
 
     typer.echo(f"workspace: {out_dir}")
-
-
-#     Future example of integration:
-#     if evaluator_pool:
-#         module_name, cls_name = evaluator_pool.split(":")
-#         pool_cls = getattr(importlib.import_module(module_name), cls_name)
-#         pool = pool_cls()
-#         program = Program.from_workspace(out_dir)
-#         result = pool.evaluate(program)
-#         typer.echo(json.dumps(result))
+    self.logger.info("Exiting fetch command")
 
 
 # ───────────────────────────────────────────────────────────── patch ──
@@ -108,6 +131,8 @@ def patch(
     """
     Overlay another workspace and/or program_apply JSON-Patch in-place.
     """
+    self = Logger(name="patch")
+    self.logger.info("Entering patch command")
     workspace = workspace.resolve()
 
     if overlay:
@@ -117,9 +142,11 @@ def patch(
     if patch:
         doc = _tree_to_json(workspace)
         patch_ops = json.loads(patch.read_text())
-        doc = jsonpatch.program_apply_patch(doc, patch_ops, in_place=False)
+        doc = jsonpatch.apply_patch(doc, patch_ops, in_place=False)
         _json_to_tree(doc, workspace)
         typer.echo("json-patch program_applied")
+
+    self.logger.info("Exiting patch command")
 
 
 # ─────────────────────────────────────────────────────────── inspect ──
@@ -133,6 +160,8 @@ def inspect(
     """
     Display information about a workspace.
     """
+    self = Logger(name="inspect")
+    self.logger.info("Entering inspect command")
     workspace = workspace.resolve()
     if tree:
         _print_tree(workspace)
@@ -141,6 +170,8 @@ def inspect(
     if manifest:
         for mf in (workspace / ".peagen").glob("*_manifest.json"):
             rprint(json.loads(mf.read_text()))
+
+    self.logger.info("Exiting inspect command")
 
 
 # ───────────────────────────────────────────────────────────── diff ──
@@ -153,6 +184,8 @@ def diff(
     """
     File-level diff between two workspaces OR two manifest URIs.
     """
+    self = Logger(name="diff")
+    self.logger.info("Entering diff command")
     left_dir = _ensure_workspace(left)
     right_dir = _ensure_workspace(right)
 
@@ -163,6 +196,8 @@ def diff(
         md.write_text(table_md, encoding="utf-8")
     else:
         typer.echo(table_md)
+
+    self.logger.info("Exiting diff command")
 
 
 # ─────────────────────────────────────────────────────────── validate ──
@@ -180,6 +215,8 @@ def validate(
     """
     JSON-Schema + (optional) license compliance validation.
     """
+    self = Logger(name="validate")
+    self.logger.info("Entering validate command")
     man_paths = (
         [target]
         if target.suffix == ".json"
@@ -199,7 +236,6 @@ def validate(
     if schema_only:
         return
 
-    # license scan
     detected = _scan_licenses(target)
     if license_allow:
         bad = [lic for lic in detected if not _match_any(lic, license_allow)]
@@ -213,6 +249,7 @@ def validate(
             raise typer.Exit(1)
 
     typer.echo("license ✅")
+    self.logger.info("Exiting validate command")
 
 
 # ───────────────────────────────────── helper implementations ──
@@ -222,22 +259,15 @@ def _download_manifest(uri: str) -> dict:
 
     Fix 2025-05-20: scopes the storage-adapter to the **directory
     containing** the manifest (instead of the object itself).
-    This prevents the double-prefix path reported in the stack-trace
-    where `<prefix>/<file> + <prefix>/<file>` was requested.
     """
-    # Local file path? → just open it.
-    if "://" not in uri:
+    if "://" not in uri:  # local file
         return json.loads(pathlib.Path(uri).read_text())
 
-    # Split object path into directory + filename
     p = urlparse(uri)
-    dir_path, key_name = p.path.rsplit("/", 1)  # “…/.peagen”, “foo_manifest.json”
+    dir_path, key_name = p.path.rsplit("/", 1)
     dir_uri = urlunparse((p.scheme, p.netloc, dir_path, "", "", ""))
 
-    # Build adapter scoped to the directory (bucket + prefix *without* the file)
     adapter = make_adapter_for_uri(dir_uri)
-
-    # Download using *only* the file-name; adapter adds its prefix correctly
     data = adapter.download(key_name)
     return json.load(data)
 
@@ -246,7 +276,7 @@ def _materialise_workspace(manifest: dict, dest: Path):
     uri = manifest["workspace_uri"]
     adapter = make_adapter_for_uri(uri)
     prefix = getattr(adapter, "_prefix", "")
-    adapter.download_prefix(prefix, dest)  # pulls ALL generated files
+    adapter.download_prefix(prefix, dest)
 
 
 def _overlay_dir(src: Path, dst: Path):
@@ -300,7 +330,6 @@ def _print_loc(root: Path):
 def _ensure_workspace(arg: Path) -> Path:
     if arg.is_dir():
         return arg.resolve()
-    # manifest path or URI
     tmp = Path(tempfile.mkdtemp(prefix="peagen_diff_"))
     manifest = _download_manifest(str(arg))
     _materialise_workspace(manifest, tmp)
@@ -334,7 +363,7 @@ def _format_diff_md(added, removed, modified) -> str:
 def _scan_licenses(workspace: Path) -> set[str]:
     detected = set()
     for p in workspace.rglob("*"):
-        if p.is_file() and p.stat().st_size < 1_000_000:  # skip large binaries
+        if p.is_file() and p.stat().st_size < 1_000_000:
             txt = p.read_text(errors="ignore")
             if "SPDX-License-Identifier:" in txt:
                 lic = txt.split("SPDX-License-Identifier:", 1)[1].split()[0]
@@ -350,4 +379,4 @@ def _match_any(lic: str, patterns: List[str]) -> bool:
 
 # ---------------------------------------------------------------------
 if __name__ == "__main__":
-    program_app()  # `python -m peagen.commands.program ...`
+    program_app()

@@ -1,4 +1,3 @@
-import logging
 import re
 import string
 from typing import Any, Dict, Literal, Tuple
@@ -6,8 +5,6 @@ from typing import Any, Dict, Literal, Tuple
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
-
-logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(EvaluatorBase, "FleschKincaidGradeEvaluator")
@@ -27,6 +24,14 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
     """
 
     type: Literal["FleschKincaidGradeEvaluator"] = "FleschKincaidGradeEvaluator"
+
+    # ------------------------------------------------------------------
+    # public API
+    # ------------------------------------------------------------------
+    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
+        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        score, meta = self._compute_score(program, **kwargs)
+        return {"score": score, "metadata": meta}
 
     def _compute_score(
         self, program: Program, **kwargs
@@ -54,7 +59,8 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         text = self._get_program_text(program)
 
         if not text:
-            logger.warning("No text found in program output")
+            if self.logger:
+                self.logger.warning("No text found in program output")
             return 0.0, {"error": "No text to evaluate"}
 
         # Count sentences, words, and syllables
@@ -62,13 +68,17 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         words = self._count_words(text)
         syllables = self._count_syllables(text)
 
-        logger.debug(
-            f"Text analysis: {sentences} sentences, {words} words, {syllables} syllables"
-        )
+        if self.logger:
+            self.logger.debug(
+                f"Text analysis: {sentences} sentences, {words} words, {syllables} syllables"
+            )
 
         # Calculate the Flesch-Kincaid Grade Level
         if sentences == 0 or words == 0:
-            logger.warning("Text lacks sufficient content for FKGL calculation")
+            if self.logger:
+                self.logger.warning(
+                    "Text lacks sufficient content for FKGL calculation"
+                )
             return 0.0, {
                 "error": "Text lacks sufficient content for analysis",
                 "sentences": sentences,
@@ -101,7 +111,8 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
             },
         }
 
-        logger.info(f"Calculated FKGL score: {fkgl_score:.2f}")
+        if self.logger:
+            self.logger.info(f"Calculated FKGL score: {fkgl_score:.2f}")
         return fkgl_score, metadata
 
     def _get_program_text(self, program: Program) -> str:
@@ -114,26 +125,14 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         Returns:
             The extracted text as a string
         """
-        # Get the program's output
-        output = program.get_output()
-
-        # If output is already a string, use it directly
-        if isinstance(output, str):
-            return output
-
-        # If output is a dictionary, look for text content
-        if isinstance(output, dict):
-            if "text" in output:
-                return str(output["text"])
-            if "content" in output:
-                return str(output["content"])
-
-        # If output is a list, join elements as strings
-        if isinstance(output, list):
-            return " ".join(str(item) for item in output)
-
-        # Fall back to string representation
-        return str(output)
+        try:
+            source_files = program.get_source_files()
+            if isinstance(source_files, dict):
+                return " \n".join(str(v) for v in source_files.values())
+        except Exception as exc:
+            if self.logger:
+                self.logger.debug(f"Failed to obtain program text: {exc}")
+        return ""
 
     def _count_sentences(self, text: str) -> int:
         """

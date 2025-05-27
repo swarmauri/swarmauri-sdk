@@ -41,3 +41,20 @@ password = "..."                   # leave blank if no auth
 # ─────────────────────────────── Plugins ───────────────────────────────
 [plugins]
 mode = "switch"
+
+# ────────────────────────────── Evaluation ───────────────────────────────
+[evaluation]
+pool = "swarmauri_evaluatorpool_accessibility:AccessibilityEvaluatorPool"
+max_workers = 4
+async = false
+strict = true
+
+[evaluation.evaluators]
+
+[evaluation.evaluators.automated_readability]
+cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
+
+[evaluation.evaluators.coleman_liau]
+cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
+target_grade_level = 12
+

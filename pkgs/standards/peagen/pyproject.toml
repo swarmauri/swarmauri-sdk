@@ -18,12 +18,15 @@ dependencies = [
     "redis", # this publisher needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
     "python-dotenv",
+    "pyyaml",
     "jinja2>=3.1.6",
     "jsonpatch>=1.33",
     "inflect",
     "typer",
     "colorama",
+    "h11>=0.16.0",
     "httpx>=0.27.0",
+    "jsonschema>=4.18.5",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",

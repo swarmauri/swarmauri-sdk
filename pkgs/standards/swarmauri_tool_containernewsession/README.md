@@ -30,6 +30,7 @@ pip install swarmauri_tool_containernewsession
 ```python
 from swarmauri_tool_containernewsession import ContainerNewSessionTool
 
-result = ContainerNewSessionTool()(container_name="my-container", image="ubuntu:latest")
+tool = ContainerNewSessionTool(container_name="my-container", image="ubuntu:latest")
+result = tool()
 print(result["stdout"])
 ```

@@ -8,6 +8,7 @@ from pathlib import Path
 import typer
 import yaml
 from jsonschema import Draft7Validator
+from swarmauri_standard.loggers.Logger import Logger
 
 # ── central schema registry ─────────────────────────────────────────────
 from peagen.schemas import (
@@ -69,11 +70,14 @@ def validate_config(
     ),
 ) -> None:
     """File: **validate.py** • Method: **validate_config**"""
+    self = Logger(name="validate_config")
+    self.logger.info("Entering validate_config command")
     cfg = load_peagen_toml(path.parent if path else Path.cwd())
     if not cfg:
         typer.echo("❌  No .peagen.toml found.", err=True)
         raise typer.Exit(1)
     _validate(cfg, PEAGEN_TOML_V1_SCHEMA, ".peagen.toml")
+    self.logger.info("Exiting validate_config command")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -92,6 +96,8 @@ def validate_doe_spec(
     ),
 ) -> None:
     """File: **validate.py** • Method: **validate_doe_spec**"""
+    self = Logger(name="validate_doe_spec")
+    self.logger.info("Entering validate_doe_spec command")
     try:
         with spec_path.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -99,6 +105,7 @@ def validate_doe_spec(
         typer.echo(f"❌  YAML parsing error – {exc}", err=True)
         raise typer.Exit(1)
     _validate(data, DOE_SPEC_V1_SCHEMA, "DOE spec")
+    self.logger.info("Exiting validate_doe_spec command")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +124,8 @@ def validate_manifest(
     ),
 ) -> None:
     """File: **validate.py** • Method: **validate_manifest**"""
+    self = Logger(name="validate_manifest")
+    self.logger.info("Entering validate_manifest command")
     try:
         with manifest_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -124,6 +133,7 @@ def validate_manifest(
         typer.echo(f"❌  JSON parsing error – {exc}", err=True)
         raise typer.Exit(1)
     _validate(data, MANIFEST_V3_SCHEMA, "manifest")
+    self.logger.info("Exiting validate_manifest command")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -142,6 +152,8 @@ def validate_ptree(
     ),
 ) -> None:
     """File: **validate.py** • Method: **validate_ptree**"""
+    self = Logger(name="validate_ptree")
+    self.logger.info("Entering validate_ptree command")
     try:
         with ptree_path.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -151,6 +163,7 @@ def validate_ptree(
     _validate(
         data, PTREE_V1_SCHEMA, "ptree"
     )  # schema file :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+    self.logger.info("Exiting validate_ptree command")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -169,6 +182,8 @@ def validate_projects_payload(
     ),
 ) -> None:
     """File: **validate.py** • Method: **validate_projects_payload**"""
+    self = Logger(name="validate_projects_payload")
+    self.logger.info("Entering validate_projects_payload command")
     try:
         with payload_path.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -178,3 +193,4 @@ def validate_projects_payload(
     _validate(
         data, PROJECTS_PAYLOAD_V1_SCHEMA, "projects-payload"
     )  # schema file :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+    self.logger.info("Exiting validate_projects_payload command")

@@ -21,6 +21,7 @@ from jinja2 import Template
 
 import typer
 import yaml
+from swarmauri_standard.loggers.Logger import Logger
 from urllib.parse import urlparse
 
 from peagen.cli_common import load_peagen_toml
@@ -147,6 +148,8 @@ def experiment_generate(
     """
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
     """
+    self = Logger(name="experiment_generate")
+    self.logger.info("Entering experiment_generate command")
 
     toml_cfg = load_peagen_toml(Path(config) if config else Path.cwd())
     pubs_cfg = toml_cfg.get("publishers", {})
@@ -295,10 +298,13 @@ def experiment_generate(
             design_points,
         )
         typer.echo("\nDry-run complete – matrix printed above; no file written.")
+        self.logger.info("Exiting experiment_generate command")
         raise typer.Exit()
 
     _write_yaml(bundle, output, force)
     typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
+
+    self.logger.info("Exiting experiment_generate command")
 
     if notify:
         _publish_event(notify, output, len(projects), config)

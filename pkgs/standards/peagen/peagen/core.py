@@ -18,11 +18,11 @@ import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator, FilePath
 from swarmauri_base import SubclassUnion
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
-from swarmauri_prompt_j2prompttemplate import j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from swarmauri_standard.loggers.Logger import Logger
 
@@ -45,7 +45,7 @@ class Peagen(ComponentBase):
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: j2pt)
+    j2pt: Any = Field(default_factory=lambda: J2PromptTemplate())
 
     # Runtime / env setup
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
@@ -193,6 +193,8 @@ class Peagen(ComponentBase):
         Returns:
           list[dict]: A list of project dictionaries.
         """
+        if self.logger:
+            self.logger.debug(f"Loading projects from {self.projects_payload_path}")
         try:
             with open(self.projects_payload_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
@@ -226,11 +228,15 @@ class Peagen(ComponentBase):
         and (optionally) handles dependency ordering.
         """
 
+        if self.logger:
+            self.logger.debug("Beginning processing of all projects")
         sorted_records = []
         if not self.projects_list:
             self.load_projects()
         self.logger.debug(f"Projects loaded: '{self.projects_list}'")
         for project in self.projects_list:
+            if self.logger:
+                self.logger.debug(f"Starting project {project.get('NAME')}")
             file_records, start_idx = self.process_single_project(project)
             sorted_records.append(file_records)
         return sorted_records
@@ -254,6 +260,8 @@ class Peagen(ComponentBase):
         *   Each file save triggers writer.add(…).
         *   On successful completion we call writer.finalise().
         """
+        if self.logger:
+            self.logger.debug(f"Processing project {project.get('NAME')}")
         all_file_records = []
         packages = project.get("PACKAGES", [])
         project_name = project.get("NAME", "UnnamedProject")
@@ -289,7 +297,7 @@ class Peagen(ComponentBase):
                 continue
 
             try:
-                self.j2pt.set_template(ptree_template_path)
+                self.j2pt.set_template(FilePath(ptree_template_path))
                 rendered_yaml_str = self.j2pt.fill(project_only_context)
             except Exception as e:
                 self.logger.error(
@@ -441,6 +449,10 @@ class Peagen(ComponentBase):
                 start_idx=start_idx,
                 manifest_writer=manifest_writer,
             )
+            if self.logger:
+                self.logger.debug(
+                    f"Processed {len(sorted_records)} files for project '{project_name}'"
+                )
 
             # --------  finalise manifest
             if manifest_writer.path.exists():
@@ -460,4 +472,8 @@ class Peagen(ComponentBase):
                 f"project='{project_name}'."
             )
 
+        if self.logger:
+            self.logger.debug(
+                f"Returning {len(sorted_records)} sorted records for project '{project_name}'"
+            )
         return (sorted_records, start_idx)

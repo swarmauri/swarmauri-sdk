@@ -29,6 +29,8 @@ def _render_copy_template(
     """
     try:
         template_path = file_record.get("FILE_NAME", "NOT_FILE_FOUND")
+        if logger:
+            logger.debug(f"Rendering copy template {template_path}")
         j2_instance.set_template(FilePath(template_path))
         return j2_instance.fill(context)
     except Exception as e:
@@ -62,6 +64,8 @@ def _render_generate_template(
     then calls out to the external agent.
     """
     try:
+        if logger:
+            logger.debug(f"Rendering generate template {agent_prompt_template}")
         j2_instance.set_template(FilePath(agent_prompt_template))
         rendered_prompt = j2_instance.fill(context)
         from ._external import call_external_agent
