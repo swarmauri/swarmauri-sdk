@@ -13,7 +13,7 @@ import hashlib
 import itertools
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from peagen.commands.validate import _validate
 from peagen.schemas import DOE_SPEC_V1_SCHEMA
@@ -25,6 +25,7 @@ from urllib.parse import urlparse
 
 from peagen.cli_common import load_peagen_toml
 from peagen.plugin_registry import registry
+from jinja2 import Template
 
 doe_app = typer.Typer(help="Generate project-payloads.yaml from a DOE spec.")
 
@@ -68,6 +69,59 @@ def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
 
 def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
     return key in spec_llm_keys or key in LLM_FALLBACK_KEYS
+
+
+def _get_from_context(expr: str, ctx: Dict[str, Any]) -> Any:
+    """Fetch nested property from ctx given 'A.B.C' notation."""
+    val = ctx
+    for part in expr.split("."):
+        val = val[part]
+    return val
+
+
+def _render_factor_patches(
+    spec_obj: Dict,
+    design: Dict[str, Any],
+    exp_id: str,
+    base_project: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """Render factor-local patches for a single design point."""
+    from jinja2 import Template
+
+    ctx = {**design, "EXP_ID": exp_id, "BASE_NAME": base_project.get("NAME")}
+    patches: List[Dict[str, Any]] = []
+
+    factor_map = {
+        **spec_obj.get("LLM_FACTORS", {}),
+        **spec_obj.get("FACTORS", {}),
+    }
+
+    for factor in factor_map.values():
+        for pt in factor.get("patches", []):
+            if "when" in pt:
+                cond_tpl = Template(str(pt["when"]))
+                cond_rendered = cond_tpl.render(**ctx)
+                try:
+                    should_apply = bool(yaml.safe_load(cond_rendered))
+                except Exception:
+                    should_apply = False
+                if not should_apply:
+                    continue
+
+            raw_val = pt["value"]
+
+            if isinstance(raw_val, dict) and len(raw_val) == 1:
+                key = next(iter(raw_val))
+                if "." in key:
+                    val = _get_from_context(key, ctx)
+                    patches.append({"op": pt["op"], "path": pt["path"], "value": val})
+                    continue
+
+            rendered = Template(str(raw_val)).render(**ctx)
+            val = yaml.safe_load(rendered)
+            patches.append({"op": pt["op"], "path": pt["path"], "value": val})
+
+    return patches
 
 
 # ---------------------------------------------------------------- print matrix
@@ -194,11 +248,18 @@ def experiment_generate(
     for idx, point in enumerate(design_points):
         proj = deepcopy(template_obj)
 
-        # apply factor-specific patches
+        patch_ops: List[Dict] = []
+        patch_ops.extend(
+            _render_factor_patches(spec_obj, point, f"{idx:03d}", template_obj)
+        )
+
         for patch_rule in spec_obj.get("PATCHES", []):
             when: Dict = patch_rule.get("when", {})
             if all(point.get(k) == v for k, v in when.items()):
-                _apply_json_patch(proj, patch_rule["apply"])
+                patch_ops.extend(patch_rule["apply"])
+
+        if patch_ops:
+            _apply_json_patch(proj, patch_ops)
 
         # META building
         llm_factors = {k: point[k] for k in llm_map}
