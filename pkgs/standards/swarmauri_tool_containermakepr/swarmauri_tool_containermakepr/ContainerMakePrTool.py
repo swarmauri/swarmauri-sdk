@@ -17,7 +17,9 @@ class ContainerMakePrTool(ToolBase):
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
-    container_name: str | None = Field(default=None, description="Target container or pod name")
+    container_name: str | None = Field(
+        default=None, description="Target container or pod name"
+    )
 
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -42,7 +44,9 @@ class ContainerMakePrTool(ToolBase):
         ]
     )
 
-    def __call__(self, title: str, body: str, container_name: str | None = None) -> dict:
+    def __call__(
+        self, title: str, body: str, container_name: str | None = None
+    ) -> dict:
         name = container_name or self.container_name
         if name is None:
             raise ValueError("container_name must be provided")

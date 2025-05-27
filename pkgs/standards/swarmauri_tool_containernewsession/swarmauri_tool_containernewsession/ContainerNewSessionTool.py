@@ -17,7 +17,9 @@ class ContainerNewSessionTool(ToolBase):
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
-    container_name: str | None = Field(default=None, description="Name for the container or pod")
+    container_name: str | None = Field(
+        default=None, description="Name for the container or pod"
+    )
     image: str | None = Field(default=None, description="Container image to launch")
 
     parameters: List[Parameter] = Field(
@@ -37,7 +39,9 @@ class ContainerNewSessionTool(ToolBase):
         ]
     )
 
-    def __call__(self, container_name: str | None = None, image: str | None = None) -> dict:
+    def __call__(
+        self, container_name: str | None = None, image: str | None = None
+    ) -> dict:
         name = container_name or self.container_name
         img = image or self.image
         if name is None or img is None:

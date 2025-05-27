@@ -17,7 +17,9 @@ class ContainerFeedCharsTool(ToolBase):
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
-    container_name: str | None = Field(default=None, description="Target container or pod name")
+    container_name: str | None = Field(
+        default=None, description="Target container or pod name"
+    )
 
     parameters: List[Parameter] = Field(
         default_factory=lambda: [

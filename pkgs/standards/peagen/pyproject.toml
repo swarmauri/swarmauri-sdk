@@ -24,6 +24,7 @@ dependencies = [
     "inflect",
     "typer",
     "colorama",
+    "h11>=0.16.0",
     "httpx>=0.27.0",
     "jsonschema>=4.18.5",
     "swarmauri_core",
