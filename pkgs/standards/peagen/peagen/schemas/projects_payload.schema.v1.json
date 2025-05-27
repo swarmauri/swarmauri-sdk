@@ -14,7 +14,6 @@
       "type": "array",
       "items": {
         "oneOf": [
-          { "$ref": "#/definitions/projectEntry" },
           { "$ref": "#/definitions/projectGroup" }
         ]
       },
@@ -42,21 +41,6 @@
   ],
 
   "definitions": {
-    "projectEntry": {
-      "type": "object",
-      "properties": {
-        "NAME":    { "type": "string" },
-        "ROOT":    { "type": "string" },
-        "PACKAGES": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/package" }
-        },
-        "EXPERIMENT": { "$ref": "#/definitions/experiment" }
-      },
-      "required": ["NAME", "ROOT", "PACKAGES"],
-      "additionalProperties": true
-    },
-
     "projectGroup": {
       "type": "object",
       "properties": {
@@ -94,7 +78,7 @@
           "items": { "$ref": "#/definitions/module" }
         }
       },
-      "required": ["NAME", "TEMPLATE_SET_OVERRIDE", "MODULES"],
+      "required": ["NAME", "MODULES"],
       "additionalProperties": true
     },
 
