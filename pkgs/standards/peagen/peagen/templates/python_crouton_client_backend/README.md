@@ -1,0 +1,1 @@
+Place holder for crouton-client compatible router/service/repository pattern
