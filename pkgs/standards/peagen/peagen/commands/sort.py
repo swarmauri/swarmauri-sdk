@@ -11,12 +11,12 @@ import typer
 from pprint import pformat
 from pydantic import FilePath
 from typing import Optional
+import types
 
 from peagen.cli_common import load_peagen_toml
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen.core import Peagen, Fore, Style
-from peagen._config import _config
 from peagen._api_key import _resolve_api_key
 from peagen._graph import get_immediate_dependencies
 
@@ -28,6 +28,7 @@ sort_app = typer.Typer(
 
 @sort_app.command("sort")
 def sort(
+    ctx: typer.Context,
     projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
     project_name: str = typer.Option(None, help="Name of the project to process."),
     template_base_dir: str = typer.Option(
@@ -97,14 +98,17 @@ def sort(
         )
         raise typer.Exit(code=1)
 
-    _config["transitive"] = transitive
+    if ctx.obj is None:
+        ctx.obj = types.SimpleNamespace()
+
+    ctx.obj.transitive = transitive
     toml_cfg = load_peagen_toml()
     plugin_mode = (
         plugin_mode
         if plugin_mode is not None
         else toml_cfg.get("plugins", {}).get("mode")
     )
-    _config["plugin_mode"] = plugin_mode
+    ctx.obj.plugin_mode = plugin_mode
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
     additional_dirs_list = (
@@ -148,11 +152,15 @@ def sort(
 
         if start_file:
             sorted_records, start_idx = pea.process_single_project(
-                project, start_file=start_file
+                project,
+                start_file=start_file,
+                transitive=transitive,
             )
         else:
             sorted_records, start_idx = pea.process_single_project(
-                project, start_idx=start_idx or 0
+                project,
+                start_idx=start_idx or 0,
+                transitive=transitive,
             )
 
         pea.logger.info("")
@@ -169,7 +177,7 @@ def sort(
                 pea.logger.info(f"\t\tDependencies: {dep_str}")
 
     else:
-        projects_sorted_records = pea.process_all_projects()
+        projects_sorted_records = pea.process_all_projects(transitive=transitive)
         pea.logger.debug(pformat(projects_sorted_records))
         for sorted_records in projects_sorted_records:
             if not sorted_records:
