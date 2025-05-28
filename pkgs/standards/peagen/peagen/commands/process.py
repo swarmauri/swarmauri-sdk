@@ -63,14 +63,6 @@ def process_cmd(
     start_file: Optional[str] = typer.Option(None, help="Start at specific filename."),
     api_key: Optional[str] = typer.Option(None, help="Explicit LLM API key."),
     env: str = typer.Option(".env", help="Env-file path for LLM API key lookup."),
-    # ── Swarmauri options ───────────────────────────────────────────
-    include_swarmauri: bool = typer.Option(
-        True, "--include-swarmauri/--no-include-swarmauri"
-    ),
-    swarmauri_dev: bool = typer.Option(False, "--swarmauri-dev/--no-swarmauri-dev"),
-    swarmauri_bundle: Optional[str] = typer.Option(
-        None, "--swarmauri-bundle", help="Use bundle archive for swarmauri_sdk"
-    ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity."),
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive", help="Only process transitive deps."
@@ -204,8 +196,6 @@ def process_cmd(
         raise typer.Exit(1)
 
     extra_store = dict(adapters_cfg.get(adapter_name, {}) or {})
-    extra_store.setdefault("bucket", org)
-    extra_store.setdefault("prefix", proj_prefix)
     storage_adapter = StoreCls(**extra_store)
 
     # ── PREPARE ENV & INSTANTIATE Peagen ────────────────────────────────
@@ -219,17 +209,6 @@ def process_cmd(
         )
 
     source_pkgs = toml_cfg.get("source_packages", {})
-
-    if include_swarmauri:
-        source_pkgs.append(
-            {
-                "type": "bundle" if swarmauri_bundle else "git",
-                "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
-                "ref": "mono/dev" if swarmauri_dev else "master",
-                "archive": swarmauri_bundle if swarmauri_bundle else None,
-                "dest": "swarmauri_sdk",
-            }
-        )
 
     _config.update(truncate=trunc, transitive=transitive, workers=workers)
 
@@ -262,7 +241,33 @@ def process_cmd(
             org=org,
             workspace_root=ws,
         )
+        pea.logger.info("")
+        pea.logger.info(f"pea.j2pt.templates_dir:")
+        for d in pea.j2pt.templates_dir:
+            pea.logger.info(f"* {d}")
 
+        pea.logger.info("")
+        pea.logger.info(f"pea.base_dir: {pea.base_dir}")
+
+        pea.logger.info("")
+        pea.logger.info(f"pea.additional_package_dirs:")
+        for d in pea.additional_package_dirs:
+            pea.logger.info(f"* {d}")
+
+        pea.logger.info("")
+        pea.logger.info(f"pea.workspace_root: {pea.workspace_root}")
+
+        pea.logger.info("")
+        pea.logger.info(f"pea.source_packages:")
+        for d in pea.source_packages:
+            pea.logger.info(f"* {d}")
+
+        pea.logger.info("")
+        pea.logger.info(f"pea.namespace_dirs: ")
+        for d in pea.namespace_dirs:
+            pea.logger.info(f"* {d}")
+
+        pea.logger.info("")            
         pea.logger.info("Entering process command")
 
         # ── LOG LEVEL ───────────────────────────────────────────────────

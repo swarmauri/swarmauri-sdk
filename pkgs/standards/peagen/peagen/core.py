@@ -110,19 +110,20 @@ class Peagen(ComponentBase):
         #    into synthetic 'local' TEMPLATE_SET entries, so they get
         #    written to the manifest without CLI help.
         # -----------------------------------------------------------
-        ns_dirs: List[str] = list(peagen.templates.__path__)
+        # ns_dirs: List[str] = list(peagen.templates.__path__)
+        ns_dirs: List[str] = []
 
         # 1) Template-set plugins discovered via registry
         from peagen.plugin_registry import registry
 
-        for plugin in registry.get("template_sets", {}).values():
-            pkg: ModuleType = (
-                plugin
-                if isinstance(plugin, ModuleType)
-                else import_module(plugin.__module__.split(".", 1)[0])
-            )
-            if hasattr(pkg, "__path__"):
-                ns_dirs.extend(str(p) for p in pkg.__path__)
+        # for plugin in registry.get("template_sets", {}).values():
+        #     pkg: ModuleType = (
+        #         plugin
+        #         if isinstance(plugin, ModuleType)
+        #         else import_module(plugin.__module__.split(".", 1)[0])
+        #     )
+        #     if hasattr(pkg, "__path__"):
+        #         ns_dirs.extend(str(p) for p in pkg.__path__)
 
         # 2) Workspace itself – always first so includes can reference freshly generated files
         if self.workspace_root is not None:
@@ -169,10 +170,13 @@ class Peagen(ComponentBase):
             ],
         ]
         dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
+
+        self.logger.debug(f"Updated from {self.j2pt.templates_dir} to {[os.path.normpath(d) for d in dirs]}")
         self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
 
     def locate_template_set(self, template_set: str) -> Path:
         """Search `namespace_dirs` for the given template-set folder."""
+        self.logger.debug(f"locating template-set: {template_set}")
         for base in self.namespace_dirs:
             candidate = Path(base) / template_set
             if candidate.is_dir():
@@ -280,8 +284,10 @@ class Peagen(ComponentBase):
             )
 
             try:
+                self.logger.debug("Locating and updating template start.")
                 template_dir = self.locate_template_set(pkg_template_set)
                 self.update_templates_dir(template_dir)
+                self.logger.debug("Locating and updating template end.")
             except ValueError as e:
                 self.logger.error(
                     f"[{project_name}] Package '{pkg.get('NAME')}' error: {e}"
