@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from peagen.commands.validate import _validate
-from peagen.schemas import DOE_SPEC_V1_SCHEMA
+from peagen.schemas import DOE_SPEC_V1_1_SCHEMA
 from jinja2 import Template
 
 import typer
@@ -148,8 +148,8 @@ def experiment_generate(
     """
     Expand DOE *spec* × base *template* into a multi-project payload bundle.
     """
-    self = Logger(name="experiment_generate")
-    self.logger.info("Entering experiment_generate command")
+    self = Logger(name="doe")
+    self.logger.debug("Entering doe command")
 
     toml_cfg = load_peagen_toml(Path(config) if config else Path.cwd())
     pubs_cfg = toml_cfg.get("publishers", {})
@@ -173,7 +173,7 @@ def experiment_generate(
 
     # validate spec unless skipped
     if not skip_validate:
-        _validate(spec_obj, DOE_SPEC_V1_SCHEMA, "DOE spec")
+        _validate(spec_obj, DOE_SPEC_V1_1_SCHEMA, "DOE spec")
 
     llm_map = spec_obj.get("LLM_FACTORS", {})
     other_map = spec_obj.get("FACTORS", {})
@@ -304,7 +304,7 @@ def experiment_generate(
     _write_yaml(bundle, output, force)
     typer.echo(f"✅  Wrote {output} ({output.stat().st_size / 1024:.1f} KB)")
 
-    self.logger.info("Exiting experiment_generate command")
+    self.logger.debug("Exiting experiment_generate command")
 
     if notify:
         _publish_event(notify, output, len(projects), config)

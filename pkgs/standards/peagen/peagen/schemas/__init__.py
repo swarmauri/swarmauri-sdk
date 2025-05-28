@@ -40,6 +40,11 @@ DOE_SPEC_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
+DOE_SPEC_V1_1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("doe_spec.schema.v1.1.json")
+    .read_text(encoding="utf-8")
+)
 
 PTREE_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("ptree.schema.v1.json").read_text(encoding="utf-8")
@@ -50,6 +55,7 @@ PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
     .joinpath("projects_payload.schema.v1.json")
     .read_text(encoding="utf-8")
 )
+
 
 EVENT_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
@@ -76,6 +82,7 @@ __all__ = [
     "PEAGEN_TOML_V1_SCHEMA",
     "PEAGEN_TOML_V1_1_SCHEMA",
     "DOE_SPEC_V1_SCHEMA",
+    "DOE_SPEC_V1_1_SCHEMA",
     "PTREE_V1_SCHEMA",
     "PROJECTS_PAYLOAD_V1_SCHEMA",
     "EVENT_V1_SCHEMA",
