@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
-# SQLAlchemy model for {{ MOD.NAME }}
-class {{ MOD.NAME }}Model(Base):
+# SQLAlchemy model for {{ MOD.MODEL_NAME }}
+class {{ MOD.MODEL_NAME }}Model(Base):
     __tablename__ = "{{ MOD.NAME | make_plural | lower }}"
     id = Column(String, primary_key=True, default=generate_uuid, unique=True, index=True)
     date_created = Column(DateTime(timezone=True), default=datetime.utcnow)
@@ -23,17 +23,17 @@ class {{ MOD.NAME }}Model(Base):
     {% endif %}
 
 # Pydantic schemas
-class {{ MOD.NAME }}Update(BaseModel):
-    # Fields that can be updated on {{ MOD.NAME }}
+class {{ MOD.MODEL_NAME }}Update(BaseModel):
+    # Fields that can be updated on {{ MOD.MODEL_NAME }}
     ...
 
-class {{ MOD.NAME }}Create({{ MOD.NAME }}Update):
-    # Fields required for creating a {{ MOD.NAME }}
+class {{ MOD.MODEL_NAME }}Create({{ MOD.MODEL_NAME }}Update):
+    # Fields required for creating a {{ MOD.MODEL_NAME }}
     ...
 
-class {{ MOD.NAME }}({{ MOD.NAME }}Create):
+class {{ MOD.MODEL_NAME }}({{ MOD.MODEL_NAME }}Create):
     id: int
-    # Other {{ MOD.NAME }} fields
+    # Other {{ MOD.MODEL_NAME }} fields
     {% if MOD.EXTRAS.HAS_CHILDREN is true %}
     children: List[ChildRead] = []
     {% endif %}
