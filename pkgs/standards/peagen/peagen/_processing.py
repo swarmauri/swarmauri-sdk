@@ -34,7 +34,7 @@ def _save_file(
     manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
-    1.  Write to <workspace_root>/<filepath>.
+    1.  Write to <workspace_root>/<filepath> (this is a temporary workspace directory).
     2.  Optionally upload to the configured storage_adapter.
     3.  Stream a manifest line via ManifestWriter (if provided).
     """
