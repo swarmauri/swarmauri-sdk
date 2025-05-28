@@ -164,10 +164,6 @@ def _process_file(
         else:
             j2_instance.templates_dir = [template_dir]
 
-    if logger:
-        logger.info(F"j2_instance: {j2_instance}")
-        logger.info("")
-
     context = _create_context(file_record, global_attrs, logger)
     final_filename = os.path.normpath(file_record.get("RENDERED_FILE_NAME"))
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()

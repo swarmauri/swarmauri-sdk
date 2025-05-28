@@ -176,9 +176,9 @@ class Peagen(ComponentBase):
     def locate_template_set(self, template_set: str) -> Path:
         """Search `namespace_dirs` for the given template-set folder."""
         from peagen.plugin_registry import registry
-        self.logger.info(f"locating template-set: {template_set}")
+        self.logger.debug(f"locating template-set: {template_set}")
         if template_set in registry['template_sets']:
-            self.logger.info(list(registry['template_sets'][template_set].__path__)[0])
+            self.logger.debug(list(registry['template_sets'][template_set].__path__)[0])
             return list(registry['template_sets'][template_set].__path__)[0]
         raise ValueError(
             f"Template set '{template_set}' not found in: {self.namespace_dirs}"

@@ -235,34 +235,34 @@ def process_cmd(
             org=org,
             workspace_root=ws,
         )
-        pea.logger.info("")
-        pea.logger.info(f"pea.j2pt.templates_dir:")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.j2pt.templates_dir:")
         for d in pea.j2pt.templates_dir:
-            pea.logger.info(f"* {d}")
+            pea.logger.debug(f"* {d}")
 
-        pea.logger.info("")
-        pea.logger.info(f"pea.cwd: {pea.cwd}")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.cwd: {pea.cwd}")
 
-        # pea.logger.info("")
-        # pea.logger.info(f"pea.additional_package_dirs:")
+        # pea.logger.debug("")
+        # pea.logger.debug(f"pea.additional_package_dirs:")
         # for d in pea.additional_package_dirs:
-        #     pea.logger.info(f"* {d}")
+        #     pea.logger.debug(f"* {d}")
 
-        pea.logger.info("")
-        pea.logger.info(f"pea.workspace_root: {pea.workspace_root}")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.workspace_root: {pea.workspace_root}")
 
-        pea.logger.info("")
-        pea.logger.info(f"pea.source_packages:")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.source_packages:")
         for d in pea.source_packages:
-            pea.logger.info(f"* {d}")
+            pea.logger.debug(f"* {d}")
 
-        pea.logger.info("")
-        pea.logger.info(f"pea.namespace_dirs: ")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.namespace_dirs: ")
         for d in pea.namespace_dirs:
-            pea.logger.info(f"* {d}")
+            pea.logger.debug(f"* {d}")
 
-        pea.logger.info("")            
-        pea.logger.info("Entering process command")
+        pea.logger.debug("")            
+        pea.logger.debug("Entering process command")
 
         # ── LOG LEVEL ───────────────────────────────────────────────────
         if verbose >= 3:
@@ -282,7 +282,7 @@ def process_cmd(
             else:
                 pea.process_all_projects()
         except KeyboardInterrupt:
-            pea.logger.info("Exiting process command")
+            pea.logger.debug("Exiting process command")
             typer.echo("\nInterrupted.  Bye.")
             raise typer.Exit(1)
 
