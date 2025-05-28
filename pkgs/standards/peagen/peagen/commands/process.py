@@ -3,12 +3,11 @@
 
 from __future__ import annotations
 
-from peagen.slug_utils import slugify
+import pathlib
 import secrets
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-import pathlib
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -26,6 +25,7 @@ from peagen.cli_common import (
 )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
+from peagen.slug_utils import slugify
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."
