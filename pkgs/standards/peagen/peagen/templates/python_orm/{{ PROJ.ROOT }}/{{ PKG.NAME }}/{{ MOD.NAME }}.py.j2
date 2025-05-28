@@ -9,7 +9,7 @@ from datetime import datetime
 
 # SQLAlchemy model for {{ MOD.NAME }}
 class {{ MOD.NAME }}Model(Base):
-    __tablename__ = "{{ MOD.NAME | plural | lower }}"
+    __tablename__ = "{{ MOD.NAME | make_plural | lower }}"
     id = Column(String, primary_key=True, default=generate_uuid, unique=True, index=True)
     date_created = Column(DateTime(timezone=True), default=datetime.utcnow)
     last_modified = Column(
@@ -49,37 +49,4 @@ class ChildRead(BaseModel):
 {% endif %}
 
 
-
-{% elif '_router.py' in FILE_NAME %}
-from fastapi import APIRouter
-
-from app.api.v1.utils import (
-    create_route_objects,
-    create_routers,
-    attach_list_of_routers,
-)
-
-
-
-def get_routes(component_list):
-    """
-    Generate and return a list of routers for the application.
-
-    This function creates route objects from the COMPONENTS, then uses these
-    route objects to create routers of type SQLALCHEMY. Custom routes can be
-    added by extending the routers list with additional route objects.
-
-    Returns:
-        list: A list of router objects.
-    """
-    routes = APIRouter()
-
-    routes_to_create = create_route_objects(component_list)
-    list_of_routers = create_routers(routes_to_create)
-    attach_list_of_routers(routes, list_of_routers)
-
-    return routes
-
-
-router = get_routes([ {{ RESOURCE_NAME }}] )
 
