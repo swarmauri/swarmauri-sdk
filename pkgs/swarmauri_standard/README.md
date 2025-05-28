@@ -178,6 +178,11 @@ agents using predefined configurations.
 ### Prompt Templates
 - [PromptTemplate.py](swarmauri_standard/prompt_templates/PromptTemplate.py): Defines templates for generating prompts.
 
+### Prompt Samplers
+- [PromptSampler.py](swarmauri_standard/prompt_samplers/PromptSampler.py): Samples prompts from a sequence.
+- [WeightedPromptSampler.py](swarmauri_standard/prompt_samplers/WeightedPromptSampler.py): Samples prompts using weights.
+- [SequentialPromptSampler.py](swarmauri_standard/prompt_samplers/SequentialPromptSampler.py): Cycles through prompts in order.
+
 ### Schema Converters
 - [AnthropicSchemaConverter.py](swarmauri_standard/schema_converters/AnthropicSchemaConverter.py): Converts schemas for Anthropic models.
 - [CohereSchemaConverter.py](swarmauri_standard/schema_converters/CohereSchemaConverter.py): Converts schemas for Cohere models.

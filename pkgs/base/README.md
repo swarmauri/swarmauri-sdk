@@ -125,6 +125,9 @@ class MyConcreteClass(LLMBase):
 ### prompt_templates
 - [`PromptTemplateBase.py`](./swarmauri_base/prompt_templates/PromptTemplateBase.py): Base class for prompt templates.
 
+### prompt_samplers
+- [`PromptSamplerBase.py`](./swarmauri_base/prompt_samplers/PromptSamplerBase.py): Base class for prompt samplers.
+
 ### schema_converters
 - [`SchemaConverterBase.py`](./swarmauri_base/schema_converters/SchemaConverterBase.py): Base class for schema converters.
 
