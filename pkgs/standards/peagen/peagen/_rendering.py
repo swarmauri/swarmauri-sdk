@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 import colorama
 from colorama import Fore, Style
 from pydantic import FilePath
+import sys
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
@@ -41,11 +42,12 @@ def _render_copy_template(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}':"
                     f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found {e_split[1]}"
                 )
+                sys.exit(1)
             else:
                 logger.error(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}': {e}"
                 )
-        return ""
+                sys.exit(1)
 
 
 def _render_generate_template(
@@ -77,10 +79,11 @@ def _render_generate_template(
             if len(e_split) > 1:
                 logger.error(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}':"
-                    f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found in {e_split[1]}"
+                    f"{Fore.YELLOW}{e_split[0]}{Style.RESET_ALL} not found {e_split[1]}"
                 )
+                sys.exit(1)
             else:
                 logger.error(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}': {e}"
                 )
-        return ""
+                sys.exit(1)

@@ -13,10 +13,11 @@ import hashlib
 import itertools
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from peagen.commands.validate import _validate
 from peagen.schemas import DOE_SPEC_V1_SCHEMA
+from jinja2 import Template
 
 import typer
 import yaml
@@ -64,6 +65,33 @@ def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> None:
     import jsonpatch
 
     jsonpatch.JsonPatch(patch_ops).apply(doc, in_place=True)
+
+
+def _get_from_context(expr: str, ctx: Dict[str, Any]) -> Any:
+    """Fetch dotted-path values from context."""
+    val = ctx
+    for part in expr.split("."):
+        val = val[part]
+    return val
+
+
+def _render_patch_ops(patch_ops: List[Dict], ctx: Dict[str, Any]) -> List[Dict]:
+    """Render Jinja templates inside patch operations."""
+    rendered = []
+    for pt in patch_ops:
+        op = pt.copy()
+        if "value" in op:
+            raw_val = op["value"]
+            if isinstance(raw_val, dict) and len(raw_val) == 1:
+                key = next(iter(raw_val))
+                if "." in key:
+                    op["value"] = _get_from_context(key, ctx)
+                    rendered.append(op)
+                    continue
+            rendered_val = Template(str(raw_val)).render(**ctx)
+            op["value"] = yaml.safe_load(rendered_val)
+        rendered.append(op)
+    return rendered
 
 
 def _is_llm_key(key: str, spec_llm_keys: set[str]) -> bool:
@@ -172,14 +200,25 @@ def experiment_generate(
             return [()]
 
         lists = []
-        for k, spec in factor_map.items():
+        for name, spec in factor_map.items():
             if isinstance(spec, dict) and "levels" in spec:
                 level_values = spec["levels"]
+                key = spec.get("code", name)
             else:
                 level_values = spec
-            lists.append([(k, v) for v in level_values])
+                key = name
+            lists.append([(key, v) for v in level_values])
 
         return list(itertools.product(*lists))
+
+    llm_codes = {
+        (spec.get("code") if isinstance(spec, dict) else name): name
+        for name, spec in llm_map.items()
+    }
+    other_codes = {
+        (spec.get("code") if isinstance(spec, dict) else name): name
+        for name, spec in other_map.items()
+    }
 
     design_points: List[Dict] = [
         dict(llm + oth)
@@ -193,16 +232,35 @@ def experiment_generate(
     peagen_ver = "0.0"  # lazy: importlib.metadata.version("peagen")
     for idx, point in enumerate(design_points):
         proj = deepcopy(template_obj)
+        ctx = {
+            **point,
+            "EXP_ID": f"{idx:03d}",
+            "BASE_NAME": template_obj.get("PROJECTS", [{}])[0].get("NAME"),
+        }
 
-        # apply factor-specific patches
+        # factor-level patches
+        for spec_def in spec_obj.get("FACTORS", {}).values():
+            for op in spec_def.get("patches", []):
+                rendered = _render_patch_ops([op], ctx)
+                _apply_json_patch(proj, rendered)
+
+        # apply global patches with optional conditions
         for patch_rule in spec_obj.get("PATCHES", []):
             when: Dict = patch_rule.get("when", {})
             if all(point.get(k) == v for k, v in when.items()):
-                _apply_json_patch(proj, patch_rule["apply"])
+                rendered = _render_patch_ops(patch_rule["apply"], ctx)
+                _apply_json_patch(proj, rendered)
 
         # META building
-        llm_factors = {k: point[k] for k in llm_map}
-        other_factors = {k: point[k] for k in other_map if k in point}
+        llm_factors = {
+            llm_codes.get(code, code): point[code]
+            for code in llm_codes
+        }
+        other_factors = {
+            other_codes.get(code, code): point[code]
+            for code in other_codes
+            if code in point
+        }
 
         meta = {
             "design_id": f"{spec_name}-{idx:03d}",

@@ -43,18 +43,18 @@ def process_cmd(
     project_name: Optional[str] = typer.Option(
         None, help="Name of a single project to process."
     ),
-    template_base_dir: Optional[str] = typer.Option(
-        None, help="Root dir for template lookup."
-    ),
+    # template_base_dir: Optional[str] = typer.Option(
+    #     None, help="Root dir for template lookup."
+    # ),
     config: Optional[str] = typer.Option(
         ".peagen.toml", "-c", "--config", help="Alternate .peagen.toml path."
     ),
-    bundles: Optional[str] = typer.Option(
-        None, "--bundles", "-B", help="Comma-separated environment-only bundles."
-    ),
-    additional_package_dirs: Optional[str] = typer.Option(
-        None, help="Comma-separated extra Jinja dirs."
-    ),
+    # bundles: Optional[str] = typer.Option(
+    #     None, "--bundles", "-B", help="Comma-separated environment-only bundles."
+    # ),
+    # additional_package_dirs: Optional[str] = typer.Option(
+    #     None, help="Comma-separated extra Jinja dirs."
+    # ),
     # ── LLM options ────────────────────────────────────────────────
     provider: Optional[str] = typer.Option(None, help="LLM provider ID."),
     model_name: Optional[str] = typer.Option(None, help="Model name to use."),
@@ -63,14 +63,6 @@ def process_cmd(
     start_file: Optional[str] = typer.Option(None, help="Start at specific filename."),
     api_key: Optional[str] = typer.Option(None, help="Explicit LLM API key."),
     env: str = typer.Option(".env", help="Env-file path for LLM API key lookup."),
-    # ── Swarmauri options ───────────────────────────────────────────
-    include_swarmauri: bool = typer.Option(
-        True, "--include-swarmauri/--no-include-swarmauri"
-    ),
-    swarmauri_dev: bool = typer.Option(False, "--swarmauri-dev/--no-swarmauri-dev"),
-    swarmauri_bundle: Optional[str] = typer.Option(
-        None, "--swarmauri-bundle", help="Use bundle archive for swarmauri_sdk"
-    ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity."),
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive", help="Only process transitive deps."
@@ -112,18 +104,18 @@ def process_cmd(
     workers = workers if workers is not None else workspace_cfg.get("workers", 0)
 
     template_sets_cfg = toml_cfg.get("template_sets", [])
-    if bundles:
-        for b in bundles.split(","):
-            template_sets_cfg.append(
-                {"name": Path(b).stem, "type": "bundle", "target": b.strip()}
-            )
+    # if bundles:
+    #     for b in bundles.split(","):
+    #         template_sets_cfg.append(
+    #             {"name": Path(b).stem, "type": "bundle", "target": b.strip()}
+    #         )
 
-    if additional_package_dirs:
-        for p in additional_package_dirs.split(","):
-            pp = Path(p).expanduser()
-            template_sets_cfg.append(
-                {"name": pp.stem, "type": "local", "target": str(pp)}
-            )
+    # if additional_package_dirs:
+    #     for p in additional_package_dirs.split(","):
+    #         pp = Path(p).expanduser()
+    #         template_sets_cfg.append(
+    #             {"name": pp.stem, "type": "local", "target": str(pp)}
+    #         )
 
     # ── LLM CONFIG ──────────────────────────────────────────────────────
     llm_cfg = toml_cfg.get("llm", {})
@@ -203,48 +195,20 @@ def process_cmd(
         typer.echo(f"❌ Unknown storage adapter '{adapter_name}'.")
         raise typer.Exit(1)
 
-    # Arguments for the storage adapter constructor
-    constructor_args = {}
-    constructor_args.update(dict(adapters_cfg.get(adapter_name, {}) or {}))
-
-    if adapter_name == "file":
-        if not artifacts:
-            typer.echo(
-                "❌ Configuration error: Output directory for file storage is not defined."
-            )
-            typer.echo(
-                "   Please specify it via --artifacts or in .peagen.toml under [storage.adapters.file].output_dir."
-            )
-            raise typer.Exit(1)
-        constructor_args["output_dir"] = artifacts  # Explicitly set/override output_dir
-    else:
-        constructor_args.setdefault("bucket", org)
-    constructor_args.setdefault("prefix", proj_prefix)
-
-    storage_adapter = StoreCls(**constructor_args)
+    extra_store = dict(adapters_cfg.get(adapter_name, {}) or {})
+    storage_adapter = StoreCls(**extra_store)
 
     # ── PREPARE ENV & INSTANTIATE Peagen ────────────────────────────────
     projects_payload = PathOrURI(projects_payload)
-    template_base_dir = PathOrURI(template_base_dir) if template_base_dir else None
+    # template_base_dir = PathOrURI(template_base_dir) if template_base_dir else None
 
-    extra_dirs: List[Path] = []
-    if additional_package_dirs:
-        extra_dirs.extend(
-            Path(p).expanduser() for p in additional_package_dirs.split(",")
-        )
+    # extra_dirs: List[Path] = []
+    # if additional_package_dirs:
+    #     extra_dirs.extend(
+    #         Path(p).expanduser() for p in additional_package_dirs.split(",")
+    #     )
 
-    source_pkgs = toml_cfg.get("source_packages", [])
-
-    if include_swarmauri:
-        source_pkgs.append(
-            {
-                "type": "bundle" if swarmauri_bundle else "git",
-                "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
-                "ref": "mono/dev" if swarmauri_dev else "master",
-                "archive": swarmauri_bundle if swarmauri_bundle else None,
-                "dest": "swarmauri_sdk",
-            }
-        )
+    source_pkgs = toml_cfg.get("source_packages", {})
 
     _config.update(truncate=trunc, transitive=transitive, workers=workers)
 
@@ -260,16 +224,10 @@ def process_cmd(
 
     with temp_workspace() as ws:
         fetched_dirs = materialise_packages(source_pkgs, ws, storage_adapter)
-        extra_dirs.extend(
-            d
-            for spec, d in zip(source_pkgs, fetched_dirs)
-            if spec.get("expose_to_jinja")
-        )
-
         pea = Peagen(
             projects_payload_path=str(projects_payload),
-            template_base_dir=str(template_base_dir) if template_base_dir else None,
-            additional_package_dirs=extra_dirs,
+            template_base_dir=None,
+            additional_package_dirs=None,
             source_packages=source_pkgs,
             template_sets=installed_sets,
             agent_env=agent_env,
@@ -277,8 +235,34 @@ def process_cmd(
             org=org,
             workspace_root=ws,
         )
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.j2pt.templates_dir:")
+        for d in pea.j2pt.templates_dir:
+            pea.logger.debug(f"* {d}")
 
-        pea.logger.info("Entering process command")
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.cwd: {pea.cwd}")
+
+        # pea.logger.debug("")
+        # pea.logger.debug(f"pea.additional_package_dirs:")
+        # for d in pea.additional_package_dirs:
+        #     pea.logger.debug(f"* {d}")
+
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.workspace_root: {pea.workspace_root}")
+
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.source_packages:")
+        for d in pea.source_packages:
+            pea.logger.debug(f"* {d}")
+
+        pea.logger.debug("")
+        pea.logger.debug(f"pea.namespace_dirs: ")
+        for d in pea.namespace_dirs:
+            pea.logger.debug(f"* {d}")
+
+        pea.logger.debug("")            
+        pea.logger.debug("Entering process command")
 
         # ── LOG LEVEL ───────────────────────────────────────────────────
         if verbose >= 3:
@@ -298,7 +282,7 @@ def process_cmd(
             else:
                 pea.process_all_projects()
         except KeyboardInterrupt:
-            pea.logger.info("Exiting process command")
+            pea.logger.debug("Exiting process command")
             typer.echo("\nInterrupted.  Bye.")
             raise typer.Exit(1)
 

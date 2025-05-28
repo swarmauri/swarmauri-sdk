@@ -40,7 +40,7 @@ class Peagen(ComponentBase):
 
     # ── Inputs / ctor params ────────────────────────────────────────────
     projects_payload_path: str
-    template_base_dir: Optional[str] = None
+    # template_base_dir: Optional[str] = None
     org: Optional[str] = None
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
@@ -48,13 +48,13 @@ class Peagen(ComponentBase):
     j2pt: Any = Field(default_factory=lambda: J2PromptTemplate())
 
     # Runtime / env setup
-    base_dir: str = Field(exclude=True, default_factory=os.getcwd)
+    cwd: str = Field(exclude=True, default_factory=os.getcwd)
 
     # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
-    additional_package_dirs: List[Path] = Field(
-        default_factory=list,
-        description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
-    )
+    # additional_package_dirs: List[Path] = Field(
+    #     default_factory=list,
+    #     description="DEPRECATED – converted to SOURCE_PACKAGES at CLI level.",
+    # )
 
     # New: scratch workspace chosen by process.py
     workspace_root: Optional[Path] = Field(
@@ -110,7 +110,8 @@ class Peagen(ComponentBase):
         #    into synthetic 'local' TEMPLATE_SET entries, so they get
         #    written to the manifest without CLI help.
         # -----------------------------------------------------------
-        ns_dirs: List[str] = list(peagen.templates.__path__)
+        # ns_dirs: List[str] = list(peagen.templates.__path__)
+        ns_dirs: List[str] = []
 
         # 1) Template-set plugins discovered via registry
         from peagen.plugin_registry import registry
@@ -135,19 +136,19 @@ class Peagen(ComponentBase):
                     os.fspath(Path(self.workspace_root or ".") / spec["dest"])
                 )
 
-        # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
-        for p in self.additional_package_dirs:
-            ns_dirs.append(os.fspath(p))
+        # # 4) Legacy additional_package_dirs (already copied by CLI helper into workspace)
+        # for p in self.additional_package_dirs:
+        #     ns_dirs.append(os.fspath(p))
 
         # 5) User-specified template_base_dir and repo root
-        if self.template_base_dir:
-            ns_dirs.append(self.template_base_dir)
-        ns_dirs.append(self.base_dir)
+        # if self.template_base_dir:
+        #     ns_dirs.append(self.template_base_dir)
+        ns_dirs.append(self.cwd)
 
         # Finalise
         self.namespace_dirs = ns_dirs
         # j2pt expects *template search dirs* in templates_dir attr
-        self.j2pt.templates_dir = ns_dirs
+        self.j2pt.templates_dir = []
 
         return self
 
@@ -161,22 +162,24 @@ class Peagen(ComponentBase):
         """
         dirs = [
             os.fspath(package_specific_template_dir),
-            self.base_dir,
+            self.cwd,
             *[
                 os.fspath(Path(self.workspace_root or ".") / spec["dest"])
                 for spec in self.source_packages
                 if spec.get("expose_to_jinja")
             ],
         ]
-        dirs.extend(os.fspath(p) for p in self.additional_package_dirs)
+
+        self.logger.debug(f"Updated from {self.j2pt.templates_dir} to {[os.path.normpath(d) for d in dirs]}")
         self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
 
     def locate_template_set(self, template_set: str) -> Path:
         """Search `namespace_dirs` for the given template-set folder."""
-        for base in self.namespace_dirs:
-            candidate = Path(base) / template_set
-            if candidate.is_dir():
-                return candidate.resolve()
+        from peagen.plugin_registry import registry
+        self.logger.debug(f"locating template-set: {template_set}")
+        if template_set in registry['template_sets']:
+            self.logger.debug(list(registry['template_sets'][template_set].__path__)[0])
+            return list(registry['template_sets'][template_set].__path__)[0]
         raise ValueError(
             f"Template set '{template_set}' not found in: {self.namespace_dirs}"
         )
@@ -407,8 +410,8 @@ class Peagen(ComponentBase):
             # Pass workspace_root into every file save/upload call
             # ------------------------------------------------------
 
-            # choose workspace_root or fallback to base_dir
-            root = self.workspace_root or Path(self.base_dir)
+            # choose workspace_root or fallback to cwd
+            root = self.workspace_root or Path(self.cwd)
 
             workspace_uri = ""
             if self.storage_adapter:
@@ -441,6 +444,7 @@ class Peagen(ComponentBase):
                 global_attrs=project,
                 file_records=sorted_records,
                 template_dir=template_dir,
+                j2pt = self.j2pt,
                 agent_env=self.agent_env,
                 logger=self.logger,
                 storage_adapter=self.storage_adapter,
