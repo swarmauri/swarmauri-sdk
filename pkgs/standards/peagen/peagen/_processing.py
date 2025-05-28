@@ -13,7 +13,7 @@ from pathlib import Path
 from pprint import pformat
 from typing import Any, Dict, List, Optional
 
-from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from ._config import _config
 from ._graph import _build_forward_graph
@@ -164,6 +164,10 @@ def _process_file(
         else:
             j2_instance.templates_dir = [template_dir]
 
+    if logger:
+        logger.info(F"j2_instance: {j2_instance}")
+        logger.info("")
+
     context = _create_context(file_record, global_attrs, logger)
     final_filename = os.path.normpath(file_record.get("RENDERED_FILE_NAME"))
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
@@ -236,6 +240,7 @@ def _process_project_files(
     file_records: List[Dict[str, Any]],
     template_dir: str,
     agent_env: Dict[str, Any],
+    j2pt:  Any,
     logger: Optional[Any] = None,
     *,
     workspace_root: Path = Path("."),
@@ -253,107 +258,74 @@ def _process_project_files(
         logger.debug(
             "Processing %d file records with %s workers",
             len(file_records),
-            _config.get("workers", 0),
+            _config.get("workers", 1),
         )
-    workers = _config.get("workers", 0)
+    workers = _config.get("workers", 1)
 
-    if workers and workers > 0:
-        forward_graph, in_degree, _ = _build_forward_graph(file_records)
-        entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
-        idx_map = {
-            rec["RENDERED_FILE_NAME"]: i + start_idx
-            for i, rec in enumerate(file_records)
-        }
+    forward_graph, in_degree, _ = _build_forward_graph(file_records)
+    entry_map = {rec["RENDERED_FILE_NAME"]: rec for rec in file_records}
+    idx_map = {
+        rec["RENDERED_FILE_NAME"]: i + start_idx
+        for i, rec in enumerate(file_records)
+    }
 
-        def _worker(fname: str) -> None:
-            rec = entry_map[fname]
-            idx = idx_map[fname]
-            new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-            j2 = J2PromptTemplate()
-            if logger:
-                logger.debug(f"Worker processing {fname}")
-            try:
-                if j2pt.templates_dir:
-                    j2.templates_dir = (
-                        [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
-                    )
-                    if str(new_dir) != j2pt.templates_dir[0]:
-                        j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
-                    if logger:
-                        logger.debug(f"Updated templates_dir to {new_dir}")
-            except Exception as e:
-                print(str(e))
-
-            try:
-                _process_file(
-                    rec,
-                    global_attrs,
-                    template_dir,
-                    agent_env,
-                    j2,
-                    logger=logger,
-                    start_idx=idx,
-                    idx_len=idx_len,
-                    storage_adapter=storage_adapter,
-                    org=org,
-                    workspace_root=workspace_root,
-                    manifest_writer=manifest_writer,  # NEW
-                )
-            except Exception as e:
-                logger.warning(f"{e}")
-
-        executor = ThreadPoolExecutor(max_workers=workers)
-        futures = {}
-        try:
-            # Launch initial tasks
-            for fname, deps in in_degree.items():
-                if deps == 0:
-                    futures[executor.submit(_worker, fname)] = fname
-
-            # As tasks complete, schedule their dependents
-            while futures:
-                done, _ = wait(futures, return_when=FIRST_COMPLETED)
-                for fut in done:
-                    comp = futures.pop(fut)
-                    for child in forward_graph.get(comp, []):
-                        in_degree[child] -= 1
-                        if in_degree[child] == 0:
-                            futures[executor.submit(_worker, child)] = child
-        except KeyboardInterrupt:
-            executor.shutdown(wait=False)
-            raise
-        finally:
-            executor.shutdown(wait=True)
-        return
-
-    # Sequential execution
-    for rec in file_records:
+    def _worker(fname: str) -> None:
+        rec = entry_map[fname]
+        idx = idx_map[fname]
         new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-        if str(new_dir) != j2pt.templates_dir[0]:
-            j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
-            if logger:
-                logger.debug(f"Updated templates_dir to {new_dir}")
-
-        j2_instance = J2PromptTemplate()
-        j2_instance.templates_dir = (
-            [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
-        )
-
+        j2 = J2PromptTemplate()
         if logger:
-            logger.debug(f"Sequentially processing {rec.get('RENDERED_FILE_NAME')}")
-        if not _process_file(
-            rec,
-            global_attrs,
-            template_dir,
-            agent_env,
-            j2_instance,
-            logger,
-            start_idx=start_idx,
-            idx_len=idx_len,
-            storage_adapter=storage_adapter,
-            org=org,
-            workspace_root=workspace_root,
-            manifest_writer=manifest_writer,
-        ):
-            break
-        start_idx += 1
+            logger.debug(f"Worker processing {fname}")
+        try:
+            if j2pt.templates_dir:
+                j2.templates_dir = (
+                    [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
+                )
+                if str(new_dir) != j2pt.templates_dir[0]:
+                    j2pt.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
+                if logger:
+                    logger.info(f"Updated templates_dir to {new_dir}")
+        except Exception as e:
+            print(str(e))
+
+        try:
+            _process_file(
+                rec,
+                global_attrs,
+                template_dir,
+                agent_env,
+                j2,
+                logger=logger,
+                start_idx=idx,
+                idx_len=idx_len,
+                storage_adapter=storage_adapter,
+                org=org,
+                workspace_root=workspace_root,
+                manifest_writer=manifest_writer,  # NEW
+            )
+        except Exception as e:
+            logger.warning(f"{e}")
+
+    executor = ThreadPoolExecutor(max_workers=workers)
+    futures = {}
+    try:
+        # Launch initial tasks
+        for fname, deps in in_degree.items():
+            if deps == 0:
+                futures[executor.submit(_worker, fname)] = fname
+
+        # As tasks complete, schedule their dependents
+        while futures:
+            done, _ = wait(futures, return_when=FIRST_COMPLETED)
+            for fut in done:
+                comp = futures.pop(fut)
+                for child in forward_graph.get(comp, []):
+                    in_degree[child] -= 1
+                    if in_degree[child] == 0:
+                        futures[executor.submit(_worker, child)] = child
+    except KeyboardInterrupt:
+        executor.shutdown(wait=False)
+        raise
+    finally:
+        executor.shutdown(wait=True)
+    return

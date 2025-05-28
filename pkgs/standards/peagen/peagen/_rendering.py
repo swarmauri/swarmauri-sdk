@@ -68,7 +68,6 @@ def _render_generate_template(
     try:
         if logger:
             logger.debug(f"Rendering generate template {agent_prompt_template}")
-            logger.info(F"j2_instance: {j2_instance}")
         j2_instance.set_template(FilePath(agent_prompt_template))
         rendered_prompt = j2_instance.fill(context)
         from ._external import call_external_agent
