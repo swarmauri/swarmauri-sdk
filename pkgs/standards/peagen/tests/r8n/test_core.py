@@ -31,7 +31,7 @@ class TestPeagen:
         assert peagen.template_base_dir is None
         assert isinstance(peagen.agent_env, dict)
         assert peagen.j2pt is not None
-        assert peagen.base_dir == os.getcwd()
+        assert peagen.cwd == os.getcwd()
         assert peagen.projects_list == []
 
     def test_setup_env(self):
@@ -45,12 +45,12 @@ class TestPeagen:
 
             # Check namespace_dirs
             assert "/installed/templates" in peagen.namespace_dirs
-            assert peagen.base_dir in peagen.namespace_dirs
+            assert peagen.cwd in peagen.namespace_dirs
             assert "/custom/templates" in peagen.namespace_dirs
 
             # Check j2pt templates_dir
             assert str(Path("/additional/templates")) in peagen.j2pt.templates_dir
-            assert peagen.base_dir in peagen.j2pt.templates_dir
+            assert peagen.cwd in peagen.j2pt.templates_dir
             assert "/custom/templates" in peagen.j2pt.templates_dir
 
     def test_update_templates_dir(self, basic_peagen):
@@ -66,7 +66,7 @@ class TestPeagen:
             "/package/templates"
         )
         assert basic_peagen.j2pt.templates_dir[1] == os.path.normpath(
-            basic_peagen.base_dir
+            basic_peagen.cwd
         )
         assert os.path.normpath("/add1") in basic_peagen.j2pt.templates_dir
         assert os.path.normpath("/add2") in basic_peagen.j2pt.templates_dir

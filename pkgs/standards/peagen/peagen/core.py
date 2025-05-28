@@ -48,7 +48,7 @@ class Peagen(ComponentBase):
     j2pt: Any = Field(default_factory=lambda: J2PromptTemplate())
 
     # Runtime / env setup
-    base_dir: str = Field(exclude=True, default_factory=os.getcwd)
+    cwd: str = Field(exclude=True, default_factory=os.getcwd)
 
     # Legacy flag – converted to TEMPLATE_SETS during CLI parsing.
     additional_package_dirs: List[Path] = Field(
@@ -142,7 +142,7 @@ class Peagen(ComponentBase):
         # 5) User-specified template_base_dir and repo root
         if self.template_base_dir:
             ns_dirs.append(self.template_base_dir)
-        ns_dirs.append(self.base_dir)
+        ns_dirs.append(self.cwd)
 
         # Finalise
         self.namespace_dirs = ns_dirs
@@ -161,7 +161,7 @@ class Peagen(ComponentBase):
         """
         dirs = [
             os.fspath(package_specific_template_dir),
-            self.base_dir,
+            self.cwd,
             *[
                 os.fspath(Path(self.workspace_root or ".") / spec["dest"])
                 for spec in self.source_packages
@@ -407,8 +407,8 @@ class Peagen(ComponentBase):
             # Pass workspace_root into every file save/upload call
             # ------------------------------------------------------
 
-            # choose workspace_root or fallback to base_dir
-            root = self.workspace_root or Path(self.base_dir)
+            # choose workspace_root or fallback to cwd
+            root = self.workspace_root or Path(self.cwd)
 
             workspace_uri = ""
             if self.storage_adapter:
