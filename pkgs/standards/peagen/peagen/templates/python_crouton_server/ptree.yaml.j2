@@ -1,0 +1,42 @@
+# =====================================================
+# ptree.yaml.j2 for crouton_orm template_set
+# =====================================================
+
+{%- for PKG in PROJ.PKGS %}
+# -------------------------
+# Package: {{ PKG.NAME }}
+# -------------------------
+
+  {#— SQLAlchemy + Pydantic model files —#}
+  {%- for MOD in PKG.MODULES %}
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+    PROCESS_TYPE: "GENERATE"
+    AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+    PROJECT_NAME: "{{ PROJ.NAME }}"
+    PACKAGE_NAME: "{{ PKG.NAME }}"
+    MODULE_NAME: "{{ MOD.NAME }}"
+    EXTRAS:
+      PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+      DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
+      REQUIREMENTS:
+        - "Create sqlalchemy orms and pydantic CRUD schemas for the resource."
+        {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+        - "{{ req }}"
+        {%- endfor %}
+      HAS_CHILDREN: {{ MOD.EXTRAS.HAS_CHILDREN }}
+      CHILD_NAME: "{{ MOD.EXTRAS.CHILD_NAME }}"
+      FIELD_DEFINITIONS: |
+        {{ MOD.EXTRAS.FIELD_DEFINITIONS }}
+      DEPENDENCIES:
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+        - "{{ dep }}"
+        {%- endfor %}
+
+  {%- endfor %}
+
+
+{%- endfor %}
+# =====================================================
+# End of ptree payload
+# =====================================================
