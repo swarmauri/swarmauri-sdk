@@ -104,3 +104,4 @@ class ResourceTypes(Enum):
     SIMILARITY = "Similarity"
     PSEUDOMETRIC = "PseudoMetric"
     SEMINORM = "SemiNorm"
+    MUTATOR = "Mutator"
