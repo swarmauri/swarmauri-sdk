@@ -24,15 +24,12 @@ from swarmauri_standard.loggers.Logger import Logger
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from peagen.plugin_registry import registry
+import inspect
 
 # ── Typer root ───────────────────────────────────────────────────────────────
 init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
 
-# Location of the scaffold templates inside the installed package
-_SCAFFOLD_ROOT = (
-    Path(__file__).resolve().parent.parent  # → peagen/
-    / "scaffolding"
-)
 
 
 # ── utilities ────────────────────────────────────────────────────────────────
@@ -44,7 +41,7 @@ def _ensure_empty_or_force(dst: Path, force: bool) -> None:
 
 
 def _render_scaffold(kind: str, dst: Path, context: dict, force: bool) -> None:
-    src_root = _SCAFFOLD_ROOT / kind
+    src_root = kind
     if not src_root.exists():
         typer.echo(f"❌  Internal error: scaffold folder '{kind}' missing.")
         raise typer.Exit(code=1)
@@ -130,13 +127,23 @@ def init_template_set(
 ):
     self = Logger(name="init_template_set")
     self.logger.info("Entering init_template_set command")
+    self.logger.info(name)
+    tmpl_mod = registry["template_sets"].get("init-template-set")
+    if tmpl_mod is None:
+        typer.echo(f"❌  Template-set 'init-template-set' not found.")
+        raise typer.Exit(code=1)
+
+    src_root = Path(list(tmpl_mod.__path__)[0])
+    self.logger.info(src_root)
+
     context = {
         "PROJECT_ROOT": name,
         "org": org or "org",
         "use_uv": use_uv,
     }
 
-    _render_scaffold("template_set", path, context, force)
+
+    _render_scaffold(src_root, path, context, force)
     _summary(path, f"peagen template-sets add {path}")
     self.logger.info("Exiting init_template_set command")
 
