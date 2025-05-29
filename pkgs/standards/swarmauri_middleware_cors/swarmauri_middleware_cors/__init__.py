@@ -1,15 +1,13 @@
 from .CustomCORSMiddleware import CustomCORSMiddleware
 
-__all__ = [
-    "CustomCORSMiddleware"
-]
+__all__ = ["CustomCORSMiddleware"]
 
 try:
     # For Python 3.8 and newer
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 except ImportError:
     # For older Python versions, use the backport
-    from importlib_metadata import version, PackageNotFoundError
+    from importlib_metadata import PackageNotFoundError, version
 
 try:
     __version__ = version("swarmauri_middleware_cors")
