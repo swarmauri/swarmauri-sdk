@@ -20,7 +20,7 @@ def test_init_module() -> None:
 
     # Dynamically import the __init__ module
     module = importlib.import_module(
-        "standards.swarmauri_middleware_bulkhead"
+        "swarmauri_middleware_bulkhead"
     )
 
     # Verify that the __version__ string is correctly set
