@@ -50,6 +50,7 @@ from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
+from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -86,6 +87,7 @@ class InterfaceRegistry:
         "swarmauri.vlms": VLMBase,
         "swarmauri.measurements": MeasurementBase,
         "swarmauri.messages": MessageBase,
+        "swarmauri.middlewares": MiddlewareBase,
         "swarmauri.parsers": ParserBase,
         "swarmauri.pipelines": PipelineBase,
         "swarmauri.prompts": PromptBase,
