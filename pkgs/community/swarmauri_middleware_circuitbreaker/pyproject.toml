@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "fastapi",
-    "pybreaker>=1.0.0",
+    "pybreaker",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard"

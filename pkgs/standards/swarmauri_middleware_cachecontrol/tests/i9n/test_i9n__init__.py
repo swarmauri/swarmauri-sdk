@@ -2,7 +2,6 @@ import pytest
 import importlib
 import logging
 
-from swarmauri_middleware_cachecontrol import __init__ as init_module
 
 logger = logging.getLogger(__name__)
 

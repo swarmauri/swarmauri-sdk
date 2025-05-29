@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import quote_plus
 
 import pika
-from pydantic import Field, PrivateAttr
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.publishers.PublishBase import PublishBase
 

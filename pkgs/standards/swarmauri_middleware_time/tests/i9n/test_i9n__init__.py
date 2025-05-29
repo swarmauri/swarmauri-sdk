@@ -4,7 +4,6 @@ import sys
 from importlib import import_module
 
 import pytest
-from importlib_metadata import PackageNotFoundError
 
 
 @pytest.mark.i9n

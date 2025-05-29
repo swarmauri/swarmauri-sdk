@@ -1,40 +1,34 @@
 [project]
 name = "swarmauri_middleware_exceptionhadling"
-version = "0.1.0"
-description = "Middleware for handling exceptions and errors in Swarmauri applications"
+version = "0.6.2.dev1"
+description = "Custom Exception Handling Middleware for Swarmauri Framework"
+license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.8"
-license = { file = "LICENSE" }
-authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_gzipcompression/"
+requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha"
 ]
-
-[dependencies]
+authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
+dependencies = [
+    "fastapi",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+]
+[tool.uv.sources]
 swarmauri_core = {workspace = true}
 swarmauri_base = {workspace = true}
 swarmauri_standard = {workspace = true}
 
-[tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
-
 [tool.pytest.ini_options]
-addopts = [
-    "--doctest-modules",
-    "--cov-config=.coveragerc",
-    "--cov=src",
-    "--cov-report=term-missing"
-]
+norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
@@ -57,5 +51,19 @@ asyncio_default_fixture_loop_scope = "function"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]
+
 [project.entry-points.'swarmauri.middlewares']
-ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhadling:ExceptionHandlingMiddleware"
+ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhadling:ExceptionHandlingMiddleware'"

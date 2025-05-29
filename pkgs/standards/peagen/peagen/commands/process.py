@@ -7,8 +7,7 @@ import pathlib
 import secrets
 import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 import typer
@@ -236,7 +235,7 @@ def process_cmd(
             workspace_root=ws,
         )
         pea.logger.debug("")
-        pea.logger.debug(f"pea.j2pt.templates_dir:")
+        pea.logger.debug("pea.j2pt.templates_dir:")
         for d in pea.j2pt.templates_dir:
             pea.logger.debug(f"* {d}")
 
@@ -252,12 +251,12 @@ def process_cmd(
         pea.logger.debug(f"pea.workspace_root: {pea.workspace_root}")
 
         pea.logger.debug("")
-        pea.logger.debug(f"pea.source_packages:")
+        pea.logger.debug("pea.source_packages:")
         for d in pea.source_packages:
             pea.logger.debug(f"* {d}")
 
         pea.logger.debug("")
-        pea.logger.debug(f"pea.namespace_dirs: ")
+        pea.logger.debug("pea.namespace_dirs: ")
         for d in pea.namespace_dirs:
             pea.logger.debug(f"* {d}")
 

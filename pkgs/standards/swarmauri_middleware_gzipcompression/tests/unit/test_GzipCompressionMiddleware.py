@@ -1,4 +1,3 @@
-import gzip
 import pytest
 from fastapi import Request, Response
 from swarmauri_middleware_gzipcompression.GzipCompressionMiddleware import (

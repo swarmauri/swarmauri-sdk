@@ -3,7 +3,6 @@ AuthMiddleware implementation for handling request authentication.
 """
 
 import logging
-from re import M
 from typing import Any, Callable
 
 from fastapi import HTTPException, Request
