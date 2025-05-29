@@ -1,10 +1,10 @@
 [project]
-name = "swarmauri_middleware_sercurityheaders"
+name = "swarmauri_middleware_securityheaders"
 version = "0.6.2.dev1"
 description = "Middleware for adding security headers to HTTP responses"
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_sercurityheaders/"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_securityheaders/"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -67,4 +67,4 @@ dev = [
 ]
 
 [project.entry-points.'swarmauri.middlewares']
-SecurityHeadersMiddleware = "swarmauri_middleware_sercurityheaders:SecurityHeadersMiddleware"
+SecurityHeadersMiddleware = "swarmauri_middleware_securityheaders:SecurityHeadersMiddleware"
