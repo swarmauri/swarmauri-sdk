@@ -1,15 +1,23 @@
 import pytest
 from fastapi import Request, JSONResponse, StreamingResponse
-from llmaguard import LlamaGuard
 import logging
 from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import LlamaGuardMiddleware
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+
 
 logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def middleware():
-    """Fixture providing a fresh instance of LlamaGuardMiddleware."""
-    return LlamaGuardMiddleware()
+    """Fixture providing a LlamaGuardMiddleware with a fake GroqModel."""
+
+    class FakeGroqModel:
+        def predict(self, conversation, *args, **kwargs):
+            text = conversation.get_last().content
+            label = "unsafe" if "malicious" in text else "safe"
+            conversation.add_message(AgentMessage(content=label))
+
+    return LlamaGuardMiddleware(llm=FakeGroqModel())
 
 @pytest.mark.unit
 def test_llamaguard_middleware_inspects_request(middleware):
