@@ -60,7 +60,7 @@ members = [
     "standards/swarmauri_middleware_bulkhead",
     "standards/swarmauri_middleware_cachecontrol",
     "standards/swarmauri_middleware_cors",
-    "standards/swarmauri_middleware_exceptionhadling",
+    "standards/swarmauri_middleware_exceptionhandling",
     "standards/swarmauri_middleware_gzipcompression",
     "standards/swarmauri_middleware_llamaguard",
     "standards/swarmauri_middleware_logging",
