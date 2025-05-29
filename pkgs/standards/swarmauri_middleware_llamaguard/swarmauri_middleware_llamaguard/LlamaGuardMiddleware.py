@@ -1,7 +1,10 @@
-from fastapi import Request, JSONResponse
-from llmaguard import LlamaGuard
-from typing import Any, Callable, Optional
+from fastapi import Request, JSONResponse, StreamingResponse
+from typing import Any, Callable, Optional, Literal
 import logging
+
+from swarmauri_standard.llms.GroqModel import GroqModel
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -11,24 +14,57 @@ logger = logging.getLogger(__name__)
 
 @ComponentBase.register_type(MiddlewareBase, "LlamaGuardMiddleware")
 class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
-    """Middleware for inspecting and filtering unsafe content using LlamaGuard.
-    
-    This middleware integrates LlamaGuard to ensure that both incoming requests
-    and outgoing responses are free from unsafe or malicious content. It provides
-    a robust layer of security by inspecting both request and response payloads.
+    """Middleware for inspecting and filtering unsafe content using Groq's
+    ``lama-guard-3-8b`` model.
+
+    This middleware integrates the :class:`~swarmauri_standard.llms.GroqModel`
+    running the ``lama-guard-3-8b`` model to ensure that both incoming requests
+    and outgoing responses are free from unsafe or malicious content. It
+    provides a robust layer of security by inspecting both request and response
+    payloads.
     
     Attributes:
         type: Literal["LlamaGuardMiddleware"] = "LlamaGuardMiddleware"
-        llmaguard: LlamaGuard = Instance of LlamaGuard for content inspection
+        llm: GroqModel -- Instance of GroqModel for content inspection
     """
-    
+
     type: Literal["LlamaGuardMiddleware"] = "LlamaGuardMiddleware"
-    
-    def __init__(self) -> None:
-        """Initialize the LlamaGuardMiddleware with LlamaGuard instance."""
+
+    def __init__(self, llm: Optional[GroqModel] = None, api_key: Optional[str] = None) -> None:
+        """Initialize the LlamaGuardMiddleware with a GroqModel instance."""
         super().__init__()
-        self.llmaguard = LlamaGuard()
+        self.llm = llm or GroqModel(
+            api_key=api_key,
+            allowed_models=["lama-guard-3-8b"],
+            name="lama-guard-3-8b",
+        )
         self.logger = logger
+
+    def _is_safe(self, content: bytes) -> bool:
+        """Run the content through the Groq ``lama-guard-3-8b`` model.
+
+        Parameters
+        ----------
+        content : bytes
+            Raw content to check for safety.
+
+        Returns
+        -------
+        bool
+            ``True`` if the content is considered safe, ``False`` otherwise.
+        """
+        text = content.decode("utf-8", errors="ignore")
+        conversation = Conversation()
+        conversation.add_message(HumanMessage(content=text))
+        try:
+            self.llm.predict(conversation=conversation)
+            result = conversation.get_last().content
+            if not isinstance(result, str):
+                result = str(result)
+            return "unsafe" not in result.lower()
+        except Exception as exc:  # pragma: no cover - network errors
+            self.logger.error(f"GroqModel error: {exc}")
+            return False
     
     async def dispatch(self, request: Request, call_next: Callable[[Request], Any]) -> Any:
         """Dispatches the request to the next middleware in the chain after inspection.
@@ -53,7 +89,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         # Inspect request content
         if request.method in ["POST", "PUT", "PATCH"]:
             request_body = await request.body()
-            if not self.llmaguard.inspect(request_body):
+            if not self._is_safe(request_body):
                 return JSONResponse(
                     status_code=400,
                     content={"error": "Unsafe content detected in request"}
@@ -66,7 +102,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
             # Inspect response content
             if isinstance(response, JSONResponse):
                 response_body = response.body
-                if not self.llmaguard.inspect(response_body):
+                if not self._is_safe(response_body):
                     return JSONResponse(
                         status_code=400,
                         content={"error": "Unsafe content detected in response"}
@@ -75,7 +111,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
             # For streaming responses, inspect content as it becomes available
             if isinstance(response, StreamingResponse):
                 async for chunk in response.body_iterator:
-                    if not self.llmaguard.inspect(chunk):
+                    if not self._is_safe(chunk):
                         return JSONResponse(
                             status_code=400,
                             content={"error": "Unsafe streaming content detected"}
