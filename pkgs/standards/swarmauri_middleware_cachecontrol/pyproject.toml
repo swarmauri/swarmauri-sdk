@@ -29,8 +29,6 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
-fastapi = { workspace = false }
-python-dotenv = { workspace = false }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
