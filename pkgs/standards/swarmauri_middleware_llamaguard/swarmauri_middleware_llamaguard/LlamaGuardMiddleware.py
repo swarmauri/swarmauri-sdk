@@ -6,7 +6,6 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
-# Fix: Import the actual classes, not the modules
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.messages.HumanMessage import HumanMessage
@@ -63,7 +62,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         if self.llm is None:
             logger.warning("No LLM configured - defaulting to safe content")
             return True
-
+    
         text = content.decode("utf-8", errors="ignore")
         conversation = Conversation()
         conversation.add_message(HumanMessage(content=text))
@@ -81,8 +80,6 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
         """Dispatches the request to the next middleware in the chain after inspection."""
-
-        # Inspect request content
         if request.method in ["POST", "PUT", "PATCH"]:
             request_body = await request.body()
             if not self._is_safe(request_body):
@@ -145,4 +142,3 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
             return JSONResponse(
                 status_code=500,
                 content={"error": "Internal server error during content inspection"},
-            )
