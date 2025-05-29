@@ -1,143 +1,154 @@
-"""Unit tests for GzipCompressionMiddleware class."""
+import gzip
 import pytest
 from fastapi import Request, Response
-from swarmauri_middleware_gzipcompression.GzipCompressionMiddleware import GzipCompressionMiddleware
+from swarmauri_middleware_gzipcompression.GzipCompressionMiddleware import (
+    GzipCompressionMiddleware,
+)
+
 
 @pytest.mark.unit
 class TestGzipCompressionMiddleware:
-    """Unit tests for GzipCompressionMiddleware class."""
-    
-    @pytest.mark.unit
-    def test_type(self):
-        """Test that type returns 'GzipCompressionMiddleware'."""
-        assert GzipCompressionMiddleware.type == "GzipCompressionMiddleware"
+    """Unit tests for GzipCompressionMiddleware."""
 
-    @pytest.mark.unit
-    async def test_dispatch_with_gzip_supported(
-        self, mock_request: Request, mock_response: Response
-    ):
-        """Test dispatch when client supports gzip encoding."""
-        # Setup mock request and response
-        mock_request.headers["Accept-Encoding"] = "gzip"
-        mock_response.headers["Content-Type"] = "application/json"
-        
-        # Process the request
+    def test_init(self):
+        """Test initialization of GzipCompressionMiddleware."""
         middleware = GzipCompressionMiddleware()
-        response = await middleware.dispatch(mock_request, lambda req: mock_response)
-        
-        # Verify response is compressed
-        assert "gzip" in response.headers.get("Content-Encoding", "")
-        assert isinstance(response, Response)
+        assert middleware.type == "GzipCompressionMiddleware"
 
-    @pytest.mark.unit
-    async def test_dispatch_without_gzip_support(
-        self, mock_request: Request, mock_response: Response
-    ):
-        """Test dispatch when client does not support gzip encoding."""
-        # Setup mock request and response
-        mock_request.headers["Accept-Encoding"] = "deflate"
-        mock_response.headers["Content-Type"] = "application/json"
-        
-        # Process the request
+    @pytest.mark.asyncio  # Add this decorator
+    async def test_dispatch_with_gzip_support(self):
+        """Test dispatch with gzip support."""
         middleware = GzipCompressionMiddleware()
-        response = await middleware.dispatch(mock_request, lambda req: mock_response)
         
-        # Verify response is not compressed
-        assert "gzip" not in response.headers.get("Content-Encoding", "")
-        assert isinstance(response, Response)
+        # Create a request with gzip support
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [[b"accept-encoding", b"gzip"]],
+        }
+        request = Request(scope=scope, receive=lambda: b"")
 
-    @pytest.mark.unit
-    async def test_dispatch_with_non_compressible_content_type(
-        self, mock_request: Request, mock_response: Response
-    ):
+        # Mock response
+        original_response = Response(
+            content="Test content",
+            media_type="application/json"
+        )
+
+        async def mock_call_next(req):
+            return original_response
+
+        # Fix: Add await here
+        response = await middleware.dispatch(request, mock_call_next)
+        
+        # Verify gzip compression was applied
+        assert response.headers.get("Content-Encoding") == "gzip"
+        assert "Content-Length" in response.headers
+
+    @pytest.mark.asyncio  # Add this decorator
+    async def test_dispatch_without_gzip_support(self):
+        """Test dispatch without gzip support."""
+        middleware = GzipCompressionMiddleware()
+        
+        # Create a request without gzip support
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [],
+        }
+        request = Request(scope=scope, receive=lambda: b"")
+
+        # Mock response
+        original_response = Response(
+            content="Test content",
+            media_type="application/json"
+        )
+
+        async def mock_call_next(req):
+            return original_response
+
+        # Fix: Add await here
+        response = await middleware.dispatch(request, mock_call_next)
+        
+        # Verify no compression was applied
+        assert "Content-Encoding" not in response.headers or response.headers.get("Content-Encoding") != "gzip"
+
+    @pytest.mark.asyncio  # Add this decorator
+    async def test_dispatch_already_compressed(self):
+        """Test dispatch with already compressed response."""
+        middleware = GzipCompressionMiddleware()
+        
+        # Create a request with gzip support
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [[b"accept-encoding", b"gzip"]],
+        }
+        request = Request(scope=scope, receive=lambda: b"")
+
+        # Mock already compressed response
+        original_response = Response(
+            content="Test content",
+            headers={"Content-Encoding": "gzip"},
+            media_type="application/json"
+        )
+
+        async def mock_call_next(req):
+            return original_response
+
+        # Fix: Add await here
+        response = await middleware.dispatch(request, mock_call_next)
+        
+        # Verify response is unchanged
+        assert response == original_response
+
+    @pytest.mark.asyncio  # Add this decorator
+    async def test_dispatch_non_compressible_content(self):
         """Test dispatch with non-compressible content type."""
-        # Setup mock request and response
-        mock_request.headers["Accept-Encoding"] = "gzip"
-        mock_response.headers["Content-Type"] = "image/png"
-        
-        # Process the request
         middleware = GzipCompressionMiddleware()
-        response = await middleware.dispatch(mock_request, lambda req: mock_response)
         
-        # Verify response is not compressed
-        assert "gzip" not in response.headers.get("Content-Encoding", "")
-        assert isinstance(response, Response)
+        # Create a request with gzip support
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [[b"accept-encoding", b"gzip"]],
+        }
+        request = Request(scope=scope, receive=lambda: b"")
 
-    @pytest.mark.unit
-    async def test_dispatch_with_empty_response(
-        self, mock_request: Request, mock_response: Response
-    ):
-        """Test dispatch with an empty response body."""
-        # Setup mock request and response
-        mock_request.headers["Accept-Encoding"] = "gzip"
-        mock_response.headers["Content-Type"] = "application/json"
-        mock_response.body = b""
+        # Mock response with non-compressible content
+        original_response = Response(
+            content=b"binary data",
+            media_type="image/png"
+        )
+
+        async def mock_call_next(req):
+            return original_response
+
+        # Fix: Add await here
+        response = await middleware.dispatch(request, mock_call_next)
         
-        # Process the request
+        # Verify no compression was applied
+        assert "Content-Encoding" not in response.headers or response.headers.get("Content-Encoding") != "gzip"
+
+    @pytest.mark.asyncio  # Add this decorator
+    async def test_dispatch_non_response_object(self):
+        """Test dispatch with non-Response return value."""
         middleware = GzipCompressionMiddleware()
-        response = await middleware.dispatch(mock_request, lambda req: mock_response)
         
-        # Verify response is handled correctly
-        assert isinstance(response, Response)
-        assert response.body == b""
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [[b"accept-encoding", b"gzip"]],
+        }
+        request = Request(scope=scope, receive=lambda: b"")
 
-@pytest.fixture
-def mock_request():
-    """Fixture providing a mock Request object."""
-    request = Request(scope={"type": "http"}, receive=lambda: b"")
-    request.headers = {}
-    return request
+        # Mock call_next returning non-Response object
+        non_response = {"message": "Not a response"}
 
-@pytest.fixture
-def mock_response():
-    """Fixture providing a mock Response object."""
-    response = Response(content=b"test content", status_code=200)
-    response.headers = {}
-    return response
+        async def mock_call_next(req):
+            return non_response
 
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "test_case,expected_compressed",
-    [
-        ("gzip_supported", True),
-        ("gzip_not_supported", False),
-        ("non_compressible_type", False),
-    ],
-)
-async def test_dispatch_compression_logic(
-    test_case, expected_compressed, mock_request, mock_response
-):
-    """Test the compression logic based on different scenarios."""
-    # Setup request headers based on test case
-    if test_case == "gzip_supported":
-        mock_request.headers["Accept-Encoding"] = "gzip"
-        mock_response.headers["Content-Type"] = "application/json"
-    elif test_case == "gzip_not_supported":
-        mock_request.headers["Accept-Encoding"] = "deflate"
-        mock_response.headers["Content-Type"] = "application/json"
-    else:  # non_compressible_type
-        mock_request.headers["Accept-Encoding"] = "gzip"
-        mock_response.headers["Content-Type"] = "image/png"
-    
-    # Initialize middleware and process request
-    middleware = GzipCompressionMiddleware()
-    response = await middleware.dispatch(mock_request, lambda req: mock_response)
-    
-    # Verify if response was compressed
-    content_encoding = response.headers.get("Content-Encoding", "")
-    assert ("gzip" in content_encoding) == expected_compressed
-    assert isinstance(response, Response)
-
-@pytest.mark.unit
-def test_logging(caplog, mock_request, mock_response):
-    """Test logging statements in GzipCompressionMiddleware."""
-    caplog.set_level(logging.DEBUG)
-    
-    # Initialize middleware and process request
-    middleware = GzipCompressionMiddleware()
-    response = await middleware.dispatch(
-        mock_request, lambda req: mock_response
-    )
-    
-    # Verify logging statements
-    assert "Successfully compressed response using gzip" in caplog.text
+        # Fix: Add await here
+        response = await middleware.dispatch(request, mock_call_next)
+        
+        # Verify original object is returned unchanged
+        assert response == non_response
