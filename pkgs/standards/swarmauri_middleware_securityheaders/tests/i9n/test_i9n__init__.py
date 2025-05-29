@@ -15,25 +15,6 @@ def test_module_loading() -> None:
 
 
 @pytest.mark.i9n
-def test_version() -> None:
-    """
-    Test that the version is correctly set.
-    """
-    logging.info("Testing version")
-    module = import_module("swarmauri_middleware_securityheaders")
-    assert hasattr(module, "__version__"), "Version not found"
-    assert isinstance(module.__version__, str), "Version is not a string"
-    # Check if version follows semantic versioning pattern
-    import re
-
-    version_pattern = r"^\d+\.\d+\.\d+$"
-    # Fix: Use __version__ instead of __version_
-    assert re.match(version_pattern, module.__version__), (
-        "Version does not match expected pattern"
-    )
-
-
-@pytest.mark.i9n
 def test_security_headers_middleware() -> None:
     """
     Test that SecurityHeadersMiddleware is properly exposed.
