@@ -1,0 +1,61 @@
+[project]
+name = "swarmauri_middleware_exceptionhadling"
+version = "0.1.0"
+description = "Middleware for handling exceptions and errors in Swarmauri applications"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha"
+]
+
+[dependencies]
+swarmauri_core = {workspace = true}
+swarmauri_base = {workspace = true}
+swarmauri_standard = {workspace = true}
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[tool.pytest.ini_options]
+addopts = [
+    "--doctest-modules",
+    "--cov-config=.coveragerc",
+    "--cov=src",
+    "--cov-report=term-missing"
+]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.'swarmauri.middlewares']
+ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhadling:ExceptionHandlingMiddleware"
