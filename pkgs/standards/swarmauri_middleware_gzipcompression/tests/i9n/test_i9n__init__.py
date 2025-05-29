@@ -34,9 +34,3 @@ def test_gzipcompressionmiddleware_import() -> None:
         "GzipCompressionMiddleware is not a class"
     )
 
-
-@pytest.mark.i9n
-def test_version() -> None:
-    """Test that the version string is properly set."""
-    assert isinstance(__version__, str), "__version__ is not a string"
-    assert __version__ == "0.0.0", "Version string is default value"

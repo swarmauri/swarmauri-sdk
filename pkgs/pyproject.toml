@@ -65,7 +65,7 @@ members = [
     "standards/swarmauri_middleware_llamaguard",
     "standards/swarmauri_middleware_logging",
     "standards/swarmauri_middleware_ratelimit",
-    "standards/swarmauri_middleware_sercurityheaders",
+    "standards/swarmauri_middleware_securityheaders",
     "standards/swarmauri_middleware_session",
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_prompt_j2prompttemplate",

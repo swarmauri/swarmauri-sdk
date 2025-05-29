@@ -4,9 +4,8 @@ import pytest
 from fastapi import Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import LlamaGuardMiddleware
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +23,7 @@ def middleware():
     # Create instance with explicit llm parameter
     fake_llm = FakeGroqModel()
     return LlamaGuardMiddleware(llm=fake_llm)
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio  # Add asyncio marker
