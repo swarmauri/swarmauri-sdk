@@ -4,7 +4,6 @@ import importlib
 from importlib.util import module_from_spec
 
 import pytest
-from swarmauri_middleware_gzipcompression import __version__
 
 
 @pytest.mark.i9n

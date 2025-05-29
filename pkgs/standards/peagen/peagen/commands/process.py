@@ -24,7 +24,6 @@ from peagen.cli_common import (
 )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
-from peagen.slug_utils import slugify
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."
@@ -181,8 +180,8 @@ def process_cmd(
     run_id = f"{timestamp}-{secrets.token_hex(4)}"
     typer.echo(f"run-id: {run_id}")
 
-    project_slug = slugify(project_name or "multi")
-    proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
+    # project_slug = slugify(project_name or "multi")
+    # proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
 
     # ── BUILD STORAGE ADAPTER (prefix-aware) ────────────────────────────
     art = urlparse(artifacts or "")
@@ -222,7 +221,7 @@ def process_cmd(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     with temp_workspace() as ws:
-        fetched_dirs = materialise_packages(source_pkgs, ws, storage_adapter)
+        materialise_packages(source_pkgs, ws, storage_adapter)
         pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=None,
