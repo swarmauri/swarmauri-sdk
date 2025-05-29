@@ -12,7 +12,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_middleware_exceptionhadling")
+    __version__ = version("swarmauri_middleware_exceptionhandling")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"
