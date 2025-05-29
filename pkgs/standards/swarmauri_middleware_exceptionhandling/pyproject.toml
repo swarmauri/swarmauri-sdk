@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_middleware_exceptionhadling"
+name = "swarmauri_middleware_exceptionhandling"
 version = "0.6.2.dev1"
 description = "Custom Exception Handling Middleware for Swarmauri Framework"
 license = "Apache-2.0"
@@ -66,4 +66,4 @@ dev = [
 ]
 
 [project.entry-points.'swarmauri.middlewares']
-ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhadling:ExceptionHandlingMiddleware'"
+ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhandling:ExceptionHandlingMiddleware'"
