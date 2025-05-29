@@ -20,7 +20,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "fastapi>=0.68.0,<0.69.0"
+    "fastapi"
 ]
 
 [tool.uv.sources]

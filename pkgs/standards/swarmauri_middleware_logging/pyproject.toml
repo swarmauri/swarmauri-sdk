@@ -34,7 +34,7 @@ keywords = [
 swarmauri_core = {workspace = true}
 swarmauri_base = {workspace = true}
 swarmauri_standard = {workspace = true}
-fastapi = {version = ">=0.68.0", extras = ["all"]}
+fastapi = {extras = ["all"]}
 typing-extensions = ">=4.2.0"
 python-dotenv = ">=0.19.0"
 requests = ">=2.32.3"

@@ -20,7 +20,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "fastapi>=0.68.0",
+    "fastapi",
     "llmaguard>=0.3.0",
     "python-dotenv>=1.0.0"
 ]

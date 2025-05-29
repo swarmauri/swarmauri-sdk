@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks"
 ]
 dependencies = [
-    "fastapi>=0.68.0",
+    "fastapi",
     "pybreaker>=1.0.0",
     "swarmauri_core",
     "swarmauri_base",
