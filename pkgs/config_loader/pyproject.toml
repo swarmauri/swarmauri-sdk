@@ -1,0 +1,22 @@
+[project]
+name = "config-loader"
+version = "0.1.0"
+description = "Loader for .peagen.toml configuration"
+requires-python = ">=3.10,<3.13"
+readme = "README.md"
+license = "Apache-2.0"
+dependencies = [
+    "pydantic>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
