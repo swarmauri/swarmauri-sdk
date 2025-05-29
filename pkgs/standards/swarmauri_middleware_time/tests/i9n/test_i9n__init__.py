@@ -1,4 +1,3 @@
-"""Tests for the __init__.py module in swarmauri_middleware_time package."""
 
 import sys
 from importlib import import_module

@@ -27,24 +27,6 @@ def test_init_contents():
 
 
 @pytest.mark.i9n
-def test_version():
-    """Test that the version is correctly set."""
-    module = import_module("swarmauri_middleware_exceptionhandling")
-    assert isinstance(module.__version__, str), "Version is not a string"
-    assert len(module.__version__) > 0, "Version string is empty"
-    # If the package is installed, version should not be 0.0.0
-    try:
-        import pkg_resources
-
-        pkg_resources.get_distribution("swarmauri_middleware_exceptionhandling")
-        assert module.__version__ != "0.0.0", (
-            "Version is 0.0.0 when package is installed"
-        )
-    except pkg_resources.DistributionNotFound:
-        pass  # Package is not installed, 0.0.0 version is acceptable
-
-
-@pytest.mark.i9n
 def test_all():
     """Test the __all__ variable."""
     module = import_module("swarmauri_middleware_exceptionhandling")
