@@ -1,0 +1,29 @@
+name: Static Analysis
+
+on:
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install uv mypy ruff bandit
+
+      - name: Run ruff
+        run: uv run ruff .
+
+      - name: Run mypy
+        run: uv run mypy --strict .
+
+      - name: Run bandit
+        run: uv run bandit -r .
