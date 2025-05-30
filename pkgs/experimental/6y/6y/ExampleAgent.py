@@ -12,3 +12,8 @@ class ExampleAgent(AgentBase):
         self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
     ) -> Any:
         pass
+
+    async def aexec(
+        self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
+    ) -> Any:
+        pass

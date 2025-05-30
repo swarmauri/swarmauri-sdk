@@ -76,6 +76,31 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
             print(f"Error in NewRagAgent exec: {e}")
             raise e
 
+    async def aexec(
+        self, input_data: Optional[Union[Dict, str]] = "", folder_path: str = "", llm_kwargs: Optional[Dict] = {}
+    ) -> Any:
+        try:
+            self.reload(folder_path)
+
+            if isinstance(input_data, str):
+                input_data = json.loads(input_data)
+            elif not isinstance(input_data, dict):
+                raise ValueError("Input must be a dictionary or a JSON string representing a dictionary.")
+
+            filled_prompt = self.propagate_template(input_data)
+
+            response = await self._aexec(filled_prompt, llm_kwargs=llm_kwargs)
+
+            chunk = self.chunk_content(response)
+
+            self.write_to_file(folder_path, input_data, chunk)
+
+            return chunk
+
+        except Exception as e:
+            print(f"Error in NewRagAgent aexec: {e}")
+            raise e
+
     def _create_preamble_context(self):
         substr = self.system_context.content
         substr += '\n\n'
@@ -88,13 +113,14 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
         substr += self.system_context.content
         return substr
 
-    def _exec(self, 
-             input_data: Optional[Union[str, IMessage]] = "", 
-             top_k: int = 5, 
-             preamble: bool = True,
-             fixed: bool = False,
-             llm_kwargs: Optional[Dict] = {}
-             ) -> Any:
+    def _exec(
+        self,
+        input_data: Optional[Union[str, IMessage]] = "",
+        top_k: int = 5,
+        preamble: bool = True,
+        fixed: bool = False,
+        llm_kwargs: Optional[Dict] = {},
+    ) -> Any:
         try:
             # Check if the input is a string, then wrap it in a HumanMessage
             if isinstance(input_data, str):
@@ -137,6 +163,56 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
             else:
                 self.llm.predict(conversation=self.conversation)
                 
+            return self.conversation.get_last().content
+
+        except Exception as e:
+            print(f"RagAgent error: {e}")
+            raise e
+
+    async def _aexec(
+        self,
+        input_data: Optional[Union[str, IMessage]] = "",
+        top_k: int = 5,
+        preamble: bool = True,
+        fixed: bool = False,
+        llm_kwargs: Optional[Dict] = {},
+    ) -> Any:
+        try:
+            if isinstance(input_data, str):
+                human_message = HumanMessage(content=input_data)
+            elif isinstance(input_data, IMessage):
+                human_message = input_data
+            else:
+                raise TypeError("Input data must be a string or an instance of Message.")
+
+            self.conversation.add_message(human_message)
+
+            if top_k > 0 and len(self.vector_store.documents) > 0:
+                self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
+
+                if preamble:
+                    substr = self._create_preamble_context()
+                else:
+                    substr = self._create_post_context()
+
+            else:
+                if fixed:
+                    if preamble:
+                        substr = self._create_preamble_context()
+                    else:
+                        substr = self._create_post_context()
+                else:
+                    substr = self.system_context.content
+                    self.last_retrieved = []
+
+            system_context = SystemMessage(content=substr)
+            self.conversation.system_context = system_context
+
+            if llm_kwargs:
+                await self.llm.apredict(conversation=self.conversation, **llm_kwargs)
+            else:
+                await self.llm.apredict(conversation=self.conversation)
+
             return self.conversation.get_last().content
 
         except Exception as e:
