@@ -1,4 +1,5 @@
 from logging import getLogger
+from os import getenv
 from typing import Any, Callable, Literal, Optional
 
 from fastapi import Request
@@ -9,6 +10,7 @@ from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 logger = getLogger(__name__)
 
@@ -38,15 +40,18 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize the LlamaGuardMiddleware with a GroqModel instance."""
+        """Initialize the LlamaGuardMiddleware with a GroqModel instance.
+        Reads GROQ_API_KEY from environment if api_key not provided."""
         super().__init__(**kwargs)
+
+        key = api_key or getenv("GROQ_API_KEY")
 
         if llm is not None:
             self.llm = llm
-        elif api_key is not None:
+        elif key:
             self.llm = GroqModel(
-                api_key=api_key,
-                allowed_models=["llama-guard-3-8b"],  # Fix: correct model name
+                api_key=key,
+                allowed_models=["llama-guard-3-8b"],
                 name="llama-guard-3-8b",
             )
         else:
@@ -65,14 +70,20 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
 
         text = content.decode("utf-8", errors="ignore")
         conversation = Conversation()
+        conversation.add_message(
+            SystemMessage(
+                content="You are a safety inspector. Determine if the content is safe or unsafe."
+            )
+        )
         conversation.add_message(HumanMessage(content=text))
+
         try:
             self.llm.predict(conversation=conversation)
             result = conversation.get_last().content
             if not isinstance(result, str):
                 result = str(result)
             return "unsafe" not in result.lower()
-        except Exception as exc:  # pragma: no cover - network errors
+        except Exception as exc:
             self.logger.error(f"GroqModel error: {exc}")
             return False
 
@@ -80,6 +91,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
         """Dispatches the request to the next middleware in the chain after inspection."""
+        # Inspect incoming request body for unsafe content
         if request.method in ["POST", "PUT", "PATCH"]:
             request_body = await request.body()
             if not self._is_safe(request_body):
@@ -92,13 +104,11 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
             # Proceed with the request chain
             response = await call_next(request)
 
-            # Inspect response content
+            # Inspect JSONResponse content
             if isinstance(response, JSONResponse):
-                # Fix: Handle response body properly
                 if hasattr(response, "body") and response.body:
                     response_body = response.body
                 else:
-                    # For JSONResponse, we need to serialize the content to get bytes
                     import json
 
                     response_body = (
@@ -113,26 +123,29 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
                         content={"error": "Unsafe content detected in response"},
                     )
 
-            # For streaming responses, inspect content as it becomes available
+            # Inspect StreamingResponse content
             if isinstance(response, StreamingResponse):
                 try:
                     chunks = []
                     async for chunk in response.body_iterator:
                         chunks.append(chunk)
-                        if not self._is_safe(chunk):
-                            return JSONResponse(
-                                status_code=400,
-                                content={"error": "Unsafe streaming content detected"},
-                            )
+                    full_body = b"".join(chunks)
+                    logger.info(f" {full_body}")
 
-                    # Recreate the response with the collected chunks
+                    if full_body and not self._is_safe(full_body):
+                        logger.info("Unsafe content detected in streaming response")
+                        return JSONResponse(
+                            status_code=400,
+                            content={"error": "Unsafe streaming content detected"},
+                        )
+
                     async def new_body_iterator():
                         for chunk in chunks:
                             yield chunk
 
                     response.body_iterator = new_body_iterator()
                 except Exception:
-                    # If we can't iterate the stream, skip inspection
+                    # If streaming fails, skip inspection
                     pass
 
             return response

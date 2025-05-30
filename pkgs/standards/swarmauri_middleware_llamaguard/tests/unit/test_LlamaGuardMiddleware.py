@@ -1,28 +1,38 @@
 import logging
+import os
 
 import pytest
+from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import LlamaGuardMiddleware
 
+from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def middleware():
-    """Fixture providing a LlamaGuardMiddleware with a fake GroqModel."""
+    api_key = os.getenv("GROQ_API_KEY")
+    if api_key:
+        logger.info("Using GroqModel with API key for LlamaGuardMiddleware")
+        llm = GroqModel(api_key=api_key, name="llama-guard-3-8b")
+    else:
+        logger.info("No GROQ_API_KEY found, using a fake GroqModel for testing")
 
-    class FakeGroqModel:
-        def predict(self, conversation, *args, **kwargs):
-            text = conversation.get_last().content
-            label = "unsafe" if "malicious" in text else "safe"
-            conversation.add_message(AgentMessage(content=label))
+        class FakeGroqModel:
+            def predict(self, conversation, *args, **kwargs):
+                text = conversation.get_last().content
+                label = "unsafe" if "malicious" in text else "safe"
+                conversation.add_message(AgentMessage(content=label))
 
-    # Create instance with explicit llm parameter
-    fake_llm = FakeGroqModel()
-    return LlamaGuardMiddleware(llm=fake_llm)
+        llm = FakeGroqModel()
+
+    return LlamaGuardMiddleware(llm=llm)
 
 
 @pytest.mark.unit
