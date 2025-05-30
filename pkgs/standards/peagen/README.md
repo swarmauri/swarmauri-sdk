@@ -228,6 +228,22 @@ For reference implementations, see the sample specs under
 [`tests/examples/doe_specs`](tests/examples/doe_specs) which demonstrate basic, composite,
 and evaluator-pool variations.
 
+### Command vs Feature Support Matrix
+
+| Command | Needs LLM | Storage Adapter | Publisher (`--notify`) | Resumable |
+|---------|:---------:|:---------------:|:----------------------:|:---------:|
+| `peagen process` | ✓ | ✓ | ✓ | ✓ |
+| `peagen sort` | ✗ | ✗ | ✗ | ✗ |
+| `peagen templates` | ✗ | ✗ | ✗ | ✗ |
+| `peagen program fetch` | ✗ | ✓ | ✗ | ✗ |
+| `peagen program patch` | ✗ | ✗ | ✗ | ✗ |
+| `peagen program inspect` | ✗ | ✗ | ✗ | ✗ |
+| `peagen program diff` | ✗ | ✓ | ✗ | ✗ |
+| `peagen program validate` | ✗ | ✗ | ✗ | ✗ |
+| `peagen validate` | ✗ | ✗ | ✗ | ✗ |
+| `peagen doe gen` | ✗ | ✗ | ✗ | ✗ |
+| `peagen eval` | ✗ | ✗ | ✗ | ✗ |
+
 
 ---
 
@@ -360,6 +376,19 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 ### Storage Adapters & Publishers
 
 Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+
+| Adapter | URI Prefix Example | Config Keys | Remote Capable |
+|---------|-------------------|-------------|:--------------:|
+| `FileStorageAdapter` | `dir://./output` | `output_dir` | ✗ |
+| `MinioStorageAdapter` | `s3://host:9000` | `endpoint`, `bucket` | ✓ |
+| `GithubStorageAdapter` | `gh://org/repo` | `token`, `org`, `repo` | ✓ |
+| `GithubReleaseStorageAdapter` | `ghr://org/repo` | `token`, `org`, `repo`, `tag` | ✓ |
+
+| Publisher | URI Example / Key | Typical Channel Setting |
+|-----------|------------------|-------------------------|
+| `RedisPublisher` | `redis://localhost:6379/0` | `channel` |
+| `RabbitMQPublisher` | `amqp://host:port` | `routing_key` |
+| `WebhookPublisher` | `https://example.com/peagen` | `--notify` URL |
 
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
