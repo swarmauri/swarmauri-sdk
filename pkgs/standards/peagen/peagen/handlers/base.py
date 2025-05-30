@@ -13,7 +13,10 @@ class TaskHandler(ComponentBase, Protocol):
     KIND: TaskKind
     PROVIDES: Set[str]
 
-    def dispatch(self, task: Task) -> bool:
+    def dispatch(self, task: Task) -> bool
+        ...
+
+    def handle(self, task: Task) -> Result:
         """Return True if this handler should handle ``task``."""
 
     def handle(self, task: Task) -> Result:
