@@ -95,7 +95,7 @@ my_pkg/
 
 1. Include `entry-points` in `pyproject.toml`.
 2. Tag release `vX.Y.Z`.
-3. Upload with `twine upload dist/*`.
+3. Upload with `uv publish`.
 4. Announce in **#peagen-plugins** Slack channel.
 
 ---
