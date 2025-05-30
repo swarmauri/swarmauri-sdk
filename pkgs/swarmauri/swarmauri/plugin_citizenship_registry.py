@@ -187,6 +187,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.prompts.PromptGenerator": "swarmauri_standard.prompts.PromptGenerator",
         "swarmauri.prompts.PromptMatrix": "swarmauri_standard.prompts.PromptMatrix",
         "swarmauri.prompt_templates.PromptTemplate": "swarmauri_standard.prompt_templates.PromptTemplate",
+        "swarmauri.prompt_template_samplers.PromptTemplateSampler": "swarmauri_standard.prompt_template_samplers.PromptTemplateSampler",
         "swarmauri.schema_converters.AnthropicSchemaConverter": "swarmauri_standard.schema_converters.AnthropicSchemaConverter",
         "swarmauri.schema_converters.CohereSchemaConverter": "swarmauri_standard.schema_converters.CohereSchemaConverter",
         "swarmauri.schema_converters.GeminiSchemaConverter": "swarmauri_standard.schema_converters.GeminiSchemaConverter",
