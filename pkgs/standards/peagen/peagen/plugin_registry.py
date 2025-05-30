@@ -17,6 +17,7 @@ GROUPS = {
     "result_backends": ("peagen.result_backends", object),
     "evaluators": ("peagen.evaluators", object),
     "evaluator_pools": ("peagen.evaluator_pools", object),
+    "workers": ("peagen.workers", object),
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
