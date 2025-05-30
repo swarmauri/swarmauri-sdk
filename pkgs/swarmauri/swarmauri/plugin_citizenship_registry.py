@@ -276,6 +276,18 @@ class PluginCitizenshipRegistry:
         "swarmauri.loggers.Logger": "swarmauri_standard.loggers.Logger",
         "swarmauri.logger_handlers.StreamHandler": "swarmauri_standard.logger_handlers.StreamHandler",
         "swarmauri.logger_formatters.LoggerFormatter": "swarmauri_standard.logger_formatters.LoggerFormatter",
+        "swarmauri.middlewares.AuthMiddleware": "swarmauri_middleware_auth.AuthMiddleware",
+        "swarmauri.middlewares.BulkheadMiddleware": "swarmauri_middleware_bulkhead.BulkheadMiddleware",
+        "swarmauri.middlewares.CacheControlMiddleware": "swarmauri_middleware_cachecontrol.CacheControlMiddleware",
+        "swarmauri.middlewares.CustomCORSMiddleware": "swarmauri_middleware_cors.CustomCORSMiddleware",
+        "swarmauri.middlewares.ExceptionHandlingMiddleware": "swarmauri_middleware_exceptionhadling.ExceptionHandlingMiddleware",
+        "swarmauri.middlewares.GzipCompressionMiddleware": "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware",
+        "swarmauri.middlewares.LlamaGuardMiddleware": "swarmauri_middleware_llamaguard.LlamaGuardMiddleware",
+        "swarmauri.middlewares.LoggingMiddleware": "swarmauri_middleware_logging.LoggingMiddleware",
+        "swarmauri.middlewares.RateLimitMiddleware": "swarmauri_middleware_ratelimit.RateLimitMiddleware",
+        "swarmauri.middlewares.SecurityHeadersMiddleware": "swarmauri_middleware_sercurityheaders.SecurityHeadersMiddleware",
+        "swarmauri.middlewares.SessionMiddleware": "swarmauri_middleware_session.SessionMiddleware",
+        "swarmauri.middlewares.TimerMiddleware": "swarmauri_middleware_time.TimerMiddleware",
         "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
