@@ -26,6 +26,9 @@ class RedisStreamQueue(TaskQueue):
         self._msg_map: Dict[str, str] = {}
         self._ensure_streams()
 
+    def pending_count(self) -> int:
+        return self._r.xlen(self.STREAM_TASKS)
+
     def _ensure_streams(self) -> None:
         try:
             self._r.xgroup_create(self.STREAM_TASKS, self.group, id="0-0", mkstream=True)
