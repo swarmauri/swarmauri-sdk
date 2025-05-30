@@ -16,6 +16,7 @@ GROUPS = {
     "task_queues": ("peagen.task_queues", object),
     "indexers": ("peagen.indexers", object),
     "result_backends": ("peagen.result_backends", object),
+    "task_handlers": ("peagen.task_handlers", object),
     "evaluators": ("peagen.evaluators", object),
     "evaluator_pools": ("peagen.evaluator_pools", object),
 }

@@ -120,5 +120,12 @@ fs       = "peagen.result_backends.fs_backend:FSBackend"
 postgres = "peagen.result_backends.postgres_backend:PostgresBackend"
 s3       = "peagen.result_backends.s3_backend:S3Backend"
 
+[project.entry-points."peagen.task_handlers"]
+render      = "peagen.handlers.render_handler:RenderHandler"
+patch       = "peagen.handlers.mutate_patch:PatchMutatorHandler"
+exec_docker = "peagen.handlers.exec_docker:ExecuteDockerHandler"
+exec_gpu    = "peagen.handlers.exec_gpu:ExecuteGPUHandler"
+evaluate    = "peagen.handlers.eval_handler:EvaluateHandler"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
