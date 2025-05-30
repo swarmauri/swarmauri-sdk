@@ -1,0 +1,26 @@
+name: integration-redis-nightly
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  integration_redis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install uv pytest toml
+
+      - name: Run integration redis tests
+        run: |
+          cd pkgs
+          uv run --package peagen --directory standards/peagen pytest -m integration_redis
