@@ -238,6 +238,7 @@ markers = [
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",
     "xfail: Expected failures",
+    "chaos: Chaos and failure-injection tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
 ]
