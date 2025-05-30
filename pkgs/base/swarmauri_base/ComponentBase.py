@@ -104,4 +104,5 @@ class ResourceTypes(Enum):
     SIMILARITY = "Similarity"
     PSEUDOMETRIC = "PseudoMetric"
     SEMINORM = "SemiNorm"
+    ENSEMBLE = "Ensemble"
     MIDDLEWARE = "Middleware"
