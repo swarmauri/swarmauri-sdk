@@ -4,7 +4,7 @@ The following targets translate product KPIs (Section 2) into **numerical
 accept-criteria** and outline the automated benchmarks that will gate every
 PR and release.
 
-| ID       | Metric                                                                                | Target v0.9                   | Target v1.0 | Measurement Harness       |
+| ID       | Metric                                                                                | Target 0.2.0                   | Target 0.3.0 | Measurement Harness       |
 | -------- | ------------------------------------------------------------------------------------- | ----------------------------- | ----------- | ------------------------- |
 | **PT-1** | *Time-to-best* on **bad\_sort** baseline (single host, 32 CPU workers, Redis Streams) | ≤ 5 min                       | ≤ 2 min     | `benchmarks/bad_sort.py`  |
 | **PT-2** | *Worker cold-start latency* (container start → task claimed)                          | ≤ 3 s on CPU, ≤ 10 s on GPU   | ≤ 2 s / 8 s | `bench_hatchery.py`       |

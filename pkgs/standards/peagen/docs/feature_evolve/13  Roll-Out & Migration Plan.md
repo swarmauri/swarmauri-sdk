@@ -7,7 +7,7 @@ teams a clear fallback at each checkpoint.
 | Mile- | Target Date     | Deployable Increment                                                                                | Success Criteria                                                      | Rollback                                                    |
 | ----- | --------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
 | **A** | -1 week         | **StubQueue & InlineWorker** merged; `peagen mutate --sync` replaces `peagen process`.              | Unit-tests pass in CI; legacy commands aliased.                       | Revert to tag `pre-fabric` (no schema change).              |
-| **B** | 0 week (0.9 GA) | **Redis Streams adapter, one-shot workers, warm-spawner** behind feature flag `PEAGEN_QUEUE=redis`. | CPU-farm benchmark PT-1 ≤ 5 min; nightlies green.                     | Env var `PEAGEN_QUEUE=stub` restores inline path.           |
+| **B** | 0 week (0.2.0 GA) | **Redis Streams adapter, one-shot workers, warm-spawner** behind feature flag `PEAGEN_QUEUE=redis`. | CPU-farm benchmark PT-1 ≤ 5 min; nightlies green.                     | Env var `PEAGEN_QUEUE=stub` restores inline path.           |
 | **C** | +2 weeks        | **Capability tags, GPU Execute handler**; Kubernetes HPA manifests.                                 | GPU benchmark PT-2 latency ≤ 10 s; autoscaler charts stable 24 h.     | Scale HPA to 0, switch back to CPU pool.                    |
 | **D** | +4 weeks        | **Selectors & Mutators pluggable**, EvoDB checkpoint resume.                                        | Third-party demo wheel runs with no code mods; replay test PT-7 ±1 %. | Flip `[evolve] selector="legacy"` in TOML.                  |
 | **E** | +6 weeks        | **Cost & metric dashboards, DLQ tooling, idle-to-zero**; deprecate old commands.                    | Idle cost PT-5 < 0.5 h; Ops runbook signed off.                       | Disable warm-spawner - deploy always-on pool for emergency. |
@@ -18,7 +18,7 @@ teams a clear fallback at each checkpoint.
 
 | Existing Artifact                         | Status after GA                                   | Migration Aid                                          |
 | ----------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ |
-| `peagen process`                          | **Alias** to `peagen render`. Warns once per run. | Remove in v1.1.                                        |
+| `peagen process`                          | **Alias** to `peagen render`. Warns once per run. | Remove in 0.4.0.                                        |
 | CI scripts that call `--workers` flag     | Still valid (maps to StubQueue concurrency).      | Docs update.                                           |
 | Old `.peagen.toml` with no `[task_queue]` | Auto-defaults to `provider="stub"`.               | `peagen config upgrade` inserts minimal queue section. |
 
@@ -29,7 +29,7 @@ teams a clear fallback at each checkpoint.
 1. **Dev Branch**
 
    ```bash
-   pip install --upgrade peagen==0.9.0
+   pip install --upgrade peagen==0.2.0
    peagen mutate --sync   # smoke test with StubQueue
    ```
 2. **Add queue section**
