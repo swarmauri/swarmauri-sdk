@@ -6,10 +6,9 @@ based on configuration or CLI options.
 
 import importlib
 import os
-from pathlib import Path
 from typing import Optional, Union
 
-import tomllib
+from .config_loader import TomlConfigLoader
 from pydantic import SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 
@@ -92,27 +91,19 @@ class GenericLLM:
         # 1️⃣ CLI-provided api_key stays
         # 2️⃣ Try .peagen.toml for provider-specific API key
         if api_key is None:
-            toml_path = None
-            for folder in [Path.cwd(), *Path.cwd().parents]:
-                candidate = folder / ".peagen.toml"
-                if candidate.is_file():
-                    toml_path = candidate
-                    break
-            if toml_path:
-                try:
-                    with toml_path.open("rb") as f:
-                        toml_data = tomllib.load(f)
-                    llm_section = toml_data.get("llm", {})
-                    provider_section = llm_section.get(provider, {}) or llm_section.get(
-                        provider.lower(), {}
-                    )
-                    toml_api_key = provider_section.get(
-                        "API_KEY"
-                    ) or provider_section.get("api_key")
-                    if toml_api_key:
-                        api_key = toml_api_key
-                except Exception:
-                    pass
+            try:
+                cfg = TomlConfigLoader().config
+                llm_section = cfg.get("llm", {})
+                provider_section = llm_section.get(provider, {}) or llm_section.get(
+                    provider.lower(), {}
+                )
+                toml_api_key = provider_section.get("API_KEY") or provider_section.get(
+                    "api_key"
+                )
+                if toml_api_key:
+                    api_key = toml_api_key
+            except Exception:
+                pass
 
         # 3️⃣ Fallback to environment variable
         if api_key is None:
