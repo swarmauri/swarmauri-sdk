@@ -414,3 +414,10 @@ pea.process_all_projects()
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
 * **Adding New Commands:** Define a new subcommand in `cli.py`, wire it into the parser, instantiate `Peagen`, and call core methods.
 * **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/templates/`, update docs/README, and open a PR tagging maintainers.
+
+### Task & Result Dataclasses
+
+Peagen exposes the canonical queue messages via `peagen.task_model.Task` and
+`peagen.task_model.Result` (TaskResult). Draft-07 JSON Schemas for these
+structures live in `peagen/schemas/` for validation and integration with other
+tools.
