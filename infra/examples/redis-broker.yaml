@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: redis-broker}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: redis-broker}}
+  template:
+    metadata: {labels: {app: redis-broker}}
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        args: ["--save","", "--appendonly","no"]
+        resources: {limits: {memory: "512Mi"}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: redis}
+spec:
+  selector: {app: redis-broker}
+  ports: [{port: 6379, targetPort: 6379}]

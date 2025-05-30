@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: peagen-spawner-cpu}
+spec:
+  replicas: 1
+  selector: {matchLabels:{app: peagen-spawner, caps: cpu}}
+  template:
+    metadata: {labels:{app: peagen-spawner, caps: cpu}}
+    spec:
+      containers:
+      - name: spawner
+        image: ghcr.io/swarmauri/peagen-spawner:latest
+        env:
+          - {name: QUEUE_URL, value: "redis://redis:6379/0"}
+          - {name: WORKER_CAPS, value: "cpu,docker,llm"}
+          - {name: WARM_POOL,  value: "2"}

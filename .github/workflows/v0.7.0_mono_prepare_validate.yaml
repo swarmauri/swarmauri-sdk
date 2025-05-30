@@ -108,6 +108,13 @@ jobs:
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
+      - name: Security scan
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y trivy
+          pip install bandit
+          make trivy-scan
+          bandit -r src || bandit -r pkgs
+
       - name: Create patch for changes
         if: always()
         run: |

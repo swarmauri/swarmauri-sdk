@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata: {name: peagen-worker-gpu}
+spec:
+  selector: {matchLabels:{app: peagen-worker, caps: gpu}}
+  template:
+    metadata: {labels:{app: peagen-worker, caps: gpu}}
+    spec:
+      tolerations: [{key: "nvidia.com/gpu", operator: "Exists"}]
+      containers:
+      - name: worker
+        image: ghcr.io/swarmauri/peagen-worker:latest
+        env:
+          - {name: QUEUE_URL, value: "redis://redis:6379/0"}
+          - {name: WORKER_CAPS, value: "gpu,cuda11,docker"}
+          - {name: WORKER_PLUGINS, value: "ExecuteGPUHandler"}
+        resources: {limits: {"nvidia.com/gpu": 1}}

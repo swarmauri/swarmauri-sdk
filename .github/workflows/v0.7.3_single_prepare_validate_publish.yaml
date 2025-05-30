@@ -77,6 +77,13 @@ jobs:
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
+      - name: Security scan
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y trivy
+          pip install bandit
+          make trivy-scan
+          bandit -r src || bandit -r pkgs
+
       # Patches
       - name: Create patch for changes
         if: always()
@@ -188,6 +195,9 @@ jobs:
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
+      - name: Generate SBOM
+        run: make sbom
+
       # Publish
       - name: Publish
         run: |
@@ -245,7 +255,7 @@ jobs:
           cd pkgs/${{ github.event.inputs.member }}
           mkdir -p release_artifacts
           ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
+          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz ../../sbom.xml
           echo "Artifacts zipped to: $ZIP_PATH"
 
       - name: Create GitHub Release
