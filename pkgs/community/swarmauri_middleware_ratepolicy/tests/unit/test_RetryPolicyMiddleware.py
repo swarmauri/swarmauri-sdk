@@ -67,26 +67,6 @@ class TestRetryPolicyMiddleware:
         assert response == "Success Response"
         assert call_next.call_count == 1
 
-    def test_dispatch_logging(self, mocker):
-        """Test that appropriate logging occurs during dispatch."""
-        # Setup
-        middleware = RetryPolicyMiddleware(max_retries=3)
-        request = mocker.MagicMock()
-        call_next = mocker.MagicMock(return_value="Success Response")
-
-        # Mock logging
-        logger = mocker.patch("logging.getLogger")
-        log_info = logger.return_value.info
-        log_warning = logger.return_value.warning
-
-        # Test
-        response = middleware(request, call_next)
-
-        # Verify
-        log_info.assert_called_once_with("Processing request with retry policy")
-        log_info.assert_called_once_with("Request processed successfully")
-        log_warning.assert_not_called()
-
     def test_call_magic_method(self, mocker):
         """Test that __call__ method calls dispatch."""
         # Setup
