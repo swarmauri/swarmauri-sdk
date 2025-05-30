@@ -169,7 +169,7 @@ Selector adapts ε each generation; EvoDB diversity keeps multiple buckets impro
 
 **Deliverable Summary**
 
-| Component                           | File              | Done in v0.9 |
+| Component                           | File              | Done in 0.2.0 |
 | ----------------------------------- | ----------------- | ------------ |
 | `ParentSelector` ABC + epsilon impl | `selectors/`      | ✅            |
 | `Mutator` ABC + `PatchMutator`      | `mutators/`       | ✅            |
