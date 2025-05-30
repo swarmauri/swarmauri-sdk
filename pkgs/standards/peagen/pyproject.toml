@@ -110,5 +110,14 @@ redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
 rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
+[project.entry-points."peagen.task_queues"]
+stub  = "peagen.queue.stub_queue:StubQueue"
+redis = "peagen.queue.redis_stream_queue:RedisStreamQueue"
+
+[project.entry-points."peagen.result_backends"]
+fs       = "peagen.result_backends.fs_backend:FSBackend"
+postgres = "peagen.result_backends.postgres_backend:PostgresBackend"
+s3       = "peagen.result_backends.s3_backend:S3Backend"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
