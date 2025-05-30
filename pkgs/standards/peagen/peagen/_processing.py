@@ -34,7 +34,7 @@ def _save_file(
     manifest_writer: Optional[ManifestWriter] = None,
 ) -> None:
     """
-    1.  Write to <workspace_root>/<filepath>.
+    1.  Write to <workspace_root>/<filepath> (this is a temporary workspace directory).
     2.  Optionally upload to the configured storage_adapter.
     3.  Stream a manifest line via ManifestWriter (if provided).
     """
@@ -265,30 +265,49 @@ def _process_project_files(
         for i, rec in enumerate(file_records)
     }
 
-    def _worker(fname: str) -> None:
-        rec = entry_map[fname]
-        idx = idx_map[fname]
-        new_dir = rec.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
-        j2 = J2PromptTemplate()
-        if logger:
-            logger.debug(f"Worker processing {fname}")
-        try:
-            if j2pt.templates_dir:
-                j2.templates_dir = (
-                    [str(new_dir)] + [workspace_root] + list(j2pt.templates_dir[1:])
-                )
-                if str(new_dir) != j2pt.templates_dir[0]:
-                    j2.templates_dir = [str(new_dir)] + j2pt.templates_dir[1:]
-                if logger:
-                    logger.info(f"Updated templates_dir to {new_dir}")
-        except Exception as e:
-            print(str(e))
+    def _worker(fname: str):
+        """
+        Render + save a single file, honouring the correct template-search order.
 
+        Search order:
+        1. this file’s template-set directory
+        2. workspace_root      (freshly generated files live here)
+        3. inherited dirs from the project-level j2pt.templates_dir
+           – already includes CWD and any exposed source-package dirs
+        """
         try:
+            rec  = entry_map[fname]
+            idx  = idx_map[fname]
+
+            # ── 1. template-set dir for *this* file ────────────────────────
+            tpl_dir: Path = Path(rec.get("TEMPLATE_SET")                    # set in Peagen.process_single_project
+                                  or global_attrs.get("TEMPLATE_SET"))
+            tpl_dir = tpl_dir.expanduser().resolve()
+
+            # ── 2. workspace dir ───────────────────────────────────────────
+            ws_dir  = Path(workspace_root).expanduser().resolve()
+
+            # ── 3. inherited dirs (CWD, exposed pkgs, etc.) ───────────────
+            inherited: list[str] = [
+                os.path.normpath(d) for d in j2pt.templates_dir
+            ]
+
+            # Build ordered, de-duplicated search path
+            search_dirs: list[str] = []
+            for d in [tpl_dir, ws_dir, *inherited]:
+                n = os.path.normpath(str(d))
+                if n not in search_dirs:
+                    search_dirs.append(n)
+
+            # Fresh Jinja env for this render
+            j2 = J2PromptTemplate()
+            j2.templates_dir = search_dirs
+
+            # ── render / save ------------------------------------------------
             _process_file(
                 rec,
                 global_attrs,
-                template_dir,
+                str(tpl_dir),          # template_dir for COPY / GENERATE
                 agent_env,
                 j2,
                 logger=logger,
@@ -296,11 +315,14 @@ def _process_project_files(
                 idx_len=idx_len,
                 storage_adapter=storage_adapter,
                 org=org,
-                workspace_root=workspace_root,
-                manifest_writer=manifest_writer,  # NEW
+                workspace_root=ws_dir,
+                manifest_writer=manifest_writer,
             )
-        except Exception as e:
-            logger.warning(f"{e}")
+
+        except Exception as exc:
+            if logger:
+                logger.warning(f"_worker failed for '{fname}': {exc}")
+            raise
 
     executor = ThreadPoolExecutor(max_workers=workers)
     futures = {}
