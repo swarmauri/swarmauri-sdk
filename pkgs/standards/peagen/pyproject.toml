@@ -110,5 +110,8 @@ redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
 rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
+[project.entry-points."peagen.workers"]
+local = "peagen.workers.local_worker:LocalWorker"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
