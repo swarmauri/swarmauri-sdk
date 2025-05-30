@@ -37,6 +37,10 @@ jobs:
           members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
           if not isinstance(members, list):
               raise Exception("The 'members' entry is not a list.")
+
+          # Remove duplicates while preserving order
+          members = list(dict.fromkeys(members))
+
           # Build a matrix with one entry per member
           matrix = {"include": [{"member": member} for member in members]}
           print(f"Matrix: {json.dumps(matrix)}")
