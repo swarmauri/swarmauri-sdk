@@ -25,7 +25,6 @@ from swarmauri_standard.loggers.Logger import Logger
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from peagen.plugin_registry import registry
-import inspect
 
 # ── Typer root ───────────────────────────────────────────────────────────────
 init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
@@ -130,7 +129,7 @@ def init_template_set(
     self.logger.info(name)
     tmpl_mod = registry["template_sets"].get("init-template-set")
     if tmpl_mod is None:
-        typer.echo(f"❌  Template-set 'init-template-set' not found.")
+        typer.echo("❌  Template-set 'init-template-set' not found.")
         raise typer.Exit(code=1)
 
     src_root = Path(list(tmpl_mod.__path__)[0])

@@ -105,3 +105,4 @@ class ResourceTypes(Enum):
     PSEUDOMETRIC = "PseudoMetric"
     SEMINORM = "SemiNorm"
     ENSEMBLE = "Ensemble"
+    MIDDLEWARE = "Middleware"
