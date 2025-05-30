@@ -7,8 +7,7 @@ import pathlib
 import secrets
 import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 import typer
@@ -25,7 +24,6 @@ from peagen.cli_common import (
 )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
-from peagen.slug_utils import slugify
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."
@@ -182,8 +180,8 @@ def process_cmd(
     run_id = f"{timestamp}-{secrets.token_hex(4)}"
     typer.echo(f"run-id: {run_id}")
 
-    project_slug = slugify(project_name or "multi")
-    proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
+    # project_slug = slugify(project_name or "multi")
+    # proj_prefix = f"projects/{project_slug}/runs/{run_id}/"  # ← canonical
 
     # ── BUILD STORAGE ADAPTER (prefix-aware) ────────────────────────────
     art = urlparse(artifacts or "")
@@ -223,7 +221,7 @@ def process_cmd(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     with temp_workspace() as ws:
-        fetched_dirs = materialise_packages(source_pkgs, ws, storage_adapter)
+        materialise_packages(source_pkgs, ws, storage_adapter)
         pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=None,
@@ -236,7 +234,7 @@ def process_cmd(
             workspace_root=ws,
         )
         pea.logger.debug("")
-        pea.logger.debug(f"pea.j2pt.templates_dir:")
+        pea.logger.debug("pea.j2pt.templates_dir:")
         for d in pea.j2pt.templates_dir:
             pea.logger.debug(f"* {d}")
 
@@ -252,12 +250,12 @@ def process_cmd(
         pea.logger.debug(f"pea.workspace_root: {pea.workspace_root}")
 
         pea.logger.debug("")
-        pea.logger.debug(f"pea.source_packages:")
+        pea.logger.debug("pea.source_packages:")
         for d in pea.source_packages:
             pea.logger.debug(f"* {d}")
 
         pea.logger.debug("")
-        pea.logger.debug(f"pea.namespace_dirs: ")
+        pea.logger.debug("pea.namespace_dirs: ")
         for d in pea.namespace_dirs:
             pea.logger.debug(f"* {d}")
 

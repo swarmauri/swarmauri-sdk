@@ -56,8 +56,22 @@ members = [
     "standards/swarmauri_publisher_webhook",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_middleware_auth",
+    "standards/swarmauri_middleware_bulkhead",
+    "standards/swarmauri_middleware_cachecontrol",
+    "standards/swarmauri_middleware_cors",
+    "standards/swarmauri_middleware_exceptionhandling",
+    "standards/swarmauri_middleware_gzipcompression",
+    "standards/swarmauri_middleware_llamaguard",
+    "standards/swarmauri_middleware_logging",
+    "standards/swarmauri_middleware_ratelimit",
+    "standards/swarmauri_middleware_securityheaders",
+    "standards/swarmauri_middleware_session",
+    "standards/swarmauri_middleware_time",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/peagen",
+    "community/swarmauri_middleware_circuitbreaker",
+    "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -152,6 +166,20 @@ swarmauri_evaluator_subprocess = { workspace = true }
 swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
+swarmauri_middleware_auth = { workspace = true }
+swarmauri_middleware_bulkhead = { workspace = true }
+swarmauri_middleware_cachecontrol = { workspace = true }
+swarmauri_middleware_cors = { workspace = true }
+swarmauri_middleware_exceptionhadling = { workspace = true }
+swarmauri_middleware_gzipcompression = { workspace = true }
+swarmauri_middleware_llamaguard = { workspace = true }
+swarmauri_middleware_logging = { workspace = true }
+swarmauri_middleware_ratelimit = { workspace = true }
+swarmauri_middleware_sercurityheaders = { workspace = true }
+swarmauri_middleware_session = { workspace = true }
+swarmauri_middleware_time = { workspace = true }
+swarmauri_middleware_circuitbreaker = { workspace = true }
+swarmauri_middleware_ratepolicy = { workspace = true }
 peagen = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
