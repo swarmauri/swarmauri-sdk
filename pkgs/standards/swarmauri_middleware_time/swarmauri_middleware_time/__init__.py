@@ -1,8 +1,6 @@
 from .TimerMiddleware import TimerMiddleware
 
-__all__ = [
-    "TimerMiddleware"
-]
+__all__ = ["TimerMiddleware"]
 
 try:
     # For Python 3.8 and newer

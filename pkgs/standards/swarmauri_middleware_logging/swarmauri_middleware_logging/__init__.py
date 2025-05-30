@@ -1,8 +1,6 @@
 from .LoggingMiddleware import LoggingMiddleware
 
-__all__ = [
-    "LoggingMiddleware"
-]
+__all__ = ["LoggingMiddleware"]
 
 try:
     # For Python 3.8 and newer

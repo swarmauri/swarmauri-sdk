@@ -1,8 +1,6 @@
 from .BulkheadMiddleware import BulkheadMiddleware
 
-__all__ = [
-    "BulkheadMiddleware"
-]
+__all__ = ["BulkheadMiddleware"]
 
 try:
     # For Python 3.8 and newer

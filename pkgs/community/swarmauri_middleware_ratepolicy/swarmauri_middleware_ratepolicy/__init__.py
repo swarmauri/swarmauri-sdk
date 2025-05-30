@@ -1,8 +1,6 @@
 from .RetryPolicyMiddleware import RetryPolicyMiddleware
 
-__all__ = [
-    "RetryPolicyMiddleware"
-]
+__all__ = ["RetryPolicyMiddleware"]
 
 try:
     # For Python 3.8 and newer

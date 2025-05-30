@@ -40,7 +40,9 @@ class RabbitMQPublisher(PublishBase):
         )
 
         if self.uri and individual_opts_present:
-            print(f"RabbitMQPublisher: uri={self.uri}, host={self.host}, port={self.port}, username={self.username}, password={self.password}")
+            print(
+                f"RabbitMQPublisher: uri={self.uri}, host={self.host}, port={self.port}, username={self.username}, password={self.password}"
+            )
             raise ValueError(
                 "Cannot specify both `uri` and individual host/port/username/password."
             )

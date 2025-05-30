@@ -42,9 +42,7 @@ class TestBulkheadMiddleware:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_dispatch(
-        self, bulkhead_middleware: BulkheadMiddleware
-    ) -> None:
+    async def test_dispatch(self, bulkhead_middleware: BulkheadMiddleware) -> None:
         """Test the dispatch method of BulkheadMiddleware."""
         # Setup mock request and call_next
         mock_request = Request(scope={"type": "http"})

@@ -1,8 +1,6 @@
 from .ExceptionHandlingMiddleware import ExceptionHandlingMiddleware
 
-__all__ = [
-    "ExceptionHandlingMiddleware"
-]
+__all__ = ["ExceptionHandlingMiddleware"]
 
 try:
     # For Python 3.8 and newer

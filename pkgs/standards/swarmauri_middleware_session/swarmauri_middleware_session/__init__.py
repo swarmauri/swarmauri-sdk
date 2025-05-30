@@ -1,8 +1,6 @@
 from .SessionMiddleware import SessionMiddleware
 
-__all__ = [
-    "SessionMiddleware"
-]
+__all__ = ["SessionMiddleware"]
 
 try:
     # For Python 3.8 and newer

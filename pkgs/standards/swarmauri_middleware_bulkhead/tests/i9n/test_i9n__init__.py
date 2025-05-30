@@ -19,9 +19,7 @@ def test_init_module() -> None:
     logger.debug("Starting test_init_module")
 
     # Dynamically import the __init__ module
-    module = importlib.import_module(
-        "swarmauri_middleware_bulkhead"
-    )
+    module = importlib.import_module("swarmauri_middleware_bulkhead")
 
     # Verify that the __version__ string is correctly set
     assert hasattr(module, "__version__")

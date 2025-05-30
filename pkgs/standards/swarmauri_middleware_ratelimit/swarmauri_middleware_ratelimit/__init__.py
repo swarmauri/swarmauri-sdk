@@ -1,8 +1,6 @@
 from .RateLimitMiddleware import RateLimitMiddleware
 
-__all__ = [
-    "RateLimitMiddleware"
-]
+__all__ = ["RateLimitMiddleware"]
 
 try:
     # For Python 3.8 and newer

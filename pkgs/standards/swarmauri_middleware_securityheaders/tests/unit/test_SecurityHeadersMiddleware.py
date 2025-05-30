@@ -98,4 +98,6 @@ class TestSecurityHeadersMiddleware:
         # Fix: Check that headers were actually set in the dict
         for header, expected_value in expected_headers.items():
             assert header in mock_response.headers, f"Header {header} was not set"
-            assert mock_response.headers[header] == expected_value, f"Header {header} has wrong value"
+            assert mock_response.headers[header] == expected_value, (
+                f"Header {header} has wrong value"
+            )

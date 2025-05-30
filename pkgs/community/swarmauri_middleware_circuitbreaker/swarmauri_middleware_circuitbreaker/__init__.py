@@ -1,8 +1,6 @@
 from .CircuitBreakerMiddleware import CircuitBreakerMiddleware
 
-__all__ = [
-    "CircuitBreakerMiddleware"
-]
+__all__ = ["CircuitBreakerMiddleware"]
 
 try:
     # For Python 3.8 and newer

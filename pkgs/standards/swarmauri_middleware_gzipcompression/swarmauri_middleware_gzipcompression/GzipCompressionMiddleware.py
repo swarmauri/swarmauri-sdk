@@ -9,6 +9,7 @@ from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 _logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(MiddlewareBase, "GzipCompressionMiddleware")
 class GzipCompressionMiddleware(MiddlewareBase):
     """Middleware that provides gzip compression for outgoing responses."""
@@ -51,7 +52,7 @@ class GzipCompressionMiddleware(MiddlewareBase):
         with gzip.GzipFile(fileobj=buffer, mode="w") as gzip_file:
             if response_body:
                 if isinstance(response_body, str):
-                    gzip_file.write(response_body.encode('utf-8'))
+                    gzip_file.write(response_body.encode("utf-8"))
                 else:
                     gzip_file.write(response_body)
 

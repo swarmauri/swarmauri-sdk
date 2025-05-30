@@ -18,7 +18,7 @@ class TestGzipCompressionMiddleware:
     async def test_dispatch_with_gzip_support(self):
         """Test dispatch with gzip support."""
         middleware = GzipCompressionMiddleware()
-        
+
         # Create a request with gzip support
         scope = {
             "type": "http",
@@ -29,8 +29,7 @@ class TestGzipCompressionMiddleware:
 
         # Mock response
         original_response = Response(
-            content="Test content",
-            media_type="application/json"
+            content="Test content", media_type="application/json"
         )
 
         async def mock_call_next(req):
@@ -38,7 +37,7 @@ class TestGzipCompressionMiddleware:
 
         # Fix: Add await here
         response = await middleware.dispatch(request, mock_call_next)
-        
+
         # Verify gzip compression was applied
         assert response.headers.get("Content-Encoding") == "gzip"
         assert "Content-Length" in response.headers
@@ -47,7 +46,7 @@ class TestGzipCompressionMiddleware:
     async def test_dispatch_without_gzip_support(self):
         """Test dispatch without gzip support."""
         middleware = GzipCompressionMiddleware()
-        
+
         # Create a request without gzip support
         scope = {
             "type": "http",
@@ -58,8 +57,7 @@ class TestGzipCompressionMiddleware:
 
         # Mock response
         original_response = Response(
-            content="Test content",
-            media_type="application/json"
+            content="Test content", media_type="application/json"
         )
 
         async def mock_call_next(req):
@@ -67,15 +65,18 @@ class TestGzipCompressionMiddleware:
 
         # Fix: Add await here
         response = await middleware.dispatch(request, mock_call_next)
-        
+
         # Verify no compression was applied
-        assert "Content-Encoding" not in response.headers or response.headers.get("Content-Encoding") != "gzip"
+        assert (
+            "Content-Encoding" not in response.headers
+            or response.headers.get("Content-Encoding") != "gzip"
+        )
 
     @pytest.mark.asyncio  # Add this decorator
     async def test_dispatch_already_compressed(self):
         """Test dispatch with already compressed response."""
         middleware = GzipCompressionMiddleware()
-        
+
         # Create a request with gzip support
         scope = {
             "type": "http",
@@ -88,7 +89,7 @@ class TestGzipCompressionMiddleware:
         original_response = Response(
             content="Test content",
             headers={"Content-Encoding": "gzip"},
-            media_type="application/json"
+            media_type="application/json",
         )
 
         async def mock_call_next(req):
@@ -96,7 +97,7 @@ class TestGzipCompressionMiddleware:
 
         # Fix: Add await here
         response = await middleware.dispatch(request, mock_call_next)
-        
+
         # Verify response is unchanged
         assert response == original_response
 
@@ -104,7 +105,7 @@ class TestGzipCompressionMiddleware:
     async def test_dispatch_non_compressible_content(self):
         """Test dispatch with non-compressible content type."""
         middleware = GzipCompressionMiddleware()
-        
+
         # Create a request with gzip support
         scope = {
             "type": "http",
@@ -114,25 +115,25 @@ class TestGzipCompressionMiddleware:
         request = Request(scope=scope, receive=lambda: b"")
 
         # Mock response with non-compressible content
-        original_response = Response(
-            content=b"binary data",
-            media_type="image/png"
-        )
+        original_response = Response(content=b"binary data", media_type="image/png")
 
         async def mock_call_next(req):
             return original_response
 
         # Fix: Add await here
         response = await middleware.dispatch(request, mock_call_next)
-        
+
         # Verify no compression was applied
-        assert "Content-Encoding" not in response.headers or response.headers.get("Content-Encoding") != "gzip"
+        assert (
+            "Content-Encoding" not in response.headers
+            or response.headers.get("Content-Encoding") != "gzip"
+        )
 
     @pytest.mark.asyncio  # Add this decorator
     async def test_dispatch_non_response_object(self):
         """Test dispatch with non-Response return value."""
         middleware = GzipCompressionMiddleware()
-        
+
         scope = {
             "type": "http",
             "method": "GET",
@@ -148,6 +149,6 @@ class TestGzipCompressionMiddleware:
 
         # Fix: Add await here
         response = await middleware.dispatch(request, mock_call_next)
-        
+
         # Verify original object is returned unchanged
         assert response == non_response

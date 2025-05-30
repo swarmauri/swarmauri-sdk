@@ -1,8 +1,6 @@
 from .GzipCompressionMiddleware import GzipCompressionMiddleware
 
-__all__ = [
-    "GzipCompressionMiddleware"
-]
+__all__ = ["GzipCompressionMiddleware"]
 
 try:
     # For Python 3.8 and newer

@@ -32,4 +32,3 @@ def test_gzipcompressionmiddleware_import() -> None:
     assert isinstance(GzipCompressionMiddleware, type), (
         "GzipCompressionMiddleware is not a class"
     )
-

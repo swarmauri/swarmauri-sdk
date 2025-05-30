@@ -1,8 +1,6 @@
 from .CacheControlMiddleware import CacheControlMiddleware
 
-__all__ = [
-    "CacheControlMiddleware"
-]
+__all__ = ["CacheControlMiddleware"]
 
 try:
     # For Python 3.8 and newer

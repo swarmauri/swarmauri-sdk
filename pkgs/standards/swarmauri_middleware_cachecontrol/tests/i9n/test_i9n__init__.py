@@ -57,5 +57,7 @@ def test_init_module_cachecontrol_middleware(clean_environment):
     logger.info("Testing CacheControlMiddleware exposure.")
     module = importlib.import_module("swarmauri_middleware_cachecontrol")
     assert hasattr(module, "CacheControlMiddleware"), "CacheControlMiddleware not found"
-    assert isinstance(module.CacheControlMiddleware, type), "CacheControlMiddleware is not a class"
+    assert isinstance(module.CacheControlMiddleware, type), (
+        "CacheControlMiddleware is not a class"
+    )
     logger.info("CacheControlMiddleware is properly exposed.")

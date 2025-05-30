@@ -1,8 +1,6 @@
 from .LlamaGuardMiddleware import LlamaGuardMiddleware
 
-__all__ = [
-    "LlamaGuardMiddleware"
-]
+__all__ = ["LlamaGuardMiddleware"]
 
 try:
     # For Python 3.8 and newer
