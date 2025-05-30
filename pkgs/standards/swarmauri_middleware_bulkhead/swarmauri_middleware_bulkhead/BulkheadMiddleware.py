@@ -1,7 +1,6 @@
 from asyncio import Semaphore
 from logging import getLogger
 from typing import Any, Callable
-from venv import logger
 
 from fastapi import Request
 from pydantic import PrivateAttr

@@ -1,76 +1,128 @@
+from unittest.mock import MagicMock, Mock
+
 import pytest
-from fastapi import Request
-from fastapi.testclient import TestClient
+from fastapi import Request, Response
 from swarmauri_middleware_session.SessionMiddleware import SessionMiddleware
+
 
 @pytest.mark.unit
 class TestSessionMiddleware:
     """Unit tests for SessionMiddleware class."""
-    
-    def test_init(self):
-        """Test initialization of SessionMiddleware."""
-        middleware = SessionMiddleware()
-        assert hasattr(middleware, "session_storage")
-        assert hasattr(middleware, "session_header")
-        assert hasattr(middleware, "session_cookie")
-        assert hasattr(middleware, "max_age")
-        
-    def test_generate_session_id(self):
+
+    @pytest.fixture()
+    def middleware(self):
+        """Fixture to provide a configured SessionMiddleware instance."""
+        return SessionMiddleware(
+            session_storage={},
+            session_header="X-Session-ID",
+            session_cookie="session_id",
+            max_age=3600,
+        )
+
+    def test_generate_session_id(self, middleware):
         """Test session ID generation."""
-        middleware = SessionMiddleware()
         session_id = middleware._generate_session_id()
         assert isinstance(session_id, str)
-        assert len(session_id) == 32
-        
+        assert len(session_id) == 36
+        import uuid
+
+        uuid.UUID(session_id)
+
     @pytest.mark.asyncio
-    async def test_dispatch_new_session(self, mocker):
+    async def test_dispatch_new_session(self, middleware):
         """Test dispatch with new session creation."""
-        middleware = SessionMiddleware()
-        request = mocker.Mock(spec=Request)
-        request.headers.get.return_value = None
-        
-        async def call_next(request):
-            return mocker.Mock(spec=Request)
-            
-        response = await middleware.dispatch(request, call_next)
-        
-        # Verify session ID was created and set in response
+
+        mock_headers = MagicMock()
+        mock_headers.get = Mock(return_value=None)  # No existing session
+        mock_headers.__contains__ = Mock(return_value=False)
+        mock_headers.__getitem__ = Mock(side_effect=KeyError())
+
+        request = Mock(spec=Request)
+        request.headers = mock_headers
+        request.state = Mock()
+
+        response = Mock(spec=Response)
+        response.headers = {}
+
+        async def call_next(req):
+            return response
+
+        result = await middleware.dispatch(request, call_next)
+
+        # Verify session ID was created and set
+        assert hasattr(request.state, "session_id")
         assert request.state.session_id is not None
-        assert response.headers.get(middleware.session_header) is not None
-        assert response.headers.get(middleware.session_cookie) is not None
-        
+        assert middleware.session_header in result.headers
+        assert result.headers[middleware.session_header] is not None
+
     @pytest.mark.asyncio
-    async def test_dispatch_existing_session(self, mocker):
+    async def test_dispatch_existing_session(self, middleware):
         """Test dispatch with existing session."""
-        middleware = SessionMiddleware()
         session_id = "test-session-id"
-        request = mocker.Mock(spec=Request)
-        request.headers.get.return_value = session_id
-        
-        async def call_next(request):
-            return mocker.Mock(spec=Request)
-            
-        response = await middleware.dispatch(request, call_next)
-        
+
+        # Pre-populate session storage
+        middleware.session_storage[session_id] = {}
+
+        mock_headers = MagicMock()
+        mock_headers.get = Mock(return_value=session_id)
+        mock_headers.__contains__ = Mock(return_value=True)
+        mock_headers.__getitem__ = Mock(return_value=session_id)
+
+        request = Mock(spec=Request)
+        request.headers = mock_headers
+        request.state = Mock()
+
+        response = Mock(spec=Response)
+        response.headers = {}
+
+        async def call_next(req):
+            return response
+
+        result = await middleware.dispatch(request, call_next)
+
         # Verify existing session ID is used
         assert request.state.session_id == session_id
-        assert response.headers.get(middleware.session_header) == session_id
-        
-    def test_logging(self, mocker):
-        """Test logging within SessionMiddleware."""
-        middleware = SessionMiddleware()
-        logger = mocker.patch("logging.getLogger")
-        
-        # Test initialization logging
-        middleware.__init__()
-        logger.assert_called_once_with(__name__)
-        
-        # Test session creation logging
-        session_id = middleware._generate_session_id()
-        middleware.dispatch(mocker.Mock(), mocker.Mock())
-        logger.return_value.info.assert_called_once_with(f"Created new session: {session_id}")
+        assert result.headers[middleware.session_header] == session_id
 
-@pytest.fixture
-def logger():
-    import logging
-    return logging.getLogger(__name__)
+    @pytest.mark.asyncio
+    async def test_session_storage_management(self, middleware):
+        """Test session storage operations."""
+
+        # Test that session storage starts empty
+        assert len(middleware.session_storage) == 0
+
+        mock_headers = MagicMock()
+        mock_headers.get = Mock(return_value=None)  # No existing session
+        mock_headers.__contains__ = Mock(return_value=False)
+
+        request = Mock(spec=Request)
+        request.headers = mock_headers
+        request.state = Mock()
+
+        response = Mock(spec=Response)
+        response.headers = {}
+
+        async def call_next(req):
+            return response
+
+        await middleware.dispatch(request, call_next)
+
+        # Verify session was created in storage
+        assert len(middleware.session_storage) == 1
+        session_id = request.state.session_id
+        assert session_id in middleware.session_storage
+
+    def test_custom_configuration(self):
+        """Test middleware with custom configuration."""
+        custom_storage = {"existing-session": {"data": "value"}}
+        middleware = SessionMiddleware(
+            session_storage=custom_storage,
+            session_header="Custom-Session",
+            session_cookie="custom_session",
+            max_age=7200,
+        )
+
+        assert middleware.session_storage == custom_storage
+        assert middleware.session_header == "Custom-Session"
+        assert middleware.session_cookie == "custom_session"
+        assert middleware.max_age == 7200

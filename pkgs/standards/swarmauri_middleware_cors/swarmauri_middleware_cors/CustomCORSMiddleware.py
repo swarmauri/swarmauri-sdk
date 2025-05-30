@@ -1,11 +1,14 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple
-from fastapi import Request, Response
-from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
 import logging
+from typing import Any, Callable, List
+
+from fastapi import Request, Response
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 logger = logging.getLogger(__name__)
 
 
+@ComponentBase.register_type(MiddlewareBase, "CacheControlMiddleware")
 class CustomCORSMiddleware(MiddlewareBase):
     """Custom CORS Middleware implementation.
 
@@ -21,7 +24,14 @@ class CustomCORSMiddleware(MiddlewareBase):
         expose_headers: List[str] = []     # Headers to expose in responses
         max_age: int = 600               # Maximum age for CORS configuration
     """
-    
+
+    allow_origins: List[str] = ["*"]
+    allow_credentials: bool = True
+    allow_methods: List[str] = ["*"]
+    allow_headers: List[str] = ["*"]
+    expose_headers: List[str] = []
+    max_age: int = 600
+
     def __init__(
         self,
         allow_origins: List[str] = ["*"],
@@ -29,7 +39,8 @@ class CustomCORSMiddleware(MiddlewareBase):
         allow_methods: List[str] = ["*"],
         allow_headers: List[str] = ["*"],
         expose_headers: List[str] = [],
-        max_age: int = 600
+        max_age: int = 600,
+        **kwargs: Any,
     ):
         """Initialize the CustomCORSMiddleware with CORS configuration.
 
@@ -41,6 +52,7 @@ class CustomCORSMiddleware(MiddlewareBase):
             expose_headers: List of headers to expose in responses. Defaults to [].
             max_age: Maximum age for CORS configuration. Defaults to 600.
         """
+        super().__init__(**kwargs)
         self.allow_origins = allow_origins
         self.allow_credentials = allow_credentials
         self.allow_methods = allow_methods
@@ -67,11 +79,11 @@ class CustomCORSMiddleware(MiddlewareBase):
         try:
             if await self.is_options_request(request):
                 return await self.handle_options_request(request)
-            
+
             origin = request.headers.get("Origin", "")
             if not await self.check_cors_origin(origin):
                 return self.get_cors_error_response("Invalid origin")
-            
+
             response = await call_next(request)
             response = await self.add_cors_headers(response)
             return response
@@ -137,8 +149,12 @@ class CustomCORSMiddleware(MiddlewareBase):
         response.headers["Access-Control-Allow-Origin"] = ",".join(self.allow_origins)
         response.headers["Access-Control-Allow-Methods"] = ",".join(self.allow_methods)
         response.headers["Access-Control-Allow-Headers"] = ",".join(self.allow_headers)
-        response.headers["Access-Control-Expose-Headers"] = ",".join(self.expose_headers)
-        response.headers["Access-Control-Allow-Credentials"] = str(self.allow_credentials).lower()
+        response.headers["Access-Control-Expose-Headers"] = ",".join(
+            self.expose_headers
+        )
+        response.headers["Access-Control-Allow-Credentials"] = str(
+            self.allow_credentials
+        ).lower()
         response.headers["Access-Control-Max-Age"] = str(self.max_age)
         return response
 

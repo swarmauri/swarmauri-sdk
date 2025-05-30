@@ -13,10 +13,11 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha"
+    "Development Status :: 3 - Alpha",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "fastapi",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -45,6 +46,7 @@ log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
@@ -57,6 +59,7 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
+    "pytest-mock>=3.12.0",
     "python-dotenv",
     "requests>=2.32.3",
     "flake8>=7.0",

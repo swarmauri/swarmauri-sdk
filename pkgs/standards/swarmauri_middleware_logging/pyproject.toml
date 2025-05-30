@@ -1,10 +1,10 @@
 [project]
 name = "swarmauri_middleware_logging"
 version = "0.6.2.dev1"
-description = "Middleware for logging requests and responses in Swarmauri applications"
+description = "Logging middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
-authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_ratelimit/"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -13,41 +13,40 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-    "Framework :: FastAPI"
+    "Development Status :: 3 - Alpha"
 ]
-keywords = [
-    "logging",
-    "middleware",
-    "fastapi",
-    "request",
-    "response",
-    "swarmauri",
-    "monitoring",
-    "debugging"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+    "fastapi"
 ]
-
-[dependencies]
-swarmauri_core = {workspace = true}
-swarmauri_base = {workspace = true}
-swarmauri_standard = {workspace = true}
-fastapi = {extras = ["all"]}
-typing-extensions = ">=4.2.0"
-python-dotenv = ">=0.19.0"
-requests = ">=2.32.3"
-uvicorn = {version = ">=0.15.0", optional = true}
-python-multipart = ">=0.0.5"
 
 [tool.uv.sources]
-swarmauri_core = {workspace = true}
-swarmauri_base = {workspace = true}
-swarmauri_standard = {workspace = true}
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
 
-[project.entry-points.'swarmauri.middlewares']
-LoggingMiddleware = "swarmauri_middleware_logging:LoggingMiddleware"
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -59,8 +58,13 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
-    "pytest-benchmark>=4.0.0"
+    "pytest-benchmark>=4.0.0",
 ]
+
+[project.entry-points.'swarmauri.middlewares']
+LoggingMiddleware = "swarmauri_middleware_logging:LoggingMiddleware"
