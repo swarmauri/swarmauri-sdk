@@ -28,7 +28,7 @@ class TaskHandler(ComponentBase, Protocol):
 
 ---
 
-### 7.2  Built-in Handlers (v 0.9)
+### 7.2  Built-in Handlers (0.2.0)
 
 | Handler (module)                            | KIND       | PROVIDES                    | Key Responsibilities                                                                                             |
 | ------------------------------------------- | ---------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
