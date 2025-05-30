@@ -18,6 +18,10 @@ class StubQueue(TaskQueue):
         self._done: Dict[str, Result] = {}
         self._lock = threading.Lock()
 
+    def pending_count(self) -> int:
+        with self._lock:
+            return len(self._todo) + len(self._inflight)
+
     # ------------------------------------------------------------------ producer
     def enqueue(self, task: Task) -> None:
         with self._lock:
