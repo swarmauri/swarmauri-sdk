@@ -14,6 +14,10 @@ from peagen.commands import (
     validate_app,
     extras_app,
     eval_app,
+    render_app,
+    mutate_app,
+    evolve_app,
+    queue_app,
     worker_app,
 )
 
@@ -24,6 +28,10 @@ app = typer.Typer(help="CLI tool for processing project files using Peagen.")
 app.add_typer(init_app, name="init")
 app.add_typer(doe_app, name="doe")
 app.add_typer(process_app)
+app.add_typer(render_app, name="render")
+app.add_typer(mutate_app, name="mutate")
+app.add_typer(evolve_app, name="evolve")
+app.add_typer(queue_app, name="queue")
 app.add_typer(program_app, name="program")
 app.add_typer(sort_app)
 app.add_typer(template_sets_app, name="template-set")
