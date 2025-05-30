@@ -9,6 +9,11 @@ from peagen.commands.program import program_app
 from peagen.commands.validate import validate_app
 from peagen.commands.extras import extras_app
 from peagen.commands.eval import eval_app
+from peagen.commands.render import render_app
+from peagen.commands.mutate import mutate_app
+from peagen.commands.evolve import evolve_app
+from peagen.commands.queue import queue_app
+from peagen.commands.worker import worker_app
 
 __all__ = [
     "init_app",
@@ -20,4 +25,9 @@ __all__ = [
     "validate_app",
     "extras_app",
     "eval_app",
+    "render_app",
+    "mutate_app",
+    "evolve_app",
+    "queue_app",
+    "worker_app",
 ]

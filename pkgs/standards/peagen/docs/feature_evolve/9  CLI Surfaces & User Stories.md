@@ -28,6 +28,7 @@ peagen
 | `--project`      | Path to project YAML / TOML   | inferred  |
 | `--out`          | Destination directory         | `./build` |
 | `--queue/--sync` | Enqueue vs blocking local run | `--queue` |
+Values fall back to `.peagen.toml` when omitted.
 
 **Example**
 
@@ -49,6 +50,7 @@ peagen render --project site.yaml --out build/ --sync
 | `--backend`      | Force specific LLM backend | auto                |
 | `--queue/--sync` | Run via queue or inline    | `--queue`           |
 
+Defaults read from `.peagen.toml` when flags omitted.
 **Example**
 
 ```bash
@@ -82,6 +84,7 @@ peagen mutate --target-file bad_sort.py --entry-fn sort --sync
 | `--checkpoint`  | Path to save/load EvoDB     | `.peagen/evo_checkpoint.msgpack` |
 | `--resume`      | Continue from checkpoint    | False                            |
 | `--dashboard`   | Launch live TUI             | False                            |
+Defaults read from `.peagen.toml` `[evolve.*]` sections.
 
 **Example (team CI):**
 
