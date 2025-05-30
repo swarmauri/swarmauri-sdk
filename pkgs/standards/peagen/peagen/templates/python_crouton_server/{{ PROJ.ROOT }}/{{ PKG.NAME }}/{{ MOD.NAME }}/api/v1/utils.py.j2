@@ -83,8 +83,6 @@ def create_routers(
         elif router_type == RouterType.MEMORY:
             router = MemoryCRUDRouter(**common_params)  # type: ignore
         routers.append(router)
-
-        routers.append(router)
     return routers
 
 
