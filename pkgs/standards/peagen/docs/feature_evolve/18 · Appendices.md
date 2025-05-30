@@ -207,6 +207,21 @@ spec:
 | Kill worker mid-task – orphan reclaimed                                  | Chaos test harness                                   |
 | LLM prompt injection test (upload `__import__('os').system('rm -rf /')`) | Should be blocked by seccomp & no volume permissions |
 
+
+---
+
+### **Appendix F — Parent Selector Strategies**
+
+The Adaptive-ε method is the default selection strategy. Additional selectors can be implemented by registering an entry point under `peagen.parent_selectors`:
+
+- **Upper Confidence Bound (UCB)** – balances mean fitness and sampling frequency.
+- **Tournament selection** – draws multiple candidates and chooses the best.
+- **Rank-based or fitness-proportional** – weights selection odds by program fitness.
+- **Thompson sampling** – applies Bayesian bandit exploration.
+- **Age-based or lexicase** – promotes diverse or younger parents.
+
+Each implementation must fulfill the `ParentSelector` interface and retrieve programs via the EvoDB repository API.
+
 ---
 
 These appendices complete the technical brief with **ready-to-use artifacts**:
