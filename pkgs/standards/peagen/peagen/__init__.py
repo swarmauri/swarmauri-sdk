@@ -2,6 +2,9 @@
 
 import sys as _sys
 from .plugin_registry import discover_and_register_plugins
+from .config_loader import TomlConfigLoader
+
+__all__ = ["TomlConfigLoader"]
 
 
 def _determine_plugin_mode() -> str:

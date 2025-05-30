@@ -7,8 +7,7 @@ variables to determine the correct API key for an LLM provider.
 import os
 import typer
 from dotenv import load_dotenv
-from pathlib import Path
-import tomllib
+from .config_loader import TomlConfigLoader
 
 
 def _resolve_api_key(
@@ -29,19 +28,9 @@ def _resolve_api_key(
 
     # 2️⃣  Try loading from .peagen.toml
     try:
-        # walk up from cwd to find .peagen.toml
-        toml_file = next(
-            (
-                d / ".peagen.toml"
-                for d in [Path.cwd(), *Path.cwd().parents]
-                if (d / ".peagen.toml").is_file()
-            ),
-            None,
-        )
-        if toml_file:
-            with toml_file.open("rb") as f:
-                data = tomllib.load(f)
-            llm_conf = data.get("llm", {})
+        cfg = TomlConfigLoader().config
+        if cfg:
+            llm_conf = cfg.get("llm", {})
             prov_conf = llm_conf.get(provider, {}) or llm_conf.get(provider.lower(), {})
             toml_key = prov_conf.get("api_key") or prov_conf.get("API_KEY")
             if toml_key:
