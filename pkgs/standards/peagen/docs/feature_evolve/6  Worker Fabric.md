@@ -63,6 +63,7 @@ def main():
 *If handler needs a deeper sandbox it can spawn `docker run --rm` or
 Firecracker inside the pod.*
 All stdout/stderr pipe into the worker logger (ComponentBase).
+*Handlers may perform internal fan-outs.* For example `LLMEnsemble` can issue the same prompt to multiple LLMs in parallel. Such sub-requests are collapsed before returning a single `Result`, keeping the task atomic from the queue’s viewpoint.
 
 ---
 
@@ -112,6 +113,10 @@ Workers publish a heartbeat hash `worker:<uuid>` every 15 s so Ops can detect st
 | `queue_pending_total{kind}`  | queue exporter | Tasks waiting by kind.                 |
 
 Alerts: `queue_pending_total{kind="execute"} > 50 for 10m` triggers “scale GPU pool”.
+Workers log through the shared `ComponentBase` infrastructure. Under the hood
+this relies on `HandlerBase` and `FormatterBase` so deployments can route logs to
+Loki/Elastic or adjust message layouts. The optional `SimpleTracer` utility can
+wrap handler execution to record trace IDs alongside metrics and logs.
 
 ---
 

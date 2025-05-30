@@ -73,6 +73,8 @@ child = LLMEnsemble.generate(prompt,
                              max_tokens=4096)
 ```
 
+`generate()` typically fans the prompt out to every configured back-end concurrently. Each back-end returns a candidate completion and the ensemble chooses one to emit. This fan-out happens entirely inside the worker and does not create additional Tasks.
+
 *Back-end adapters* (entry-point `peagen.llm_backends`)
 
 | Name     | Provider   | Provides                     |
@@ -99,6 +101,15 @@ groq   = 1
 | --------------------------- | --------------- | ------------------------------------------------------------------ |
 | `templates/agent_mutate.j2` | `peagen mutate` | `{{parent_src}}`, `{{entry_sig}}`                                  |
 | `templates/agent_evolve.j2` | `PatchMutator`  | `{{parent_src}}`, `{{inspirations}}`, `{{entry_sig}}`, `{{rules}}` |
+
+`ParentSelector` pulls both the parent program and a set of inspiration
+snippets from **EvoDB** (see [8.5](#85-evodb-map-elites-archive)). These
+selections are injected into the template via
+`PromptSampler.build_mutate_prompt()` so that every generated patch reflects
+the archive's current state. Once the new candidate is evaluated, the
+`EvaluateHandler` records its metrics and the orchestrator calls
+`EvoDB.insert()` to update the archive. This closed loop ensures that prompt
+generation always uses up-to-date champions while EvoDB continuously evolves.
 
 Guidelines inside template:
 

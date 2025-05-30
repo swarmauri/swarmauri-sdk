@@ -24,5 +24,6 @@
 * Target runtime: CPython 3.10+; Docker ≥ 24; Redis ≥ 7.0 (Streams).
 * GPU tasks require hosts with CUDA 11+ and `nvidia-container-runtime`.
 * Max simultaneous workers per workspace: 256 (soft queue limit).
+* Budget guardrails compute worst-case token spend using input counts and `max_tokens` (multiplied by file count for `render`) so users know the potential cost before a run begins.
 
 These objectives align engineering deliverables with tangible end-user value and provide clear acceptance criteria for the initial release and subsequent milestones.

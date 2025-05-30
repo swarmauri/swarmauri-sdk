@@ -45,6 +45,10 @@ latency without the autoscaler’s cold-start penalty.
 Dashboards: **Main** (queue, workers, best-speed graph) and **Cost** (tokens, GPU seconds).
 
 Logs: Structured JSON via ComponentBase logger → Loki/Elastic.
+The logger builds on the repo's `HandlerBase` and `FormatterBase` classes so
+operators can swap handlers or tweak log formats through configuration.
+Optional distributed traces can be recorded with the `SimpleTracer` utility and
+its context manager—trace IDs are then included in structured log records.
 
 ---
 
@@ -60,6 +64,28 @@ Logs: Structured JSON via ComponentBase logger → Loki/Elastic.
 | SBOM                     | Worker images built with Trivy scan in CI.                                      | Compliance.                                  |
 
 **Pen-test checklist** shipped as Appendix E.
+
+
+---
+
+
+### 11.5 Budget & Rate-Limit Guardrails
+
+Peagen exposes metrics for tokens and runtimes but enforcement is left to
+infrastructure. The table below lists recommended guard rails at various
+levels.
+
+| Level | Mechanism | Example Knobs |
+| ----- | --------- | ------------- |
+| **Global** | Aggregate `llm_tokens_total` and `worker_runtime_seconds` in Prometheus. Alert when forecast cost exceeds your monthly budget. Optionally share a `TokenBucketRateLimit` via Redis to cap total requests. | `capacity=1_000_000` |
+| **Worker** | Set `WORKER_MAX_UPTIME` and `WORKER_IDLE_EXIT`. Instantiate a `TokenBucketRateLimit` per worker if providers enforce request quotas. | `capacity=60`, `refill_rate=1/60` |
+| **Task** | Pass `max_tokens` and `timeout_ms` to LLM back-ends. `SubprocessEvaluator` enforces CPU, memory, and wall-clock limits per execute task. | `max_tokens=4096`, `timeout=30s` |
+| **Workflow** | Orchestrators track cumulative tokens and wall-clock. Stop when `budget_tokens` or `run_timeout` is reached. | `budget_tokens=50_000` |
+
+These guard rails rely on metrics already produced by the workers and the
+`TokenBucketRateLimit` component. Implementers may adapt the policy boundaries
+to suit their own infrastructure.
+
 
 ---
 

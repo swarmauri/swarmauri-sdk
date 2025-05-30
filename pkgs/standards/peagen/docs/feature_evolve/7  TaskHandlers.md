@@ -89,8 +89,10 @@ Handlers **MUST** never crash the worker; raise only if restart is safer.
 | `handler_fail_total`       | counter   | `handler`, `reason`  | Number of `"error"` results |
 | `llm_tokens_total`         | counter   | `handler`, `backend` | Emitted only by mutators    |
 
-Metrics integrate with ComponentBase logger; Prometheus scrape path
-`/metrics` exposed by worker.
+Metrics integrate with the `ComponentBase` logger; Prometheus scrape path
+`/metrics` is exposed by each worker. Logging behaviour can be tuned via
+`HandlerBase` and `FormatterBase` implementations, and handlers may optionally
+annotate traces using `SimpleTracer` to correlate with metrics.
 
 ---
 

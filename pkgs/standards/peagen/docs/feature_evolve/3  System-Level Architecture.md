@@ -45,7 +45,7 @@ E. **Warm-Spawner** keeps *N* idle one-shot worker pods ahead of demand; spawns 
 | 3    | Orchestrator waits `queue.wait(task_id)` → uses workspace                           | CLI prints child src path                                                             | Evaluate worker returns fitness → Orchestrator updates EvoDB; loop ends |
 
 *Concurrency & isolation:* every handler run happens in a pod that lives for **exactly one task**; environment is pristine each time.
-
+*Internal fan-out:* Certain handlers (e.g. the `LLMEnsemble` used during `MutateTask`) may fire off parallel sub-requests to multiple LLM back-ends. This happens entirely inside one worker container and collapses back into a single `Result`, so the queue still processes a linear chain of Tasks.
 ---
 
 ### 3.3  Trust & Isolation Boundaries
