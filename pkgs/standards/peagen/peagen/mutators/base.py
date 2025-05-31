@@ -8,4 +8,4 @@ class Mutator(TaskHandlerBase):
 
     def mutate(self) -> None:
         """Optional helper used by subclasses."""
-        ...
+        raise NotImplementedError
