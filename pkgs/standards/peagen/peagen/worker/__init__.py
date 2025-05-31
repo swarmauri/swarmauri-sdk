@@ -6,7 +6,7 @@ import sys
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Iterable, Protocol, Set
+from typing import Any, Iterable, Protocol, Set, List
 
 from peagen.queue import make_queue
 from peagen.queue.model import Result, Task, TaskKind
