@@ -29,7 +29,10 @@ class FSBackend(ResultBackendBase):
     def save(self, result: Result) -> None:
         path = self._path(result)
         tmp = path.with_suffix(".tmp")
-        data = json.dumps(asdict(result))
+        if hasattr(result, "model_dump_json"):
+            data = result.model_dump_json()
+        else:
+            data = json.dumps(asdict(result))
         tmp.write_text(data, encoding="utf-8")
         os.replace(tmp, path)
 

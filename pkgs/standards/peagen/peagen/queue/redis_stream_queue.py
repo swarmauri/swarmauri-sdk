@@ -42,7 +42,10 @@ class RedisStreamQueue(TaskQueueBase):
 
     # ------------------------------------------------------------------ producer
     def enqueue(self, task: Task) -> None:
-        data = json.dumps(task.to_dict(), default=list)
+        if hasattr(task, "model_dump_json"):
+            data = task.model_dump_json()
+        else:
+            data = json.dumps(task.to_dict(), default=list)
         msg_id = self._r.xadd(self.STREAM_TASKS, {"data": data}, maxlen=10_000_000)
         self._msg_map[task.id] = msg_id
 
@@ -72,7 +75,10 @@ class RedisStreamQueue(TaskQueueBase):
 
     # ------------------------------------------------------------------ admin
     def push_result(self, result: Result) -> None:
-        data = json.dumps(result.to_dict())
+        if hasattr(result, "model_dump_json"):
+            data = result.model_dump_json()
+        else:
+            data = json.dumps(result.to_dict())
         self._r.xadd(self.STREAM_RESULTS, {"data": data}, maxlen=10_000_000)
 
     def wait_for_result(self, task_id: str, timeout: int) -> Result | None:
@@ -109,11 +115,21 @@ class RedisStreamQueue(TaskQueueBase):
                 task = Task(**data)
                 task.attempts += 1
                 if task.attempts > self.max_retry:
-                    self._r.xadd(self.STREAM_DEAD, {"data": json.dumps(task.to_dict())})
+                    dead_payload = (
+                        task.model_dump_json()
+                        if hasattr(task, "model_dump_json")
+                        else json.dumps(task.to_dict())
+                    )
+                    self._r.xadd(self.STREAM_DEAD, {"data": dead_payload})
                     self._r.xack(self.STREAM_TASKS, self.group, mid)
                     self._r.xdel(self.STREAM_TASKS, mid)
                 else:
-                    self._r.xadd(self.STREAM_TASKS, {"data": json.dumps(task.to_dict())})
+                    retry_payload = (
+                        task.model_dump_json()
+                        if hasattr(task, "model_dump_json")
+                        else json.dumps(task.to_dict())
+                    )
+                    self._r.xadd(self.STREAM_TASKS, {"data": retry_payload})
                     self._r.xack(self.STREAM_TASKS, self.group, mid)
                     self._r.xdel(self.STREAM_TASKS, mid)
                 moved += 1
