@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from jinja2 import Template
+
+from typing import Set
 
 from peagen.queue.model import Task, Result, TaskKind
 from .base import TaskHandlerBase

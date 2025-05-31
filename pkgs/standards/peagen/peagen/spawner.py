@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from typing import List, Set
+from typing import List
 
 from peagen.queue import make_queue
 
@@ -71,7 +71,7 @@ class WarmSpawner:
     def run(self) -> None:
         while True:
             pending = getattr(self.queue, "pending_count", lambda: 0)()
-            idle = self._cleanup_workers()
+            self._cleanup_workers()
             live = len(self.workers)
             if pending > max(0, live - self.cfg.warm_pool):
                 to_launch = min(pending - (live - self.cfg.warm_pool), self.cfg.max_parallel)

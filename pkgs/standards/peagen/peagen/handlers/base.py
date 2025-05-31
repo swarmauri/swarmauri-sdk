@@ -18,8 +18,8 @@ class TaskHandlerBase(ComponentBase):
     def dispatch(self, task: Task) -> bool:
         raise NotImplementedError
 
-    def handle(self, task: Task) -> Result:
-        """Return True if this handler should handle ``task``."""
+    def should_handle(self, task: Task) -> bool:
+        """Return ``True`` if this handler should process ``task``."""
         raise NotImplementedError
 
     def handle(self, task: Task) -> Result:
