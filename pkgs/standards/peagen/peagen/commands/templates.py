@@ -44,16 +44,6 @@ def _discover_template_sets() -> Dict[str, List[Path]]:
         except PermissionError:
             # Skip unreadable roots but keep going.
             continue
-    # also gather sets exposed via entry-points so wheels without a physical
-    # folder in peagen.template_sets still show up.
-    for ep in im.entry_points(group="peagen.template_sets"):
-        try:
-            pkg = ep.load()  # this is now the module object
-            for root in getattr(pkg, "__path__", []):  # pkg.__path__ is a list of dirs
-                sets.setdefault(ep.name, []).append(Path(root))
-        except Exception as e:
-            print(f"⚠️  could not load plugin {ep.name!r}: {e}")
-            continue
     return sets
 
 
