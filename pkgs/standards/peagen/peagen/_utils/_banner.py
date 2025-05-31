@@ -33,7 +33,7 @@ def _print_banner():
     tagline = f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri template-driven, dependency-aware render engine."
     repo_info = (
         Fore.YELLOW
-        + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen"
+        + "GitHub: https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/peagen"
         + Style.RESET_ALL
     )
     usage_hint = f"{Fore.YELLOW}Type '--help' to see available commands."
