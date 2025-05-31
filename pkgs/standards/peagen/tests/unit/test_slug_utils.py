@@ -1,5 +1,5 @@
 import pytest
-from peagen.slug_utils import slugify
+from peagen._utils.slug_utils import slugify
 
 
 @pytest.mark.unit
