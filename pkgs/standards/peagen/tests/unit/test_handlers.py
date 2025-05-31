@@ -10,6 +10,7 @@ from peagen.handlers import (
     ExecuteDockerHandler,
     ExecuteGPUHandler,
     EvaluateHandler,
+    can_handle,
 )
 from peagen.task_model import Task, Result, TaskKind
 from peagen.plugin_registry import registry, discover_and_register_plugins
@@ -71,3 +72,10 @@ def test_plugin_discovery_and_allowlist(monkeypatch):
     worker = InlineWorker(q, caps={"cpu"})
     names = [h.__class__.__name__ for h in worker.handlers]
     assert names == ["RenderHandler"]
+
+
+@pytest.mark.unit
+def test_can_handle_helper():
+    task = Task(TaskKind.RENDER, "t", {}, requires={"cpu"})
+    assert can_handle(task, RenderHandler, {"cpu"})
+    assert not can_handle(task, ExecuteGPUHandler, {"cpu"})

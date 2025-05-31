@@ -8,7 +8,8 @@ from swarmauri_core.ComponentBase import ComponentBase
 from peagen.queue import TaskQueue
 from peagen.queue.model import Task, Result
 from peagen.plugin_registry import registry
-from peagen.handlers import TaskHandler
+from peagen.handlers import TaskHandlerBase
+from peagen.handlers.base import can_handle, ITaskHandler
 
 
 class InlineWorker(ComponentBase):
@@ -19,7 +20,7 @@ class InlineWorker(ComponentBase):
         self.queue = queue
         self.caps = caps or _env_caps()
         self.plugins = _env_plugins()
-        self.handlers: List[TaskHandler] = []
+        self.handlers: List[TaskHandlerBase] = []
         for cls in registry.get("task_handlers", {}).values():
             if self.plugins and cls.__name__ not in self.plugins:
                 continue
@@ -27,9 +28,9 @@ class InlineWorker(ComponentBase):
             if inst.PROVIDES.issubset(self.caps):
                 self.handlers.append(inst)
 
-    def pick_handler(self, task: Task) -> TaskHandler | None:
+    def pick_handler(self, task: Task) -> ITaskHandler | None:
         for handler in self.handlers:
-            if task.requires.issubset(handler.PROVIDES) and handler.dispatch(task):
+            if can_handle(task, type(handler), self.caps) and handler.dispatch(task):
                 return handler
         return None
 
