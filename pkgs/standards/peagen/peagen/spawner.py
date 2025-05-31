@@ -53,7 +53,7 @@ class WarmSpawner:
             QUEUE_URL=self.cfg.queue_url,
             WORKER_CAPS=",".join(self.cfg.caps),
         )
-        cmd = [sys.executable, "-m", "peagen.cli", "worker", "start"]
+        cmd = [sys.executable, "-m", "peagen.cli", "worker", "start", "--no-detach"]
         p = subprocess.Popen(cmd, env=env)
         self.workers.append(p)
 
