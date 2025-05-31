@@ -27,10 +27,10 @@ from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
-from ._utils.slug_utils import slugify
+from .slug_utils import slugify
 from ._config import __logger_name__, _config, __version__
 from ._graph import _topological_sort, _transitive_dependency_sort
-from ._utils._processing import _process_project_files
+from ._processing import _process_project_files
 
 colorama_init(autoreset=True)
 

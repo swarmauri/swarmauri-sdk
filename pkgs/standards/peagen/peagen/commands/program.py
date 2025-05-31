@@ -30,7 +30,7 @@ from jsonschema import ValidationError, validate as json_validate
 from rich import print as rprint
 from rich.tree import Tree
 
-from peagen._utils._source_packages import _materialise_source_pkg
+from peagen._source_packages import _materialise_source_pkg
 from peagen.schemas import MANIFEST_V3_SCHEMA  # JSON-Schema dict
 from peagen.storage_adapters import make_adapter_for_uri
 from swarmauri_standard.loggers.Logger import Logger
