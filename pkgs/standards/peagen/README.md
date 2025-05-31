@@ -409,6 +409,26 @@ bus.publish("peagen.events", {"type": "process.started"})
 pea.process_all_projects()
 ```
 
+### Managing Detached Workers
+
+Running `peagen worker start` launches a worker in the background. Use the
+following helper commands to inspect and control these detached processes:
+
+```bash
+# list running workers
+peagen worker ps
+
+# spawn two additional workers
+peagen worker add --count 2
+
+# stop all workers or a specific PID
+peagen worker kill          # all
+peagen worker kill --pid 1234
+```
+
+These utilities rely on `psutil` and detect processes that were started with
+`peagen worker start --no-detach` under the hood.
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.

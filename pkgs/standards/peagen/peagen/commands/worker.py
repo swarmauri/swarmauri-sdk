@@ -51,3 +51,62 @@ def start_worker(
         typer.echo("Worker detached")
     else:
         _run_worker(warm_pool, config)
+
+
+def _find_workers() -> list[subprocess.Popen]:
+    """Return running worker processes started via ``peagen worker start``."""
+    import psutil
+
+    procs = []
+    for p in psutil.process_iter(["cmdline"]):
+        try:
+            cmd = p.info.get("cmdline") or []
+        except psutil.NoSuchProcess:
+            continue
+        if "peagen.cli" in cmd and "worker" in cmd and "start" in cmd:
+            procs.append(p)
+    return procs
+
+
+@worker_app.command("ps")
+def list_workers() -> None:
+    """List running detached workers."""
+    procs = _find_workers()
+    if not procs:
+        typer.echo("No workers found")
+        return
+    typer.echo("PID\tCMD")
+    for p in procs:
+        try:
+            cmd = " ".join(p.cmdline())
+        except psutil.NoSuchProcess:
+            continue
+        typer.echo(f"{p.pid}\t{cmd}")
+
+
+@worker_app.command("kill")
+def kill_workers(pid: int | None = typer.Option(None, "--pid")) -> None:
+    """Terminate running worker processes."""
+    procs = _find_workers()
+    targets = procs if pid is None else [p for p in procs if p.pid == pid]
+    if not targets:
+        typer.echo("No matching workers")
+        return
+    for p in targets:
+        try:
+            p.terminate()
+            typer.echo(f"Killed worker {p.pid}")
+        except psutil.NoSuchProcess:
+            typer.echo(f"Worker {p.pid} already exited")
+
+
+@worker_app.command("add")
+def add_workers(
+    count: int = typer.Option(1, "--count", help="Number of workers to start"),
+    warm_pool: int = typer.Option(0, "--warm-pool", help="Maintain N idle workers"),
+    config: str = typer.Option("spawner.toml", "--config", help="Spawner config file"),
+) -> None:
+    """Spawn additional detached workers."""
+    for _ in range(count):
+        start_worker(warm_pool=warm_pool, config=config, detach=True)
+    typer.echo(f"Started {count} worker(s)")
