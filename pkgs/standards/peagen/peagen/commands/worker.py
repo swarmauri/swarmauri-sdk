@@ -70,19 +70,39 @@ def _find_workers() -> list[subprocess.Popen]:
 
 
 @worker_app.command("ps")
-def list_workers() -> None:
+def list_workers(
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show environment information"
+    )
+) -> None:
     """List running detached workers."""
     procs = _find_workers()
     if not procs:
         typer.echo("No workers found")
         return
-    typer.echo("PID\tCMD")
+
+    if verbose:
+        typer.echo("PID\tQUEUE_URL\tWORKER_CAPS\tWARM_POOL\tCMD")
+    else:
+        typer.echo("PID\tCMD")
+
     for p in procs:
         try:
             cmd = " ".join(p.cmdline())
         except psutil.NoSuchProcess:
             continue
-        typer.echo(f"{p.pid}\t{cmd}")
+
+        if verbose:
+            try:
+                env = psutil.Process(p.pid).environ()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                env = {}
+            queue_url = env.get("QUEUE_URL", "")
+            caps = env.get("WORKER_CAPS", "")
+            warm_pool = env.get("WARM_POOL", "")
+            typer.echo(f"{p.pid}\t{queue_url}\t{caps}\t{warm_pool}\t{cmd}")
+        else:
+            typer.echo(f"{p.pid}\t{cmd}")
 
 
 @worker_app.command("kill")
