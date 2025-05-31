@@ -4,7 +4,7 @@ import json
 import os
 import time
 import uuid
-from typing import Dict
+from typing import Dict, ClassVar
 
 import redis
 
@@ -13,9 +13,9 @@ from .model import Task, Result
 
 
 class RedisStreamQueue(TaskQueueBase):
-    STREAM_TASKS = "peagen.tasks"
-    STREAM_RESULTS = "peagen.results"
-    STREAM_DEAD = "peagen.dead"
+    STREAM_TASKS: ClassVar[str] = "peagen.tasks"
+    STREAM_RESULTS: ClassVar[str] = "peagen.results"
+    STREAM_DEAD: ClassVar[str] = "peagen.dead"
 
     def __init__(self, url: str, *, group: str = "peagen", idle_ms: int = 60000, max_retry: int = 3) -> None:
         self._r = redis.Redis.from_url(url, decode_responses=True)
