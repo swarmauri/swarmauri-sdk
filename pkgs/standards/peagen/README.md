@@ -416,7 +416,9 @@ following helper commands to inspect and control these detached processes:
 
 ```bash
 # list running workers
-peagen worker ps
+peagen worker ps                 # basic info
+peagen worker ps --verbose       # include env vars
+peagen worker ps --json          # machine-readable metadata
 
 # spawn two additional workers
 peagen worker add --count 2

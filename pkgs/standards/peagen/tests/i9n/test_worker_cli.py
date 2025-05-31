@@ -1,4 +1,5 @@
 from typer.testing import CliRunner
+import json
 
 from peagen.commands.worker import worker_app
 
@@ -66,3 +67,28 @@ def test_list_workers_verbose(monkeypatch):
     assert lines[0] == "PID\tQUEUE_URL\tWORKER_CAPS\tWARM_POOL\tCMD"
     assert "2\tq1\tcpu\t0\tpython -m peagen.cli worker start" in lines[1]
     assert "3\tq2\tgpu\t2\tpython -m peagen.cli worker start" in lines[2]
+
+
+def test_worker_ps_json(monkeypatch):
+    procs = [
+        DummyProc(
+            4,
+            ["python", "-m", "peagen.cli", "worker", "start"],
+            {
+                "QUEUE_URL": "q1",
+                "WORKER_CAPS": "cpu,docker",
+                "WORKER_PLUGINS": "MutateHandler",
+                "WORKER_CONCURRENCY": "1",
+            },
+        )
+    ]
+    _patch_process(monkeypatch, procs)
+
+    runner = CliRunner()
+    result = runner.invoke(worker_app, ["ps", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data[0]["pid"] == 4
+    assert data[0]["queue_url"] == "q1"
+    assert data[0]["caps"] == ["cpu", "docker"]
+    assert data[0]["plugins"] == ["MutateHandler"]
