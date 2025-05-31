@@ -197,12 +197,12 @@ peagen sort <PROJECTS_YAML> \
 
 ![image](https://github.com/user-attachments/assets/216369fb-b9e9-4ab9-84ca-5f13f7dfbc88)
 
-### `peagen templates`
+### `peagen template-sets`
 
 List available template sets and their directories:
 
 ```bash
-peagen templates
+peagen template-sets
 ```
 
 ![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
@@ -413,7 +413,7 @@ pea.process_all_projects()
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
 * **Adding New Commands:** Define a new subcommand in `cli.py`, wire it into the parser, instantiate `Peagen`, and call core methods.
-* **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/templates/`, update docs/README, and open a PR tagging maintainers.
+* **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/template-sets/`, update docs/README, and open a PR tagging maintainers.
 
 ### Task & Result Dataclasses
 

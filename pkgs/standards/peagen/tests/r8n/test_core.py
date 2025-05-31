@@ -36,7 +36,7 @@ class TestPeagen:
 
     def test_setup_env(self):
         """Test that setup_env properly configures paths."""
-        with patch("peagen.templates.__path__", ["/installed/templates"]):
+        with patch("peagen.template_sets.__path__", ["/installed/template_sets"]):
             peagen = Peagen(
                 projects_payload_path="test_payload.yaml",
                 template_base_dir="/custom/templates",

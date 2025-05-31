@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 class PromptSampler:
     _env = Environment(
-        loader=FileSystemLoader(str(files("peagen") / "templates")),
+        loader=FileSystemLoader(str(files("peagen") / "template_sets")),
         undefined=StrictUndefined,
         autoescape=False,
     )

@@ -40,7 +40,7 @@ def generate() -> None:
     self = Logger(name="extras_generate")
     self.logger.info("Entering extras_generate command")
     base = Path(__file__).resolve().parents[1]
-    templates_root = base / "templates"
+    templates_root = base / "template_sets"
     schemas_dir = base / "schemas" / "extras"
     schemas_dir.mkdir(parents=True, exist_ok=True)
 

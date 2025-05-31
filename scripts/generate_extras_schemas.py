@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import List
 
-TEMPLATES_ROOT = Path("pkgs/standards/peagen/peagen/templates")
+TEMPLATES_ROOT = Path("pkgs/standards/peagen/peagen/template_sets")
 SCHEMAS_DIR = Path("pkgs/standards/peagen/peagen/schemas/extras")
 
 
