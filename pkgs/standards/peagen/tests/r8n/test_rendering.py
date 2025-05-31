@@ -3,7 +3,7 @@ import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
-from peagen._utils._rendering import _render_copy_template, _render_generate_template
+from peagen._rendering import _render_copy_template, _render_generate_template
 
 
 @pytest.mark.r8n
@@ -87,7 +87,7 @@ class TestRendering:
         # Assertions
         assert result == ""
 
-    @patch("peagen._utils._external.call_external_agent")  # Fixed patch target
+    @patch("peagen._external.call_external_agent")  # Fixed patch target
     def test_render_generate_template_success(
         self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
@@ -108,7 +108,7 @@ class TestRendering:
         mock_call_agent.assert_called_once_with("Rendered prompt", {}, mock_logger)
         mock_logger.error.assert_not_called()
 
-    @patch("peagen._utils._external.call_external_agent")
+    @patch("peagen._external.call_external_agent")
     def test_render_generate_template_exception(
         self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
@@ -129,7 +129,7 @@ class TestRendering:
         )
         mock_call_agent.assert_not_called()
 
-    @patch("peagen._utils._external.call_external_agent")
+    @patch("peagen._external.call_external_agent")
     def test_render_generate_template_with_agent_env(
         self, mock_call_agent, file_record, context, j2_instance, mock_logger
     ):
@@ -156,7 +156,7 @@ class TestRendering:
             "Rendered prompt", agent_env, mock_logger
         )
 
-    @patch("peagen._utils._external.call_external_agent")
+    @patch("peagen._external.call_external_agent")
     def test_render_generate_template_no_logger(
         self, mock_call_agent, file_record, context, j2_instance
     ):
