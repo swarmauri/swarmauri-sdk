@@ -25,3 +25,7 @@ class TaskHandlerBase(ComponentBase):
     def handle(self, task: Task) -> Result:
         """Perform domain logic and return a ``Result``."""
         raise NotImplementedError
+
+
+# Backwards compatibility alias for older imports
+TaskHandler = TaskHandlerBase

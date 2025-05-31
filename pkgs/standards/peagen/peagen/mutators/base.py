@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Protocol
-
-from peagen.handlers.base import TaskHandler
+from peagen.handlers.base import TaskHandlerBase
 
 
-class Mutator(TaskHandler, Protocol):
-    """Protocol for handlers that mutate source code."""
+class Mutator(TaskHandlerBase):
+    """Base class for handlers that mutate source code."""
 
     def mutate(self) -> None:
         """Optional helper used by subclasses."""
