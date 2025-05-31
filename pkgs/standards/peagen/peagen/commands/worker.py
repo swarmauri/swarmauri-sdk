@@ -5,6 +5,7 @@ import typer
 import os
 import subprocess
 import sys
+import psutil
 
 from peagen.worker import OneShotWorker, WorkerConfig
 from peagen.spawner import SpawnerConfig, WarmSpawner

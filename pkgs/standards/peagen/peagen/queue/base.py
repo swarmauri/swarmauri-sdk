@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Protocol
 from swarmauri_base.ComponentBase import ComponentBase
 
 from .model import Task, Result

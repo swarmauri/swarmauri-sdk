@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pathlib
 import typer
 
 from peagen.cli_common import global_cli_options

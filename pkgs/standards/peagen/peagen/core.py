@@ -13,8 +13,6 @@ from importlib import import_module
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
-import peagen.plugin_registry
-import peagen.templates
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init

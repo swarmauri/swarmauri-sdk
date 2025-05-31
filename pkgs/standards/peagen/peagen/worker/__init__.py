@@ -2,20 +2,20 @@ from __future__ import annotations
 
 import os
 import signal
-import sys
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Iterable, Protocol, Set, List
+from typing import Any, Iterable, Set, List
 
 from peagen.queue import make_queue
-from peagen.queue.model import Result, Task, TaskKind
+from peagen.queue.base import TaskQueueBase
+from peagen.queue.model import Result, Task
 from peagen.plugin_registry import registry
 from peagen.handlers.base import TaskHandlerBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 # Backwards compatibility alias
 TaskHandler = TaskHandlerBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @dataclass
@@ -102,9 +102,7 @@ class OneShotWorker:
                 continue
 
             try:
-                t0 = time.time()
                 result = handler.handle(task)
-                runtime = time.time() - t0
                 self.queue.push_result(result)
                 self.queue.ack(task.id)
                 exit_reason = result.status
@@ -122,7 +120,7 @@ class InlineWorker(ComponentBase):
     """Simple in-process worker for tests and local runs."""
 
     def __init__(
-        self, queue: make_queue.__annotations__["return"], caps: Set[str] | None = None
+        self, queue: TaskQueueBase, caps: Set[str] | None = None
     ) -> None:
         super().__init__()
         self.queue = queue

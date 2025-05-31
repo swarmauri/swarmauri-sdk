@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Deque, Dict, Tuple, ClassVar
+from typing import Deque, Dict, Tuple
 from pydantic import PrivateAttr, ConfigDict
 import time
 import threading
