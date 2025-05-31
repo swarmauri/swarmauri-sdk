@@ -7,6 +7,7 @@ from typing import Set
 from peagen.queue.model import Task, Result, TaskKind
 from .base import TaskHandlerBase
 
+from typing import ClassVar
 
 class PromptSampler:
     @staticmethod
@@ -21,8 +22,8 @@ class LLMEnsemble:
 
 
 class PatchMutatorHandler(TaskHandlerBase):
-    KIND: TaskKind = TaskKind.MUTATE
-    PROVIDES: Set[str] = {"llm", "cpu"}
+    KIND: ClassVar[TaskKind] = TaskKind.MUTATE
+    PROVIDES: ClassVar[Set[str]] = {"llm", "cpu"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND

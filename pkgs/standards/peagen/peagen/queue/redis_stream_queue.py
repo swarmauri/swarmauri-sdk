@@ -18,6 +18,7 @@ class RedisStreamQueue(TaskQueueBase):
     STREAM_DEAD: ClassVar[str] = "peagen.dead"
 
     def __init__(self, url: str, *, group: str = "peagen", idle_ms: int = 60000, max_retry: int = 3) -> None:
+        super().__init__()
         self._r = redis.Redis.from_url(url, decode_responses=True)
         self.group = group
         self.consumer = os.environ.get("HOSTNAME", "consumer-" + uuid.uuid4().hex[:6])
@@ -41,7 +42,7 @@ class RedisStreamQueue(TaskQueueBase):
 
     # ------------------------------------------------------------------ producer
     def enqueue(self, task: Task) -> None:
-        data = json.dumps(task.to_dict())
+        data = json.dumps(task.to_dict(), default=list)
         msg_id = self._r.xadd(self.STREAM_TASKS, {"data": data}, maxlen=10_000_000)
         self._msg_map[task.id] = msg_id
 

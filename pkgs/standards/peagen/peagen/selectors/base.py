@@ -42,6 +42,7 @@ class AdaptiveEpsilonSelector(SelectorBase):
     """Adaptive ε-greedy selector used by default."""
 
     def __init__(self, eps_init: float = 0.15, decay: float = 0.96, floor: float = 0.02) -> None:
+        super().__init__()
         self.eps = eps_init
         self.decay = decay
         self.floor = floor
