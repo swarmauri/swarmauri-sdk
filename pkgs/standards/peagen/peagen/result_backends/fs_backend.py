@@ -14,6 +14,7 @@ class FSBackend(ResultBackendBase):
     """Filesystem-backed result store."""
 
     def __init__(self, root: str = ".peagen/results", compress: bool = False) -> None:
+        super().__init__()
         self._root = Path(root).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
         self.compress = compress

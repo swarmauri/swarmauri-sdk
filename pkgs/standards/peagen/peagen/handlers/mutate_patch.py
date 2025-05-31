@@ -20,9 +20,12 @@ class LLMEnsemble:
         return prompt  # stub; tests may monkeypatch
 
 
+from typing import ClassVar
+
+
 class PatchMutatorHandler(TaskHandlerBase):
-    KIND: TaskKind = TaskKind.MUTATE
-    PROVIDES: Set[str] = {"llm", "cpu"}
+    KIND: ClassVar[TaskKind] = TaskKind.MUTATE
+    PROVIDES: ClassVar[Set[str]] = {"llm", "cpu"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND
