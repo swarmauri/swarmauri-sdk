@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from peagen.plugin_registry import registry
-from .base import ResultBackend
+from .base import ResultBackendBase
 
 
-def make_backend(provider: str, **kwargs) -> ResultBackend:
+def make_backend(provider: str, **kwargs) -> ResultBackendBase:
     try:
         cls = registry["result_backends"][provider]
     except KeyError:
@@ -15,6 +15,6 @@ def make_backend(provider: str, **kwargs) -> ResultBackend:
 
 
 def __getattr__(name: str):
-    if name == "ResultBackend":
-        return ResultBackend
+    if name == "ResultBackendBase":
+        return ResultBackendBase
     raise AttributeError(name)
