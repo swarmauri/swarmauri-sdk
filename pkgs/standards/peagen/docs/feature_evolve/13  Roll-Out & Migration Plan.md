@@ -43,7 +43,7 @@ teams a clear fallback at each checkpoint.
 
    ```bash
    redis-server --daemonize yes
-   peagen worker start &
+   peagen worker start
    peagen evolve step   # should enqueue + drain
    ```
 4. **CI Update** – add Redis service to pipeline; replace `peagen process` job with `peagen render`.
