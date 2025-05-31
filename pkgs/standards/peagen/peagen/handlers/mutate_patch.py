@@ -7,6 +7,7 @@ from typing import Set
 from peagen.queue.model import Task, Result, TaskKind
 from .base import TaskHandlerBase
 
+from typing import ClassVar
 
 class PromptSampler:
     @staticmethod
@@ -18,9 +19,6 @@ class LLMEnsemble:
     @staticmethod
     def generate(prompt: str) -> str:
         return prompt  # stub; tests may monkeypatch
-
-
-from typing import ClassVar
 
 
 class PatchMutatorHandler(TaskHandlerBase):
