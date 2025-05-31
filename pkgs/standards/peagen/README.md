@@ -427,7 +427,8 @@ peagen worker kill --pid 1234
 ```
 
 These utilities rely on `psutil` and detect processes that were started with
-`peagen worker start --no-detach` under the hood.
+`peagen worker start --no-detach` under the hood. Ensure the `psutil`
+library is installed (`pip install psutil`) before invoking these commands.
 
 ### Example `spawner.toml`
 
