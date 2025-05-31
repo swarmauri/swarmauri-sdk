@@ -6,9 +6,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from peagen.queue.model import Task, Result, TaskKind
 
-
-
-
 class TaskHandlerBase(ComponentBase):
     """Protocol for pluggable task handlers."""
 
@@ -25,7 +22,3 @@ class TaskHandlerBase(ComponentBase):
     def handle(self, task: Task) -> Result:
         """Perform domain logic and return a ``Result``."""
         raise NotImplementedError
-
-
-# Backwards compatibility alias for older imports
-TaskHandler = TaskHandlerBase
