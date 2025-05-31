@@ -83,13 +83,7 @@ child = LLMEnsemble.generate(prompt,
 | `groq`   | GroqCloud  | `mixtral-8x22b`, `llama-70b` |
 | `local`  | llama.cpp  | GGUF on local GPU/CPU        |
 
-Routing probability configured in TOML:
-
-```toml
-[llm.backend_weights]
-openai = 3
-groq   = 1
-```
+The ensemble selects an available back-end automatically.
 
 *Metrics:* `llm_tokens_total{backend}`, `llm_latency_seconds`.
 
