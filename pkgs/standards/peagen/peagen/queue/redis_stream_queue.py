@@ -8,11 +8,11 @@ from typing import Dict
 
 import redis
 
-from .base import TaskQueue
+from .base import TaskQueueBase
 from .model import Task, Result
 
 
-class RedisStreamQueue(TaskQueue):
+class RedisStreamQueue(TaskQueueBase):
     STREAM_TASKS = "peagen.tasks"
     STREAM_RESULTS = "peagen.results"
     STREAM_DEAD = "peagen.dead"

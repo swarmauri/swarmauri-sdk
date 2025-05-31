@@ -5,11 +5,11 @@ from typing import Deque, Dict, Tuple
 import time
 import threading
 
-from .base import TaskQueue
+from .base import TaskQueueBase
 from .model import Task, Result
 
 
-class StubQueue(TaskQueue):
+class StubQueue(TaskQueueBase):
     """In-memory queue used for development and CI."""
 
     def __init__(self) -> None:

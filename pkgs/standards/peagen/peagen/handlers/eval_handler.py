@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class EvaluateHandler(TaskHandler):
-    KIND = TaskKind.EVALUATE
-    PROVIDES = {"cpu"}
+class EvaluateHandler(TaskHandlerBase):
+    KIND: TaskKind = TaskKind.EVALUATE
+    PROVIDES: Set[str] = {"cpu"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND

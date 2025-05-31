@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class ExecuteGPUHandler(TaskHandler):
-    KIND = TaskKind.EXECUTE
-    PROVIDES = {"docker", "gpu", "cuda11"}
+class ExecuteGPUHandler(TaskHandlerBase):
+    KIND: TaskKind = TaskKind.EXECUTE
+    PROVIDES: Set[str] = {"docker", "gpu", "cuda11"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND

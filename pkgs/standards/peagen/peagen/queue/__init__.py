@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from peagen.plugin_registry import registry
-from .base import TaskQueue
+from .base import TaskQueueBase
 
 
-def make_queue(provider: str, **kwargs) -> TaskQueue:
+def make_queue(provider: str, **kwargs) -> TaskQueueBase:
     try:
         cls = registry["task_queues"][provider]
     except KeyError:
@@ -13,6 +13,6 @@ def make_queue(provider: str, **kwargs) -> TaskQueue:
 
 
 def __getattr__(name: str):
-    if name == "TaskQueue":
+    if name == "TaskQueueBase":
         return TaskQueue
     raise AttributeError(name)

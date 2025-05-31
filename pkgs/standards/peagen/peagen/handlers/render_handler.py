@@ -6,14 +6,14 @@ from typing import Any
 from jinja2 import Template
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class RenderHandler(TaskHandler):
+class RenderHandler(TaskHandlerBase):
     """Render Jinja template payload."""
 
-    KIND = TaskKind.RENDER
-    PROVIDES = {"cpu"}
+    KIND: TaskKind = TaskKind.RENDER
+    PROVIDES: Set[str] = {"cpu"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND

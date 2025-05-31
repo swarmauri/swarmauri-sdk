@@ -13,7 +13,7 @@ from typing import Any, Callable
 import click
 import typer
 import logging
-
+import functools
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 0. temp_workspace
@@ -168,21 +168,45 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
 # 4. global_cli_options decorator
 # ─────────────────────────────────────────────────────────────────────────────
 def global_cli_options(fn: Callable[..., Any]) -> Callable[..., Any]:
-    """Add global CLI options and stash them in ``ctx.obj``."""
-    import functools
+    """Decorator that injects common CLI options and stores them in `ctx.obj`."""
 
-    @typer.option("--config", "-c", help="Path to .peagen.toml", default=".peagen.toml")
-    @typer.option("--verbose", "-v", count=True, help="Increase verbosity")
-    @typer.option("--dry-run", is_flag=True, help="Run without writing files")
     @functools.wraps(fn)
-    def _wrapper(*args, config: str, verbose: int, dry_run: bool, **kwargs):
-        ctx: typer.Context = click.get_current_context()
+    def _wrapper(
+        *args,
+        # ── global options (Typer reads these from the signature) ───────────
+        config: str = typer.Option(
+            ".peagen.toml",
+            "--config",
+            "-c",
+            help="Path to .peagen.toml",
+            show_default=False,
+            exists=False,
+        ),
+        verbose: int = typer.Option(
+            0,
+            "--verbose",
+            "-v",
+            count=True,
+            help="Increase verbosity (repeat for more detail)",
+        ),
+        dry_run: bool = typer.Option(
+            False,
+            "--dry-run",
+            is_flag=True,
+            help="Run without writing files",
+        ),
+        **kwargs,
+    ):
+        # Click/Typer context so we can stash the values
+        ctx: click.Context = click.get_current_context()  # or click.get_current_context()
+
         if ctx.obj is None:
             ctx.obj = types.SimpleNamespace()
+
         ctx.obj.config = config
         ctx.obj.verbose = verbose
         ctx.obj.dry_run = dry_run
+
         return fn(*args, **kwargs)
 
     return _wrapper
-

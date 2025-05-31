@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class ExecuteDockerHandler(TaskHandler):
-    KIND = TaskKind.EXECUTE
-    PROVIDES = {"docker", "cpu"}
+class ExecuteDockerHandler(TaskHandlerBase):
+    KIND: TaskKind = TaskKind.EXECUTE
+    PROVIDES: Set[str] = {"docker", "cpu"}
 
     def dispatch(self, task: Task) -> bool:
         return task.kind == self.KIND

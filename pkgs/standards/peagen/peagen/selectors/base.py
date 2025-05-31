@@ -7,7 +7,7 @@ from typing import List
 from peagen.evo_db import EvoDB, Program
 
 
-class ParentSelector(ABC):
+class ISelectorBase(ABC):
     """Strategy object that picks parent programs from :class:`EvoDB`."""
 
     @abstractmethod
@@ -22,8 +22,22 @@ class ParentSelector(ABC):
     def feedback(self, fitness_gain: float) -> None:
         """Update internal state given the last generation's fitness gain."""
 
+class SelectorBase(ISelectorBase, ComponentBase):
 
-class AdaptiveEpsilonSelector(ParentSelector):
+    def select(self, db: EvoDB) -> Program:
+        """Return one parent program from the archive."""
+        raise NotImplementedError
+
+    def sample_inspirations(self, db: EvoDB, k: int) -> List[str]:
+        """Return ``k`` source snippets used for prompt inspiration."""
+        raise NotImplementedError
+
+
+    def feedback(self, fitness_gain: float) -> None:
+        """Update internal state given the last generation's fitness gain."""
+        raise NotImplementedError
+
+class AdaptiveEpsilonSelector(SelectorBase):
     """Adaptive ε-greedy selector used by default."""
 
     def __init__(self, eps_init: float = 0.15, decay: float = 0.96, floor: float = 0.02) -> None:

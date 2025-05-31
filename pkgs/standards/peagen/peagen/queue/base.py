@@ -6,7 +6,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 from .model import Task, Result
 
 
-class TaskQueue(ComponentBase, Protocol):
+class TaskQueueBase(ComponentBase):
     def enqueue(self, task: Task) -> None:
         ...
 
