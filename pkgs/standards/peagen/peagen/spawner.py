@@ -74,10 +74,15 @@ class WarmSpawner:
             pending = getattr(self.queue, "pending_count", lambda: 0)()
             self._cleanup_workers()
             live = len(self.workers)
-            if pending > max(0, live - self.cfg.warm_pool):
-                to_launch = min(pending - (live - self.cfg.warm_pool), self.cfg.max_parallel)
-                for _ in range(to_launch):
-                    self._launch_worker()
+
+            desired = min(
+                self.cfg.max_parallel,
+                max(self.cfg.warm_pool, pending + self.cfg.warm_pool),
+            )
+            to_launch = max(0, desired - live)
+            for _ in range(to_launch):
+                self._launch_worker()
+
             self.queue.requeue_orphans(self.cfg.idle_ms)
             time.sleep(self.cfg.poll_ms / 1000)
 
