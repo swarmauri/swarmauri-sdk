@@ -6,11 +6,11 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable
 
-from .base import ResultBackend
+from .base import ResultBackendBase
 from peagen.queue.model import Result, TaskKind
 
 
-class FSBackend(ResultBackend):
+class FSBackend(ResultBackendBase):
     """Filesystem-backed result store."""
 
     def __init__(self, root: str = ".peagen/results", compress: bool = False) -> None:

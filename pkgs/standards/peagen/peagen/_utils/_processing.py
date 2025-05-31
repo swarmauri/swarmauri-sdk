@@ -18,7 +18,7 @@ from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from ._config import _config
 from ._graph import _build_forward_graph
 from ._rendering import _render_copy_template, _render_generate_template
-from .manifest_writer import ManifestWriter
+from peagen.manifest_writer import ManifestWriter
 
 
 def _save_file(

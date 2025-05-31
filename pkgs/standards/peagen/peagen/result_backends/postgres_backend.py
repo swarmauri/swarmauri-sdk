@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from .base import ResultBackend
+from .base import ResultBackendBase
 from peagen.queue.model import Result, TaskKind
 
 
-class PostgresBackend(ResultBackend):
+class PostgresBackend(ResultBackendBase):
     """Placeholder for a Postgres JSONB backend."""
 
     def __init__(self, dsn: str) -> None:  # pragma: no cover - sketch

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from .base import ResultBackend
+from .base import ResultBackendBase
 from peagen.queue.model import Result, TaskKind
 
 
-class S3Backend(ResultBackend):
+class S3Backend(ResultBackendBase):
     """Placeholder for an S3/MinIO backend."""
 
     def __init__(self, bucket: str) -> None:  # pragma: no cover - sketch
