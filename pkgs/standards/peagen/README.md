@@ -458,6 +458,14 @@ warm_pool = 1
 Pass this file via `--config spawner.toml` when invoking `peagen worker start`
 or `peagen worker add` to apply the custom settings.
 
+### Listing Pending Tasks
+
+Use `peagen queue list` to inspect tasks waiting to be processed:
+
+```console
+peagen queue list --limit 5
+```
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.

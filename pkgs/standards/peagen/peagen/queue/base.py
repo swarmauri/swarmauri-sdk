@@ -27,3 +27,8 @@ class TaskQueueBase(ComponentBase):
     def list_tasks(self, limit: int = 10, offset: int = 0) -> list[Task]:
         """Return up to ``limit`` pending tasks starting at ``offset`` without consuming them."""
         raise NotImplementedError
+
+    # ------------------------------------------------------------------ inspect
+    def list_pending(self, limit: int = 100):
+        """Yield up to ``limit`` pending tasks."""
+        raise NotImplementedError
