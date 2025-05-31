@@ -40,10 +40,6 @@ root       = "/var/peagen/results"
 caps        = "cpu,docker,llm"
 warm_pool   = 2
 concurrency = 1
-
-[llm.backend_weights]
-openai = 2
-groq   = 1
 ```
 
 #### A-3  *Hybrid GPU + CPU Cluster*
