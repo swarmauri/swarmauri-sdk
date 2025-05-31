@@ -7,6 +7,12 @@ import time
 from dataclasses import dataclass
 from typing import List, Set
 
+from peagen.metrics import (
+    start_metrics_server,
+    warm_spawner_live_workers,
+    queue_pending_total,
+)
+
 from peagen.queue import make_queue
 
 
@@ -44,6 +50,7 @@ class WarmSpawner:
         provider = "redis" if cfg.queue_url.startswith("redis") else "stub"
         self.queue = make_queue(provider, url=cfg.queue_url)
         self.workers: List[subprocess.Popen] = []
+        start_metrics_server()
 
     # ------------------------------------------------------------ internals
     def _launch_worker(self) -> None:
@@ -71,14 +78,17 @@ class WarmSpawner:
     def run(self) -> None:
         while True:
             pending = getattr(self.queue, "pending_count", lambda: 0)()
+            queue_pending_total.labels(kind="all").set(pending)
             idle = self._cleanup_workers()
             live = len(self.workers)
             if pending > max(0, live - self.cfg.warm_pool):
                 to_launch = min(pending - (live - self.cfg.warm_pool), self.cfg.max_parallel)
                 for _ in range(to_launch):
                     self._launch_worker()
+            warm_spawner_live_workers.set(len(self.workers))
             self.queue.requeue_orphans(self.cfg.idle_ms)
             time.sleep(self.cfg.poll_ms / 1000)
 
 
 __all__ = ["WarmSpawner", "SpawnerConfig"]
+

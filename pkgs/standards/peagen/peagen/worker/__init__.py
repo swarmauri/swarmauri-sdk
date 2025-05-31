@@ -8,6 +8,16 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, Iterable, Protocol, Set
 
+from swarmauri_standard.rate_limits.TokenBucketRateLimit import (
+    TokenBucketRateLimit,
+)
+from peagen.metrics import (
+    start_metrics_server,
+    worker_exit_reason,
+    worker_runtime_seconds,
+    worker_task_total,
+)
+
 from peagen.queue import make_queue
 from peagen.queue.model import Result, Task, TaskKind
 from peagen.plugin_registry import registry
@@ -34,6 +44,9 @@ class WorkerConfig:
     concurrency: int = 1
     idle_exit: int = 600
     max_uptime: int = 3600
+    metrics_port: int = 8000
+    rate_capacity: int | None = None
+    rate_refill: float = 1.0
 
     @classmethod
     def from_env(cls) -> "WorkerConfig":
@@ -44,6 +57,13 @@ class WorkerConfig:
             concurrency=int(os.environ.get("WORKER_CONCURRENCY", "1")),
             idle_exit=int(os.environ.get("WORKER_IDLE_EXIT", "600")),
             max_uptime=int(os.environ.get("WORKER_MAX_UPTIME", "3600")),
+            metrics_port=int(os.environ.get("WORKER_METRICS_PORT", "8000")),
+            rate_capacity=(
+                int(os.environ["WORKER_RATE_CAPACITY"])
+                if os.environ.get("WORKER_RATE_CAPACITY")
+                else None
+            ),
+            rate_refill=float(os.environ.get("WORKER_RATE_REFILL", "1")),
         )
 
 
@@ -59,6 +79,12 @@ class OneShotWorker:
         self.last_task_ts = time.time()
         self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
+        start_metrics_server(cfg.metrics_port)
+        self._rate_limit = (
+            TokenBucketRateLimit(capacity=cfg.rate_capacity, refill_rate=cfg.rate_refill)
+            if cfg.rate_capacity
+            else None
+        )
 
     # ------------------------------------------------------------ lifecycle
     def _sigterm(self, *_: Any) -> None:
@@ -95,6 +121,9 @@ class OneShotWorker:
                     break
                 continue
 
+            if self._rate_limit and not self._rate_limit.allow():
+                continue
+
             self.last_task_ts = time.time()
             if not task.requires <= self.cfg.caps:
                 # put it back for someone else
@@ -115,13 +144,17 @@ class OneShotWorker:
                 self.queue.push_result(result)
                 self.queue.ack(task.id)
                 exit_reason = result.status
+                worker_task_total.labels(status=result.status).inc()
+                worker_runtime_seconds.observe(runtime)
             except Exception as exc:  # pragma: no cover - simple log
                 result = Result(task.id, "error", {"msg": str(exc)})
                 self.queue.push_result(result)
                 self.queue.ack(task.id)
                 exit_reason = "error"
+                worker_task_total.labels(status="error").inc()
             break
 
+        worker_exit_reason.labels(reason=exit_reason).inc()
         return exit_reason
 
 
