@@ -75,3 +75,10 @@ class StubQueue(TaskQueueBase):
                     del self._inflight[tid]
                     moved += 1
         return moved
+
+    # ------------------------------------------------------------------ inspect
+    def list_tasks(self, limit: int = 10, offset: int = 0) -> list[Task]:
+        """Return up to ``limit`` pending tasks starting at ``offset`` without consuming them."""
+        with self._lock:
+            tasks = list(self._todo) + [t for t, _ in self._inflight.values()]
+            return tasks[offset : offset + limit]

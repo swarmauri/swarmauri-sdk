@@ -23,3 +23,7 @@ class TaskQueueBase(ComponentBase):
 
     def requeue_orphans(self, idle_ms: int, max_batch: int) -> int:
         raise NotImplementedError
+
+    def list_tasks(self, limit: int = 10, offset: int = 0) -> list[Task]:
+        """Return up to ``limit`` pending tasks starting at ``offset`` without consuming them."""
+        raise NotImplementedError
