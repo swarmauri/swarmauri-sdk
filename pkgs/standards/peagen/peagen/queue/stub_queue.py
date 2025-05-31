@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Deque, Dict, Tuple
+from typing import Deque, Dict, Tuple, ClassVar
 import time
 import threading
 
@@ -11,7 +11,10 @@ from .model import Task, Result
 
 class StubQueue(TaskQueueBase):
     """In-memory queue used for development and CI."""
-
+    STREAM_TASKS: ClassVar[str] = "peagen.tasks"
+    STREAM_RESULTS: ClassVar[str] = "peagen.results"
+    STREAM_DEAD: ClassVar[str] = "peagen.dead"
+    
     def __init__(self) -> None:
         self._todo: Deque[Task] = deque()
         self._inflight: Dict[str, Tuple[Task, float]] = {}
