@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
 from typing import List
+from swarmauri_base.ComponentBase import ComponentBase
 
 from peagen.evo_db import EvoDB, Program
 

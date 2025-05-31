@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Set
 
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from peagen.queue.model import Task, Result, TaskKind
 
