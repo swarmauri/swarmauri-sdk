@@ -429,6 +429,34 @@ peagen worker kill --pid 1234
 These utilities rely on `psutil` and detect processes that were started with
 `peagen worker start --no-detach` under the hood.
 
+### Example `spawner.toml`
+
+`peagen worker` reads its queue and worker-pool settings from a small
+`spawner.toml` file. A typical Redis-backed configuration looks like:
+
+```toml
+[spawner]
+queue_url = "redis://localhost:6379/0"
+caps = ["cpu", "docker"]
+warm_pool = 2      # keep this many idle workers alive
+max_parallel = 10  # upper bound on concurrently running workers
+poll_ms = 1000     # queue poll interval in milliseconds
+worker_image = "peagen-worker:latest"
+```
+
+For local runs without Redis you can use the in-memory `StubQueue` by
+setting ``queue_url`` to ``"stub://"`` (the default when omitted):
+
+```toml
+[spawner]
+queue_url = "stub://"
+caps = ["cpu"]
+warm_pool = 1
+```
+
+Pass this file via `--config spawner.toml` when invoking `peagen worker start`
+or `peagen worker add` to apply the custom settings.
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.

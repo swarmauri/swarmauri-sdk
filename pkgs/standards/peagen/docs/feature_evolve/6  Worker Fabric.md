@@ -36,6 +36,9 @@ poll_ms     = 1000
 worker_image= "ghcr.io/swarmauri/peagen-worker:latest"
 ```
 
+For local testing you can set ``queue_url = "stub://"`` to use the
+in-memory ``StubQueue``.
+
 ---
 
 ### 6.2  One-Shot Worker
