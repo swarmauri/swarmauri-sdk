@@ -24,7 +24,8 @@ class SpawnerConfig:
     def from_toml(cls, path: str) -> "SpawnerConfig":
         import tomllib
 
-        data = tomllib.loads(open(path, "rb").read())
+        with open(path, "r", encoding="utf-8") as f:
+            data = tomllib.loads(f.read())
         cfg = data.get("spawner", {})
         return cls(
             queue_url=cfg.get("queue_url", "stub://"),
