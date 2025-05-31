@@ -57,6 +57,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "pytest-mock>=3.14.0",
 ]
 
 [tool.poetry.plugins."peagen.template_sets"]
