@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class ExecuteDockerHandler(TaskHandler):
+class ExecuteDockerHandler(TaskHandlerBase):
     KIND = TaskKind.EXECUTE
     PROVIDES = {"docker", "cpu"}
 

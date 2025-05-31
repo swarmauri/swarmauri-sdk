@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class ExecuteGPUHandler(TaskHandler):
+class ExecuteGPUHandler(TaskHandlerBase):
     KIND = TaskKind.EXECUTE
     PROVIDES = {"docker", "gpu", "cuda11"}
 

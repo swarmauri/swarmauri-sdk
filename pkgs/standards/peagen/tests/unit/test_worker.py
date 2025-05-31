@@ -1,4 +1,4 @@
-from peagen.worker import OneShotWorker, WorkerConfig, TaskHandler
+from peagen.worker import OneShotWorker, WorkerConfig, ITaskHandler
 from peagen.queue.stub_queue import StubQueue
 from peagen.queue.model import Task, TaskKind, Result
 from peagen import plugin_registry

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
-class EvaluateHandler(TaskHandler):
+class EvaluateHandler(TaskHandlerBase):
     KIND = TaskKind.EVALUATE
     PROVIDES = {"cpu"}
 

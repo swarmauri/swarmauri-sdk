@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from peagen.queue.model import Task, Result, TaskKind
-from .base import TaskHandler
+from .base import TaskHandlerBase
 
 
 class PromptSampler:
@@ -18,7 +18,7 @@ class LLMEnsemble:
         return prompt  # stub; tests may monkeypatch
 
 
-class PatchMutatorHandler(TaskHandler):
+class PatchMutatorHandler(TaskHandlerBase):
     KIND = TaskKind.MUTATE
     PROVIDES = {"llm", "cpu"}
 

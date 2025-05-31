@@ -6,24 +6,14 @@ import sys
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Iterable, Protocol, Set
+from typing import Any, Iterable, Set
 
 from peagen.queue import make_queue
 from peagen.queue.model import Result, Task, TaskKind
 from peagen.plugin_registry import registry
+from peagen.handlers.base import can_handle, ITaskHandler
 
 
-class TaskHandler(Protocol):
-    """Protocol for pluggable task handlers."""
-
-    KIND: TaskKind
-    PROVIDES: Set[str]
-
-    def dispatch(self, task: Task) -> bool:
-        ...
-
-    def handle(self, task: Task) -> Result:
-        ...
 
 
 @dataclass
@@ -64,13 +54,12 @@ class OneShotWorker:
     def _sigterm(self, *_: Any) -> None:
         self._shutdown = True
 
-    def _select_handler(self, task: Task) -> TaskHandler | None:
+    def _select_handler(self, task: Task) -> ITaskHandler | None:
         handlers: Iterable[type] = registry.get("task_handlers", {}).values()
         for cls in handlers:
             if self.cfg.plugins and cls.__name__ not in self.cfg.plugins:
                 continue
-            provides = getattr(cls, "PROVIDES", set())
-            if task.requires <= provides <= self.cfg.caps:
+            if can_handle(task, cls, self.cfg.caps):
                 inst = cls()  # type: ignore[call-arg]
                 if inst.dispatch(task):
                     return inst
@@ -125,4 +114,4 @@ class OneShotWorker:
         return exit_reason
 
 
-__all__ = ["OneShotWorker", "WorkerConfig", "TaskHandler"]
+__all__ = ["OneShotWorker", "WorkerConfig", "ITaskHandler"]
