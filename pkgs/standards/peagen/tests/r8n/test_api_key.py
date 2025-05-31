@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 import typer
-from peagen._api_key import _resolve_api_key
+from peagen._utils._api_key import _resolve_api_key
 
 
 @pytest.mark.r8n
@@ -26,7 +26,7 @@ class TestApiKey:
         assert result == "env-key-456"
 
     @patch.dict(os.environ, {}, clear=True)
-    @patch("peagen._api_key.load_dotenv")
+    @patch("peagen._utils._api_key.load_dotenv")
     def test_missing_environment_variable(self, mock_load_dotenv):
         """Test that function raises error when environment variable is not found"""
         mock_load_dotenv.return_value = False
@@ -35,7 +35,7 @@ class TestApiKey:
             _resolve_api_key("openai")
         assert excinfo.value.exit_code == 1
 
-    @patch("peagen._api_key.load_dotenv")
+    @patch("peagen._utils._api_key.load_dotenv")
     def test_custom_env_file(self, mock_load_dotenv):
         """Test that function loads custom .env file when provided"""
         with patch.dict(
@@ -45,7 +45,7 @@ class TestApiKey:
             assert result == "env-file-key-789"
             mock_load_dotenv.assert_called_once_with(".env.test")
 
-    @patch("peagen._api_key.load_dotenv")
+    @patch("peagen._utils._api_key.load_dotenv")
     def test_default_env_file(self, mock_load_dotenv):
         """Test that function loads default .env file when no file specified"""
         with patch.dict(os.environ, {"MISTRAL_API_KEY": "default-env-key"}, clear=True):

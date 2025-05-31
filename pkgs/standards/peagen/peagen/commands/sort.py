@@ -16,9 +16,9 @@ from peagen.cli_common import load_peagen_toml
 
 # ── absolute-import everything ────────────────────────────────────────────────
 from peagen.core import Peagen, Fore, Style
-from peagen._config import _config
-from peagen._api_key import _resolve_api_key
-from peagen._graph import get_immediate_dependencies
+from peagen._utils._config import _config
+from peagen._utils._api_key import _resolve_api_key
+from peagen._utils._graph import get_immediate_dependencies
 
 # ── Typer sub-app boilerplate ─────────────────────────────────────────────────
 sort_app = typer.Typer(

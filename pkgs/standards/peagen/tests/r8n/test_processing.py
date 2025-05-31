@@ -3,7 +3,7 @@ import tempfile
 from unittest.mock import ANY, MagicMock, mock_open, patch
 
 from swarmauri_prompt_j2prompttemplate import j2pt
-from peagen._processing import (
+from peagen._utils._processing import (
     _create_context,
     _process_file,
     _process_project_files,
@@ -109,9 +109,9 @@ class TestCreateContext:
 
 
 class TestProcessFile:
-    @patch("peagen._processing._create_context")
-    @patch("peagen._processing._render_copy_template")
-    @patch("peagen._processing._save_file")
+    @patch("peagen._utils._processing._create_context")
+    @patch("peagen._utils._processing._render_copy_template")
+    @patch("peagen._utils._processing._save_file")
     def test_process_copy_file(self, mock_save, mock_render, mock_create_context):
         """Test processing a file with PROCESS_TYPE 'COPY'."""
         file_record = {"PROCESS_TYPE": "COPY", "RENDERED_FILE_NAME": "output.txt"}
@@ -142,9 +142,9 @@ class TestProcessFile:
             1,
         )
 
-    @patch("peagen._processing._create_context")
-    @patch("peagen._processing._render_generate_template")
-    @patch("peagen._processing._save_file")
+    @patch("peagen._utils._processing._create_context")
+    @patch("peagen._utils._processing._render_generate_template")
+    @patch("peagen._utils._processing._save_file")
     def test_process_generate_file(self, mock_save, mock_render, mock_create_context):
         """Test processing a file with PROCESS_TYPE 'GENERATE'."""
         file_record = {
@@ -174,7 +174,7 @@ class TestProcessFile:
             1,
         )
 
-    @patch("peagen._processing._create_context")
+    @patch("peagen._utils._processing._create_context")
     def test_process_unknown_type(self, mock_create_context):
         """Test processing a file with unknown PROCESS_TYPE."""
         file_record = {"PROCESS_TYPE": "UNKNOWN", "RENDERED_FILE_NAME": "file.txt"}
@@ -194,7 +194,7 @@ class TestProcessFile:
 
 
 class TestProcessProjectFiles:
-    @patch("peagen._processing._process_file")
+    @patch("peagen._utils._processing._process_file")
     def test_process_project_files(self, mock_process_file):
         """Test processing multiple file records."""
         j2pt.templates_dir = ["default_templates"]
@@ -217,7 +217,7 @@ class TestProcessProjectFiles:
         # Check that _process_file was called twice
         assert mock_process_file.call_count == 2
 
-    @patch("peagen._processing._process_file")
+    @patch("peagen._utils._processing._process_file")
     def test_process_project_files_with_template_set_change(self, mock_process_file):
         """Test template directory updates when TEMPLATE_SET changes."""
         global_attrs = {"TEMPLATE_SET": "default_templates"}
@@ -242,7 +242,7 @@ class TestProcessProjectFiles:
         assert j2pt.templates_dir[0] == "custom_templates"
         assert mock_logger.debug.call_count >= 1
 
-    @patch("peagen._processing._process_file")
+    @patch("peagen._utils._processing._process_file")
     def test_process_project_files_stops_on_false(self, mock_process_file):
         """Test that processing stops if _process_file returns False."""
         global_attrs = {}

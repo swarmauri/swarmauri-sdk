@@ -2,7 +2,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from peagen._llm import GenericLLM
+from peagen._utils._llm import GenericLLM
 from pydantic import SecretStr
 
 

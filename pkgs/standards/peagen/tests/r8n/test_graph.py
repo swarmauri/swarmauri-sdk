@@ -1,5 +1,5 @@
 import pytest
-from peagen._graph import (
+from peagen._utils._graph import (
     _build_forward_graph,
     _build_reverse_graph,
     _get_transitive_dependencies,
