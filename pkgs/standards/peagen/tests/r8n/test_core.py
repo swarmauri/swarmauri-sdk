@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
+import types
 
 import pytest
 from peagen.core import Peagen
@@ -18,7 +19,6 @@ class TestPeagen:
         """Create a basic Peagen instance for testing."""
         instance = Peagen(
             projects_payload_path="test_payload.yaml",
-            template_base_dir="/test/templates",
         )
         instance.logger = mock_logger
         instance.prompt_template = MagicMock()
@@ -28,7 +28,7 @@ class TestPeagen:
         """Test basic initialization of Peagen."""
         peagen = Peagen(projects_payload_path="test_payload.yaml")
         assert peagen.projects_payload_path == "test_payload.yaml"
-        assert peagen.template_base_dir is None
+        assert peagen.workspace_root is None
         assert isinstance(peagen.agent_env, dict)
         assert peagen.prompt_template is not None
         assert peagen.cwd == os.getcwd()
@@ -36,27 +36,31 @@ class TestPeagen:
 
     def test_setup_env(self):
         """Test that setup_env properly configures paths."""
-        with patch("peagen.templates.__path__", ["/installed/templates"]):
+        module = types.ModuleType("dummy")
+        module.__path__ = ["/installed/templates"]
+        with patch.dict("peagen.plugin_registry.registry", {"template_sets": {"dummy": module}}, clear=True):
             peagen = Peagen(
                 projects_payload_path="test_payload.yaml",
-                template_base_dir="/custom/templates",
-                additional_package_dirs=[Path("/additional/templates")],
+                workspace_root=Path("/custom/workspace"),
+                source_packages=[{"dest": "additional/templates", "expose_to_jinja": True}],
             )
 
             # Check namespace_dirs
+            assert str(Path("/custom/workspace")) in peagen.namespace_dirs
             assert "/installed/templates" in peagen.namespace_dirs
+            assert os.path.join("/custom/workspace", "additional/templates") in peagen.namespace_dirs
             assert peagen.cwd in peagen.namespace_dirs
-            assert "/custom/templates" in peagen.namespace_dirs
 
-            # Check prompt_template templates_dir
-            assert str(Path("/additional/templates")) in peagen.prompt_template.templates_dir
-            assert peagen.cwd in peagen.prompt_template.templates_dir
-            assert "/custom/templates" in peagen.prompt_template.templates_dir
+            # Check prompt_template templates_dir should be empty after setup
+            assert peagen.prompt_template.templates_dir == []
 
     def test_update_templates_dir(self, basic_peagen):
         """Test update_templates_dir method."""
         # Setup
-        basic_peagen.additional_package_dirs = [Path("/add1"), Path("/add2")]
+        basic_peagen.source_packages = [
+            {"dest": "/add1", "expose_to_jinja": True},
+            {"dest": "/add2", "expose_to_jinja": True},
+        ]
 
         # Call method
         basic_peagen.update_templates_dir("/package/templates")
