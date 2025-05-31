@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import peagen.templates as _pt  # root namespace that ships built-in sets
+import peagen.template_sets as _pt  # root namespace that ships built-in sets
 import typer
 
 # ──────────────────────────────────────
@@ -45,7 +45,7 @@ def _discover_template_sets() -> Dict[str, List[Path]]:
             # Skip unreadable roots but keep going.
             continue
     # also gather sets exposed via entry-points so wheels without a physical
-    # folder in peagen.templates still show up.
+    # folder in peagen.template_sets still show up.
     for ep in im.entry_points(group="peagen.template_sets"):
         try:
             pkg = ep.load()  # this is now the module object

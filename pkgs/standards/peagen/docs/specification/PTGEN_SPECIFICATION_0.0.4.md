@@ -206,7 +206,7 @@ This template serves as the default for generating file content. It merges the r
 
 Each template set can interpret custom keys within the `EXTRAS` container. A small
 `EXTRAS.md` file resides in every template set directory under
-`peagen/templates/<TEMPLATE_SET>/`. These documents list the extra keys that are
+`peagen/template-sets/<TEMPLATE_SET>/`. These documents list the extra keys that are
 understood by that template set.
 
 ---

@@ -13,6 +13,9 @@ from importlib import import_module
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
+import peagen.plugin_registry
+import peagen.template_sets
+
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
@@ -108,7 +111,7 @@ class Peagen(ComponentBase):
         #    into synthetic 'local' TEMPLATE_SET entries, so they get
         #    written to the manifest without CLI help.
         # -----------------------------------------------------------
-        # ns_dirs: List[str] = list(peagen.templates.__path__)
+        # ns_dirs: List[str] = list(peagen.template_sets.__path__)
         ns_dirs: List[str] = []
 
         # 1) Template-set plugins discovered via registry

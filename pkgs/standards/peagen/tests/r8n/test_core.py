@@ -36,9 +36,7 @@ class TestPeagen:
 
     def test_setup_env(self):
         """Test that setup_env properly configures paths."""
-        module = types.ModuleType("dummy")
-        module.__path__ = ["/installed/templates"]
-        with patch.dict("peagen.plugin_registry.registry", {"template_sets": {"dummy": module}}, clear=True):
+        with patch("peagen.template_sets.__path__", ["/installed/template_sets"]):
             peagen = Peagen(
                 projects_payload_path="test_payload.yaml",
                 workspace_root=Path("/custom/workspace"),

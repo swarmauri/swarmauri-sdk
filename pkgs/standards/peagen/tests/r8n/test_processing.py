@@ -122,7 +122,7 @@ class TestProcessFile:
         _process_file(
             file_record=file_record,
             global_attrs=global_attrs,
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             logger=MagicMock(),
         )
@@ -159,7 +159,7 @@ class TestProcessFile:
         _process_file(
             file_record=file_record,
             global_attrs=global_attrs,
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             logger=MagicMock(),
         )
@@ -183,7 +183,7 @@ class TestProcessFile:
         result = _process_file(
             file_record=file_record,
             global_attrs={},
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             logger=mock_logger,
         )
@@ -210,7 +210,7 @@ class TestProcessProjectFiles:
         _process_project_files(
             global_attrs=global_attrs,
             file_records=file_records,
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             template_obj=j2,
             logger=MagicMock(),
@@ -236,7 +236,7 @@ class TestProcessProjectFiles:
         _process_project_files(
             global_attrs=global_attrs,
             file_records=file_records,
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             template_obj=j2,
             logger=mock_logger,
@@ -262,7 +262,7 @@ class TestProcessProjectFiles:
         _process_project_files(
             global_attrs=global_attrs,
             file_records=file_records,
-            template_dir="templates",
+            template_dir="template_sets",
             agent_env={},
             template_obj=j2,
             logger=MagicMock(),

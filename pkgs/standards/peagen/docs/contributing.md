@@ -4,7 +4,7 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
 
 ## Template-Sets
 
-- Place new template files under `peagen/templates/<set_name>`.
+- Place new template files under `peagen/template-sets/<set_name>`.
 - Expose the set with an entry point under the **`peagen.template_sets`** group in your `pyproject.toml`:
   ```toml
   [project.entry-points."peagen.template_sets"]
