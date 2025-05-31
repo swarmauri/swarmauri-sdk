@@ -19,6 +19,7 @@ from peagen.commands import (
     evolve_app,
     queue_app,
     worker_app,
+    plugins_app,
 )
 
 _print_banner()
@@ -39,6 +40,7 @@ app.add_typer(extras_app, name="extras-schemas")
 app.add_typer(validate_app, name="validate")
 app.add_typer(eval_app)
 app.add_typer(worker_app, name="worker")
+app.add_typer(plugins_app, name="plugin")
 
 if __name__ == "__main__":
     app()

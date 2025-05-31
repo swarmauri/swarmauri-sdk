@@ -14,6 +14,7 @@ from peagen.commands.mutate import mutate_app
 from peagen.commands.evolve import evolve_app
 from peagen.commands.queue import queue_app
 from peagen.commands.worker import worker_app
+from peagen.commands.plugins import plugins_app
 
 __all__ = [
     "init_app",
@@ -30,4 +31,5 @@ __all__ = [
     "evolve_app",
     "queue_app",
     "worker_app",
+    "plugins_app",
 ]
