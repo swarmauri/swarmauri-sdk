@@ -137,3 +137,13 @@ class RedisStreamQueue(TaskQueueBase):
             if msg_id == "0-0":
                 break
         return moved
+
+    # ------------------------------------------------------------------ inspect
+    def list_tasks(self, limit: int = 10, offset: int = 0) -> list[Task]:
+        """Return up to ``limit`` pending tasks starting at ``offset`` without consuming them."""
+        items = self._r.xrange(self.STREAM_TASKS, count=offset + limit)
+        tasks = []
+        for _id, fields in items[offset:offset + limit]:
+            data = json.loads(fields["data"])
+            tasks.append(Task(**data))
+        return tasks
