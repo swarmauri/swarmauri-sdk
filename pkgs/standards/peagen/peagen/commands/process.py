@@ -13,10 +13,10 @@ from urllib.parse import urlparse
 
 import typer
 
-from peagen._api_key import _resolve_api_key
-from peagen._config import _config
-from peagen._source_packages import materialise_packages
-from peagen._template_sets import install_template_sets
+from peagen._utils._api_key import _resolve_api_key
+from peagen._utils._config import _config
+from peagen._utils._source_packages import materialise_packages
+from peagen._utils._template_sets import install_template_sets
 from peagen.cli_common import (
     PathOrURI,
     common_peagen_options,
@@ -25,7 +25,7 @@ from peagen.cli_common import (
 )
 from peagen.core import Fore, Peagen
 from peagen.plugin_registry import registry  # central plugin registry
-from peagen.slug_utils import slugify
+from peagen._utils.slug_utils import slugify
 
 process_app = typer.Typer(
     help="Render / generate one or all projects in a YAML payload."
