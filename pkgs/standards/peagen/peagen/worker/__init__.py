@@ -12,7 +12,7 @@ from peagen.queue import make_queue
 from peagen.queue.model import Result, Task, TaskKind
 from peagen.plugin_registry import registry
 from peagen.handlers.base import TaskHandlerBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @dataclass
@@ -162,4 +162,4 @@ def _env_plugins() -> Set[str]:
     return {p.strip() for p in val.split(",") if p.strip()}
 
 
-__all__ = ["OneShotWorker", "WorkerConfig", "TaskHandlerBase", "TaskHandler", "InlineWorker"]
+__all__ = ["OneShotWorker", "WorkerConfig", "TaskHandlerBase", "InlineWorker"]
