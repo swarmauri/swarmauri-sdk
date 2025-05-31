@@ -10,8 +10,8 @@ from peagen.mutators.base import Mutator
 
 
 class PatchMutator(Mutator):
-    KIND = TaskKind.MUTATE
-    PROVIDES = {"llm", "cpu"}
+    KIND: TaskKind = TaskKind.MUTATE
+    PROVIDES: set[str] = {"llm", "cpu"}
 
     def dispatch(self, task: Task) -> bool:  # type: ignore[override]
         return task.kind == self.KIND
