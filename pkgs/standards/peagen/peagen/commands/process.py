@@ -232,8 +232,8 @@ def process_cmd(
             workspace_root=ws,
         )
         pea.logger.debug("")
-        pea.logger.debug("pea.j2pt.templates_dir:")
-        for d in pea.j2pt.templates_dir:
+        pea.logger.debug("pea.prompt_template.templates_dir:")
+        for d in pea.prompt_template.templates_dir:
             pea.logger.debug(f"* {d}")
 
         pea.logger.debug("")

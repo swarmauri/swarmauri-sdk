@@ -21,7 +21,7 @@ class TestPeagen:
             template_base_dir="/test/templates",
         )
         instance.logger = mock_logger
-        instance.j2pt = MagicMock()
+        instance.prompt_template = MagicMock()
         return instance
 
     def test_initialization(self):
@@ -30,7 +30,7 @@ class TestPeagen:
         assert peagen.projects_payload_path == "test_payload.yaml"
         assert peagen.template_base_dir is None
         assert isinstance(peagen.agent_env, dict)
-        assert peagen.j2pt is not None
+        assert peagen.prompt_template is not None
         assert peagen.cwd == os.getcwd()
         assert peagen.projects_list == []
 
@@ -48,10 +48,10 @@ class TestPeagen:
             assert peagen.cwd in peagen.namespace_dirs
             assert "/custom/templates" in peagen.namespace_dirs
 
-            # Check j2pt templates_dir
-            assert str(Path("/additional/templates")) in peagen.j2pt.templates_dir
-            assert peagen.cwd in peagen.j2pt.templates_dir
-            assert "/custom/templates" in peagen.j2pt.templates_dir
+            # Check prompt_template templates_dir
+            assert str(Path("/additional/templates")) in peagen.prompt_template.templates_dir
+            assert peagen.cwd in peagen.prompt_template.templates_dir
+            assert "/custom/templates" in peagen.prompt_template.templates_dir
 
     def test_update_templates_dir(self, basic_peagen):
         """Test update_templates_dir method."""
@@ -62,14 +62,14 @@ class TestPeagen:
         basic_peagen.update_templates_dir("/package/templates")
 
         # Check updated templates_dir
-        assert basic_peagen.j2pt.templates_dir[0] == os.path.normpath(
+        assert basic_peagen.prompt_template.templates_dir[0] == os.path.normpath(
             "/package/templates"
         )
-        assert basic_peagen.j2pt.templates_dir[1] == os.path.normpath(
+        assert basic_peagen.prompt_template.templates_dir[1] == os.path.normpath(
             basic_peagen.cwd
         )
-        assert os.path.normpath("/add1") in basic_peagen.j2pt.templates_dir
-        assert os.path.normpath("/add2") in basic_peagen.j2pt.templates_dir
+        assert os.path.normpath("/add1") in basic_peagen.prompt_template.templates_dir
+        assert os.path.normpath("/add2") in basic_peagen.prompt_template.templates_dir
 
     def test_load_projects_dict(self, basic_peagen):
         """Test load_projects when YAML contains a dict with PROJECTS key."""
@@ -187,9 +187,9 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch.object(basic_peagen.j2pt, "set_template"):
+            with patch.object(basic_peagen.prompt_template, "set_template"):
                 with patch.object(
-                    basic_peagen.j2pt,
+                    basic_peagen.prompt_template,
                     "fill",
                     return_value=rendered_yaml,
                 ):
@@ -240,9 +240,9 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch.object(basic_peagen.j2pt, "set_template"):
+            with patch.object(basic_peagen.prompt_template, "set_template"):
                 with patch.object(
-                    basic_peagen.j2pt,
+                    basic_peagen.prompt_template,
                     "fill",
                     return_value="rendered content",
                 ):
@@ -292,9 +292,9 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch.object(basic_peagen.j2pt, "set_template"):
+            with patch.object(basic_peagen.prompt_template, "set_template"):
                 with patch.object(
-                    basic_peagen.j2pt,
+                    basic_peagen.prompt_template,
                     "fill",
                     return_value="rendered content",
                 ):
@@ -347,9 +347,9 @@ class TestPeagen:
             "peagen.core.Peagen.locate_template_set",
             return_value=Path("/test/templates/default"),
         ):
-            with patch.object(basic_peagen.j2pt, "set_template"):
+            with patch.object(basic_peagen.prompt_template, "set_template"):
                 with patch.object(
-                    basic_peagen.j2pt,
+                    basic_peagen.prompt_template,
                     "fill",
                     return_value="rendered content",
                 ):
