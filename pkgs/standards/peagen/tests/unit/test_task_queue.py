@@ -89,3 +89,24 @@ def test_redisqueue_basic(monkeypatch):
     result = Result(task_id="t1", status="ok", data={})
     q.push_result(result)
     assert q.wait_for_result("t1", 1).task_id == "t1"
+
+
+def test_list_pending_stubqueue():
+    q = StubQueue()
+    q.enqueue(Task(TaskKind.RENDER, "t1", {}))
+    q.enqueue(Task(TaskKind.MUTATE, "t2", {}))
+    tasks = list(q.list_pending())
+    assert [t.id for t in tasks] == ["t1", "t2"]
+    _ = q.pop(block=False)
+    ids = [t.id for t in q.list_pending()]
+    assert set(ids) == {"t1", "t2"}
+
+
+def test_list_pending_redis(monkeypatch):
+    fake = FakeRedis()
+    monkeypatch.setattr("redis.Redis.from_url", lambda *a, **k: fake)
+    q = RedisStreamQueue("redis://test")
+    q.enqueue(Task(TaskKind.RENDER, "a", {}))
+    q.enqueue(Task(TaskKind.MUTATE, "b", {}))
+    ids = [t.id for t in q.list_pending()]
+    assert ids == ["a", "b"]

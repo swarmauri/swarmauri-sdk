@@ -147,3 +147,10 @@ class RedisStreamQueue(TaskQueueBase):
             data = json.loads(fields["data"])
             tasks.append(Task(**data))
         return tasks
+
+    def list_pending(self, limit: int = 100):
+        """Yield up to ``limit`` pending tasks."""
+        items = self._r.xrange(self.STREAM_TASKS, count=limit)
+        for _id, fields in items:
+            data = json.loads(fields["data"])
+            yield Task(**data)

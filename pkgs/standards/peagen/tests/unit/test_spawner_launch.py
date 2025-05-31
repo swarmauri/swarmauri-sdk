@@ -22,6 +22,7 @@ def test_launch_worker_adds_no_detach(monkeypatch):
     monkeypatch.setattr('peagen.spawner.subprocess.Popen', fake_popen)
 
     cfg = SpawnerConfig(queue_url='stub://', caps=['cpu'])
+    monkeypatch.setattr('peagen.spawner.make_queue', lambda *a, **k: None)
     sp = WarmSpawner(cfg)
     sp._launch_worker()
 

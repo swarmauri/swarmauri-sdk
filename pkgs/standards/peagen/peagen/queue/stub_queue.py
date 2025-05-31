@@ -82,3 +82,12 @@ class StubQueue(TaskQueueBase):
         with self._lock:
             tasks = list(self._todo) + [t for t, _ in self._inflight.values()]
             return tasks[offset : offset + limit]
+
+    def list_pending(self, limit: int = 100):
+        """Yield up to ``limit`` pending tasks, including in-flight ones."""
+        with self._lock:
+            for task in list(self._todo) + [t for t, _ in self._inflight.values()]:
+                if limit <= 0:
+                    break
+                yield task
+                limit -= 1
