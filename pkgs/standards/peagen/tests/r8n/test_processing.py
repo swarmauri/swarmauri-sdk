@@ -2,7 +2,7 @@ import os
 import tempfile
 from unittest.mock import ANY, MagicMock, mock_open, patch
 
-from swarmauri_prompt_j2prompttemplate import j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from peagen._utils._processing import (
     _create_context,
     _process_file,
@@ -197,7 +197,8 @@ class TestProcessProjectFiles:
     @patch("peagen._utils._processing._process_file")
     def test_process_project_files(self, mock_process_file):
         """Test processing multiple file records."""
-        j2pt.templates_dir = ["default_templates"]
+        j2 = J2PromptTemplate()
+        j2.templates_dir = ["default_templates"]
 
         global_attrs = {"TEMPLATE_SET": "default_templates"}
         file_records = [
@@ -211,6 +212,7 @@ class TestProcessProjectFiles:
             file_records=file_records,
             template_dir="template_sets",
             agent_env={},
+            template_obj=j2,
             logger=MagicMock(),
         )
 
@@ -228,24 +230,27 @@ class TestProcessProjectFiles:
         mock_process_file.return_value = True
 
         # Set initial templates_dir
-        j2pt.templates_dir = ["original_templates"]
+        j2 = J2PromptTemplate()
+        j2.templates_dir = ["original_templates"]
 
         _process_project_files(
             global_attrs=global_attrs,
             file_records=file_records,
             template_dir="template_sets",
             agent_env={},
+            template_obj=j2,
             logger=mock_logger,
         )
 
-        # Check that j2pt.templates_dir was updated
-        assert j2pt.templates_dir[0] == "custom_templates"
+        # Check that template_obj.templates_dir was updated
+        assert j2.templates_dir[0] == "custom_templates"
         assert mock_logger.debug.call_count >= 1
 
     @patch("peagen._utils._processing._process_file")
     def test_process_project_files_stops_on_false(self, mock_process_file):
         """Test that processing stops if _process_file returns False."""
         global_attrs = {}
+        j2 = J2PromptTemplate()
         file_records = [
             {"RENDERED_FILE_NAME": "file1.txt"},
             {"RENDERED_FILE_NAME": "file2.txt"},
@@ -259,6 +264,7 @@ class TestProcessProjectFiles:
             file_records=file_records,
             template_dir="template_sets",
             agent_env={},
+            template_obj=j2,
             logger=MagicMock(),
         )
 

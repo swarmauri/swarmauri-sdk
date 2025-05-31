@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 import random
-import time
 from dataclasses import asdict
-from pathlib import Path
 
 from peagen.queue.model import Task, TaskKind, Result
-from peagen.handlers.base import TaskHandler
 from peagen.llm.ensemble import LLMEnsemble
 from peagen.prompt_sampler import PromptSampler
 from peagen.mutators.base import Mutator
 
 
 class PatchMutator(Mutator):
-    KIND = TaskKind.MUTATE
-    PROVIDES = {"llm", "cpu"}
+    KIND: TaskKind = TaskKind.MUTATE
+    PROVIDES: set[str] = {"llm", "cpu"}
 
     def dispatch(self, task: Task) -> bool:  # type: ignore[override]
         return task.kind == self.KIND
@@ -61,12 +58,12 @@ def apply_patch(src: str, diff: str) -> str:
         out.extend(src_lines[i:old_start])
         i = old_start
         while idx < len(lines) and not lines[idx].startswith("@@"):
-            l = lines[idx]
-            if l.startswith("-"):
+            line = lines[idx]
+            if line.startswith("-"):
                 i += 1
-            elif l.startswith("+"):
-                out.append(l[1:] + "\n")
-            elif l.startswith(" ") or l == "":
+            elif line.startswith("+"):
+                out.append(line[1:] + "\n")
+            elif line.startswith(" ") or line == "":
                 out.append(src_lines[i])
                 i += 1
             idx += 1

@@ -1,6 +1,8 @@
 import pytest
 from typer.testing import CliRunner
 from peagen.cli import app
+from peagen.queue.stub_queue import StubQueue
+from peagen.queue.model import Task, TaskKind
 
 
 @pytest.mark.unit
@@ -12,7 +14,7 @@ def test_render_invokes_run(monkeypatch):
         called["args"] = (project, out, queue)
 
     monkeypatch.setattr("peagen.commands.render.run_render", fake)
-    result = runner.invoke(app, ["render", "--project", "p.yaml", "--out", "dst", "--sync"])
+    result = runner.invoke(app, ["render", "render", "--project", "p.yaml", "--out", "dst", "--sync"])
     assert result.exit_code == 0
     assert called["args"] == ("p.yaml", "dst", False)
 
@@ -48,4 +50,15 @@ def test_help_lists_commands():
     assert "render" in result.output
     assert "mutate" in result.output
     assert "evolve" in result.output
+
+
+@pytest.mark.unit
+def test_queue_list_outputs_tasks(monkeypatch):
+    runner = CliRunner()
+    q = StubQueue()
+    q.enqueue(Task(TaskKind.RENDER, "x", {}, set()))
+    monkeypatch.setattr("peagen.commands.queue.list.make_queue", lambda *a, **k: q)
+    result = runner.invoke(app, ["queue", "list"])
+    assert result.exit_code == 0
+    assert "x" in result.output
 

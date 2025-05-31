@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import peagen.plugin_registry
 import peagen.template_sets
+
 import yaml
 from colorama import Fore, Style
 from colorama import init as colorama_init
@@ -28,8 +29,8 @@ from swarmauri_standard.loggers.Logger import Logger
 
 from .manifest_writer import ManifestWriter
 from ._utils.slug_utils import slugify
-from ._config import __logger_name__, _config, __version__
-from ._graph import _topological_sort, _transitive_dependency_sort
+from ._utils._config import __logger_name__, _config, __version__
+from ._utils._graph import _topological_sort, _transitive_dependency_sort
 from ._utils._processing import _process_project_files
 
 colorama_init(autoreset=True)
@@ -45,7 +46,7 @@ class Peagen(ComponentBase):
 
     storage_adapter: Optional[Any] = Field(default=None, exclude=True)
     agent_env: Dict[str, Any] = Field(default_factory=dict)
-    j2pt: Any = Field(default_factory=lambda: J2PromptTemplate())
+    prompt_template: Any = Field(default_factory=lambda: J2PromptTemplate())
 
     # Runtime / env setup
     cwd: str = Field(exclude=True, default_factory=os.getcwd)
@@ -147,8 +148,8 @@ class Peagen(ComponentBase):
 
         # Finalise
         self.namespace_dirs = ns_dirs
-        # j2pt expects *template search dirs* in templates_dir attr
-        self.j2pt.templates_dir = []
+        # prompt_template expects *template search dirs* in templates_dir attr
+        self.prompt_template.templates_dir = []
 
         return self
 
@@ -170,8 +171,10 @@ class Peagen(ComponentBase):
             ],
         ]
 
-        self.logger.debug(f"Updated from {self.j2pt.templates_dir} to {[os.path.normpath(d) for d in dirs]}")
-        self.j2pt.templates_dir = [os.path.normpath(d) for d in dirs]
+        self.logger.debug(
+            f"Updated from {self.prompt_template.templates_dir} to {[os.path.normpath(d) for d in dirs]}"
+        )
+        self.prompt_template.templates_dir = [os.path.normpath(d) for d in dirs]
 
     def locate_template_set(self, template_set: str) -> Path:
         """Search `namespace_dirs` for the given template-set folder."""
@@ -300,8 +303,8 @@ class Peagen(ComponentBase):
                 continue
 
             try:
-                self.j2pt.set_template(FilePath(ptree_template_path))
-                rendered_yaml_str = self.j2pt.fill(project_only_context)
+                self.prompt_template.set_template(FilePath(ptree_template_path))
+                rendered_yaml_str = self.prompt_template.fill(project_only_context)
             except Exception as e:
                 self.logger.error(
                     f"[{project_name}] Ptree render failure for package "
@@ -444,7 +447,7 @@ class Peagen(ComponentBase):
                 global_attrs=project,
                 file_records=sorted_records,
                 template_dir=template_dir,
-                j2pt = self.j2pt,
+                template_obj=self.prompt_template,
                 agent_env=self.agent_env,
                 logger=self.logger,
                 storage_adapter=self.storage_adapter,

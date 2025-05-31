@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from typing import List, Set
+from typing import List
 
 from peagen.queue import make_queue
 
@@ -24,7 +24,8 @@ class SpawnerConfig:
     def from_toml(cls, path: str) -> "SpawnerConfig":
         import tomllib
 
-        data = tomllib.loads(open(path, "rb").read())
+        with open(path, "r", encoding="utf-8") as f:
+            data = tomllib.loads(f.read())
         cfg = data.get("spawner", {})
         return cls(
             queue_url=cfg.get("queue_url", "stub://"),
@@ -52,7 +53,7 @@ class WarmSpawner:
             QUEUE_URL=self.cfg.queue_url,
             WORKER_CAPS=",".join(self.cfg.caps),
         )
-        cmd = [sys.executable, "-m", "peagen.cli", "worker", "start"]
+        cmd = [sys.executable, "-m", "peagen.cli", "worker", "start", "--no-detach"]
         p = subprocess.Popen(cmd, env=env)
         self.workers.append(p)
 
@@ -71,12 +72,17 @@ class WarmSpawner:
     def run(self) -> None:
         while True:
             pending = getattr(self.queue, "pending_count", lambda: 0)()
-            idle = self._cleanup_workers()
+            self._cleanup_workers()
             live = len(self.workers)
-            if pending > max(0, live - self.cfg.warm_pool):
-                to_launch = min(pending - (live - self.cfg.warm_pool), self.cfg.max_parallel)
-                for _ in range(to_launch):
-                    self._launch_worker()
+
+            desired = min(
+                self.cfg.max_parallel,
+                max(self.cfg.warm_pool, pending + self.cfg.warm_pool),
+            )
+            to_launch = max(0, desired - live)
+            for _ in range(to_launch):
+                self._launch_worker()
+
             self.queue.requeue_orphans(self.cfg.idle_ms)
             time.sleep(self.cfg.poll_ms / 1000)
 

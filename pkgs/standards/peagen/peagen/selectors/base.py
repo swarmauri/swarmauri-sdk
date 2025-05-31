@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
 from typing import List
+from swarmauri_base.ComponentBase import ComponentBase
 
 from peagen.evo_db import EvoDB, Program
 
@@ -41,6 +42,7 @@ class AdaptiveEpsilonSelector(SelectorBase):
     """Adaptive ε-greedy selector used by default."""
 
     def __init__(self, eps_init: float = 0.15, decay: float = 0.96, floor: float = 0.02) -> None:
+        super().__init__()
         self.eps = eps_init
         self.decay = decay
         self.floor = floor

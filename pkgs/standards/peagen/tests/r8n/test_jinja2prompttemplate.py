@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from jinja2 import Environment, Template
-from swarmauri_prompt_j2prompttemplate import J2PromptTemplate, j2pt
+from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from pydantic import FilePath
 
 
@@ -116,10 +116,6 @@ class TestJinja2PromptTemplate:
         result = template_instance.make_singular("dog")
         assert result == "dog"
 
-    def test_global_j2pt_instance(self):
-        """Test that the global j2pt instance is properly initialized"""
-        assert isinstance(j2pt, J2PromptTemplate)
-        assert j2pt.type == "J2PromptTemplate"
 
     def test_template_with_complex_variables(self, template_instance):
         """Test template rendering with complex variables"""

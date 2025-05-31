@@ -35,3 +35,19 @@ def test_spawner_launch(monkeypatch):
     with pytest.raises(SystemExit):
         sp.run()
     assert launched
+
+
+def test_spawner_maintains_warm_pool(monkeypatch):
+    q = StubQueue()
+
+    monkeypatch.setattr("peagen.spawner.make_queue", lambda *a, **k: q)
+
+    launched = []
+    monkeypatch.setattr(WarmSpawner, "_launch_worker", lambda self: launched.append(1))
+    monkeypatch.setattr("time.sleep", lambda x: (_ for _ in ()).throw(SystemExit))
+
+    cfg = SpawnerConfig(queue_url="stub://", caps=["cpu"], warm_pool=3, poll_ms=1)
+    sp = WarmSpawner(cfg)
+    with pytest.raises(SystemExit):
+        sp.run()
+    assert len(launched) == 3

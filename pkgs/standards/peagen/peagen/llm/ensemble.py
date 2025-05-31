@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import time
 from importlib.metadata import entry_points
-from typing import Dict, Any
+from typing import Dict
 
 from peagen.cli_common import load_peagen_toml
 

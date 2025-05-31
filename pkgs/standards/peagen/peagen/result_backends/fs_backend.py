@@ -6,14 +6,15 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable
 
-from .base import ResultBackend
+from .base import ResultBackendBase
 from peagen.queue.model import Result, TaskKind
 
 
-class FSBackend(ResultBackend):
+class FSBackend(ResultBackendBase):
     """Filesystem-backed result store."""
 
     def __init__(self, root: str = ".peagen/results", compress: bool = False) -> None:
+        super().__init__()
         self._root = Path(root).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
         self.compress = compress
@@ -28,7 +29,10 @@ class FSBackend(ResultBackend):
     def save(self, result: Result) -> None:
         path = self._path(result)
         tmp = path.with_suffix(".tmp")
-        data = json.dumps(asdict(result))
+        if hasattr(result, "model_dump_json"):
+            data = result.model_dump_json()
+        else:
+            data = json.dumps(asdict(result))
         tmp.write_text(data, encoding="utf-8")
         os.replace(tmp, path)
 

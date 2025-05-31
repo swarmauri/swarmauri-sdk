@@ -18,6 +18,7 @@ dependencies = [
     "redis", # this publisher needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
     "python-dotenv",
+    "psutil>=6.1.0",
     "pyyaml",
     "jinja2>=3.1.6",
     "jsonpatch>=1.33",

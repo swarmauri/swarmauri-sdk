@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Set
+
 from peagen.queue.model import Task, Result, TaskKind
 from .base import TaskHandlerBase
 

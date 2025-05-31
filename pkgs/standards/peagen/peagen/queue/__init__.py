@@ -14,5 +14,5 @@ def make_queue(provider: str, **kwargs) -> TaskQueueBase:
 
 def __getattr__(name: str):
     if name == "TaskQueueBase":
-        return TaskQueue
+        return TaskQueueBase
     raise AttributeError(name)

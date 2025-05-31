@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import deque
 from typing import Deque, Dict, Tuple
+from pydantic import PrivateAttr, ConfigDict
 import time
 import threading
 
@@ -12,11 +13,15 @@ from .model import Task, Result
 class StubQueue(TaskQueueBase):
     """In-memory queue used for development and CI."""
 
-    def __init__(self) -> None:
-        self._todo: Deque[Task] = deque()
-        self._inflight: Dict[str, Tuple[Task, float]] = {}
-        self._done: Dict[str, Result] = {}
-        self._lock = threading.Lock()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    _todo: Deque[Task] = PrivateAttr(default_factory=deque)
+    _inflight: Dict[str, Tuple[Task, float]] = PrivateAttr(default_factory=dict)
+    _done: Dict[str, Result] = PrivateAttr(default_factory=dict)
+    _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
+
+    def __init__(self, url: str | None = None) -> None:
+        super().__init__()
 
     def pending_count(self) -> int:
         with self._lock:
@@ -70,3 +75,19 @@ class StubQueue(TaskQueueBase):
                     del self._inflight[tid]
                     moved += 1
         return moved
+
+    # ------------------------------------------------------------------ inspect
+    def list_tasks(self, limit: int = 10, offset: int = 0) -> list[Task]:
+        """Return up to ``limit`` pending tasks starting at ``offset`` without consuming them."""
+        with self._lock:
+            tasks = list(self._todo) + [t for t, _ in self._inflight.values()]
+            return tasks[offset : offset + limit]
+
+    def list_pending(self, limit: int = 100):
+        """Yield up to ``limit`` pending tasks, including in-flight ones."""
+        with self._lock:
+            for task in list(self._todo) + [t for t, _ in self._inflight.values()]:
+                if limit <= 0:
+                    break
+                yield task
+                limit -= 1
