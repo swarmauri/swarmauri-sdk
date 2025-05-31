@@ -12,6 +12,9 @@ from peagen.queue import make_queue
 from peagen.queue.model import Result, Task, TaskKind
 from peagen.plugin_registry import registry
 from peagen.handlers.base import TaskHandlerBase
+
+# Backwards compatibility alias
+TaskHandler = TaskHandlerBase
 from swarmauri_base.ComponentBase import ComponentBase
 
 
@@ -29,7 +32,8 @@ class WorkerConfig:
         return cls(
             queue_url=os.environ.get("QUEUE_URL", "stub://"),
             caps=set(filter(None, os.environ.get("WORKER_CAPS", "").split(","))),
-            plugins=set(filter(None, os.environ.get("WORKER_PLUGINS", "").split(","))) or None,
+            plugins=set(filter(None, os.environ.get("WORKER_PLUGINS", "").split(",")))
+            or None,
             concurrency=int(os.environ.get("WORKER_CONCURRENCY", "1")),
             idle_exit=int(os.environ.get("WORKER_IDLE_EXIT", "600")),
             max_uptime=int(os.environ.get("WORKER_MAX_UPTIME", "3600")),
@@ -113,10 +117,13 @@ class OneShotWorker:
 
         return exit_reason
 
+
 class InlineWorker(ComponentBase):
     """Simple in-process worker for tests and local runs."""
 
-    def __init__(self, queue: make_queue.__annotations__["return"], caps: Set[str] | None = None) -> None:
+    def __init__(
+        self, queue: make_queue.__annotations__["return"], caps: Set[str] | None = None
+    ) -> None:
         super().__init__()
         self.queue = queue
         self.caps = caps or _env_caps()
@@ -131,7 +138,9 @@ class InlineWorker(ComponentBase):
 
     def pick_handler(self, task: Task) -> TaskHandlerBase | None:
         for handler in self.handlers:
-            if task.requires.issubset(getattr(handler, "PROVIDES", set())) and handler.dispatch(task):
+            if task.requires.issubset(
+                getattr(handler, "PROVIDES", set())
+            ) and handler.dispatch(task):
                 return handler
         return None
 
@@ -162,4 +171,10 @@ def _env_plugins() -> Set[str]:
     return {p.strip() for p in val.split(",") if p.strip()}
 
 
-__all__ = ["OneShotWorker", "WorkerConfig", "TaskHandlerBase", "InlineWorker"]
+__all__ = [
+    "OneShotWorker",
+    "WorkerConfig",
+    "TaskHandlerBase",
+    "TaskHandler",
+    "InlineWorker",
+]
