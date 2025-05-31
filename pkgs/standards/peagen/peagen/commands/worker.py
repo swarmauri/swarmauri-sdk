@@ -5,6 +5,7 @@ import typer
 import os
 import subprocess
 import sys
+import json
 import psutil
 
 from peagen.worker import OneShotWorker, WorkerConfig
@@ -73,12 +74,36 @@ def _find_workers() -> list[subprocess.Popen]:
 def list_workers(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show environment information"
-    )
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Output metadata as JSON"),
 ) -> None:
     """List running detached workers."""
     procs = _find_workers()
     if not procs:
         typer.echo("No workers found")
+        return
+
+    if json_output:
+        meta: list[dict[str, object]] = []
+        for p in procs:
+            try:
+                env = psutil.Process(p.pid).environ()
+                cmd = " ".join(p.cmdline())
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+            meta.append(
+                {
+                    "pid": p.pid,
+                    "id": env.get("WORKER_ID", str(p.pid)),
+                    "queue_url": env.get("QUEUE_URL", ""),
+                    "caps": [c for c in env.get("WORKER_CAPS", "").split(",") if c],
+                    "plugins": [p for p in env.get("WORKER_PLUGINS", "").split(",") if p],
+                    "concurrency": int(env.get("WORKER_CONCURRENCY", "1")),
+                    "warm_pool": env.get("WARM_POOL"),
+                    "cmd": cmd,
+                }
+            )
+        typer.echo(json.dumps(meta, indent=2))
         return
 
     if verbose:
@@ -131,3 +156,5 @@ def add_workers(
     for _ in range(count):
         start_worker(warm_pool=warm_pool, config=config, detach=True)
     typer.echo(f"Started {count} worker(s)")
+
+
