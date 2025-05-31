@@ -2,7 +2,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from peagen._external import call_external_agent, chunk_content
+from peagen._utils._external import call_external_agent, chunk_content
 
 
 class TestChunkContent:
@@ -102,8 +102,8 @@ class TestCallExternalAgent:
             patch(
                 "swarmauri.messages.SystemMessage.SystemMessage"
             ) as mock_system_message,
-            patch("peagen._llm.GenericLLM") as mock_generic_llm,
-            patch("peagen._external._config", {"truncate": True}),
+            patch("peagen._utils._llm.GenericLLM") as mock_generic_llm,
+            patch("peagen._utils._external._config", {"truncate": True}),
             patch.dict(os.environ, {}, clear=True),
         ):
             # Setup the mock chain
@@ -201,7 +201,7 @@ class TestCallExternalAgent:
         log_message = logger_mock.info.call_args[0][0]
         assert prompt[:140] in log_message
 
-    @patch("peagen._external.chunk_content")
+    @patch("peagen._utils._external.chunk_content")
     def test_call_external_agent_chunking(self, mock_chunk_content, mock_dependencies):
         """Test that the result is passed through chunk_content."""
         mock_chunk_content.return_value = "Chunked content"

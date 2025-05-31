@@ -1,6 +1,6 @@
 # tests/unit/test_config.py
 import pytest
-from peagen._config import __logger_name__, _config
+from peagen._utils._config import __logger_name__, _config
 
 
 @pytest.mark.r8n

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import typer
 
-from peagen._source_packages import materialise_packages
+from peagen._utils._source_packages import materialise_packages
 
 
 def _init_git_repo(repo: Path) -> str:
