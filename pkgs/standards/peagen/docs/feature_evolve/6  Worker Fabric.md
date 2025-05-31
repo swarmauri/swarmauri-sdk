@@ -126,7 +126,7 @@ wrap handler execution to record trace IDs alongside metrics and logs.
 
 ```bash
 export QUEUE_URL=stub://
-peagen worker start  # spins inline worker thread
+peagen worker start --no-detach  # spins inline worker thread
 ```
 
 **CPU cluster node**
