@@ -159,8 +159,8 @@ def _process_file(
         )
     # if j2_instance is None:
     #     j2_instance = J2PromptTemplate()
-    #     if j2pt.templates_dir:
-    #         j2_instance.templates_dir = [template_dir] + list(j2pt.templates_dir)
+    #     if template_obj.templates_dir:
+    #         j2_instance.templates_dir = [template_dir] + list(template_obj.templates_dir)
     #     else:
     #         j2_instance.templates_dir = [template_dir]
 
@@ -236,7 +236,7 @@ def _process_project_files(
     file_records: List[Dict[str, Any]],
     template_dir: str,
     agent_env: Dict[str, Any],
-    j2pt:  Any,
+    template_obj:  Any,
     logger: Optional[Any] = None,
     *,
     workspace_root: Path = Path("."),
@@ -272,7 +272,7 @@ def _process_project_files(
         Search order:
         1. this file’s template-set directory
         2. workspace_root      (freshly generated files live here)
-        3. inherited dirs from the project-level j2pt.templates_dir
+        3. inherited dirs from the project-level template_obj.templates_dir
            – already includes CWD and any exposed source-package dirs
         """
         try:
@@ -289,7 +289,7 @@ def _process_project_files(
 
             # ── 3. inherited dirs (CWD, exposed pkgs, etc.) ───────────────
             inherited: list[str] = [
-                os.path.normpath(d) for d in j2pt.templates_dir
+                os.path.normpath(d) for d in template_obj.templates_dir
             ]
 
             # Build ordered, de-duplicated search path
