@@ -135,7 +135,7 @@ services:
       - "8000:8000"                   # hostPort:containerPort
     environment:
       PG_HOST:              postgres
-      PB_USER:              ${POSTGRES_USER}
+      PG_USER:              ${POSTGRES_USER}
       PG_PASS:              ${POSTGRES_PASSWORD}
       PG_DB:                ${POSTGRES_DB}
       REDIS_HOST:           redis
