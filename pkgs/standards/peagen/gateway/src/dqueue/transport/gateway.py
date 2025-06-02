@@ -94,11 +94,8 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 
 async def _persist(task):
     async with Session() as s:
-        try:
-            await s.merge(TaskRun.from_task(task))
-            await s.commit()
-        except:
-            log.info("FAIL")
+        await s.merge(TaskRun.from_task(task))
+        await s.commit()
 
 # ──────────────────────   Publish Event  ─────────────────────────
 
