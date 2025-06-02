@@ -50,13 +50,13 @@ jobs:
 
         # Generate .env so Compose can resolve placeholders
         cat > .env <<EOF
-MINIO_ROOT_USER=${MINIO_ROOT_USER}
-POSTGRES_USER=${POSTGRES_USER}
-POSTGRES_DB=${POSTGRES_DB}
-PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-DATA_ROOT=${DATA_ROOT}
-CONFIG_ROOT=${CONFIG_ROOT}
-EOF
+          MINIO_ROOT_USER=${MINIO_ROOT_USER}
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_DB=${POSTGRES_DB}
+          PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+          DATA_ROOT=${DATA_ROOT}
+          CONFIG_ROOT=${CONFIG_ROOT}
+          EOF
 
     # ───────────────────────────────────────────────────────────────
     # 4) Pull & (re)create the stack
