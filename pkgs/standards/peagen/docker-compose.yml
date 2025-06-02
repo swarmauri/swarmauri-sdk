@@ -157,11 +157,11 @@ services:
       minio:
         condition: service_healthy
     ports:
-      - "9001:8000"                 
+      - "10001:8000"                 
     environment:
       DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
-      PORT:                     9001
+      PORT:                     10001
 
     restart: unless-stopped
     networks: [app_net]
