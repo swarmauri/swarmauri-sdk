@@ -40,6 +40,7 @@ jobs:
     # ───────────────────────────────────────────────────────────────
     - name: Prepare runtime secrets and env
       run: |
+        cd pkgs/standards/peagen
         # Write Docker-Secrets files (never committed to git)
         mkdir -p secrets
         echo "${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}"   > secrets/minio_root_password.txt
@@ -62,6 +63,8 @@ EOF
     # ───────────────────────────────────────────────────────────────
     - name: Deploy services with Docker Compose
       run: |
+        cd pkgs/standards/peagen
+        
         # Pull new images first; keeps downtime minimal
         sudo docker-compose pull
 
