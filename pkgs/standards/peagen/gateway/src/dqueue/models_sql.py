@@ -3,10 +3,11 @@ from sqlalchemy import Column, String, JSON, TIMESTAMP, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 from .models import Status  # reuse enum
+from pydantic import BaseModel
 
 Base = declarative_base()
 
-class TaskRun(Base):
+class TaskRun(BaseModel, Base):
     __tablename__ = "task_runs"
 
     id           = Column(UUID(as_uuid=True), primary_key=True)
