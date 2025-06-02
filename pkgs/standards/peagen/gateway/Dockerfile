@@ -13,10 +13,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY pyproject.toml ./
-COPY src/ ./src
-COPY scripts/ ./scripts
-COPY tests/ ./tests
+COPY . ./
 
 RUN uv pip install --system .
 
