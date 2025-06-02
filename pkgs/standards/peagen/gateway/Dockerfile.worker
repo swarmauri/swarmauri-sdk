@@ -6,8 +6,8 @@ RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential git && \
     pip install --no-cache-dir uv && \
     apt-get purge -y build-essential git && \
-    apt-get install -y curl && \
     apt-get autoremove -y && \
+    apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
 # ─────────────────── install Python deps with uv  ──────────────────
