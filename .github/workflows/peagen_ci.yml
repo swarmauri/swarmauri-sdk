@@ -4,6 +4,8 @@ name: Peagen CI Deploy
 on:
   push:
     branches: [ "master", "mono/dev" ]
+    paths:
+      - 'pkgs/standards/peagen'
   workflow_dispatch:
 
 concurrency:
@@ -35,7 +37,6 @@ jobs:
 
     # 2) Deploy / refresh the stack
     - name: Deploy with Docker Compose
-      working-directory: pkgs/standards/peagen
       run: |
         cd pkgs/standards/peagen
         # Pull latest images (optional—uncomment if desired)
