@@ -93,9 +93,12 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 # ──────────────────────   Results Backend ────────────────────────
 
 async def _persist(task: Task) -> None:
-    async with Session() as s:
-        await upsert_task(s, TaskRun.from_task(task))
-        await s.commit()
+    try:
+        async with Session() as s:
+            await upsert_task(s, TaskRun.from_task(task))
+            await s.commit()
+    except Exception as e:
+        log.warning(f"_persist error '{e}'")
 
 # ──────────────────────   Publish Event  ─────────────────────────
 
