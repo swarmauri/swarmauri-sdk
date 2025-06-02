@@ -22,6 +22,7 @@ dependencies = [
   "httpx[http2]>=0.27",
   "asyncpg>=0.30.0",
   "psycopg2>=2.9.10",
+  "psycopg2-binary"
 ]
 
 [project.optional-dependencies]
