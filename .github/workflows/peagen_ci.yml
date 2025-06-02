@@ -29,13 +29,6 @@ jobs:
     - uses: actions/checkout@v4
 
     # ───────────────────────────────────────────────────────────────
-    # 2) (Optional) Ensure Docker CLI & Compose v2 are present
-    #    Self-hosted runner usually has them, so skip if not needed.
-    # ───────────────────────────────────────────────────────────────
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    # ───────────────────────────────────────────────────────────────
     # 3) Create secret files + .env expected by docker-compose.yml
     # ───────────────────────────────────────────────────────────────
     - name: Prepare runtime secrets and env
