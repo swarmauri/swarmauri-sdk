@@ -2,7 +2,7 @@
 from sqlalchemy import insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models_sql import TaskRun
+from dqueue.models_sql import TaskRun
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     stmt = (
