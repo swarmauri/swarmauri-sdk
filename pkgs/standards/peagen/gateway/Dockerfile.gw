@@ -23,9 +23,10 @@ EXPOSE 8000
 
 ENV \
     PG_HOST="" \
+    PG_PORT="" \
+    PG_DB="" \
     PB_USER="" \
     PG_PASS="" \
-    PG_DB="" \
     REDIS_HOST="" \
     REDIS_PASSWORD="" \
     MINIO_USER="" \
