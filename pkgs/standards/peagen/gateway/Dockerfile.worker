@@ -25,4 +25,4 @@ ENV \
     DQ_GATEWAY = ""\
     PORT = ""
 
-CMD ["python", "-m", "scripts.dev_worker", "--gw", "${DQ_GATEWAY}",  --pool", ${DQ_POOL}", "--port", ${PORT}"]
+CMD ["python", "-m", "scripts.dev_worker", "--gw", "${DQ_GATEWAY}",  --pool", ${DQ_POOL}", "--port", "${PORT}"]
