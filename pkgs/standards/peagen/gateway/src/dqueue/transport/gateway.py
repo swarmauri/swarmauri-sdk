@@ -28,6 +28,7 @@ from ..db import Session
 from ..models_sql import TaskRun
 
 from dqueue.db import engine
+from dqueue.db_helpers import upsert_task
 from dqueue.models_sql import Base
 
 # ─────────────────────────── logging ────────────────────────────
@@ -92,32 +93,10 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 
 # ──────────────────────   Results Backend ────────────────────────
 
-async def _persist(task):
-    stmt = (
-        insert(task_runs_table)
-        .values(
-            id=task.id,
-            pool=task.pool,
-            task_type=task.payload.get("kind", "unknown"),
-            status=task.status,
-            payload=task.payload,
-            result=task.result,
-            artifact_uri=task.result.get("artifact_uri") if task.result else None,
-            started_at=task.started_at,
-            finished_at=datetime.utcnow() if task.is_terminal else None,
-        )
-        .on_conflict_do_update(
-            index_elements=["id"],
-            set_={
-                "status":        task.status,
-                "result":        task.result,
-                "artifact_uri":  task.result.get("artifact_uri") if task.result else None,
-                "finished_at":   datetime.utcnow() if task.is_terminal else None,
-            },
-        )
-    )
+async def _persist(task: Task) -> None:
+    from .models_sql import TaskRun
     async with Session() as s:
-        await s.execute(stmt)
+        await upsert_task(s, TaskRun.from_task(task))
         await s.commit()
 
 # ──────────────────────   Publish Event  ─────────────────────────
