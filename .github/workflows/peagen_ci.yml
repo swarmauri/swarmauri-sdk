@@ -23,13 +23,13 @@ jobs:
       MINIO_ROOT_USER:           minioadmin
       POSTGRES_USER:             npm
       POSTGRES_DB:               npm
-      PGADMIN_DEFAULT_EMAIL:     jacob@swarmauri.com
 
       # --- sensitive values (GitHub *Secrets*) ---
       MINIO_ROOT_PASSWORD:       ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
       REDIS_PASSWORD:            ${{ secrets.PEAGEN_REDIS_PASSWORD }}
       POSTGRES_PASSWORD:         ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
       PGADMIN_DEFAULT_PASSWORD:  ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
+      PGADMIN_DEFAULT_EMAIL:     ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
 
     steps:
     # 1) Check out the repo
