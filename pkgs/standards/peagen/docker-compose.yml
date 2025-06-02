@@ -122,8 +122,8 @@ services:
 
   gateway:
     build:
-      context: .                      # project root as build context
-      dockerfile: gateway/Dockerfile
+      context: gateway                      # project root as build context
+      dockerfile: Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
