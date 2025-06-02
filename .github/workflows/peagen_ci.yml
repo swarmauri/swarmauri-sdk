@@ -29,7 +29,7 @@ jobs:
     - uses: actions/checkout@v4
 
     # ───────────────────────────────────────────────────────────────
-    # 3) Create secret files + .env expected by docker-compose.yml
+    # 2) Create secret files + .env expected by docker-compose.yml
     # ───────────────────────────────────────────────────────────────
     - name: Prepare runtime secrets and env
       run: |
@@ -52,14 +52,14 @@ jobs:
           EOF
 
     # ───────────────────────────────────────────────────────────────
-    # 4) Pull & (re)create the stack
+    # 3) Pull & (re)create the stack
     # ───────────────────────────────────────────────────────────────
     - name: Deploy services with Docker Compose
       run: |
         cd pkgs/standards/peagen
 
         # Pull new images first; keeps downtime minimal
-        sudo docker-compose pull
+        # sudo docker-compose pull
 
         # Tear down old containers that are no longer in the file
         sudo docker-compose down --remove-orphans
