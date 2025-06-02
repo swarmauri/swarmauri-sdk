@@ -93,7 +93,6 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 # ──────────────────────   Results Backend ────────────────────────
 
 async def _persist(task: Task) -> None:
-    from .models_sql import TaskRun
     async with Session() as s:
         await upsert_task(s, TaskRun.from_task(task))
         await s.commit()
