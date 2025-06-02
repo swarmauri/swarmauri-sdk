@@ -87,7 +87,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports: [ "5050:80" ]
     volumes:
-      - "${CONFIG_ROOT}/pgadmin:/var/lib/pgadmin"
+      - ${CONFIG_ROOT}/pgadmin:/var/lib/pgadmin:rw
     restart: unless-stopped
     networks: [app_net]
 
