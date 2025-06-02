@@ -143,6 +143,7 @@ services:
       MINIO_USER:           ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
     restart: unless-stopped
+    networks: [app_net]
 
 networks:
   app_net: {driver: bridge}
