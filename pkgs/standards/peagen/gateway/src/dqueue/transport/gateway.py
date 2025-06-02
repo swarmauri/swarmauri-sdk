@@ -93,8 +93,31 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 # ──────────────────────   Results Backend ────────────────────────
 
 async def _persist(task):
+    stmt = (
+        insert(task_runs_table)
+        .values(
+            id=task.id,
+            pool=task.pool,
+            task_type=task.payload.get("kind", "unknown"),
+            status=task.status,
+            payload=task.payload,
+            result=task.result,
+            artifact_uri=task.result.get("artifact_uri") if task.result else None,
+            started_at=task.started_at,
+            finished_at=datetime.utcnow() if task.is_terminal else None,
+        )
+        .on_conflict_do_update(
+            index_elements=["id"],
+            set_={
+                "status":        task.status,
+                "result":        task.result,
+                "artifact_uri":  task.result.get("artifact_uri") if task.result else None,
+                "finished_at":   datetime.utcnow() if task.is_terminal else None,
+            },
+        )
+    )
     async with Session() as s:
-        await s.merge(TaskRun.from_task(task))
+        await s.execute(stmt)
         await s.commit()
 
 # ──────────────────────   Publish Event  ─────────────────────────
