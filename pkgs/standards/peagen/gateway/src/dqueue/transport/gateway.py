@@ -94,6 +94,7 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 
 async def _persist(task: Task) -> None:
     try:
+        log.info(f"Writing {task}")
         async with Session() as s:
             await upsert_task(s, TaskRun.from_task(task))
             await s.commit()
