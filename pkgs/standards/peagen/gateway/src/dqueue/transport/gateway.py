@@ -297,6 +297,17 @@ async def scheduler():
                 await redis.rpush(queue_key, task_raw)  # retry later
 
 
+
+# ─────────────────────────────── Healthcheck ───────────────────────────────
+@app.get("/health", tags=["health"])
+async def health() -> dict:
+    """
+    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Docker’s healthcheck will curl this endpoint.
+    """
+    return {"status": "ok"}
+
+# ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
     async with engine.begin() as conn:

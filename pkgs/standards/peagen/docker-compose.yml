@@ -142,6 +142,11 @@ services:
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       MINIO_USER:           ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     networks: [app_net]
 
@@ -155,6 +160,8 @@ services:
       redis:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      gateway:
         condition: service_healthy
     ports:
       - "10001:8000"                 
