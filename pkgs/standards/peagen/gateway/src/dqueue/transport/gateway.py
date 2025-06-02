@@ -175,6 +175,7 @@ async def task_submit(pool: str, payload: dict):
         task = Task(id=str(uuid.uuid4()), pool=pool, payload=payload)
         await redis.rpush(f"queue:{pool}", task.model_dump_json())
         await redis.hset("task:index", task.id, task.model_dump_json())
+        await _persist(task)
         log.info("task %s queued in %s", task.id, pool)
         return {"taskId": task.id}
     except Exception as e:
