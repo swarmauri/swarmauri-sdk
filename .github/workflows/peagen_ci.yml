@@ -30,6 +30,7 @@ jobs:
       POSTGRES_PASSWORD:         ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
       PGADMIN_DEFAULT_PASSWORD:  ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
       PGADMIN_DEFAULT_EMAIL:     ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
+      POOL_GATEWAY_URL:          ${{ secrets.PEAGEN_GATEWAY_URL }}
 
     steps:
     # 1) Check out the repo
