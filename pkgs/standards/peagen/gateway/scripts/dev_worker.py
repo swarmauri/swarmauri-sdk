@@ -2,11 +2,13 @@ import os, argparse, uvicorn
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--host", default="localhost")
     ap.add_argument("--gw", default="http://localhost:8000/rpc")
     ap.add_argument("--pool", default="default")
     ap.add_argument("--port", default=9001, type=int)
     args = ap.parse_args()
 
+    os.environ["DQ_HOST"] = args.host
     os.environ["DQ_GATEWAY"] = args.gw
     os.environ["DQ_POOL"] = args.pool
     os.environ["PORT"]   = str(args.port)

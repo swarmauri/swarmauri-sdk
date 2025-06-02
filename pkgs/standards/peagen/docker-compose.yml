@@ -123,7 +123,7 @@ services:
   gateway:
     build:
       context: gateway                      # project root as build context
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.gw
     depends_on:
       postgres:
         condition: service_healthy
@@ -142,6 +142,27 @@ services:
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       MINIO_USER:           ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
+    restart: unless-stopped
+    networks: [app_net]
+
+  worker:
+    build:
+      context: gateway
+      dockerfile: Dockerfile.worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      gateway:
+    ports:
+      - "9001:8000"                 
+    environment:
+      DQ_POOL:                  "default"
+      PORT:                     9001
+
     restart: unless-stopped
     networks: [app_net]
 

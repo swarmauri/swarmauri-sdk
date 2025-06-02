@@ -1,0 +1,27 @@
+# ───────────────────────── base image ──────────────────────────────
+FROM python:3.12-slim
+
+# ─────────────────── system deps + uv package manager ──────────────
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends build-essential git && \
+    pip install --no-cache-dir uv && \
+    apt-get purge -y build-essential git && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# ─────────────────── install Python deps with uv  ──────────────────
+WORKDIR /app
+
+# 1. Copy only dependency-defining files first (better layer caching)
+COPY . ./
+
+RUN uv pip install --system .
+
+# ────────────────── runtime configuration  ─────────────────────────
+EXPOSE 8000
+
+ENV \
+    DQ_POOL = ""\
+    PORT = ""
+    
+CMD ["python", "-m", "scripts.dev_worker", "--pool", ${DQ_POOL}", "--port", ${PORT}"]
