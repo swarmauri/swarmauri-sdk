@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential git && \
     pip install --no-cache-dir uv && \
     apt-get purge -y build-essential git && \
-    apt-get purge -y curl && \
+    apt-get install -y curl && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -22,9 +22,9 @@ RUN uv pip install --system .
 EXPOSE 8000
 
 ENV \
-    DQ_POOL = ""\
-    DQ_GATEWAY = ""\
-    PORT = ""
+    DQ_POOL=""\
+    DQ_GATEWAY=""\
+    PORT=""
 
 CMD ["python", "-c", "\
 import uvicorn; \
