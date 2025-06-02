@@ -45,7 +45,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 # ──────────────────────────── globals  ────────────────────────────
 POOL        = os.getenv("DQ_POOL", "default")
-GATEWAY_URL = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+DQ_GATEWAY = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
 WORKER_ID   = os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
 PORT        = int(os.getenv("PORT", "9001"))
 HOST        = os.getenv("DQ_HOST", "localhost")
@@ -124,7 +124,7 @@ async def _notify(state: str, task_id: str, result: Dict[str, Any] | None = None
         "method": "Work.finished",
         "params": {"taskId": task_id, "status": state, "result": result},
     }
-    await _client.post(GATEWAY_URL, json=payload)
+    await _client.post(DQ_GATEWAY, json=payload)
     log.info("Work.finished sent    task=%s state=%s", task_id, state)
 
 
@@ -142,7 +142,7 @@ async def _startup():
             "method": method,
             "params": params,
         }
-        await _client.post(GATEWAY_URL, json=body)
+        await _client.post(DQ_GATEWAY, json=body)
         log.debug("sent %s → %s", method, params)
 
     # ───── register
