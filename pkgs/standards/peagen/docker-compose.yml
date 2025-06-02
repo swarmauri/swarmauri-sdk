@@ -166,9 +166,9 @@ services:
     ports:
       - "10001:8000"                 
     environment:
-      DQ_GATEWAY:               ${POOL_GATEWAY_URL}
+      DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
-      PORT:                     10001
+      PORT:                     8000
 
     restart: unless-stopped
     networks: [app_net]
