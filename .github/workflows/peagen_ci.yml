@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "master", "mono/dev" ]
     paths:
-      - 'pkgs/standards/peagen'
+      - "pkgs/standards/peagen/**"
   workflow_dispatch:
 
 concurrency:
