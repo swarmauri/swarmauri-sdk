@@ -28,7 +28,9 @@ class IEnsemble(ABC):
         pass
 
     @abstractmethod
-    async def aroute_by_provider(self, provider: str, prompt: str, **kwargs: Any) -> Any:
+    async def aroute_by_provider(
+        self, provider: str, prompt: str, **kwargs: Any
+    ) -> Any:
         """Asynchronously route a request to a specific provider."""
         pass
 

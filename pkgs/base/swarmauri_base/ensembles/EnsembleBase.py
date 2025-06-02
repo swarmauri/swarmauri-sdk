@@ -36,7 +36,9 @@ class EnsembleBase(IEnsemble, ComponentBase):
             raise ValueError(f"Provider '{provider}' not found")
         return llm.predict(prompt, **kwargs)
 
-    async def aroute_by_provider(self, provider: str, prompt: str, **kwargs: Any) -> Any:
+    async def aroute_by_provider(
+        self, provider: str, prompt: str, **kwargs: Any
+    ) -> Any:
         llm = self.llms.get(provider)
         if not llm:
             raise ValueError(f"Provider '{provider}' not found")
