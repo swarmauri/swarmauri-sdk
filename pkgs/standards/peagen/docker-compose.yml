@@ -160,6 +160,7 @@ services:
     ports:
       - "9001:8000"                 
     environment:
+      DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
       PORT:                     9001
 
