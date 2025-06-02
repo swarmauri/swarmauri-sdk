@@ -25,11 +25,10 @@ from .jsonrpc import RPCDispatcher
 from .schemas import RPCRequest, RPCResponse
 
 from ..db import Session
-from ..models_sql import TaskRun
 
 from dqueue.db import engine
 from dqueue.db_helpers import upsert_task
-from dqueue.models_sql import Base
+from dqueue.models_sql import Base, TaskRun
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
