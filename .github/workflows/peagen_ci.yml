@@ -44,4 +44,4 @@ jobs:
 
         # Recreate the stack with the env vars already in scope
         sudo -E docker-compose down --remove-orphans
-        sudo -E docker-compose up -d --force-recreate
+        sudo -E docker-compose up -d --force-recreate --build
