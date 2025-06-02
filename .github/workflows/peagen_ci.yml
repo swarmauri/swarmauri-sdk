@@ -6,63 +6,47 @@ on:
     branches: [ "master", "mono/dev" ]
   workflow_dispatch:
 
-concurrency:                     # never run two deploys in parallel
+concurrency:
   group: deploy
   cancel-in-progress: true
 
 jobs:
   deploy:
     name: Deploy infrastructure
-    runs-on: peagenx             # your self-hosted runner label
-    env:                         # non-secret env shared by all steps
-      DATA_ROOT:   /mnt/data
-      CONFIG_ROOT: /mnt/config
-      MINIO_ROOT_USER: minioadmin
-      POSTGRES_USER: npm
-      POSTGRES_DB:   npm
-      PGADMIN_DEFAULT_EMAIL: jacob@swarmauri.com
+    runs-on: peagenx               # self-hosted runner with Docker
+    # ────────────────────────────────────────────────
+    # All variables live in Actions settings
+    #   • Secrets → encrypted                     (${ secrets.* })
+    #   • Variables → plain, non-secret           (${ vars.* })
+    # They are exported to the runner’s env so
+    # docker-compose can substitute them directly.
+    # ────────────────────────────────────────────────
+    env:
+      # --- non-secret values (GitHub Variables) ---
+      DATA_ROOT:                 /mnt/data
+      CONFIG_ROOT:               /mnt/config
+      MINIO_ROOT_USER:           minioadmin
+      POSTGRES_USER:             npm
+      POSTGRES_DB:               npm
+      PGADMIN_DEFAULT_EMAIL:     jacob@swarmauri.com
+
+      # --- sensitive values (GitHub *Secrets*) ---
+      MINIO_ROOT_PASSWORD:       ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
+      REDIS_PASSWORD:            ${{ secrets.PEAGEN_REDIS_PASSWORD }}
+      POSTGRES_PASSWORD:         ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
+      PGADMIN_DEFAULT_PASSWORD:  ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
 
     steps:
-    # ───────────────────────────────────────────────────────────────
-    # 1) Checkout repo
-    # ───────────────────────────────────────────────────────────────
+    # 1) Check out the repo
     - uses: actions/checkout@v4
 
-    # ───────────────────────────────────────────────────────────────
-    # 2) Create secret files + .env expected by docker-compose.yml
-    # ───────────────────────────────────────────────────────────────
-    - name: Prepare runtime secrets and env
+    # 2) Deploy / refresh the stack
+    - name: Deploy with Docker Compose
+      working-directory: pkgs/standards/peagen
       run: |
-        cd pkgs/standards/peagen
-        # Write Docker-Secrets files (never committed to git)
-        mkdir -p secrets
-        echo "${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}"   > secrets/minio_root_password.txt
-        echo "${{ secrets.PEAGEN_REDIS_PASSWORD }}"        > secrets/redis_password.txt
-        echo "${{ secrets.PEAGEN_POSTGRES_PASSWORD }}"     > secrets/postgres_password.txt
-        echo "${{ secrets.PEAGEN_PGADMIN_PASSWORD }}"      > secrets/pgadmin_password.txt
+        # Pull latest images (optional—uncomment if desired)
+        # sudo docker compose pull
 
-        # Generate .env so Compose can resolve placeholders
-        cat > .env <<EOF
-          MINIO_ROOT_USER=${MINIO_ROOT_USER}
-          POSTGRES_USER=${POSTGRES_USER}
-          POSTGRES_DB=${POSTGRES_DB}
-          PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-          DATA_ROOT=${DATA_ROOT}
-          CONFIG_ROOT=${CONFIG_ROOT}
-          EOF
-
-    # ───────────────────────────────────────────────────────────────
-    # 3) Pull & (re)create the stack
-    # ───────────────────────────────────────────────────────────────
-    - name: Deploy services with Docker Compose
-      run: |
-        cd pkgs/standards/peagen
-
-        # Pull new images first; keeps downtime minimal
-        # sudo docker-compose pull
-
-        # Tear down old containers that are no longer in the file
-        sudo docker-compose down --remove-orphans
-
-        # Bring everything back up, applying new images & secrets
-        sudo docker-compose up -d --force-recreate
+        # Recreate the stack with the env vars already in scope
+        sudo docker compose down --remove-orphans
+        sudo docker compose up -d --force-recreate
