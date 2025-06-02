@@ -102,6 +102,13 @@ services:
       - "80:80"     # HTTP
       - "443:443"   # HTTPS
       - "81:81"     # Admin UI
+    environment:
+      DB_POSTGRES_HOST:     postgres
+      DB_POSTGRES_PORT:     5342
+      DB_POSTGRES_USER:     ${POSTGRES_USER}
+      DB_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POSTGRES_NAME:     ${POSTGRES_DB}
+
     volumes:
       - "${CONFIG_ROOT}/npm/data:/data"
       - "${CONFIG_ROOT}/npm/letsencrypt:/etc/letsencrypt"
