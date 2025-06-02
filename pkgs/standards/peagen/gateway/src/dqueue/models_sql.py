@@ -1,10 +1,14 @@
 import datetime as dt
+from typing import Any, Dict, Iterable, Optional
+
 from sqlalchemy import Column, String, JSON, TIMESTAMP, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
+
 from .models import Status  # reuse enum
 
 Base = declarative_base()
+
 
 class TaskRun(Base):
     __tablename__ = "task_runs"
@@ -19,8 +23,10 @@ class TaskRun(Base):
     started_at   = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
     finished_at  = Column(TIMESTAMP(timezone=True), nullable=True)
 
+    # ──────────────────────────────────────────────────────────────
     @classmethod
-    def from_task(cls, task):
+    def from_task(cls, task) -> "TaskRun":
+        """Factory: build a TaskRun row from an in-memory Task object."""
         return cls(
             id=task.id,
             pool=task.pool,
@@ -28,12 +34,17 @@ class TaskRun(Base):
             status=task.status,
             payload=task.payload,
             result=task.result,
-            artifact_uri=task.result.get("artifact") if task.result else None,
+            artifact_uri=(
+                task.result.get("artifact_uri")
+                if task.result and isinstance(task.result, dict)
+                else None
+            ),
             finished_at=dt.datetime.utcnow()
             if task.status in {Status.success, Status.failed, Status.cancelled}
             else None,
         )
 
+    # ──────────────────────────────────────────────────────────────
     def to_dict(self, *, exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
         """
         Convert this SQLAlchemy row into a plain dict.
