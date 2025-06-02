@@ -135,9 +135,10 @@ services:
       - "8000:8000"                   # hostPort:containerPort
     environment:
       PG_HOST:              postgres
+      PG_PORT:              5342
+      PG_DB:                ${POSTGRES_DB}
       PG_USER:              ${POSTGRES_USER}
       PG_PASS:              ${POSTGRES_PASSWORD}
-      PG_DB:                ${POSTGRES_DB}
       REDIS_HOST:           redis
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       MINIO_USER:           ${MINIO_ROOT_USER}
