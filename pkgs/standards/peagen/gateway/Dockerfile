@@ -20,7 +20,16 @@ RUN uv pip install --system .
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
 
-
+ENV \
+    PG_HOST="" \
+    PB_USER="" \
+    PG_PASS="" \
+    PG_DB="" \
+    REDIS_HOST="" \
+    REDIS_PASSWORD="" \
+    MINIO_USER="" \
+    MINIO_ROOT_PASSWORD=""
+    
 CMD ["python", "-c", "\
 import uvicorn; \
 uvicorn.run('dqueue.transport.gateway:app', \
