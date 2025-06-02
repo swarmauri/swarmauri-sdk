@@ -120,5 +120,29 @@ services:
     restart: unless-stopped
     networks: [app_net]
 
+  gateway:
+    build:
+      context: .                      # project root as build context
+      dockerfile: gateway/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "8000:8000"                   # hostPort:containerPort
+    environment:
+      PG_HOST:              postgres
+      PB_USER:              ${POSTGRES_USER}
+      PG_PASS:              ${POSTGRES_PASSWORD}
+      PG_DB:                ${POSTGRES_DB}
+      REDIS_HOST:           redis
+      REDIS_PASSWORD:       ${REDIS_PASSWORD}
+      MINIO_USER:           ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
+    restart: unless-stopped
+
 networks:
   app_net: {driver: bridge}

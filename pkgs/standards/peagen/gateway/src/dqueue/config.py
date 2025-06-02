@@ -12,7 +12,7 @@ load_dotenv()
 class Settings(BaseSettings):
     # ───────── Redis connection ─────────
     # Default each field to the corresponding os.environ[...] (or fallback literal).
-    redis_host: str = Field(os.environ.get("REDIS_HOST", "149.255.38.126"))
+    redis_host: str = Field(os.environ.get("REDIS_HOST"))
     redis_port: int = Field(int(os.environ.get("REDIS_PORT", "6379")))
     redis_db: int = Field(int(os.environ.get("REDIS_DB", "0")))
     redis_password: str = Field(os.environ["REDIS_PASSWORD"])
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     # ───────── Postgres results-backend ─────────
-    pg_host: str = Field(os.environ.get("PG_HOST", "149.255.38.126"))
+    pg_host: str = Field(os.environ.get("PG_HOST"))
     pg_port: int = Field(int(os.environ.get("PG_PORT", "5342")))
     pg_db: str = Field(os.environ["PG_DB"])
     pg_user: str = Field(os.environ["PG_USER"])
