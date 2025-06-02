@@ -12,6 +12,7 @@ class Role(str, Enum):
 
 class Status(str, Enum):
     pending = "pending"
+    dispatched = "dispatched"
     running = "running"
     success = "success"
     failed = "failed"

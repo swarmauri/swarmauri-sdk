@@ -287,7 +287,7 @@ async def scheduler():
                 if resp.status_code != 200:
                     raise RuntimeError(f"HTTP {resp.status_code}")
 
-                task.status = Status.running
+                task.status = Status.dispatched
                 await redis.hset("task:index", task.id, task.model_dump_json())
                 await _persist(task)
                 await _publish_event(task)
