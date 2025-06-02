@@ -7,10 +7,10 @@ from dqueue.models_sql import TaskRun
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     stmt = (
         pg_insert(TaskRun)
-        .values(**row.model_dump_json())                       # <-- helper method you add
+        .values(**row.to_dict())                       # <-- helper method you add
         .on_conflict_do_update(
             index_elements=["id"],                     # primary key
-            set_=row.model_dump_json(exclude={"id"}),          # update everything else
+            set_=row.to_dict(exclude={"id"}),          # update everything else
         )
     )
     await session.execute(stmt)
