@@ -1,4 +1,4 @@
-# File: .github/workflows/peagen/ci.yaml
+# File: .github/workflows/peagen_ci.yaml
 name: Peagen CI Deploy
 
 on:
@@ -6,6 +6,7 @@ on:
     branches: [ "master", "mono/dev" ]
     paths:
       - 'pkgs/standards/peagen'
+      - '.github/workflows/peagen_ci.yaml'
   workflow_dispatch:
 
 concurrency:
