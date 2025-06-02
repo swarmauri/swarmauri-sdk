@@ -6,6 +6,7 @@ RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential git && \
     pip install --no-cache-dir uv && \
     apt-get purge -y build-essential git && \
+    apt-get purge -y curl && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
