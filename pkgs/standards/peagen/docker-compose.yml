@@ -30,7 +30,6 @@ services:
       retries: 3
     restart: unless-stopped
     networks: [app_net]
-    secrets: [minio_root_password]
 
   # ────────────────────────────────────────────────
   # Redis
@@ -53,7 +52,6 @@ services:
       retries: 3
     restart: unless-stopped
     networks: [app_net]
-    secrets: [redis_password]
 
   # ────────────────────────────────────────────────
   # PostgreSQL
@@ -76,7 +74,6 @@ services:
       retries: 3
     restart: unless-stopped
     networks: [app_net]
-    secrets: [postgres_password]
 
   # pgAdmin
   pgadmin:
@@ -93,7 +90,6 @@ services:
       - "${CONFIG_ROOT}/pgadmin:/var/lib/pgadmin"
     restart: unless-stopped
     networks: [app_net]
-    secrets: [pgadmin_password]
 
   # Nginx Proxy Manager
   nginx-proxy-manager:
@@ -116,15 +112,6 @@ services:
       retries: 3
     restart: unless-stopped
     networks: [app_net]
-
-# -----------------------------------------------------------------
-# Swarm / Compose v3 secrets
-# -----------------------------------------------------------------
-secrets:
-  minio_root_password: {file: ./secrets/minio_root_password.txt}
-  redis_password:      {file: ./secrets/redis_password.txt}
-  postgres_password:   {file: ./secrets/postgres_password.txt}
-  pgadmin_password:    {file: ./secrets/pgadmin_password.txt}
 
 networks:
   app_net: {driver: bridge}

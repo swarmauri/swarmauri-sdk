@@ -6,7 +6,6 @@ on:
     branches: [ "master", "mono/dev" ]
     paths:
       - 'pkgs/standards/peagen'
-      - '.github/workflows/peagen_ci.yaml'
   workflow_dispatch:
 
 concurrency:
