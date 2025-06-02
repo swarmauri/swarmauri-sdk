@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from .config import settings
 
 engine = create_async_engine(
-    settings.pg_dsn,
+    settings.apg_dsn,
     pool_size=10,
     max_overflow=20,
     echo=False,

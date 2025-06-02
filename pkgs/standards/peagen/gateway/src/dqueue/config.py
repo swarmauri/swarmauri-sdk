@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     @property
     def pg_dsn(self) -> str:
         return (
+            f"postgresql://{self.pg_user}:{self.pg_pass}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+        )
+
+    @property
+    def apg_dsn(self) -> str:
+        return (
             f"postgresql+asyncpg://{self.pg_user}:{self.pg_pass}"
             f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
         )
