@@ -1,5 +1,5 @@
 # File: .github/workflows/peagen/ci.yaml
-name: CI Deploy
+name: Peagen CI Deploy
 
 on:
   push:
@@ -64,7 +64,7 @@ EOF
     - name: Deploy services with Docker Compose
       run: |
         cd pkgs/standards/peagen
-        
+
         # Pull new images first; keeps downtime minimal
         sudo docker-compose pull
 
