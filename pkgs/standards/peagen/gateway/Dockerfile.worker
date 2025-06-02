@@ -22,6 +22,7 @@ EXPOSE 8000
 
 ENV \
     DQ_POOL = ""\
+    DQ_GATEWAY\
     PORT = ""
-    
-CMD ["python", "-m", "scripts.dev_worker", "--pool", ${DQ_POOL}", "--port", ${PORT}"]
+
+CMD ["python", "-m", "scripts.dev_worker", "--host", "${HOSTNAME}"  --pool", ${DQ_POOL}", "--port", ${PORT}"]

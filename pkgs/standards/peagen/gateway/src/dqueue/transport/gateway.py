@@ -270,6 +270,7 @@ async def scheduler():
             if not worker_list:
                 log.info("no active worker for %s, re-queue %s", pool, task.id)
                 await redis.rpush(queue_key, task_raw)  # push back
+                await asyncio.sleep(5)
                 continue
 
             target = worker_list[0]

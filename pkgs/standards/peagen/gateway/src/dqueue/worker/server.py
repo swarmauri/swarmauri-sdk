@@ -16,6 +16,19 @@ import httpx
 from ..models import Status
 from ..transport.jsonrpc import RPCDispatcher
 from ..transport.schemas import RPCRequest, RPCResponse
+import socket
+
+
+# ──────────────────────────── utils  ────────────────────────────
+def get_local_ip():
+    # open a dummy socket to some known public host and get your own IP
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0] 
+    finally:
+        s.close()
+
 
 # ──────────────────────────── logging  ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -36,7 +49,11 @@ GATEWAY_URL = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
 WORKER_ID   = os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
 PORT        = int(os.getenv("PORT", "9001"))
 HOST        = os.getenv("DQ_HOST", "localhost")
+if not HOST:
+    HOST = get_local_ip()
+
 LISTEN_PATH = "/rpc"  # exposed endpoint
+
 
 url_self = f"http://{HOST}:{PORT}{LISTEN_PATH}"
 
