@@ -1,0 +1,72 @@
+# File: .github/workflows/peagen/ci.yaml
+name: CI Deploy
+
+on:
+  push:
+    branches: [ "master", "mono/dev" ]
+  workflow_dispatch:
+
+concurrency:                     # never run two deploys in parallel
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy infrastructure
+    runs-on: peagenx             # your self-hosted runner label
+    env:                         # non-secret env shared by all steps
+      DATA_ROOT:   /mnt/data
+      CONFIG_ROOT: /mnt/config
+      MINIO_ROOT_USER: minioadmin
+      POSTGRES_USER: npm
+      POSTGRES_DB:   npm
+      PGADMIN_DEFAULT_EMAIL: jacob@swarmauri.com
+
+    steps:
+    # ───────────────────────────────────────────────────────────────
+    # 1) Checkout repo
+    # ───────────────────────────────────────────────────────────────
+    - uses: actions/checkout@v4
+
+    # ───────────────────────────────────────────────────────────────
+    # 2) (Optional) Ensure Docker CLI & Compose v2 are present
+    #    Self-hosted runner usually has them, so skip if not needed.
+    # ───────────────────────────────────────────────────────────────
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # ───────────────────────────────────────────────────────────────
+    # 3) Create secret files + .env expected by docker-compose.yml
+    # ───────────────────────────────────────────────────────────────
+    - name: Prepare runtime secrets and env
+      run: |
+        # Write Docker-Secrets files (never committed to git)
+        mkdir -p secrets
+        echo "${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}"   > secrets/minio_root_password.txt
+        echo "${{ secrets.PEAGEN_REDIS_PASSWORD }}"        > secrets/redis_password.txt
+        echo "${{ secrets.PEAGEN_POSTGRES_PASSWORD }}"     > secrets/postgres_password.txt
+        echo "${{ secrets.PEAGEN_PGADMIN_PASSWORD }}"      > secrets/pgadmin_password.txt
+
+        # Generate .env so Compose can resolve placeholders
+        cat > .env <<EOF
+MINIO_ROOT_USER=${MINIO_ROOT_USER}
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_DB=${POSTGRES_DB}
+PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+DATA_ROOT=${DATA_ROOT}
+CONFIG_ROOT=${CONFIG_ROOT}
+EOF
+
+    # ───────────────────────────────────────────────────────────────
+    # 4) Pull & (re)create the stack
+    # ───────────────────────────────────────────────────────────────
+    - name: Deploy services with Docker Compose
+      run: |
+        # Pull new images first; keeps downtime minimal
+        sudo docker-compose pull
+
+        # Tear down old containers that are no longer in the file
+        sudo docker-compose down --remove-orphans
+
+        # Bring everything back up, applying new images & secrets
+        sudo docker-compose up -d --force-recreate
