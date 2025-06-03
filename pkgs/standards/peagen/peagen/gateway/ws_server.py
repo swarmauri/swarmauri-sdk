@@ -5,7 +5,6 @@ from fastapi import APIRouter, WebSocket
 from redis.asyncio import Redis
 from peagen.gateway.runtime_cfg import settings
 
-print(settings.redis_url)
 redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
 router = APIRouter()
 
