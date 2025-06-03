@@ -88,10 +88,28 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
             workers.append(w)
     return workers
 
-# ──────────────────────  Task Key Helper ─────────────────────────
-
+# ───────── task helpers (hash + ttl) ────────────────────────────
 def _task_key(tid: str) -> str:
     return f"task:{tid}"
+
+async def _save_task(task: Task) -> None:
+    """
+    Upsert a task into its Redis hash and refresh TTL atomically.
+    Stores the canonical JSON blob plus the status for quick look-up.
+    """
+    key = _task_key(task.id)
+    blob = task.model_dump_json()
+
+    async with redis.pipeline(transaction=True) as pipe:
+        await (
+            pipe.hset(key, mapping={"blob": blob, "status": task.status.value})
+            .expire(key, TASK_TTL)
+            .execute()
+        )
+
+async def _load_task(tid: str) -> Task | None:
+    data = await redis.hget(_task_key(tid), "blob")
+    return Task.model_validate_json(data) if data else None
 
 # ──────────────────────   Results Backend ────────────────────────
 
@@ -178,8 +196,8 @@ async def task_submit(pool: str, payload: dict):
     # 1) put on the queue for the scheduler
     await redis.rpush(f"queue:{pool}", task.model_dump_json())
 
-    # 2) store latest state under its own key + TTL
-    await redis.setex(f"task:{task.id}", TASK_TTL, task.model_dump_json())
+    # 2) save hash + TTL
+    await _save_task(task)
 
     # 3) persist to Postgres & emit CloudEvent (helpers you already have)
     await _persist(task)
@@ -190,20 +208,19 @@ async def task_submit(pool: str, payload: dict):
 
 @rpc.method("Task.cancel")
 async def task_cancel(taskId: str):
-    raw = await redis.get(_task_key(taskId))
-    if not raw:
+    t = await _load_task(taskId)
+    if not t:
         raise ValueError("task not found")
-    t = Task.model_validate_json(raw)
     t.status = Status.cancelled
-    await redis.setex(_task_key(taskId), TASK_TTL, t.model_dump_json())
+    await _save_task(t)
     log.info("task %s cancelled", taskId)
     return {}
 
 
 @rpc.method("Task.get")
 async def task_get(taskId: str):
-    raw = await redis.get(_task_key(taskId))
-    return json.loads(raw) if raw else None
+    t = await _load_task(taskId)
+    return t.model_dump() if t else None
 
 
 @rpc.method("Pool.listTasks")
@@ -235,13 +252,13 @@ async def worker_heartbeat(workerId: str, metrics: dict, pool: str | None = None
 @rpc.method("Work.finished")
 async def work_finished(taskId: str, status: str, result: dict | None = None):
     log.info("task %s completed: %s", taskId, status)
-    raw = await redis.get(_task_key(taskId))
-    if not raw:
+    t = await _load_task(taskId)
+    if not t:
         return
     t = Task.model_validate_json(raw)
     t.status = Status(status)
     t.result = result
-    await redis.setex(_task_key(taskId), TASK_TTL, t.model_dump_json())
+    await _save_task(t)
     await _persist(t)
     await _publish_event(t)
     log.info("task %s completed: %s", taskId, status)
@@ -295,7 +312,7 @@ async def scheduler():
                     raise RuntimeError(f"HTTP {resp.status_code}")
 
                 task.status = Status.dispatched
-                await redis.setex(_task_key(task.id), TASK_TTL, task.model_dump_json())
+                await _save_task(task)
                 await _persist(task)
                 await _publish_event(task)
                 log.info("dispatch %s → %s (HTTP %d)", task.id, target["url"], resp.status_code)
