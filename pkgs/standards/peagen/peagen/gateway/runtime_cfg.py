@@ -11,6 +11,8 @@ class RuntimeSettings(BaseModel):
     redis_url: RedisDsn = Field(default="redis://localhost:6379/0")
     # Postgres
     pg_dsn: PostgresDsn = Field(default="postgresql://user:pass@localhost:5342/db")
+    # Async Postgres
+    apg_dsn: PostgresDsn = Field(default="postgresql+asyncpg://user:pass@localhost:5342/db")
 
     class Config:
         extra = "ignore"
@@ -24,10 +26,36 @@ def get_settings() -> RuntimeSettings:
     raw: Dict[str, Any] = {}
     if cfg_path.exists():
         raw = load_peagen_toml(cfg_path).get("runtime", {})   # e.g. [runtime.redis_url="…"]
+    
     # ---- ENV overrides (if defined) ----
-    if "REDIS_URL" in os.environ:
-        raw["redis_url"] = os.environ["REDIS_URL"]
-    if "PG_DSN" in os.environ:
-        raw["pg_dsn"] = os.environ["PG_DSN"]
+
+    # ───────── Redis connection ─────────
+    # Default each field to the corresponding os.environ[...] (or fallback literal).
+    redis_host: Optional[str] = Field(default=os.environ.get("REDIS_HOST"))
+    redis_port: int = Field(default=int(os.environ.get("REDIS_PORT", "6379")))
+    redis_db: int = Field(default=int(os.environ.get("REDIS_DB", "0")))
+    redis_password: Optional[str] = Field(default=os.environ.get("REDIS_PASSWORD"))
+
+
+    # ───────── Postgres results-backend ─────────
+    pg_host: Optional[str] = Field(default=os.environ.get("PG_HOST"))
+    pg_port: int = Field(default=int(os.environ.get("PG_PORT", "5342")))
+    pg_db: Optional[str] = Field(default=os.environ.get("PG_DB"))
+    pg_user: Optional[str] = Field(default=os.environ.get("PG_USER"))
+    pg_pass: Optional[str] = Field(default=os.environ.get("PG_PASS"))
+
+
+    
+    raw["redis_url"] = f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+    raw["pg_dsn"] = (
+            f"postgresql://{self.pg_user}:{self.pg_pass}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+        )
+
+    raw["apg_dsn"] = (
+            f"postgresql+asyncpg://{self.pg_user}:{self.pg_pass}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+        )
 
     return RuntimeSettings(**raw)
