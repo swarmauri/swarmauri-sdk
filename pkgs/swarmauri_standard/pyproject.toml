@@ -52,6 +52,7 @@ dev = [
 "requests>=2.32.3",
 "ruff>=0.9.9",
 "pytest-benchmark>=4.0.0",
+"pytest-mock>=3.14.0",
 ]
 
 [tool.pytest.ini_options]

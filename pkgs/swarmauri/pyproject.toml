@@ -104,4 +104,5 @@ dev = [
     "flake8>=7.0",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "pytest-mock>=3.14.0",
 ]

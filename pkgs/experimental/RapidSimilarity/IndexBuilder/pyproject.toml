@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "uv"]
+dev = ["pytest", "uv", "pytest-mock>=3.14.0"]
 
 [tool.pytest.ini_options]
 markers = [
