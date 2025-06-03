@@ -1,14 +1,14 @@
 """Expose all Typer sub-applications for the CLI."""
 
-from peagen.commands.init import init_app
-from peagen.commands.process import process_app
-from peagen.commands.sort import sort_app
-from peagen.commands.templates import template_sets_app
-from peagen.commands.doe import doe_app
-from peagen.commands.program import program_app
-from peagen.commands.validate import validate_app
-from peagen.commands.extras import extras_app
-from peagen.commands.eval import eval_app
+from .init import init_app
+from .process import process_app
+from .sort import sort_app
+from .templates import template_sets_app
+from .doe import doe_app
+from .program import program_app
+from .validate import validate_app
+from .extras import extras_app
+from .eval import eval_app
 
 __all__ = [
     "init_app",
