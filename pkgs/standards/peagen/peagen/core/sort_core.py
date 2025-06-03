@@ -2,7 +2,7 @@
 
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 from peagen._utils.config_loader import load_peagen_toml
 from peagen._utils._graph import _topological_sort, _transitive_dependency_sort
 
