@@ -10,13 +10,17 @@ from typing import Dict
 # Config – group key → (entry-point group string, expected base class)
 # ---------------------------------------------------------------------------
 GROUPS = {
+    "consumers": ("peagen.plugins.consumers", object),
+    "evaluator_pools": ("peagen.plugins.evaluator_pools", object),
+    "evaluators": ("peagen.plugins.evaluators", object),
+    "indexers": ("peagen.plugins.indexers", object),
+    "mutators": ("peagen.plugins.mutators", object),
+    "programs": ("peagen.plugins.programs", object),
+    "publishers": ("peagen.plugins.publishers", object),
+    "queues": ("peagen.plugins.queues", object),
+    "result_backends": ("peagen.plugins.result_backends", object),
+    "storage_adapters": ("peagen.plugins.storage_adapters", object),
     "template_sets": ("peagen.template_sets", None),
-    "storage_adapters": ("peagen.storage_adapters", object),
-    "publishers": ("peagen.publishers", object),
-    "indexers": ("peagen.indexers", object),
-    "result_backends": ("peagen.result_backends", object),
-    "evaluators": ("peagen.evaluators", object),
-    "evaluator_pools": ("peagen.evaluator_pools", object),
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
