@@ -88,7 +88,10 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
             workers.append(w)
     return workers
 
+# ──────────────────────  Task Key Helper ─────────────────────────
 
+def _task_key(tid: str) -> str:
+    return f"task:{tid}"
 
 # ──────────────────────   Results Backend ────────────────────────
 
@@ -184,22 +187,22 @@ async def task_submit(pool: str, payload: dict):
 
     log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
     return {"taskId": task.id}
-    
+
 @rpc.method("Task.cancel")
 async def task_cancel(taskId: str):
-    raw = await redis.hget("task:index", taskId)
+    raw = await redis.get(_task_key(taskId))
     if not raw:
         raise ValueError("task not found")
     t = Task.model_validate_json(raw)
     t.status = Status.cancelled
-    await redis.hset("task:index", t.id, t.model_dump_json())
+    await redis.setex(_task_key(taskId), TASK_TTL, t.model_dump_json())
     log.info("task %s cancelled", taskId)
     return {}
 
 
 @rpc.method("Task.get")
 async def task_get(taskId: str):
-    raw = await redis.hget("task:index", taskId)
+    raw = await redis.get(_task_key(taskId))
     return json.loads(raw) if raw else None
 
 
@@ -232,13 +235,13 @@ async def worker_heartbeat(workerId: str, metrics: dict, pool: str | None = None
 @rpc.method("Work.finished")
 async def work_finished(taskId: str, status: str, result: dict | None = None):
     log.info("task %s completed: %s", taskId, status)
-    raw = await redis.hget("task:index", taskId)
+    raw = await redis.get(_task_key(taskId))
     if not raw:
         return
     t = Task.model_validate_json(raw)
     t.status = Status(status)
     t.result = result
-    await redis.hset("task:index", t.id, t.model_dump_json())
+    await redis.setex(_task_key(taskId), TASK_TTL, t.model_dump_json())
     await _persist(t)
     await _publish_event(t)
     log.info("task %s completed: %s", taskId, status)
@@ -292,7 +295,7 @@ async def scheduler():
                     raise RuntimeError(f"HTTP {resp.status_code}")
 
                 task.status = Status.dispatched
-                await redis.hset("task:index", task.id, task.model_dump_json())
+                await redis.setex(_task_key(task.id), TASK_TTL, task.model_dump_json())
                 await _persist(task)
                 await _publish_event(task)
                 log.info("dispatch %s → %s (HTTP %d)", task.id, target["url"], resp.status_code)
