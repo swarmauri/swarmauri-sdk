@@ -4,7 +4,7 @@ Provides a colourful ASCII banner and additional version
 information shown when the CLI starts.
 """
 
-from ._config import __version__, __package_name__
+from peagen import __version__, __package_name__
 import typer
 import datetime
 from colorama import Fore, Style
