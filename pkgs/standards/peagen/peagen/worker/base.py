@@ -30,6 +30,27 @@ def get_local_ip() -> str:
         s.close()
 
 
+def parse_port(port_value: str | None, default: int = 8000) -> int:
+    """Return an integer port or fall back to the default.
+
+    Args:
+        port_value (str | None): The port value to convert.
+        default (int): The fallback port.
+
+    Returns:
+        int: The validated port number.
+    """
+    if port_value is None:
+        return default
+    try:
+        return int(port_value)
+    except ValueError:
+        logging.getLogger(__name__).warning(
+            "Invalid PORT '%s', defaulting to %s", port_value, default
+        )
+        return default
+
+
 # ──────────────────────────── WorkBase class  ────────────────────────────
 class WorkerBase:
     """
@@ -66,13 +87,12 @@ class WorkerBase:
         """
         # ─── CONFIGURE from ENV or parameters ────────────────────────
         self.POOL = pool or os.getenv("DQ_POOL", "default")
-        self.DQ_GATEWAY = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-        self.WORKER_ID = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
-        self.PORT = port or int(os.getenv("PORT", "8000"))
-        env_host = host or os.getenv("DQ_HOST", "")
-        if not env_host:
-            env_host = get_local_ip()
-        self.HOST = env_host
+        self.DQ_GATEWAY = gateway or os.getenv(
+            "DQ_GATEWAY", "http://localhost:8000/rpc"
+        )
+        self.WORKER_ID = worker_id or os.getenv(
+            "DQ_WORKER_ID", str(uuid.uuid4())[:8]
+        )
 
         # ─── LOGGING ─────────────────────────────────────────────────
         lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
@@ -84,6 +104,14 @@ class WorkerBase:
         # Silence overly‐verbose libraries but keep warnings:
         logging.getLogger("httpx").setLevel("WARNING")
         logging.getLogger("uvicorn.error").setLevel("INFO")
+
+        port_env = os.getenv("PORT", "8000")
+        self.PORT = port if port is not None else parse_port(port_env, 8000)
+
+        env_host = host or os.getenv("DQ_HOST", "")
+        if not env_host:
+            env_host = get_local_ip()
+        self.HOST = env_host
 
         # ─── URLS & FastAPI / RPCDispatcher ──────────────────────────
         self.LISTEN_PATH = "/rpc"
