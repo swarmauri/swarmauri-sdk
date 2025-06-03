@@ -3,8 +3,7 @@
 
 import typer
 
-from peagen._utils._banner import _print_banner
-from peagen.cli.commands import (
+from .commands import (
     init_app,
     process_app,
     sort_app,
@@ -16,6 +15,7 @@ from peagen.cli.commands import (
     eval_app,
 )
 
+from ._banner import _print_banner
 _print_banner()
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
