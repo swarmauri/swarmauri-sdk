@@ -4,7 +4,7 @@ import asyncio
 from fastapi import Request
 from typing import Any, Dict
 
-from dqueue.worker.base import WorkBase
+from peagen.worker.base import WorkBase
 from peagen.handlers import (
     doe_handler,
     fetch_handler,
