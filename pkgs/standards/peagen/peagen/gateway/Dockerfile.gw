@@ -14,9 +14,9 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY pkgs/ /app
+COPY ./ ./
 
-RUN uv pip install --package peagen --system .
+RUN uv pip install --package peagen --system
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
