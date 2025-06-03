@@ -3,8 +3,8 @@
 
 import typer
 
-from peagen._banner import _print_banner
-from peagen.commands import (
+from peagen._utils._banner import _print_banner
+from peagen.cli.commands import (
     init_app,
     process_app,
     sort_app,

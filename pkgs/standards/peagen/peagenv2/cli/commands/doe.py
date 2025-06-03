@@ -1,179 +1,107 @@
 # peagen/commands/doe.py
-
+"""
+CLI wrapper for Design-of-Experiments expansion.
+"""
 from __future__ import annotations
 
-import typer
-import uuid
+import asyncio, json, uuid, httpx
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 
-import yaml
-from swarmauri_standard.loggers.Logger import Logger
+import typer
 
-from peagen.cli_common import load_peagen_toml
-from peagen.models import Task
-from peagen.core.doe_core import DOECore
-# We still import doe_handler so that “submit” can use it:
 from peagen.handlers.doe_handler import doe_handler
+from peagen.models import Status, Task
+
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 
-doe_app = typer.Typer(help="Generate or submit DOE payload bundles.")
+def _make_task(args: dict) -> Task:
+    return Task(
+        id=str(uuid.uuid4()),
+        pool="default",
+        action="doe",
+        status=Status.pending,
+        payload={"args": args},
+    )
 
 
+# ───────────────────────────── local run ───────────────────────────────────
 @doe_app.command("run")
-def doe_run(
-    spec: Path = typer.Argument(..., exists=True, help="Path to DOE spec (.yml)"),
-    template: Path = typer.Argument(..., exists=True, help="Base project template"),
-    output: Path = typer.Option(
-        "project_payloads.yaml", "--output", "-o", help="Where to write bundle"
-    ),
-    config: Optional[str] = typer.Option(
-        ".peagen.toml", "-c", "--config", help="Alternate .peagen.toml path."
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Bus URI to publish completion event"
-    ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Print matrix only"),
-    force: bool = typer.Option(False, "--force", help="Overwrite output file"),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip DOE spec validation"
-    ),
+def run(  # noqa: PLR0913
+    spec: Path = typer.Argument(..., exists=True),
+    template: Path = typer.Argument(..., exists=True),
+    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    notify: Optional[str] = typer.Option(None, "--notify"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    json_out: bool = typer.Option(False, "--json"),
 ):
-    """
-    Expand DOE *spec* × base *template* into a multi-project payload bundle, running locally.
-    """
-    logger = Logger(name="doe_run").logger
-    logger.debug("Entering doe_run (local)")
-
-    # 1) Load & validate spec if requested
-    if not skip_validate:
-        from peagen.commands.validate import _validate
-        from peagen.schemas import DOE_SPEC_V1_1_SCHEMA
-
-        spec_obj = yaml.safe_load(spec.read_text(encoding="utf-8"))
-        try:
-            _validate(spec_obj, DOE_SPEC_V1_1_SCHEMA, "DOE spec")
-        except Exception as e:
-            typer.echo(f"[ERROR] DOE spec validation failed: {e}")
-            raise typer.Exit(1)
-
-    # 2) Instantiate core and generate payloads
-    try:
-        core = DOECore(str(spec), str(template))
-        payloads = core.generate_payloads()
-    except Exception as e:
-        typer.echo(f"[ERROR] {e}")
-        raise typer.Exit(1)
-
-    # 3) If dry_run: just show how many design points, then exit
-    if dry_run:
-        count = len(payloads)
-        typer.echo(f"Dry-run: would expand {count} design points.")
-        logger.info("Exiting doe_run (dry-run).")
-        raise typer.Exit()
-
-    # 4) Write the output bundle YAML
-    try:
-        core.write_payloads(str(output), force=force)
-    except FileExistsError as fe:
-        typer.echo(f"[ERROR] {fe}")
-        raise typer.Exit(1)
-    except Exception as e:
-        typer.echo(f"[ERROR] {e}")
-        raise typer.Exit(1)
-
-    typer.echo(f"✅  Wrote {output} ({len(payloads)} projects).")
-    logger.debug("Exiting doe_run (local).")
-
-    # 5) Optionally publish
-    if notify:
-        # Load .peagen.toml so the handler can look up publishers
-        toml_cfg = load_peagen_toml(Path(config) if config else Path.cwd())
-        pubs_cfg = toml_cfg.get("publishers", {})
-        default_pub = pubs_cfg.get("default_publisher")
-        notify_uri = notify or default_pub
-        if not notify_uri:
-            typer.echo("[WARN] No publisher configured; skipping notify.")
-            return
-
-        # Delegate to the same _publish_event logic as doe_handler
-        from peagen.handlers.doe_handler import _publish_event
-
-        try:
-            _publish_event(
-                notify_uri, str(output), len(payloads), config or ".peagen.toml"
-            )
-        except Exception as e:
-            typer.echo(f"[ERROR] Publish event failed: {e}")
-
-
-@doe_app.command("submit")
-def doe_submit(
-    spec: Path = typer.Argument(..., exists=True, help="Path to DOE spec (.yml)"),
-    template: Path = typer.Argument(..., exists=True, help="Base project template"),
-    output: Path = typer.Option(
-        "project_payloads.yaml", "--output", "-o", help="Where to write bundle"
-    ),
-    config: Optional[str] = typer.Option(
-        ".peagen.toml", "-c", "--config", help="Alternate .peagen.toml path."
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Bus URI to publish completion event"
-    ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Print matrix only"),
-    force: bool = typer.Option(False, "--force", help="Overwrite output file"),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip DOE spec validation"
-    ),
-    gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
-):
-    """
-    Submit DOE generation as a background task. Returns immediately with a taskId.
-    """
-    logger = Logger(name="doe_submit").logger
-    logger.debug("Entering doe_submit (remote)")
-
-    # 1) Build args dict exactly as doe_handler expects
-    args: Dict[str, Any] = {
+    args = {
         "spec": str(spec),
         "template": str(template),
         "output": str(output),
-        "config": config,
+        "config": str(config) if config else None,
         "notify": notify,
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
     }
 
-    # 2) Create a Pydantic Task instance
-    task_id = str(uuid.uuid4())
-    task = Task(id=task_id, pool="default", payload={"action": "doe", "args": args})
+    task_dict = json.loads(_make_task(args).model_dump_json())
+    result = asyncio.run(doe_handler(task_dict))
 
-    # 3) Wrap in Work.start envelope
-    envelope = {
+    typer.echo(json.dumps(result, indent=2) if json_out else f"✅  {result['output']}")
+
+
+# ─────────────────────────── remote submit ─────────────────────────────────
+@doe_app.command("submit")
+def submit(  # noqa: PLR0913
+    spec: Path = typer.Argument(..., exists=True),
+    template: Path = typer.Argument(..., exists=True),
+    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    notify: Optional[str] = typer.Option(None, "--notify"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY,
+        "--gateway",
+        envvar="PEAGEN_GATEWAY_URL",
+    ),
+):
+    args = {
+        "spec": str(spec),
+        "template": str(template),
+        "output": str(output),
+        "config": str(config) if config else None,
+        "notify": notify,
+        "dry_run": dry_run,
+        "force": force,
+        "skip_validate": skip_validate,
+    }
+    task = _make_task(args)
+
+    rpc_req = {
         "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": "Work.start",
-        "params": {
-            "id": task.id,
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "id": task.id,
+        "method": "Task.submit",
+        "params": {"task": task.model_dump()},
     }
 
-    # 4) POST to gateway
-    try:
-        import httpx
+    with httpx.Client(timeout=30.0) as client:
+        reply = client.post(gateway_url, json=rpc_req).json()
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
-            raise typer.Exit(1)
-        typer.echo(f"Submitted DOE generation → taskId={task.id}")
-    except Exception as exc:
-        typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
+    if "error" in reply:
+        typer.secho(
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            fg=typer.colors.RED,
+            err=True,
+        )
         raise typer.Exit(1)
+
+    typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)

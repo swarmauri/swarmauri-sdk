@@ -15,8 +15,9 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from peagen.cli_common import PathOrURI, load_peagen_toml, temp_workspace
-from peagen.plugin_registry import registry
+from peagen.cli.common import PathOrURI, temp_workspace
+from peagen._utils.config_loader import load_peagen_toml
+from peagen.plugins import registry
 from peagen.eval import DefaultEvaluatorPool
 from swarmauri_standard.programs.Program import Program
 
