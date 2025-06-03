@@ -122,8 +122,8 @@ services:
 
   gateway:
     build:
-      context: gateway                      # project root as build context
-      dockerfile: Dockerfile.gw
+      context: .
+      dockerfile: ./peagen/gateway/Dockerfile.gw
     depends_on:
       postgres:
         condition: service_healthy
@@ -153,8 +153,8 @@ services:
 
   worker:
     build:
-      context: gateway
-      dockerfile: Dockerfile.worker
+      context: .
+      dockerfile: ./peagen/worker/Dockerfile.worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -163,18 +163,19 @@ services:
       minio:
         condition: service_healthy
       gateway:
-        condition: service_healthy
-    ports:
-      - "10001:8000"                 
+        condition: service_healthy  
     environment:
       DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
-      PORT:                     8000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
+    deploy:
+      replicas: 5            # always keep 5 containers running
+      restart_policy:
+        condition: any
     restart: unless-stopped
     networks: [app_net]
 
