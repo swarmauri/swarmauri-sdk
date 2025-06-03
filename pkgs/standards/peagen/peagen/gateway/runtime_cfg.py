@@ -3,16 +3,18 @@ from __future__ import annotations
 import os, functools
 from pathlib import Path
 from typing import Any, Dict
-from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
+from pydantic import BaseModel, Field
 from peagen._utils.config_loader import load_peagen_toml
 
 class RuntimeSettings(BaseModel):
+
+
     # Redis
-    redis_url: RedisDsn = Field(default="redis://localhost:6379/0")
+    redis_url: str = Field(default="redis://localhost:6379/0")
     # Postgres
-    pg_dsn: PostgresDsn = Field(default="postgresql://user:pass@localhost:5342/db")
+    pg_dsn: str = Field(default="postgresql://user:pass@localhost:5342/db")
     # Async Postgres
-    apg_dsn: PostgresDsn = Field(default="postgresql+asyncpg://user:pass@localhost:5342/db")
+    apg_dsn: str = Field(default="postgresql+asyncpg://user:pass@localhost:5342/db")
 
     class Config:
         extra = "ignore"
