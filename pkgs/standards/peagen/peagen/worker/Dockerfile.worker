@@ -22,10 +22,9 @@ RUN uv pip install --directory standards/peagen --system .
 EXPOSE 8000
 
 ENV \
-    DQ_HOST=""\
     DQ_POOL=""\
     DQ_GATEWAY=""\
-    PORT=""
+    PORT="8000"
 
 CMD ["python", "-c", "\
 import uvicorn; \
