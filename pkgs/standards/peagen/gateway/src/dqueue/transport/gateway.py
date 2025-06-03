@@ -53,7 +53,7 @@ redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
 # workers are stored as hashes:  redis HSET worker:<id> pool url advertises last_seen
 WORKER_KEY = "worker:{}"   # format with workerId
 WORKER_TTL = 15            # seconds before a worker is considered dead
-
+TASK_TTL   = 24 * 3600      # 24 h, adjust as needed
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
     """
@@ -168,20 +168,22 @@ def pool_join(name: str):
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
 async def task_submit(pool: str, payload: dict):
-    # ensure pool is tracked
-    try:
-        await redis.sadd("pools", pool)
+    await redis.sadd("pools", pool)          # track pool even if not created
 
-        task = Task(id=str(uuid.uuid4()), pool=pool, payload=payload)
-        await redis.rpush(f"queue:{pool}", task.model_dump_json())
-        await redis.hset("task:index", task.id, task.model_dump_json())
-        await _persist(task)
-        log.info("task %s queued in %s", task.id, pool)
-        return {"taskId": task.id}
-    except Exception as e:
-        return {"error": str(e)}
+    task = Task(id=str(uuid.uuid4()), pool=pool, payload=payload)
 
+    # 1) put on the queue for the scheduler
+    await redis.rpush(f"queue:{pool}", task.model_dump_json())
 
+    # 2) store latest state under its own key + TTL
+    await redis.setex(f"task:{task.id}", TASK_TTL, task.model_dump_json())
+
+    # 3) persist to Postgres & emit CloudEvent (helpers you already have)
+    await _persist(task)
+    await _publish_event(task)
+
+    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TTL_SEC)
+    return {"taskId": task.id}
 @rpc.method("Task.cancel")
 async def task_cancel(taskId: str):
     raw = await redis.hget("task:index", taskId)
