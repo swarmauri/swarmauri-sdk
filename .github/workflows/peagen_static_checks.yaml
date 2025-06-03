@@ -1,0 +1,50 @@
+name: Peagen - Static Checks
+
+on:
+  pull_request:
+    paths:
+      - 'pkgs/standards/peagen/**'
+      - 'pkgs/standards/peagen_templset_vue/**'
+  workflow_dispatch:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - standards/peagen
+          - standards/peagen_templset_vue
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install static analysis tools
+        run: pip install uv mypy ruff bandit toml
+
+      - name: Ruff check
+        run: |
+          cd pkgs
+          PKG="${{ matrix.package }}"
+          PACKAGE_NAME=$(python -c "import toml, pathlib; print(toml.load(pathlib.Path('$PKG')/'pyproject.toml')['project']['name'])")
+          uv run --directory "$PKG" --package "$PACKAGE_NAME" --isolated --active ruff check .
+
+      - name: Mypy strict
+        run: |
+          cd pkgs
+          PKG="${{ matrix.package }}"
+          PACKAGE_NAME=$(python -c "import toml, pathlib; print(toml.load(pathlib.Path('$PKG')/'pyproject.toml')['project']['name'])")
+          uv run --directory "$PKG" --package "$PACKAGE_NAME" --isolated --active mypy --strict .
+
+      - name: Bandit scan
+        run: |
+          cd pkgs
+          PKG="${{ matrix.package }}"
+          PACKAGE_NAME=$(python -c "import toml, pathlib; print(toml.load(pathlib.Path('$PKG')/'pyproject.toml')['project']['name'])")
+          uv run --directory "$PKG" --package "$PACKAGE_NAME" --isolated --active bandit -r .
