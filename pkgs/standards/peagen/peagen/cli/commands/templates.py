@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import peagen.templates as _pt  # root namespace that ships built-in sets
+import peagen.template_sets as _pt  # root namespace that ships built-in sets
 import typer
 
 # ──────────────────────────────────────
