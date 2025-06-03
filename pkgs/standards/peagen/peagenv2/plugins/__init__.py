@@ -20,6 +20,7 @@ GROUPS = {
     "queues": ("peagen.plugins.queues", object),
     "result_backends": ("peagen.plugins.result_backends", object),
     "storage_adapters": ("peagen.plugins.storage_adapters", object),
+    "selectors": ("peagen.plugins.selectors", object),
     "template_sets": ("peagen.template_sets", None),
 }
 
