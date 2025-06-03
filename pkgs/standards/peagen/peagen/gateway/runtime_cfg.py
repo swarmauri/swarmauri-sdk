@@ -1,34 +1,16 @@
-# peagen/runtime_cfg.py
-from __future__ import annotations
-import os, functools
-from pathlib import Path
-from typing import Any, Dict
-from pydantic import BaseModel, Field
-from peagen._utils.config_loader import load_peagen_toml
+# settings.py
 
-class RuntimeSettings(BaseModel):
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
-    # Postgres
-    pg_dsn: str = "postgresql://user:pass@localhost:5342/db"
-    # Async Postgres
-    apg_dsn: str = "postgresql+asyncpg://user:pass@localhost:5342/db"
+import os
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
+from pydantic import Field
+from typing import Optional
 
-    class Config:
-        extra = "ignore"
+# ─── Load environment variables from a .env file (if present) ─────────────────────────
+load_dotenv()
 
-@functools.lru_cache(maxsize=1)
-def get_settings() -> RuntimeSettings:
-    """
-    Lazy-load `.peagen.toml`, overlay with env vars, validate.
-    """
-    cfg_path = Path.cwd() / ".peagen.toml"
-    raw: Dict[str, Any] = {}
-    if cfg_path.exists():
-        raw = load_peagen_toml(cfg_path).get("runtime", {})   # e.g. [runtime.redis_url="…"]
-    
-    # ---- ENV overrides (if defined) ----
 
+class Settings(BaseSettings):
     # ───────── Redis connection ─────────
     # Default each field to the corresponding os.environ[...] (or fallback literal).
     redis_host: Optional[str] = Field(default=os.environ.get("REDIS_HOST"))
@@ -36,6 +18,9 @@ def get_settings() -> RuntimeSettings:
     redis_db: int = Field(default=int(os.environ.get("REDIS_DB", "0")))
     redis_password: Optional[str] = Field(default=os.environ.get("REDIS_PASSWORD"))
 
+    @property
+    def redis_url(self) -> str:
+        return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     # ───────── Postgres results-backend ─────────
     pg_host: Optional[str] = Field(default=os.environ.get("PG_HOST"))
@@ -44,18 +29,26 @@ def get_settings() -> RuntimeSettings:
     pg_user: Optional[str] = Field(default=os.environ.get("PG_USER"))
     pg_pass: Optional[str] = Field(default=os.environ.get("PG_PASS"))
 
-
-    
-    raw["redis_url"] = f"redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}"
-
-    raw["pg_dsn"] = (
-            f"postgresql://{pg_user}:{pg_pass}"
-            f"@{pg_host}:{pg_port}/{pg_db}"
+    @property
+    def pg_dsn(self) -> str:
+        return (
+            f"postgresql://{self.pg_user}:{self.pg_pass}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
         )
 
-    raw["apg_dsn"] = (
-            f"postgresql+asyncpg://{pg_user}:{pg_pass}"
-            f"@{pg_host}:{pg_port}/{pg_db}"
+    @property
+    def apg_dsn(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.pg_user}:{self.pg_pass}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
         )
 
-    return RuntimeSettings(**raw)
+    # ───────── Other global settings ─────────
+    jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
+    log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+
+    class Config:
+        # No env_file needed since we already called load_dotenv().
+        pass
+
+settings = Settings()

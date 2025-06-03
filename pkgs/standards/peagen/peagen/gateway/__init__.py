@@ -20,7 +20,7 @@ from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
-from peagen.gateway.runtime_cfg import get_settings
+from peagen.gateway.runtime_cfg import settings
 
 from peagen.gateway.db import Session, engine
 from peagen.gateway.db_helpers import upsert_task
@@ -39,13 +39,11 @@ logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
 # ─────────────────────────── FastAPI / state ────────────────────
-settings = get_settings()
 
 app = FastAPI(title="DQueue Gateway")
 app.include_router(ws_router)        # 1-liner, no prefix
 
 rpc = RPCDispatcher()
-print(settings)
 redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
 
 # ─────────────────────────── Workers ────────────────────────────
