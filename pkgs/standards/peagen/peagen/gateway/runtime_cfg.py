@@ -8,11 +8,11 @@ from peagen._utils.config_loader import load_peagen_toml
 
 class RuntimeSettings(BaseModel):
     # Redis
-    redis_url: str = Field(default="redis://localhost:6379/0")
+    redis_url: str = "redis://localhost:6379/0"
     # Postgres
-    pg_dsn: str = Field(default="postgresql://user:pass@localhost:5342/db")
+    pg_dsn: str = "postgresql://user:pass@localhost:5342/db"
     # Async Postgres
-    apg_dsn: str = Field(default="postgresql+asyncpg://user:pass@localhost:5342/db")
+    apg_dsn: str = "postgresql+asyncpg://user:pass@localhost:5342/db"
 
     class Config:
         extra = "ignore"
