@@ -8,7 +8,7 @@ from peagen.gateway.runtime_cfg import get_settings
 settings = get_settings()
 print(settings)
 print(settings.redis_url)
-redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
+redis: Redis = Redis.from_url(settings.redis_url)
 router = APIRouter()
 
 @router.websocket("/ws/tasks")
