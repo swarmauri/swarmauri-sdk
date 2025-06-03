@@ -20,15 +20,12 @@ from .ws_server import router as ws_router
 
 
 from peagen.gateway.runtime_cfg import get_settings
-from ..models import Task, Status
-from .jsonrpc import RPCDispatcher
-from .schemas import RPCRequest, RPCResponse
+from peagen.transport.jsonrpc import RPCDispatcher, RPCRequest, RPCResponse
 
-from ..db import Session
+from peagen.models import Task, Status, Base, TaskRun
+from peagen.gateway.db import Session, engine
+from peagen.gateway.db_helpers import upsert_task
 
-from dqueue.db import engine
-from dqueue.db_helpers import upsert_task
-from dqueue.models_sql import Base, TaskRun
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
