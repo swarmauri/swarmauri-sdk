@@ -172,10 +172,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    deploy:
-      replicas: 5            # always keep 5 containers running
-      restart_policy:
-        condition: any
     restart: unless-stopped
     networks: [app_net]
 
