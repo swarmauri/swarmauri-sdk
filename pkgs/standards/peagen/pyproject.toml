@@ -45,7 +45,7 @@ dependencies = [
     "swarmauri_prompt_j2prompttemplate",
 
     # "pydantic-settings>=2.2", # gives us PostgreDsn and RedisDsn types.
-    "pydantic[email]>=2.7", # why is this necessary?
+    # "pydantic[email]>=2.7", # why is this necessary?
 
     # plugins —————————————————————————————————————————————————————————————————————————
     # result_backends/indexers

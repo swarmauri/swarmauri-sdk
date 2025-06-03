@@ -7,8 +7,6 @@ from pydantic import BaseModel, Field
 from peagen._utils.config_loader import load_peagen_toml
 
 class RuntimeSettings(BaseModel):
-
-
     # Redis
     redis_url: str = Field(default="redis://localhost:6379/0")
     # Postgres
