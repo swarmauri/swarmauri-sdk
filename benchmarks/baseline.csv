@@ -1,0 +1,5 @@
+pt_id,metric,value
+PT-1,evo_best_speed_ms,300.0
+PT-2,worker_cold_start_seconds,3.0
+PT-3,queue_throughput_tpm,5000.0
+PT-4,token_efficiency,40.0
