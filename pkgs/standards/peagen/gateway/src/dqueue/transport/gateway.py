@@ -251,17 +251,22 @@ async def worker_heartbeat(workerId: str, metrics: dict, pool: str | None = None
 
 @rpc.method("Work.finished")
 async def work_finished(taskId: str, status: str, result: dict | None = None):
-    log.info("task %s completed: %s", taskId, status)
     t = await _load_task(taskId)
     if not t:
-        return
-    t = Task.model_validate_json(raw)
+        log.warning("Work.finished for unknown task %s", taskId)
+        return {"ok": False}
+
+    # update in-memory object
     t.status = Status(status)
     t.result = result
+
+    # persist everywhere
     await _save_task(t)
     await _persist(t)
     await _publish_event(t)
+
     log.info("task %s completed: %s", taskId, status)
+    return {"ok": True}
 
 
 # ─────────────────────────── Scheduler loop ─────────────────────
