@@ -46,16 +46,16 @@ def get_settings() -> RuntimeSettings:
 
 
     
-    raw["redis_url"] = f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+    raw["redis_url"] = f"redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}"
 
     raw["pg_dsn"] = (
-            f"postgresql://{self.pg_user}:{self.pg_pass}"
-            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+            f"postgresql://{pg_user}:{pg_pass}"
+            f"@{pg_host}:{pg_port}/{pg_db}"
         )
 
     raw["apg_dsn"] = (
-            f"postgresql+asyncpg://{self.pg_user}:{self.pg_pass}"
-            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+            f"postgresql+asyncpg://{pg_user}:{pg_pass}"
+            f"@{pg_host}:{pg_port}/{pg_db}"
         )
 
     return RuntimeSettings(**raw)
