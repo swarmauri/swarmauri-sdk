@@ -20,7 +20,7 @@ from .ws_server import router as ws_router
 
 
 from peagen.gateway.runtime_cfg import get_settings
-from peagen.transport.jsonrpc import RPCDispatcher, RPCRequest, RPCResponse
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 
 from peagen.models import Task, Status, Base, TaskRun
 from peagen.gateway.db import Session, engine
