@@ -5,13 +5,11 @@ from fastapi import Request
 from typing import Any, Dict
 
 from peagen.worker.base import WorkerBase
-from peagen.handlers import (
-    doe_handler,
-    fetch_handler,
-    eval_handler,
-    process_handler,
-    sort_handler,
-    )
+from peagen.handlers.doe_handler import doe_handler
+from peagen.handlers.fetch_handler import fetch_handler
+from peagen.handlers.eval_handler import eval_handler
+from peagen.handlers.process_handler import process_handler
+from peagen.handlers.sort_handler import sort_handler
 
 # ----------------------------------------------------------------------------
 # Subclass WorkerBase (optional) so you can override or extend methods if needed.
@@ -24,8 +22,8 @@ class PeagenWorker(WorkerBase):
         super().__init__()
         # Register all handlers you want this worker to support:
         self.register_handler("doe", doe_handler)
-        self.register_handler("fetch", fetch_handler)
         self.register_handler("eval", eval_handler)
+        self.register_handler("fetch", fetch_handler)
         self.register_handler("process", process_handler)
         self.register_handler("sort", sort_handler)
         # In the future, you might also do:
