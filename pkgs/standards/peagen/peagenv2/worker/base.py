@@ -62,14 +62,14 @@ class WorkerBase:
           • DQ_GATEWAY       (default: "http://localhost:8000/rpc")
           • DQ_WORKER_ID     (default: random 8‐char prefix)
           • DQ_HOST          (default: local IP)
-          • PORT             (default: 9001)
+          • PORT             (default: 8000)
           • DQ_LOG_LEVEL     (default: "INFO")
         """
         # ─── CONFIGURE from ENV or parameters ────────────────────────
         self.POOL = pool or os.getenv("DQ_POOL", "default")
         self.DQ_GATEWAY = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
         self.WORKER_ID = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
-        self.PORT = port or int(os.getenv("PORT", "9001"))
+        self.PORT = port or int(os.getenv("PORT", "8000"))
         env_host = host or os.getenv("DQ_HOST", "")
         if not env_host:
             env_host = get_local_ip()
