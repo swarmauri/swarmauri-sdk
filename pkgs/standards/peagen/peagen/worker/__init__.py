@@ -14,13 +14,13 @@ from peagen.handlers import (
     )
 
 # ----------------------------------------------------------------------------
-# Subclass WorkBase (optional) so you can override or extend methods if needed.
-# If you don’t need to override anything, you can also just instantiate WorkBase
+# Subclass WorkerBase (optional) so you can override or extend methods if needed.
+# If you don’t need to override anything, you can also just instantiate WorkerBase
 # directly in a script (no subclass). But here’s how to subclass:
 # ----------------------------------------------------------------------------
-class PeagenWorker(WorkBase):
+class PeagenWorker(WorkerBase):
     def __init__(self):
-        # Let WorkBase pick up ENV or defaults for pool/gateway/host/port
+        # Let WorkerBase pick up ENV or defaults for pool/gateway/host/port
         super().__init__()
         # Register all handlers you want this worker to support:
         self.register_handler("doe", doe_handler)
