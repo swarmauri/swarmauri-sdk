@@ -14,12 +14,9 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY peagen/ peagen/
-COPY pyproject.toml pyproject.toml
-COPY README.md README.md
-COPY LICENSE LICENSE
+COPY pkgs/ /app
 
-RUN uv pip install --system .
+RUN uv pip install --package peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
