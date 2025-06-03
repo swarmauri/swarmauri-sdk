@@ -1,0 +1,16 @@
+// File: {{ MOD.NAME }}.tsx.j2
+
+import React from 'react';
+import type { {{ MOD.NAME }}Props } from './{{ MOD.NAME }}.d.ts';
+import './{{ MOD.NAME }}.css';
+
+export const {{ MOD.NAME }}: React.FC<{{ MOD.NAME }}Props> = (props) => {
+  // Function: {{ MOD.NAME }} – renders the atom component
+  return (
+    <div className="{{ MOD.NAME | kebab_case }}">
+      {props.children}
+    </div>
+  );
+};
+
+export default {{ MOD.NAME }};

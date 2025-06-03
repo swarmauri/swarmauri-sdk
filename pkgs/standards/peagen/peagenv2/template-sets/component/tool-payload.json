@@ -1,0 +1,25 @@
+{
+  "PROJECT_ROOT": "GENERATIONS",
+  "PACKAGE_DESCRIPTION": "A tool to automate the process of sending desktop notifications based on specific triggers or events, enabling timely alerts and reminders without manual intervention.",
+  "PACKAGE_ROOT": "swarmauri_tool_notificationhandlertool",
+  "RESOURCE_KIND": "tool",
+  "MODULE_NAME": "NotificationHandlerTool",
+  "BASE_CLASS_NAME": "ToolBase",
+  "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+  "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+  "ADDITIONAL_REQUIREMENTS": [
+    "Provide options to define triggers or events that will initiate notifications (e.g., time-based, file changes).",
+    "Allow customization of notification content, including titles, messages, and icons.",
+    "Include functionality to schedule recurring notifications and manage notification priorities.",
+    "Provide a complete implementation of all internal methods.",
+    "Ensure robust error handling and logging within the tool."
+  ],
+  "EXTERNAL_DOC_FILE": null,
+  "EXTERNAL_DOC_EXAMPLE_FILE": null,
+  "THIRD_PARTY_DEPENDENCIES": [
+    { "name": "pyautogui", "version": "*" },
+    { "name": "plyer", "version": "*" },
+    { "name": "schedule", "version": "*" },
+    { "name": "logging", "version": "*" }
+  ]
+}

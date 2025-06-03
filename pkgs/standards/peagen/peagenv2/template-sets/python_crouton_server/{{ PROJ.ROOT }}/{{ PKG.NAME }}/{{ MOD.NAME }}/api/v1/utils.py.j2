@@ -1,0 +1,98 @@
+"""This module provides utility functions and classes for creating and attaching.
+
+CRUD routers to a FastAPI application.
+"""
+
+from enum import Enum
+from typing import List
+from crouton import MemoryCRUDRouter, SQLAlchemyCRUDRouter  # type: ignore
+
+from app import models, schemas
+from app.db.session import get_db
+import inflect
+
+
+class RouterType(Enum):
+    """Enumeration for router types."""
+
+    SQLALCHEMY = "sqlalchemy"
+    MEMORY = "memory"
+
+
+def create_route_objects(components: List[str]) -> List[dict]:
+    """
+    Create route objects from the given components.
+
+    Args:
+        components (List[str]): List of component names.
+
+    Returns:
+        List[dict]: List of route objects.
+    """
+    routes_to_create = []
+    for component in components:
+        schema = getattr(schemas, component)
+        create_schema = getattr(schemas, component + "Create")
+        update_schema = getattr(schemas, component + "Update")
+        db_model = getattr(models, component + "Model")
+
+        p = inflect.engine()
+
+        obj = {
+            "schema": schema,
+            "create_schema": create_schema,
+            "update_schema": update_schema,
+            "db_model": db_model,
+            "prefix": p.plural(component.lower()),
+        }
+
+        routes_to_create.append(obj)
+
+    return routes_to_create
+
+
+def create_routers(
+    routes_to_create: List[dict],
+    router_type: RouterType = RouterType.SQLALCHEMY,
+) -> List:
+    """
+    Create routers based on the given route objects and router type.
+
+    Args:
+        routes_to_create (List[dict]): List of route objects.
+        router_type (RouterType): Type of router to create.
+
+    Returns:
+        List: List of created routers.
+    """
+    routers = []
+    for route in routes_to_create:
+        common_params = {
+            "schema": route["schema"],
+            "create_schema": route["create_schema"],
+            "update_schema": route["update_schema"],
+            "prefix": route["prefix"],
+        }
+
+        if router_type == RouterType.SQLALCHEMY:
+            router = SQLAlchemyCRUDRouter(
+                db_model=route["db_model"],
+                db=get_db,  # type: ignore
+                **common_params,
+            )
+        elif router_type == RouterType.MEMORY:
+            router = MemoryCRUDRouter(**common_params)  # type: ignore
+        routers.append(router)
+    return routers
+
+
+def attach_list_of_routers(app, list_of_routers: List) -> None:
+    """
+    Attach a list of routers to the given FastAPI app.
+
+    Args:
+        app: FastAPI application instance.
+        list_of_routers (List): List of routers to attach.
+    """
+    for router in list_of_routers:
+        app.include_router(router)
