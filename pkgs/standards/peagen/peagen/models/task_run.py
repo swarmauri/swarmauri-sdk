@@ -5,7 +5,7 @@ from sqlalchemy import Column, String, JSON, TIMESTAMP, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 
-from peagen.models import Status
+from peagen.models.schemas import Status
 
 Base = declarative_base()
 

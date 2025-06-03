@@ -15,14 +15,13 @@ from typing import Any, Dict
 
 from fastapi import FastAPI, Request, Response, Body
 from redis.asyncio import Redis
-from .ws_server import router as ws_router
 
-
-
-from peagen.gateway.runtime_cfg import get_settings
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
-
 from peagen.models import Task, Status, Base, TaskRun
+
+from peagen.gateway.ws_server import router as ws_router
+from peagen.gateway.runtime_cfg import get_settings
+
 from peagen.gateway.db import Session, engine
 from peagen.gateway.db_helpers import upsert_task
 

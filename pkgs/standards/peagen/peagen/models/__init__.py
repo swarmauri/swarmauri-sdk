@@ -3,39 +3,13 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from peagen.models.task_run import Base, TaskRun
-
-
-class Role(str, Enum):
-    admin = "admin"
-    user = "user"
-    worker = "worker"
-
-
-class Status(str, Enum):
-    pending = "pending"
-    dispatched = "dispatched"
-    running = "running"
-    success = "success"
-    failed = "failed"
-    cancelled = "cancelled"
-
-
-class Task(BaseModel):
-    id: str
-    pool: str
-    payload: dict
-    status: Status = Status.pending
-    result: Optional[dict] = None
-
-
-class Pool(BaseModel):
-    name: str
-    members: List[str] = Field(default_factory=list)
-
-
-class User(BaseModel):
-    username: str
-    role: Role = Role.user
+from peagen.models.schemas import (
+    Role,
+    Status,
+    Task,
+    Pool, 
+    User
+    )
 
 
 __all__ = ["Role", "Status", "Task", "Pool", "User", "Base", "TaskRun"]
