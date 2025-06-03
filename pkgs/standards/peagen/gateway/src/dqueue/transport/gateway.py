@@ -182,8 +182,9 @@ async def task_submit(pool: str, payload: dict):
     await _persist(task)
     await _publish_event(task)
 
-    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TTL_SEC)
+    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
     return {"taskId": task.id}
+    
 @rpc.method("Task.cancel")
 async def task_cancel(taskId: str):
     raw = await redis.hget("task:index", taskId)
