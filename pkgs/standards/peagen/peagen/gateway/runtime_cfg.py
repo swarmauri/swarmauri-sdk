@@ -3,8 +3,8 @@ from __future__ import annotations
 import os, functools
 from pathlib import Path
 from typing import Any, Dict
-from peagen._utils.config_loader import load_peagen_toml      # you already have this
 from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
+from peagen._utils.config_loader import load_peagen_toml
 
 class RuntimeSettings(BaseModel):
     # Redis

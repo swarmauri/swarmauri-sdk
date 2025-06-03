@@ -5,8 +5,7 @@ from typing import Dict, Any
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from .models_sql import TaskRun
-from .models import Status   # Enum
+from peagen.models import Status, TaskRun
 
 log = logging.getLogger("upsert")
 

@@ -14,9 +14,8 @@ import httpx
 from fastapi import Body, FastAPI, Request, Response
 from json.decoder import JSONDecodeError
 
-from ..models import Status
-from ..transport.jsonrpc import RPCDispatcher
-from ..transport.schemas import RPCRequest, RPCResponse
+from peagen.models import Status
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 
 # ──────────────────────────── utils  ────────────────────────────
 def get_local_ip() -> str:
