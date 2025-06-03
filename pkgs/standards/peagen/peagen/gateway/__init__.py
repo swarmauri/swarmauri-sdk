@@ -45,6 +45,7 @@ app = FastAPI(title="DQueue Gateway")
 app.include_router(ws_router)        # 1-liner, no prefix
 
 rpc = RPCDispatcher()
+print(settings)
 redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
 
 # ─────────────────────────── Workers ────────────────────────────
