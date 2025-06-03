@@ -154,7 +154,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: .pkgs/standards/peagen/worker/Dockerfile.worker
+      dockerfile: ./pkgs/standards/peagen/worker/Dockerfile.worker
     depends_on:
       postgres:
         condition: service_healthy
