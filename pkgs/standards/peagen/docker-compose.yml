@@ -170,7 +170,11 @@ services:
       DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
       PORT:                     8000
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     networks: [app_net]
 

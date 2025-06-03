@@ -128,6 +128,15 @@ async def _notify(state: str, task_id: str, result: Dict[str, Any] | None = None
     log.info("Work.finished sent    task=%s state=%s", task_id, state)
 
 
+# ─────────────────────────────── Healthcheck ───────────────────────────────
+@app.get("/health", tags=["health"])
+async def health() -> dict:
+    """
+    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Docker’s healthcheck will curl this endpoint.
+    """
+    return {"status": "ok"}
+
 # ──────────────────────────── startup  ────────────────────────────
 @app.on_event("startup")
 async def _startup():
