@@ -24,7 +24,7 @@ from swarmauri_standard.loggers.Logger import Logger
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
-from peagen.plugin_registry import registry
+from peagen.plugins import registry
 
 # ── Typer root ───────────────────────────────────────────────────────────────
 init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")

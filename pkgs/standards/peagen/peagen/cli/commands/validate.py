@@ -19,7 +19,7 @@ from peagen.schemas import (
     PROJECTS_PAYLOAD_V1_SCHEMA,  # ← new
 )
 
-from peagen.cli_common import load_peagen_toml
+from peagen._utils.config_loader import load_peagen_toml
 
 validate_app = typer.Typer(help="Validation utilities for Peagen artefacts.")
 
