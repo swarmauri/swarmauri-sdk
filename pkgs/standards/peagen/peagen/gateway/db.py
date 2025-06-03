@@ -2,8 +2,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from .runtime_cfg import settings
 
-
-settings = get_settings()
 engine = create_async_engine(
     settings.apg_dsn,
     pool_size=10,
