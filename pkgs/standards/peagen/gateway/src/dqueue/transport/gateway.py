@@ -28,6 +28,7 @@ from ..db import Session
 
 from dqueue.db import engine
 from dqueue.db_helpers import upsert_task
+from dqueue.redis_helpers import save_task
 from dqueue.models_sql import Base, TaskRun
 
 # ─────────────────────────── logging ────────────────────────────
@@ -87,8 +88,6 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
         if w["pool"] == pool:
             workers.append(w)
     return workers
-
-
 
 # ──────────────────────   Results Backend ────────────────────────
 
@@ -174,7 +173,7 @@ async def task_submit(pool: str, payload: dict):
 
         task = Task(id=str(uuid.uuid4()), pool=pool, payload=payload)
         await redis.rpush(f"queue:{pool}", task.model_dump_json())
-        await redis.hset("task:index", task.id, task.model_dump_json())
+        await save_task(redis, task)     # in running transition
         await _persist(task)
         log.info("task %s queued in %s", task.id, pool)
         return {"taskId": task.id}
@@ -189,15 +188,25 @@ async def task_cancel(taskId: str):
         raise ValueError("task not found")
     t = Task.model_validate_json(raw)
     t.status = Status.cancelled
-    await redis.hset("task:index", t.id, t.model_dump_json())
+    await save_task(redis, t)        # in finished transition
     log.info("task %s cancelled", taskId)
     return {}
 
 
 @rpc.method("Task.get")
 async def task_get(taskId: str):
-    raw = await redis.hget("task:index", taskId)
+    raw = await redis.get(f"task:{taskId}")
     return json.loads(raw) if raw else None
+
+
+@rpc.method("Task.listActive")
+async def list_active():
+    ids = await redis.smembers(ACTIVE_SET)
+    pipe = redis.pipeline()
+    for id_ in ids:
+        pipe.get(f"task:{id_}")
+    raws = await pipe.execute()
+    return [json.loads(r) for r in raws if r]
 
 
 @rpc.method("Pool.listTasks")
@@ -235,7 +244,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     t = Task.model_validate_json(raw)
     t.status = Status(status)
     t.result = result
-    await redis.hset("task:index", t.id, t.model_dump_json())
+    await save_task(redis, t)        # in finished transition
     await _persist(t)
     await _publish_event(t)
     log.info("task %s completed: %s", taskId, status)
@@ -289,7 +298,7 @@ async def scheduler():
                     raise RuntimeError(f"HTTP {resp.status_code}")
 
                 task.status = Status.dispatched
-                await redis.hset("task:index", task.id, task.model_dump_json())
+                await save_task(redis, task)     # in running transition
                 await _persist(task)
                 await _publish_event(task)
                 log.info("dispatch %s → %s (HTTP %d)", task.id, target["url"], resp.status_code)
