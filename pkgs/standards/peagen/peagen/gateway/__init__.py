@@ -19,7 +19,7 @@ from .ws_server import router as ws_router
 
 
 
-from ..config import settings
+from peagen.gateway.runtime_cfg import get_settings
 from ..models import Task, Status
 from .jsonrpc import RPCDispatcher
 from .schemas import RPCRequest, RPCResponse
@@ -43,6 +43,8 @@ logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
 # ─────────────────────────── FastAPI / state ────────────────────
+settings = get_settings()
+
 app = FastAPI(title="DQueue Gateway")
 app.include_router(ws_router)        # 1-liner, no prefix
 
