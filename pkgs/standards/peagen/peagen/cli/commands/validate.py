@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 import typer
 import yaml
-from jsonschema import Draft7Validator
 from swarmauri_standard.loggers.Logger import Logger
+from peagen._utils._validation import _validate
 
 # ── central schema registry ─────────────────────────────────────────────
 from peagen.schemas import (
@@ -23,35 +23,6 @@ from peagen._utils.config_loader import load_peagen_toml
 
 validate_app = typer.Typer(help="Validation utilities for Peagen artefacts.")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  Shared helpers
-# ─────────────────────────────────────────────────────────────────────────────
-def _path(err) -> str:
-    """Return dotted-path to failing node.
-    File: **validate.py** • Method: **_path**"""
-    return ".".join(str(p) for p in err.absolute_path) or "(root)"
-
-
-def _print_errors(errors) -> None:
-    """Emit every jsonschema error.
-    File: **validate.py** • Method: **_print_errors**"""
-    for err in errors:
-        typer.echo(f"   • {_path(err)} – {err.message}", err=True)
-        for sub in err.context:
-            typer.echo(f"     ↳ {_path(sub)} – {sub.message}", err=True)
-
-
-def _validate(data: dict, schema: dict, label: str) -> None:
-    """Run Draft7 validation and pretty-print errors.
-    File: **validate.py** • Method: **_validate**"""
-    validator = Draft7Validator(schema)
-    errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
-    if errors:
-        typer.echo(f"❌  Invalid {label}:", err=True)
-        _print_errors(errors)
-        raise typer.Exit(1)
-    typer.echo(f"✅  {label.capitalize()} is valid.")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
