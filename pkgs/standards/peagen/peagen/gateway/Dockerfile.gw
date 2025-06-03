@@ -16,7 +16,7 @@ WORKDIR /app
 # 1. Copy only dependency-defining files first (better layer caching)
 COPY ./ ./
 
-RUN uv pip install --package peagen --system
+RUN uv pip install --directory standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
