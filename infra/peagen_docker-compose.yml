@@ -136,7 +136,7 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    EXPOSE:
+    ports:
       - 8000
     environment:
       PG_HOST:              postgres
