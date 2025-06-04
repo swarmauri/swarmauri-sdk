@@ -1,0 +1,63 @@
+"""peagen.handlers.init_handler
+===============================
+
+Asynchronous entry-point for initialisation tasks.
+
+The handler accepts either a plain dictionary or a :class:`peagen.models.Task`
+and delegates to :mod:`peagen.core.init_core`.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Dict
+
+from peagen.core import init_core
+from peagen.models import Task
+
+
+async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+    """Dispatch to the correct init function based on ``kind``."""
+    payload = task_or_dict.get("payload", {})
+    args: Dict[str, Any] = payload.get("args", {})
+    kind = args.get("kind")
+    if not kind:
+        raise ValueError("'kind' argument required")
+
+    path = Path(args.get("path", ".")).expanduser()
+
+    if kind == "project":
+        return init_core.init_project(
+            path=path,
+            template_set=args.get("template_set", "default"),
+            provider=args.get("provider"),
+            with_doe=args.get("with_doe", False),
+            with_eval_stub=args.get("with_eval_stub", False),
+            force=args.get("force", False),
+        )
+
+    if kind == "template-set":
+        return init_core.init_template_set(
+            path=path,
+            name=args.get("name"),
+            org=args.get("org"),
+            use_uv=args.get("use_uv", True),
+            force=args.get("force", False),
+        )
+
+    if kind == "doe-spec":
+        return init_core.init_doe_spec(
+            path=path,
+            name=args.get("name"),
+            org=args.get("org"),
+            force=args.get("force", False),
+        )
+
+    if kind == "ci":
+        return init_core.init_ci(
+            path=path,
+            github=args.get("github", True),
+            force=args.get("force", False),
+        )
+
+    raise ValueError(f"Unknown init kind '{kind}'")
