@@ -110,9 +110,9 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         agent_env,
         output_base,
     )
-    task_dict = _build_task(args).model_dump()
+    task = _build_task(args)
 
-    result = asyncio.run(process_handler(task_dict))
+    result = asyncio.run(process_handler(task))
     typer.echo(json.dumps(result, indent=2))
 
 
