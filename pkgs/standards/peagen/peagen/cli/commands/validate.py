@@ -1,167 +1,111 @@
 # peagen/commands/validate.py
-"""Validate manifests and configuration files."""
 
-from __future__ import annotations
+import asyncio
+import uuid
+from typing import Any, Dict
 
-import json
-from pathlib import Path
 import typer
-import yaml
-from swarmauri_standard.loggers.Logger import Logger
-from peagen._utils._validation import _validate
 
-# ── central schema registry ─────────────────────────────────────────────
-from peagen.schemas import (
-    PEAGEN_TOML_V1_SCHEMA,
-    DOE_SPEC_V1_SCHEMA,
-    MANIFEST_V3_SCHEMA,
-    PTREE_V1_SCHEMA,  # ← new
-    PROJECTS_PAYLOAD_V1_SCHEMA,  # ← new
-)
+from peagen.handlers.validate_handler import validate_handler
+from peagen.models import Task
 
-from peagen._utils.config_loader import load_peagen_toml
-
-validate_app = typer.Typer(help="Validation utilities for Peagen artefacts.")
+validate_app = typer.Typer()
 
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  .peagen.toml
-# ─────────────────────────────────────────────────────────────────────────────
-@validate_app.command("config")
-def validate_config(
-    ctx: typer.Context,
-    path: Path = typer.Argument(
-        None,
-        exists=False,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Optional explicit path to a .peagen.toml (defaults to discovery).",
-    ),
-) -> None:
-    """File: **validate.py** • Method: **validate_config**"""
-    self = Logger(name="validate_config")
-    self.logger.info("Entering validate_config command")
-    cfg = load_peagen_toml(path.parent if path else Path.cwd())
-    if not cfg:
-        typer.echo("❌  No .peagen.toml found.", err=True)
-        raise typer.Exit(1)
-    _validate(cfg, PEAGEN_TOML_V1_SCHEMA, ".peagen.toml")
-    self.logger.info("Exiting validate_config command")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  DOE spec YAML
-# ─────────────────────────────────────────────────────────────────────────────
-@validate_app.command("doe")
-def validate_doe_spec(
-    ctx: typer.Context,
-    spec_path: Path = typer.Argument(
+@validate_app.command("run")
+def run_validate(
+    kind: str = typer.Argument(
         ...,
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Path to a DOE-spec YAML file.",
+        help="Kind of artifact to validate (config, doe, manifest, ptree, projects_payload).",
     ),
-) -> None:
-    """File: **validate.py** • Method: **validate_doe_spec**"""
-    self = Logger(name="validate_doe_spec")
-    self.logger.info("Entering validate_doe_spec command")
+    path: str = typer.Option(
+        None, help="Path to the file to validate (not required for config)."
+    ),
+):
+    """
+    Run validation locally (no queue) by constructing a Task model
+    and invoking the same handler that a worker would use.
+    """
+    # 1) Create a Task instance with default status/result
+    task_id = str(uuid.uuid4())
+    args: Dict[str, Any] = {
+        "kind": kind,
+        "path": path,
+    }
+    task = Task(
+        id=task_id,
+        pool="default",
+        payload={"action": "validate", "args": args},
+    )
+
+    # 2) Call validate_handler(task) via asyncio.run
     try:
-        with spec_path.open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    except yaml.YAMLError as exc:
-        typer.echo(f"❌  YAML parsing error – {exc}", err=True)
+        result: Dict[str, Any] = asyncio.run(validate_handler(task))
+    except Exception as exc:
+        typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)
-    _validate(data, DOE_SPEC_V1_SCHEMA, "DOE spec")
-    self.logger.info("Exiting validate_doe_spec command")
+
+    # 3) Inspect the returned dict
+    if not result.get("ok", False):
+        typer.echo(f"❌  Invalid {kind}:", err=True)
+        for error in result.get("errors", []):
+            typer.echo(f"   • {error}", err=True)
+        raise typer.Exit(1)
+    else:
+        typer.echo(f"✅  {kind.capitalize()} is valid.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Manifest JSON
-# ─────────────────────────────────────────────────────────────────────────────
-@validate_app.command("manifest")
-def validate_manifest(
-    ctx: typer.Context,
-    manifest_path: Path = typer.Argument(
+@validate_app.command("submit")
+def submit_validate(
+    kind: str = typer.Argument(
         ...,
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Path to a Peagen manifest JSON file.",
+        help="Kind of artifact to validate (config, doe, manifest, ptree, projects_payload).",
     ),
-) -> None:
-    """File: **validate.py** • Method: **validate_manifest**"""
-    self = Logger(name="validate_manifest")
-    self.logger.info("Entering validate_manifest command")
-    try:
-        with manifest_path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-    except json.JSONDecodeError as exc:
-        typer.echo(f"❌  JSON parsing error – {exc}", err=True)
-        raise typer.Exit(1)
-    _validate(data, MANIFEST_V3_SCHEMA, "manifest")
-    self.logger.info("Exiting validate_manifest command")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  Ptree YAML
-# ─────────────────────────────────────────────────────────────────────────────
-@validate_app.command("ptree")
-def validate_ptree(
-    ctx: typer.Context,
-    ptree_path: Path = typer.Argument(
-        ...,
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Path to a ptree.yaml file.",
+    path: str = typer.Option(
+        None, help="Path to the file to validate (not required for config)."
     ),
-) -> None:
-    """File: **validate.py** • Method: **validate_ptree**"""
-    self = Logger(name="validate_ptree")
-    self.logger.info("Entering validate_ptree command")
-    try:
-        with ptree_path.open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    except yaml.YAMLError as exc:
-        typer.echo(f"❌  YAML parsing error – {exc}", err=True)
-        raise typer.Exit(1)
-    _validate(
-        data, PTREE_V1_SCHEMA, "ptree"
-    )  # schema file :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-    self.logger.info("Exiting validate_ptree command")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  Projects-payload YAML
-# ─────────────────────────────────────────────────────────────────────────────
-@validate_app.command("projects_payload")
-def validate_projects_payload(
-    ctx: typer.Context,
-    payload_path: Path = typer.Argument(
-        ...,
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Path to a projects_payload.yaml file.",
+    gateway_url: str = typer.Option(
+        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
-) -> None:
-    """File: **validate.py** • Method: **validate_projects_payload**"""
-    self = Logger(name="validate_projects_payload")
-    self.logger.info("Entering validate_projects_payload command")
+):
+    """
+    Submit this validation as a background task. Returns immediately with a taskId.
+    """
+    # 1) Create a Task instance
+    task_id = str(uuid.uuid4())
+    args: Dict[str, Any] = {
+        "kind": kind,
+        "path": path,
+    }
+    task = Task(
+        id=task_id,
+        pool="default",
+        payload={"action": "validate", "args": args},
+    )
+
+    # 2) Build Work.start envelope using Task fields
+    envelope = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": "Work.start",
+        "params": {
+            "id": task.id,
+            "pool": task.pool,
+            "payload": task.payload,
+        },
+    }
+
+    # 3) POST to gateway
     try:
-        with payload_path.open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    except yaml.YAMLError as exc:
-        typer.echo(f"❌  YAML parsing error – {exc}", err=True)
+        import httpx
+
+        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("error"):
+            typer.echo(f"[ERROR] {data['error']}")
+            raise typer.Exit(1)
+        typer.echo(f"Submitted validation → taskId={task.id}")
+    except Exception as exc:
+        typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)
-    _validate(
-        data, PROJECTS_PAYLOAD_V1_SCHEMA, "projects-payload"
-    )  # schema file :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
-    self.logger.info("Exiting validate_projects_payload command")
