@@ -6,7 +6,7 @@ import uuid
 from typing import Any, Dict
 
 from peagen.handlers.sort_handler import sort_handler
-from peagen.models import Task  # pydantic model
+from peagen.models import Task 
 
 sort_app = typer.Typer()
 
