@@ -45,15 +45,15 @@ def validate_config(path: Optional[Path] = None) -> Dict[str, Any]:
 def _load_yaml(path: Path) -> Dict[str, Any] | None:
     try:
         return yaml.safe_load(path.read_text(encoding="utf-8"))
-    except yaml.YAMLError as exc:  # pragma: no cover - minimal wrapper
-        return {"_yaml_error": str(exc)}  # type: ignore[return-value]
+    except yaml.YAMLError as exc:
+        return {"_yaml_error": str(exc)}
 
 
 def _load_json(path: Path) -> Dict[str, Any] | None:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:  # pragma: no cover - minimal wrapper
-        return {"_json_error": str(exc)}  # type: ignore[return-value]
+    except json.JSONDecodeError as exc:
+        return {"_json_error": str(exc)}
 
 
 def validate_doe_spec(path: Path) -> Dict[str, Any]:
