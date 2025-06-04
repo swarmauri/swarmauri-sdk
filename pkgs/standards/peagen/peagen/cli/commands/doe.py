@@ -51,8 +51,8 @@ def run(  # noqa: PLR0913
         "skip_validate": skip_validate,
     }
 
-    task_dict = json.loads(_make_task(args).model_dump_json())
-    result = asyncio.run(doe_handler(task_dict))
+    task = _make_task(args)
+    result = asyncio.run(doe_handler(task))
 
     typer.echo(json.dumps(result, indent=2) if json_out else f"✅  {result['output']}")
 

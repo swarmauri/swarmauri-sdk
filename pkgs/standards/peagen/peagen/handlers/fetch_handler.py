@@ -9,7 +9,6 @@ Async entry-point for the *fetch* pipeline.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -27,12 +26,8 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     install_template_sets: bool – install template sets (default True)
     """
     # normalise ---------------------------------------------
-    if not isinstance(task_or_dict, dict):
-        task_dict: Dict[str, Any] = json.loads(task_or_dict.model_dump_json())  # type: ignore[arg-type]
-    else:
-        task_dict = task_or_dict
-
-    args: Dict[str, Any] = task_dict["payload"]["args"]
+    payload = task_or_dict.get("payload", {})
+    args: Dict[str, Any] = payload.get("args", {})
     manifests: List[str] = args["manifests"]
 
     summary = fetch_many(

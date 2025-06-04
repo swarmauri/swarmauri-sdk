@@ -7,7 +7,6 @@ from typing import Any, Dict
 
 from peagen.handlers.sort_handler import sort_handler
 from peagen.models import Task  # pydantic model
-from peagen.models import Status  # ensure Status is available if needed
 
 sort_app = typer.Typer()
 
@@ -44,7 +43,7 @@ def run_sort(
         # status and result left as defaults (Status.pending, None)
     )
 
-    # 2) Call sort_handler(task.dict()) via asyncio.run
+    # 2) Call sort_handler(task) via asyncio.run
     try:
         result: Dict[str, Any] = asyncio.run(sort_handler(task))
     except Exception as exc:

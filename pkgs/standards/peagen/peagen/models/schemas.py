@@ -26,6 +26,10 @@ class Task(BaseModel):
     status: Status = Status.pending
     result: Optional[dict] = None
 
+    def get(self, key: str, default=None):
+        """Dictionary-style access to Task fields."""
+        return self.__dict__.get(key, default)
+
 
 class Pool(BaseModel):
     name: str

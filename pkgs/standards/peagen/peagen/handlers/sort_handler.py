@@ -1,9 +1,15 @@
 # peagen/handlers/sort_handler.py
 
 from typing import Any, Dict
-from peagen.core.sort_core import sort_single_project, sort_all_projects, _merge_cli_into_toml
+from peagen.core.sort_core import (
+    sort_single_project,
+    sort_all_projects,
+    _merge_cli_into_toml,
+)
+from peagen.models import Task
 
-async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
+
+async def sort_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     """
     Handler invoked when payload.action == "sort".
     Expects task["payload"]["args"] to include exactly:
