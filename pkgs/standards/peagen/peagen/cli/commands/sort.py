@@ -27,8 +27,11 @@ def run_sort(
     """
     # 1) Create a Task instance with default status/result
     task_id = str(uuid.uuid4())
+    # read the file once and ship the text
+    with open(projects_payload, "rt", encoding="utf-8") as fh:
+        payload_text = fh.read()
     args: Dict[str, Any] = {
-        "projects_payload": projects_payload,
+        "projects_payload": payload_text,              # ⇐ raw YAML string
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
