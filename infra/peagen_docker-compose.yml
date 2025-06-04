@@ -15,7 +15,9 @@ services:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z-cpuv1
     container_name: minio
     command: server /data --console-address ":9001"
-    ports: [ "9000:9000", "9001:9001" ]
+    expose:
+      - 9000
+      - 9001
     environment:
       MINIO_ROOT_USER:      ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
@@ -42,7 +44,8 @@ services:
         --requirepass ${REDIS_PASSWORD}
         --appendonly yes
         --dir /data
-    ports: [ "6379:6379" ]
+    expose: 
+      - 6379
     volumes:
       - "${DATA_ROOT}/redis:/data"
     healthcheck:
@@ -64,7 +67,8 @@ services:
       POSTGRES_PASSWORD:  ${POSTGRES_PASSWORD}
       POSTGRES_DB:        ${POSTGRES_DB}
       PGPORT:             5342
-    ports: [ "5342:5342" ]
+    expose: 
+      - 5342
     volumes:
       - "${DATA_ROOT}/postgres:/var/lib/postgresql/data"
     healthcheck:
@@ -85,7 +89,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL:    ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports: [ "5050:80" ]
+    expose: 
+      - 80
     volumes:
       - ${CONFIG_ROOT}/pgadmin:/var/lib/pgadmin:rw
     restart: unless-stopped
@@ -131,8 +136,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    ports:
-      - "8000:8000"                   # hostPort:containerPort
+    EXPOSE:
+      - 8000
     environment:
       PG_HOST:              postgres
       PG_PORT:              5342
