@@ -14,8 +14,8 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY ./pkgs ./pkgs
-COPY ./.gw.peagen.toml ./.peagen.toml
+COPY ./pkgs/ ./pkgs/
+COPY ./infra/.gw.peagen.toml ./.peagen.toml
 
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
