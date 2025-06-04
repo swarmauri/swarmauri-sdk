@@ -14,9 +14,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY ./ ./
+COPY ./pkgs/ ./pkgs/
+COPY ./infra/.gw.peagen.toml ./.peagen.toml
 
-RUN uv pip install --directory standards/peagen --system .
+RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000

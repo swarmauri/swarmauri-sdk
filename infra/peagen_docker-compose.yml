@@ -44,8 +44,6 @@ services:
         --requirepass ${REDIS_PASSWORD}
         --appendonly yes
         --dir /data
-    ports: 
-      - 6379
     volumes:
       - "${DATA_ROOT}/redis:/data"
     healthcheck:
@@ -107,6 +105,7 @@ services:
       - "80:80"     # HTTP
       - "443:443"   # HTTPS
       - "81:81"     # Admin UI
+      - "6379:6379"
     environment:
       DB_POSTGRES_HOST:     postgres
       DB_POSTGRES_PORT:     5342
@@ -127,8 +126,8 @@ services:
 
   gateway:
     build:
-      context: ../pkgs
-      dockerfile: ./standards/peagen/peagen/gateway/Dockerfile.gw
+      context: ../
+      dockerfile: ./infra/Dockerfile.gw
     depends_on:
       postgres:
         condition: service_healthy
@@ -158,8 +157,8 @@ services:
 
   worker:
     build:
-      context: ../pkgs
-      dockerfile: ./standards/peagen/peagen/worker/Dockerfile.worker
+      context: ../
+      dockerfile: ./infra/Dockerfile.worker
     depends_on:
       postgres:
         condition: service_healthy
