@@ -43,11 +43,13 @@ def _merge_cli_into_toml(
     Return a single dict that blends the immutable .peagen.toml settings with the
     (very small) set of flags we still honour from the CLI layer.
     """
+
     cfg: Dict[str, Any] = load_peagen_toml(".peagen.toml")
 
     # Explicitly whitelist only the flags we really support from the CLI.
     return {
-        "projects_payload_path": projects_payload,
+        # may be *either* a YAML string *or* a path
+        "projects_payload": projects_payload,
         "project_name": project_name,
         "start_idx": start_idx or 0,
         "start_file": start_file,
@@ -72,9 +74,23 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
         if proj_name is None:
             return {"error": "project_name is required for single-project sort."}
 
-        # --- read the YAML payload ------------------------------------------------
-        payload_path = Path(params["projects_payload_path"])
-        yaml_data = yaml.safe_load(payload_path.read_text())
+        # --- obtain YAML text -----------------------------------------------------
+        data_src = params["projects_payload"]
+
+        # If it *looks* like an existing file path, read it; otherwise treat
+        # the value itself as the YAML document.
+        try:
+            maybe_path = Path(data_src)
+            if maybe_path.is_file():
+                yaml_data = maybe_path.read_text()
+            else:
+                yaml_data = data_src
+        except (OSError, TypeError):               # not a valid path
+            yaml_data = data_src
+
+
+
+        yaml_data = yaml.safe_load(yaml_data)
         projects_list: List[Dict[str, Any]] = (
             yaml_data.get("PROJECTS") if isinstance(yaml_data, dict) else yaml_data
         )
@@ -121,8 +137,20 @@ def sort_all_projects(params: Dict[str, Any]) -> Dict[str, Any]:
     that one bad project doesn’t fail the whole command.
     """
     try:
-        payload_path = Path(params["projects_payload_path"])
-        yaml_data = yaml.safe_load(payload_path.read_text())
+
+        # If it *looks* like an existing file path, read it; otherwise treat
+        # the value itself as the YAML document.
+        data_src = params["projects_payload"]
+        try:
+            maybe_path = Path(data_src)
+            if maybe_path.is_file():
+                yaml_text = maybe_path.read_text()
+            else:
+                yaml_text = data_src
+        except (OSError, TypeError):               # not a valid path
+            yaml_text = data_src
+
+        yaml_data = yaml.safe_load(yaml_text)
         projects_list: List[Dict[str, Any]] = (
             yaml_data.get("PROJECTS") if isinstance(yaml_data, dict) else yaml_data
         )

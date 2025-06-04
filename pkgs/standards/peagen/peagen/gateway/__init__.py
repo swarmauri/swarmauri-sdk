@@ -185,10 +185,10 @@ def pool_join(name: str):
 
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
-async def task_submit(pool: str, payload: dict):
+async def task_submit(pool: str, payload: dict, taskId: str | None = None):
     await redis.sadd("pools", pool)          # track pool even if not created
 
-    task = Task(id=str(uuid.uuid4()), pool=pool, payload=payload)
+    task = Task(id=taskId, pool=pool, payload=payload)
 
     # 1) put on the queue for the scheduler
     await redis.rpush(f"queue:{pool}", task.model_dump_json())

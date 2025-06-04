@@ -2,6 +2,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
+import uuid
 
 
 class Role(str, Enum):
@@ -20,7 +21,7 @@ class Status(str, Enum):
 
 
 class Task(BaseModel):
-    id: str
+    id: Optional[str] = Field(default=uuid.uuid4())
     pool: str
     payload: dict
     status: Status = Status.pending

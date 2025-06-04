@@ -20,13 +20,13 @@ import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.models import Status, Task
 
+
 # ── Typer root ───────────────────────────────────────────────────────────────
 init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────-
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-
 
 def _build_task(args: Dict[str, Any]) -> Task:
     return Task(
@@ -64,6 +64,7 @@ def run_project(
 ):
     logger = Logger(name="init_project_run")
     logger.logger.info("Entering init_project run")
+
     args: Dict[str, Any] = {
         "kind": "project",
         "path": str(path),
@@ -135,6 +136,7 @@ def run_template_set(
 ):
     logger = Logger(name="init_template_set_run")
     logger.logger.info("Entering init_template_set run")
+
     args: Dict[str, Any] = {
         "kind": "template-set",
         "path": str(path),
@@ -147,7 +149,6 @@ def run_template_set(
     result = asyncio.run(init_handler(task))
     _summary(path, result["next"])
     logger.logger.info("Exiting init_template_set run")
-
 
 @template_set_app.command("submit")
 def submit_template_set(
@@ -213,7 +214,6 @@ def run_doe_spec(
     result = asyncio.run(init_handler(task))
     _summary(path, result["next"])
     logger.logger.info("Exiting init_doe_spec run")
-
 
 @doe_spec_app.command("submit")
 def submit_doe_spec(
@@ -286,6 +286,7 @@ def submit_ci(
 ):
     logger = Logger(name="init_ci_submit")
     logger.logger.info("Entering init_ci submit")
+
     args: Dict[str, Any] = {
         "kind": "ci",
         "path": str(path),
@@ -318,3 +319,4 @@ init_app.add_typer(project_app, name="project")
 init_app.add_typer(template_set_app, name="template-set")
 init_app.add_typer(doe_spec_app, name="doe-spec")
 init_app.add_typer(ci_app, name="ci")
+
