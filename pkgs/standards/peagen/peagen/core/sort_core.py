@@ -69,7 +69,10 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
 
         # Load and parse the YAML payload (list of project dicts)
         payload_path = Path(params["projects_payload_path"])
-        projects_list = yaml.safe_load(payload_path.read_text())
+        data = yaml.safe_load(payload_path.read_text())
+        # Support both legacy payloads with a top-level PROJECTS key and
+        # payloads that are just a list of project dictionaries
+        projects_list = data.get("PROJECTS") if isinstance(data, dict) else data
         project_spec = next((p for p in projects_list if p.get("NAME") == proj_name), None)
         if project_spec is None:
             return {"error": f"Project '{proj_name}' not found in {payload_path!r}"}
@@ -109,7 +112,8 @@ def sort_all_projects(params: Dict[str, Any]) -> Dict[str, Any]:
     """
     try:
         payload_path = Path(params["projects_payload_path"])
-        projects_list = yaml.safe_load(payload_path.read_text())
+        data = yaml.safe_load(payload_path.read_text())
+        projects_list = data.get("PROJECTS") if isinstance(data, dict) else data
         result_map: Dict[str, List[str]] = {}
 
         for proj in projects_list:
