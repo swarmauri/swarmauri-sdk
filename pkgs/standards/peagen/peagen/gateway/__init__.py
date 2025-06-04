@@ -40,7 +40,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 # ─────────────────────────── FastAPI / state ────────────────────
 
-app = FastAPI(title="DQueue Gateway")
+app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)        # 1-liner, no prefix
 
 rpc = RPCDispatcher()

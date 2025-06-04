@@ -89,7 +89,7 @@ class WorkerBase:
         self.LISTEN_PATH = "/rpc"
         self.url_self = f"http://{self.HOST}:{self.PORT}{self.LISTEN_PATH}"
 
-        self.app = FastAPI(title="DQueue Worker")
+        self.app = FastAPI(title="Peagen Worker")
         self.rpc = RPCDispatcher()
         self._client: Optional[httpx.AsyncClient] = None
 
