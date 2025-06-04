@@ -103,10 +103,8 @@ def submit_sort(
     # 2) Build Work.start envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": "Work.start",
+        "method": "Task.submit",
         "params": {
-            "id": task.id,
             "pool": task.pool,
             "payload": task.payload,
         },
