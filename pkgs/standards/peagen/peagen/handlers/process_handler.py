@@ -32,9 +32,6 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     # 0) Normalise input – accept Task *or* plain dict
     # ------------------------------------------------------------------ #
-    if not isinstance(task, dict):
-        task = task.model_dump()  # type: ignore[attr-defined]
-
     payload: Dict[str, Any] = task.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
@@ -62,9 +59,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     project_name: str | None = args.get("project_name")
     if project_name:
         projects = load_projects_payload(projects_payload)
-        project = next(
-            (p for p in projects if p.get("NAME") == project_name), None
-        )
+        project = next((p for p in projects if p.get("NAME") == project_name), None)
         if project is None:  # defensive
             raise ValueError(f"Project '{project_name}' not found in payload!")
         processed, _ = process_single_project(

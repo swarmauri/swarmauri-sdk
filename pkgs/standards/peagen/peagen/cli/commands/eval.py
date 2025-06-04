@@ -61,8 +61,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
         "skip_failed": skip_failed,
     }
     task = _build_task(args)
-
-    result = asyncio.run(eval_handler(json.loads(task.model_dump_json())))
+    result = asyncio.run(eval_handler(task))
     manifest = result["manifest"]
 
     # ----- output ----------------------------------------------------------
