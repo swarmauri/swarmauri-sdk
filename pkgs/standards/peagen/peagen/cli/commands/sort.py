@@ -44,9 +44,9 @@ def run_sort(
         # status and result left as defaults (Status.pending, None)
     )
 
-    # 2) Call sort_handler(task.dict()) via asyncio.run
+    # 2) Call sort_handler with the Task instance via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(sort_handler(task.model_dump_json()))
+        result: Dict[str, Any] = asyncio.run(sort_handler(task))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside sort_handler: {exc}")
         raise typer.Exit(1)

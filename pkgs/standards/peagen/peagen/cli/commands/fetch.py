@@ -71,8 +71,7 @@ def run(
     args = _collect_args(manifests, out_dir, no_source, install_template_sets_flag)
     task = _build_task(args)
 
-    # ⚠️  requirement: pass model_dump_json into handler
-    result = asyncio.run(fetch_handler(json.loads(task.model_dump_json())))
+    result = asyncio.run(fetch_handler(task))
     typer.echo(json.dumps(result, indent=2))
 
 
