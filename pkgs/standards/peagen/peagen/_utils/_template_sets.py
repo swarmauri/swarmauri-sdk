@@ -7,8 +7,11 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from importlib import import_module
+from types import ModuleType
 from typing import Any, Dict, List
-
+from jinja2 import FileSystemLoader
+from peagen.plugins import registry 
 
 def _build_pip_cmd(editable: bool = False) -> List[str]:
     """Return a pip install command, preferring uv if available."""
@@ -72,3 +75,71 @@ def install_template_sets(specs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         )
     shutil.rmtree(tmp_root, ignore_errors=True)
     return installed
+
+# --------------------------------------------------------------------------- #
+# Helper – locate a template-set folder on the current Jinja search-path      #
+# --------------------------------------------------------------------------- #
+def _locate_template_set(template_set: str, loader: FileSystemLoader) -> Path:
+    """
+    Resolve *template_set* to a concrete directory, trying in this order:
+
+    1.  Absolute folder path passed by the caller.
+    2.  ``<base>/<template_set>`` under every directory in ``loader.searchpath``.
+    3.  A plugin registered in ``peagen.plugins.registry["template_sets"]`` whose
+        *entry-point name* matches *template_set*.
+
+    Returns
+    -------
+    pathlib.Path  (absolute, resolved)
+
+    Raises
+    ------
+    ValueError  if no matching directory can be found.
+    """
+
+    # ------------------------------------------------------------------ #
+    # 1) Absolute path given directly                                    #
+    # ------------------------------------------------------------------ #
+    cand = Path(template_set)
+    if cand.is_absolute() and cand.is_dir():
+        return cand.resolve()
+
+    # ------------------------------------------------------------------ #
+    # 2) walk the Jinja2 loader search path                              #
+    # ------------------------------------------------------------------ #
+    for base in loader.searchpath:
+        candidate = Path(base) / template_set
+        if candidate.is_dir():
+            return candidate.resolve()
+
+    # ------------------------------------------------------------------ #
+    # 3) fallback to plugin registry                                     #
+    # ------------------------------------------------------------------ #
+    plugin = registry.get("template_sets", {}).get(template_set)
+    if plugin is not None:
+        # The registry guarantees either a module or a class.           #
+        # For a class we jump to its defining module.                   #
+        target_mod: ModuleType
+        if isinstance(plugin, ModuleType):
+            target_mod = plugin
+        else:  # class
+            target_mod = import_module(plugin.__module__)
+
+        # Prefer module.__path__[0] (packages) then module.__file__.
+        if hasattr(target_mod, "__path__"):        # namespace / pkg
+            dir_path = Path(next(iter(target_mod.__path__))).resolve()
+            if dir_path.is_dir():
+                return dir_path
+        if hasattr(target_mod, "__file__"):        # single-file module
+            dir_path = Path(target_mod.__file__).parent.resolve()
+            if dir_path.is_dir():
+                return dir_path
+
+    # ------------------------------------------------------------------ #
+    # Nothing matched → fail                                              #
+    # ------------------------------------------------------------------ #
+    raise ValueError(
+        f"Template set '{template_set}' not found in "
+        f"loader.searchpath or plugin registry. "
+        f"Search path = {', '.join(str(p) for p in loader.searchpath)}"
+    )

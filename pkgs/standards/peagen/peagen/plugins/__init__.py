@@ -1,4 +1,4 @@
-# peagen/plugin_registry.py
+# peagen/plugins.py
 """Plugin registry for the Peagen microkernel."""
 
 from importlib.metadata import entry_points
@@ -89,3 +89,5 @@ def discover_and_register_plugins(
                     )
 
             registry[group_key][ep.name] = obj
+
+discover_and_register_plugins()

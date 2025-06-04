@@ -1,0 +1,53 @@
+schemaVersion: 1.0.0
+PROJECTS:
+  - NAME: "Middleware"
+    ROOT: "pkgs"
+    PACKAGES:
+      # Core Interfaces
+      - NAME: "core/swarmauri_core"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_core"
+        MODULES:
+          - NAME: "IMiddleware"
+            EXTRAS:
+              PURPOSE: "Defines the middleware interface contract."
+              DESCRIPTION: "All middleware implementations must define a dispatch method."
+              RESOURCE_KIND: "middlewares"
+              REQUIREMENTS:
+                - "Must define dispatch(request, call_next)"
+                - "Supports chaining with other middlewares"
+
+      # Base Classes
+      - NAME: "base/swarmauri_base"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_base"
+        MODULES:
+          - NAME: "MiddlewareBase"
+            EXTRAS:
+              PURPOSE: "Skeleton implementation of IMiddleware."
+              DESCRIPTION: "Base class for all middlewares. Raises NotImplementedError for dispatch."
+              RESOURCE_KIND: "middlewares"
+              INTERFACE_NAME: "IMiddleware"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/middlewares/IMiddleware.py"
+              REQUIREMENTS:
+                - "Inherit from IMiddleware"
+                - "dispatch() must raise NotImplementedError"
+
+      # Concrete Middlewares
+      - NAME: "swarmauri_middleware_llamaguard"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard_standalone"
+        EXTRAS:
+          AUTHORS:
+            - NAME: "Michael Nwogha"
+              EMAIL: "michael@swamauri.com"
+          PURPOSE: "Inspects and filters unsafe content."
+          DESCRIPTION: "Middleware layer using LlamaGuard for request inspection."
+        MODULES:
+          - NAME: "LlamaGuardMiddleware"
+            EXTRAS:
+              PURPOSE: "Inspects and filters unsafe content."
+              DESCRIPTION: "Middleware layer using LlamaGuard for request inspection."
+              BASE_NAME: "MiddlewareBase"
+              BASE_FILE: "pkgs/base/swarmauri_base/middlewares/MiddlewareBase.py"
+              RESOURCE_KIND: "middlewares"
+              REQUIREMENTS:
+                - "Depends on FastAPI"
+                - "Implements dispatch(request, call_next)"
