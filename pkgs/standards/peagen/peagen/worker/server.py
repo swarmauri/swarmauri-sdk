@@ -3,6 +3,8 @@ dqueue.worker.server
 ────────────────────
 FastAPI-based worker that speaks JSON-RPC 2.0 and logs *everything*.
 """
+print('DEPRECATED. THIS WILL BE REMOVED ASAP.')
+
 
 from __future__ import annotations
 
