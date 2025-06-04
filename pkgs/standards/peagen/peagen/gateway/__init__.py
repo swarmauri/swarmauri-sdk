@@ -185,7 +185,7 @@ def pool_join(name: str):
 
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
-async def task_submit(pool: str, payload: dict, taskId: Optional[str] = None):
+async def task_submit(pool: str, payload: dict, taskId: str | None = None):
     await redis.sadd("pools", pool)          # track pool even if not created
 
     task = Task(id=taskId, pool=pool, payload=payload)
