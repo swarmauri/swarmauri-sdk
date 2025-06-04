@@ -14,27 +14,22 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
-COPY ./ ./
+COPY ./pkgs ./pkgs
+COPY ./.worker.peagen.toml ./.peagen.toml
 
-RUN uv pip install --directory standards/peagen --system .
+RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
 
 ENV \
-    PG_HOST="" \
-    PG_PORT="" \
-    PG_DB="" \
-    PB_USER="" \
-    PG_PASS="" \
-    REDIS_HOST="" \
-    REDIS_PASSWORD="" \
-    MINIO_USER="" \
-    MINIO_ROOT_PASSWORD=""
-    
+    DQ_POOL=""\
+    DQ_GATEWAY=""\
+    PORT="8000"
+
 CMD ["python", "-c", "\
 import uvicorn; \
-uvicorn.run('peagen.gateway:app', \
+uvicorn.run('peagen.worker:app', \
             host='0.0.0.0', \
             port=8000, \
             reload=True, \

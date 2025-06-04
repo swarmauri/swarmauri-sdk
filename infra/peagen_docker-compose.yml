@@ -127,8 +127,8 @@ services:
 
   gateway:
     build:
-      context: ../pkgs
-      dockerfile: ./standards/peagen/peagen/gateway/Dockerfile.gw
+      context: ../
+      dockerfile: ./Dockerfile.gw
     depends_on:
       postgres:
         condition: service_healthy
@@ -158,8 +158,8 @@ services:
 
   worker:
     build:
-      context: ../pkgs
-      dockerfile: ./standards/peagen/peagen/worker/Dockerfile.worker
+      context: ../
+      dockerfile: ./Dockerfile.worker
     depends_on:
       postgres:
         condition: service_healthy

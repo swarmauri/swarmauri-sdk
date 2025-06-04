@@ -1,4 +1,4 @@
-# dqueue/worker/base.py
+# peagen/worker/base.py
 
 from __future__ import annotations
 
