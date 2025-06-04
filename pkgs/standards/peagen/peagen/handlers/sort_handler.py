@@ -34,7 +34,6 @@ async def sort_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         show_dependencies=args.get("show_dependencies", False),
     )
 
-    print('haeare')
     if params["project_name"]:
         return sort_single_project(params)
     else:
