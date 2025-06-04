@@ -2,7 +2,6 @@
 
 import asyncio
 import typer
-import uuid
 from typing import Any, Dict
 
 from peagen.handlers.sort_handler import sort_handler
@@ -26,12 +25,8 @@ def run_sort(
     and invoking the same handler that a worker would use.
     """
     # 1) Create a Task instance with default status/result
-    task_id = str(uuid.uuid4())
-    # read the file once and ship the text
-    with open(projects_payload, "rt", encoding="utf-8") as fh:
-        payload_text = fh.read()
     args: Dict[str, Any] = {
-        "projects_payload": payload_text,              # ⇐ raw YAML string
+        "projects_payload": projects_payload,
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
@@ -40,7 +35,6 @@ def run_sort(
         "show_dependencies": show_dependencies,
     }
     task = Task(
-        id=task_id,
         pool="default",
         payload={"action": "sort", "args": args},
         # status and result left as defaults (Status.pending, None)
@@ -86,9 +80,12 @@ def submit_sort(
     Submit this sort as a background task. Returns immediately with a taskId.
     """
     # 1) Create a Task instance
-    task_id = str(uuid.uuid4())
-    args: Dict[str, Any] = {
-        "projects_payload": projects_payload,
+    # 1a) replace path with YAML text -------------------------------
+    with open(projects_payload, "rt", encoding="utf-8") as fh:
+        yaml_text = fh.read()
+
+    args = {
+        "projects_payload": yaml_text,              # ← inline text
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
@@ -97,7 +94,6 @@ def submit_sort(
         "show_dependencies": show_dependencies,
     }
     task = Task(
-        id=task_id,
         pool="default",
         payload={"action": "sort", "args": args},
         # status and result left as defaults
@@ -123,7 +119,7 @@ def submit_sort(
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={task.id}")
+        typer.echo(f"Submitted sort → taskId={data['id']}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)
