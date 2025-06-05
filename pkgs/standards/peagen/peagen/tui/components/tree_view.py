@@ -1,6 +1,8 @@
-from textual.widgets import Tree, Static
-from textual.message import Message
 from pathlib import Path
+
+from textual.message import Message
+from textual.widgets import Tree
+
 
 class FileTree(Tree):
     class FileSelected(Message):

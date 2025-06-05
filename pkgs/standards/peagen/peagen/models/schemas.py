@@ -21,7 +21,7 @@ class Status(str, Enum):
 
 
 class Task(BaseModel):
-    id: Optional[str] = Field(default=uuid.uuid4())
+    id: Optional[str] = Field(default=str(uuid.uuid4()))
     pool: str
     payload: dict
     status: Status = Status.pending

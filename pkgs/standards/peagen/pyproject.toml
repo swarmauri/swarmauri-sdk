@@ -37,6 +37,9 @@ dependencies = [
 
     "typer",   # for cli
     "colorama",# for cli
+    
+    "textual", # for tui
+    "rich", # for tui
 
     "swarmauri_core",
     "swarmauri_base",

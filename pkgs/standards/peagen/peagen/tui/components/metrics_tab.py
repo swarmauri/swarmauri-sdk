@@ -1,6 +1,6 @@
-from textual.widgets import Static, Sparkline
-from textual.app import ComposeResult
 import random
+
+from textual.widgets import Sparkline, Static
 
 
 class MetricsTab(Static):

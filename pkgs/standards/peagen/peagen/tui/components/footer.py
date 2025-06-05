@@ -1,8 +1,8 @@
-from textual.widgets import Footer
-from textual.reactive import reactive
-from textual.timer import Timer
 from datetime import datetime
+
 import psutil
+from textual.reactive import reactive
+from textual.widgets import Footer
 
 
 class DashboardFooter(Footer):
@@ -15,7 +15,9 @@ class DashboardFooter(Footer):
 
     def update_metrics(self) -> None:
         self.clock = datetime.now().strftime("%H:%M:%S")
-        self.metrics = f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
+        self.metrics = (
+            f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
+        )
 
     def render(self) -> str:
         return f"{self.clock} | {self.metrics} | {self.hint}"
