@@ -1,17 +1,3 @@
-"""
-peagen.core.templates_core
-==========================
-
-Business logic for managing Peagen template sets.
-
-Public API
-----------
-- discover_template_sets()
-- list_template_sets()
-- show_template_set()
-- add_template_set()
-- remove_template_set()
-"""
 
 from __future__ import annotations
 

@@ -1,18 +1,4 @@
 # peagen/commands/templates.py
-"""Template-set management CLI.
-
-Wire it into :mod:`peagen.cli` with::
-
-    from peagen.commands.templates import template_sets_app
-    app.add_typer(template_sets_app, name="template-set")
-
-Each operation (``list`` | ``show`` | ``add`` | ``remove``) exposes ``run`` and
-``submit`` sub-commands. Example usage::
-
-    peagen template-set list run
-    peagen template-set list submit
-"""
-
 from __future__ import annotations
 
 import asyncio
