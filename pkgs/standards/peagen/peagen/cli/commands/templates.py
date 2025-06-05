@@ -1,11 +1,16 @@
 # peagen/commands/templates.py
-"""
-Peagen “template-sets” sub-commands (list | show | add).
+"""Template-set management CLI.
 
-Wire it in peagen/cli.py with:
+Wire it into :mod:`peagen.cli` with::
 
     from peagen.commands.templates import template_sets_app
-    app.add_typer(template_sets_app, name="template-sets")
+    app.add_typer(template_sets_app, name="template-set")
+
+Each operation (``list`` | ``show`` | ``add`` | ``remove``) exposes ``run`` and
+``submit`` sub-commands. Example usage::
+
+    peagen template-set list run
+    peagen template-set list submit
 """
 
 from __future__ import annotations
@@ -17,12 +22,24 @@ from typing import Any, Dict, Optional
 from peagen.handlers.templates_handler import templates_handler
 from peagen.models import Task
 import typer
+import httpx
 
 # ──────────────────────────────────────
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 template_sets_app = typer.Typer(
     help="Manage Peagen template-sets.",
     add_completion=False,
 )
+
+list_app = typer.Typer(help="List template-sets")
+show_app = typer.Typer(help="Show details about a template-set")
+add_app = typer.Typer(help="Install a template-set")
+remove_app = typer.Typer(help="Remove a template-set")
+
+template_sets_app.add_typer(list_app, name="list")
+template_sets_app.add_typer(show_app, name="show")
+template_sets_app.add_typer(add_app, name="add")
+template_sets_app.add_typer(remove_app, name="remove")
 
 
 # ─── helpers ───────────────────────────
@@ -31,9 +48,25 @@ def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     return asyncio.run(templates_handler(task))
 
 
+def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
+    """Submit a templates task via JSON-RPC."""
+    task = Task(id=str(uuid.uuid4()), pool="default", payload={"args": args})
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Task.submit",
+        "params": {"pool": task.pool, "payload": task.payload},
+    }
+    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    resp.raise_for_status()
+    data = resp.json()
+    if data.get("error"):
+        raise RuntimeError(data["error"])
+    return str(data.get("id", task.id))
+
+
 # ─── list ──────────────────────────────
-@template_sets_app.command("list", help="List all discovered template-sets.")
-def list_template_sets(
+@list_app.command("run", help="List all discovered template-sets.")
+def run_list(
     verbose: int = typer.Option(
         0,
         "-v",
@@ -57,9 +90,31 @@ def list_template_sets(
     typer.echo(f"\nTotal: {result['total']} set(s)")
 
 
+@list_app.command("submit", help="Submit a list task via gateway.")
+def submit_list(
+    verbose: int = typer.Option(
+        0,
+        "-v",
+        "--verbose",
+        count=True,
+        help="-v shows physical paths.",
+    ),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
+    ),
+):
+    args = {"operation": "list", "verbose": verbose}
+    try:
+        task_id = _submit_task(args, gateway_url)
+        typer.echo(f"Submitted list → taskId={task_id}")
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
+
+
 # ─── show ──────────────────────────────
-@template_sets_app.command("show", help="Show the contents of a template-set.")
-def show_template_set(
+@show_app.command("run", help="Show the contents of a template-set.")
+def run_show(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     verbose: int = typer.Option(
         0,
@@ -89,15 +144,38 @@ def show_template_set(
             typer.echo(f" • {rel}")
 
 
+@show_app.command("submit", help="Submit a show task via gateway.")
+def submit_show(
+    name: str = typer.Argument(..., metavar="SET_NAME"),
+    verbose: int = typer.Option(
+        0,
+        "-v",
+        "--verbose",
+        count=True,
+        help="-v lists files, -vv lists full paths.",
+    ),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
+    ),
+):
+    args = {"operation": "show", "name": name, "verbose": verbose}
+    try:
+        task_id = _submit_task(args, gateway_url)
+        typer.echo(f"Submitted show → taskId={task_id}")
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
+
+
 # ─── add ───────────────────────────────
-@template_sets_app.command(
+@add_app.command(
     "add",
     help=(
         "Install a template-set distribution from PyPI, a wheel/sdist, or a "
         "local directory."
     ),
 )
-def add_template_set(
+def run_add(
     source: str = typer.Argument(
         ...,
         metavar="PKG|WHEEL|DIR",
@@ -165,11 +243,40 @@ def add_template_set(
         )
 
 
-@template_sets_app.command(
+@add_app.command("submit", help="Submit an add task via gateway.")
+def submit_add(
+    source: str = typer.Argument(..., metavar="PKG|WHEEL|DIR"),
+    from_bundle: Optional[str] = typer.Option(
+        None, "--from-bundle", help="Install from bundled archive"
+    ),
+    editable: bool = typer.Option(False, "--editable", "-e"),
+    force: bool = typer.Option(False, "--force"),
+    verbose: bool = typer.Option(False, "-v", "--verbose"),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
+    ),
+):
+    args = {
+        "operation": "add",
+        "source": source,
+        "from_bundle": from_bundle,
+        "editable": editable,
+        "force": force,
+        "verbose": verbose,
+    }
+    try:
+        task_id = _submit_task(args, gateway_url)
+        typer.echo(f"Submitted add → taskId={task_id}")
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
+
+
+@remove_app.command(
     "remove",
     help="Uninstall the package that owns a template-set.",
 )
-def remove_template_set(
+def run_remove(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(
         False,
@@ -203,3 +310,26 @@ def remove_template_set(
         typer.echo(
             "⚠️  Uninstall completed, but the template-set is still discoverable."
         )
+
+
+@remove_app.command("submit", help="Submit a remove task via gateway.")
+def submit_remove(
+    name: str = typer.Argument(..., metavar="SET_NAME"),
+    yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
+    verbose: bool = typer.Option(False, "-v", "--verbose"),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
+    ),
+):
+    if not yes:
+        if not typer.confirm(f"Uninstall template-set '{name}' ?"):
+            typer.echo("Aborted.")
+            raise typer.Exit()
+
+    args = {"operation": "remove", "name": name, "verbose": verbose}
+    try:
+        task_id = _submit_task(args, gateway_url)
+        typer.echo(f"Submitted remove → taskId={task_id}")
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
