@@ -10,9 +10,12 @@ from peagen.handlers.validate_handler import validate_handler
 from peagen.models import Task
 
 local_validate_app = typer.Typer()
+remote_validate_app = typer.Typer()
+
+# ────────────────────────────── local validate ────────────────────────────────────
 
 
-@local_validate_app.command("run")
+@local_validate_app.command("validate")
 def run_validate(
     ctx: typer.Context,
     kind: str = typer.Argument(
@@ -56,7 +59,8 @@ def run_validate(
         typer.echo(f"✅  {kind.capitalize()} is valid.")
 
 
-@local_validate_app.command("submit")
+# ────────────────────────────── remote validate ──────────────────────────────────
+@local_validate_app.command("validate")
 def submit_validate(
     ctx: typer.Context,
     kind: str = typer.Argument(

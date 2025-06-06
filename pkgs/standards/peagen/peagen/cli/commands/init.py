@@ -19,24 +19,17 @@ from swarmauri_standard.loggers.Logger import Logger
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 # ── Typer root ───────────────────────────────────────────────────────────────
-local_init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
-
-# create sub-apps mirroring the pattern used by the sort command
-project_app = typer.Typer(help="Manage project scaffolding.")
-template_set_app = typer.Typer(help="Manage template-set scaffolding.")
-doe_spec_app = typer.Typer(help="Manage DOE-spec scaffolding.")
-ci_app = typer.Typer(help="Manage CI scaffolding.")
-
-# register sub-apps
-init_app.add_typer(project_app, name="project")
-init_app.add_typer(template_set_app, name="template-set")
-init_app.add_typer(doe_spec_app, name="doe-spec")
-init_app.add_typer(ci_app, name="ci")
+local_init_app = typer.Typer(
+    help="Bootstrap Peagen artefacts (project, template-set …) locally"
+)
+remote_init_app = typer.Typer(
+    help="Bootstrap Peagen artefacts (project, template-set …) via JSON-RPC",
+)
 
 
 # ── init project ─────────────────────────────────────────────────────────────
-@local_init_app.command("project", help="Create a new Peagen project skeleton.")
-def init_project(
+@local_init_app.command("project")
+def local_init_project(
     ctx: typer.Context,
     path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
     template_set: str = typer.Option("default", "--template-set"),
@@ -45,8 +38,9 @@ def init_project(
     with_eval_stub: bool = typer.Option(False, "--with-eval-stub"),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
 ):
+    """Create a new Peagen project skeleton locally."""
     self = Logger(name="init_project")
-    self.logger.info("Entering init_project command")
+    self.logger.info("Entering local init_project command")
     args: Dict[str, Any] = {
         "kind": "project",
         "path": str(path),
@@ -59,11 +53,12 @@ def init_project(
 
     result = _call_handler(args)
     _summary(path, result["next"])
-    self.logger.info("Exiting init_project command")
+    self.logger.info("Exiting local init_project command")
 
 
-@project_app.command("submit", help="Submit a project scaffold task.")
-def submit_project(
+@remote_init_app.command("project")
+def remote_init_project(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
     template_set: str = typer.Option("default", "--template-set"),
     provider: Optional[str] = typer.Option(None, "--provider"),
@@ -74,6 +69,7 @@ def submit_project(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a project scaffold task via JSON-RPC."""
     args = {
         "kind": "project",
         "path": str(path),
@@ -87,8 +83,8 @@ def submit_project(
 
 
 # ── init template-set ────────────────────────────────────────────────────────
-@local_init_app.command("template-set", help="Create a template-set wheel skeleton.")
-def init_template_set(
+@local_init_app.command("template-set")
+def local_init_template_set(
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
@@ -96,8 +92,9 @@ def init_template_set(
     use_uv: bool = typer.Option(True, "--uv/--no-uv"),
     force: bool = typer.Option(False, "--force"),
 ):
+    """Create a template-set wheel skeleton locally."""
     self = Logger(name="init_template_set")
-    self.logger.info("Entering init_template_set command")
+    self.logger.info("Entering local init_template_set command")
     args: Dict[str, Any] = {
         "kind": "template-set",
         "path": str(path),
@@ -109,11 +106,12 @@ def init_template_set(
 
     result = _call_handler(args)
     _summary(path, result["next"])
-    self.logger.info("Exiting init_template_set command")
+    self.logger.info("Exiting local init_template_set command")
 
 
-@template_set_app.command("submit", help="Submit a template-set scaffold task.")
-def submit_template_set(
+@remote_init_app.command("template-set")
+def remote_init_template_set(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
     org: Optional[str] = typer.Option(None, "--org"),
@@ -123,6 +121,7 @@ def submit_template_set(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a template-set scaffold task via JSON-RPC."""
     args = {
         "kind": "template-set",
         "path": str(path),
@@ -135,16 +134,17 @@ def submit_template_set(
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
-@local_init_app.command("doe-spec", help="Create a DOE-spec stub.")
-def init_doe_spec(
+@local_init_app.command("doe-spec")
+def local_init_doe_spec(
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
     org: Optional[str] = typer.Option(None, "--org"),
     force: bool = typer.Option(False, "--force"),
 ):
+    """Create a DOE-spec stub locally."""
     self = Logger(name="init_doe_spec")
-    self.logger.info("Entering init_doe_spec command")
+    self.logger.info("Entering local init_doe_spec command")
     args: Dict[str, Any] = {
         "kind": "doe-spec",
         "path": str(path),
@@ -154,11 +154,12 @@ def init_doe_spec(
     }
     result = _call_handler(args)
     _summary(path, result["next"])
-    self.logger.info("Exiting init_doe_spec command")
+    self.logger.info("Exiting local init_doe_spec command")
 
 
-@doe_spec_app.command("submit", help="Submit a DOE-spec scaffold task.")
-def submit_doe_spec(
+@remote_init_app.command("doe-spec")
+def remote_init_doe_spec(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
     org: Optional[str] = typer.Option(None, "--org"),
@@ -167,6 +168,7 @@ def submit_doe_spec(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a DOE-spec scaffold task via JSON-RPC."""
     args = {
         "kind": "doe-spec",
         "path": str(path),
@@ -178,15 +180,16 @@ def submit_doe_spec(
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────
-@local_init_app.command("ci", help="Drop a CI pipeline file for GitHub or GitLab.")
-def init_ci(
+@local_init_app.command("ci")
+def local_init_ci(
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     github: bool = typer.Option(True, "--github/--gitlab"),
     force: bool = typer.Option(False, "--force"),
 ):
+    """Drop a CI pipeline file for GitHub or GitLab locally."""
     self = Logger(name="init_ci")
-    self.logger.info("Entering init_ci command")
+    self.logger.info("Entering local init_ci command")
     args: Dict[str, Any] = {
         "kind": "ci",
         "path": str(path),
@@ -195,11 +198,12 @@ def init_ci(
     }
     _call_handler(args)
     typer.echo("✅  CI file written.  Commit it to enable automatic runs.")
-    self.logger.info("Exiting init_ci command")
+    self.logger.info("Exiting local init_ci command")
 
 
-@ci_app.command("submit", help="Submit a CI pipeline scaffold task.")
-def submit_ci(
+@remote_init_app.command("ci")
+def remote_init_ci(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     github: bool = typer.Option(True, "--github/--gitlab"),
     force: bool = typer.Option(False, "--force"),
@@ -207,6 +211,7 @@ def submit_ci(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a CI pipeline scaffold task via JSON-RPC."""
     args = {
         "kind": "ci",
         "path": str(path),
