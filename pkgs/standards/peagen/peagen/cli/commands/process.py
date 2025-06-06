@@ -67,8 +67,9 @@ def _build_task(args: Dict[str, Any]) -> Task:
 
 
 # ────────────────────────── local run ────────────────────────────────────────
-@local_process_app.command("run")
+@local_process_app.command("process")
 def run(  # noqa: PLR0913 – CLI signature needs many options
+    ctx: typer.Context,
     projects_payload: str = typer.Argument(
         ..., help="Path to YAML file containing a top-level PROJECTS list."
     ),
@@ -118,8 +119,9 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
 
 
 # ────────────────────────── remote submit ────────────────────────────────────
-@remote_process_app.command("submit")
+@remote_process_app.command("process")
 def submit(  # noqa: PLR0913 – CLI signature needs many options
+    ctx: typer.Context,
     projects_payload: str = typer.Argument(...),
     project_name: Optional[str] = typer.Option(None),
     start_idx: int = typer.Option(0),

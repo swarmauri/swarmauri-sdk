@@ -52,8 +52,9 @@ def _collect_args(
 
 
 # ───────────────────────── local run ───────────────────────
-@local_fetch_app.command("run")
+@local_fetch_app.command("fetch")
 def run(
+    ctx: typer.Context,
     manifests: List[str] = typer.Argument(..., help="Manifest JSON URI(s)"),
     out_dir: Optional[Path] = typer.Option(
         None, "--out", "-o", help="Destination folder (temp dir if omitted)"
@@ -76,18 +77,13 @@ def run(
 
 
 # ────────────────────── remote submission ──────────────────
-@remote_fetch_app.command("submit")
+@remote_fetch_app.command("fetch")
 def submit(
+    ctx: typer.Context,
     manifests: List[str] = typer.Argument(...),
     out_dir: Optional[Path] = typer.Option(None, "--out", "-o"),
     no_source: bool = typer.Option(False, "--no-source/--with-source"),
-    install_template_sets_flag: bool = typer.Option(True),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY,
-        "--gateway",
-        envvar="PEAGEN_GATEWAY_URL",
-        help="JSON-RPC gateway endpoint",
-    ),
+    install_template_sets_flag: bool = typer.Option(True)
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
     args = _collect_args(manifests, out_dir, no_source, install_template_sets_flag)
@@ -101,7 +97,7 @@ def submit(
     }
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(gateway_url, json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
         reply = resp.json()
 

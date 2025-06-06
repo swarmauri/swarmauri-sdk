@@ -38,8 +38,9 @@ def _build_task(args: dict) -> Task:
 
 
 # ───────────────────────── local run ───────────────────────────────────────
-@local_eval_app.command("run")
+@local_eval_app.command("eval")
 def run(  # noqa: PLR0913 – CLI needs many options
+    ctx: typer.Context,
     workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
     program_glob: str = typer.Argument("**/*.*", help="Glob pattern for programs"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p", help="EvaluatorPool ref"),
@@ -79,8 +80,9 @@ def run(  # noqa: PLR0913 – CLI needs many options
 
 
 # ───────────────────────── remote submit ───────────────────────────────────
-@remote_eval_app.command("submit")
+@remote_eval_app.command("eval")
 def submit(  # noqa: PLR0913
+    ctx: typer.Context,
     workspace_uri: str = typer.Argument(...),
     program_glob: str = typer.Argument("**/*.*"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p"),
@@ -108,7 +110,7 @@ def submit(  # noqa: PLR0913
     }
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(gateway_url, json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
         reply = resp.json()
 

@@ -14,6 +14,7 @@ local_validate_app = typer.Typer()
 
 @local_validate_app.command("run")
 def run_validate(
+    ctx: typer.Context,
     kind: str = typer.Argument(
         ...,
         help="Kind of artifact to validate (config, doe, manifest, ptree, projects_payload).",
@@ -57,6 +58,7 @@ def run_validate(
 
 @local_validate_app.command("submit")
 def submit_validate(
+    ctx: typer.Context,
     kind: str = typer.Argument(
         ...,
         help="Kind of artifact to validate (config, doe, manifest, ptree, projects_payload).",

@@ -6,7 +6,6 @@ from __future__ import annotations
 import json, time, uuid, httpx, asyncio
 import typer
 
-
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
 
@@ -15,10 +14,7 @@ def get(                           # noqa: D401
     ctx: typer.Context,
     task_id: str = typer.Argument(..., help="UUID of the task to query"),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
-    gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway", envvar="PEAGEN_GATEWAY_URL"
-    ),
+    interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls")
 ):
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
     def _rpc_call() -> dict:
@@ -28,7 +24,7 @@ def get(                           # noqa: D401
             "method": "Task.get",
             "params": {"taskId": task_id},
         }
-        res = httpx.post(gateway_url, json=req, timeout=30.0).json()
+        res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
         return res["result"]
         
     while True:

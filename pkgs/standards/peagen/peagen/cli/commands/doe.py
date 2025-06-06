@@ -28,7 +28,7 @@ def _make_task(args: dict) -> Task:
 
 
 # ───────────────────────────── local run ───────────────────────────────────
-@local_doe_app.command("run")
+@local_doe_app.command("doe")
 def run(  # noqa: PLR0913
     ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
@@ -59,7 +59,7 @@ def run(  # noqa: PLR0913
 
 
 # ─────────────────────────── remote submit ─────────────────────────────────
-@remote_doe_app.command("submit")
+@remote_doe_app.command("doe")
 def submit(  # noqa: PLR0913
     ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
@@ -70,11 +70,6 @@ def submit(  # noqa: PLR0913
     dry_run: bool = typer.Option(False, "--dry-run"),
     force: bool = typer.Option(False, "--force"),
     skip_validate: bool = typer.Option(False, "--skip-validate"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY,
-        "--gateway",
-        envvar="PEAGEN_GATEWAY_URL",
-    ),
 ):
     args = {
         "spec": str(spec),
@@ -96,7 +91,7 @@ def submit(  # noqa: PLR0913
     }
 
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(gateway_url, json=rpc_req).json()
+        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
 
     if "error" in reply:
         typer.secho(

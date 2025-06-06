@@ -60,13 +60,7 @@ def _discover_template_sets() -> Dict[str, List[Path]]:
 # ─── list ──────────────────────────────
 @local_template_sets_app.command("list", help="List all discovered template-sets.")
 def list_template_sets(
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v shows physical paths.",
-    ),
+    ctx: typer.Context,
 ):
     discovered = _discover_template_sets()
     if not discovered:
@@ -85,14 +79,8 @@ def list_template_sets(
 # ─── show ──────────────────────────────
 @local_template_sets_app.command("show", help="Show the contents of a template-set.")
 def show_template_set(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v lists files, -vv lists full paths.",
-    ),
 ):
     discovered = _discover_template_sets()
     if name not in discovered:
@@ -133,6 +121,7 @@ def show_template_set(
     ),
 )
 def add_template_set(
+    ctx: typer.Context,
     source: str = typer.Argument(
         ...,
         metavar="PKG|WHEEL|DIR",
@@ -154,13 +143,7 @@ def add_template_set(
         False,
         "--force",
         help="Re-install even if the distribution is already present.",
-    ),
-    verbose: bool = typer.Option(
-        False,
-        "-v",
-        "--verbose",
-        help="Stream pip/uv output.",
-    ),
+    )
 ):
     """
     Install a template-set extension.
@@ -244,19 +227,14 @@ def add_template_set(
     help="Uninstall the package that owns a template-set.",
 )
 def remove_template_set(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(
         False,
         "-y",
         "--yes",
         help="Skip confirmation prompt.",
-    ),
-    verbose: bool = typer.Option(
-        False,
-        "-v",
-        "--verbose",
-        help="Show pip/uv output.",
-    ),
+    )
 ):
     """
     Uninstall the wheel / editable project that exposes *SET_NAME* in the

@@ -35,7 +35,9 @@ def _build_schema(keys: List[str], set_name: str) -> dict:
 
 
 @local_extras_app.command("generate")
-def generate() -> None:
+def generate(
+        ctx: typer.Context
+        ) -> None:
     """Regenerate EXTRAS schema files from templates."""
     self = Logger(name="extras_generate")
     self.logger.info("Entering extras_generate command")
