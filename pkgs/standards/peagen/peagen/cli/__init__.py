@@ -139,6 +139,7 @@ app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 
 
+
 local_app.add_typer(local_doe_app)
 local_app.add_typer(local_eval_app)
 local_app.add_typer(local_process_app)
@@ -156,10 +157,8 @@ remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_sort_app)
 remote_app.add_typer(remote_task_app, name="task")
-remote_app.add_typer(remote_init_app, name="init")
 remote_app.add_typer(remote_extras_app)
 remote_app.add_typer(remote_validate_app)
-remote_app.add_typer(remote_template_sets_app, name="template-set")
 
 if __name__ == "__main__":
     app()

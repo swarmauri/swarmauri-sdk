@@ -21,7 +21,6 @@ import typer
 from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
 
@@ -143,9 +142,9 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     rpc_req = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {"pool": task.pool, "payload": task.payload, "taskId": task.id},
+        "params": task.model_dump(),
     }
-
+    print(rpc_req)
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
