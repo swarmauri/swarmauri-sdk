@@ -11,13 +11,14 @@ from peagen.core._external import call_external_agent
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
-
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 def _render_copy_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
     j2_instance: Any,
-    logger: Optional[Any] = None,
 ) -> str:
     """
     Render a COPY‐style template.  
@@ -54,7 +55,6 @@ def _render_generate_template(
     agent_prompt_template: str,
     j2_instance: Any,
     agent_env: Dict[str, str] = {},
-    logger: Optional[Any] = None,
 ) -> str:
     """
     Render a GENERATE‐style template.  
@@ -64,11 +64,20 @@ def _render_generate_template(
     - agent_env is passed through to call_external_agent.  
     """
     try:
+        template_name = Path(agent_prompt_template).name
         if logger:
             logger.debug(f"Rendering generate template {agent_prompt_template}")
-        j2_instance.set_template(str(agent_prompt_template))
+        j2_instance.set_template(template_name)
+
+        print('\n\n\nagent_prompt_template', agent_prompt_template)
+        print('\n\ncontext', context)
+        print('\n\nj2_instance', j2_instance)
+        print('\n\n')
         rendered_prompt = j2_instance.fill(context)
-        return call_external_agent(rendered_prompt, agent_env, logger)
+        print('\n\n\nrendered_prompt', rendered_prompt)
+        resp = call_external_agent(rendered_prompt, agent_env, logger)
+        print('\n\nresp', resp)
+        return resp
     except Exception as e:
         if logger:
             msg = str(e)

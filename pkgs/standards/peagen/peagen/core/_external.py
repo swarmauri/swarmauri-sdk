@@ -24,10 +24,14 @@ colorama.init(autoreset=True)
 UNDERLINE = "\033[4m"
 
 
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(encoding='utf-8', level=logging.INFO)
+
 load_dotenv()
 
 def call_external_agent(
-    prompt: str, agent_env: Dict[str, str], truncate_: bool = False, logger: Optional[Any] = None
+    prompt: str, agent_env: Dict[str, str], truncate_: bool = False, logger: Optional[Any] = logger
 ) -> str:
     """
     Sends the rendered prompt to an external agent (e.g., a language model) and returns the generated content.
@@ -124,7 +128,7 @@ def call_external_agent(
     return content
 
 
-def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
+def chunk_content(full_content: str, logger: Optional[Any] = logger) -> str:
     """
     Optionally splits the content into chunks. Returns either a single chunk
     or the full content.
