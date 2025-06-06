@@ -16,7 +16,7 @@ from typing import Any, Dict
 from fastapi import FastAPI, Request, Response, Body
 from redis.asyncio import Redis
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
@@ -25,7 +25,7 @@ from peagen.gateway.runtime_cfg import settings
 from peagen.gateway.db import Session, engine
 from peagen.gateway.db_helpers import upsert_task
 
-
+from peagen.core.task_core import get_task_result
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -69,7 +69,6 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
     key = WORKER_KEY.format(workerId)          # e.g.  worker:7917b3bd
     await redis.hset(key, mapping=coerced)
     await redis.expire(key, WORKER_TTL)   # <<—— TTL refresh
-
 
 async def _live_workers_by_pool(pool: str) -> list[dict]:
     keys = await redis.keys("worker:*")
@@ -185,10 +184,13 @@ def pool_join(name: str):
 
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
-async def task_submit(pool: str, payload: dict, taskId: str | None = None):
+async def task_submit(pool: str, payload: dict, taskId: Optional[str]):
     await redis.sadd("pools", pool)          # track pool even if not created
 
-    task = Task(id=taskId, pool=pool, payload=payload)
+    if taskId:
+        task = Task(id=taskId, pool=pool, payload=payload)
+    else:
+        task = Task(pool=pool, payload=payload)
 
     # 1) put on the queue for the scheduler
     await redis.rpush(f"queue:{pool}", task.model_dump_json())
@@ -213,11 +215,18 @@ async def task_cancel(taskId: str):
     log.info("task %s cancelled", taskId)
     return {}
 
-
 @rpc.method("Task.get")
 async def task_get(taskId: str):
-    t = await _load_task(taskId)
-    return t.model_dump() if t else None
+    # hot cache
+    if (t := await _load_task(taskId)):
+        return t.model_dump()
+
+    # authoritative fallback (Postgres)
+    try:
+        return await get_task_result(taskId)     # raises ValueError if not found
+    except ValueError as exc:
+        # surface a proper JSON-RPC error so the envelope is valid
+        raise RPCError(code=-32001, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")
@@ -265,8 +274,6 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
 
-
-# ─────────────────────────── Scheduler loop ─────────────────────
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler():
     log.info("scheduler started")

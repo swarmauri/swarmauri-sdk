@@ -22,7 +22,8 @@ from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-process_app = typer.Typer(help="Render / generate project files.")
+local_process_app = typer.Typer(help="Render / generate project files.")
+remote_process_app = typer.Typer(help="Render / generate project files.")
 
 
 # ────────────────────────── helpers ──────────────────────────────────────────
@@ -62,8 +63,9 @@ def _build_task(args: Dict[str, Any]) -> Task:
 
 
 # ────────────────────────── local run ────────────────────────────────────────
-@process_app.command("run")
+@local_process_app.command("process")
 def run(  # noqa: PLR0913 – CLI signature needs many options
+    ctx: typer.Context,
     projects_payload: str = typer.Argument(
         ..., help="Path to YAML file containing a top-level PROJECTS list."
     ),
@@ -113,8 +115,9 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
 
 
 # ────────────────────────── remote submit ────────────────────────────────────
-@process_app.command("submit")
+@remote_process_app.command("process")
 def submit(  # noqa: PLR0913 – CLI signature needs many options
+    ctx: typer.Context,
     projects_payload: str = typer.Argument(...),
     project_name: Optional[str] = typer.Option(None),
     start_idx: int = typer.Option(0),
@@ -123,12 +126,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
     agent_env: Optional[str] = typer.Option(None),
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY,
-        "--gateway",
-        envvar="PEAGEN_GATEWAY_URL",
-        help="JSON-RPC gateway endpoint.",
-    ),
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
     args = _collect_args(
@@ -150,7 +147,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     }
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(gateway_url, json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
         reply = resp.json()
 

@@ -23,8 +23,8 @@ from peagen.handlers.eval_handler import eval_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-eval_app = typer.Typer(help="Evaluate workspace programs against an EvaluatorPool.")
-
+local_eval_app = typer.Typer(help="Evaluate workspace programs against an EvaluatorPool.")
+remote_eval_app = typer.Typer(help="Evaluate workspace programs against an EvaluatorPool.")
 
 # ───────────────────────── helpers ─────────────────────────────────────────
 def _build_task(args: dict) -> Task:
@@ -38,12 +38,12 @@ def _build_task(args: dict) -> Task:
 
 
 # ───────────────────────── local run ───────────────────────────────────────
-@eval_app.command("run")
+@local_eval_app.command("eval")
 def run(  # noqa: PLR0913 – CLI needs many options
+    ctx: typer.Context,
     workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
     program_glob: str = typer.Argument("**/*.*", help="Glob pattern for programs"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p", help="EvaluatorPool ref"),
-    config: Optional[Path] = typer.Option(None, "--config", "-c", exists=True),
     async_eval: bool = typer.Option(False, "--async/--no-async"),
     strict: bool = typer.Option(False, "--strict"),
     skip_failed: bool = typer.Option(False, "--skip-failed/--include-failed"),
@@ -80,18 +80,15 @@ def run(  # noqa: PLR0913 – CLI needs many options
 
 
 # ───────────────────────── remote submit ───────────────────────────────────
-@eval_app.command("submit")
+@remote_eval_app.command("eval")
 def submit(  # noqa: PLR0913
+    ctx: typer.Context,
     workspace_uri: str = typer.Argument(...),
     program_glob: str = typer.Argument("**/*.*"),
     pool: Optional[str] = typer.Option(None, "--pool", "-p"),
-    config: Optional[Path] = typer.Option(None, "--config", "-c", exists=True),
     async_eval: bool = typer.Option(False, "--async/--no-async"),
     strict: bool = typer.Option(False, "--strict"),
     skip_failed: bool = typer.Option(False, "--skip-failed/--include-failed"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway", envvar="PEAGEN_GATEWAY_URL"
-    ),
 ):
     """Enqueue evaluation on a remote worker."""
     args = {
@@ -113,7 +110,7 @@ def submit(  # noqa: PLR0913
     }
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(gateway_url, json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
         reply = resp.json()
 

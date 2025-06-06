@@ -11,8 +11,7 @@ import typer
 import httpx
 
 # ──────────────────────────────────────
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-template_sets_app = typer.Typer(
+local_template_sets_app = typer.Typer(
     help="Manage Peagen template-sets.",
     add_completion=False,
 )
@@ -51,15 +50,9 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
 
 
 # ─── list ──────────────────────────────
-@list_app.command("run", help="List all discovered template-sets.")
-def run_list(
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v shows physical paths.",
-    ),
+@local_template_sets_app.command("list", help="List all discovered template-sets.")
+def list_template_sets(
+    ctx: typer.Context,
 ):
     result = _run_handler({"operation": "list", "verbose": verbose})
     discovered = {e["name"]: e.get("paths", []) for e in result.get("sets", [])}
@@ -99,69 +92,51 @@ def submit_list(
 
 
 # ─── show ──────────────────────────────
-@show_app.command("run", help="Show the contents of a template-set.")
-def run_show(
+@local_template_sets_app.command("show", help="Show the contents of a template-set.")
+def show_template_set(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v lists files, -vv lists full paths.",
-    ),
 ):
-    try:
-        info = _run_handler({"operation": "show", "name": name, "verbose": verbose})
-    except Exception as exc:  # noqa: BLE001
-        typer.echo(f"❌  {exc}")
+    discovered = _discover_template_sets()
+    if name not in discovered:
+        typer.echo(f"❌  Template-set '{name}' not found.")
         raise typer.Exit(code=1)
 
-    typer.echo(f"\nTemplate-set: {info['name']}")
-    typer.echo(f"Location:    {info['location']}")
+    # first hit wins unless user asked for more detail
+    primary_path = discovered[name][0]
+    typer.echo(f"\nTemplate-set: {name}")
+    typer.echo(f"Location:    {primary_path}")
 
-    if info.get("other_locations") and verbose:
+    if len(discovered[name]) > 1 and verbose:
         typer.echo("\n⚠️  Multiple copies found on search path:")
-        for p in info["other_locations"]:
+        for p in discovered[name][1:]:
             typer.echo(f"   ↳ {p}")
 
-    if verbose and info.get("files"):
+    if verbose:
+
+        def _iter_files(base: Path):
+            if verbose == 1:
+                yield from sorted(f.name for f in base.iterdir() if f.is_file())
+            else:  # verbose ≥ 2 ⇒ recursive
+                for fp in base.rglob("*"):
+                    if fp.is_file():
+                        yield fp.relative_to(base)
+
         typer.echo("\nFiles:")
-        for rel in info["files"]:
+        for rel in _iter_files(primary_path):
             typer.echo(f" • {rel}")
 
 
-@show_app.command("submit", help="Submit a show task via gateway.")
-def submit_show(
-    name: str = typer.Argument(..., metavar="SET_NAME"),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v lists files, -vv lists full paths.",
-    ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
-):
-    args = {"operation": "show", "name": name, "verbose": verbose}
-    try:
-        task_id = _submit_task(args, gateway_url)
-        typer.echo(f"Submitted show → taskId={task_id}")
-    except Exception as exc:  # noqa: BLE001
-        typer.echo(f"[ERROR] {exc}")
-        raise typer.Exit(1)
-
-
 # ─── add ───────────────────────────────
-@add_app.command(
+@local_template_sets_app.command(
     "add",
     help=(
         "Install a template-set distribution from PyPI, a wheel/sdist, or a "
         "local directory."
     ),
 )
-def run_add(
+def add_template_set(
+    ctx: typer.Context,
     source: str = typer.Argument(
         ...,
         metavar="PKG|WHEEL|DIR",
@@ -183,13 +158,7 @@ def run_add(
         False,
         "--force",
         help="Re-install even if the distribution is already present.",
-    ),
-    verbose: bool = typer.Option(
-        False,
-        "-v",
-        "--verbose",
-        help="Stream pip/uv output.",
-    ),
+    )
 ):
     """
     Install a template-set extension.
@@ -229,53 +198,19 @@ def run_add(
         )
 
 
-@add_app.command("submit", help="Submit an add task via gateway.")
-def submit_add(
-    source: str = typer.Argument(..., metavar="PKG|WHEEL|DIR"),
-    from_bundle: Optional[str] = typer.Option(
-        None, "--from-bundle", help="Install from bundled archive"
-    ),
-    editable: bool = typer.Option(False, "--editable", "-e"),
-    force: bool = typer.Option(False, "--force"),
-    verbose: bool = typer.Option(False, "-v", "--verbose"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
-):
-    args = {
-        "operation": "add",
-        "source": source,
-        "from_bundle": from_bundle,
-        "editable": editable,
-        "force": force,
-        "verbose": verbose,
-    }
-    try:
-        task_id = _submit_task(args, gateway_url)
-        typer.echo(f"Submitted add → taskId={task_id}")
-    except Exception as exc:  # noqa: BLE001
-        typer.echo(f"[ERROR] {exc}")
-        raise typer.Exit(1)
-
-
-@remove_app.command(
+@local_template_sets_app.command(
     "remove",
     help="Uninstall the package that owns a template-set.",
 )
-def run_remove(
+def remove_template_set(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(
         False,
         "-y",
         "--yes",
         help="Skip confirmation prompt.",
-    ),
-    verbose: bool = typer.Option(
-        False,
-        "-v",
-        "--verbose",
-        help="Show pip/uv output.",
-    ),
+    )
 ):
     """Uninstall the wheel/editable project that exposes ``SET_NAME``."""
     if not yes:

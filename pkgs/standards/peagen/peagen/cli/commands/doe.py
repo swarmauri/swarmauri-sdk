@@ -14,8 +14,8 @@ from peagen.handlers.doe_handler import doe_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
-
+local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
+remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 def _make_task(args: dict) -> Task:
     return Task(
@@ -28,8 +28,9 @@ def _make_task(args: dict) -> Task:
 
 
 # ───────────────────────────── local run ───────────────────────────────────
-@doe_app.command("run")
+@local_doe_app.command("doe")
 def run(  # noqa: PLR0913
+    ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     template: Path = typer.Argument(..., exists=True),
     output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
@@ -58,8 +59,9 @@ def run(  # noqa: PLR0913
 
 
 # ─────────────────────────── remote submit ─────────────────────────────────
-@doe_app.command("submit")
+@remote_doe_app.command("doe")
 def submit(  # noqa: PLR0913
+    ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     template: Path = typer.Argument(..., exists=True),
     output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
@@ -68,11 +70,6 @@ def submit(  # noqa: PLR0913
     dry_run: bool = typer.Option(False, "--dry-run"),
     force: bool = typer.Option(False, "--force"),
     skip_validate: bool = typer.Option(False, "--skip-validate"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY,
-        "--gateway",
-        envvar="PEAGEN_GATEWAY_URL",
-    ),
 ):
     args = {
         "spec": str(spec),
@@ -94,7 +91,7 @@ def submit(  # noqa: PLR0913
     }
 
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(gateway_url, json=rpc_req).json()
+        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
 
     if "error" in reply:
         typer.secho(

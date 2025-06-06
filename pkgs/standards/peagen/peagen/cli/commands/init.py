@@ -19,7 +19,7 @@ from swarmauri_standard.loggers.Logger import Logger
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 # ── Typer root ───────────────────────────────────────────────────────────────
-init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
+local_init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
 
 # create sub-apps mirroring the pattern used by the sort command
 project_app = typer.Typer(help="Manage project scaffolding.")
@@ -35,8 +35,9 @@ init_app.add_typer(ci_app, name="ci")
 
 
 # ── init project ─────────────────────────────────────────────────────────────
-@project_app.command("run", help="Create a new Peagen project skeleton locally.")
-def run_project(
+@local_init_app.command("project", help="Create a new Peagen project skeleton.")
+def init_project(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
     template_set: str = typer.Option("default", "--template-set"),
     provider: Optional[str] = typer.Option(None, "--provider"),
@@ -86,8 +87,9 @@ def submit_project(
 
 
 # ── init template-set ────────────────────────────────────────────────────────
-@template_set_app.command("run", help="Create a template-set wheel skeleton locally.")
-def run_template_set(
+@local_init_app.command("template-set", help="Create a template-set wheel skeleton.")
+def init_template_set(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
     org: Optional[str] = typer.Option(None, "--org"),
@@ -133,8 +135,9 @@ def submit_template_set(
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
-@doe_spec_app.command("run", help="Create a DOE-spec stub locally.")
-def run_doe_spec(
+@local_init_app.command("doe-spec", help="Create a DOE-spec stub.")
+def init_doe_spec(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
     org: Optional[str] = typer.Option(None, "--org"),
@@ -175,8 +178,9 @@ def submit_doe_spec(
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────
-@ci_app.command("run", help="Drop a CI pipeline file locally for GitHub or GitLab.")
-def run_ci(
+@local_init_app.command("ci", help="Drop a CI pipeline file for GitHub or GitLab.")
+def init_ci(
+    ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     github: bool = typer.Option(True, "--github/--gitlab"),
     force: bool = typer.Option(False, "--force"),

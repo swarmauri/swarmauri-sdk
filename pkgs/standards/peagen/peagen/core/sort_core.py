@@ -28,47 +28,13 @@ from peagen._utils._template_sets import _locate_template_set
 from peagen._utils.config_loader import load_peagen_toml
 
 
-# --------------------------------------------------------------------------- #
-# 0) Tiny helper – keep legacy CLI flags but **only** the ones we still allow #
-# --------------------------------------------------------------------------- #
-def _merge_cli_into_toml(
-    *,
-    projects_payload: str,
-    project_name: str | None,
-    start_idx: int | None,
-    start_file: str | None,
-    verbose: int,
-    transitive: bool,
-    show_dependencies: bool,
-) -> Dict[str, Any]:
-    """
-    Return a single dict that blends the immutable .peagen.toml settings with the
-    (very small) set of flags we still honour from the CLI layer.
-    """
-
-    cfg: Dict[str, Any] = load_peagen_toml(".peagen.toml")
-
-    # Explicitly whitelist only the flags we really support from the CLI.
-    return {
-        # may be *either* a YAML string *or* a path
-        "projects_payload": projects_payload,
-        "project_name": project_name,
-        "start_idx": start_idx or 0,
-        "start_file": start_file,
-        "verbose": verbose,
-        "transitive": transitive,
-        "show_dependencies": show_dependencies,
-        # full TOML stays under one key so downstream code can still reach it
-        "cfg": cfg,
-    }
-
 
 # --------------------------------------------------------------------------- #
 # 1) Public façade – single-project                                           #
 # --------------------------------------------------------------------------- #
 def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
     """
-    params comes straight from _merge_cli_into_toml().
+    params comes straight from _utils.config_loader.resolve_cfg().
     Returns  {"sorted": [ "0) file_a", "1) file_b", … ]}  or  {"error": "..."}.
     """
     try:
