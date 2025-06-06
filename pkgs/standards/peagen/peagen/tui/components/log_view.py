@@ -1,6 +1,7 @@
-from textual.widgets import DataTable
-from rich.markdown import Markdown
 from pathlib import Path
+
+from textual.widgets import DataTable
+
 
 class LogView(DataTable):
     def __init__(self, error_mode=False):

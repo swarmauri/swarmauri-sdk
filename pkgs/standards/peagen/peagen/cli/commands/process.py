@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -20,15 +19,14 @@ import httpx
 import typer
 
 from peagen.handlers.process_handler import process_handler
-from peagen.models import Task, Status  # noqa: F401 – only for type hints
+from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
 
 
 # ────────────────────────── helpers ──────────────────────────────────────────
-def _collect_args(                       # noqa: C901 – straight-through mapper
+def _collect_args(  # noqa: C901 – straight-through mapper
     projects_payload: str,
     project_name: Optional[str],
     start_idx: int,
@@ -58,11 +56,8 @@ def _collect_args(                       # noqa: C901 – straight-through mappe
 def _build_task(args: Dict[str, Any]) -> Task:
     """Fabricate a Task model so the CLI uses the same payload shape as workers."""
     return Task(
-        id=str(uuid.uuid4()),
         pool="default",
-        action="process",
-        status=Status.pending,
-        payload={"args": args},
+        payload={"action": "process", "args": args},
     )
 
 

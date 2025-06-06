@@ -13,18 +13,20 @@ Public API
 
 Internal helpers (prefixed “_”) are intentionally *not* exported.
 """
+
 from __future__ import annotations
 
-import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from jinja2 import Environment, FileSystemLoader, StrictUndefined, UndefinedError
+import yaml
+from jinja2 import Environment
 
-from peagen._utils._jinja import _build_jinja_env
-from peagen._utils.config_loader import load_peagen_toml
 from peagen._utils._graph import _topological_sort, _transitive_dependency_sort
+from peagen._utils._jinja import _build_jinja_env
 from peagen._utils._template_sets import _locate_template_set
+from peagen._utils.config_loader import load_peagen_toml
+
 
 
 # --------------------------------------------------------------------------- #
@@ -51,7 +53,7 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
                 yaml_data = maybe_path.read_text()
             else:
                 yaml_data = data_src
-        except (OSError, TypeError):               # not a valid path
+        except (OSError, TypeError):  # not a valid path
             yaml_data = data_src
 
         yaml_data = yaml.safe_load(yaml_data)
@@ -59,7 +61,9 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
             yaml_data.get("PROJECTS") if isinstance(yaml_data, dict) else yaml_data
         )
 
-        project_spec = next((p for p in projects_list if p.get("NAME") == proj_name), None)
+        project_spec = next(
+            (p for p in projects_list if p.get("NAME") == proj_name), None
+        )
         if project_spec is None:
             return {"error": f"Project '{proj_name}' not found in {payload_path!s}"}
 
@@ -81,7 +85,9 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
             name = rec["RENDERED_FILE_NAME"]
             if show_deps:
                 deps = _get_immediate_dependencies(sorted_recs, name)
-                lines.append(f"{idx}) {name}   (deps: {', '.join(deps) if deps else 'None'})")
+                lines.append(
+                    f"{idx}) {name}   (deps: {', '.join(deps) if deps else 'None'})"
+                )
             else:
                 lines.append(f"{idx}) {name}")
         return {"sorted": lines}
@@ -101,7 +107,6 @@ def sort_all_projects(params: Dict[str, Any]) -> Dict[str, Any]:
     that one bad project doesn’t fail the whole command.
     """
     try:
-
         # If it *looks* like an existing file path, read it; otherwise treat
         # the value itself as the YAML document.
         data_src = params["projects_payload"]
@@ -111,7 +116,7 @@ def sort_all_projects(params: Dict[str, Any]) -> Dict[str, Any]:
                 yaml_text = maybe_path.read_text()
             else:
                 yaml_text = data_src
-        except (OSError, TypeError):               # not a valid path
+        except (OSError, TypeError):  # not a valid path
             yaml_text = data_src
 
         yaml_data = yaml.safe_load(yaml_text)
@@ -124,7 +129,9 @@ def sort_all_projects(params: Dict[str, Any]) -> Dict[str, Any]:
             name = proj.get("NAME", "<unnamed>")
             local_params = {**params, "project_name": name}
             result = sort_single_project(local_params)
-            out[name] = result.get("sorted") or [f"ERROR: {result.get('error', 'unknown')}"]
+            out[name] = result.get("sorted") or [
+                f"ERROR: {result.get('error', 'unknown')}"
+            ]
 
         return {"sorted_all_projects": out}
 
@@ -194,13 +201,18 @@ def _collect_file_records(project: dict, jinja_env: Environment, *, verbose: int
         out.extend(records)
 
     if not out:
-        raise ValueError(f"No file records could be extracted from project '{project.get('NAME')}'.")
+        raise ValueError(
+            f"No file records could be extracted from project '{project.get('NAME')}'."
+        )
     return out
+
 
 # ------------------------------------------------------------------- #
 # Legacy helper – lift raw FILES entries into canonical records       #
 # ------------------------------------------------------------------- #
-def _collect_file_records_from_files(project: dict, jinja_env: Environment) -> list[dict]:
+def _collect_file_records_from_files(
+    project: dict, jinja_env: Environment
+) -> list[dict]:
     """
     The old Peagen accepted a literal FILES: [ … ] block at the root of a
     project entry.  We keep that path for backwards-compat.
@@ -211,16 +223,15 @@ def _collect_file_records_from_files(project: dict, jinja_env: Environment) -> l
     template_set = project.get("TEMPLATE_SET", "default")
     try:
         tpl_dir = _locate_template_set(template_set, jinja_env.loader)
-    except ValueError:          # handwritten files may live outside any set
-        tpl_dir = Path(".")     # still supply *something* non-empty
+    except ValueError:  # handwritten files may live outside any set
+        tpl_dir = Path(".")  # still supply *something* non-empty
 
     out = []
     for rec in project["FILES"]:
-        rec = rec.copy()                       # never mutate caller’s dict
+        rec = rec.copy()  # never mutate caller’s dict
         rec.setdefault("TEMPLATE_SET", str(tpl_dir))
         out.append(rec)
     return out
-
 
 
 # --------------------------------------------------------------------------- #
@@ -264,14 +275,18 @@ def sort_file_records(
     """
     total = len(file_records)
     if verbose >= 1:
-        print(f"[sort_core] Sorting {total} files (start_idx={start_idx}, start_file={start_file}, transitive={transitive})")
+        print(
+            f"[sort_core] Sorting {total} files (start_idx={start_idx}, start_file={start_file}, transitive={transitive})"
+        )
 
     # -- choose algorithm ----------------------------------------------------
     try:
         if transitive and start_file:
             sorted_records = _transitive_dependency_sort(file_records, start_file)
             if verbose >= 1:
-                print(f"  → Transitive subset from '{start_file}' has {len(sorted_records)} files")
+                print(
+                    f"  → Transitive subset from '{start_file}' has {len(sorted_records)} files"
+                )
         else:
             sorted_records = _topological_sort(file_records)
             if verbose >= 1:
@@ -282,7 +297,11 @@ def sort_file_records(
     # -- apply positional skipping ------------------------------------------
     if start_file and not transitive:
         try:
-            skip = next(i for i, rec in enumerate(sorted_records) if rec["RENDERED_FILE_NAME"] == start_file)
+            skip = next(
+                i
+                for i, rec in enumerate(sorted_records)
+                if rec["RENDERED_FILE_NAME"] == start_file
+            )
             sorted_records = sorted_records[skip:]
             if verbose >= 2:
                 print(f"  → Skipped {skip} leading files (resume at '{start_file}')")

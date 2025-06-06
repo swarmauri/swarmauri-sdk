@@ -1,38 +1,45 @@
 # queue_dash.py – run with  `python -m queue_dash`
 from __future__ import annotations
-import asyncio, itertools, os, random, webbrowser
+
+import asyncio
+import itertools
+import random
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
 from rich.progress import ProgressBar
-from .components.tree_view import FileTree
-from textual.app          import App, ComposeResult
-from textual.containers   import VerticalScroll, Horizontal
-from textual.reactive     import reactive
-from textual.widgets      import (
-    Header,
-    Footer,
-    Static,
-    DataTable,
-    TabPane,
-    TabbedContent,
-    TextArea
-)
+
 # ── imports ──────────────────────────────────────────────────────────
-from textual import events          #  add this
+from textual import events
+from textual.app import App, ComposeResult
+from textual.containers import VerticalScroll
+from textual.reactive import reactive
+from textual.widgets import (
+    DataTable,
+    Footer,
+    Header,
+    Static,
+    TabbedContent,
+    TabPane,
+    TextArea,
+)
+
+from peagen.tui.components.tree_view import FileTree
 
 
 # ───────────────────────────────────  Fake backend  ────────────────────────────────────
 class Task:
     _ids = itertools.count(1)
+
     def __init__(self, queue: str):
         self.id = next(self._ids)
         self.queue = queue
         self.total = random.randint(50, 120)
         self.done = 0
-        self.status = "running"          # running / done / failed
+        self.status = "running"  # running / done / failed
         self.error_file: Path | None = None
+
     def step(self):
         if self.status != "running":
             return
@@ -44,14 +51,19 @@ class Task:
                 self.error_file = Path(f"./logs/task_{self.id}.log")
             else:
                 self.status = "done"
+
     @property
     def percent(self) -> float:
         return self.done / self.total * 100
 
+
 class FakeBackend:
     def __init__(self):
         self.tasks: list[Task] = []
-        self.workers: Dict[str, datetime] = {f"worker-{n}": datetime.utcnow() for n in range(2)}
+        self.workers: Dict[str, datetime] = {
+            f"worker-{n}": datetime.utcnow() for n in range(2)
+        }
+
     async def poll(self):
         while True:
             await asyncio.sleep(0.2)
@@ -63,9 +75,11 @@ class FakeBackend:
                 if random.random() < 0.1:
                     self.workers[w] = datetime.utcnow()
             self.tasks[:] = [
-                t for t in self.tasks
+                t
+                for t in self.tasks
                 if not (t.status != "running" and random.random() < 0.04)
             ]
+
 
 # ───────────────────────────────────  Dashboard app  ────────────────────────────────────
 class QueueDashboardApp(App):
@@ -83,78 +97,76 @@ class QueueDashboardApp(App):
     TITLE = "Peagen"
     BINDINGS = [
         ("1", "switch('overview')", "Overview"),
-        ("2", "switch('tasks')",    "Tasks"),
-        ("3", "switch('errors')",   "Errors"),
-        ("4", "switch('files')",    "Files"),
-        ("5", "switch('editor')",   "Editor"),
-        ("ctrl+s", "save_file",     "Save"),
-        ("q", "quit",               "Quit"),
+        ("2", "switch('tasks')", "Tasks"),
+        ("3", "switch('errors')", "Errors"),
+        ("4", "switch('files')", "Files"),
+        ("5", "switch('editor')", "Editor"),
+        ("ctrl+s", "save_file", "Save"),
+        ("q", "quit", "Quit"),
     ]
 
     backend = FakeBackend()
 
     # reactive counters for quick overview
     queue_len = reactive(0)
-    done_len  = reactive(0)
-    fail_len  = reactive(0)
+    done_len = reactive(0)
+    fail_len = reactive(0)
     worker_len = reactive(0)
 
     # ── life-cycle ──────────────────────────────────────────────────────────
     async def on_mount(self):
-        self.run_worker(self.backend.poll(), exclusive=True)   # background poller
-        self.set_interval(0.3, self.refresh_data)              # UI refresh timer
+        self.run_worker(self.backend.poll(), exclusive=True)  # background poller
+        self.set_interval(0.3, self.refresh_data)  # UI refresh timer
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         """Catch clicks on [link=file://…] and open them in the editor tab
         instead of the system browser."""
         if event.url.startswith("file://"):
-            event.prevent_default()   # stop Textual’s built-in handler
-            event.stop()              # don’t bubble any further
+            event.prevent_default()  # stop Textual’s built-in handler
+            event.stop()  # don’t bubble any further
             await self.open_editor(event.url.removeprefix("file://"))
 
-    async def on_file_tree_file_selected(          # ← snake-case of the message
+    async def on_file_tree_file_selected(  # ← snake-case of the message
         self,
         message: FileTree.FileSelected,
     ) -> None:
         """Open the clicked file in the Editor tab."""
-        message.stop()                             # suppress any default handling
+        message.stop()  # suppress any default handling
         await self.open_editor(message.path.as_posix())
-        
+
     # ----------------------------------------------------------------------—
     # Back-compat shim: use App.notify if it exists, otherwise fall back to log()
-    def toast(self, message: str, *, style: str = "information", duration: float | None = 2.0) -> None:
-        if hasattr(self, "notify"):                      # Textual ≥ 0.30
+    def toast(
+        self, message: str, *, style: str = "information", duration: float | None = 2.0
+    ) -> None:
+        if hasattr(self, "notify"):  # Textual ≥ 0.30
             self.notify(message, severity=style, timeout=duration)
-        else:                                            # very old Textual
+        else:  # very old Textual
             self.log(f"[{style.upper()}] {message}")
-        
+
     def compose(self) -> ComposeResult:
         yield Header()
 
         # widgets whose content we mutate later
         self.overview_box = Static(id="stats")
-        self.file_tree = FileTree("tree", id="file_tree") 
-        self.tasks_table  = DataTable(id="tasks_table")
+        self.file_tree = FileTree("tree", id="file_tree")
+        self.tasks_table = DataTable(id="tasks_table")
         self.tasks_table.add_columns("ID", "Status", "Progress")
 
-        self.err_table    = DataTable(id="err_table")
+        self.err_table = DataTable(id="err_table")
         self.err_table.add_columns("Task", "Log")
         # after creating err_table
-        self.err_table.cursor_type = "cell"   # ensure per-cell click events
-        self.err_table.focus()                # mouse-click instantly focuses table
+        self.err_table.cursor_type = "cell"  # ensure per-cell click events
+        self.err_table.focus()  # mouse-click instantly focuses table
 
-        self.code_editor  = TextArea(
-            id="code_editor"
-        )
+        self.code_editor = TextArea(id="code_editor")
 
-
-        
         with TabbedContent(initial="overview"):
             yield TabPane("Overview", VerticalScroll(self.overview_box), id="overview")
-            yield TabPane("Tasks",    self.tasks_table,            id="tasks")
-            yield TabPane("Errors",   self.err_table,              id="errors")
+            yield TabPane("Tasks", self.tasks_table, id="tasks")
+            yield TabPane("Errors", self.err_table, id="errors")
             yield TabPane("Files", self.file_tree, id="files")
-            yield TabPane("Editor",   self.code_editor,            id="editor")
+            yield TabPane("Editor", self.code_editor, id="editor")
 
         yield Footer()
 
@@ -168,7 +180,9 @@ class QueueDashboardApp(App):
             self.toast("No file loaded.", style="yellow")
             return
         try:
-            Path(self._current_file).write_text(self.code_editor.value, encoding="utf-8")
+            Path(self._current_file).write_text(
+                self.code_editor.value, encoding="utf-8"
+            )
             self.toast(f"Saved {self._current_file}", style="green")
         except Exception as exc:
             self.toast(f"Save failed: {exc}", style="red")
@@ -178,9 +192,9 @@ class QueueDashboardApp(App):
         tasks, workers = self.backend.tasks, self.backend.workers
 
         # 1 – overview
-        self.queue_len  = sum(1 for t in tasks if t.status == "running")
-        self.done_len   = sum(1 for t in tasks if t.status == "done")
-        self.fail_len   = sum(1 for t in tasks if t.status == "failed")
+        self.queue_len = sum(1 for t in tasks if t.status == "running")
+        self.done_len = sum(1 for t in tasks if t.status == "done")
+        self.fail_len = sum(1 for t in tasks if t.status == "failed")
         self.worker_len = len(workers)
         self.overview_box.update(
             f"[bold cyan]Active workers:[/bold cyan] {self.worker_len}\n"
@@ -195,9 +209,10 @@ class QueueDashboardApp(App):
         for t in running:
             if str(t.id) not in visible:
                 self.tasks_table.add_row(
-                    str(t.id), t.status,
+                    str(t.id),
+                    t.status,
                     ProgressBar(total=100, completed=t.percent),
-                    key=str(t.id)
+                    key=str(t.id),
                 )
             else:
                 ...
@@ -215,18 +230,16 @@ class QueueDashboardApp(App):
         if self.fail_len:
             self.err_table.clear()
             for t in (t for t in tasks if t.status == "failed"):
-                link = f"[link=file://{t.error_file}]open[/link]" if t.error_file else ""
+                link = (
+                    f"[link=file://{t.error_file}]open[/link]" if t.error_file else ""
+                )
                 self.err_table.add_row(str(t.id), link)
 
     # ── open selected file in editor instead of browser ────────────────────
-    async def on_data_table_cell_selected(
-        self, event: DataTable.CellSelected
-    ) -> None:
+    async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
             path = event.value.split("=", 1)[1].split("]", 1)[0]
             await self.open_editor(Path(path).as_posix())
-
-
 
     # ----------------------------------------------------------------------—
     async def open_editor(self, file_path: str) -> None:
@@ -237,12 +250,13 @@ class QueueDashboardApp(App):
             return
 
         self._current_file = file_path
-        self.code_editor.load_text(text)                 # ← the crucial fix
+        self.code_editor.load_text(text)  # ← the crucial fix
         # optional: basic syntax-highlight selection
         self.code_editor.language = "python"
 
         self.action_switch("editor")
         self.toast(f"Editing {file_path}", style="success", duration=1.5)
+
 
 # ────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

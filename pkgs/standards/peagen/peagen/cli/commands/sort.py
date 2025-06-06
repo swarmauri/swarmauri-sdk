@@ -1,18 +1,23 @@
 # peagen/commands/sort.py
 
 import asyncio
-import typer
-from typing import Any, Dict
+import json
+from pathlib import Path
+from typing import Any, Dict, Optional
 
-from peagen._utils.config_loader import resolve_cfg, _effective_cfg
+import toml
+import typer
+
+from peagen._utils.config_loader import _effective_cfg
 from peagen.handlers.sort_handler import sort_handler
-from peagen.models import Task 
+from peagen.models import Task
 
 local_sort_app = typer.Typer()
 remote_sort_app = typer.Typer()
 
-@local_sort_app.command("run")
-def run_sort(                     # ← now receives the Typer context
+
+@local_sort_app.command("sort")
+def run_sort(  # ← now receives the Typer context
     ctx: typer.Context,
     projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
     project_name: str = typer.Option(None, help="Name of the project to process."),
@@ -65,17 +70,17 @@ def run_sort(                     # ← now receives the Typer context
         typer.echo(f"[ERROR] {result['error']}")
         raise typer.Exit(1)
 
-    if "sorted" in result:                       # single-project mode
+    if "sorted" in result:  # single-project mode
         for line in result["sorted"]:
             typer.echo(line)
-    else:                                        # all-projects mode
+    else:  # all-projects mode
         for proj, files in result.get("sorted_all_projects", {}).items():
             typer.echo(f"Project {proj}:")
             for line in files:
                 typer.echo(f"  {line}")
 
 
-@remote_sort_app.command("submit")
+@remote_sort_app.command("sort")
 def submit_sort(
     ctx: typer.Context,
     projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
@@ -84,7 +89,7 @@ def submit_sort(
     start_file: str = typer.Option(None, help="File to start sorting from."),
     verbose: int = typer.Option(0, help="Verbosity level."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
-    show_dependencies: bool = typer.Option(False, help="Show dependency info.")
+    show_dependencies: bool = typer.Option(False, help="Show dependency info."),
 ):
     """
     Submit this sort as a background task. Returns immediately with a taskId.
@@ -95,20 +100,20 @@ def submit_sort(
         yaml_text = fh.read()
 
     # ─────────────────────── 1b) cfg override  ──────────────────────────
-    inline = ctx.obj.get("task_override_inline")    # JSON or None
-    file_  = ctx.obj.get("task_override_file")      # Path or None
+    inline = ctx.obj.get("task_override_inline")  # JSON or None
+    file_ = ctx.obj.get("task_override_file")  # Path or None
 
     cfg_override: dict = {}
     if inline:
         cfg_override = json.loads(inline)
     if file_:
-        cfg_override.update(                        # file beats inline
+        cfg_override.update(  # file beats inline
             toml.loads(Path(file_).read_text())
         )
 
     # ─────────────────────── 2) build Task model ────────────────────────
     args = {
-        "projects_payload": yaml_text,              # ← inline text
+        "projects_payload": yaml_text,  # ← inline text
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
@@ -131,6 +136,7 @@ def submit_sort(
             "taskId": task.id,
             "pool": task.pool,
             "payload": task.payload,
+            "taskId": task.id,
         },
     }
 
@@ -146,6 +152,7 @@ def submit_sort(
             raise typer.Exit(1)
         typer.echo(f"Submitted sort → taskId={data['result']['taskId']}")
     except Exception as exc:
-        typer.echo(f"[ERROR] Could not reach gateway at {ctx.obj.get("gateway_url")}: {exc}")
+        typer.echo(
+            f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
+        )
         raise typer.Exit(1)
-
