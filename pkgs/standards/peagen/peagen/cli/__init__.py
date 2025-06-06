@@ -24,11 +24,10 @@ from .commands import (
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
+  
     remote_doe_app,
     remote_eval_app,
-    remote_extras_app,
     remote_fetch_app,
-    remote_init_app,
     remote_process_app,
     remote_sort_app,
     remote_task_app,
@@ -139,13 +138,12 @@ app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 
 
-
-local_app.add_typer(local_doe_app)
-local_app.add_typer(local_eval_app)
+local_app.add_typer(local_doe_app,)
+local_app.add_typer(local_eval_app,)
+local_app.add_typer(local_extras_app, name="extras-schemas")
+local_app.add_typer(local_fetch_app,)
+local_app.add_typer(local_init_app,          name="init")
 local_app.add_typer(local_process_app)
-local_app.add_typer(local_extras_app)
-local_app.add_typer(local_fetch_app)
-local_app.add_typer(local_init_app, name="init")
 local_app.add_typer(local_sort_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
@@ -157,7 +155,7 @@ remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_sort_app)
 remote_app.add_typer(remote_task_app, name="task")
-remote_app.add_typer(remote_extras_app)
+remote_app.add_typer(remote_template_sets_app, name="template-set")
 remote_app.add_typer(remote_validate_app)
 
 if __name__ == "__main__":
