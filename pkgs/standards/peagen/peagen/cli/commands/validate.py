@@ -12,7 +12,7 @@ from peagen.models import Task
 local_validate_app = typer.Typer()
 
 
-@local_validate_app.command("run")
+@local_validate_app.command("validate")
 def run_validate(
     ctx: typer.Context,
     kind: str = typer.Argument(
@@ -56,7 +56,7 @@ def run_validate(
         typer.echo(f"✅  {kind.capitalize()} is valid.")
 
 
-@local_validate_app.command("submit")
+@local_validate_app.command("validate")
 def submit_validate(
     ctx: typer.Context,
     kind: str = typer.Argument(
@@ -65,9 +65,6 @@ def submit_validate(
     ),
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
-    ),
-    gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
     """
