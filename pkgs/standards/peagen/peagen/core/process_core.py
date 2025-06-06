@@ -13,31 +13,6 @@ from peagen.core.sort_core import sort_file_records
 from peagen.core.render_core import _render_copy_template, _render_generate_template
 from peagen.models import Task  # if task‐related logic is needed
 
-def merge_cli_into_cfg(
-    projects_payload: str,
-    start_idx: Optional[int] = None,
-    start_file: Optional[str] = None,
-    transitive: bool = False,
-    verbose: int = 0,
-    output_base: Optional[str] = None,
-) -> Dict[str, Any]:
-    """
-    Load .peagen.toml as the base config and override with any CLI flags that
-    affect processing. Returns the merged config dict.
-    """
-    cfg = load_peagen_toml(".peagen.toml")
-    cfg["projects_payload"] = projects_payload
-    cfg["transitive"] = transitive
-    cfg["verbose"] = verbose
-    if output_base:
-        cfg["output_base"] = output_base
-    if start_idx is not None:
-        cfg["start_idx"] = start_idx
-    if start_file:
-        cfg["start_file"] = start_file
-    return cfg
-
-
 def load_projects_payload(projects_payload_path: str) -> List[Dict[str, Any]]:
     """
     Read a YAML file containing a top-level 'PROJECTS' key.
@@ -68,16 +43,17 @@ def process_single_project(
     3) If output_base is provided, render each file under that directory.
     Returns (sorted_records, next_idx).
     """
+    print(project)
     all_file_records = project.get("FILES", [])
+    print(all_file_records)
     if not isinstance(all_file_records, list):
         raise ValueError(f"Project '{project.get('NAME')}' must contain a 'FILES' list")
 
     sorted_records, next_idx = sort_file_records(
-        all_file_records,
+        file_records=all_file_records,
         start_idx=start_idx,
         start_file=start_file,
-        transitive=transitive,
-        verbose=verbose,
+        transitive=transitive
     )
 
     if output_base and sorted_records:
@@ -137,6 +113,7 @@ def process_all_projects(
     next_idx = 0
 
     for proj in projects:
+        print(proj)
         name = proj.get("NAME", f"project_{next_idx}")
         recs, next_idx = process_single_project(
             proj,

@@ -16,7 +16,7 @@ Layers (lowest → highest priority)
 from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
-
+from copy import deepcopy
 import toml
 
 import peagen.defaults as builtins

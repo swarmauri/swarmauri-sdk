@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, List
+from peagen._utils.config_loader import resolve_cfg
 
 from peagen.core.process_core import (
-    merge_cli_into_cfg,
     load_projects_payload,
     process_single_project,
     process_all_projects,
@@ -34,21 +34,14 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     payload: Dict[str, Any] = task.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
-
+    cfg_override = payload.get("cfg_override", {})
     # Mandatory flag
     projects_payload: str = args["projects_payload"]
 
     # ------------------------------------------------------------------ #
     # 1) Merge .peagen.toml with CLI-style overrides
     # ------------------------------------------------------------------ #
-    cfg = merge_cli_into_cfg(
-        projects_payload=projects_payload,
-        start_idx=args.get("start_idx", 0),
-        start_file=args.get("start_file"),
-        transitive=args.get("transitive", False),
-        verbose=args.get("verbose", 0),
-        output_base=args.get("output_base"),
-    )
+    cfg = resolve_cfg(toml_text=cfg_override)
 
     # Pass through any LLM / agent parameters verbatim
     cfg["agent_env"] = args.get("agent_env", {})
@@ -68,7 +61,6 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             start_idx=args.get("start_idx", 0),
             start_file=args.get("start_file"),
             transitive=args.get("transitive", False),
-            verbose=args.get("verbose", 0),
             output_base=args.get("output_base"),
         )
         result_map: Dict[str, List[Dict[str, Any]]] = {project_name: processed}
@@ -77,7 +69,6 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             projects_payload_path=projects_payload,
             cfg=cfg,
             transitive=args.get("transitive", False),
-            verbose=args.get("verbose", 0),
             output_base=args.get("output_base"),
         )
 
