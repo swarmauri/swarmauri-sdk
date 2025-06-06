@@ -9,6 +9,7 @@ def _build_jinja_env(cfg: dict, *, workspace_root: str | Path | None = None) -> 
     """Return a Jinja2 Environment whose loader.searchpath reproduces the
     rules in the original Peagen._setup_env().
     """
+    print('deprecate this - use _search_template_sets')
     ns_dirs: list[str] = []
 
     # 1) Template-set plugins discovered via registry
