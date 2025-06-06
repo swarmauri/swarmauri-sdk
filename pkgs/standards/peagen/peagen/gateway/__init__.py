@@ -215,18 +215,18 @@ async def task_cancel(taskId: str):
     log.info("task %s cancelled", taskId)
     return {}
 
- @rpc.method("Task.get")
- async def task_get(taskId: str):
-     # hot cache
-     if (t := await _load_task(taskId)):
-         return t.model_dump()
+@rpc.method("Task.get")
+async def task_get(taskId: str):
+    # hot cache
+    if (t := await _load_task(taskId)):
+        return t.model_dump()
 
-     # authoritative fallback (Postgres)
-     try:
-         return await get_task_result(taskId)     # raises ValueError if not found
-     except ValueError as exc:
-         # surface a proper JSON-RPC error so the envelope is valid
-         raise RPCError(code=-32001, message=str(exc))
+    # authoritative fallback (Postgres)
+    try:
+        return await get_task_result(taskId)     # raises ValueError if not found
+    except ValueError as exc:
+        # surface a proper JSON-RPC error so the envelope is valid
+        raise RPCError(code=-32001, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")

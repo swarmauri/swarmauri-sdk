@@ -152,7 +152,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     }
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(gateway_url, json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
         reply = resp.json()
 

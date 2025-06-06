@@ -71,14 +71,13 @@ def _effective_cfg(cfg_path: Optional[Path]) -> Dict[str, Any]:
 # 3. Public merge helper – replaces the old _resolve_cfg
 # ────────────────────────────────────────────────────────────────────────────
 def resolve_cfg(*, toml_text: dict | str | None = None,
-                require_file: bool = False,
                 toml_path: str = ".peagen.toml") -> dict:
     """
     FINAL MERGE ORDER  ➜  built-ins  <  host file  <  task override
     """
     cfg = deepcopy(builtins.CONFIG)                              # ① built-ins
 
-    cfg = _merge(cfg, load_peagen_toml(toml_path, required=require_file))  # ② merge host cfg
+    cfg = _merge(cfg, load_peagen_toml(toml_path))  # ② merge host cfg
     if toml_text:                                                   # ③ per-task
         override = toml.loads(toml_text) if isinstance(toml_text, str) else toml_text
         cfg = _merge(cfg, override)
