@@ -9,9 +9,8 @@ get_task_result()  – fetch status / result / metadata for a task-id.
 from __future__ import annotations
 from typing import Dict
 
-from peagen.db import Session
-from peagen.models_sql import TaskRun
-
+from peagen.gateway.db import Session
+from peagen.models import TaskRun
 
 async def get_task_result(task_id: str) -> Dict:
     """
