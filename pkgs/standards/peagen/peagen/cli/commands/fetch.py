@@ -23,8 +23,8 @@ from peagen.handlers.fetch_handler import fetch_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
-
+local_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
+remote_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
 
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
@@ -52,7 +52,7 @@ def _collect_args(
 
 
 # ───────────────────────── local run ───────────────────────
-@fetch_app.command("run")
+@local_fetch_app.command("run")
 def run(
     manifests: List[str] = typer.Argument(..., help="Manifest JSON URI(s)"),
     out_dir: Optional[Path] = typer.Option(
@@ -76,7 +76,7 @@ def run(
 
 
 # ────────────────────── remote submission ──────────────────
-@fetch_app.command("submit")
+@remote_fetch_app.command("submit")
 def submit(
     manifests: List[str] = typer.Argument(...),
     out_dir: Optional[Path] = typer.Option(None, "--out", "-o"),

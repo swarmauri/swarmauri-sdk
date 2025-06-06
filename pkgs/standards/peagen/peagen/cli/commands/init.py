@@ -27,7 +27,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from peagen.plugins import registry
 
 # ── Typer root ───────────────────────────────────────────────────────────────
-init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
+local_init_app = typer.Typer(help="Bootstrap Peagen artefacts (project, template-set …)")
 
 
 
@@ -89,7 +89,7 @@ def _summary(created_in: Path, next_cmd: str) -> None:
 
 
 # ── init project ─────────────────────────────────────────────────────────────
-@init_app.command("project", help="Create a new Peagen project skeleton.")
+@local_init_app.command("project", help="Create a new Peagen project skeleton.")
 def init_project(
     path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
     template_set: str = typer.Option("default", "--template-set"),
@@ -116,7 +116,7 @@ def init_project(
 
 
 # ── init template-set ────────────────────────────────────────────────────────
-@init_app.command("template-set", help="Create a template-set wheel skeleton.")
+@local_init_app.command("template-set", help="Create a template-set wheel skeleton.")
 def init_template_set(
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
@@ -148,7 +148,7 @@ def init_template_set(
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
-@init_app.command("doe-spec", help="Create a DOE-spec stub.")
+@local_init_app.command("doe-spec", help="Create a DOE-spec stub.")
 def init_doe_spec(
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
@@ -168,7 +168,7 @@ def init_doe_spec(
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────
-@init_app.command("ci", help="Drop a CI pipeline file for GitHub or GitLab.")
+@local_init_app.command("ci", help="Drop a CI pipeline file for GitHub or GitLab.")
 def init_ci(
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     github: bool = typer.Option(True, "--github/--gitlab"),

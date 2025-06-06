@@ -19,7 +19,7 @@ import peagen.template_sets as _pt  # root namespace that ships built-in sets
 import typer
 
 # ──────────────────────────────────────
-template_sets_app = typer.Typer(
+local_template_sets_app = typer.Typer(
     help="Manage Peagen template-sets.",
     add_completion=False,
 )
@@ -58,7 +58,7 @@ def _discover_template_sets() -> Dict[str, List[Path]]:
 
 
 # ─── list ──────────────────────────────
-@template_sets_app.command("list", help="List all discovered template-sets.")
+@local_template_sets_app.command("list", help="List all discovered template-sets.")
 def list_template_sets(
     verbose: int = typer.Option(
         0,
@@ -83,7 +83,7 @@ def list_template_sets(
 
 
 # ─── show ──────────────────────────────
-@template_sets_app.command("show", help="Show the contents of a template-set.")
+@local_template_sets_app.command("show", help="Show the contents of a template-set.")
 def show_template_set(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     verbose: int = typer.Option(
@@ -125,7 +125,7 @@ def show_template_set(
 
 
 # ─── add ───────────────────────────────
-@template_sets_app.command(
+@local_template_sets_app.command(
     "add",
     help=(
         "Install a template-set distribution from PyPI, a wheel/sdist, or a "
@@ -239,7 +239,7 @@ def add_template_set(
         )
 
 
-@template_sets_app.command(
+@local_template_sets_app.command(
     "remove",
     help="Uninstall the package that owns a template-set.",
 )

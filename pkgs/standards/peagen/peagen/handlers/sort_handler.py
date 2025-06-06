@@ -1,40 +1,64 @@
 # peagen/handlers/sort_handler.py
+"""
+Gateway / worker handler for the **sort** action.
 
+Expected task payload
+---------------------
+{
+  "action": "sort",
+  "args": {                       # ← per-command flags
+      "projects_payload": "...",  # YAML text **or** path
+      "project_name": null,
+      "start_idx": 0,
+      "start_file": null,
+      "verbose": 0,
+      "transitive": false,
+      "show_dependencies": false
+  },
+  "batch_cfg": { ... }            # ← overrides shared by the whole submit batch
+}
+"""
+
+from __future__ import annotations
 from typing import Any, Dict
-from peagen.core.sort_core import (
-    sort_single_project,
-    sort_all_projects,
-    _merge_cli_into_toml,
-)
-from peagen.models import Task
+
+from peagen.core.sort_core import sort_single_project, sort_all_projects
+from peagen._utils.config_loader import resolve_cfg
 
 
-async def sort_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Handler invoked when payload.action == "sort".
-    Expects task["payload"]["args"] to include exactly:
-      - projects_payload
-      - project_name (optional)
-      - start_idx
-      - start_file (optional)
-      - verbose
-      - transitive
-      - show_dependencies
+    Async handler registered under JSON-RPC method ``Task.sort`` (or similar).
+
+    • Delegates to sort_core.  
+    • Returns whatever the core returns (sorted list or error dict).
     """
-    payload = task.get("payload", {})
-    args: Dict[str, Any] = payload.get("args", {})
+    payload      = task.get("payload", {})
+    args         = payload.get("args", {})
+    cfg_override = payload.get("cfg_override", {})
 
-    params = _merge_cli_into_toml(
-        projects_payload=args["projects_payload"],
-        project_name=args.get("project_name"),
-        start_idx=args.get("start_idx"),
-        start_file=args.get("start_file"),
-        verbose=args.get("verbose", 0),
-        transitive=args.get("transitive", False),
-        show_dependencies=args.get("show_dependencies", False),
-    )
+    # ------------------------------------------------------------------ #
+    # 1) Build the effective configuration for *this* task
+    # ------------------------------------------------------------------ #
+    cfg = resolve_cfg(toml_text=cfg_override)
 
+    # ------------------------------------------------------------------ #
+    # 2) Re-package params for sort_core
+    # ------------------------------------------------------------------ #
+    params: Dict[str, Any] = {
+        "projects_payload": args["projects_payload"],
+        "project_name":     args.get("project_name"),
+        "start_idx":        args.get("start_idx", 0),
+        "start_file":       args.get("start_file"),
+        "verbose":          args.get("verbose", 0),
+        "transitive":       args.get("transitive", False),
+        "show_dependencies": args.get("show_dependencies", False),
+        "cfg": cfg,                 # ← merged config handed down to the core
+    }
+
+    # ------------------------------------------------------------------ #
+    # 3) Delegate to core (single or all projects)
+    # ------------------------------------------------------------------ #
     if params["project_name"]:
         return sort_single_project(params)
-    else:
-        return sort_all_projects(params)
+    return sort_all_projects(params)

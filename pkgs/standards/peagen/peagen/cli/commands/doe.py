@@ -14,8 +14,8 @@ from peagen.handlers.doe_handler import doe_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
-
+local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
+remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 def _make_task(args: dict) -> Task:
     return Task(
@@ -28,8 +28,9 @@ def _make_task(args: dict) -> Task:
 
 
 # ───────────────────────────── local run ───────────────────────────────────
-@doe_app.command("run")
+@local_doe_app.command("run")
 def run(  # noqa: PLR0913
+    ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     template: Path = typer.Argument(..., exists=True),
     output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
@@ -58,8 +59,9 @@ def run(  # noqa: PLR0913
 
 
 # ─────────────────────────── remote submit ─────────────────────────────────
-@doe_app.command("submit")
+@remote_doe_app.command("submit")
 def submit(  # noqa: PLR0913
+    ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     template: Path = typer.Argument(..., exists=True),
     output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),

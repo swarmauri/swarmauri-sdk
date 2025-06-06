@@ -9,10 +9,10 @@ import typer
 from peagen.handlers.validate_handler import validate_handler
 from peagen.models import Task
 
-validate_app = typer.Typer()
+local_validate_app = typer.Typer()
 
 
-@validate_app.command("run")
+@local_validate_app.command("run")
 def run_validate(
     kind: str = typer.Argument(
         ...,
@@ -55,7 +55,7 @@ def run_validate(
         typer.echo(f"✅  {kind.capitalize()} is valid.")
 
 
-@validate_app.command("submit")
+@local_validate_app.command("submit")
 def submit_validate(
     kind: str = typer.Argument(
         ...,

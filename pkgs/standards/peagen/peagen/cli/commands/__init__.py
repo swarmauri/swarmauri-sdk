@@ -1,23 +1,25 @@
 """Expose all Typer sub-applications for the CLI."""
 
-from .doe import doe_app
-from .eval import eval_app
-from .extras import extras_app
-from .fetch import fetch_app
-from .init import init_app
-from .process import process_app
-from .sort import sort_app
-from .templates import template_sets_app
-from .validate import validate_app
+from .doe import local_doe_app, remote_doe_app
+from .eval import local_eval_app, remote_eval_app
+from .extras import local_extras_app
+from .fetch import local_fetch_app, remote_fetch_app
+from .init import local_init_app
+from .process import local_process_app, remote_process_app
+from .sort import local_sort_app, remote_sort_app
+from .templates import local_template_sets_app
+from .task import remote_task_app
+from .validate import local_validate_app
 
 __all__ = [
-    "doe_app",
-    "eval_app",
-    "extras_app",
-    "fetch_app",
-    "init_app",
-    "process_app",
-    "sort_app",
-    "template_sets_app",
-    "validate_app",
+    "local_doe_app", "remote_doe_app",
+    "local_eval_app", "remote_eval_app",
+    "local_extras_app",
+    "local_fetch_app", "remote_fetch_app",
+    "local_init_app",
+    "local_process_app", "remote_process_app",
+    "local_sort_app", "remote_sort_app",
+    "remote_task_app",
+    "local_template_sets_app",
+    "local_validate_app",
 ]

@@ -9,7 +9,7 @@ from swarmauri_standard.loggers.Logger import Logger
 
 import typer
 
-extras_app = typer.Typer(help="Manage EXTRAS schemas.")
+local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 
 
 def _parse_keys(md_path: Path) -> List[str]:
@@ -34,7 +34,7 @@ def _build_schema(keys: List[str], set_name: str) -> dict:
     }
 
 
-@extras_app.command("generate")
+@local_extras_app.command("generate")
 def generate() -> None:
     """Regenerate EXTRAS schema files from templates."""
     self = Logger(name="extras_generate")
