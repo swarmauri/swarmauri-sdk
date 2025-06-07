@@ -24,21 +24,19 @@ async def templates_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     op = args.get("operation")
 
     if op == "list":
-        return list_template_sets(verbose=int(args.get("verbose", 0)))
+        return list_template_sets()
     if op == "show":
-        return show_template_set(args["name"], verbose=int(args.get("verbose", 0)))
+        return show_template_set(args["name"])
     if op == "add":
         return add_template_set(
             args["source"],
             from_bundle=args.get("from_bundle"),
             editable=args.get("editable", False),
             force=args.get("force", False),
-            verbose=args.get("verbose", False),
-        )
+    )
     if op == "remove":
         return remove_template_set(
             args["name"],
-            verbose=args.get("verbose", False),
         )
 
     raise ValueError(f"Unknown operation: {op}")

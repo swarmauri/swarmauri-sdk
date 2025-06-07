@@ -32,9 +32,7 @@ def _build_jinja_env(cfg: dict, *, workspace_root: str | Path | None = None) -> 
     # Should support local, git, pypi, or https based retrievals
     ns_dirs.extend(str(Path(p)) for p in cfg.get("template_paths", []))
 
-    # 4) template_base_dir + repo root, if present
-    if cfg.get("template_base_dir"):
-        ns_dirs.append(str(Path(cfg["template_base_dir"])))
+    # 4) base_dir (repo root), if present
     if cfg.get("base_dir"):
         ns_dirs.append(str(Path(cfg["base_dir"])))
 

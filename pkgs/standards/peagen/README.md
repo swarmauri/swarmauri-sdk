@@ -320,7 +320,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           peagen process projects.yaml \
-            --template-base-dir ./templates \
             --provider openai \
             --model-name gpt-4 \
             --transitive \
@@ -349,7 +348,6 @@ agent_env = {
 }
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    additional_package_dirs=[],
     agent_env=agent_env,
 )
 

@@ -23,7 +23,6 @@ def run_sort(  # ← now receives the Typer context
     project_name: str = typer.Option(None, help="Name of the project to process."),
     start_idx: int = typer.Option(0, help="Index to start sorting from."),
     start_file: str = typer.Option(None, help="File to start sorting from."),
-    verbose: int = typer.Option(0, help="Verbosity level."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
 ):
@@ -45,7 +44,6 @@ def run_sort(  # ← now receives the Typer context
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
-        "verbose": verbose,
         "transitive": transitive,
         "show_dependencies": show_dependencies,
     }
@@ -87,7 +85,6 @@ def submit_sort(
     project_name: str = typer.Option(None, help="Name of the project to process."),
     start_idx: int = typer.Option(0, help="Index to start sorting from."),
     start_file: str = typer.Option(None, help="File to start sorting from."),
-    verbose: int = typer.Option(0, help="Verbosity level."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
 ):
@@ -117,7 +114,6 @@ def submit_sort(
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
-        "verbose": verbose,
         "transitive": transitive,
         "show_dependencies": show_dependencies,
         "cfg_override": cfg_override,

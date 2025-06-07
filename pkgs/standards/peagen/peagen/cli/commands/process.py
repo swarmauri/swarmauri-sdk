@@ -31,7 +31,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     project_name: Optional[str],
     start_idx: int,
     start_file: Optional[str],
-    verbose: int,
     transitive: bool,
     agent_env: Optional[str],
     output_base: Optional[Path],
@@ -41,7 +40,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
-        "verbose": verbose,
         "transitive": transitive,
         "output_base": str(output_base) if output_base else None,
     }
@@ -77,9 +75,6 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     start_file: Optional[str] = typer.Option(
         None, help="Skip files until this RENDERED_FILE_NAME is reached."
     ),
-    verbose: int = typer.Option(
-        0, "--verbose", "-v", count=True, help="Increase log verbosity."
-    ),
     transitive: bool = typer.Option(
         False, "--transitive/--no-transitive", help="Include transitive deps."
     ),
@@ -102,7 +97,6 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         project_name,
         start_idx,
         start_file,
-        verbose,
         transitive,
         agent_env,
         output_base,
@@ -121,7 +115,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     project_name: Optional[str] = typer.Option(None),
     start_idx: int = typer.Option(0),
     start_file: Optional[str] = typer.Option(None),
-    verbose: int = typer.Option(0, "--verbose", "-v", count=True),
     transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
     agent_env: Optional[str] = typer.Option(None),
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
@@ -132,7 +125,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         project_name,
         start_idx,
         start_file,
-        verbose,
         transitive,
         agent_env,
         output_base,

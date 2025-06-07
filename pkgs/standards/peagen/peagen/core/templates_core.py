@@ -43,14 +43,12 @@ def discover_template_sets() -> Dict[str, List[Path]]:
 # List
 # ---------------------------------------------------------------------------
 
-def list_template_sets(verbose: int = 0) -> Dict[str, Any]:
+def list_template_sets() -> Dict[str, Any]:
     """Return information about all discovered template sets."""
     discovered = discover_template_sets()
     result = {"total": len(discovered), "sets": []}
     for name, paths in sorted(discovered.items()):
-        entry: Dict[str, Any] = {"name": name}
-        if verbose:
-            entry["paths"] = [str(p) for p in paths]
+        entry: Dict[str, Any] = {"name": name, "paths": [str(p) for p in paths]}
         result["sets"].append(entry)
     return result
 
@@ -59,7 +57,7 @@ def list_template_sets(verbose: int = 0) -> Dict[str, Any]:
 # Show
 # ---------------------------------------------------------------------------
 
-def show_template_set(name: str, verbose: int = 0) -> Dict[str, Any]:
+def show_template_set(name: str) -> Dict[str, Any]:
     """Return detailed info for one template set."""
     discovered = discover_template_sets()
     if name not in discovered:
@@ -70,15 +68,11 @@ def show_template_set(name: str, verbose: int = 0) -> Dict[str, Any]:
     if len(discovered[name]) > 1:
         info["other_locations"] = [str(p) for p in discovered[name][1:]]
 
-    if verbose:
-        def _iter_files(base: Path):
-            if verbose == 1:
-                yield from sorted(f.name for f in base.iterdir() if f.is_file())
-            else:
-                for fp in base.rglob("*"):
-                    if fp.is_file():
-                        yield str(fp.relative_to(base))
-        info["files"] = list(_iter_files(primary))
+    def _iter_files(base: Path):
+        for fp in base.rglob("*"):
+            if fp.is_file():
+                yield str(fp.relative_to(base))
+    info["files"] = list(_iter_files(primary))
     return info
 
 
@@ -92,7 +86,6 @@ def add_template_set(
     from_bundle: Optional[str] = None,
     editable: bool = False,
     force: bool = False,
-    verbose: bool = False,
 ) -> Dict[str, Any]:
     """Install a template-set distribution."""
     src_path = Path(from_bundle) if from_bundle else Path(source)
@@ -127,8 +120,8 @@ def add_template_set(
             pip_cmd,
             check=True,
             text=True,
-            stdout=None if verbose else subprocess.PIPE,
-            stderr=None if verbose else subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(exc.stdout or "installation failed") from exc
@@ -145,7 +138,6 @@ def add_template_set(
 def remove_template_set(
     name: str,
     *,
-    verbose: bool = False,
 ) -> Dict[str, Any]:
     """Uninstall the package that exposes *name* as a template-set."""
     dists: List[str] = []
@@ -175,8 +167,8 @@ def remove_template_set(
             cmd,
             check=True,
             text=True,
-            stdout=None if verbose else subprocess.PIPE,
-            stderr=None if verbose else subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(exc.stdout or "uninstall failed") from exc
