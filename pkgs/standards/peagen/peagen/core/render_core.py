@@ -72,7 +72,7 @@ def _render_generate_template(
         print('\n\n\nagent_prompt_template', agent_prompt_template)
         print('\n\ncontext', context)
         print('\n\nj2_instance', j2_instance)
-        print('\n\n')
+        print('\n\n\n')
         rendered_prompt = j2_instance.fill(context)
         print('\n\n\nrendered_prompt', rendered_prompt)
         resp = call_external_agent(rendered_prompt, agent_env, logger)

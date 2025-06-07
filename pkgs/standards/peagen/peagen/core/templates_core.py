@@ -138,6 +138,7 @@ def add_template_set(
 def remove_template_set(
     name: str
     ) -> Dict[str, Any]:
+
     """Uninstall the package that exposes *name* as a template-set."""
     dists: List[str] = []
     for dist in im.distributions():
