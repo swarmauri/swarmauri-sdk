@@ -9,6 +9,7 @@ calls.
 import os
 import re
 import traceback
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import colorama
@@ -29,6 +30,23 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 load_dotenv()
+
+
+def _load_llm_defaults() -> Dict[str, Any]:
+    """Return the ``[llm]`` group from the nearest ``.peagen.toml`` if present."""
+
+    for folder in [Path.cwd(), *Path.cwd().parents]:
+        candidate = folder / ".peagen.toml"
+        if candidate.is_file():
+            try:
+                import tomllib
+
+                with candidate.open("rb") as f:
+                    data = tomllib.load(f)
+                return data.get("llm", {})
+            except Exception:
+                return {}
+    return {}
 
 def call_external_agent(
     prompt: str, agent_env: Dict[str, str], truncate_: bool = False, logger: Optional[Any] = logger
@@ -70,11 +88,21 @@ def call_external_agent(
         logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
         logger.debug(f"Agent env: {agent_env}")
 
-    # Extract configuration from agent_env
-    provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
+    # Extract configuration from agent_env or .peagen.toml
+    llm_cfg = _load_llm_defaults()
+
+    provider = (
+        os.getenv("PROVIDER")
+        or agent_env.get("provider")
+        or llm_cfg.get("default_provider", "deepinfra")
+    ).lower()
+
     api_key = os.getenv(f"{provider.upper()}_API_KEY") or agent_env.get("api_key")
-    model_name = agent_env.get("model_name")
-    max_tokens = int(agent_env.get("max_tokens", 8192))
+    model_name = agent_env.get("model_name") or llm_cfg.get("default_model_name")
+    max_tokens = int(agent_env.get("max_tokens") or llm_cfg.get("default_max_tokens", 8192))
+    temperature = agent_env.get("temperature")
+    if temperature is None:
+        temperature = llm_cfg.get("default_temperature")
 
     # Initialize the generic LLM manager
     llm_manager = GenericLLM()
@@ -111,9 +139,12 @@ def call_external_agent(
 
     try:
         # Execute the prompt against the agent
+        llm_kwargs = {"max_tokens": max_tokens}
+        if temperature is not None:
+            llm_kwargs["temperature"] = temperature
         result = agent.exec(
             prompt,
-            llm_kwargs={"max_tokens": max_tokens},
+            llm_kwargs=llm_kwargs,
         )
     except KeyboardInterrupt:
         raise KeyboardInterrupt("'Interrupted...'")
