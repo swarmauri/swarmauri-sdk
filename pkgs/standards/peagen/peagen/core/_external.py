@@ -26,9 +26,20 @@ UNDERLINE = "\033[4m"
 
 import logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(encoding='utf-8', level=logging.INFO)
+logging.basicConfig(encoding="utf-8", level=logging.INFO)
 
 load_dotenv()
+
+
+def _sanitize_agent_env(agent_env: Dict[str, str]) -> Dict[str, str]:
+    """Return a copy of agent_env with secret values masked."""
+    sanitized: Dict[str, str] = {}
+    for k, v in agent_env.items():
+        if "key" in k.lower() or "token" in k.lower():
+            sanitized[k] = "***"
+        else:
+            sanitized[k] = v
+    return sanitized
 
 def call_external_agent(
     prompt: str, agent_env: Dict[str, str], truncate_: bool = False, logger: Optional[Any] = logger
@@ -68,7 +79,8 @@ def call_external_agent(
     truncated_prompt = prompt[:140] + "..." if truncate_ else prompt
     if logger:
         logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
-        logger.debug(f"Agent env: {agent_env}")
+        sanitized_env = _sanitize_agent_env(agent_env)
+        logger.debug(f"Agent env: {sanitized_env}")
 
     # Extract configuration from agent_env
     provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
