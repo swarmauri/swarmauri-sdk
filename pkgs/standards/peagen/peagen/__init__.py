@@ -1,7 +1,7 @@
 try:
     # For Python 3.8 and newer
     from importlib.metadata import version, PackageNotFoundError
-except ImportError:
+except ImportError:  # pragma: no cover - fallback for older Python
     # For older Python versions, use the backport
     from importlib_metadata import version, PackageNotFoundError
 
@@ -13,4 +13,6 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 
-__all__ = ["__package_name__", "__version__"]
+from .plugin_manager import PluginManager
+
+__all__ = ["__package_name__", "__version__", "PluginManager"]
