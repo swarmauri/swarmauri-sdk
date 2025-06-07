@@ -130,7 +130,7 @@ default_provider = "openai"
 default_model_name = "gpt-4"
 
 [llm.api_keys]
-openai = "sk-..."
+openai = "${OPENAI_API_KEY}"
 
 [storage]
 default_adapter = "file"
@@ -138,6 +138,10 @@ default_adapter = "file"
 [storage.adapters.file]
 output_dir = "./peagen_artifacts"
 ```
+
+Any `${VAR}` expressions will be expanded from the environment when the file is
+loaded. Values sourced from environment variables are treated as secrets and
+will be masked in debug logs.
 
 With these values in place you can omit `--provider`, `--model-name`, and other
 flags when running the CLI.

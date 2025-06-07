@@ -16,8 +16,36 @@ Layers (lowest → highest priority)
 from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
+import os
+import re
+from pydantic import SecretStr
 from copy import deepcopy
 import toml
+
+
+_ENV_RE = re.compile(r"\${([^}]+)}")
+
+
+def _expand_env(value: Any) -> Any:
+    """Recursively expand ${VAR} in strings using environment variables.
+
+    Any substituted value is wrapped in ``SecretStr`` so repr() masks it.
+    """
+    if isinstance(value, str):
+        original = value
+        def repl(match: re.Match) -> str:
+            var = match.group(1)
+            return os.environ.get(var, "")
+
+        expanded = _ENV_RE.sub(repl, value)
+        if expanded != original:
+            return SecretStr(expanded)
+        return expanded
+    elif isinstance(value, list):
+        return [_expand_env(v) for v in value]
+    elif isinstance(value, dict):
+        return {k: _expand_env(v) for k, v in value.items()}
+    return value
 
 import peagen.defaults as builtins
 
@@ -40,7 +68,8 @@ def load_peagen_toml(
         if required:
             raise FileNotFoundError(f"{p!s} is required on this host")
         return {}
-    return toml.loads(p.read_text())
+    data = toml.loads(p.read_text())
+    return _expand_env(data)
 
 
 # ─────────────────────────────── .peagen override ────────────────────────────
