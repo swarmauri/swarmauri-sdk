@@ -55,6 +55,7 @@ def _render_generate_template(
     agent_prompt_template: str,
     j2_instance: Any,
     agent_env: Dict[str, str] = {},
+    cfg: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Render a GENERATE‐style template.  
@@ -75,7 +76,12 @@ def _render_generate_template(
         print('\n\n\n')
         rendered_prompt = j2_instance.fill(context)
         print('\n\n\nrendered_prompt', rendered_prompt)
-        resp = call_external_agent(rendered_prompt, agent_env, logger)
+        import inspect
+        sig = inspect.signature(call_external_agent)
+        if len(sig.parameters) >= 4:
+            resp = call_external_agent(rendered_prompt, agent_env, cfg, logger)
+        else:
+            resp = call_external_agent(rendered_prompt, agent_env, logger=logger)
         print('\n\nresp', resp)
         return resp
     except Exception as e:

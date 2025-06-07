@@ -31,7 +31,11 @@ logging.basicConfig(encoding='utf-8', level=logging.INFO)
 load_dotenv()
 
 def call_external_agent(
-    prompt: str, agent_env: Dict[str, str], truncate_: bool = False, logger: Optional[Any] = logger
+    prompt: str,
+    agent_env: Dict[str, str],
+    cfg: Optional[Dict[str, Any]] = None,
+    truncate_: bool = False,
+    logger: Optional[Any] = logger,
 ) -> str:
     """
     Sends the rendered prompt to an external agent (e.g., a language model) and returns the generated content.
@@ -53,6 +57,8 @@ def call_external_agent(
         from swarmauri.agents.QAAgent import QAAgent
         from swarmauri.messages.SystemMessage import SystemMessage
 
+        from peagen.plugin_manager import PluginManager
+        from peagen._utils.config_loader import resolve_cfg
         from ._llm import GenericLLM
     except Exception as e:
         error_details = traceback.format_exc()  # Get full traceback details
@@ -70,38 +76,36 @@ def call_external_agent(
         logger.info(f"Sending prompt to external llm: \n\t{truncated_prompt}\n")
         logger.debug(f"Agent env: {agent_env}")
 
-    # Extract configuration from agent_env
-    provider = os.getenv("PROVIDER") or agent_env.get("provider", "deepinfra").lower()
-    api_key = os.getenv(f"{provider.upper()}_API_KEY") or agent_env.get("api_key")
-    model_name = agent_env.get("model_name")
-    max_tokens = int(agent_env.get("max_tokens", 8192))
+    cfg = resolve_cfg() if cfg is None else cfg
+    pm = PluginManager(cfg)
 
-    # Initialize the generic LLM manager
-    llm_manager = GenericLLM()
-    if logger:
-        logger.debug(f"Requesting provider '{provider}' model '{model_name}'")
+    llm_section = cfg.get("llm", {})
+    provider = (
+        agent_env.get("provider")
+        or os.getenv("PROVIDER")
+        or llm_section.get("default_provider", "deepinfra")
+    )
 
-    # Special case for LlamaCpp which doesn't need an API key
-    if provider.lower() == "llamacpp":
-        try:
-            llm = llm_manager.get_llm(
-                provider=provider,
-                api_key=api_key,
-                model_name="localhost",
-                allowed_models=["localhost"],
-            )
-        except Exception as e:
-            logger.error(str(e))
+    max_tokens = int(
+        agent_env.get("max_tokens")
+        or llm_section.get("default_max_tokens", 8192)
+    )
+
+    model_name = agent_env.get("model_name") or llm_section.get("default_model_name")
+    temperature = agent_env.get("temperature") or llm_section.get("default_temperature")
+
+    if agent_env.get("api_key"):
+        llm_mgr = GenericLLM()
+        llm = llm_mgr.get_llm(
+            provider=provider,
+            api_key=agent_env.get("api_key"),
+            model_name=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
     else:
-        try:
-            # Get an instance of the requested LLM
-            llm = llm_manager.get_llm(
-                provider=provider,
-                api_key=api_key,
-                model_name=model_name,
-            )
-        except Exception as e:
-            logger.error(str(e))
+        llm = pm.get("llms", provider)
+        # pm.get already applies default model and API key
 
     # Create QAAgent with the configured LLM
     system_context = "You are a software developer."

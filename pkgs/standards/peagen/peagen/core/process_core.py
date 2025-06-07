@@ -178,6 +178,7 @@ def _handle_generate(
     context: Dict[str, Any],
     j2: J2PromptTemplate,
     agent_env: Dict[str, Any],
+    cfg: Dict[str, Any],
     workspace_root: Path,
     storage_adapter: Any,
     project_name: str,
@@ -203,6 +204,7 @@ def _handle_generate(
         prompt_tpl,
         j2,
         agent_env,
+        cfg,
     )
     print(content)
     out_path = workspace_root / rendered_name
@@ -369,6 +371,7 @@ def process_single_project(
                 context,
                 j2,
                 cfg.get("agent_env", {}),
+                cfg,
                 workspace_root,
                 storage_adapter,
                 project_name,

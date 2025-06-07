@@ -59,6 +59,10 @@ class PluginManager:
         "mutators": {"section": "mutators", "items": "plugins", "default": "default_mutator"},
         "programs": {"section": "programs", "items": "plugins", "default": "default_program"},
         "selectors": {"section": "selectors", "items": "plugins", "default": "default_selector"},
+        "llms": {
+            "section": "llm",
+            "default": "default_provider",
+        },
     }
 
     def __init__(self, cfg: Dict[str, Any]) -> None:
@@ -75,6 +79,10 @@ class PluginManager:
         obj = registry.get(group, {}).get(ref)
         if obj is not None:
             return obj
+        if group == "llms" and "." not in ref:
+            class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
+            module = import_module(f"swarmauri.llms.{class_name}")
+            return getattr(module, class_name)
         mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
         module = import_module(mod)
         return getattr(module, cls)
@@ -97,6 +105,30 @@ class PluginManager:
 
         layout = self._layout(group)
         cfg = self._group_cfg(group)
+
+        if group == "llms":
+            provider = name or cfg.get("default_provider")
+            if not provider:
+                raise KeyError("No plugin name provided for group 'llms'")
+            params = cfg.get(provider, {})
+            api_key = params.get("API_KEY") or params.get("api_key")
+            model_name = cfg.get("default_model_name")
+            temperature = cfg.get("default_temperature")
+            max_tokens = cfg.get("default_max_tokens")
+            from .core._llm import GenericLLM
+
+            llm_mgr = GenericLLM()
+            kwargs: Dict[str, Any] = {}
+            if temperature is not None:
+                kwargs["temperature"] = temperature
+            if max_tokens is not None:
+                kwargs["max_tokens"] = max_tokens
+            return llm_mgr.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name=model_name,
+                **kwargs,
+            )
 
         # single reference style
         if "single" in layout:
