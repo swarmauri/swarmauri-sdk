@@ -65,10 +65,10 @@ def _render_generate_template(
     - agent_env is passed through to call_external_agent.  
     """
     try:
-        template_name = Path(agent_prompt_template).name
+        template_path = Path(agent_prompt_template)
         if logger:
             logger.debug(f"Rendering generate template {agent_prompt_template}")
-        j2_instance.set_template(template_name)
+        j2_instance.set_template(template_path)
 
         print('\n\n\nagent_prompt_template', agent_prompt_template)
         print('\n\ncontext', context)
