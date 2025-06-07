@@ -48,44 +48,26 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
 
 # ─── list ──────────────────────────────
 @local_template_sets_app.command("list", help="List all discovered template-sets.")
-def run_list(
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v shows physical paths.",
-    ),
-):
-    result = _run_handler({"operation": "list", "verbose": verbose})
+def run_list():
+    result = _run_handler({"operation": "list"})
     discovered = {e["name"]: e.get("paths", []) for e in result.get("sets", [])}
     if not discovered:
         typer.echo("⚠️  No template-sets found.")
         raise typer.Exit(code=1)
 
     typer.echo("\nAvailable template-sets:")
-    for name, paths in sorted(discovered.items()):
+    for name in sorted(discovered.keys()):
         typer.echo(f" • {name}")
-        if verbose:
-            for p in paths:
-                typer.echo(f"     ↳ {p}")
     typer.echo(f"\nTotal: {result['total']} set(s)")
 
 
 @remote_template_sets_app.command("list", help="Submit a list task via gateway.")
 def submit_list(
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v shows physical paths.",
-    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
-    args = {"operation": "list", "verbose": verbose}
+    args = {"operation": "list"}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted list → taskId={task_id}")
@@ -98,16 +80,9 @@ def submit_list(
 @local_template_sets_app.command("show", help="Show the contents of a template-set.")
 def run_show(
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v lists files, -vv lists full paths.",
-    ),
 ):
     try:
-        info = _run_handler({"operation": "show", "name": name, "verbose": verbose})
+        info = _run_handler({"operation": "show", "name": name})
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}")
         raise typer.Exit(code=1)
@@ -115,12 +90,12 @@ def run_show(
     typer.echo(f"\nTemplate-set: {info['name']}")
     typer.echo(f"Location:    {info['location']}")
 
-    if info.get("other_locations") and verbose:
+    if info.get("other_locations"):
         typer.echo("\n⚠️  Multiple copies found on search path:")
         for p in info["other_locations"]:
             typer.echo(f"   ↳ {p}")
 
-    if verbose and info.get("files"):
+    if info.get("files"):
         typer.echo("\nFiles:")
         for rel in info["files"]:
             typer.echo(f" • {rel}")
@@ -129,18 +104,11 @@ def run_show(
 @remote_template_sets_app.command("show", help="Submit a show task via gateway.")
 def submit_show(
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        count=True,
-        help="-v lists files, -vv lists full paths.",
-    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
-    args = {"operation": "show", "name": name, "verbose": verbose}
+    args = {"operation": "show", "name": name}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted show → taskId={task_id}")
@@ -180,12 +148,6 @@ def run_add(
         "--force",
         help="Re-install even if the distribution is already present.",
     ),
-    verbose: bool = typer.Option(
-        False,
-        "-v",
-        "--verbose",
-        help="Show pip/uv output.",
-    ),
 ):
     typer.echo("⏳  Installing via pip …")
     try:
@@ -196,13 +158,10 @@ def run_add(
                 "from_bundle": from_bundle,
                 "editable": editable,
                 "force": force,
-                "verbose": verbose,
             }
         )
     except Exception as exc:  # noqa: BLE001
         typer.echo("❌  Installation failed.")
-        if not verbose:
-            typer.echo(str(exc))
         raise typer.Exit(code=1)
 
     new_sets = result.get("installed", [])
@@ -226,7 +185,6 @@ def submit_add(
     ),
     editable: bool = typer.Option(False, "--editable", "-e"),
     force: bool = typer.Option(False, "--force"),
-    verbose: bool = typer.Option(False, "-v", "--verbose"),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -237,7 +195,6 @@ def submit_add(
         "from_bundle": from_bundle,
         "editable": editable,
         "force": force,
-        "verbose": verbose,
     }
     try:
         task_id = _submit_task(args, gateway_url)
@@ -253,7 +210,6 @@ def submit_add(
 def run_remove(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
-    verbose: bool = typer.Option(False, "-v", "--verbose", help="Show pip/uv output."),
 ):
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
@@ -262,7 +218,7 @@ def run_remove(
 
     typer.echo("⏳  Uninstalling via pip …")
     try:
-        result = _run_handler({"operation": "remove", "name": name, "verbose": verbose})
+        result = _run_handler({"operation": "remove", "name": name})
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}")
         raise typer.Exit(code=1)
@@ -279,7 +235,6 @@ def run_remove(
 def submit_remove(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
-    verbose: bool = typer.Option(False, "-v", "--verbose"),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -289,7 +244,7 @@ def submit_remove(
             typer.echo("Aborted.")
             raise typer.Exit()
 
-    args = {"operation": "remove", "name": name, "verbose": verbose}
+    args = {"operation": "remove", "name": name}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted remove → taskId={task_id}")

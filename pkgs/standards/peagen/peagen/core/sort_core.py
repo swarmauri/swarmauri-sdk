@@ -73,7 +73,6 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
             cfg=params["cfg"],
             start_idx=params["start_idx"],
             start_file=params["start_file"],
-            verbose=params["verbose"],
             transitive=params["transitive"],
         )
         # --- pretty-print list ----------------------------------------------------
@@ -148,7 +147,6 @@ def _run_sort(
     cfg: Dict[str, Any],
     start_idx: int,
     start_file: str | None,
-    verbose: int,
     transitive: bool,
 ) -> Tuple[List[Dict[str, Any]], int]:
     # 3-A) Build a legacy-compatible Jinja2 env that already includes
@@ -156,14 +154,13 @@ def _run_sort(
 
     j2_env = _build_jinja_env(cfg, workspace_root=cfg.get("workspace_root"))
     # 3-B) Collect raw file_records from the project spec
-    file_records = _collect_file_records(project, j2_env, verbose=verbose)
+    file_records = _collect_file_records(project, j2_env)
     # 3-C) Finally, get the right order
     sorted_records, next_idx = sort_file_records(
         file_records=file_records,
         start_idx=start_idx,
         start_file=start_file,
         transitive=transitive,
-        verbose=verbose,
     )
     return sorted_records, next_idx
 
@@ -171,7 +168,7 @@ def _run_sort(
 # --------------------------------------------------------------------------- #
 # 4) Helper – turn FILES entries into canonical records                       #
 # --------------------------------------------------------------------------- #
-def _collect_file_records(project: dict, jinja_env: Environment, *, verbose: int = 0):
+def _collect_file_records(project: dict, jinja_env: Environment):
     out: list[dict] = []
 
     # 1) fast-path – existing behaviour for hand-written FILES arrays
@@ -188,8 +185,6 @@ def _collect_file_records(project: dict, jinja_env: Environment, *, verbose: int
         template_dir = _locate_template_set(template_set, jinja_env.loader)
         ptree = Path(template_dir) / "ptree.yaml.j2"
         if not ptree.exists():
-            if verbose:
-                print(f"[sort_core] {ptree} missing – skipped.")
             continue
 
         ctx = {"PROJ": project | {"PKGS": [pkg]}}
@@ -256,7 +251,6 @@ def sort_file_records(
     start_idx: int = 0,
     start_file: Optional[str] = None,
     transitive: bool = False,
-    verbose: int = 0,
 ) -> Tuple[List[Dict[str, Any]], int]:
     """
     Core ordering algorithm shared by both CLI & worker code paths.
@@ -267,30 +261,19 @@ def sort_file_records(
     start_idx      : numerical skip count
     start_file     : name to resume from (ignored if transitive=True)
     transitive     : if True, keep only the transitive closure up to start_file
-    verbose        : 0-3 logging level
 
     Returns
     -------
     (sorted_records, next_index_after_last_processed)
     """
     total = len(file_records)
-    if verbose >= 1:
-        print(
-            f"[sort_core] Sorting {total} files (start_idx={start_idx}, start_file={start_file}, transitive={transitive})"
-        )
 
     # -- choose algorithm ----------------------------------------------------
     try:
         if transitive and start_file:
             sorted_records = _transitive_dependency_sort(file_records, start_file)
-            if verbose >= 1:
-                print(
-                    f"  → Transitive subset from '{start_file}' has {len(sorted_records)} files"
-                )
         else:
             sorted_records = _topological_sort(file_records)
-            if verbose >= 1:
-                print(f"  → Full topological order has {len(sorted_records)} files")
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(f"Dependency sort failed: {exc}") from exc
 
@@ -303,16 +286,11 @@ def sort_file_records(
                 if rec["RENDERED_FILE_NAME"] == start_file
             )
             sorted_records = sorted_records[skip:]
-            if verbose >= 2:
-                print(f"  → Skipped {skip} leading files (resume at '{start_file}')")
         except StopIteration:
-            if verbose >= 1:
-                print(f"  → start_file '{start_file}' not found – no skip applied")
+            pass
 
     if start_idx > 0:
         sorted_records = sorted_records[start_idx:]
-        if verbose >= 2:
-            print(f"  → Applied numeric skip, {len(sorted_records)} files remain")
 
     next_index = start_idx + len(sorted_records)
     return sorted_records, next_index

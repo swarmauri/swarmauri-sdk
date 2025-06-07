@@ -11,7 +11,6 @@ Expected task payload
       "project_name": null,
       "start_idx": 0,
       "start_file": null,
-      "verbose": 0,
       "transitive": false,
       "show_dependencies": false
   },
@@ -50,7 +49,6 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
         "project_name":     args.get("project_name"),
         "start_idx":        args.get("start_idx", 0),
         "start_file":       args.get("start_file"),
-        "verbose":          args.get("verbose", 0),
         "transitive":       args.get("transitive", False),
         "show_dependencies": args.get("show_dependencies", False),
         "cfg": cfg,                 # ← merged config handed down to the core
