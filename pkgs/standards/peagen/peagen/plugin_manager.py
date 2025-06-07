@@ -59,6 +59,7 @@ class PluginManager:
         "mutators": {"section": "mutators", "items": "plugins", "default": "default_mutator"},
         "programs": {"section": "programs", "items": "plugins", "default": "default_program"},
         "selectors": {"section": "selectors", "items": "plugins", "default": "default_selector"},
+        "llms": {"section": "llm", "single": "provider", "default": None},
     }
 
     def __init__(self, cfg: Dict[str, Any]) -> None:

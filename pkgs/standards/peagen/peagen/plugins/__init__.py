@@ -6,6 +6,8 @@ from collections import defaultdict
 from types import ModuleType
 from typing import Dict
 
+from swarmauri_base.llms.LLMBase import LLMBase
+
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
 # ---------------------------------------------------------------------------
@@ -21,6 +23,7 @@ GROUPS = {
     "result_backends": ("peagen.plugins.result_backends", object),
     "storage_adapters": ("peagen.plugins.storage_adapters", object),
     "selectors": ("peagen.plugins.selectors", object),
+    "llms": ("peagen.plugins.llms", LLMBase),
     "template_sets": ("peagen.template_sets", None),
 }
 

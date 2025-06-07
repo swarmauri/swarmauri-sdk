@@ -53,7 +53,8 @@ def call_external_agent(
         from swarmauri.agents.QAAgent import QAAgent
         from swarmauri.messages.SystemMessage import SystemMessage
 
-        from ._llm import GenericLLM
+        from peagen import PluginManager
+        from peagen._utils.config_loader import resolve_cfg
     except Exception as e:
         error_details = traceback.format_exc()  # Get full traceback details
         raise ImportError(
@@ -76,32 +77,27 @@ def call_external_agent(
     model_name = agent_env.get("model_name")
     max_tokens = int(agent_env.get("max_tokens", 8192))
 
-    # Initialize the generic LLM manager
-    llm_manager = GenericLLM()
+    # Configure and load the provider via the plugin manager
+    pm_cfg = resolve_cfg()
+    pm_cfg.setdefault("llm", {})
+    pm_cfg["llm"].update({
+        "provider": provider,
+        "provider_params": {
+            "api_key": api_key,
+            "name": model_name if provider != "llamacpp" else "localhost",
+            **({"allowed_models": ["localhost"]} if provider == "llamacpp" else {}),
+        },
+    })
+
     if logger:
         logger.debug(f"Requesting provider '{provider}' model '{model_name}'")
 
-    # Special case for LlamaCpp which doesn't need an API key
-    if provider.lower() == "llamacpp":
-        try:
-            llm = llm_manager.get_llm(
-                provider=provider,
-                api_key=api_key,
-                model_name="localhost",
-                allowed_models=["localhost"],
-            )
-        except Exception as e:
+    try:
+        llm = PluginManager(pm_cfg).get("llms")
+    except Exception as e:
+        if logger:
             logger.error(str(e))
-    else:
-        try:
-            # Get an instance of the requested LLM
-            llm = llm_manager.get_llm(
-                provider=provider,
-                api_key=api_key,
-                model_name=model_name,
-            )
-        except Exception as e:
-            logger.error(str(e))
+        raise
 
     # Create QAAgent with the configured LLM
     system_context = "You are a software developer."
