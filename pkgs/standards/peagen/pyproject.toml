@@ -142,5 +142,22 @@ redis   = "peagen.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
 rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
+[project.entry-points."peagen.plugins.llms"]
+AI21StudioModel = "peagen.plugins.llms:AI21StudioModel"
+AnthropicModel = "peagen.plugins.llms:AnthropicModel"
+CerebrasModel = "peagen.plugins.llms:CerebrasModel"
+CohereModel = "peagen.plugins.llms:CohereModel"
+DeepInfraModel = "peagen.plugins.llms:DeepInfraModel"
+DeepSeekModel = "peagen.plugins.llms:DeepSeekModel"
+GeminiProModel = "peagen.plugins.llms:GeminiProModel"
+GroqModel = "peagen.plugins.llms:GroqModel"
+HyperbolicModel = "peagen.plugins.llms:HyperbolicModel"
+LLM = "peagen.plugins.llms:LLM"
+LlamaCppModel = "peagen.plugins.llms:LlamaCppModel"
+MistralModel = "peagen.plugins.llms:MistralModel"
+OpenAIModel = "peagen.plugins.llms:OpenAIModel"
+OpenAIReasonModel = "peagen.plugins.llms:OpenAIReasonModel"
+PerplexityModel = "peagen.plugins.llms:PerplexityModel"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
