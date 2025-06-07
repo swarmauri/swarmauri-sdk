@@ -65,24 +65,3 @@ cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
 [evaluation.evaluators.ColemanLiauIndexEvaluator]
 cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
 target_grade_level = 12
-
-# ────────────────────────────── Task Queue  ───────────────────────────────
-[task_queues]
-provider   = "stub"          # in-memory
-
-[mutate]
-target_file = "examples/bad_sort.py"
-entry_fn    = "sort"
-
-[evolve]
-selector     = "epsilon"
-backend      = "docker"      # still allowed if Docker present
-entry_fn     = "sort"
-
-[evolve.stop]
-max_generations = 50
-
-[worker.defaults]
-caps        = "cpu,docker,llm"
-warm_pool   = 4
-concurrency = 4
