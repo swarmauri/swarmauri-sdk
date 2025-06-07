@@ -26,7 +26,9 @@ import peagen.defaults as builtins
 # 1. Low-level loader
 # ────────────────────────────────────────────────────────────────────────────
 def load_peagen_toml(
-    path: str | Path = ".peagen.toml"
+    path: str | Path = ".peagen.toml",
+    *,
+    required: bool = False,
 ) -> Dict[str, Any]:
     """
     Read *path* as TOML and return a dict.  If the file is missing and
@@ -44,7 +46,7 @@ def load_peagen_toml(
 
 
 # ─────────────────────────────── .peagen override ────────────────────────────
-def _effective_cfg(cfg_path: Optional[Path]) -> Dict[str, Any]:
+def _effective_cfg(cfg_path: Optional[Path], *, required: bool = False) -> Dict[str, Any]:
     """
     Load the TOML file *only if* the caller supplied an explicit
     `--config/-c` path.  
