@@ -17,7 +17,38 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 from copy import deepcopy
+import os
+import re
 import toml
+
+_ENV_PATTERN = re.compile(r'"?\${([^}]+)}"?')
+
+
+def _expand_env_in_text(text: str) -> str:
+    """Replace ${VAR} placeholders in raw text before TOML parsing."""
+    def repl(match: re.Match[str]) -> str:
+        var = match.group(1)
+        placeholder = match.group(0)
+        has_quotes = placeholder.startswith('"') and placeholder.endswith('"')
+        val = os.environ.get(var)
+        if val is None:
+            return f'"${{{var}}}"'
+        return f'"{val}"' if has_quotes else val
+
+    return _ENV_PATTERN.sub(repl, text)
+
+
+def _expand_env_vars(obj: Any) -> Any:
+    """Recursively replace ${VAR} placeholders with os.environ values."""
+    if isinstance(obj, dict):
+        return {k: _expand_env_vars(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_expand_env_vars(v) for v in obj]
+    if isinstance(obj, str):
+        match = _ENV_PATTERN.fullmatch(obj.strip())
+        if match:
+            return os.environ.get(match.group(1), obj)
+    return obj
 
 import peagen.defaults as builtins
 
@@ -26,7 +57,9 @@ import peagen.defaults as builtins
 # 1. Low-level loader
 # ────────────────────────────────────────────────────────────────────────────
 def load_peagen_toml(
-    path: str | Path = ".peagen.toml"
+    path: str | Path = ".peagen.toml",
+    *,
+    required: bool = False,
 ) -> Dict[str, Any]:
     """
     Read *path* as TOML and return a dict.  If the file is missing and
@@ -40,11 +73,13 @@ def load_peagen_toml(
         if required:
             raise FileNotFoundError(f"{p!s} is required on this host")
         return {}
-    return toml.loads(p.read_text())
+    text = _expand_env_in_text(p.read_text())
+    data = toml.loads(text)
+    return _expand_env_vars(data)
 
 
 # ─────────────────────────────── .peagen override ────────────────────────────
-def _effective_cfg(cfg_path: Optional[Path]) -> Dict[str, Any]:
+def _effective_cfg(cfg_path: Optional[Path], *, required: bool = True) -> Dict[str, Any]:
     """
     Load the TOML file *only if* the caller supplied an explicit
     `--config/-c` path.  

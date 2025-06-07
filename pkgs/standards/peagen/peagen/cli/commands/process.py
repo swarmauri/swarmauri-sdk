@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional
 import httpx
 import typer
 
+from peagen._utils.config_loader import _effective_cfg
 from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
@@ -92,6 +93,9 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     ),
 ):
     """Execute the processing pipeline synchronously on this machine."""
+    cfg_path: Optional[Path] = ctx.obj.get("config_path") if ctx.obj else None
+    cfg_override = _effective_cfg(cfg_path)
+
     args = _collect_args(
         projects_payload,
         project_name,
@@ -102,6 +106,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         output_base,
     )
     task = _build_task(args)
+    task.payload["cfg_override"] = cfg_override
 
     result = asyncio.run(process_handler(task))
     typer.echo(json.dumps(result, indent=2))
