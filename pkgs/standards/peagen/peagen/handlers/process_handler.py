@@ -43,8 +43,27 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     cfg = resolve_cfg(toml_text=cfg_override)
 
-    # Pass through any LLM / agent parameters verbatim
-    cfg["agent_env"] = args.get("agent_env", {})
+    # Merge CLI-provided agent_env with defaults from config
+    agent_env = args.get("agent_env", {})
+    llm_cfg = cfg.get("llm", {})
+    # Fill missing fields from llm defaults
+    agent_env.setdefault("provider", llm_cfg.get("default_provider"))
+    agent_env.setdefault("model_name", llm_cfg.get("default_model_name"))
+    agent_env.setdefault("temperature", llm_cfg.get("default_temperature"))
+    agent_env.setdefault("max_tokens", llm_cfg.get("default_max_tokens"))
+
+    provider = agent_env.get("provider")
+    if provider:
+        # Look for API key under [llm.<provider>] or [llm.api_keys]
+        api_key = agent_env.get("api_key")
+        if not api_key:
+            api_key = llm_cfg.get(provider, {}).get("API_KEY")
+            if not api_key:
+                api_key = llm_cfg.get("api_keys", {}).get(provider)
+        if api_key:
+            agent_env["api_key"] = api_key
+
+    cfg["agent_env"] = agent_env
 
     # ------------------------------------------------------------------ #
     # 2) Dispatch to core business logic
