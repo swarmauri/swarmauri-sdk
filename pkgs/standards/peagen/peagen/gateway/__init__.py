@@ -9,9 +9,15 @@ and restart `scripts.dev_gateway`.
 
 from __future__ import annotations
 
-import asyncio, os, uuid, json, logging, httpx, time
+import asyncio
+import logging
+import os
+import uuid
+import json
+import httpx
+import time
 from json.decoder import JSONDecodeError
-from typing import Any, Dict
+from typing import Optional
 
 from fastapi import FastAPI, Request, Response, Body
 from redis.asyncio import Redis

@@ -10,10 +10,9 @@ evaluate_workspace()  – orchestrates one evaluation run and returns a manifest
 from __future__ import annotations
 
 import asyncio
-import json
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from peagen.common import PathOrURI, temp_workspace
 from peagen._utils.config_loader import load_peagen_toml

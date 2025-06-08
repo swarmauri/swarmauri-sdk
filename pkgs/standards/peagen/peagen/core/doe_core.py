@@ -11,10 +11,9 @@ from __future__ import annotations
 
 import hashlib
 import itertools
-import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import jsonpatch
 import yaml
@@ -23,8 +22,6 @@ from urllib.parse import urlparse
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import registry
-from peagen.schemas import DOE_SPEC_V1_1_SCHEMA          # already vendored
-from peagen._utils._validation import _validate
 
 # ─────────────────────────────── util ──────────────────────────────────────
 _LLM_FALLBACK_KEYS = {

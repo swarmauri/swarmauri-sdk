@@ -160,7 +160,7 @@ def run_add(
                 "force": force,
             }
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         typer.echo("❌  Installation failed.")
         raise typer.Exit(code=1)
 

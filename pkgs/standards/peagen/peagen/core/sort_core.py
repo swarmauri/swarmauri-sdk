@@ -25,7 +25,6 @@ from jinja2 import Environment
 from peagen._utils._graph import _topological_sort, _transitive_dependency_sort
 from peagen._utils._jinja import _build_jinja_env
 from peagen._utils._template_sets import _locate_template_set
-from peagen._utils.config_loader import load_peagen_toml
 
 
 
@@ -65,7 +64,7 @@ def sort_single_project(params: Dict[str, Any]) -> Dict[str, Any]:
             (p for p in projects_list if p.get("NAME") == proj_name), None
         )
         if project_spec is None:
-            return {"error": f"Project '{proj_name}' not found in {payload_path!s}"}
+            return {"error": f"Project '{proj_name}' not found in {data_src!s}"}
 
         # --- run the actual sort --------------------------------------------------
         sorted_recs, next_idx = _run_sort(
@@ -266,7 +265,6 @@ def sort_file_records(
     -------
     (sorted_records, next_index_after_last_processed)
     """
-    total = len(file_records)
 
     # -- choose algorithm ----------------------------------------------------
     try:

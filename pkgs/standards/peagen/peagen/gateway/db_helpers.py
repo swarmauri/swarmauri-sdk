@@ -1,10 +1,11 @@
 # dqueue/db_helpers.py
-import uuid, json, logging, datetime as dt
+import uuid
+import logging
+import datetime as dt
 from typing import Dict, Any
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from peagen.models import Status, TaskRun
 
 log = logging.getLogger("upsert")

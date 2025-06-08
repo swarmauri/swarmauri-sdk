@@ -6,15 +6,13 @@ import asyncio
 import logging
 import os
 import socket
-import time
 import uuid
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import httpx
-from fastapi import Body, FastAPI, Request, Response
+from fastapi import Body, FastAPI, Request
 from json.decoder import JSONDecodeError
 
-from peagen.models import Status
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 
 # ──────────────────────────── utils  ────────────────────────────

@@ -15,11 +15,13 @@ Layers (lowest → highest priority)
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from copy import deepcopy
 import os
 import re
 import toml
+import peagen.defaults as builtins
+
 
 _ENV_PATTERN = re.compile(r'"?\${([^}]+)}"?')
 
@@ -50,7 +52,6 @@ def _expand_env_vars(obj: Any) -> Any:
             return os.environ.get(match.group(1), obj)
     return obj
 
-import peagen.defaults as builtins
 
 
 # ────────────────────────────────────────────────────────────────────────────

@@ -9,9 +9,10 @@ from colorama import Fore, Style
 
 from peagen.core._external import call_external_agent
 
+import logging
+
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
-import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
