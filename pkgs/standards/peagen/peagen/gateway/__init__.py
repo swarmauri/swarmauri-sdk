@@ -201,13 +201,36 @@ async def pool_join(name: str):
 
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
-async def task_submit(pool: str, payload: dict, taskId: Optional[str]):
+async def task_submit(
+    pool: str,
+    payload: dict,
+    taskId: Optional[str],
+    deps: list[str] | None = None,
+    edge_pred: str | None = None,
+    labels: list[str] | None = None,
+    config_toml: str | None = None,
+):
     await queue.sadd("pools", pool)  # track pool even if not created
 
     if taskId:
-        task = Task(id=taskId, pool=pool, payload=payload)
+        task = Task(
+            id=taskId,
+            pool=pool,
+            payload=payload,
+            deps=deps or [],
+            edge_pred=edge_pred,
+            labels=labels or [],
+            config_toml=config_toml,
+        )
     else:
-        task = Task(pool=pool, payload=payload)
+        task = Task(
+            pool=pool,
+            payload=payload,
+            deps=deps or [],
+            edge_pred=edge_pred,
+            labels=labels or [],
+            config_toml=config_toml,
+        )
 
     # 1) put on the queue for the scheduler
     await queue.rpush(f"queue:{pool}", task.model_dump_json())
