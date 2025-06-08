@@ -4,7 +4,7 @@ import importlib.metadata
 import importlib.util
 import inspect
 import json
-import logging
+from .logging_utils import get_logger
 import sys
 from importlib.metadata import EntryPoint, entry_points
 from typing import Any, Dict, Optional
@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # --------------------------------------------------------------------------------------
 # 1. GLOBAL CACHE FOR ENTRY POINTS
@@ -116,7 +116,9 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         if loading_strategy == "lazy":
             # Register plugin based on classification (first, second)
             _register_lazy_plugin_from_metadata(entry_point, metadata)
-            logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
+            logger.swarmauri(
+                f"Plugin '{entry_point.name}' registered for lazy loading."
+            )
             return True
         else:
             # Eager loading: load the plugin module
@@ -266,7 +268,7 @@ def _register_lazy_plugin_from_metadata(
         PluginCitizenshipRegistry.add_to_registry(
             citizenship, resource_path, module_path
         )
-        logger.info(
+        logger.swarmauri(
             f"Registered {citizenship}-class plugin '{type_name}' at '{resource_path}' [lazy]"
         )
 
@@ -368,7 +370,7 @@ def _process_class_plugin(
         # Step 2: Determine citizenship classification
         citizenship = determine_plugin_citizenship(entry_point)
         if citizenship:
-            logger.info(
+            logger.swarmauri(
                 f"Plugin '{entry_point.name}' is classified as {citizenship}-class."
             )
         else:
@@ -390,7 +392,7 @@ def _process_class_plugin(
                 logger.error(msg)
                 raise PluginValidationError(msg)
 
-            logger.info(
+            logger.swarmauri(
                 f"Validated class-based plugin '{plugin_class.__name__}' against interface '{interface_class.__name__}'"
             )
 
@@ -404,7 +406,7 @@ def _process_class_plugin(
         PluginCitizenshipRegistry.add_to_registry(
             citizenship, resource_path, module_path
         )
-        logger.info(
+        logger.swarmauri(
             f"Registered {citizenship}-class plugin '{plugin_class.__name__}' at '{resource_path}' in PluginCitizenshipRegistry"
         )
 
@@ -497,7 +499,7 @@ def _process_module_plugin(
                         PluginCitizenshipRegistry.add_to_registry(
                             citizenship, class_resource_path, plugin_module.__name__
                         )
-                        logger.info(
+                        logger.swarmauri(
                             f"Registered {citizenship}-class plugin '{attr_name}' at '{class_resource_path}'"
                         )
 
@@ -540,7 +542,7 @@ def _process_module_plugin(
                         PluginCitizenshipRegistry.add_to_registry(
                             "third", generic_resource_path, plugin_module.__name__
                         )
-                        logger.info(
+                        logger.swarmauri(
                             f"Registered third-class generic plugin '{attr_name}' at '{generic_resource_path}'"
                         )
                     else:
@@ -596,13 +598,10 @@ def _process_generic_plugin(
         PluginCitizenshipRegistry.add_to_registry(
             "third", resource_path, entry_point.value.split(":")[0]
         )
-        logger.info(
+        logger.swarmauri(
             f"Registered generic plugin '{entry_point.name}' under '{resource_path}' for lazy loading."
         )
 
-        # Register in TYPE_REGISTRY
-        # 🚧ComponentBase.TYPE_REGISTRY.setdefault("plugins", {})[entry_point.name] = entry_point.load()
-        # 🚧logger.info(f"Registered generic plugin '{entry_point.name}' in TYPE_REGISTRY under 'plugins'")
 
         return True
 

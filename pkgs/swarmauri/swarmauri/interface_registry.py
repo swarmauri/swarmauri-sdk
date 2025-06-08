@@ -8,7 +8,7 @@ Provides mechanisms to retrieve and manage interface classes based on resource n
 """
 
 from typing import Optional, Type, Dict, Any, List
-import logging
+from .logging_utils import get_logger
 
 # Example imports for interface definitions
 from swarmauri_base.agents.AgentBase import AgentBase
@@ -53,7 +53,7 @@ from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 # Configure logging
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class InterfaceRegistry:
@@ -155,11 +155,11 @@ class InterfaceRegistry:
 
         cls.INTERFACE_REGISTRY[resource_kind] = interface_class
         if interface_class:
-            logger.info(
+            logger.swarmauri(
                 f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."
             )
         else:
-            logger.info(
+            logger.swarmauri(
                 f"Removed interface association for resource kind '{resource_kind}'."
             )
 
