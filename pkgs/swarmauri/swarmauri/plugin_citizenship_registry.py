@@ -7,12 +7,12 @@ Defines the PluginCitizenshipRegistry class responsible for managing plugin regi
 first, second, and third-class citizens within the swarmauri framework.
 """
 
-import logging
+from .logging_utils import get_logger
 from importlib.metadata import EntryPoint
 from typing import Dict, Optional
 
 # Configure logger
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PluginCitizenshipRegistry:
@@ -349,7 +349,7 @@ class PluginCitizenshipRegistry:
 
         # Add to the specific registry
         registry[resource_path] = module_path
-        logger.info(
+        logger.swarmauri(
             f"Added to {class_type}-class registry: {resource_path} -> {module_path}"
         )
 
@@ -389,7 +389,9 @@ class PluginCitizenshipRegistry:
 
         # Remove from the specific registry
         del registry[resource_path]
-        logger.info(f"Removed from {class_type}-class registry: {resource_path}")
+        logger.swarmauri(
+            f"Removed from {class_type}-class registry: {resource_path}"
+        )
 
     @classmethod
     def list_registry(cls, class_type: Optional[str] = None) -> Dict[str, str]:
@@ -480,7 +482,7 @@ class PluginCitizenshipRegistry:
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
-        logger.info(
+        logger.swarmauri(
             f"Updated {class_type}-class registry entry: {resource_path} -> {new_module_path} (was: {old_module_path})"
         )
 
@@ -551,7 +553,9 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.FIRST_CLASS_REGISTRY[resource_path] = module_path
-        logger.info(f"Registered first-class plugin: {resource_path} -> {module_path}")
+        logger.swarmauri(
+            f"Registered first-class plugin: {resource_path} -> {module_path}"
+        )
 
     @classmethod
     def register_second_class_plugin(cls, entry_point: EntryPoint, module_path: str):
@@ -563,7 +567,9 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.SECOND_CLASS_REGISTRY[resource_path] = module_path
-        logger.info(f"Registered second-class plugin: {resource_path} -> {module_path}")
+        logger.swarmauri(
+            f"Registered second-class plugin: {resource_path} -> {module_path}"
+        )
 
     @classmethod
     def register_third_class_plugin(cls, entry_point: EntryPoint, module_path: str):
@@ -575,4 +581,6 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.THIRD_CLASS_REGISTRY[resource_path] = module_path
-        logger.info(f"Registered third-class plugin: {resource_path} -> {module_path}")
+        logger.swarmauri(
+            f"Registered third-class plugin: {resource_path} -> {module_path}"
+        )

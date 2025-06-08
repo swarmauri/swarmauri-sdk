@@ -163,3 +163,26 @@ def common_peagen_options(fn: Callable[..., Any]) -> Callable[..., Any]:
         return fn(*args, **kwargs)
 
     return _wrapper
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. global_cli_options decorator
+# ─────────────────────────────────────────────────────────────────────────────
+def global_cli_options(fn: Callable[..., Any]) -> Callable[..., Any]:
+    """Add global CLI options and stash them in ``ctx.obj``."""
+    import functools
+
+    @typer.option("--config", "-c", help="Path to .peagen.toml", default=".peagen.toml")
+    @typer.option("--verbose", "-v", count=True, help="Increase verbosity")
+    @typer.option("--dry-run", is_flag=True, help="Run without writing files")
+    @functools.wraps(fn)
+    def _wrapper(*args, config: str, verbose: int, dry_run: bool, **kwargs):
+        ctx: typer.Context = click.get_current_context()
+        if ctx.obj is None:
+            ctx.obj = types.SimpleNamespace()
+        ctx.obj.config = config
+        ctx.obj.verbose = verbose
+        ctx.obj.dry_run = dry_run
+        return fn(*args, **kwargs)
+
+    return _wrapper
+
