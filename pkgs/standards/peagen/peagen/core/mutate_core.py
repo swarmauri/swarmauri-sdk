@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from peagen._utils.config_loader import load_peagen_toml
-from peagen.plugin_manager import PluginManager
+from peagen.plugin_manager import PluginManager, resolve_plugin_spec
 from swarmauri_standard.programs.Program import Program
 
 PROMPT = """\
@@ -34,7 +34,8 @@ def mutate_workspace(
     mutator = pm.get("mutators")
     pool = pm.get("evaluator_pools")
     evaluator_ref = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
-    evaluator = pm.get("evaluators", evaluator_ref)
+    eval_cls = resolve_plugin_spec("evaluators", evaluator_ref)
+    evaluator = eval_cls(import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod)
     pool.add_evaluator(evaluator, name="performance")
 
     path = Path(workspace_uri) / target_file
