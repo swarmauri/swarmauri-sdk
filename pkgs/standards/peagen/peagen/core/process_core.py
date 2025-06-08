@@ -3,7 +3,7 @@
 import os
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime, timezone
 
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
@@ -18,25 +18,40 @@ from peagen._utils._search_template_sets import (
     build_global_template_search_paths,
     build_ptree_template_search_paths,
     build_file_template_search_paths,
-) 
+)
 
 
-def load_projects_payload(projects_payload_path: str) -> List[Dict[str, Any]]:
+def load_projects_payload(
+    projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Return the list of projects from a payload value.
+
+    ``projects_payload`` may be a filesystem path, YAML text, or an already
+    decoded Python mapping containing a top-level ``PROJECTS`` key.
     """
-    Read a YAML file containing a top-level 'PROJECTS' key.
-    Returns a list of project dicts.
-    """
-    path = Path(projects_payload_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Projects payload not found: {projects_payload_path}")
-    doc = yaml.safe_load(path.read_text(encoding="utf-8"))
-    projects = doc.get("PROJECTS")
+
+    if isinstance(projects_payload, (list, dict)):
+        doc = projects_payload
+    else:
+        try:
+            maybe_path = Path(projects_payload)
+            if maybe_path.is_file():
+                yaml_text = maybe_path.read_text(encoding="utf-8")
+            else:
+                yaml_text = projects_payload
+        except (OSError, TypeError):
+            yaml_text = projects_payload
+        doc = yaml.safe_load(yaml_text)
+
+    projects = doc.get("PROJECTS") if isinstance(doc, dict) else doc
     if not isinstance(projects, list):
-        raise ValueError(f"YAML {projects_payload_path} must contain a top-level 'PROJECTS' list")
+        raise ValueError("Payload must contain a top-level 'PROJECTS' list")
     return projects
 
 
-def locate_template_set(template_set: str, search_paths: List[Path], logger: Optional[Any] = None) -> Path:
+def locate_template_set(
+    template_set: str, search_paths: List[Path], logger: Optional[Any] = None
+) -> Path:
     """
     Given a template_set name and a list of base directories, return the first
     Path(base_dir)/template_set that exists as a directory. Otherwise raise.
@@ -51,7 +66,9 @@ def locate_template_set(template_set: str, search_paths: List[Path], logger: Opt
             print(f"Found template set '{template_set}' at: {candidate}")
             return candidate.resolve()
 
-    raise ValueError(f"Template set '{template_set}' not found in any of: {search_paths}")
+    raise ValueError(
+        f"Template set '{template_set}' not found in any of: {search_paths}"
+    )
 
 
 def _render_package_ptree(
@@ -105,12 +122,16 @@ def _render_package_ptree(
     ptree_path = Path(template_dir) / "ptree.yaml.j2"
     if not ptree_path.exists():
         if logger:
-            logger.warning(f"No ptree.yaml.j2 found in {template_dir} for package '{pkg_name}'. Skipping.")
+            logger.warning(
+                f"No ptree.yaml.j2 found in {template_dir} for package '{pkg_name}'. Skipping."
+            )
         return []
 
     j2.set_template(ptree_path)
     rendered = j2.fill({"PROJ": project_copy})
-    print(f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)")
+    print(
+        f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)"
+    )
 
     # 4) Parse YAML
     try:
@@ -124,7 +145,9 @@ def _render_package_ptree(
         pkg_file_records = parsed
     else:
         if logger:
-            logger.warning(f"Rendered ptree.yaml.j2 did not yield a list or 'FILES' for package '{pkg_name}'")
+            logger.warning(
+                f"Rendered ptree.yaml.j2 did not yield a list or 'FILES' for package '{pkg_name}'"
+            )
         return []
 
     # 5) Attach metadata to each record
@@ -166,10 +189,12 @@ def _handle_copy(
             storage_adapter.upload(key, fsrc)
         print(f" - Uploaded COPY to storage key: {key}")
 
-    manifest_writer.add({
-        "file": rendered_name,
-        "saved_at": datetime.now(timezone.utc).isoformat(),
-    })
+    manifest_writer.add(
+        {
+            "file": rendered_name,
+            "saved_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     print(f" - Manifest entry added for '{rendered_name}'")
 
 
@@ -195,7 +220,9 @@ def _handle_generate(
     print(prompt_tpl)
     if not prompt_tpl:
         if logger:
-            logger.error(f"No AGENT_PROMPT_TEMPLATE for GENERATE file '{rendered_name}'; skipping.")
+            logger.error(
+                f"No AGENT_PROMPT_TEMPLATE for GENERATE file '{rendered_name}'; skipping."
+            )
         return
 
     content = _render_generate_template(
@@ -219,10 +246,12 @@ def _handle_generate(
             storage_adapter.upload(key, fsrc)
         print(f" - Uploaded GENERATE to storage key: {key}")
 
-    manifest_writer.add({
-        "file": rendered_name,
-        "saved_at": datetime.now(timezone.utc).isoformat(),
-    })
+    manifest_writer.add(
+        {
+            "file": rendered_name,
+            "saved_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     print(f" - Manifest entry added for '{rendered_name}'")
 
 
@@ -291,7 +320,9 @@ def process_single_project(
 
     if not sorted_records:
         if logger:
-            logger.warning(f"No files to process for project '{project_name}'. Exiting.")
+            logger.warning(
+                f"No files to process for project '{project_name}'. Exiting."
+            )
         return sorted_records, next_idx
 
     # ─── STEP 4: Prepare manifest (workspace already exists) ───────────────
@@ -347,13 +378,12 @@ def process_single_project(
         for i, p in enumerate(file_paths):
             print(f"  [{i}] {p}")
 
-
         context = _create_context(rec, project, logger)
 
         process_type = rec.get("PROCESS_TYPE", "COPY").upper()
         print(process_type)
         if process_type == "COPY":
-            print('\n\n\n\ncfg:', cfg)
+            print("\n\n\n\ncfg:", cfg)
             _handle_copy(
                 rec,
                 context,
@@ -365,7 +395,7 @@ def process_single_project(
                 manifest_writer,
             )
         elif process_type == "GENERATE":
-            print('\n\n\n\ncfg:', cfg)
+            print("\n\n\n\ncfg:", cfg)
             _handle_generate(
                 rec,
                 context,
@@ -380,7 +410,9 @@ def process_single_project(
             )
         else:
             if logger:
-                logger.warning(f"Unknown PROCESS_TYPE '{process_type}' for file '{rendered_name}'; skipping.")
+                logger.warning(
+                    f"Unknown PROCESS_TYPE '{process_type}' for file '{rendered_name}'; skipping."
+                )
 
     # ─── STEP 6: Finalize manifest ────────────────────────────────────────
     # final_manifest_path = manifest_writer.finalise()
@@ -392,17 +424,17 @@ def process_single_project(
 
 
 def process_all_projects(
-    projects_payload_path: str,
+    projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
     cfg: Dict[str, Any],
     transitive: bool = False,
 ) -> Dict[str, List[Dict[str, Any]]]:
+    """Process every project described in ``projects_payload``.
+
+    ``projects_payload`` may be a path, YAML text or already parsed mapping.
+    For each project, :func:`process_single_project` is invoked and the results
+    are aggregated into a mapping ``{project_name: [sorted_records], ...}``.
     """
-    1) Load all projects from the payload YAML.
-    2) For each project, call process_single_project.
-    Returns a mapping: { project_name: [sorted_records], ... }.
-    Renders all files under <cwd>/<project_name>/ by default.
-    """
-    projects = load_projects_payload(projects_payload_path)
+    projects = load_projects_payload(projects_payload)
     results: Dict[str, List[Dict[str, Any]]] = {}
     next_idx = 0
 

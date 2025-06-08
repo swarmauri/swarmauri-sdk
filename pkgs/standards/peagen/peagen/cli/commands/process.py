@@ -17,6 +17,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 import typer
+import yaml
 
 from peagen._utils.config_loader import _effective_cfg
 from peagen.handlers.process_handler import process_handler
@@ -28,7 +29,7 @@ remote_process_app = typer.Typer(help="Render / generate project files.")
 
 # ────────────────────────── helpers ──────────────────────────────────────────
 def _collect_args(  # noqa: C901 – straight-through mapper
-    projects_payload: str,
+    projects_payload: Any,
     project_name: Optional[str],
     start_idx: int,
     start_file: Optional[str],
@@ -36,6 +37,12 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     agent_env: Optional[str],
     output_base: Optional[Path],
 ) -> Dict[str, Any]:
+    """Package CLI options into a payload dictionary.
+
+    ``projects_payload`` may be a path, YAML text or a pre-parsed mapping. The
+    remote submission command converts YAML to a Python object so workers don't
+    need to read local files.
+    """
     args: Dict[str, Any] = {
         "projects_payload": projects_payload,
         "project_name": project_name,
@@ -125,8 +132,17 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
+    # Parse the YAML locally and send the resulting dict to remote workers
+    try:
+        with open(projects_payload, "rt", encoding="utf-8") as fh:
+            yaml_text = fh.read()
+    except OSError:
+        yaml_text = projects_payload
+
+    yaml_data = yaml.safe_load(yaml_text)
+
     args = _collect_args(
-        projects_payload,
+        yaml_data,
         project_name,
         start_idx,
         start_file,
@@ -139,11 +155,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     rpc_req = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload
-        }
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
