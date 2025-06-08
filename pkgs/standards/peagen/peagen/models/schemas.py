@@ -26,6 +26,10 @@ class Task(BaseModel):
     payload: dict
     status: Status = Status.pending
     result: Optional[dict] = None
+    deps: List[str] = Field(default_factory=list)
+    edge_pred: str | None = None
+    labels: List[str] = Field(default_factory=list)
+    config_toml: str | None = None
 
     def get(self, key: str, default=None):
         """Dictionary-style access to Task fields."""
