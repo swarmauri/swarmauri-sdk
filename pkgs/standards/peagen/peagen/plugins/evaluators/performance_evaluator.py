@@ -36,12 +36,14 @@ class PerformanceEvaluator(EvaluatorBase):
             if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
             and p.default is p.empty
         ]
-        if len(req_pos) == 1:
+        if len(req_pos) >= 2:
             rng = random.Random(42)
             graph = {i: [(rng.randrange(20), rng.randint(1, 10))] for i in range(20)}
             args = (graph, 0)
+        elif len(req_pos) == 1:
+            args = (random.randint(0, 100),)
         else:
-            args = ([random.randint(0, 100) for _ in range(100)],)
+            args = ()
 
         tracemalloc.start()
         t0 = time.perf_counter()
@@ -49,7 +51,8 @@ class PerformanceEvaluator(EvaluatorBase):
             fn(*args)
         except Exception:
             tracemalloc.stop()
-            return 9e9, 9e9
+            # Use infinity to ensure failed executions never win
+            return float("inf"), float("inf")
         ms = (time.perf_counter() - t0) * 1_000
         peak = tracemalloc.get_traced_memory()[1] / 1024
         tracemalloc.stop()
