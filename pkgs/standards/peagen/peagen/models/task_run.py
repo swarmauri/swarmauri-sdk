@@ -18,6 +18,10 @@ class TaskRun(Base):
     task_type    = Column(String)
     status       = Column(Enum(Status))
     payload      = Column(JSON)
+    deps         = Column(JSON, default=list)
+    edge_pred    = Column(String, nullable=True)
+    labels       = Column(JSON, default=list)
+    config_toml  = Column(String, nullable=True)
     result       = Column(JSON, nullable=True)
     artifact_uri = Column(String, nullable=True)
     started_at   = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
@@ -33,6 +37,10 @@ class TaskRun(Base):
             task_type=task.payload.get("kind", "unknown"),
             status=task.status,
             payload=task.payload,
+            deps=task.deps,
+            edge_pred=task.edge_pred,
+            labels=task.labels,
+            config_toml=task.config_toml,
             result=task.result,
             artifact_uri=(
                 task.result.get("artifact_uri")
@@ -66,6 +74,10 @@ class TaskRun(Base):
             "task_type": self.task_type,
             "status": self.status,
             "payload": self.payload,
+            "deps": self.deps,
+            "edge_pred": self.edge_pred,
+            "labels": self.labels,
+            "config_toml": self.config_toml,
             "result": self.result,
             "artifact_uri": self.artifact_uri,
             "started_at": self.started_at,

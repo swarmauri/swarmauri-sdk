@@ -36,7 +36,11 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {"pool": task.pool, "payload": task.payload},
+        "params": {
+            "taskId": task.id,
+            "pool": task.pool,
+            "payload": task.payload,
+        },
     }
     resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
     resp.raise_for_status()
