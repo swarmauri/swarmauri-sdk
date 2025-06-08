@@ -21,6 +21,7 @@ from .commands import (
     local_fetch_app,
     local_init_app,
     local_process_app,
+    local_mutate_app,
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
@@ -29,6 +30,7 @@ from .commands import (
     remote_eval_app,
     remote_fetch_app,
     remote_process_app,
+    remote_mutate_app,
     remote_sort_app,
     remote_task_app,
     remote_template_sets_app,
@@ -144,6 +146,7 @@ local_app.add_typer(local_extras_app, name="extras-schemas")
 local_app.add_typer(local_fetch_app,)
 local_app.add_typer(local_init_app,          name="init")
 local_app.add_typer(local_process_app)
+local_app.add_typer(local_mutate_app)
 local_app.add_typer(local_sort_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
@@ -153,6 +156,7 @@ remote_app.add_typer(remote_doe_app)
 remote_app.add_typer(remote_eval_app)
 remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_process_app)
+remote_app.add_typer(remote_mutate_app)
 remote_app.add_typer(remote_sort_app)
 remote_app.add_typer(remote_task_app, name="task")
 remote_app.add_typer(remote_template_sets_app, name="template-set")
