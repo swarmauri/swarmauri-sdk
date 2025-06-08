@@ -36,6 +36,11 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     agent_env: Optional[str],
     output_base: Optional[Path],
 ) -> Dict[str, Any]:
+    """Package CLI options into a payload dictionary.
+
+    ``projects_payload`` can be either a path to a YAML file or the YAML text
+    itself (used by remote submission).
+    """
     args: Dict[str, Any] = {
         "projects_payload": projects_payload,
         "project_name": project_name,
@@ -125,8 +130,15 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
+    # Inline the YAML text so remote workers don't need local files
+    try:
+        with open(projects_payload, "rt", encoding="utf-8") as fh:
+            yaml_text = fh.read()
+    except OSError:
+        yaml_text = projects_payload
+
     args = _collect_args(
-        projects_payload,
+        yaml_text,
         project_name,
         start_idx,
         start_file,
@@ -139,11 +151,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     rpc_req = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload
-        }
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
