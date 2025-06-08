@@ -12,6 +12,7 @@ import traceback
 from typing import Any, Dict, Optional
 
 import logging
+from swarmauri_standard.loggers.Logger import Logger
 import colorama
 from colorama import Fore, Style
 from dotenv import load_dotenv
@@ -23,8 +24,8 @@ colorama.init(autoreset=True)
 
 # ANSI escape sequence for underlining (colorama doesn't support underline directly)
 UNDERLINE = "\033[4m"
-logger = logging.getLogger(__name__)
-logging.basicConfig(encoding='utf-8', level=logging.INFO)
+logger = Logger(name=__name__)
+logger.set_level(logging.INFO)
 
 load_dotenv()
 

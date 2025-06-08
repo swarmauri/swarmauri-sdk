@@ -13,7 +13,7 @@ returns a JSON-serialisable result mapping.
 
 from __future__ import annotations
 
-import logging
+from swarmauri_standard.loggers.Logger import Logger
 from typing import Any, Dict, List
 from peagen._utils.config_loader import resolve_cfg
 
@@ -24,7 +24,7 @@ from peagen.core.process_core import (
 )
 from peagen.models import Task, Status  # noqa: F401 – used by type hints
 
-logger = logging.getLogger(__name__)
+logger = Logger(name=__name__)
 
 
 async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:

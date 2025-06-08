@@ -8,7 +8,9 @@ import tempfile
 from contextlib import contextmanager
 import shutil
 
-import logging
+from swarmauri_standard.loggers.Logger import Logger
+
+logger = Logger(name=__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -27,7 +29,7 @@ def temp_workspace(prefix: str = "peagen_"):
             # Already removed – fine.
             pass
         except OSError as exc:
-            logging.warning(f"Workspace cleanup failed: {exc}")
+            logger.warning(f"Workspace cleanup failed: {exc}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
