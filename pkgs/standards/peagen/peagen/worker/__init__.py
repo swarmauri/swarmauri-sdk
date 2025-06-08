@@ -6,6 +6,7 @@ from peagen.handlers.fetch_handler import fetch_handler
 from peagen.handlers.eval_handler import eval_handler
 from peagen.handlers.process_handler import process_handler
 from peagen.handlers.sort_handler import sort_handler
+from peagen.handlers.mutate_handler import mutate_handler
 
 # ----------------------------------------------------------------------------
 # Subclass WorkerBase (optional) so you can override or extend methods if needed.
@@ -22,6 +23,7 @@ class PeagenWorker(WorkerBase):
         self.register_handler("fetch", fetch_handler)
         self.register_handler("process", process_handler)
         self.register_handler("sort", sort_handler)
+        self.register_handler("mutate", mutate_handler)
         # In the future, you might also do:
         #   from peagen.handlers.render_handler import render_handler
         #   self.register_handler("render", render_handler)
