@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pydantic import SecretStr
+
 import io
 import os
 import shutil
@@ -9,14 +11,13 @@ import tempfile
 from pathlib import Path
 from typing import BinaryIO, Optional
 
-from github import Github, UnknownObjectException
-from pydantic import SecretStr
-
 from peagen._utils.config_loader import load_peagen_toml
+from github import Github, UnknownObjectException
 
 
 class GithubReleaseStorageAdapter:
-    """Store and retrieve binary assets using GitHub Releases."""
+    """Storage adapter that uses GitHub Releases to store and retrieve assets."""
+
 
     def __init__(
         self,
@@ -43,6 +44,8 @@ class GithubReleaseStorageAdapter:
             prerelease=prerelease,
         )
 
+    # ----------------------------------------------------------------- helpers
+
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         if self._prefix:
@@ -51,7 +54,7 @@ class GithubReleaseStorageAdapter:
 
     @property
     def root_uri(self) -> str:
-        """Return the ghrel:// URI prefix for this release."""
+        """Return the base ghrel:// URI for this adapter."""
         base = f"ghrel://{self._repo.full_name}/{self._tag}"
         uri = f"{base}/{self._prefix.rstrip('/')}" if self._prefix else base
         return uri.rstrip("/") + "/"
@@ -75,23 +78,30 @@ class GithubReleaseStorageAdapter:
                 prerelease=prerelease,
             )
 
+    # ------------------------------------------------------------------- public
     def upload(self, key: str, data: BinaryIO) -> None:
-        """Upload *data* as an asset named *key*."""
+        """Upload ``data`` under ``key`` as a release asset."""
         key = self._full_key(key)
+
         data.seek(0)
         content = data.read()
+
+
         for asset in self._release.get_assets():
             if asset.name == key:
                 asset.delete_asset()
                 break
+
         with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(content)
             tmp.flush()
             self._release.upload_asset(path=tmp.name, name=key, label=key)
 
     def download(self, key: str) -> BinaryIO:
-        """Return the asset *key* as a BytesIO buffer."""
+        """Return the bytes of asset ``key`` as a BytesIO object."""
         key = self._full_key(key)
+
+
         for asset in self._release.get_assets():
             if asset.name == key:
                 _, raw = self._client._Github__requester.requestBytes(
@@ -99,11 +109,12 @@ class GithubReleaseStorageAdapter:
                     asset.url,
                     headers={"Accept": "application/octet-stream"},
                 )
-                buffer = io.BytesIO(raw)
-                buffer.seek(0)
-                return buffer
+                buf = io.BytesIO(raw)
+                buf.seek(0)
+                return buf
         raise FileNotFoundError(f"Asset '{key}' not found in release '{self._tag}'")
 
+    # --------------------------------------------------------------- convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
         """Upload all files under *src* using an optional *prefix*."""
         base = Path(src)
@@ -135,16 +146,32 @@ class GithubReleaseStorageAdapter:
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
+    # --------------------------------------------------------------------- class
     @classmethod
     def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":
-        """Create an adapter from a ghrel:// URI."""
         from urllib.parse import urlparse
 
         p = urlparse(uri)
         org = p.netloc
         repo, tag, *rest = p.path.lstrip("/").split("/", 2)
         prefix = rest[0] if rest else ""
+
         cfg = load_peagen_toml()
-        gh_cfg = cfg.get("storage", {}).get("adapters", {}).get("gh_release", {})
+        gh_cfg = (
+            cfg.get("storage", {})
+            .get("adapters", {})
+            .get("gh_release", {})
+        )
+
         token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
-        return cls(token=token, org=org, repo=repo, tag=tag, prefix=prefix)
+
+        return cls(
+            token=token,
+            org=org,
+            repo=repo,
+            tag=tag,
+            prefix=prefix,
+        )
+
+__all__ = ["GithubReleaseStorageAdapter"]
+
