@@ -9,7 +9,8 @@ Peagen writes artifacts to a pluggable storage backend and can publish events du
 - `FileStorageAdapter` – stores artifacts on the local filesystem.
 - `MinioStorageAdapter` – targets S3 compatible object stores.
 - `GithubStorageAdapter` – saves files into a GitHub repository.
-- `GithubReleaseStorageAdapter` – uploads artifacts as release assets.
+- `GithubReleaseStorageAdapter` – uploads artifacts as release assets and
+  exposes a `root_uri` like `ghrel://org/repo/tag/` for retrieval.
 
 Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
 tables. For example:
