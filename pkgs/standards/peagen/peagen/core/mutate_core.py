@@ -54,7 +54,11 @@ def mutate_workspace(
             logging.warning("mutate error: %s", e)
             child_src = best_src
         program.content[target_file] = child_src
-        score, _ = evaluator.evaluate(program)
+        try:
+            score, _ = evaluator.evaluate(program)
+        except Exception as e:
+            logging.warning("evaluation error: %s", e)
+            score = float("inf")
         if score < best_score:
             best_score = score
             best_src = child_src
