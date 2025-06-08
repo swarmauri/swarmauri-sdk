@@ -72,6 +72,29 @@
       "additionalProperties": false
     },
 
+    "task_queue": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string" },
+        "url": { "type": "string" },
+        "idle_ms": { "type": "integer" },
+        "max_retry": { "type": "integer" }
+      },
+      "required": [ "provider" ],
+      "additionalProperties": false
+    },
+
+    "result_backend": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string" },
+        "root": { "type": "string" },
+        "compress": { "type": "boolean" }
+      },
+      "required": [ "provider" ],
+      "additionalProperties": false
+    },
+
     "plugins": {
       "type": "object",
       "properties": {
@@ -127,6 +150,6 @@
     }
   },
 
-  "required": [ "schemaVersion", "workspace", "llm", "storage", "publishers" ],
+  "required": [ "schemaVersion", "workspace", "llm", "storage", "publishers", "task_queue", "result_backend" ],
   "additionalProperties": false
 }

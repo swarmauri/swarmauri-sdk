@@ -13,8 +13,11 @@ GROUPS = {
     "template_sets": ("peagen.template_sets", None),
     "storage_adapters": ("peagen.storage_adapters", object),
     "publishers": ("peagen.publishers", object),
+    "task_queues": ("peagen.task_queues", object),
+    "task_handlers": ("peagen.task_handlers", object),
     "indexers": ("peagen.indexers", object),
     "result_backends": ("peagen.result_backends", object),
+    "parent_selectors": ("peagen.parent_selectors", object),
     "evaluators": ("peagen.evaluators", object),
     "evaluator_pools": ("peagen.evaluator_pools", object),
 }
