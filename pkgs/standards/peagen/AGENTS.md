@@ -58,7 +58,7 @@ Workers connect to the gateway via JSON‑RPC and advertise task handlers. Set t
 * `DQ_GATEWAY` – URL of the gateway RPC endpoint (e.g. `http://localhost:8000/rpc`)
 * `DQ_POOL` – name of the worker pool (defaults to `default`)
 * `DQ_HOST` – IP address the worker should advertise (set to `127.0.0.1` if no network)
-* `PORT` – port the worker will listen on (default `8000`)
+* `PORT` – port the worker will listen on (default `8001`)
 
 Launch with Uvicorn:
 
