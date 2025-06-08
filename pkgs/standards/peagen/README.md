@@ -382,7 +382,7 @@ adapters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.plugins.storage_adapters.minio_storage_adapter import MinioStorageAdapter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")

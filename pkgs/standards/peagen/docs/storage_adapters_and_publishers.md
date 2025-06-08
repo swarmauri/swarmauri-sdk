@@ -42,7 +42,7 @@ To use a different solution, subclass one of these classes or implement the same
 
 ```python
 from peagen.core import Peagen
-from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 
 pea = Peagen(
     projects_payload_path="projects.yaml",

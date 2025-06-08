@@ -1,6 +1,1 @@
-class GithubStorageAdapter:
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
-
-    def upload(self, path: str, dest: str) -> str:
-        return f"github://{dest}"
+from peagen.plugins.storage_adapters.github_storage_adapter import *  # noqa: F401,F403
