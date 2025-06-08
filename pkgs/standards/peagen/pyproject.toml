@@ -138,9 +138,9 @@ github    = "peagen.storage_adapters.github_storage_adapter:GithubStorageAdapter
 gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 
 [project.entry-points."peagen.publishers"]
-redis   = "peagen.publishers.redis_publisher:RedisPublisher"
-webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
-rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
+redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
+webhook = "peagen.plugins.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
 [project.entry-points."peagen.result_backends"]
 local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"

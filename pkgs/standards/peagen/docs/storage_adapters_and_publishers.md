@@ -58,14 +58,14 @@ The CLI can emit JSON events such as `process.started` and `process.done`. The r
 
 
 ```python
-from peagen.publishers.redis_publisher import RedisPublisher
+from peagen.plugins.publishers.redis_publisher import RedisPublisher
 
 bus = RedisPublisher("redis://localhost:6379/0")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
 ```python
-from peagen.publishers.webhook_publisher import WebhookPublisher
+from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 bus = WebhookPublisher("https://example.com/peagen")
 bus.publish("peagen.events", {"type": "process.started"})
@@ -74,7 +74,7 @@ bus.publish("peagen.events", {"type": "process.started"})
 You can also publish events to RabbitMQ using `RabbitMQPublisher`:
 
 ```python
-from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
 bus = RabbitMQPublisher(host="localhost", port=5672, exchange="", routing_key="peagen.events")
 bus.publish("peagen.events", {"type": "process.started"})
