@@ -44,8 +44,8 @@ default_publisher = "redis"
 
 [publishers.adapters.redis]
 host     = "${REDIS_HOST}"
-port     = ${REDIS_PORT}
-db       = ${REDIS_DB}
+port     = "${REDIS_PORT}"
+db       = "${REDIS_DB}"
 password = "${REDIS_PASSWORD}"                   # leave blank if no auth
 
 [publishers.adapters.webhook]
