@@ -1,11 +1,9 @@
 import pytest
 import toml
-import os
-from pathlib import Path
 from itertools import product
 
 # Replace these imports with the actual locations in your project
-from peagen._utils.config_loader import resolve_cfg, load_peagen_toml
+from peagen._utils.config_loader import resolve_cfg
 import peagen.defaults as defaults
 
 def generate_test_parameters():
