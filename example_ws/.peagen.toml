@@ -1,0 +1,26 @@
+schemaVersion = "1.0.0"
+
+[mutators]
+default_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+
+[evaluation]
+pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+max_workers = 1
+strict = true
+async = false
+
+[evaluation.evaluators."peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"]
+import_path = "func"
+entry_fn = "square"
+
+[queues]
+default_queue = "in_memory"
+
+[queues.adapters.in_memory]
+maxsize = 10
+
+[result_backends]
+default_backend = "local_fs"
+
+[result_backends.adapters.local_fs]
+root_dir = "./task_runs"

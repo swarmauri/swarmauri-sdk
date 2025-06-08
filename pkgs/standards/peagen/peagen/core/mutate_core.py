@@ -33,7 +33,8 @@ def mutate_workspace(
     pm = PluginManager(cfg)
     mutator = pm.get("mutators")
     pool = pm.get("evaluator_pools")
-    evaluator = pm.get("evaluators", "performance")
+    evaluator_ref = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+    evaluator = pm.get("evaluators", evaluator_ref)
     pool.add_evaluator(evaluator, name="performance")
 
     path = Path(workspace_uri) / target_file
