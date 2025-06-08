@@ -1,7 +1,10 @@
 schemaVersion = "1.0.0"
 
 [mutators]
-default_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+
+[mutators.plugins.default_mutator]
+agent_env.provider = "groq"
 
 [evaluation]
 pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
