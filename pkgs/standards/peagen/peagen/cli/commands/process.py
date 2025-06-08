@@ -18,9 +18,7 @@ from typing import Any, Dict, Optional
 import httpx
 import typer
 import yaml
-import toml
-
-from peagen._utils.config_loader import _effective_cfg
+from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
@@ -162,7 +160,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if inline:
         cfg_override = json.loads(inline)
     if file_:
-        cfg_override.update(toml.loads(Path(file_).read_text()))
+        cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
     rpc_req = {
