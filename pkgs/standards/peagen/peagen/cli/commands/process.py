@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional
 import httpx
 import typer
 import yaml
+import toml
 
 from peagen._utils.config_loader import _effective_cfg
 from peagen.handlers.process_handler import process_handler
@@ -151,6 +152,16 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         output_base,
     )
     task = _build_task(args)
+
+    # ─────────────────────── cfg override  ──────────────────────────────
+    inline = ctx.obj.get("task_override_inline")  # JSON string or None
+    file_ = ctx.obj.get("task_override_file")  # Path or None
+    cfg_override: Dict[str, Any] = {}
+    if inline:
+        cfg_override = json.loads(inline)
+    if file_:
+        cfg_override.update(toml.loads(Path(file_).read_text()))
+    task.payload["cfg_override"] = cfg_override
 
     rpc_req = {
         "jsonrpc": "2.0",
