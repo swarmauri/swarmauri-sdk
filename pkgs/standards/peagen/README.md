@@ -141,6 +141,8 @@ output_dir = "./peagen_artifacts"
 
 With these values in place you can omit `--provider`, `--model-name`, and other
 flags when running the CLI.
+If `--provider` is omitted and no `default_provider` is configured (or the
+`PROVIDER` environment variable is unset), Peagen will raise an error.
 
 ### Project YAML Schema Overview
 
