@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 import peagen.template_sets as _pt
 from peagen.plugins import registry
+from peagen.plugin_manager import resolve_plugin_spec
 
 
 def _namespace_dirs() -> List[Path]:
@@ -30,12 +31,13 @@ def discover_template_sets() -> Dict[str, List[Path]]:
         except PermissionError:
             continue
     for name, plugin in registry.get("template_sets", {}).items():
-        mod = plugin if isinstance(plugin, ModuleType) else import_module(plugin.__module__)
-        if hasattr(mod, "__path__"):
-            for root in mod.__path__:
+        mod = resolve_plugin_spec("template_sets", name)
+        module = mod if isinstance(mod, ModuleType) else import_module(mod.__module__)
+        if hasattr(module, "__path__"):
+            for root in module.__path__:
                 sets.setdefault(name, []).append(Path(root))
-        elif hasattr(mod, "__file__"):
-            sets.setdefault(name, []).append(Path(mod.__file__).parent)
+        elif hasattr(module, "__file__"):
+            sets.setdefault(name, []).append(Path(module.__file__).parent)
     return sets
 
 

@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime, timezone
 
+from swarmauri_standard.loggers.Logger import Logger
+
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from peagen._utils._context import _create_context
@@ -19,6 +21,8 @@ from peagen._utils._search_template_sets import (
     build_ptree_template_search_paths,
     build_file_template_search_paths,
 )
+
+logger = Logger(name=__name__)
 
 
 def load_projects_payload(
@@ -56,14 +60,17 @@ def locate_template_set(
     Given a template_set name and a list of base directories, return the first
     Path(base_dir)/template_set that exists as a directory. Otherwise raise.
     """
-    print(f"Locating template set '{template_set}' in search paths:")
-    for idx, p in enumerate(search_paths):
-        print(f"  [{idx}] {p}")
+    log = logger or globals().get("logger")
+    if log:
+        log.info(f"Locating template set '{template_set}' in search paths:")
+        for idx, p in enumerate(search_paths):
+            log.debug(f"  [{idx}] {p}")
 
     for base in search_paths:
         candidate = Path(base) / template_set
         if candidate.is_dir():
-            print(f"Found template set '{template_set}' at: {candidate}")
+            if log:
+                log.info(f"Found template set '{template_set}' at: {candidate}")
             return candidate.resolve()
 
     raise ValueError(
@@ -86,8 +93,10 @@ def _render_package_ptree(
     5) Attach "TEMPLATE_SET": template_dir and "PTREE_SEARCH_PATHS": ptree_paths to each record.
     6) Return the list of records (possibly empty).
     """
+    log = logger or globals().get("logger")
     pkg_name = pkg.get("NAME", "<no-package-name>")
-    print(f"--- Rendering ptree for package '{pkg_name}' ---")
+    if log:
+        log.info(f"--- Rendering ptree for package '{pkg_name}' ---")
 
     tmpl_name = (
         pkg.get("TEMPLATE_SET_OVERRIDE")
@@ -95,7 +104,8 @@ def _render_package_ptree(
         or project.get("TEMPLATE_SET")
         or "default"
     )
-    print(f"Using template set name: '{tmpl_name}' for package '{pkg_name}'")
+    if log:
+        log.info(f"Using template set name: '{tmpl_name}' for package '{pkg_name}'")
 
     # 1) Locate the package’s template directory using the global search paths
     template_dir = locate_template_set(tmpl_name, global_search_paths, logger)
@@ -108,9 +118,10 @@ def _render_package_ptree(
         workspace_root=workspace_root,
         source_packages=project.get("SOURCE_PACKAGES", []),
     )
-    print(f"Built ptree search paths for '{pkg_name}':")
-    for idx, p in enumerate(ptree_paths):
-        print(f"  [{idx}] {p}")
+    if log:
+        log.debug(f"Built ptree search paths for '{pkg_name}':")
+        for idx, p in enumerate(ptree_paths):
+            log.debug(f"  [{idx}] {p}")
 
     # 3) Render ptree.yaml.j2 with correct context
     project_copy = dict(project)  # shallow copy of the project dict
@@ -129,9 +140,10 @@ def _render_package_ptree(
 
     j2.set_template(ptree_path)
     rendered = j2.fill({"PROJ": project_copy})
-    print(
-        f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)"
-    )
+    if log:
+        log.debug(
+            f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)"
+        )
 
     # 4) Parse YAML
     try:
@@ -155,7 +167,8 @@ def _render_package_ptree(
         rec["TEMPLATE_SET"] = str(template_dir)
         rec["PTREE_SEARCH_PATHS"] = [str(p) for p in ptree_paths]
 
-    print(f" - Found {len(pkg_file_records)} file-record(s) for package '{pkg_name}'")
+    if log:
+        log.info(f" - Found {len(pkg_file_records)} file-record(s) for package '{pkg_name}'")
 
     return pkg_file_records
 
@@ -173,22 +186,26 @@ def _handle_copy(
     """
     Render a COPY record and save/upload it, then add to the manifest.
     """
+    log = logger or globals().get("logger")
     rendered_name = rec.get("RENDERED_FILE_NAME")
-    print(f"Processing COPY file '{rendered_name}'")
+    if log:
+        log.info(f"Processing COPY file '{rendered_name}'")
 
     content = _render_copy_template(rec, context, j2, logger)
     out_path = workspace_root / rendered_name
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content or "", encoding="utf-8")
 
-    print(f" - Saved COPY to {out_path}")
+    if log:
+        log.info(f" - Saved COPY to {out_path}")
 
     artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            artifact_uri = storage_adapter.upload(key, fsrc)
-        print(f" - Uploaded COPY to storage key: {key}")
+            storage_adapter.upload(key, fsrc)
+        if log:
+            log.info(f" - Uploaded COPY to storage key: {key}")
 
     manifest_writer.add(
         {
@@ -197,7 +214,8 @@ def _handle_copy(
             "saved_at": datetime.now(timezone.utc).isoformat(),
         }
     )
-    print(f" - Manifest entry added for '{rendered_name}'")
+    if log:
+        log.debug(f" - Manifest entry added for '{rendered_name}'")
 
 
 def _handle_generate(
@@ -215,11 +233,14 @@ def _handle_generate(
     """
     Render a GENERATE record by calling the external agent, save/upload it, then add to the manifest.
     """
+    log = logger or globals().get("logger")
     rendered_name = rec.get("RENDERED_FILE_NAME")
-    print(f"Processing GENERATE file '{rendered_name}'")
+    if log:
+        log.info(f"Processing GENERATE file '{rendered_name}'")
 
     prompt_tpl = rec.get("AGENT_PROMPT_TEMPLATE")
-    print(prompt_tpl)
+    if log:
+        log.debug(prompt_tpl)
     if not prompt_tpl:
         if logger:
             logger.error(
@@ -235,19 +256,22 @@ def _handle_generate(
         agent_env,
         cfg,
     )
-    print(content)
+    if log:
+        log.debug(content)
     out_path = workspace_root / rendered_name
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content or "", encoding="utf-8")
 
-    print(f" - Saved GENERATE to {out_path}")
+    if log:
+        log.info(f" - Saved GENERATE to {out_path}")
 
     artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            artifact_uri = storage_adapter.upload(key, fsrc)
-        print(f" - Uploaded GENERATE to storage key: {key}")
+            storage_adapter.upload(key, fsrc)
+        if log:
+            log.info(f" - Uploaded GENERATE to storage key: {key}")
 
     manifest_writer.add(
         {
@@ -256,7 +280,8 @@ def _handle_generate(
             "saved_at": datetime.now(timezone.utc).isoformat(),
         }
     )
-    print(f" - Manifest entry added for '{rendered_name}'")
+    if log:
+        log.debug(f" - Manifest entry added for '{rendered_name}'")
 
 
 def process_single_project(
@@ -278,10 +303,11 @@ def process_single_project(
        d) Populate cfg["manifest_path"] with the manifest's final path.
     Returns (sorted_records, next_idx).
     """
-    logger = cfg.get("logger")
+    logger = cfg.get("logger") or globals().get("logger")
     project_name = project.get("NAME", "<no-project-name>")
 
-    print(f"========== Starting process for project '{project_name}' ==========")
+    if logger:
+        logger.info(f"========== Starting process for project '{project_name}' ==========")
 
     # ─── STEP 1: Build global search paths ─────────────────────────────────
     base_dir = Path(os.getcwd())
@@ -296,9 +322,10 @@ def process_single_project(
         source_packages=source_pkgs,
         base_dir=base_dir,
     )
-    print("Global Jinja search paths:")
-    for idx, p in enumerate(global_search_paths):
-        print(f"  [{idx}] {p}")
+    if logger:
+        logger.debug("Global Jinja search paths:")
+        for idx, p in enumerate(global_search_paths):
+            logger.debug(f"  [{idx}] {p}")
 
     # ─── STEP 2: Render each package’s ptree.yaml.j2 → file records ─────
     all_file_records: List[Dict[str, Any]] = []
@@ -311,7 +338,8 @@ def process_single_project(
             logger=logger,
         )
         all_file_records.extend(pkg_records)
-    print(f"Total file-records collected: {len(all_file_records)}")
+    if logger:
+        logger.info(f"Total file-records collected: {len(all_file_records)}")
 
     # ─── STEP 3: Topological sort ─────────────────────────────────────────
     sorted_records, next_idx = sort_file_records(
@@ -320,7 +348,8 @@ def process_single_project(
         start_file=start_file,
         transitive=transitive,
     )
-    print(f"Topologically sorted, {len(sorted_records)} files to process.")
+    if logger:
+        logger.info(f"Topologically sorted, {len(sorted_records)} files to process.")
 
     if not sorted_records:
         if logger:
@@ -354,8 +383,9 @@ def process_single_project(
         tmp_root=manifest_dir,
         meta=manifest_meta,
     )
-    print(f"Processing files under: {workspace_root}")
-    print("Beginning file-by-file rendering:")
+    if logger:
+        logger.info(f"Processing files under: {workspace_root}")
+        logger.info("Beginning file-by-file rendering:")
 
     # ─── STEP 5: Render & save each sorted file ───────────────────────────
     for idx, rec in enumerate(sorted_records, start=start_idx):
@@ -367,9 +397,10 @@ def process_single_project(
 
         record_dir = Path(rec.get("TEMPLATE_SET", "")).resolve()
         ptree_paths = [Path(p) for p in rec.get("PTREE_SEARCH_PATHS", [])]
-        print("Pt ree search paths for this file:")
-        for i, p in enumerate(ptree_paths):
-            print(f"  [{i}] {p}")
+        if logger:
+            logger.debug("Pt ree search paths for this file:")
+            for i, p in enumerate(ptree_paths):
+                logger.debug(f"  [{i}] {p}")
 
         file_paths = build_file_template_search_paths(
             record_template_dir=record_dir,
@@ -378,16 +409,19 @@ def process_single_project(
         )
         j2.templates_dir = file_paths
 
-        print("Final Jinja search paths for file:")
-        for i, p in enumerate(file_paths):
-            print(f"  [{i}] {p}")
+        if logger:
+            logger.debug("Final Jinja search paths for file:")
+            for i, p in enumerate(file_paths):
+                logger.debug(f"  [{i}] {p}")
 
         context = _create_context(rec, project, logger)
 
         process_type = rec.get("PROCESS_TYPE", "COPY").upper()
-        print(process_type)
+        if logger:
+            logger.debug(process_type)
         if process_type == "COPY":
-            print("\n\n\n\ncfg:", cfg)
+            if logger:
+                logger.debug("cfg: %s", cfg)
             _handle_copy(
                 rec,
                 context,
@@ -399,7 +433,8 @@ def process_single_project(
                 manifest_writer,
             )
         elif process_type == "GENERATE":
-            print("\n\n\n\ncfg:", cfg)
+            if logger:
+                logger.debug("cfg: %s", cfg)
             _handle_generate(
                 rec,
                 context,
@@ -420,9 +455,12 @@ def process_single_project(
 
     # ─── STEP 6: Finalize manifest ────────────────────────────────────────
     final_manifest_uri = manifest_writer.finalise()
-    cfg["manifest_path"] = str(final_manifest_uri)
-    print(f"Manifest written to: {final_manifest_uri}")
-    print(f"========== Completed project '{project_name}' ==========\n")
+
+    # final_manifest_path = manifest_writer.finalise()
+    # cfg["manifest_path"] = str(final_manifest_path)
+    # print(f"Manifest written to: {final_manifest_path}")
+    if logger:
+        logger.info(f"========== Completed project '{project_name}' ==========\n")
 
     return sorted_records, next_idx
 

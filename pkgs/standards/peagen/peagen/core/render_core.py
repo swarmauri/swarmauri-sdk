@@ -1,6 +1,5 @@
 # peagen/core/render_core.py
 
-import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -10,11 +9,12 @@ from colorama import Fore, Style
 from peagen.core._external import call_external_agent
 
 import logging
+from swarmauri_standard.loggers.Logger import Logger
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
-logger = logging.getLogger(__name__)
-logging.basicConfig(encoding='utf-8', level=logging.INFO)
+logger = Logger(name=__name__)
+logger.set_level(logging.INFO)
 
 def _render_copy_template(
     file_record: Dict[str, Any],
@@ -79,7 +79,8 @@ def _render_generate_template(
             resp = call_external_agent(rendered_prompt, agent_env, cfg, logger)
         else:
             resp = call_external_agent(rendered_prompt, agent_env, logger=logger)
-        print('\n\nresp', resp)
+        if logger:
+            logger.debug("resp %s", resp)
         return resp
     except Exception as e:
         if logger:

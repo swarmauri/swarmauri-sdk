@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -129,6 +131,10 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
     agent_env: Optional[str] = typer.Option(None),
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
+    watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
+    interval: float = typer.Option(
+        2.0, "--interval", "-i", help="Seconds between polls"
+    ),
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
     # Parse the YAML locally and send the resulting dict to remote workers
@@ -184,3 +190,20 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
+    if watch:
+        def _rpc_call() -> dict:
+            req = {
+                "jsonrpc": "2.0",
+                "id": str(uuid.uuid4()),
+                "method": "Task.get",
+                "params": {"taskId": task.id},
+            }
+            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            return res["result"]
+
+        while True:
+            task_reply = _rpc_call()
+            typer.echo(json.dumps(task_reply, indent=2))
+            if task_reply["status"] in {"finished", "failed"}:
+                break
+            time.sleep(interval)

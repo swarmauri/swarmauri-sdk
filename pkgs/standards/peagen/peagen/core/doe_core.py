@@ -21,7 +21,7 @@ from jinja2 import Template
 from urllib.parse import urlparse
 
 from peagen._utils.config_loader import load_peagen_toml
-from peagen.plugins import registry
+from peagen.plugin_manager import resolve_plugin_spec
 
 # ─────────────────────────────── util ──────────────────────────────────────
 _LLM_FALLBACK_KEYS = {
@@ -183,7 +183,7 @@ def _publish_event(notify_uri: str, output_path: Path, count: int, cfg_path: Opt
     bus_cfg = toml_cfg.get("publishers", {}).get("adapters", {}).get(pub_name, {})
 
     channel = nt.path.lstrip("/") or bus_cfg.get("channel", "peagen.events")
-    PubCls = registry["publishers"][pub_name]  # may raise KeyError
+    PubCls = resolve_plugin_spec("publishers", pub_name)  # may raise KeyError
     bus = PubCls(**bus_cfg)
     bus.publish(
         channel,

@@ -1,6 +1,6 @@
 # dqueue/db_helpers.py
 import uuid
-import logging
+from swarmauri_standard.loggers.Logger import Logger
 import datetime as dt
 from typing import Dict, Any
 
@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from peagen.models import Status, TaskRun
 
-log = logging.getLogger("upsert")
+log = Logger(name="upsert")
 
 def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
