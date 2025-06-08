@@ -1,7 +1,10 @@
 import httpx
 import yaml
 from typing import Dict, List, Optional, Any, Literal
-from pydantic import Field, PrivateAttr
+from pydantic import Field, PrivateAttr, TypeAdapter
+from importlib import import_module
+
+from swarmauri_base import SubclassUnion
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -67,6 +70,13 @@ class HTTPLoadedTool(ToolBase):
         for entry in components_data:
             if not isinstance(entry, dict):
                 raise ValueError("Each component entry must be a mapping")
-            comp_yaml = yaml.dump(entry)
-            loaded_components.append(ComponentBase.model_validate_yaml(comp_yaml))
+
+            comp_type = entry.get("type")
+            if isinstance(comp_type, str):
+                try:
+                    import_module(f"swarmauri_standard.tools.{comp_type}")
+                except Exception:  # pragma: no cover - optional import failure
+                    pass
+            adapter = TypeAdapter(SubclassUnion[ToolBase])
+            loaded_components.append(adapter.validate_python(entry))
         return loaded_components
