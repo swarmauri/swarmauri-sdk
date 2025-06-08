@@ -1,8 +1,6 @@
-import os
 import yaml
 import pytest
 from pathlib import Path
-from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from peagen.core.process_core import _render_package_ptree, process_single_project
 

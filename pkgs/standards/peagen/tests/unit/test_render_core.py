@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from peagen.core.render_core import _render_generate_template
 
