@@ -1,11 +1,16 @@
-# peagen/storage_adapters/__init__.py
-"""Factory helpers for storage adapters."""
+"""Factory helpers and built-in storage adapters."""
 
 from urllib.parse import urlparse
+
+from .file_storage_adapter import FileStorageAdapter
+from .minio_storage_adapter import MinioStorageAdapter
+from .github_storage_adapter import GithubStorageAdapter
+from .gh_release_storage_adapter import GithubReleaseStorageAdapter
 from peagen.plugins import registry
 
 
 def make_adapter_for_uri(uri: str):
+    """Return a storage adapter instance based on *uri* scheme."""
     scheme = urlparse(uri).scheme or "file"  # 'file' if path like /home/...
     try:
         adapter_cls = registry["storage_adapters"][scheme]
@@ -14,3 +19,11 @@ def make_adapter_for_uri(uri: str):
     if not hasattr(adapter_cls, "from_uri"):
         raise TypeError(f"{adapter_cls.__name__} lacks required from_uri()")
     return adapter_cls.from_uri(uri)
+
+__all__ = [
+    "FileStorageAdapter",
+    "MinioStorageAdapter",
+    "GithubStorageAdapter",
+    "GithubReleaseStorageAdapter",
+    "make_adapter_for_uri",
+]

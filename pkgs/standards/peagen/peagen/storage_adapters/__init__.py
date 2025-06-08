@@ -1,11 +1,15 @@
-from .minio_storage_adapter import MinioStorageAdapter
-from .file_storage_adapter import FileStorageAdapter
-from .github_storage_adapter import GithubStorageAdapter
-from .gh_release_storage_adapter import GithubReleaseStorageAdapter
+from peagen.plugins.storage_adapters import (
+    FileStorageAdapter,
+    MinioStorageAdapter,
+    GithubStorageAdapter,
+    GithubReleaseStorageAdapter,
+    make_adapter_for_uri,
+)
 
 __all__ = [
-    "MinioStorageAdapter",
     "FileStorageAdapter",
+    "MinioStorageAdapter",
     "GithubStorageAdapter",
     "GithubReleaseStorageAdapter",
+    "make_adapter_for_uri",
 ]
