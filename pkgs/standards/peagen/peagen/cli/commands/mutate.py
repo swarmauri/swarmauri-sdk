@@ -24,7 +24,6 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        status=Status.pending,
         payload={"action": "mutate", "args": args},
     )
 
