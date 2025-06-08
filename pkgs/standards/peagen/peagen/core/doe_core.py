@@ -21,7 +21,6 @@ from jinja2 import Template
 from urllib.parse import urlparse
 
 from peagen._utils.config_loader import load_peagen_toml
-from peagen.plugins import registry
 from peagen.plugin_manager import resolve_plugin_spec
 
 # ─────────────────────────────── util ──────────────────────────────────────

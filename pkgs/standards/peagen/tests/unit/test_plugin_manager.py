@@ -1,4 +1,3 @@
-import types
 from peagen.plugin_manager import resolve_plugin_spec
 from peagen.plugins import registry
 

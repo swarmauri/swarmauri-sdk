@@ -3,6 +3,8 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any, Dict, Optional
 
+from .plugins import discover_and_register_plugins, registry
+
 
 def resolve_plugin_spec(group: str, ref: str) -> Any:
     """Return the object referenced by ``ref`` within ``group``."""
@@ -16,9 +18,6 @@ def resolve_plugin_spec(group: str, ref: str) -> Any:
     mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
     module = import_module(mod)
     return getattr(module, cls)
-
-from .plugins import discover_and_register_plugins, registry
-
 
 class PluginManager:
     """Centralised plugin loader.
