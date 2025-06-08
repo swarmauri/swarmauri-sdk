@@ -82,7 +82,6 @@ def submit(
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "id": task.id,
         "method": "Task.submit",
         "params": {
             "pool": task.pool,
