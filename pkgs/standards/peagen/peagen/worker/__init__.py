@@ -1,9 +1,5 @@
 # peagen/worker.py
 
-import asyncio
-from fastapi import Request
-from typing import Any, Dict
-
 from peagen.worker.base import WorkerBase
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.fetch_handler import fetch_handler

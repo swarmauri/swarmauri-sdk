@@ -100,7 +100,7 @@ def submit_validate(
     try:
         import httpx
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        resp = httpx.post(ctx.obj.get("gateway_url"), json=envelope, timeout=10.0)
         resp.raise_for_status()
         data = resp.json()
         if data.get("error"):
@@ -108,5 +108,7 @@ def submit_validate(
             raise typer.Exit(1)
         typer.echo(f"Submitted validation → taskId={task.id}")
     except Exception as exc:
-        typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
+        typer.echo(
+            f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
+        )
         raise typer.Exit(1)

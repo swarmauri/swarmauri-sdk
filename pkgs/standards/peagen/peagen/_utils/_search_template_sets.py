@@ -1,11 +1,9 @@
 # peagen/_utils/_search_template_sets.py
 
-import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from importlib import metadata
 
-import peagen.plugins  # ensures registry is populated
+import peagen.plugins  # ensures registry is populated  # noqa: F401
 from peagen.plugins import registry 
 
 

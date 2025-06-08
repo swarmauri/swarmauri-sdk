@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from peagen.core.extras_core import generate_schemas
 from peagen.models import Task

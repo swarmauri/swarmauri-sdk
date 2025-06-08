@@ -2,7 +2,7 @@ from pathlib import Path
 from importlib import import_module
 from types import ModuleType
 
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader
 import peagen.plugins
 
 def _build_jinja_env(cfg: dict, *, workspace_root: str | Path | None = None) -> Environment:

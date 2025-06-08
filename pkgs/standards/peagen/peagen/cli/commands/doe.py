@@ -4,7 +4,10 @@ CLI wrapper for Design-of-Experiments expansion.
 """
 from __future__ import annotations
 
-import asyncio, json, uuid, httpx
+import asyncio
+import json
+import uuid
+import httpx
 from pathlib import Path
 from typing import Optional
 
