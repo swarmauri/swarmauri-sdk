@@ -114,7 +114,17 @@ async def _save_task(task: Task) -> None:
     key = _task_key(task.id)
     blob = task.model_dump_json()
 
-    await queue.hset(key, mapping={"blob": blob, "status": task.status.value})
+    await queue.hset(
+        key,
+        mapping={
+            "blob": blob,
+            "status": task.status.value,
+            "in_degree": len(task.deps),
+        },
+    )
+    if task.deps:
+        for dep in task.deps:
+            await queue.sadd(f"dep:{dep}", task.id)
     await queue.expire(key, TASK_TTL)
 
 
@@ -201,26 +211,41 @@ async def pool_join(name: str):
 
 # ─────────────────────────── Task RPCs ──────────────────────────
 @rpc.method("Task.submit")
-async def task_submit(pool: str, payload: dict, taskId: Optional[str]):
-    await queue.sadd("pools", pool)  # track pool even if not created
+async def task_submit(
+    tasks: list[dict] | None = None,
+    batch_meta: dict | None = None,
+    pool: str | None = None,
+    payload: dict | None = None,
+    taskId: Optional[str] = None,
+):
+    """Submit a task or batch of tasks."""
 
-    if taskId:
-        task = Task(id=taskId, pool=pool, payload=payload)
+    if tasks is None:
+        assert pool and payload is not None
+        await queue.sadd("pools", pool)
+        task = Task(id=taskId or str(uuid.uuid4()), pool=pool, payload=payload)
+        tasks = [task.model_dump()]
     else:
-        task = Task(pool=pool, payload=payload)
+        tasks = [Task.model_validate(t).model_dump() for t in tasks]
+        if tasks:
+            await queue.sadd("pools", tasks[0]["pool"])
 
-    # 1) put on the queue for the scheduler
-    await queue.rpush(f"queue:{pool}", task.model_dump_json())
+    batch_label = f"batch:{int(time.time())}"
+    dag_label = f"dag:{uuid.uuid4()}"
+    for tdata in tasks:
+        if batch_label not in tdata.get("labels", []):
+            tdata.setdefault("labels", []).append(batch_label)
+        if dag_label not in tdata.get("labels", []):
+            tdata["labels"].append(dag_label)
 
-    # 2) save hash + TTL
-    await _save_task(task)
+        task = Task.model_validate(tdata)
+        await queue.rpush(f"queue:{task.pool}", task.model_dump_json())
+        await _save_task(task)
+        await _persist(task)
+        await _publish_event(task)
 
-    # 3) persist to Postgres & emit CloudEvent (helpers you already have)
-    await _persist(task)
-    await _publish_event(task)
-
-    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
-    return {"taskId": task.id}
+    log.info("queued %d tasks", len(tasks))
+    return {"taskIds": [t["id"] for t in tasks]}
 
 
 @rpc.method("Task.cancel")
@@ -232,6 +257,62 @@ async def task_cancel(taskId: str):
     await _save_task(t)
     log.info("task %s cancelled", taskId)
     return {}
+
+
+CONTROL_QUEUE = "control_queue"
+
+
+async def _emit_control(action: str, **params: object) -> None:
+    cmd = {"action": action, **params}
+    await queue.rpush(CONTROL_QUEUE, json.dumps(cmd))
+
+
+@rpc.method("Control.pause")
+async def control_pause(label: str) -> dict:
+    await _emit_control("pause", label=label)
+    return {"ok": True}
+
+
+@rpc.method("Control.resume")
+async def control_resume(label: str) -> dict:
+    await _emit_control("resume", label=label)
+    return {"ok": True}
+
+
+@rpc.method("Control.cancel")
+async def control_cancel(label: str) -> dict:
+    await _emit_control("cancel", label=label)
+    return {"ok": True}
+
+
+@rpc.method("Control.retry")
+async def control_retry(label: str) -> dict:
+    await _emit_control("retry", label=label)
+    return {"ok": True}
+
+
+@rpc.method("Control.retry_from")
+async def control_retry_from(label: str, task_id: str) -> dict:
+    await _emit_control("retry_from", label=label, task_id=task_id)
+    return {"ok": True}
+
+
+@rpc.method("Control.set_budget")
+async def control_set_budget(label: str, budget: float) -> dict:
+    await _emit_control("set_budget", label=label, budget=budget)
+    return {"ok": True}
+
+
+@rpc.method("Control.set_rate")
+async def control_set_rate(label: str, rate: int) -> dict:
+    await _emit_control("set_rate", label=label, rate=rate)
+    return {"ok": True}
+
+
+@rpc.method("Control.set_deadline")
+async def control_set_deadline(label: str, deadline: str) -> dict:
+    await _emit_control("set_deadline", label=label, deadline=deadline)
+    return {"ok": True}
 
 
 @rpc.method("Task.get")
@@ -295,6 +376,13 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _persist(t)
     await _publish_event(t)
 
+    if status == "success":
+        children = await queue.smembers(f"dep:{taskId}")
+        for cid in children:
+            deg = int(await queue.hget(_task_key(cid), "in_degree") or 0)
+            deg -= 1
+            await queue.hset(_task_key(cid), mapping={"in_degree": deg})
+
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
 
@@ -304,6 +392,12 @@ async def scheduler():
     log.info("scheduler started")
     async with httpx.AsyncClient(timeout=10, http2=True) as client:
         while True:
+            # consume control commands
+            cmd_raw = await queue.lpop(CONTROL_QUEUE)
+            if cmd_raw:
+                log.info("control: %s", cmd_raw)
+                # commands mutate task state; full impl omitted
+
             # iterate over pools with queued work
             pools = await queue.smembers("pools")
             if not pools:
@@ -322,6 +416,11 @@ async def scheduler():
             queue_key, task_raw = res  # guaranteed 2-tuple here
             pool = queue_key.split(":", 1)[1]  # "queue:demo" → "demo"
             task = Task.model_validate_json(task_raw)
+
+            degree = int(await queue.hget(_task_key(task.id), "in_degree") or 0)
+            if degree > 0:
+                await queue.rpush(queue_key, task_raw)
+                continue
 
             # pick first live worker for that pool
             worker_list = await _live_workers_by_pool(pool)

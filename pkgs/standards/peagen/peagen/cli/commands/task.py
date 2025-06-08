@@ -42,3 +42,20 @@ def get(  # noqa: D401
         if not watch or reply["status"] in {"finished", "failed"}:
             break
         time.sleep(interval)
+
+
+@remote_task_app.command("control")
+def control(
+    ctx: typer.Context,
+    action: str = typer.Argument(..., help="control action"),
+    label: str = typer.Argument(..., help="target label"),
+):
+    """Send a control-plane command."""
+    req = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": f"Control.{action}",
+        "params": {"label": label},
+    }
+    resp = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    typer.echo(json.dumps(resp, indent=2))

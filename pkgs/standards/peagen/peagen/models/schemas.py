@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 import uuid
 
@@ -24,6 +24,11 @@ class Task(BaseModel):
     id: str = Field(default=str(uuid.uuid4()))
     pool: str
     payload: dict
+    deps: list[str] = Field(default_factory=list)
+    edge_pred: str | None = None
+    labels: list[str] = Field(default_factory=list)
+    interface_args: dict[str, Any] = Field(default_factory=dict)
+    config_toml: str = ""
     status: Status = Status.pending
     result: Optional[dict] = None
 

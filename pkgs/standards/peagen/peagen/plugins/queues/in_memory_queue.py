@@ -41,6 +41,12 @@ class InMemoryQueue:
         async with self._cond:
             self._cond.notify_all()
 
+    async def lpop(self, key: str) -> str | None:
+        lst = self.lists.get(key)
+        if lst:
+            return lst.pop(0)
+        return None
+
     async def lrange(self, key: str, start: int, end: int) -> list[str]:
         lst = self.lists.get(key, [])
         if end == -1:

@@ -409,6 +409,15 @@ bus.publish("peagen.events", {"type": "process.started"})
 pea.process_all_projects()
 ```
 
+### Control-Plane Commands
+
+Use the CLI to pause or resume labeled task groups:
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc task control pause batch:123
+peagen remote --gateway-url http://localhost:8000/rpc task control resume batch:123
+```
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.

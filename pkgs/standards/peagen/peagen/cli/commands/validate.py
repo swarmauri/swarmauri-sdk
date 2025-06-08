@@ -14,6 +14,7 @@ remote_validate_app = typer.Typer()
 
 # ────────────────────────────── local validate ────────────────────────────────────
 
+
 @local_validate_app.command("validate")
 def run_validate(
     ctx: typer.Context,
@@ -84,16 +85,11 @@ def submit_validate(
         payload={"action": "validate", "args": args},
     )
 
-    # 2) Build Work.start envelope using Task fields
+    # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": "Work.start",
-        "params": {
-            "id": task.id,
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "method": "Task.submit",
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
     # 3) POST to gateway
@@ -106,7 +102,9 @@ def submit_validate(
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted validation → taskId={task.id}")
+        task_ids = data.get("result", {}).get("taskIds", [])
+        task_id = task_ids[0] if task_ids else task.id
+        typer.echo(f"Submitted validation → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

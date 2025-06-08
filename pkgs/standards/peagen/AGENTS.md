@@ -122,6 +122,7 @@ Inspect tasks:
 
 ```bash
 peagen remote --gateway-url http://localhost:8000/rpc task get <task-id>
+peagen remote --gateway-url http://localhost:8000/rpc task control pause batch:123
 ```
 
 ---

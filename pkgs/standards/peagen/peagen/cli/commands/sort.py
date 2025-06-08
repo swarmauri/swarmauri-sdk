@@ -127,11 +127,7 @@ def submit_sort(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload
-        },
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
     # 3) POST to gateway
@@ -144,7 +140,9 @@ def submit_sort(
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={data['result']['taskId']}")
+        task_ids = data.get("result", {}).get("taskIds", [])
+        task_id = task_ids[0] if task_ids else task.id
+        typer.echo(f"Submitted sort → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
