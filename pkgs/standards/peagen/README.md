@@ -374,7 +374,7 @@ renders files concurrently while still honoring dependency order. Leaving the
 flag unset or `0` processes files sequentially.
 
 Artifact locations are resolved via the `--artifacts` flag. Targets may be a
-local directory (`dir://./peagen_artifacts`) using `FileStorageAdapter` or an
+local directory (`file:///./peagen_artifacts`) using `FileStorageAdapter` or an
 S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
 adapters and publishers can be supplied programmatically:
 

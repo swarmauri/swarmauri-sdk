@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pydantic import SecretStr
+
 import io
 import os
 import shutil
@@ -16,6 +17,7 @@ from github import Github, UnknownObjectException
 
 class GithubReleaseStorageAdapter:
     """Storage adapter that uses GitHub Releases to store and retrieve assets."""
+
 
     def __init__(
         self,
@@ -43,6 +45,7 @@ class GithubReleaseStorageAdapter:
         )
 
     # ----------------------------------------------------------------- helpers
+
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         if self._prefix:
@@ -83,6 +86,7 @@ class GithubReleaseStorageAdapter:
         data.seek(0)
         content = data.read()
 
+
         for asset in self._release.get_assets():
             if asset.name == key:
                 asset.delete_asset()
@@ -96,6 +100,7 @@ class GithubReleaseStorageAdapter:
     def download(self, key: str) -> BinaryIO:
         """Return the bytes of asset ``key`` as a BytesIO object."""
         key = self._full_key(key)
+
 
         for asset in self._release.get_assets():
             if asset.name == key:
@@ -111,6 +116,7 @@ class GithubReleaseStorageAdapter:
 
     # --------------------------------------------------------------- convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
+        """Upload all files under *src* using an optional *prefix*."""
         base = Path(src)
         for path in base.rglob("*"):
             if path.is_file():
@@ -120,6 +126,7 @@ class GithubReleaseStorageAdapter:
                     self.upload(key, fh)
 
     def iter_prefix(self, prefix: str):
+        """Yield asset keys under *prefix*."""
         full = self._full_key(prefix)
         for asset in self._release.get_assets():
             name = asset.name
@@ -130,6 +137,7 @@ class GithubReleaseStorageAdapter:
                 yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+        """Download all assets under *prefix* into *dest_dir*."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
@@ -166,3 +174,4 @@ class GithubReleaseStorageAdapter:
         )
 
 __all__ = ["GithubReleaseStorageAdapter"]
+
