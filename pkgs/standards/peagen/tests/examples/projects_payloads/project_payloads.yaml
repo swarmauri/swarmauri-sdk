@@ -5,7 +5,7 @@ PROJECTS:
     ROOT: pkgs/community
     PACKAGES:
     - NAME: component_base
-      TEMPLATE_SET_OVERRIDE: componentv1
+      TEMPLATE_SET_OVERRIDE: swarmauri_standard_standalone
       EXTRAS: {}
       MODULES:
       - NAME: BaseComponent
