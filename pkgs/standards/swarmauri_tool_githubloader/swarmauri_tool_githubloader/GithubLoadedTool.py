@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import List, Optional, Literal, Any
 import requests
+import yaml
 from pydantic import Field, PrivateAttr
 
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import DynamicBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
@@ -32,7 +34,11 @@ class GithubLoadedTool(ToolBase):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        self._load_component()
+        if self.use_cache:
+            try:
+                self._load_component()
+            except Exception:
+                self._component = None
 
     def _ref(self) -> str:
         return self.commit_ref or self.branch
@@ -49,7 +55,20 @@ class GithubLoadedTool(ToolBase):
             return self._component
 
         yaml_text = self._fetch_yaml()
-        component = ComponentBase.model_validate_yaml(yaml_text)
+        try:
+            parsed = yaml.safe_load(yaml_text)
+            component_type = parsed.get("type")
+            if component_type:
+                registry = DynamicBase._registry.get("ToolBase", {})
+                component_cls = registry.get("subtypes", {}).get(component_type)
+                if component_cls:
+                    component = component_cls.model_validate_yaml(yaml_text)
+                else:
+                    component = ComponentBase.model_validate_yaml(yaml_text)
+            else:
+                component = ComponentBase.model_validate_yaml(yaml_text)
+        except Exception:
+            component = ComponentBase.model_validate_yaml(yaml_text)
         self._component = component
 
         if getattr(component, "name", None):
