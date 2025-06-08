@@ -59,7 +59,7 @@ class WorkerBase:
           • DQ_POOL          (default: "default")
           • DQ_GATEWAY       (default: "http://localhost:8000/rpc")
           • DQ_WORKER_ID     (default: random 8‐char prefix)
-          • DQ_HOST          (default: "127.0.0.1")
+          • DQ_HOST          (default: local IP)
           • PORT             (default: 8000)
           • DQ_LOG_LEVEL     (default: "INFO")
         """
@@ -70,7 +70,7 @@ class WorkerBase:
         self.PORT = port or int(os.getenv("PORT", "8000"))
         env_host = host or os.getenv("DQ_HOST", "")
         if not env_host:
-            env_host = "127.0.0.1"
+            env_host = get_local_ip()
         self.HOST = env_host
 
         # ─── LOGGING ─────────────────────────────────────────────────
