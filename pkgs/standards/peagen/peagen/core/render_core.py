@@ -47,7 +47,8 @@ def _render_copy_template(
                 logger.error(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}': {e}"
                 )
-        sys.exit(1)
+        # Propagate the exception so callers can handle failure gracefully
+        raise
 
 
 def _render_generate_template(
@@ -93,4 +94,5 @@ def _render_generate_template(
                 logger.error(
                     f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}': {e}"
                 )
-        sys.exit(1)
+        # Propagate the exception so callers can handle failure gracefully
+        raise
