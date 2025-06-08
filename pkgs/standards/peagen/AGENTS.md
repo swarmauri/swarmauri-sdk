@@ -11,7 +11,21 @@ This document explains how to launch the Peagen gateway and worker services and 
 * `uvicorn` available on the PATH
 * Docker (optional) for containerized deployments
 
-Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services. Example contents:
+Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
+
+For quick local testing you can rely on the in-memory queue and filesystem result backend:
+
+```toml
+[queues]
+default_queue = "in_memory"
+
+[result_backends]
+default_backend = "local_fs"
+[result_backends.adapters.local_fs]
+root_dir = "./task_runs"
+```
+
+Production deployments typically use Redis and Postgres instead:
 
 ```toml
 [queues]
