@@ -50,10 +50,7 @@ class ManifestWriter:
 
     # ─────────────────────────────────────────────────────── add ──
     def add(self, entry: Dict[str, Any]) -> None:
-        """
-        Thread-safe append *entry* to *.partial.jsonl* and upload it so
-        external tools can tail the manifest in near-realtime.
-        """
+        """Append *entry* to the partial manifest and re-upload it."""
         with self._lock:
             with self.path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry, separators=(",", ":")) + "\n")
@@ -80,7 +77,7 @@ class ManifestWriter:
 
         # build `generated` list
         with self.path.open("r", encoding="utf-8") as src:
-            generated_files = [json.loads(line)["file"] for line in src]
+            generated_files = [json.loads(line) for line in src]
 
         manifest: Dict[str, Any] = dict(self.meta)
         manifest["generated"] = generated_files

@@ -55,7 +55,7 @@ def call_external_agent(
         from swarmauri.agents.QAAgent import QAAgent
         from swarmauri.messages.SystemMessage import SystemMessage
 
-        from peagen.plugin_manager import PluginManager
+        from peagen.plugins import PluginManager
         from peagen._utils.config_loader import resolve_cfg
         from ._llm import GenericLLM
     except Exception as e:

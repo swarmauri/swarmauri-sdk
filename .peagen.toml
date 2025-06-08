@@ -51,6 +51,20 @@ password = "${REDIS_PASSWORD}"                   # leave blank if no auth
 [publishers.adapters.webhook]
 url = "${WEBHOOK_URL}"
 
+# ─────────────────────────────── Queues ───────────────────────────────
+[queues]
+default_queue = "redis"
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
+# ───────────────────────────── Result Backends ─────────────────────────
+[result_backends]
+default_backend = "postgres"
+
+[result_backends.adapters.postgres]
+dsn = "${PG_DSN}"
+
 
 # ────────────────────────────── Evaluation ───────────────────────────────
 [evaluation]

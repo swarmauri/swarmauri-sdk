@@ -183,15 +183,17 @@ def _handle_copy(
 
     print(f" - Saved COPY to {out_path}")
 
+    artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            storage_adapter.upload(key, fsrc)
+            artifact_uri = storage_adapter.upload(key, fsrc)
         print(f" - Uploaded COPY to storage key: {key}")
 
     manifest_writer.add(
         {
             "file": rendered_name,
+            "artifact_uri": artifact_uri,
             "saved_at": datetime.now(timezone.utc).isoformat(),
         }
     )
@@ -240,15 +242,17 @@ def _handle_generate(
 
     print(f" - Saved GENERATE to {out_path}")
 
+    artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            storage_adapter.upload(key, fsrc)
+            artifact_uri = storage_adapter.upload(key, fsrc)
         print(f" - Uploaded GENERATE to storage key: {key}")
 
     manifest_writer.add(
         {
             "file": rendered_name,
+            "artifact_uri": artifact_uri,
             "saved_at": datetime.now(timezone.utc).isoformat(),
         }
     )
@@ -415,9 +419,9 @@ def process_single_project(
                 )
 
     # ─── STEP 6: Finalize manifest ────────────────────────────────────────
-    # final_manifest_path = manifest_writer.finalise()
-    # cfg["manifest_path"] = str(final_manifest_path)
-    # print(f"Manifest written to: {final_manifest_path}")
+    final_manifest_uri = manifest_writer.finalise()
+    cfg["manifest_path"] = str(final_manifest_uri)
+    print(f"Manifest written to: {final_manifest_uri}")
     print(f"========== Completed project '{project_name}' ==========\n")
 
     return sorted_records, next_idx

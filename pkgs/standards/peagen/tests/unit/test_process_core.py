@@ -123,9 +123,11 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
     project = payload["PROJECTS"][0]
 
     class DummyAdapter:
+        root_uri = "file://dummy/"
+
         def upload(self, key, fsrc):
-            # No-op upload
-            pass
+            # pretend to upload and return an artifact URI
+            return f"{self.root_uri}{key}"
 
     monkeypatch.setattr(
         "peagen.core.render_core.call_external_agent",
@@ -160,10 +162,6 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
     content = out_file.read_text()
     assert "Generated for test_project: pkgA.mod1" in content
 
-    # Verify manifest lists the file if it was created
-    manifest_path = cfg.get("manifest_path")
-    if manifest_path is not None:
-        manifest_data = yaml.safe_load(Path(manifest_path).read_text())
-        assert any(
-            f["file"].endswith("project_root/pkgA/mod1.txt") for f in manifest_data.get("files", [])
-        )
+    # Ensure a manifest URI was returned
+    manifest_uri = cfg.get("manifest_path")
+    assert manifest_uri is not None

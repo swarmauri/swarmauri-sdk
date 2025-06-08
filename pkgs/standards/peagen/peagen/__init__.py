@@ -13,6 +13,6 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 
-from .plugin_manager import PluginManager
+from .plugins import PluginManager
 
 __all__ = ["__package_name__", "__version__", "PluginManager"]
