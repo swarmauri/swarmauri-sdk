@@ -24,9 +24,8 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="mutate",
         status=Status.pending,
-        payload={"args": args},
+        payload={"action": "mutate", "args": args},
     )
 
 
@@ -85,7 +84,11 @@ def submit(
         "jsonrpc": "2.0",
         "id": task.id,
         "method": "Task.submit",
-        "params": {"task": task.model_dump()},
+        "params": {
+            "pool": task.pool,
+            "payload": task.payload,
+            "taskId": task.id,
+        },
     }
 
     with httpx.Client(timeout=30.0) as client:
