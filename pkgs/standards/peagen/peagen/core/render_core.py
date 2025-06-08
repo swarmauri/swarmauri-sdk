@@ -1,6 +1,5 @@
 # peagen/core/render_core.py
 
-import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 

@@ -13,9 +13,10 @@ import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from importlib import import_module
+
 from peagen.common import PathOrURI, temp_workspace
 from peagen._utils.config_loader import load_peagen_toml
-from peagen.plugins import registry
 from peagen.plugin_manager import resolve_plugin_spec
 from peagen.plugins.evaluator_pools.default import DefaultEvaluatorPool
 from swarmauri_standard.programs.Program import Program
