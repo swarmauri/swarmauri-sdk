@@ -139,7 +139,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     rpc_req = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": task.model_dump(),
+        "params": {
+            "taskId": task.id,
+            "pool": task.pool,
+            "payload": task.payload
+        }
     }
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
