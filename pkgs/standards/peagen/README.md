@@ -414,3 +414,38 @@ pea.process_all_projects()
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
 * **Adding New Commands:** Define a new subcommand in `cli.py`, wire it into the parser, instantiate `Peagen`, and call core methods.
 * **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/templates/`, update docs/README, and open a PR tagging maintainers.
+
+### Task & Result Dataclasses
+
+Peagen exposes the canonical queue messages via `peagen.task_model.Task` and
+`peagen.task_model.Result` (TaskResult). Draft-07 JSON Schemas for these
+structures live in `peagen/schemas/` for validation and integration with other
+tools.
+
+## Task Handlers
+
+Peagen ships with several built-in handlers registered under the
+`peagen.task_handlers` entry-point group:
+
+| Handler | KIND | Provides | Responsibilities |
+| ------- | ---- | -------- | ---------------- |
+| `RenderHandler` | `RENDER` | `{"cpu"}` | Render Jinja templates to disk |
+| `PatchMutatorHandler` | `MUTATE` | `{"llm","cpu"}` | Build mutate prompt, call LLMEnsemble, apply diff |
+| `ExecuteDockerHandler` | `EXECUTE` | `{"docker","cpu"}` | Run candidate in Docker and collect speed/memory |
+| `ExecuteGPUHandler` | `EXECUTE` | `{"docker","gpu","cuda11"}` | GPU variant of execute handler |
+| `EvaluateHandler` | `EVALUATE` | `{"cpu"}` | Score a workspace via EvaluatorPool |
+
+When creating new handlers:
+
+1. Declare `KIND` and full `PROVIDES` set.
+2. Keep side effects outside of `handle()` until success.
+3. Use `ComponentBase.logger` for debug lines.
+4. Unit-test `handle()` with a sample `Task`.
+5. Document new capability tags.
+
+Example plugin registration:
+
+```toml
+[project.entry-points."peagen.task_handlers"]
+cpp_exec = "my_pkg.cpp_exec:ExecuteCppHandler"
+```

@@ -38,6 +38,14 @@ port     = 6379
 db       = 0
 password = "..."                   # leave blank if no auth
 
+# ───────────────────────────── Task Queue ─────────────────────────────
+[task_queue]
+provider = "stub"
+
+# ─────────────────────────── Result Backend ───────────────────────────
+[result_backend]
+provider = "fs"
+
 # ─────────────────────────────── Plugins ───────────────────────────────
 [plugins]
 mode = "switch"

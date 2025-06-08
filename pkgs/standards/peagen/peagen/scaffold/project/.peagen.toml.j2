@@ -49,3 +49,11 @@ username    = "guest"
 password    = "guest"
 exchange    = ""
 routing_key = "peagen.events"
+
+# ───────────────────────────── Task Queue ─────────────────────────────
+[task_queue]
+provider = "stub"
+
+# ─────────────────────────── Result Backend ───────────────────────────
+[result_backend]
+provider = "fs"
