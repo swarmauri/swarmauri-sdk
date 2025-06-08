@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import PluginManager, resolve_plugin_spec
 from swarmauri_standard.programs.Program import Program
+import logging
 
 PROMPT = """\
 Improve the python code below. Return only the new version.
@@ -47,7 +48,11 @@ def mutate_workspace(
 
     for _ in range(gens):
         prompt = textwrap.dedent(PROMPT.format(parent=best_src))
-        child_src = mutator.mutate(prompt)
+        try:
+            child_src = mutator.mutate(prompt)
+        except Exception as e:
+            logging.warning("mutate error: %s", e)
+            child_src = best_src
         program.content[target_file] = child_src
         score, _ = evaluator.evaluate(program)
         if score < best_score:
