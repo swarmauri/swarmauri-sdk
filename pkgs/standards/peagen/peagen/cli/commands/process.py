@@ -134,10 +134,12 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
     # Parse the YAML locally and send the resulting dict to remote workers
-    try:
-        with open(projects_payload, "rt", encoding="utf-8") as fh:
-            yaml_text = fh.read()
-    except OSError:
+    path = Path(projects_payload)
+    if path.is_file():
+        yaml_text = path.read_text(encoding="utf-8")
+    else:
+        if path.suffix in {".yml", ".yaml"}:
+            raise typer.BadParameter(f"File not found: {projects_payload}")
         yaml_text = projects_payload
 
     yaml_data = yaml.safe_load(yaml_text)
