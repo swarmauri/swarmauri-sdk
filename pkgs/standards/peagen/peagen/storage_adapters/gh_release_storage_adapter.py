@@ -79,8 +79,8 @@ class GithubReleaseStorageAdapter:
             )
 
     # ------------------------------------------------------------------- public
-    def upload(self, key: str, data: BinaryIO) -> None:
-        """Upload ``data`` under ``key`` as a release asset."""
+    def upload(self, key: str, data: BinaryIO) -> str:
+        """Upload ``data`` under ``key`` as a release asset and return the artifact URI."""
         key = self._full_key(key)
 
         data.seek(0)
@@ -96,6 +96,8 @@ class GithubReleaseStorageAdapter:
             tmp.write(content)
             tmp.flush()
             self._release.upload_asset(path=tmp.name, name=key, label=key)
+
+        return f"{self.root_uri}{key.lstrip('/')}"
 
     def download(self, key: str) -> BinaryIO:
         """Return the bytes of asset ``key`` as a BytesIO object."""

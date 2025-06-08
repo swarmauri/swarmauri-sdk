@@ -34,8 +34,8 @@ class FileStorageAdapter:
         return f"{base}/{self._prefix}" if self._prefix else f"{base}/"
 
     # ---------------------------------------------------------------- upload
-    def upload(self, key: str, data: BinaryIO) -> None:
-        """Copy *data* to ``${root_dir}/${key}`` atomically."""
+    def upload(self, key: str, data: BinaryIO) -> str:
+        """Copy *data* to ``${root_dir}/${key}`` atomically and return the artifact URI."""
         dest = self._full_key(key)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
@@ -44,6 +44,8 @@ class FileStorageAdapter:
             shutil.copyfileobj(data, fh)
 
         tmp.replace(dest)
+
+        return f"{self.root_uri}{key.lstrip('/')}"
 
     # ---------------------------------------------------------------- download
     def download(self, key: str) -> BinaryIO:

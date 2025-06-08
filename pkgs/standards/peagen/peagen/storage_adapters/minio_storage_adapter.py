@@ -63,8 +63,8 @@ class MinioStorageAdapter:
         return uri.rstrip("/") + "/"
 
     # ------------------------------------------------------------------
-    def upload(self, key: str, data: BinaryIO) -> None:
-        """Upload *data* to ``bucket/prefix/key``."""
+    def upload(self, key: str, data: BinaryIO) -> str:
+        """Upload *data* to ``bucket/prefix/key`` and return the artifact URI."""
         size: Optional[int] = None
         try:
             size = os.fstat(data.fileno()).st_size  # type: ignore[attr-defined]
@@ -80,6 +80,8 @@ class MinioStorageAdapter:
             length=size if size and size > 0 else -1,
             part_size=10 * 1024 * 1024,
         )
+
+        return f"{self.root_uri}{key.lstrip('/')}"
 
     # ------------------------------------------------------------------
     def download(self, key: str) -> BinaryIO:
