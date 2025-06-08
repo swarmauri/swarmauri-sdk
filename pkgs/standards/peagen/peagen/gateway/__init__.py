@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
 import json
@@ -35,11 +36,10 @@ from peagen.core.task_core import get_task_result
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=LOG_LEVEL,
-    format="%(asctime)s [%(levelname)5s] %(name)s: %(message)s",
+log = Logger(
+    name="uvicorn",
+    default_level=getattr(logging, LOG_LEVEL, logging.INFO),
 )
-log = logging.getLogger("uvicorn")
 
 # silence noisy deps but keep warnings
 logging.getLogger("httpx").setLevel("WARNING")
