@@ -14,6 +14,8 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
 ## Storage Adapters
 
 - Implement a class exposing `upload()` and `download()`.
+  The `upload()` method must return the artifact URI so Peagen can store
+  references in manifests and task payloads.
 - Register it via the **`peagen.storage_adapters`** entry point group.
 
 ## Publishers
