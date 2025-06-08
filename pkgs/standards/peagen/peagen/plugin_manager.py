@@ -3,6 +3,20 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any, Dict, Optional
 
+
+def resolve_plugin_spec(group: str, ref: str) -> Any:
+    """Return the object referenced by ``ref`` within ``group``."""
+    obj = registry.get(group, {}).get(ref)
+    if obj is not None:
+        return obj
+    if group == "llms" and "." not in ref:
+        class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
+        module = import_module(f"swarmauri.llms.{class_name}")
+        return getattr(module, class_name)
+    mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
+    module = import_module(mod)
+    return getattr(module, cls)
+
 from .plugins import discover_and_register_plugins, registry
 
 
@@ -75,17 +89,6 @@ class PluginManager:
     # ------------------------------------------------------------------
     # Generic helpers
     # ------------------------------------------------------------------
-    def _resolve_spec(self, group: str, ref: str) -> Any:
-        obj = registry.get(group, {}).get(ref)
-        if obj is not None:
-            return obj
-        if group == "llms" and "." not in ref:
-            class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
-            module = import_module(f"swarmauri.llms.{class_name}")
-            return getattr(module, class_name)
-        mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
-        module = import_module(mod)
-        return getattr(module, cls)
 
     def _instantiate(self, cls_or_obj: Any, params: Dict[str, Any]) -> Any:
         return cls_or_obj(**params) if isinstance(cls_or_obj, type) else cls_or_obj
@@ -136,7 +139,7 @@ class PluginManager:
             if not ref:
                 raise KeyError(f"No plugin configured for group '{group}'")
             params = cfg.get(f"{layout['single']}_params", {})
-            return self._instantiate(self._resolve_spec(group, ref), params)
+            return self._instantiate(resolve_plugin_spec(group, ref), params)
 
         # dict of plugin specs
         items = cfg.get(layout.get("items", "plugins"), {})
@@ -146,7 +149,7 @@ class PluginManager:
         if not name:
             raise KeyError(f"No plugin name provided for group '{group}'")
         params = items.get(name, {})
-        return self._instantiate(self._resolve_spec(group, name), params)
+        return self._instantiate(resolve_plugin_spec(group, name), params)
 
     def all(self, group: str) -> Dict[str, Any]:
         """Instantiate every configured plugin for ``group``."""
@@ -159,10 +162,10 @@ class PluginManager:
             if not ref:
                 return {}
             params = cfg.get(f"{layout['single']}_params", {})
-            return {ref: self._instantiate(self._resolve_spec(group, ref), params)}
+            return {ref: self._instantiate(resolve_plugin_spec(group, ref), params)}
 
         items = cfg.get(layout.get("items", "plugins"), {})
         out: Dict[str, Any] = {}
         for name, params in items.items():
-            out[name] = self._instantiate(self._resolve_spec(group, name), params)
+            out[name] = self._instantiate(resolve_plugin_spec(group, name), params)
         return out
