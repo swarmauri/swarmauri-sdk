@@ -24,6 +24,10 @@ class Task(BaseModel):
     id: str = Field(default=str(uuid.uuid4()))
     pool: str
     payload: dict
+    deps: list[str] = Field(default_factory=list)
+    edge_pred: Optional[str] = None
+    labels: list[str] = Field(default_factory=list)
+    config_toml: Optional[str] = None
     status: Status = Status.pending
     result: Optional[dict] = None
 
