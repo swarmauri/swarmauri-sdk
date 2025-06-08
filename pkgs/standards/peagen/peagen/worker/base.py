@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from swarmauri_standard.loggers.Logger import Logger
 import os
 import socket
 import uuid
@@ -74,11 +75,9 @@ class WorkerBase:
 
         # ─── LOGGING ─────────────────────────────────────────────────
         lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
-        logging.basicConfig(
-            level=lvl,
-            format="%(asctime)s [%(levelname)5s] %(name)s: %(message)s",
-        )
-        self.log = logging.getLogger("uvicorn")
+        log_level_int = getattr(logging, lvl, logging.INFO)
+        self.log = Logger(name="uvicorn", default_level=log_level_int)
+
         # Silence overly‐verbose libraries but keep warnings:
         logging.getLogger("httpx").setLevel("WARNING")
         logging.getLogger("uvicorn.error").setLevel("INFO")
