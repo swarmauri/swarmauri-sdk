@@ -131,8 +131,7 @@ def submit_sort(
         "params": {
             "taskId": task.id,
             "pool": task.pool,
-            "payload": task.payload,
-            "taskId": task.id,
+            "payload": task.payload
         },
     }
 
