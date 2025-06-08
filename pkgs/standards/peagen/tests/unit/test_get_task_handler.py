@@ -12,7 +12,9 @@ async def test_task_get_handler(monkeypatch):
     # task_get_handler lazily imports get_task_result from peagen.core.task_core
     # Insert a stub module into sys.modules so that import resolves without
     # loading the real module (which has heavy deps and circular imports).
-    import sys, types
+    import sys
+    import types
+
     stub = types.ModuleType("peagen.core.task_core")
     stub.get_task_result = fake_get_task_result
     monkeypatch.setitem(sys.modules, "peagen.core.task_core", stub)

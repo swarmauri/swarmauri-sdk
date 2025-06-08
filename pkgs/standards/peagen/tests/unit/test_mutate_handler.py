@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 
 from peagen.handlers import mutate_handler as handler
 
