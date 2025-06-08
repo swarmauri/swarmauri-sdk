@@ -57,7 +57,6 @@ class LoggerBase(ILogger, ObserveBase):
 
     def set_level(self, level: int = 20) -> None:
         self.default_level = level
-        print(self.default_level)
         self.compile_logger(logger_name=self.name)
 
     def set_format(
