@@ -5,10 +5,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import toml
 import typer
 
-from peagen._utils.config_loader import _effective_cfg
+from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.models import Task
 
@@ -105,7 +104,7 @@ def submit_sort(
         cfg_override = json.loads(inline)
     if file_:
         cfg_override.update(  # file beats inline
-            toml.loads(Path(file_).read_text())
+            load_peagen_toml(Path(file_), required=True)
         )
 
     # ─────────────────────── 2) build Task model ────────────────────────
