@@ -82,8 +82,14 @@ def call_external_agent(
     provider = (
         agent_env.get("provider")
         or os.getenv("PROVIDER")
-        or llm_section.get("default_provider", "deepinfra")
+        or llm_section.get("default_provider")
     )
+    if not provider:
+        raise ValueError(
+            "No LLM provider specified. Set agent_env['provider'], "
+            "the PROVIDER environment variable, or llm.default_provider "
+            "in .peagen.toml"
+        )
 
     max_tokens = int(
         agent_env.get("max_tokens")
