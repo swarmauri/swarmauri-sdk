@@ -36,7 +36,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
     # Mandatory flag
-    projects_payload: str = args["projects_payload"]
+    projects_payload = args["projects_payload"]
 
     # ------------------------------------------------------------------ #
     # 1) Merge .peagen.toml with CLI-style overrides
@@ -65,7 +65,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         result_map: Dict[str, List[Dict[str, Any]]] = {project_name: processed}
     else:
         result_map = process_all_projects(
-            projects_payload_path=projects_payload,
+            projects_payload,
             cfg=cfg,
             transitive=args.get("transitive", False),
         )

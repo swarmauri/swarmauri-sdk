@@ -3,7 +3,7 @@
 import os
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime, timezone
 
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
@@ -21,23 +21,28 @@ from peagen._utils._search_template_sets import (
 )
 
 
-def load_projects_payload(projects_payload: str) -> List[Dict[str, Any]]:
-    """Return the list of projects from a payload string or path.
+def load_projects_payload(
+    projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Return the list of projects from a payload value.
 
-    ``projects_payload`` may be either the YAML text itself or a filesystem
-    path pointing to a YAML file containing a top-level ``PROJECTS`` key.
+    ``projects_payload`` may be a filesystem path, YAML text, or an already
+    decoded Python mapping containing a top-level ``PROJECTS`` key.
     """
 
-    try:
-        maybe_path = Path(projects_payload)
-        if maybe_path.is_file():
-            yaml_text = maybe_path.read_text(encoding="utf-8")
-        else:
+    if isinstance(projects_payload, (list, dict)):
+        doc = projects_payload
+    else:
+        try:
+            maybe_path = Path(projects_payload)
+            if maybe_path.is_file():
+                yaml_text = maybe_path.read_text(encoding="utf-8")
+            else:
+                yaml_text = projects_payload
+        except (OSError, TypeError):
             yaml_text = projects_payload
-    except (OSError, TypeError):
-        yaml_text = projects_payload
+        doc = yaml.safe_load(yaml_text)
 
-    doc = yaml.safe_load(yaml_text)
     projects = doc.get("PROJECTS") if isinstance(doc, dict) else doc
     if not isinstance(projects, list):
         raise ValueError("Payload must contain a top-level 'PROJECTS' list")
@@ -419,17 +424,17 @@ def process_single_project(
 
 
 def process_all_projects(
-    projects_payload_path: str,
+    projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
     cfg: Dict[str, Any],
     transitive: bool = False,
 ) -> Dict[str, List[Dict[str, Any]]]:
+    """Process every project described in ``projects_payload``.
+
+    ``projects_payload`` may be a path, YAML text or already parsed mapping.
+    For each project, :func:`process_single_project` is invoked and the results
+    are aggregated into a mapping ``{project_name: [sorted_records], ...}``.
     """
-    1) Load all projects from the payload YAML.
-    2) For each project, call process_single_project.
-    Returns a mapping: { project_name: [sorted_records], ... }.
-    Renders all files under <cwd>/<project_name>/ by default.
-    """
-    projects = load_projects_payload(projects_payload_path)
+    projects = load_projects_payload(projects_payload)
     results: Dict[str, List[Dict[str, Any]]] = {}
     next_idx = 0
 
