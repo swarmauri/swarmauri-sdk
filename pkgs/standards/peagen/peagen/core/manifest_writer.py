@@ -89,19 +89,26 @@ class ManifestWriter:
             json.dump(manifest, dst, indent=2)
 
         # upload finished manifest
-        with final_path.open("rb") as fh:
-            self.adapter.upload(f".peagen/{final_path.name}", fh)
+        if self.adapter is not None:
+            with final_path.open("rb") as fh:
+                self.adapter.upload(f".peagen/{final_path.name}", fh)
 
         # tidy up partial artefacts
         self.path.unlink(missing_ok=True)
 
-        manifest_uri = f"{self.adapter.root_uri}.peagen/{final_path.name}"
+        manifest_uri = (
+            f"{self.adapter.root_uri}.peagen/{final_path.name}"
+            if self.adapter is not None
+            else str(final_path)
+        )
 
         return manifest_uri
 
     # ───────────────────────────────────────────── helper ──
     def _upload_partial(self) -> None:
         """Fire-and-forget upload of the current *.partial.jsonl* file."""
+        if self.adapter is None:
+            return
         try:
             with self.path.open("rb") as fh:
                 self.adapter.upload(f".peagen/{self.path.name}", fh)
