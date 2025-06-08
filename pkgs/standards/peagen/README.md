@@ -381,7 +381,7 @@ adapters and publishers can be supplied programmatically:
 ```python
 from peagen.core import Peagen
 from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
-from peagen.publishers.webhook_publisher import WebhookPublisher
+from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
 bus = WebhookPublisher("https://example.com/peagen")
@@ -390,8 +390,8 @@ bus = WebhookPublisher("https://example.com/peagen")
 Another Example:
 
 ```
-from peagen.publishers.redis_publisher import RedisPublisher
-from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+from peagen.plugins.publishers.redis_publisher import RedisPublisher
+from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
 bus = RedisPublisher("redis://localhost:6379/0")
