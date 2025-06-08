@@ -15,7 +15,7 @@ from minio import Minio
 from minio.error import S3Error
 from pydantic import SecretStr
 
-from peagen.cli_common import load_peagen_toml
+from peagen._utils.config_loader import load_peagen_toml
 
 
 class MinioStorageAdapter:
