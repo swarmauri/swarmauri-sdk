@@ -46,6 +46,7 @@ dsn = "${PG_DSN}"
 1. Ensure Redis and PostgreSQL are reachable and the environment variables below are set:
    * `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, `REDIS_PASSWORD`
    * `PG_HOST`, `PG_PORT`, `PG_DB`, `PG_USER`, `PG_PASS`
+   * `PG_DSN` – typically formatted as `postgresql://${PG_USER}:${PG_PASS}@${PG_HOST}:${PG_PORT}/${PG_DB}`
 2. Place a `.peagen.toml` in the current directory (see example above).
 3. Start the gateway with Uvicorn:
 
