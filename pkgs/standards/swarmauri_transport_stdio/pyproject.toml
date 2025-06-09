@@ -1,0 +1,50 @@
+[project]
+name = "swarmauri_transport_stdio"
+version = "0.1.0"
+description = "Standard input/output transport for Swarmauri"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+]
+timeout = 300
+
+[project.entry-points.'swarmauri.transports']
+StdioTransport = "swarmauri_transport_stdio:StdioTransport"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

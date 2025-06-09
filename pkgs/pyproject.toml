@@ -70,6 +70,8 @@ members = [
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/peagen",
+    "standards/swarmauri_transport_stdio",
+    "standards/swarmauri_transport_jsonrpc",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
