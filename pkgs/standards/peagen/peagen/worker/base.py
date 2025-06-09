@@ -25,6 +25,10 @@ def get_local_ip() -> str:
     try:
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
+    except OSError:
+        # Fall back to localhost if we cannot open a UDP socket (e.g. in
+        # restricted CI environments without network access).
+        return "127.0.0.1"
     finally:
         s.close()
 
