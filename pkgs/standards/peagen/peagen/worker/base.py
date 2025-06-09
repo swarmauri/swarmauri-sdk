@@ -8,6 +8,7 @@ from swarmauri_standard.loggers.Logger import Logger
 import os
 import socket
 import uuid
+import time
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import httpx
@@ -51,6 +52,8 @@ class WorkerBase:
         port: int = None,
         worker_id: str = None,
         log_level: str = None,
+        fail_max: int | None = None,
+        reset_timeout: int | None = None,
     ):
         """
         Initialize environment from ENV or fallbacks:
@@ -62,6 +65,8 @@ class WorkerBase:
           • DQ_HOST          (default: local IP)
           • PORT             (default: 8001)
           • DQ_LOG_LEVEL     (default: "INFO")
+          • DQ_FAIL_MAX      (default: 5)
+          • DQ_RESET_TIMEOUT (default: 30)
         """
         # ─── CONFIGURE from ENV or parameters ────────────────────────
         self.POOL = pool or os.getenv("DQ_POOL", "default")
@@ -72,6 +77,13 @@ class WorkerBase:
         if not env_host:
             env_host = get_local_ip()
         self.HOST = env_host
+
+        self.FAIL_MAX = fail_max if fail_max is not None else int(os.getenv("DQ_FAIL_MAX", "5"))
+        self.RESET_TIMEOUT = (
+            reset_timeout if reset_timeout is not None else int(os.getenv("DQ_RESET_TIMEOUT", "30"))
+        )
+        self._failure_count = 0
+        self._circuit_open_until = 0.0
 
         # ─── LOGGING ─────────────────────────────────────────────────
         lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
@@ -197,11 +209,25 @@ class WorkerBase:
         # Immediately tell gateway we’re “running”
         await self._notify("running", task_id)
 
+        now = time.time()
+        if self._circuit_open_until > now:
+            await self._notify("failed", task_id, {"error": "Circuit open"})
+            return
+
         try:
             result: Dict[str, Any] = await handler(task)
-            await self._notify("success", task_id, result)
         except Exception as exc:
+            self._failure_count += 1
+            if self._failure_count >= self.FAIL_MAX:
+                self._circuit_open_until = now + self.RESET_TIMEOUT
+                self.log.warning(
+                    "Circuit opened for %ds after failure", self.RESET_TIMEOUT
+                )
             await self._notify("failed", task_id, {"error": str(exc)})
+        else:
+            self._failure_count = 0
+            self._circuit_open_until = 0.0
+            await self._notify("success", task_id, result)
 
     # ────────────────────────── Internal: send Work.finished ───────────────────────
     async def _notify(self, state: str, task_id: str, result: Dict[str, Any] | None = None) -> None:

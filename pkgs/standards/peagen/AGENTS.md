@@ -73,6 +73,8 @@ Workers connect to the gateway via JSON‑RPC and advertise task handlers. Set t
 * `DQ_POOL` – name of the worker pool (defaults to `default`)
 * `DQ_HOST` – IP address the worker should advertise (set to `127.0.0.1` if no network)
 * `PORT` – port the worker will listen on (default `8001`)
+* `DQ_FAIL_MAX` – number of consecutive failures before opening the circuit (default `5`)
+* `DQ_RESET_TIMEOUT` – seconds to wait before closing the circuit again (default `30`)
 
 Launch with Uvicorn:
 
