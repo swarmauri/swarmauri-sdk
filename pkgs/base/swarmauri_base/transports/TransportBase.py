@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Literal
 from pydantic import ConfigDict, Field, PrivateAttr
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.transports import ITransport
+from swarmauri_core.transport import ITransport
 
 
 class TransportProtocol(Enum):
