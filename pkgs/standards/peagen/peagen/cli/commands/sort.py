@@ -123,7 +123,7 @@ def submit_sort(
         # status and result left as defaults
     )
 
-    # 2) Build Work.start envelope using Task fields
+    # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
