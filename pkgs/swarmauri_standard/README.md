@@ -244,6 +244,8 @@ agents using predefined configurations.
 
 ### Transports
 - [PubSubTransport.py](swarmauri_standard/transports/PubSubTransport.py): Implements a publish-subscribe transport mechanism.
+- [swarmauri_transport_stdio](../standards/swarmauri_transport_stdio): Standalone Stdio transport package.
+- [swarmauri_transport_jsonrpc](../standards/swarmauri_transport_jsonrpc): JSON-RPC transport package.
 
 ### TTS (Text-to-Speech)
 - [HyperbolicTTS.py](swarmauri_standard/tts/HyperbolicTTS.py): Implements text-to-speech using Hyperbolic.
