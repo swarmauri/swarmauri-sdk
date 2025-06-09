@@ -466,8 +466,8 @@ For each file listed below, add missing spaCy-style docstrings for the module, a
 - [ ] ./pkgs/core/swarmauri_core/tracing/ITraceContext.py
 - [ ] ./pkgs/core/swarmauri_core/tracing/ITracer.py
 - [ ] ./pkgs/core/swarmauri_core/tracing/__init__.py
-- [ ] ./pkgs/core/swarmauri_core/transports/core.py
-- [ ] ./pkgs/core/swarmauri_core/transports/__init__.py
+ - [ ] ./pkgs/core/swarmauri_core/transport/ITransport.py
+ - [ ] ./pkgs/core/swarmauri_core/transport/__init__.py
 - [ ] ./pkgs/core/swarmauri_core/tts/IPredict.py
 - [ ] ./pkgs/core/swarmauri_core/tts/__init__.py
 - [ ] ./pkgs/core/swarmauri_core/utils/ITransactional.py
