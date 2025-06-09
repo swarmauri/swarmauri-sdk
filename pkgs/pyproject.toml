@@ -68,6 +68,8 @@ members = [
     "standards/swarmauri_middleware_securityheaders",
     "standards/swarmauri_middleware_session",
     "standards/swarmauri_middleware_time",
+    "standards/swarmauri_middleware_stdio",
+    "standards/swarmauri_middleware_jsonrpc",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/peagen",
     "community/swarmauri_middleware_circuitbreaker",
@@ -178,6 +180,8 @@ swarmauri_middleware_ratelimit = { workspace = true }
 swarmauri_middleware_sercurityheaders = { workspace = true }
 swarmauri_middleware_session = { workspace = true }
 swarmauri_middleware_time = { workspace = true }
+swarmauri_middleware_stdio = { workspace = true }
+swarmauri_middleware_jsonrpc = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 peagen = { workspace = true }
