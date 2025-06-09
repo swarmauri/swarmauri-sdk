@@ -90,6 +90,11 @@ class WorkerBase:
         self.rpc = RPCDispatcher()
         self._client: Optional[httpx.AsyncClient] = None
 
+        # ─── Shutdown state ──────────────────────────────────────────
+        self._draining: bool = False
+        self._task_registry: Dict[str, asyncio.Task] = {}
+        self._fast_shutdown: bool = bool(int(os.getenv("DQ_FAST_SHUTDOWN", "0")))
+
         # ─── Handlers registry: name (str) → async function(task: Dict)→Dict ─
         self._handler_registry: Dict[str, Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]] = {}
 
@@ -98,8 +103,11 @@ class WorkerBase:
         @self.rpc.method("Work.start")
         async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
             self.log.info("Work.start received    task=%s pool=%s", task.get("id"), self.POOL)
-            # Launch the real work in the background
-            asyncio.create_task(self._run_task(task))
+            if self._draining:
+                self.log.info("Rejecting task %s - worker draining", task.get("id"))
+                return {"accepted": False}
+            fut = asyncio.create_task(self._run_task_wrapper(task))
+            self._task_registry[task.get("id")] = fut
             return {"accepted": True}
 
         # 2) Work.cancel → calls work_cancel (sync or async)
@@ -175,6 +183,15 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
+    async def _run_task_wrapper(self, task: Dict[str, Any]) -> None:
+        task_id = task.get("id")
+        try:
+            await self._run_task(task)
+        except asyncio.CancelledError:
+            pass
+        finally:
+            self._task_registry.pop(task_id, None)
+
     async def _run_task(self, task: Dict[str, Any]) -> None:
         """
         Called when Work.start arrives (in on_work_start).  
@@ -200,6 +217,9 @@ class WorkerBase:
         try:
             result: Dict[str, Any] = await handler(task)
             await self._notify("success", task_id, result)
+        except asyncio.CancelledError:
+            # Task cancelled due to fast shutdown
+            return
         except Exception as exc:
             await self._notify("failed", task_id, {"error": str(exc)})
 
@@ -268,6 +288,7 @@ class WorkerBase:
                             "workerId": self.WORKER_ID,
                             "pool": self.POOL,
                             "url": self.url_self,
+                            "state": "draining" if self._draining else "active",
                             "metrics": {},
                         },
                     )
@@ -281,6 +302,23 @@ class WorkerBase:
         """
         Called when FastAPI shuts down. Close HTTP client.
         """
+        self._draining = True
+        requeue: List[str] = []
+        if self._fast_shutdown:
+            for tid, task in list(self._task_registry.items()):
+                if not task.done():
+                    task.cancel()
+                    requeue.append(tid)
+        await self._send_rpc(
+            "Worker.shutdown",
+            {
+                "workerId": self.WORKER_ID,
+                "fast": self._fast_shutdown,
+                "requeue": requeue,
+            },
+        )
+        if self._task_registry:
+            await asyncio.gather(*self._task_registry.values(), return_exceptions=True)
         if self._client:
             await self._client.aclose()
             self.log.info("HTTP client closed")

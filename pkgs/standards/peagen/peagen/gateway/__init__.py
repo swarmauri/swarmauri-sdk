@@ -96,7 +96,7 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
             continue
         if now - int(w["last_seen"]) > WORKER_TTL:
             continue  # stale
-        if w["pool"] == pool:
+        if w["pool"] == pool and w.get("state", "active") == "active":
             workers.append(w)
     return workers
 
@@ -257,14 +257,18 @@ async def pool_list(poolName: str):
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
 async def worker_register(workerId: str, pool: str, url: str, advertises: dict):
-    await _upsert_worker(workerId, {"pool": pool, "url": url, "advertises": advertises})
+    await _upsert_worker(workerId, {"pool": pool, "url": url, "advertises": advertises, "state": "active"})
     log.info("worker %s registered (%s)", workerId, pool)
     return {"ok": True}
 
 
 @rpc.method("Worker.heartbeat")
 async def worker_heartbeat(
-    workerId: str, metrics: dict, pool: str | None = None, url: str | None = None
+    workerId: str,
+    metrics: dict,
+    pool: str | None = None,
+    url: str | None = None,
+    state: str | None = None,
 ):
     # If gateway has no record (after crash), pool & url are expected
     known = await queue.exists(WORKER_KEY.format(workerId))
@@ -275,7 +279,10 @@ async def worker_heartbeat(
         )
         return {"ok": False}
 
-    await _upsert_worker(workerId, {"pool": pool, "url": url})
+    data = {"pool": pool, "url": url}
+    if state:
+        data["state"] = state
+    await _upsert_worker(workerId, data)
     return {"ok": True}
 
 
@@ -296,6 +303,23 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _publish_event(t)
 
     log.info("task %s completed: %s", taskId, status)
+    return {"ok": True}
+
+
+@rpc.method("Worker.shutdown")
+async def worker_shutdown(workerId: str, fast: bool, requeue: list[str] | None = None):
+    await _upsert_worker(workerId, {"state": "draining" if not fast else "fast"})
+    if requeue:
+        for tid in requeue:
+            t = await _load_task(tid)
+            if not t:
+                continue
+            await queue.rpush(f"queue:{t.pool}", t.model_dump_json())
+            t.status = Status.pending
+            await _save_task(t)
+            await _persist(t)
+            await _publish_event(t)
+    log.info("worker %s shutdown fast=%s requeued=%d", workerId, fast, len(requeue or []))
     return {"ok": True}
 
 
