@@ -16,6 +16,8 @@ from __future__ import annotations
 from swarmauri_standard.loggers.Logger import Logger
 from typing import Any, Dict, List
 from peagen._utils.config_loader import resolve_cfg
+from peagen.plugins import PluginManager
+from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
 
 from peagen.core.process_core import (
     load_projects_payload,
@@ -42,6 +44,22 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # 1) Merge .peagen.toml with CLI-style overrides
     # ------------------------------------------------------------------ #
     cfg = resolve_cfg(toml_text=cfg_override)
+
+    # Instantiate plugins so core functions receive ready-to-use objects
+    pm = PluginManager(cfg)
+    try:
+        cfg["storage_adapter"] = pm.get("storage_adapters")
+    except Exception:  # pragma: no cover - optional
+        # Fall back to FileStorageAdapter if configured
+        file_cfg = (
+            cfg.get("storage", {})
+            .get("adapters", {})
+            .get("file", {})
+        )
+        try:
+            cfg["storage_adapter"] = FileStorageAdapter(**file_cfg)
+        except Exception:
+            cfg["storage_adapter"] = None
 
     # Pass through any LLM / agent parameters verbatim
     cfg["agent_env"] = args.get("agent_env", {})

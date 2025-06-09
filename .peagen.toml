@@ -51,17 +51,32 @@ password = "${REDIS_PASSWORD}"                   # leave blank if no auth
 [publishers.adapters.webhook]
 url = "${WEBHOOK_URL}"
 
+# ─────────────────────────────── Queues ───────────────────────────────
+[queues]
+default_queue = "redis"
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
+# ─────────────────────────────── Mutators ───────────────────────────────
+[mutators]
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+
+
+# ───────────────────────────── Result Backends ─────────────────────────
+[result_backends]
+default_backend = "postgres"
+
+[result_backends.adapters.postgres]
+dsn = "${PG_DSN}"
+
 
 # ────────────────────────────── Evaluation ───────────────────────────────
 [evaluation]
-pool = "swarmauri_evaluatorpool_accessibility:AccessibilityEvaluatorPool"
+pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 max_workers = 4
 async = false
 strict = true
 
-[evaluation.evaluators.AutomatedReadabilityIndexEvaluator]
-cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
-
-[evaluation.evaluators.ColemanLiauIndexEvaluator]
-cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
-target_grade_level = 12
+[evaluation.evaluators]
+performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"

@@ -84,13 +84,12 @@ def submit_validate(
         payload={"action": "validate", "args": args},
     )
 
-    # 2) Build Work.start envelope using Task fields
+    # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": "Work.start",
+        "method": "Task.submit",
         "params": {
-            "id": task.id,
+            "taskId": task.id,
             "pool": task.pool,
             "payload": task.payload,
         },

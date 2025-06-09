@@ -1,26 +1,26 @@
 # peagen/plugins.py
 """Plugin registry for the Peagen microkernel."""
 
+from importlib import import_module
 from importlib.metadata import entry_points
 from collections import defaultdict
 from types import ModuleType
-from typing import Dict
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
 # ---------------------------------------------------------------------------
 GROUPS = {
-    "consumers": ("peagen.plugins.consumers", object),
-    "evaluator_pools": ("peagen.plugins.evaluator_pools", object),
-    "evaluators": ("peagen.plugins.evaluators", object),
-    "indexers": ("peagen.plugins.indexers", object),
-    "mutators": ("peagen.plugins.mutators", object),
-    "programs": ("peagen.plugins.programs", object),
-    "publishers": ("peagen.plugins.publishers", object),
-    "queues": ("peagen.plugins.queues", object),
-    "result_backends": ("peagen.plugins.result_backends", object),
-    "storage_adapters": ("peagen.plugins.storage_adapters", object),
-    "selectors": ("peagen.plugins.selectors", object),
+    "consumers": ("peagen.consumers", object),
+    "evaluator_pools": ("peagen.evaluator_pools", object),
+    "evaluators": ("peagen.evaluators", object),
+    "mutators": ("peagen.mutators", object),
+    "programs": ("peagen.programs", object),
+    "publishers": ("peagen.publishers", object),
+    "queues": ("peagen.queues", object),
+    "result_backends": ("peagen.result_backends", object),
+    "storage_adapters": ("peagen.storage_adapters", object),
+    "selectors": ("peagen.selectors", object),
     "template_sets": ("peagen.template_sets", None),
 }
 
@@ -90,4 +90,176 @@ def discover_and_register_plugins(
 
             registry[group_key][ep.name] = obj
 
+
 discover_and_register_plugins()
+
+
+class PluginManager:
+    """Centralised plugin loader for peagen plugins."""
+
+    GROUP_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
+        "storage_adapters": {
+            "section": "storage",
+            "items": "adapters",
+            "default": "default_storage_adapter",
+        },
+        "publishers": {
+            "section": "publishers",
+            "items": "adapters",
+            "default": "default_publisher",
+        },
+        "queues": {
+            "section": "queues",
+            "items": "adapters",
+            "default": "default_queue",
+        },
+        "result_backends": {
+            "section": "result_backends",
+            "items": "adapters",
+            "default": "default_backend",
+        },
+        "evaluators": {
+            "section": "evaluation",
+            "items": "evaluators",
+            "default": None,
+        },
+        "evaluator_pools": {
+            "section": "evaluation",
+            "single": "pool",
+            "default": None,
+        },
+        "template_sets": {
+            "section": "workspace",
+            "items": "template_sets",
+            "default": "template_set",
+        },
+        "consumers": {
+            "section": "consumers",
+            "items": "plugins",
+            "default": "default_consumer",
+        },
+        "mutators": {
+            "section": "mutators",
+            "items": "plugins",
+            "default": "default_mutator",
+        },
+        "programs": {
+            "section": "programs",
+            "items": "plugins",
+            "default": "default_program",
+        },
+        "selectors": {
+            "section": "selectors",
+            "items": "plugins",
+            "default": "default_selector",
+        },
+        "llms": {
+            "section": "llm",
+            "default": "default_provider",
+        },
+    }
+
+    def __init__(self, cfg: Dict[str, Any]) -> None:
+        plugins_cfg = cfg.get("plugins", {})
+        mode = plugins_cfg.get("mode", "fan-out")
+        switch_map = plugins_cfg.get("switch", {})
+        discover_and_register_plugins(mode=mode, switch_map=switch_map)
+        self.cfg = cfg
+
+    # ────────────────────────────── helpers ─────────────────────────────
+    def _resolve_spec(self, group: str, ref: str) -> Any:
+        obj = registry.get(group, {}).get(ref)
+        if obj is not None:
+            return obj
+        if group == "llms" and "." not in ref:
+            class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
+            module = import_module(f"swarmauri.llms.{class_name}")
+            return getattr(module, class_name)
+        mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
+        module = import_module(mod)
+        return getattr(module, cls)
+
+    def _instantiate(self, cls_or_obj: Any, params: Dict[str, Any]) -> Any:
+        return cls_or_obj(**params) if isinstance(cls_or_obj, type) else cls_or_obj
+
+    def _layout(self, group: str) -> Dict[str, Optional[str]]:
+        return self.GROUP_CONFIG.get(
+            group, {"section": group, "items": "plugins", "default": "default"}
+        )
+
+    def _group_cfg(self, group: str) -> Dict[str, Any]:
+        info = self._layout(group)
+        return self.cfg.get(info["section"], {})
+
+    # ─────────────────────────────── public ──────────────────────────────
+    def get(self, group: str, name: Optional[str] = None) -> Any:
+        """Return a single plugin instance from ``group``."""
+
+        layout = self._layout(group)
+        cfg = self._group_cfg(group)
+
+        if group == "llms":
+            provider = name or cfg.get("default_provider")
+            if not provider:
+                raise KeyError("No plugin name provided for group 'llms'")
+            params = cfg.get(provider, {})
+            api_key = params.get("API_KEY") or params.get("api_key")
+            model_name = cfg.get("default_model_name")
+            temperature = cfg.get("default_temperature")
+            max_tokens = cfg.get("default_max_tokens")
+            from ..core._llm import GenericLLM
+
+            llm_mgr = GenericLLM()
+            kwargs: Dict[str, Any] = {}
+            if temperature is not None:
+                kwargs["temperature"] = temperature
+            if max_tokens is not None:
+                kwargs["max_tokens"] = max_tokens
+            return llm_mgr.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name=model_name,
+                **kwargs,
+            )
+
+        if "single" in layout:
+            ref = name or cfg.get(layout["single"])
+            if not ref:
+                raise KeyError(f"No plugin configured for group '{group}'")
+            params = cfg.get(f"{layout['single']}_params", {})
+            return self._instantiate(self._resolve_spec(group, ref), params)
+
+        items = cfg.get(layout.get("items", "plugins"), {})
+        if name is None:
+            default_key = layout.get("default")
+            name = cfg.get(default_key) if default_key else None
+        if not name:
+            raise KeyError(f"No plugin name provided for group '{group}'")
+        params = items.get(name, {})
+        return self._instantiate(self._resolve_spec(group, name), params)
+
+    def all(self, group: str) -> Dict[str, Any]:
+        """Instantiate every configured plugin for ``group``."""
+
+        layout = self._layout(group)
+        cfg = self._group_cfg(group)
+
+        if "single" in layout:
+            ref = cfg.get(layout["single"])
+            if not ref:
+                return {}
+            params = cfg.get(f"{layout['single']}_params", {})
+            return {ref: self._instantiate(self._resolve_spec(group, ref), params)}
+
+        items = cfg.get(layout.get("items", "plugins"), {})
+        out: Dict[str, Any] = {}
+        for name, params in items.items():
+            out[name] = self._instantiate(self._resolve_spec(group, name), params)
+        return out
+
+
+__all__ = [
+    "registry",
+    "discover_and_register_plugins",
+    "PluginManager",
+]

@@ -141,6 +141,8 @@ output_dir = "./peagen_artifacts"
 
 With these values in place you can omit `--provider`, `--model-name`, and other
 flags when running the CLI.
+If `--provider` is omitted and no `default_provider` is configured (or the
+`PROVIDER` environment variable is unset), Peagen will raise an error.
 
 ### Project YAML Schema Overview
 
@@ -374,14 +376,14 @@ renders files concurrently while still honoring dependency order. Leaving the
 flag unset or `0` processes files sequentially.
 
 Artifact locations are resolved via the `--artifacts` flag. Targets may be a
-local directory (`dir://./peagen_artifacts`) using `FileStorageAdapter` or an
+local directory (`file:///./peagen_artifacts`) using `FileStorageAdapter` or an
 S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
 adapters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
-from peagen.publishers.webhook_publisher import WebhookPublisher
+from peagen.plugins.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
 bus = WebhookPublisher("https://example.com/peagen")
@@ -390,8 +392,8 @@ bus = WebhookPublisher("https://example.com/peagen")
 Another Example:
 
 ```
-from peagen.publishers.redis_publisher import RedisPublisher
-from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+from peagen.plugins.publishers.redis_publisher import RedisPublisher
+from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
 store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
 bus = RedisPublisher("redis://localhost:6379/0")

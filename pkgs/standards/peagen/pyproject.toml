@@ -55,6 +55,7 @@ dependencies = [
     "sqlalchemy>=2.0",
     "asyncpg>=0.30.0", # need to push out to a standalone with extra
     "psycopg2-binary", # need to push out to a standalone with extra
+    "aiosqlite>=0.19.0", # needed for the SQLite fallback result backend
     
     # brokers (publishers/consumer dependencies)
     "redis", # this publisher needs to be pushed to its own standalone
@@ -132,15 +133,23 @@ init-doe-spec                         = "peagen.template_scaffold.doe_spec"
 init-ci                               = "peagen.template_scaffold.ci"
 
 [project.entry-points."peagen.storage_adapters"]
-minio   = "peagen.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
-file    = "peagen.storage_adapters.file_storage_adapter:FileStorageAdapter"
-github    = "peagen.storage_adapters.github_storage_adapter:GithubStorageAdapter"
-gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
+minio   = "peagen.plugins.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
+file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapter"
+github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
+gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 
 [project.entry-points."peagen.publishers"]
-redis   = "peagen.publishers.redis_publisher:RedisPublisher"
-webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
-rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
+redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
+webhook = "peagen.plugins.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
+
+[project.entry-points."peagen.result_backends"]
+local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"
+postgres = "peagen.plugins.result_backends.postgres_backend:PostgresResultBackend"
+
+[project.entry-points."peagen.queues"]
+redis = "peagen.plugins.queues.redis_queue:RedisQueue"
+in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]

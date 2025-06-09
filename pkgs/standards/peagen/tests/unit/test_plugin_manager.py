@@ -1,19 +1,28 @@
-from peagen.plugin_manager import resolve_plugin_spec
-from peagen.plugins import registry
+import sys
+import pytest
 
-class DummyPool:
-    pass
+from peagen.plugins import PluginManager
 
-
-def test_resolve_plugin_spec_from_registry(monkeypatch):
-    monkeypatch.setitem(registry.setdefault("evaluator_pools", {}), "dummy", DummyPool)
-    assert resolve_plugin_spec("evaluator_pools", "dummy") is DummyPool
+from .dummy_plugins import DummyQueue, DummyBackend
 
 
-def test_resolve_plugin_spec_dotted_path():
-    cls = resolve_plugin_spec(
-        "evaluator_pools",
-        "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool",
-    )
-    assert cls.__name__.endswith("EvaluatorPool")
+@pytest.mark.unit
+def test_plugin_manager_instantiates_defaults(tmp_path):
+    module_path = "tests.unit.dummy_plugins"
+    sys.modules[module_path] = sys.modules[
+        __name__.rsplit(".", 1)[0] + ".dummy_plugins"
+    ]
 
+    cfg = {
+        "queues": {"default_queue": f"{module_path}:DummyQueue"},
+        "result_backends": {
+            "default_backend": f"{module_path}:DummyBackend",
+            "adapters": {},
+        },
+    }
+
+    pm = PluginManager(cfg)
+    queue = pm.get("queues")
+    backend = pm.get("result_backends")
+    assert isinstance(queue, DummyQueue)
+    assert isinstance(backend, DummyBackend)

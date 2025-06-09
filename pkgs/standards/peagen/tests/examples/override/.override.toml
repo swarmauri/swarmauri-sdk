@@ -1,0 +1,11 @@
+schemaVersion = "1.0.3"
+
+# ─────────────────────────── LLM  ───────────────────────────────────────
+[llm]
+default_provider    = "groq"
+default_model_name  = "deepseek-r1-distill-llama-70b"
+default_temperature = 0.7
+default_max_tokens  = 4096
+
+[llm.groq]
+API_KEY   = "${GROQ_API_KEY}"

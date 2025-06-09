@@ -20,17 +20,16 @@ COPY ./infra/.worker.peagen.toml ./.peagen.toml
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
-EXPOSE 8000
+EXPOSE 8001
 
 ENV \
     DQ_POOL=""\
     DQ_GATEWAY=""\
-    PORT="8000"
+    PORT="8001"
 
 CMD ["python", "-c", "\
 import uvicorn; \
 uvicorn.run('peagen.worker:app', \
             host='0.0.0.0', \
-            port=8000, \
-            reload=True, \
+            port=8001, \
             log_level='info')"]

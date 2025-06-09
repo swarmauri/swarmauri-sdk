@@ -56,7 +56,7 @@ def call_external_agent(
         from swarmauri.agents.QAAgent import QAAgent
         from swarmauri.messages.SystemMessage import SystemMessage
 
-        from peagen.plugin_manager import PluginManager
+        from peagen.plugins import PluginManager
         from peagen._utils.config_loader import resolve_cfg
         from ._llm import GenericLLM
     except Exception as e:
@@ -82,8 +82,14 @@ def call_external_agent(
     provider = (
         agent_env.get("provider")
         or os.getenv("PROVIDER")
-        or llm_section.get("default_provider", "deepinfra")
+        or llm_section.get("default_provider")
     )
+    if not provider:
+        raise ValueError(
+            "No LLM provider specified. Set agent_env['provider'], "
+            "the PROVIDER environment variable, or llm.default_provider "
+            "in .peagen.toml"
+        )
 
     max_tokens = int(
         agent_env.get("max_tokens")

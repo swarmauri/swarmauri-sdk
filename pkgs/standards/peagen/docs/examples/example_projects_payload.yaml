@@ -1,7 +1,7 @@
 PROJECTS:
   - NAME: "AdvancedConversationalMemory"
     ROOT: "pkgs"
-    TEMPLATE_SET: "componentv1"
+  TEMPLATE_SET: "swarmauri_standard_standalone"
     EXTRAS:
       REQUIREMENTS:
         - "Aggregate advanced methods for conversational memory management in LLM systems."
@@ -13,7 +13,7 @@ PROJECTS:
       # 1) SessionContextController
       #-----------------------------------------------------
       - NAME: "SessionContextController"
-        TEMPLATE_SET_OVERRIDE: "componentv1"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard_standalone"
         EXTRAS:
           AUTHORS:
             - "Jacob Stewart"
