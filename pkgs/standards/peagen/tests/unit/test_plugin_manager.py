@@ -33,3 +33,10 @@ def test_plugin_manager_allows_null_default():
     cfg = {"queues": {"default_queue": None}}
     pm = PluginManager(cfg)
     assert pm.get("queues") is None
+
+
+@pytest.mark.unit
+def test_plugin_manager_allows_null_result_backend():
+    cfg = {"result_backends": {"default_backend": None}}
+    pm = PluginManager(cfg)
+    assert pm.get("result_backends") is None
