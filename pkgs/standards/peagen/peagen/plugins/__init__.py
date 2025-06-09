@@ -25,6 +25,7 @@ GROUPS = {
 }
 
 registry: Dict[str, Dict[str, object]] = defaultdict(dict)
+_DISCOVERED = False
 
 
 def discover_and_register_plugins(
@@ -41,6 +42,10 @@ def discover_and_register_plugins(
     switch_map:
         Optional mapping of ``group_key`` → ``plugin_name`` for ``"switch"`` mode.
     """
+
+    global _DISCOVERED
+    if _DISCOVERED:
+        return
 
     switch_map = switch_map or {}
 
@@ -90,8 +95,7 @@ def discover_and_register_plugins(
 
             registry[group_key][ep.name] = obj
 
-
-discover_and_register_plugins()
+    _DISCOVERED = True
 
 
 class PluginManager:
