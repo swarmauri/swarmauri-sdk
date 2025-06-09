@@ -19,6 +19,7 @@ from .commands import (
     local_eval_app,
     local_extras_app,
     local_fetch_app,
+    local_db_app,
     local_init_app,
     local_process_app,
     local_mutate_app,
@@ -144,6 +145,7 @@ local_app.add_typer(local_doe_app,)
 local_app.add_typer(local_eval_app,)
 local_app.add_typer(local_extras_app, name="extras-schemas")
 local_app.add_typer(local_fetch_app,)
+local_app.add_typer(local_db_app, name="db")
 local_app.add_typer(local_init_app,          name="init")
 local_app.add_typer(local_process_app)
 local_app.add_typer(local_mutate_app)

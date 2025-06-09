@@ -231,6 +231,14 @@ For reference implementations, see the sample specs under
 and evaluator-pool variations.
 
 
+### `peagen db upgrade`
+
+Run Alembic migrations to the latest version.
+
+```bash
+peagen db upgrade
+```
+
 ---
 
 ## Examples & Walkthroughs
