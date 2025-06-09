@@ -17,10 +17,8 @@ class RedisQueue:
         await self.client.sadd(key, member)
 
     async def smembers(self, key: str) -> list[str]:
-        resp = self.client.smembers(key)
-        if hasattr(resp, "__aiter__"):
-            return [m async for m in resp]
-        return await resp
+        result = await self.client.smembers(key)
+        return list(result)
 
     async def rpush(self, key: str, value: str) -> None:
         await self.client.rpush(key, value)
