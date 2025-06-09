@@ -51,6 +51,13 @@ password = ""                   # leave blank if no auth
 [publishers.adapters.webhook]
 url = ""
 
+# ─────────────────────────────── Queues ───────────────────────────────
+[queues]
+default_queue = null
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
 
 # ────────────────────────────── Evaluation ───────────────────────────────
 [evaluation]

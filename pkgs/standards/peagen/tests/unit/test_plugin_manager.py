@@ -26,3 +26,10 @@ def test_plugin_manager_instantiates_defaults(tmp_path):
     backend = pm.get("result_backends")
     assert isinstance(queue, DummyQueue)
     assert isinstance(backend, DummyBackend)
+
+
+@pytest.mark.unit
+def test_plugin_manager_allows_null_default():
+    cfg = {"queues": {"default_queue": None}}
+    pm = PluginManager(cfg)
+    assert pm.get("queues") is None

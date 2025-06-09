@@ -232,7 +232,12 @@ class PluginManager:
         items = cfg.get(layout.get("items", "plugins"), {})
         if name is None:
             default_key = layout.get("default")
-            name = cfg.get(default_key) if default_key else None
+            if default_key and default_key in cfg:
+                name = cfg.get(default_key)
+                if name is None:
+                    return None
+            else:
+                name = cfg.get(default_key) if default_key else None
         if not name:
             raise KeyError(f"No plugin name provided for group '{group}'")
         params = items.get(name, {})
