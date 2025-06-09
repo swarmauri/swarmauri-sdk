@@ -143,6 +143,7 @@ services:
       PG_DB:                ${POSTGRES_DB}
       PG_USER:              ${POSTGRES_USER}
       PG_PASS:              ${POSTGRES_PASSWORD}
+      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5342/${POSTGRES_DB}
       REDIS_HOST:           redis
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0

@@ -58,6 +58,10 @@ default_queue = null
 [queues.adapters.redis]
 uri = "${REDIS_URL}"
 
+# ─────────────────────────── Result Backends ──────────────────────────
+[result_backends]
+default_backend = null
+
 
 # ────────────────────────────── Evaluation ───────────────────────────────
 [evaluation]
