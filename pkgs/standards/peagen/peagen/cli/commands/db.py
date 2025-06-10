@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
-import subprocess
+import asyncio
 from pathlib import Path
 
 import typer
+
+from peagen.handlers.migrate_handler import migrate_handler
+from peagen.models import Task
 
 ALEMBIC_CFG = Path(__file__).resolve().parents[3] / "alembic.ini"
 
@@ -17,16 +20,11 @@ local_db_app = typer.Typer(help="Database utilities.")
 def upgrade() -> None:
     """Apply Alembic migrations up to HEAD."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
-    subprocess.run(
-        [
-            "alembic",
-            "-c",
-            str(ALEMBIC_CFG),
-            "upgrade",
-            "head",
-        ],
-        check=True,
-    )
+    task = Task(pool="default", payload={"action": "migrate", "args": {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)}})
+    result = asyncio.run(migrate_handler(task))
+    if not result.get("ok", False):
+        typer.echo(f"[ERROR] {result.get('error')}")
+        raise typer.Exit(1)
 
 
 @local_db_app.command("revision")
@@ -42,21 +40,13 @@ def revision(
     typer.echo(
         f"Running alembic -c {ALEMBIC_CFG} revision --autogenerate -m '{message}' …"
     )
-    try:
-        subprocess.run(
-            [
-                "alembic",
-                "-c",
-                str(ALEMBIC_CFG),
-                "revision",
-                "--autogenerate",
-                "-m",
-                message,
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        typer.echo(f"[ERROR] {exc}")
+    task = Task(
+        pool="default",
+        payload={"action": "migrate", "args": {"op": "revision", "message": message, "alembic_ini": str(ALEMBIC_CFG)}},
+    )
+    result = asyncio.run(migrate_handler(task))
+    if not result.get("ok", False):
+        typer.echo(f"[ERROR] {result.get('error')}")
         raise typer.Exit(1)
 
 
@@ -64,17 +54,8 @@ def revision(
 def downgrade() -> None:
     """Downgrade the database by one revision."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
-    try:
-        subprocess.run(
-            [
-                "alembic",
-                "-c",
-                str(ALEMBIC_CFG),
-                "downgrade",
-                "-1",
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        typer.echo(f"[ERROR] {exc}")
+    task = Task(pool="default", payload={"action": "migrate", "args": {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)}})
+    result = asyncio.run(migrate_handler(task))
+    if not result.get("ok", False):
+        typer.echo(f"[ERROR] {result.get('error')}")
         raise typer.Exit(1)
