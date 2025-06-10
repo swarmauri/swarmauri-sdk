@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 import typer
+
+ALEMBIC_CFG = Path(__file__).resolve().parents[3] / "alembic.ini"
 
 local_db_app = typer.Typer(help="Database utilities.")
 
@@ -13,14 +16,12 @@ local_db_app = typer.Typer(help="Database utilities.")
 @local_db_app.command("upgrade")
 def upgrade() -> None:
     """Apply Alembic migrations up to HEAD."""
-    typer.echo(
-        "Running alembic -c pkgs/standards/peagen/alembic.ini upgrade head …"
-    )
+    typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
     subprocess.run(
         [
             "alembic",
             "-c",
-            "pkgs/standards/peagen/alembic.ini",
+            str(ALEMBIC_CFG),
             "upgrade",
             "head",
         ],
@@ -29,21 +30,28 @@ def upgrade() -> None:
 
 
 @local_db_app.command("revision")
-def revision() -> None:
+def revision(
+    message: str = typer.Option(
+        "init",
+        "--message",
+        "-m",
+        help="Message for the new revision",
+    ),
+) -> None:
     """Generate a new Alembic revision."""
     typer.echo(
-        "Running alembic -c pkgs/standards/peagen/alembic.ini revision --autogenerate -m 'init' …"
+        f"Running alembic -c {ALEMBIC_CFG} revision --autogenerate -m '{message}' …"
     )
     try:
         subprocess.run(
             [
                 "alembic",
                 "-c",
-                "pkgs/standards/peagen/alembic.ini",
+                str(ALEMBIC_CFG),
                 "revision",
                 "--autogenerate",
                 "-m",
-                "init",
+                message,
             ],
             check=True,
         )
@@ -55,15 +63,13 @@ def revision() -> None:
 @local_db_app.command("downgrade")
 def downgrade() -> None:
     """Downgrade the database by one revision."""
-    typer.echo(
-        "Running alembic -c pkgs/standards/peagen/alembic.ini downgrade -1 …"
-    )
+    typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
     try:
         subprocess.run(
             [
                 "alembic",
                 "-c",
-                "pkgs/standards/peagen/alembic.ini",
+                str(ALEMBIC_CFG),
                 "downgrade",
                 "-1",
             ],
