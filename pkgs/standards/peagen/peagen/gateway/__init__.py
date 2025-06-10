@@ -21,7 +21,7 @@ from json.decoder import JSONDecodeError
 from typing import Optional
 
 from fastapi import FastAPI, Request, Response, Body
-from peagen.plugins.queues import QueueClient
+from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
 from peagen.models import Task, Status, Base, TaskRun
@@ -55,7 +55,7 @@ pm = PluginManager(cfg)
 
 rpc = RPCDispatcher()
 queue_plugin = pm.get("queues")
-queue: QueueClient = (
+queue: QueueBase = (
     queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
 )
 result_backend = pm.get("result_backends")
