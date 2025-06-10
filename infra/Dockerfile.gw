@@ -16,8 +16,7 @@ WORKDIR /app
 # 1. Copy only dependency-defining files first (better layer caching)
 COPY ./pkgs/ ./pkgs/
 COPY ./infra/.gw.peagen.toml ./.peagen.toml
-COPY ./alembic.ini ./alembic.ini
-COPY ./migrations ./migrations
+
 
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
