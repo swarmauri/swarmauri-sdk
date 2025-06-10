@@ -35,4 +35,4 @@ ENV \
     MINIO_USER="" \
     MINIO_ROOT_PASSWORD=""
     
-CMD ["sh", "-c", "alembic upgrade head && python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
+CMD ["sh", "-c", "alembic -c pkgs/standards/peagen/alembic.ini upgrade head && python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
