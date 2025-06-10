@@ -16,6 +16,8 @@ WORKDIR /app
 # 1. Copy only dependency-defining files first (better layer caching)
 COPY ./pkgs/ ./pkgs/
 COPY ./infra/.worker.peagen.toml ./.peagen.toml
+COPY ./alembic.ini ./alembic.ini
+COPY ./migrations ./migrations
 
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
@@ -27,9 +29,4 @@ ENV \
     DQ_GATEWAY=""\
     PORT="8001"
 
-CMD ["python", "-c", "\
-import uvicorn; \
-uvicorn.run('peagen.worker:app', \
-            host='0.0.0.0', \
-            port=8001, \
-            log_level='info')"]
+CMD ["sh", "-c", "alembic upgrade head && python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8001, log_level=\"info\")'"]

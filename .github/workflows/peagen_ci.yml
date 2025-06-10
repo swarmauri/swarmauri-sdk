@@ -45,3 +45,16 @@ jobs:
         # Recreate the stack with the env vars already in scope
         sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
         sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
+
+    # 3) Run database migrations
+    - name: Run Alembic migrations
+      run: |
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway alembic upgrade head | tee migration.log
+
+    # 4) Upload migration logs
+    - name: Upload migration logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: migration-logs
+        path: migration.log
