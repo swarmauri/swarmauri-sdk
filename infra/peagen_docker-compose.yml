@@ -26,7 +26,7 @@ services:
       - "${DATA_ROOT}/minio/data:/data"               # bucket objects
       - "${CONFIG_ROOT}/minio:/root/.minio"           # users / policies
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 10s
       timeout: 5s
       retries: 3
