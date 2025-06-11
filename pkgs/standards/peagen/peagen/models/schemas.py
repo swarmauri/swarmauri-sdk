@@ -14,9 +14,15 @@ class Role(str, Enum):
 
 
 class Status(str, Enum):
-    pending = "pending"
+    queued = "queued"
+    waiting = "waiting"
+    input_required = "input_required"
+    auth_required = "auth_required"
+    approved = "approved"
+    rejected = "rejected"
     dispatched = "dispatched"
     running = "running"
+    paused = "paused"
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
@@ -26,7 +32,7 @@ class Task(BaseModel):
     id: str = Field(default=str(uuid.uuid4()))
     pool: str
     payload: dict
-    status: Status = Status.pending
+    status: Status = Status.waiting
     result: Optional[dict] = None
     deps: List[str] = Field(default_factory=list)
     edge_pred: str | None = None
