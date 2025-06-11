@@ -15,7 +15,7 @@ from peagen.models import Task, Status
 
 
 async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    """Expand DOE spec and dispatch a process task per project."""
+    """Expand the DOE spec and spawn a process task for each project."""
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
@@ -31,16 +31,15 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     )
 
     doc = yaml.safe_load(Path(result["output"]).read_text())
-    payloads: List[Dict[str, Any]] = doc.get("PROJECTS", [])
+    projects: List[Dict[str, Any]] = doc.get("PROJECTS", [])
 
     gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
     pool = task_or_dict.get("pool", "default")
 
     child_ids: List[str] = []
     async with httpx.AsyncClient(timeout=10.0) as client:
-        for bundle in payloads:
-            for proj in bundle.get("PROJECTS", []):
-                child = Task(
+        for proj in projects:
+            child = Task(
                     id=str(uuid.uuid4()),
                     pool=pool,
                     action="process",
@@ -52,7 +51,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
                             "project_name": proj.get("NAME"),
                         },
                     },
-                )
+            )
             req = {
                 "jsonrpc": "2.0",
                 "method": "Task.submit",
