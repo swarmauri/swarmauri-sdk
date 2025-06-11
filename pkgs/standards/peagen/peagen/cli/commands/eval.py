@@ -32,7 +32,7 @@ def _build_task(args: dict) -> Task:
         id=str(uuid.uuid4()),
         pool="default",
         action="eval",
-        status=Status.pending,
+        status=Status.queued,
         payload={"args": args},
     )
 

@@ -25,7 +25,7 @@ def _make_task(args: dict) -> Task:
         id=str(uuid.uuid4()),
         pool="default",
         action="doe",
-        status=Status.pending,
+        status=Status.queued,
         payload={"args": args},
     )
 

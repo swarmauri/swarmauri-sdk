@@ -61,3 +61,44 @@ def patch_task(
     }
     res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
     typer.echo(json.dumps(res["result"], indent=2))
+
+
+def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
+    req = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": method,
+        "params": {"selector": selector},
+    }
+    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    typer.echo(json.dumps(res["result"], indent=2))
+
+
+@remote_task_app.command("pause")
+def pause(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Pause one task or all tasks matching a label."""
+    _simple_call(ctx, "Task.pause", selector)
+
+
+@remote_task_app.command("resume")
+def resume(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Resume a paused task or label set."""
+    _simple_call(ctx, "Task.resume", selector)
+
+
+@remote_task_app.command("cancel")
+def cancel(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Cancel a task or label set."""
+    _simple_call(ctx, "Task.cancel", selector)
+
+
+@remote_task_app.command("retry")
+def retry(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Retry a task or label set."""
+    _simple_call(ctx, "Task.retry", selector)
+
+
+@remote_task_app.command("retry-from")
+def retry_from(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Retry a task and its descendants."""
+    _simple_call(ctx, "Task.retry_from", selector)
