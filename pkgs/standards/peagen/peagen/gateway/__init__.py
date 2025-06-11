@@ -400,13 +400,13 @@ async def health() -> dict:
     """
     return {"status": "ok"}
 
-
+\
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
     await ensure_status_enum(engine)
 
-    if engine.url.drivername.startswith("sqlite"):
+    if engine.url.get_backend_name() == "sqlite":      # ← guard
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
