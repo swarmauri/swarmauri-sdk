@@ -1,4 +1,4 @@
-# File: .github/workflows/peagen_ci.yaml
+# .github/workflows/peagen_ci.yaml
 name: Peagen CI Deploy
 
 on:
@@ -31,41 +31,41 @@ jobs:
       PGADMIN_DEFAULT_PASSWORD:  ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
       PGADMIN_DEFAULT_EMAIL:     ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
 
-
     steps:
     # 1) Check out the repo
     - uses: actions/checkout@v4
 
     # 2) Deploy / refresh the stack
     - name: Deploy with Docker Compose
+      id: deploy            # ← give the step an id
       run: |
         # Pull latest images (optional—uncomment if desired)
         # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull
         
-        # Recreate the stack with the env vars already in scope
         sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
         sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
 
-    # 3) Run database migrations
+    # 3) Run database migrations (only when deploy succeeded)
     - name: Run Alembic migrations
+      if: steps.deploy.outcome == 'success'
       run: |
         sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway alembic upgrade head | tee migration.log
 
-    # 4) Upload migration logs
+    # 4) Upload migration logs (only if migrations actually ran)
     - name: Upload migration logs
-      if: always()
+      if: steps.deploy.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: migration-logs
         path: migration.log
 
-    # 2) Deploy / refresh the stack
-    - name: Deploy with Docker Compose
+    # 5) Collect container logs only when the deploy step failed
+    - name: Get container logs on failure
+      if: steps.deploy.outcome == 'failure'
       run: |
-        # Pull latest images (optional—uncomment if desired)
-        # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull
-        
-        # Recreate the stack with the env vars already in scope
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs gateway
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs worker
-
+        echo "::group::gateway logs"
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs gateway || true
+        echo "::endgroup::"
+        echo "::group::worker logs"
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs worker || true
+        echo "::endgroup::"
