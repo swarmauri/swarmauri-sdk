@@ -27,4 +27,8 @@ development default* here so nothing crashes when the file is absent.
 CONFIG = {
     # … existing keys …
     "gateway_url": "http://localhost:8000/rpc",   # ← lowest-priority default
+    # Default Redis topics/queues used by the gateway & workers
+    "control_queue": "control",      # worker ↔ gateway control messages
+    "ready_queue": "queue",          # prefix for per-pool ready queues
+    "pubsub": "task:update",         # channel for task event broadcasts
 }
