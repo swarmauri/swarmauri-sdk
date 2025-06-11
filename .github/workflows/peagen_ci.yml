@@ -58,3 +58,14 @@ jobs:
       with:
         name: migration-logs
         path: migration.log
+
+    # 2) Deploy / refresh the stack
+    - name: Deploy with Docker Compose
+      run: |
+        # Pull latest images (optional—uncomment if desired)
+        # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull
+        
+        # Recreate the stack with the env vars already in scope
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs gateway
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs worker
+
