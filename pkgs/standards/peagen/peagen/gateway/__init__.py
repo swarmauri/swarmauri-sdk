@@ -54,11 +54,18 @@ cfg = resolve_cfg()
 pm = PluginManager(cfg)
 
 rpc = RPCDispatcher()
-queue_plugin = pm.get("queues")
+try:
+    queue_plugin = pm.get("queues")
+except KeyError:
+    queue_plugin = None
+
 queue: QueueBase = (
     queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
 )
-result_backend = pm.get("result_backends")
+try:
+    result_backend = pm.get("result_backends")
+except KeyError:
+    result_backend = None
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
