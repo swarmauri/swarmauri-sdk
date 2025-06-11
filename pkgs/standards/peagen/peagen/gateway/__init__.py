@@ -32,6 +32,7 @@ from peagen.gateway.db import engine
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway.db_helpers import ensure_status_enum
+import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
 
@@ -52,6 +53,9 @@ app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
 
 cfg = resolve_cfg()
+CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
+READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
+PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
 rpc = RPCDispatcher()
@@ -154,7 +158,7 @@ async def _publish_event(task: Task) -> None:
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "data": task.model_dump(),
     }
-    await queue.publish("task:update", json.dumps(event))
+    await queue.publish(PUBSUB_TOPIC, json.dumps(event))
 
 
 # ─────────────────────────── RPC endpoint ───────────────────────
@@ -241,7 +245,7 @@ async def task_submit(
         )
 
     # 1) put on the queue for the scheduler
-    await queue.rpush(f"queue:{pool}", task.model_dump_json())
+    await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
 
     # 2) save hash + TTL
     await _save_task(task)
@@ -302,7 +306,7 @@ async def task_get(taskId: str):
 
 @rpc.method("Pool.listTasks")
 async def pool_list(poolName: str):
-    ids = await queue.lrange(f"queue:{poolName}", 0, -1)
+    ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", 0, -1)
     return [Task.model_validate_json(r).model_dump() for r in ids]
 
 
@@ -363,7 +367,7 @@ async def scheduler():
                 continue
 
             # build key list once per tick → ["queue:demo", "queue:beta", ...]
-            keys = [f"queue:{p}" for p in pools]
+            keys = [f"{READY_QUEUE}:{p}" for p in pools]
 
             # BLPOP across *all* pools, 0.5-sec timeout
             res = await queue.blpop(keys, 0.5)
@@ -372,7 +376,7 @@ async def scheduler():
                 continue
 
             queue_key, task_raw = res  # guaranteed 2-tuple here
-            pool = queue_key.split(":", 1)[1]  # "queue:demo" → "demo"
+            pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             task = Task.model_validate_json(task_raw)
 
             # pick first live worker for that pool
