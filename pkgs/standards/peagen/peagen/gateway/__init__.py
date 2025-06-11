@@ -31,6 +31,7 @@ from peagen.gateway.ws_server import router as ws_router
 from peagen.gateway.db import engine
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
+from peagen.gateway.db_helpers import ensure_status_enum
 
 from peagen.core.task_core import get_task_result
 
@@ -403,6 +404,7 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
+    await ensure_status_enum(engine)
     async with engine.begin() as conn:
         # run once – creates task_runs if it doesn't exist
         await conn.run_sync(Base.metadata.create_all)
