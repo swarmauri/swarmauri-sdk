@@ -8,7 +8,7 @@ import pytest
 
 @pytest.mark.unit
 def test_alembic_upgrade_and_current(tmp_path):
-    ALEMBIC_CFG = Path(__file__).resolve().parents[2] / "alembic.ini"
+    alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
     repo_root = Path(__file__).resolve().parents[5]
 
 
@@ -31,7 +31,6 @@ def test_alembic_upgrade_and_current(tmp_path):
         check=True,
         cwd=repo_root,
         env=env,
-        cwd=repo_root,
     )
 
     result = subprocess.run(
@@ -41,7 +40,6 @@ def test_alembic_upgrade_and_current(tmp_path):
         env=env,
         capture_output=True,
         text=True,
-        cwd=repo_root,
     )
 
     assert result.stdout.strip()
