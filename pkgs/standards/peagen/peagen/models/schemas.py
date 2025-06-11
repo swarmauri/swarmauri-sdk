@@ -2,7 +2,6 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from sqlalchemy.dialects import postgresql as psql
 import uuid
 
 
@@ -21,15 +20,6 @@ class Status(str, Enum):
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
-
-# ────────────────────────────────────────────────────────────────────────
-# POSTGRES ENUM  (single source of truth for every table + migration)
-# ────────────────────────────────────────────────────────────────────────
-status_enum = psql.ENUM(
-    *(s.value for s in Status),            # "pending", "running", ...
-    name="status",
-    create_type=False,                     # ← **critical**: never emit CREATE TYPE
-)
 
 
 class Task(BaseModel):
