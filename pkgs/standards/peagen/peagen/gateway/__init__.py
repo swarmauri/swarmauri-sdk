@@ -1,5 +1,5 @@
 """
-dqueue.transport.gateway
+peagen.gateway
 ────────────────────────
 JSON-RPC gateway with verbose, structured logging.
 
