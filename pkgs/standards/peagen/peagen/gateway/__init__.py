@@ -135,6 +135,27 @@ async def _load_task(tid: str) -> Task | None:
     return Task.model_validate_json(data) if data else None
 
 
+async def _check_task_labels(task: Task) -> bool:
+    now = asyncio.get_event_loop().time()
+    for label in task.labels:
+        meta = await queue.hgetall(f"label:{label}:meta")
+        if meta.get("paused") == "1":
+            return False
+        deadline = meta.get("deadline")
+        if deadline and now > float(deadline):
+            task.status = Status.cancelled
+            await _save_task(task)
+            await _persist(task)
+            await _publish_event(task)
+            return False
+        rate = meta.get("rate")
+        if rate:
+            allowed = float(meta.get("allowed_after", "0"))
+            if now < allowed:
+                return False
+    return True
+
+
 # ──────────────────────   Results Backend ────────────────────────
 
 
@@ -239,6 +260,9 @@ async def task_submit(
         config_toml=config_toml,
     )
 
+    for label in task.labels:
+        await queue.sadd(f"label:{label}:tasks", task.id)
+
     # 1) put on the queue for the scheduler
     await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
 
@@ -303,6 +327,40 @@ async def task_get(taskId: str):
 async def pool_list(poolName: str):
     ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", 0, -1)
     return [Task.model_validate_json(r).model_dump() for r in ids]
+
+
+# ─────────────────────────── Label RPCs ─────────────────────────
+@rpc.method("Label.update")
+async def label_update(label: str, meta: dict) -> dict:
+    await queue.hset(f"label:{label}:meta", mapping={k: str(v) for k, v in meta.items()})
+    return {"label": label, "meta": meta}
+
+
+@rpc.method("Label.pause")
+async def label_pause(label: str) -> dict:
+    await queue.hset(f"label:{label}:meta", mapping={"paused": "1"})
+    return {"label": label, "paused": True}
+
+
+@rpc.method("Label.resume")
+async def label_resume(label: str) -> dict:
+    await queue.hset(f"label:{label}:meta", mapping={"paused": "0"})
+    return {"label": label, "paused": False}
+
+
+@rpc.method("Label.cancel")
+async def label_cancel(label: str) -> dict:
+    ids = await queue.smembers(f"label:{label}:tasks")
+    cancelled = 0
+    for tid in ids:
+        task = await _load_task(tid)
+        if task and task.status == Status.pending:
+            task.status = Status.cancelled
+            await _save_task(task)
+            await _persist(task)
+            await _publish_event(task)
+            cancelled += 1
+    return {"cancelled": cancelled}
 
 
 # ─────────────────────────── Worker RPCs ────────────────────────
@@ -374,6 +432,11 @@ async def scheduler():
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             task = Task.model_validate_json(task_raw)
 
+            if not await _check_task_labels(task):
+                await queue.rpush(queue_key, task_raw)
+                await asyncio.sleep(0.1)
+                continue
+
             # pick first live worker for that pool
             worker_list = await _live_workers_by_pool(pool)
             if not worker_list:
@@ -399,6 +462,15 @@ async def scheduler():
                 await _save_task(task)
                 await _persist(task)
                 await _publish_event(task)
+                now = asyncio.get_event_loop().time()
+                for label in task.labels:
+                    meta = await queue.hgetall(f"label:{label}:meta")
+                    rate = meta.get("rate")
+                    if rate:
+                        next_time = now + 1 / float(rate)
+                        await queue.hset(
+                            f"label:{label}:meta", mapping={"allowed_after": str(next_time)}
+                        )
                 log.info(
                     "dispatch %s → %s (HTTP %d)",
                     task.id,
