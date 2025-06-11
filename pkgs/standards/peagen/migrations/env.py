@@ -2,7 +2,6 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from peagen.gateway.db import engine

@@ -29,6 +29,9 @@ class RedisQueue:
     async def blpop(self, keys: list[str], timeout: float) -> tuple[str, str] | None:
         return await self.client.blpop(keys, timeout)
 
+    async def brpop(self, keys: list[str], timeout: float) -> tuple[str, str] | None:
+        return await self.client.brpop(keys, timeout)
+
     async def hset(self, key: str, mapping: dict[str, Any]) -> None:
         await self.client.hset(key, mapping=mapping)
 

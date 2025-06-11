@@ -65,6 +65,24 @@ class InMemoryQueue:
                 except asyncio.TimeoutError:
                     return None
 
+    async def brpop(self, keys: list[str], timeout: float) -> tuple[str, str] | None:
+        end_time = self._loop.time() + timeout
+        while True:
+            await self._cleanup()
+            for k in keys:
+                lst = self.lists.get(k)
+                if lst:
+                    value = lst.pop()
+                    return k, value
+            remaining = end_time - self._loop.time()
+            if remaining <= 0:
+                return None
+            async with self._cond:
+                try:
+                    await asyncio.wait_for(self._cond.wait(), remaining)
+                except asyncio.TimeoutError:
+                    return None
+
     # -------------------- hash ops -------------------
     async def hset(self, key: str, mapping: dict[str, Any]) -> None:
         self.hashes[key].update(mapping)
