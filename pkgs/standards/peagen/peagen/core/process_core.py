@@ -83,6 +83,7 @@ def _render_package_ptree(
     pkg: Dict[str, Any],
     global_search_paths: List[Path],
     workspace_root: Path,
+    storage_adapter: Any | None = None,
     logger: Optional[Any] = None,
 ) -> List[Dict[str, Any]]:
     """
@@ -125,7 +126,13 @@ def _render_package_ptree(
 
     # 3) Render ptree.yaml.j2 with correct context
     project_copy = dict(project)  # shallow copy of the project dict
-    project_copy["PKGS"] = [pkg]
+    project_copy.setdefault("EXTRAS", {})
+    pkg_copy = dict(pkg)
+    pkg_copy.setdefault("EXTRAS", {})
+    for mod in pkg_copy.get("MODULES", []):
+        if isinstance(mod, dict):
+            mod.setdefault("EXTRAS", {})
+    project_copy["PKGS"] = [pkg_copy]
 
     j2 = J2PromptTemplate()
     j2.templates_dir = ptree_paths
@@ -144,6 +151,16 @@ def _render_package_ptree(
         log.debug(
             f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)"
         )
+
+    # Save the rendered ptree to the workspace for debugging and as an artifact
+    ptree_dir = workspace_root / ".peagen"
+    ptree_dir.mkdir(parents=True, exist_ok=True)
+    ptree_file = ptree_dir / f"{slugify(pkg_name)}_ptree.yaml"
+    ptree_file.write_text(rendered, encoding="utf-8")
+    if storage_adapter:
+        key = f"{project.get('NAME', 'project')}/.peagen/{ptree_file.name}"
+        with open(ptree_file, "rb") as fh:
+            storage_adapter.upload(key, fh)
 
     # 4) Parse YAML
     try:
@@ -191,7 +208,7 @@ def _handle_copy(
     if log:
         log.info(f"Processing COPY file '{rendered_name}'")
 
-    content = _render_copy_template(rec, context, j2, logger)
+    content = _render_copy_template(rec, context, j2)
     out_path = workspace_root / rendered_name
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content or "", encoding="utf-8")
@@ -313,6 +330,8 @@ def process_single_project(
     base_dir = Path(os.getcwd())
     source_pkgs = cfg.get("source_packages", [])
 
+    storage_adapter = cfg.get("storage_adapter")
+
     # Always materialize workspace_root under the current working directory:
     workspace_root = Path(base_dir) / project_name
     workspace_root.mkdir(parents=True, exist_ok=True)
@@ -335,6 +354,7 @@ def process_single_project(
             pkg=pkg,
             global_search_paths=global_search_paths,
             workspace_root=workspace_root,
+            storage_adapter=storage_adapter,
             logger=logger,
         )
         all_file_records.extend(pkg_records)
@@ -359,7 +379,6 @@ def process_single_project(
         return sorted_records, next_idx
 
     # ─── STEP 4: Prepare manifest (workspace already exists) ───────────────
-    storage_adapter = cfg.get("storage_adapter")
     workspace_uri = None
     if storage_adapter:
         for attr in ("workspace_uri", "base_uri", "root_uri"):
