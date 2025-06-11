@@ -10,6 +10,7 @@ from peagen.models import Status, TaskRun
 
 log = Logger(name="upsert")
 
+
 def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert  Enum → str,  UUID str → uuid.UUID,  dt.datetime → aware  dt.
@@ -20,7 +21,7 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
         if v is None:
             out[k] = None
         elif isinstance(v, Status):
-            out[k] = v.value           # 'running', 'success', …
+            out[k] = v.value  # 'running', 'success', …
         elif k == "id" and isinstance(v, str):
             out[k] = uuid.UUID(v)
         elif isinstance(v, dt.datetime) and v.tzinfo is None:
@@ -28,6 +29,7 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
         else:
             out[k] = v
     return out
+
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     data = _coerce(row.to_dict())
@@ -44,8 +46,10 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
 
 
 async def ensure_status_enum(engine) -> None:
-    """Create or extend the ``status`` enum to match ``peagen.models.Status``."""
+    """Ensure the Postgres ``status`` enum includes all ``Status`` values."""
+
     from sqlalchemy import text
+
     values = [s.value for s in Status]
     async with engine.begin() as conn:
         exists = await conn.execute(
@@ -53,7 +57,9 @@ async def ensure_status_enum(engine) -> None:
         )
         if not exists.scalar():
             enum_values = ", ".join(f"'{v}'" for v in values)
-            await conn.execute(text(f"CREATE TYPE status AS ENUM ({enum_values})"))
+            await conn.execute(
+                text(f"CREATE TYPE IF NOT EXISTS status AS ENUM ({enum_values})")
+            )
         else:
             res = await conn.execute(
                 text(
@@ -66,4 +72,3 @@ async def ensure_status_enum(engine) -> None:
                     await conn.execute(
                         text(f"ALTER TYPE status ADD VALUE IF NOT EXISTS '{val}'")
                     )
-
