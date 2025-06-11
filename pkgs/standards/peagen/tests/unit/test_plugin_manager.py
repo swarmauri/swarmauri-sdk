@@ -1,6 +1,9 @@
 import sys
+from importlib import reload
+
 import pytest
 
+import peagen.plugins as plugins
 from peagen.plugins import PluginManager
 
 from .dummy_plugins import DummyQueue, DummyBackend
@@ -40,3 +43,41 @@ def test_plugin_manager_allows_null_result_backend():
     cfg = {"result_backends": {"default_backend": None}}
     pm = PluginManager(cfg)
     assert pm.get("result_backends") is None
+
+
+def _reset_plugins(monkeypatch):
+    reload(plugins)
+    monkeypatch.setattr(plugins, "_DISCOVERED", False, raising=False)
+    for group in plugins.registry:
+        plugins.registry[group].clear()
+
+
+@pytest.mark.unit
+def test_plugin_discovery_runs_once(monkeypatch):
+    _reset_plugins(monkeypatch)
+
+    calls: list[str] = []
+
+    def fake_entry_points(group: str):
+        calls.append(group)
+
+        class EP:
+            name = "dummy"
+            module = "peagen.dummy"
+
+            def load(self):
+                class Dummy:
+                    pass
+
+                return Dummy
+
+        return [EP()]
+
+    monkeypatch.setattr(plugins, "entry_points", fake_entry_points)
+
+    PluginManager({})
+    PluginManager({})
+
+    assert len(calls) == len(plugins.GROUPS)
+
+
