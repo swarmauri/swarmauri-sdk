@@ -41,3 +41,5 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     )
     result = await session.execute(stmt)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
+
+
