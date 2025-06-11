@@ -15,7 +15,7 @@ from peagen.models import Task, Status
 
 
 async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    """Expand DOE spec and dispatch a process task per project."""
+    """Expand the DOE spec and spawn a process task for each project."""
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
