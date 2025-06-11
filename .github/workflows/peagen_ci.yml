@@ -14,54 +14,47 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy infrastructure
     runs-on: peagenx
     env:
-      # --- non-secret values (GitHub Variables) ---
-      DATA_ROOT:                 /mnt/data
-      CONFIG_ROOT:               /mnt/config
-      MINIO_ROOT_USER:           minioadmin
-      POSTGRES_USER:             npm
-      POSTGRES_DB:               npm
-
-      # --- sensitive values (GitHub *Secrets*) ---
-      MINIO_ROOT_PASSWORD:       ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
-      REDIS_PASSWORD:            ${{ secrets.PEAGEN_REDIS_PASSWORD }}
-      POSTGRES_PASSWORD:         ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
-      PGADMIN_DEFAULT_PASSWORD:  ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
-      PGADMIN_DEFAULT_EMAIL:     ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
+      # --- non-secret values ---
+      DATA_ROOT:  /mnt/data
+      CONFIG_ROOT: /mnt/config
+      MINIO_ROOT_USER: minioadmin
+      POSTGRES_USER:  npm
+      POSTGRES_DB:    npm
+      # --- secrets ---
+      MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
+      REDIS_PASSWORD:           ${{ secrets.PEAGEN_REDIS_PASSWORD }}
+      POSTGRES_PASSWORD:        ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
+      PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
+      PGADMIN_DEFAULT_EMAIL:    ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
 
     steps:
-    # 1) Check out the repo
     - uses: actions/checkout@v4
 
-    # 2) Deploy / refresh the stack
     - name: Deploy with Docker Compose
-      id: deploy            # ← give the step an id
+      id: deploy
       run: |
-        # Pull latest images (optional—uncomment if desired)
-        # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull
-        
+        # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull   # optional
         sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
         sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
 
-    # 3) Run database migrations (only when deploy succeeded)
+    # Run Alembic only when deploy succeeded
     - name: Run Alembic migrations
-      if: steps.deploy.outcome == 'success'
+      if: success()          # <- deploy must have succeeded
       run: |
         sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway alembic upgrade head | tee migration.log
 
-    # 4) Upload migration logs (only if migrations actually ran)
     - name: Upload migration logs
-      if: steps.deploy.outcome == 'success'
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: migration-logs
         path: migration.log
 
-    # 5) Collect container logs only when the deploy step failed
+    # Collect logs only when *any* previous step failed (deploy or later)
     - name: Get container logs on failure
-      if: steps.deploy.outcome == 'failure'
+      if: failure()          # <- overrides the implicit success() check
       run: |
         echo "::group::gateway logs"
         sudo -E docker-compose -f infra/peagen_docker-compose.yml logs gateway || true
