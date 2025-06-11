@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 import uuid
 
 
+
+
 class Role(str, Enum):
     admin = "admin"
     user = "user"
@@ -18,6 +20,15 @@ class Status(str, Enum):
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
+
+# ────────────────────────────────────────────────────────────────────────
+# POSTGRES ENUM  (single source of truth for every table + migration)
+# ────────────────────────────────────────────────────────────────────────
+status_enum = psql.ENUM(
+    *(s.value for s in Status),            # "pending", "running", ...
+    name="status",
+    create_type=False,                     # ← **critical**: never emit CREATE TYPE
+)
 
 
 class Task(BaseModel):
