@@ -54,6 +54,7 @@ dependencies = [
     # result_backends/indexers
     "sqlalchemy>=2.0",
     "alembic",
+    "alembic-postgresql-enum>=1.7.0",
     "asyncpg>=0.30.0", # need to push out to a standalone with extra
     "psycopg2-binary", # need to push out to a standalone with extra
     "aiosqlite>=0.19.0", # needed for the SQLite fallback result backend

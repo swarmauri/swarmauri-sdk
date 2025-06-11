@@ -3,6 +3,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
+import alembic_postgresql_enum
 
 from peagen.gateway.db import engine
 from peagen.models import Base
