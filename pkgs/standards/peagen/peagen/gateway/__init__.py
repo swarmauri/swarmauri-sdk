@@ -20,10 +20,10 @@ import time
 from json.decoder import JSONDecodeError
 from typing import Optional
 
-from fastapi import FastAPI, Request, Response, Body
+from fastapi import FastAPI, Request, Response
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
+from peagen.transport import RPCDispatcher, RPCRequest, RPCError
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
@@ -162,23 +162,10 @@ async def _publish_event(task: Task) -> None:
 
 
 # ─────────────────────────── RPC endpoint ───────────────────────
-@app.post(
-    "/rpc",
-    response_model=RPCResponse,
-    response_model_exclude_none=True,
-    summary="JSON-RPC 2.0 endpoint",
-)
-async def rpc_endpoint(
-    request: Request,
-    body: RPCRequest = Body(..., description="JSON-RPC 2.0 envelope"),
-):
+@app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
+async def rpc_endpoint(request: Request):
     try:
-        # give the call an id if the client omitted one
-        if body.id is None:
-            body.id = str(uuid.uuid4())
-
-        payload = body.model_dump()
-        log.debug("RPC in  <- %s", payload)
+        raw = await request.json()
     except JSONDecodeError:
         log.warning("parse error from %s", request.client.host)
         return Response(
@@ -187,10 +174,21 @@ async def rpc_endpoint(
             media_type="application/json",
         )
 
+    def _ensure_id(obj: dict) -> dict:
+        if obj.get("id") is None:
+            obj["id"] = str(uuid.uuid4())
+        return RPCRequest.model_validate(obj).model_dump()
+
+    if isinstance(raw, list):
+        payload = [_ensure_id(item) for item in raw]
+    else:
+        payload = _ensure_id(raw)
+
+    log.debug("RPC in  <- %s", payload)
     resp = await rpc.dispatch(payload)
-    if "error" in resp:
-        log.warning(f"{body.method} '{body}'")
-        log.warning(f"{body.method} '{resp['error']}'")
+    if isinstance(resp, dict) and "error" in resp:
+        method = payload.get("method") if isinstance(payload, dict) else "batch"
+        log.warning(f"{method} '{resp['error']}'")
     log.debug("RPC out -> %s", resp)
     return resp
 
@@ -220,29 +218,26 @@ async def task_submit(
     deps: list[str] | None = None,
     edge_pred: str | None = None,
     labels: list[str] | None = None,
+    in_degree: int | None = None,
     config_toml: str | None = None,
 ):
     await queue.sadd("pools", pool)  # track pool even if not created
 
-    if taskId:
-        task = Task(
-            id=taskId,
-            pool=pool,
-            payload=payload,
-            deps=deps or [],
-            edge_pred=edge_pred,
-            labels=labels or [],
-            config_toml=config_toml,
-        )
-    else:
-        task = Task(
-            pool=pool,
-            payload=payload,
-            deps=deps or [],
-            edge_pred=edge_pred,
-            labels=labels or [],
-            config_toml=config_toml,
-        )
+    if taskId and await _load_task(taskId):
+        new_id = str(uuid.uuid4())
+        log.warning("task id collision: %s → %s", taskId, new_id)
+        taskId = new_id
+
+    task = Task(
+        id=taskId or str(uuid.uuid4()),
+        pool=pool,
+        payload=payload,
+        deps=deps or [],
+        edge_pred=edge_pred,
+        labels=labels or [],
+        in_degree=in_degree or 0,
+        config_toml=config_toml,
+    )
 
     # 1) put on the queue for the scheduler
     await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
