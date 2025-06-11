@@ -74,9 +74,14 @@ except KeyError:
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
-WORKER_KEY = "worker:{}"  # format with workerId
-WORKER_TTL = 15  # seconds before a worker is considered dead
-TASK_TTL = 24 * 3600  # 24 h, adjust as needed
+WORKER_KEY = defaults.WORKER_KEY
+WORKER_TTL = defaults.WORKER_TTL
+TASK_TTL = defaults.TASK_TTL
+
+# dependency & label indices (Redis set names)
+DEP_SET = defaults.DEP_SET
+CHILD_SET = defaults.CHILD_SET
+LABEL_SET = defaults.LABEL_SET
 
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
@@ -133,6 +138,79 @@ async def _save_task(task: Task) -> None:
 async def _load_task(tid: str) -> Task | None:
     data = await queue.hget(_task_key(tid), "blob")
     return Task.model_validate_json(data) if data else None
+
+
+async def _add_task_labels(task: Task) -> None:
+    """Index task by its labels for quick lookup."""
+    for label in task.labels:
+        await queue.sadd(LABEL_SET.format(label), task.id)
+
+
+async def _register_dependencies(task: Task) -> None:
+    """Store dependency relationships for later resolution."""
+    if not task.deps:
+        return
+    for dep in task.deps:
+        await queue.sadd(DEP_SET.format(task.id), dep)
+        await queue.sadd(CHILD_SET.format(dep), task.id)
+
+
+async def _edge_pred_passes(task: Task) -> bool:
+    """Evaluate task.edge_pred with dependency results."""
+    if not task.edge_pred:
+        return True
+    results: dict[str, dict | None] = {}
+    for dep in task.deps:
+        dep_task = await _load_task(dep)
+        if dep_task:
+            results[dep] = dep_task.result
+    try:
+        return bool(eval(task.edge_pred, {"__builtins__": {}}, {"results": results}))
+    except Exception as exc:  # pragma: no cover - safety net
+        log.warning("edge_pred error for %s: %s", task.id, exc)
+        return False
+
+
+async def _resolve_dependents(task: Task) -> None:
+    """Decrement in_degree for children and enqueue when ready."""
+    children = await queue.smembers(CHILD_SET.format(task.id))
+    for child_id in children:
+        child = await _load_task(child_id)
+        if not child:
+            continue
+        if child.in_degree > 0:
+            child.in_degree -= 1
+        await _save_task(child)
+        if child.in_degree == 0:
+            if await _edge_pred_passes(child):
+                await queue.rpush(f"{READY_QUEUE}:{child.pool}", child.model_dump_json())
+            else:
+                child.status = Status.cancelled
+                await _save_task(child)
+                await _persist(child)
+                await _publish_event(child)
+
+
+async def _dispatch_control_ops() -> None:
+    """Process control operations from CONTROL_QUEUE."""
+    while True:
+        res = await queue.blpop([CONTROL_QUEUE], 0.0)
+        if not res:
+            break
+        _, item = res
+        try:
+            cmd = json.loads(item)
+        except Exception:
+            continue
+        op = cmd.get("op")
+        tid = cmd.get("taskId")
+        if op == "cancel" and tid:
+            t = await _load_task(tid)
+            if t and t.status not in {Status.success, Status.failed, Status.cancelled}:
+                t.status = Status.cancelled
+                await _save_task(t)
+                await _persist(t)
+                await _publish_event(t)
 
 
 # ──────────────────────   Results Backend ────────────────────────
@@ -235,12 +313,16 @@ async def task_submit(
         deps=deps or [],
         edge_pred=edge_pred,
         labels=labels or [],
-        in_degree=in_degree or 0,
+        in_degree=in_degree if in_degree is not None else len(deps or []),
         config_toml=config_toml,
     )
 
-    # 1) put on the queue for the scheduler
-    await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
+    await _add_task_labels(task)
+    await _register_dependencies(task)
+
+    # 1) put on the queue only when ready
+    if task.in_degree == 0:
+        await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
 
     # 2) save hash + TTL
     await _save_task(task)
@@ -346,6 +428,9 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _persist(t)
     await _publish_event(t)
 
+    # trigger dependency resolution for children
+    await _resolve_dependents(t)
+
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
 
@@ -355,6 +440,7 @@ async def scheduler():
     log.info("scheduler started")
     async with httpx.AsyncClient(timeout=10, http2=True) as client:
         while True:
+            await _dispatch_control_ops()
             # iterate over pools with queued work
             pools = await queue.smembers("pools")
             if not pools:
@@ -373,6 +459,17 @@ async def scheduler():
             queue_key, task_raw = res  # guaranteed 2-tuple here
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             task = Task.model_validate_json(task_raw)
+
+            # ensure deps resolved
+            if task.in_degree > 0:
+                await queue.rpush(queue_key, task_raw)
+                continue
+            if not await _edge_pred_passes(task):
+                task.status = Status.cancelled
+                await _save_task(task)
+                await _persist(task)
+                await _publish_event(task)
+                continue
 
             # pick first live worker for that pool
             worker_list = await _live_workers_by_pool(pool)
