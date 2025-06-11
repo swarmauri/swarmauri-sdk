@@ -14,7 +14,7 @@ Base = declarative_base()
 # POSTGRES ENUM  (single source of truth for every table + migration)
 # ────────────────────────────────────────────────────────────────────────
 status_enum = psql.ENUM(
-    *(s.value for s in Status),            # "pending", "running", ...
+    *(s.value for s in Status),            # "waiting", "running", ...
     name="status",
     create_type=False,                     # ← **critical**: never emit CREATE TYPE
 )
@@ -26,7 +26,7 @@ class TaskRun(Base):
     id           = Column(UUID(as_uuid=True), primary_key=True)
     pool         = Column(String)
     task_type    = Column(String)
-    status       = Column(status_enum, nullable=False, default=Status.pending.value)
+    status       = Column(status_enum, nullable=False, default=Status.waiting.value)
     payload      = Column(JSON)
     result       = Column(JSON, nullable=True)
     deps         = Column(JSON, nullable=False, default=list)
