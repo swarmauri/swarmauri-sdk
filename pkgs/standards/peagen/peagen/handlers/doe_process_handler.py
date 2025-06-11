@@ -64,11 +64,12 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             await client.post(gateway, json=req)
             child_ids.append(child.id)
 
+        task_id = task_or_dict["id"] if isinstance(task_or_dict, dict) else task_or_dict.id
         patch = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Task.patch",
-            "params": {"taskId": task_or_dict["id"], "changes": {"result": {"children": child_ids}}},
+            "params": {"taskId": task_id, "changes": {"result": {"children": child_ids}}},
         }
         await client.post(gateway, json=patch)
 
@@ -76,7 +77,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Work.finished",
-            "params": {"taskId": task_or_dict["id"], "status": "waiting", "result": result},
+            "params": {"taskId": task_id, "status": "waiting", "result": result},
         }
         await client.post(gateway, json=finish)
 
