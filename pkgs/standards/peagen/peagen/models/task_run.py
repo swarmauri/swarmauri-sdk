@@ -2,7 +2,8 @@ import datetime as dt
 from typing import Any, Dict, Iterable, Optional
 
 from sqlalchemy import Column, String, JSON, TIMESTAMP, Enum
-from sqlalchemy.dialects.postgresql import UUID, postgresql as psql
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects import postgresql as psql
 from sqlalchemy.orm import declarative_base
 
 from peagen.models.schemas import Status
