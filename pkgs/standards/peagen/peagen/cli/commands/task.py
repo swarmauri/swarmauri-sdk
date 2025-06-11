@@ -42,3 +42,22 @@ def get(  # noqa: D401
         if not watch or reply["status"] in {"finished", "failed"}:
             break
         time.sleep(interval)
+
+
+@remote_task_app.command("patch")
+def patch_task(
+    ctx: typer.Context,
+    task_id: str = typer.Argument(..., help="UUID of the task to update"),
+    changes: str = typer.Argument(..., help="JSON string of fields to modify"),
+):
+    """Send a Task.patch RPC call."""
+
+    payload = json.loads(changes)
+    req = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": "Task.patch",
+        "params": {"taskId": task_id, "changes": payload},
+    }
+    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    typer.echo(json.dumps(res["result"], indent=2))

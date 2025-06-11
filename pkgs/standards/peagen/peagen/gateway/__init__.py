@@ -265,6 +265,27 @@ async def task_cancel(taskId: str):
     return {}
 
 
+@rpc.method("Task.patch")
+async def task_patch(taskId: str, changes: dict) -> dict:
+    """Update persisted metadata for an existing task."""
+    task = await _load_task(taskId)
+    if not task:
+        raise ValueError("task not found")
+
+    for field, value in changes.items():
+        if field not in Task.model_fields:
+            continue
+        if field == "status":
+            value = Status(value)
+        setattr(task, field, value)
+
+    await _save_task(task)
+    await _persist(task)
+    await _publish_event(task)
+    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
+    return task.model_dump()
+
+
 @rpc.method("Task.get")
 async def task_get(taskId: str):
     # hot cache
