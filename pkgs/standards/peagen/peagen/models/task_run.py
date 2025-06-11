@@ -32,6 +32,7 @@ class TaskRun(Base):
     deps         = Column(JSON, nullable=False, default=list)
     edge_pred    = Column(String, nullable=True)
     labels       = Column(JSON, nullable=False, default=list)
+    in_degree    = Column(psql.INTEGER, nullable=False, default=0)
     config_toml  = Column(String, nullable=True)
     artifact_uri = Column(String, nullable=True)
     started_at   = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
@@ -51,6 +52,7 @@ class TaskRun(Base):
             deps=task.deps,
             edge_pred=task.edge_pred,
             labels=task.labels,
+            in_degree=task.in_degree,
             config_toml=task.config_toml,
             artifact_uri=(
                 task.result.get("artifact_uri")
@@ -88,6 +90,7 @@ class TaskRun(Base):
             "deps": self.deps,
             "edge_pred": self.edge_pred,
             "labels": self.labels,
+            "in_degree": self.in_degree,
             "config_toml": self.config_toml,
             "artifact_uri": self.artifact_uri,
             "started_at": self.started_at,

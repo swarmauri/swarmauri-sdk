@@ -31,6 +31,7 @@ class Task(BaseModel):
     deps: List[str] = Field(default_factory=list)
     edge_pred: str | None = None
     labels: List[str] = Field(default_factory=list)
+    in_degree: int = 0
     config_toml: str | None = None
 
     def get(self, key: str, default=None):

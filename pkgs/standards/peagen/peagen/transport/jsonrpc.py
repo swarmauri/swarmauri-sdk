@@ -17,7 +17,11 @@ class RPCDispatcher:
             return fn
         return decorator
 
-    async def dispatch(self, req: dict) -> dict:
+    async def dispatch(self, req: dict | list) -> dict | list:
+        """Dispatch a single request or a batch of requests."""
+        if isinstance(req, list):
+            return [await self.dispatch(r) for r in req]
+
         if req.get("jsonrpc") != "2.0" or "method" not in req:
             return self._error(-32600, "Invalid Request", req.get("id"))
 
@@ -31,7 +35,7 @@ class RPCDispatcher:
             if inspect.isawaitable(result):
                 result = await result
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
-        except Exception as exc:                        # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             return self._error(-32000, str(exc), req["id"])
 
     @staticmethod
