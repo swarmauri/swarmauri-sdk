@@ -14,6 +14,8 @@ class Role(str, Enum):
 
 
 class Status(str, Enum):
+    """Enumeration of task states."""
+
     queued = "queued"
     waiting = "waiting"
     input_required = "input_required"

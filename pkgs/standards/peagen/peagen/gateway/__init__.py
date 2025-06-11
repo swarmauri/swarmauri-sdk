@@ -36,6 +36,8 @@ import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
 
+TASK_KEY = defaults.CONFIG["task_key"]
+
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 log = Logger(
@@ -115,7 +117,7 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
 def _task_key(tid: str) -> str:
-    return f"task:{tid}"
+    return TASK_KEY.format(tid)
 
 
 async def _save_task(task: Task) -> None:
@@ -133,6 +135,26 @@ async def _save_task(task: Task) -> None:
 async def _load_task(tid: str) -> Task | None:
     data = await queue.hget(_task_key(tid), "blob")
     return Task.model_validate_json(data) if data else None
+
+
+async def _select_tasks(selector: str) -> list[Task]:
+    """Return tasks matching *selector*.
+
+    A selector may be a task-id or ``label:<name>``.
+    """
+    if selector.startswith("label:"):
+        label = selector.split(":", 1)[1]
+        tasks = []
+        for key in await queue.keys("task:*"):
+            data = await queue.hget(key, "blob")
+            if not data:
+                continue
+            t = Task.model_validate_json(data)
+            if label in t.labels:
+                tasks.append(t)
+        return tasks
+    t = await _load_task(selector)
+    return [t] if t else []
 
 
 # ──────────────────────   Results Backend ────────────────────────
@@ -254,14 +276,70 @@ async def task_submit(
 
 
 @rpc.method("Task.cancel")
-async def task_cancel(taskId: str):
-    t = await _load_task(taskId)
-    if not t:
-        raise ValueError("task not found")
-    t.status = Status.cancelled
-    await _save_task(t)
-    log.info("task %s cancelled", taskId)
-    return {}
+async def task_cancel(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "cancel", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("cancel %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.pause")
+async def task_pause(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "pause", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("pause %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.resume")
+async def task_resume(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "resume", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("resume %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.retry")
+async def task_retry(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "retry", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("retry %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.retry_from")
+async def task_retry_from(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "retry_from", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("retry_from %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Guard.set")
+async def guard_set(label: str, spec: dict):
+    await queue.hset(f"guard:{label}", mapping=spec)
+    log.info("guard set %s", label)
+    return {"ok": True}
 
 
 @rpc.method("Task.patch")

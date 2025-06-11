@@ -31,4 +31,5 @@ CONFIG = {
     "control_queue": "control",      # worker ↔ gateway control messages
     "ready_queue": "queue",          # prefix for per-pool ready queues
     "pubsub": "task:update",         # channel for task event broadcasts
+    "task_key": "task:{}",           # Redis hash per task
 }
