@@ -41,3 +41,29 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     )
     result = await session.execute(stmt)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
+
+
+async def ensure_status_enum(engine) -> None:
+    """Create or extend the ``status`` enum to match ``peagen.models.Status``."""
+    from sqlalchemy import text
+    values = [s.value for s in Status]
+    async with engine.begin() as conn:
+        exists = await conn.execute(
+            text("SELECT EXISTS(SELECT 1 FROM pg_type WHERE typname = 'status')")
+        )
+        if not exists.scalar():
+            enum_values = ", ".join(f"'{v}'" for v in values)
+            await conn.execute(text(f"CREATE TYPE status AS ENUM ({enum_values})"))
+        else:
+            res = await conn.execute(
+                text(
+                    "SELECT enumlabel FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = 'status'"
+                )
+            )
+            present = {row[0] for row in res}
+            for val in values:
+                if val not in present:
+                    await conn.execute(
+                        text(f"ALTER TYPE status ADD VALUE IF NOT EXISTS '{val}'")
+                    )
+
