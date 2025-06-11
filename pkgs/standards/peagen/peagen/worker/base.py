@@ -72,6 +72,8 @@ class WorkerBase:
         self.DQ_GATEWAY = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
         self.WORKER_ID = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
         self.PORT = port or int(os.getenv("PORT", "8001"))
+        self.LABELS = os.getenv("DQ_LABELS", "").split(",") if os.getenv("DQ_LABELS") else []
+        self.GROUPS = os.getenv("DQ_GROUPS", "").split(",") if os.getenv("DQ_GROUPS") else []
         env_host = host or os.getenv("DQ_HOST", "")
         if not env_host:
             env_host = get_local_ip()
@@ -256,7 +258,11 @@ class WorkerBase:
                 "workerId": self.WORKER_ID,
                 "pool": self.POOL,
                 "url": self.url_self,
-                "advertises": {"cpu": True},
+                "advertises": {
+                    "cpu": True,
+                    "labels": self.LABELS,
+                    "groups": self.GROUPS,
+                },
             },
         )
         self.log.info("registered  id=%s pool=%s url=%s", self.WORKER_ID, self.POOL, self.url_self)

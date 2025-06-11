@@ -29,6 +29,7 @@ def upgrade() -> None:
             sa.Column("deps", sa.JSON(), nullable=False),
             sa.Column("edge_pred", sa.String()),
             sa.Column("labels", sa.JSON(), nullable=False),
+            sa.Column("groups", sa.JSON(), nullable=False),
             sa.Column("config_toml", sa.String()),
             sa.Column("artifact_uri", sa.String()),
             sa.Column("started_at", sa.TIMESTAMP(timezone=True)),

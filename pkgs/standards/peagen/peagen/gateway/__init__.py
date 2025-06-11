@@ -74,6 +74,52 @@ WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
+# labels/groups guard rails
+LABEL_GUARD_RAILS: dict[str, bool] = {}
+GROUP_GUARD_RAILS: dict[str, bool] = {}
+
+
+async def _dispatch_control_ops(task: Task) -> bool:
+    """Handle control-plane operations embedded as tasks."""
+    op = task.payload.get("control_op")
+    target = task.payload.get("target")
+    if not op:
+        return False
+
+    params = {"taskId": target}
+    try:
+        uuid.UUID(str(target))
+    except Exception:
+        params = {"label": target}
+
+    if op == "pause":
+        await task_pause(**params)
+    elif op == "resume":
+        await task_resume(**params)
+    elif op == "cancel":
+        await task_cancel(**params)
+    elif op == "retry":
+        await task_retry(**params)
+    elif op == "retry_from":
+        idx = task.payload.get("start_idx", 0)
+        params["start_idx"] = idx
+        await task_retry_from(**params)
+    elif op == "set_guard_rail":
+        await task_set_guard_rail(
+            task.payload.get("kind", "label"),
+            task.payload.get("name", ""),
+            task.payload.get("paused", True),
+        )
+    else:
+        return False
+
+    task.status = Status.success
+    task.result = {"control": op, "ok": True}
+    await _save_task(task)
+    await _persist(task)
+    await _publish_event(task)
+    return True
+
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
     """
@@ -254,15 +300,107 @@ async def task_submit(
     return {"taskId": task.id}
 
 
+async def _tasks_from_params(taskId: str | None = None, label: str | None = None) -> list[Task]:
+    tasks: list[Task] = []
+    if taskId:
+        t = await _load_task(taskId)
+        if t:
+            tasks.append(t)
+    if label:
+        from peagen.gateway.db import Session
+        from sqlalchemy import select
+
+        async with Session() as s:
+            res = await s.execute(select(TaskRun))
+            rows = res.scalars().all()
+            tasks.extend(
+                Task(**row.to_dict()) for row in rows if label in row.labels
+            )
+    return tasks
+
+
 @rpc.method("Task.cancel")
-async def task_cancel(taskId: str):
-    t = await _load_task(taskId)
-    if not t:
+async def task_cancel(taskId: str | None = None, label: str | None = None):
+    tasks = await _tasks_from_params(taskId, label)
+    if not tasks:
         raise ValueError("task not found")
-    t.status = Status.cancelled
-    await _save_task(t)
-    log.info("task %s cancelled", taskId)
+    for t in tasks:
+        t.status = Status.cancelled
+        await _save_task(t)
+        log.info("task %s cancelled", t.id)
     return {}
+
+
+@rpc.method("Task.pause")
+async def task_pause(taskId: str | None = None, label: str | None = None):
+    tasks = await _tasks_from_params(taskId, label)
+    if not tasks:
+        raise ValueError("task not found")
+    for t in tasks:
+        t.status = Status.paused
+        await _save_task(t)
+        await _persist(t)
+        await _publish_event(t)
+        log.info("task %s paused", t.id)
+    return {}
+
+
+@rpc.method("Task.resume")
+async def task_resume(taskId: str | None = None, label: str | None = None):
+    tasks = await _tasks_from_params(taskId, label)
+    if not tasks:
+        raise ValueError("task not found")
+    for t in tasks:
+        t.status = Status.pending
+        await _save_task(t)
+        await queue.rpush(f"queue:{t.pool}", t.model_dump_json())
+        await _persist(t)
+        await _publish_event(t)
+        log.info("task %s resumed", t.id)
+    return {}
+
+
+@rpc.method("Task.retry")
+async def task_retry(taskId: str | None = None, label: str | None = None):
+    tasks = await _tasks_from_params(taskId, label)
+    if not tasks:
+        raise ValueError("task not found")
+    for t in tasks:
+        t.status = Status.pending
+        await _save_task(t)
+        await queue.rpush(f"queue:{t.pool}", t.model_dump_json())
+        await _persist(t)
+        await _publish_event(t)
+        log.info("task %s retried", t.id)
+    return {}
+
+
+@rpc.method("Task.retryFrom")
+async def task_retry_from(taskId: str | None = None, start_idx: int = 0, label: str | None = None):
+    tasks = await _tasks_from_params(taskId, label)
+    if not tasks:
+        raise ValueError("task not found")
+    for t in tasks:
+        t.payload.setdefault("args", {})["start_idx"] = start_idx
+        t.status = Status.pending
+        await _save_task(t)
+        await queue.rpush(f"queue:{t.pool}", t.model_dump_json())
+        await _persist(t)
+        await _publish_event(t)
+        log.info("task %s retry from %d", t.id, start_idx)
+    return {}
+
+
+@rpc.method("Task.setGuardRail")
+async def task_set_guard_rail(kind: str, name: str, paused: bool):
+    if kind == "label":
+        LABEL_GUARD_RAILS[name] = paused
+    elif kind == "group":
+        GROUP_GUARD_RAILS[name] = paused
+    else:
+        raise ValueError("invalid guard rail kind")
+    log.info("set guard rail %s:%s=%s", kind, name, paused)
+    return {"ok": True}
 
 
 @rpc.method("Task.patch")
@@ -375,11 +513,36 @@ async def scheduler():
             pool = queue_key.split(":", 1)[1]  # "queue:demo" → "demo"
             task = Task.model_validate_json(task_raw)
 
+            # control-plane dispatch
+            if await _dispatch_control_ops(task):
+                continue
+
+            if any(LABEL_GUARD_RAILS.get(l) for l in task.labels):
+                await queue.rpush(queue_key, task_raw)
+                await asyncio.sleep(1)
+                continue
+            if any(GROUP_GUARD_RAILS.get(g) for g in getattr(task, "groups", [])):
+                await queue.rpush(queue_key, task_raw)
+                await asyncio.sleep(1)
+                continue
+
             # pick first live worker for that pool
             worker_list = await _live_workers_by_pool(pool)
+
+            eligible: list[dict] = []
+            for w in worker_list:
+                adv = json.loads(w.get("advertises", "{}"))
+                w_labels = adv.get("labels", [])
+                w_groups = adv.get("groups", [])
+                if all(l in w_labels for l in task.labels) and (
+                    not getattr(task, "groups", []) or any(g in w_groups for g in task.groups)
+                ):
+                    eligible.append(w)
+            worker_list = eligible
+
             if not worker_list:
-                log.info("no active worker for %s, re-queue %s", pool, task.id)
-                await queue.rpush(queue_key, task_raw)  # push back
+                log.info("no eligible worker for %s, re-queue %s", pool, task.id)
+                await queue.rpush(queue_key, task_raw)
                 await asyncio.sleep(5)
                 continue
 

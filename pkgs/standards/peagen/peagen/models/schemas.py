@@ -20,6 +20,7 @@ class Status(str, Enum):
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
+    paused = "paused"
 
 
 class Task(BaseModel):
@@ -31,6 +32,7 @@ class Task(BaseModel):
     deps: List[str] = Field(default_factory=list)
     edge_pred: str | None = None
     labels: List[str] = Field(default_factory=list)
+    groups: List[str] = Field(default_factory=list)
     config_toml: str | None = None
 
     def get(self, key: str, default=None):
