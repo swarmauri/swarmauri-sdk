@@ -32,3 +32,14 @@ CONFIG = {
     "ready_queue": "queue",          # prefix for per-pool ready queues
     "pubsub": "task:update",         # channel for task event broadcasts
 }
+
+# Built-in Redis key patterns
+WORKER_KEY = "worker:{}"        # format with workerId
+DEP_SET = "task:deps:{}"        # deps for task X
+CHILD_SET = "task:children:{}"  # children dependent on X
+LABEL_SET = "label:{}"          # tasks under a label
+
+# Default TTL values (seconds)
+WORKER_TTL = 15
+TASK_TTL = 24 * 3600
+
