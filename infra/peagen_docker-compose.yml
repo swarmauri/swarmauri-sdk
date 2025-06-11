@@ -149,7 +149,6 @@ services:
       REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0
       MINIO_USER:           ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
-      SQLALCHEMY_ECHO:      debug    # ← emits full stack for every DDL statement
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
