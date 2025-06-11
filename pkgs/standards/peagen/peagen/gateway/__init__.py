@@ -350,6 +350,52 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     return {"ok": True}
 
 
+# ---------------------------------------------------------------------------
+# Dependency resolution helpers
+# ---------------------------------------------------------------------------
+
+async def _deps_satisfied(task: Task) -> bool:
+    """Return ``True`` if all dependencies are finished successfully."""
+
+    dep_results = {}
+    for dep_id in task.deps:
+        dep = await _load_task(dep_id)
+        if not dep or dep.status != Status.success:
+            return False
+        dep_results[dep_id] = dep.result
+
+    if task.edge_pred:
+        try:
+            allowed_globals: dict[str, object] = {}
+            allowed_locals = {"deps": dep_results}
+            if not bool(eval(task.edge_pred, allowed_globals, allowed_locals)):
+                return False
+        except Exception as exc:  # pragma: no cover - evaluation errors
+            log.warning("edge_pred eval failed for %s: %s", task.id, exc)
+            return False
+
+    return True
+
+
+def _worker_supports(worker: dict, labels: list[str]) -> bool:
+    """Return ``True`` if *worker* advertises all required labels."""
+
+    if not labels:
+        return True
+    advertises_raw = worker.get("advertises")
+    if isinstance(advertises_raw, str):
+        try:
+            advertises = json.loads(advertises_raw)
+        except Exception:  # pragma: no cover - malformed JSON
+            advertises = {}
+    elif isinstance(advertises_raw, dict):
+        advertises = advertises_raw
+    else:
+        advertises = {}
+
+    return all(advertises.get(label) for label in labels)
+
+
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler():
     log.info("scheduler started")
@@ -374,11 +420,19 @@ async def scheduler():
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             task = Task.model_validate_json(task_raw)
 
-            # pick first live worker for that pool
-            worker_list = await _live_workers_by_pool(pool)
+            if not await _deps_satisfied(task):
+                await queue.rpush(queue_key, task_raw)
+                await asyncio.sleep(0.5)
+                continue
+
+            worker_list = [
+                w
+                for w in await _live_workers_by_pool(pool)
+                if _worker_supports(w, task.labels)
+            ]
             if not worker_list:
                 log.info("no active worker for %s, re-queue %s", pool, task.id)
-                await queue.rpush(queue_key, task_raw)  # push back
+                await queue.rpush(queue_key, task_raw)
                 await asyncio.sleep(5)
                 continue
 
