@@ -37,9 +37,14 @@ def run(
     entry_fn: str = typer.Option(..., help="Benchmark function"),
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
     gens: int = typer.Option(1, help="Number of generations"),
-    json_out: bool = typer.Option(False, "--json"),
-    out: Optional[Path] = typer.Option(None, "--out"),
-):
+    json_out: bool = typer.Option(
+        False, "--json", help="Print results to stdout instead of a file"
+    ),
+    out: Optional[Path] = typer.Option(
+        None, "--out", help="Write JSON results to this path"
+    ),
+) -> None:
+    """Run the mutate workflow locally."""
     args = {
         "workspace_uri": workspace_uri,
         "target_file": target_file,
@@ -68,7 +73,8 @@ def submit(
     entry_fn: str = typer.Option(..., help="Benchmark function"),
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
     gens: int = typer.Option(1, help="Number of generations"),
-):
+) -> None:
+    """Submit a mutate task to the gateway."""
     args = {
         "workspace_uri": workspace_uri,
         "target_file": target_file,

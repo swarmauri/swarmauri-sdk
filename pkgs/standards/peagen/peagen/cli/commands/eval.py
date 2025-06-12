@@ -82,12 +82,24 @@ def run(  # noqa: PLR0913 – CLI needs many options
 @remote_eval_app.command("eval")
 def submit(  # noqa: PLR0913
     ctx: typer.Context,
-    workspace_uri: str = typer.Argument(...),
-    program_glob: str = typer.Argument("**/*.*"),
-    pool: Optional[str] = typer.Option(None, "--pool", "-p"),
-    async_eval: bool = typer.Option(False, "--async/--no-async"),
-    strict: bool = typer.Option(False, "--strict"),
-    skip_failed: bool = typer.Option(False, "--skip-failed/--include-failed"),
+    workspace_uri: str = typer.Argument(
+        ..., help="Workspace path or URI"
+    ),
+    program_glob: str = typer.Argument(
+        "**/*.*", help="Glob pattern for program files"
+    ),
+    pool: Optional[str] = typer.Option(
+        None, "--pool", "-p", help="EvaluatorPool reference"
+    ),
+    async_eval: bool = typer.Option(
+        False, "--async/--no-async", help="Run evaluations asynchronously"
+    ),
+    strict: bool = typer.Option(
+        False, "--strict", help="Fail if any program exit code is non-zero"
+    ),
+    skip_failed: bool = typer.Option(
+        False, "--skip-failed/--include-failed", help="Ignore failed programs"
+    ),
 ):
     """Enqueue evaluation on a remote worker."""
     args = {
