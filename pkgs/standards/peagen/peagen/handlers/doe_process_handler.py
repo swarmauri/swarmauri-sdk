@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import uuid
 
 import yaml  # type: ignore[import-untyped]
@@ -11,6 +11,9 @@ import yaml  # type: ignore[import-untyped]
 from peagen.core.doe_core import generate_payload
 from peagen.core import lock_plan, TaskChainer, chain_hash
 from peagen.models import Task, Status
+from peagen._utils.config_loader import resolve_cfg
+from peagen.plugins import PluginManager
+from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 from .fanout import fan_out
 
 
@@ -21,12 +24,14 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
 
     spec_path = Path(args["spec"]).expanduser()
     template_path = Path(args["template"]).expanduser()
+    cfg_path = Path(args["config"]).expanduser() if args.get("config") else None
+
 
     result = generate_payload(
         spec_path=spec_path,
         template_path=template_path,
         output_path=Path(args["output"]).expanduser(),
-        cfg_path=Path(args["config"]).expanduser() if args.get("config") else None,
+        cfg_path=cfg_path,
         notify_uri=args.get("notify"),
         dry_run=args.get("dry_run", False),
         force=args.get("force", False),
@@ -57,6 +62,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
                 "args": {
                     "projects_payload": result["output"],
                     "project_name": proj.get("NAME"),
+
                 },
             },
             lock_hash=lock_hash,

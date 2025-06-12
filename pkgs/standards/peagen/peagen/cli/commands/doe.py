@@ -90,7 +90,11 @@ def run_gen(  # noqa: PLR0913
     task = _make_task(args, action="doe")
     result = asyncio.run(doe_handler(task))
 
-    typer.echo(json.dumps(result, indent=2) if json_out else f"✅  {result['output']}")
+    if json_out:
+        typer.echo(json.dumps(result, indent=2))
+    else:
+        outs = ", ".join(result.get("outputs", []))
+        typer.echo(f"✅  {outs}")
 
 
 # ─────────────────────────── remote submit ─────────────────────────────────

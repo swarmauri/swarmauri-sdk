@@ -41,9 +41,24 @@ def load_projects_payload(
             maybe_path = Path(projects_payload)
             if maybe_path.is_file():
                 yaml_text = maybe_path.read_text(encoding="utf-8")
+            elif "://" in projects_payload:
+                from urllib.parse import urlparse, urlunparse
+                from peagen.plugins import discover_and_register_plugins
+                discover_and_register_plugins()
+                from peagen.plugins.storage_adapters import make_adapter_for_uri
+
+                parsed = urlparse(projects_payload)
+                if not parsed.scheme:
+                    raise ValueError(f"Invalid URI: {projects_payload}")
+
+                dir_path, key = parsed.path.rsplit("/", 1)
+                root = urlunparse((parsed.scheme, parsed.netloc, dir_path, "", "", ""))
+                adapter = make_adapter_for_uri(root)
+                with adapter.download(key) as fh:  # type: ignore[attr-defined]
+                    yaml_text = fh.read().decode("utf-8")
             else:
                 yaml_text = projects_payload
-        except (OSError, TypeError):
+        except (OSError, TypeError, ValueError):
             yaml_text = projects_payload
         doc = yaml.safe_load(yaml_text)
 

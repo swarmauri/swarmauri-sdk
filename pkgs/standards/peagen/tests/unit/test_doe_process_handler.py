@@ -25,10 +25,29 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     import peagen.handlers.fanout as fanout
     monkeypatch.setattr(fanout, "httpx", type("X", (), {"AsyncClient": DummyClient}))
 
+    class DummyPM:
+        def __init__(self, cfg):
+            pass
+
+        def get(self, name):
+            return DummyAdapter()
+
+    class DummyAdapter:
+        root_uri = "file://dummy/"
+
+        def upload(self, key, fh):
+            return f"{self.root_uri}{key}"
+
+    monkeypatch.setattr(handler, "PluginManager", DummyPM)
+    monkeypatch.setattr(handler, "FileStorageAdapter", DummyAdapter)
+    monkeypatch.setattr(handler, "resolve_cfg", lambda toml_path=".peagen.toml": {})
+
     def fake_generate_payload(**kwargs):
-        p = tmp_path / "out.yaml"
-        p.write_text("PROJECTS:\n- NAME: A\n- NAME: B\n")
-        return {"output": str(p)}
+        p1 = tmp_path / "out_0.yaml"
+        p2 = tmp_path / "out_1.yaml"
+        p1.write_text("PROJECTS:\n- NAME: A\n")
+        p2.write_text("PROJECTS:\n- NAME: B\n")
+        return {"outputs": [str(p1), str(p2)]}
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
     monkeypatch.setattr(handler, "lock_plan", lambda p: "LOCK")
@@ -42,3 +61,4 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     assert result["children"] and len(result["children"]) == 2
     assert result["lock_hash"]
     assert result["chain_hash"]
+
