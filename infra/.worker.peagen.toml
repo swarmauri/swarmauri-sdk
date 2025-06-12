@@ -1,4 +1,4 @@
-# .peagen.toml
+# .worker.peagen.toml
 schemaVersion = "1.0.3"
 
 [workspace]
@@ -13,7 +13,7 @@ default_temperature = 0.7
 default_max_tokens  = 4096
 
 [llm.groq]
-API_KEY   = ""
+API_KEY   = "${GROQ_API_KEY}"
 
 # ─────────────────────────── Source Packages ───────────────────────────
 [[source_packages]]
@@ -32,11 +32,11 @@ default_storage_adapter = "minio"
 output_dir = "./peagen_artifacts"
 
 [storage.adapters.minio]
-endpoint          = ""
-bucket            = ""
-access_key        = ""
-secret_key        = ""
-secure = false
+endpoint   = "${MINIO_ENDPOINT}"
+bucket     = "test"
+access_key = "${MINIO_ACCESS_KEY}"
+secret_key = "${MINIO_SECRET_KEY}"
+secure     = false
 
 # ───────────────────────────── Publishers ──────────────────────────────
 [publishers]

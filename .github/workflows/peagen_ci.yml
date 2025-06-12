@@ -24,6 +24,9 @@ jobs:
       POSTGRES_DB:    npm
       # --- secrets ---
       MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
+      MINIO_ACCESS_KEY:         ${{ secrets.PEAGEN_MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY:         ${{ secrets.PEAGEN_MINIO_SECRET_KEY }}
+      GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
       REDIS_PASSWORD:           ${{ secrets.PEAGEN_REDIS_PASSWORD }}
       POSTGRES_PASSWORD:        ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
       PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
