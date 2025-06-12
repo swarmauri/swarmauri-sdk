@@ -139,14 +139,16 @@ def generate_projects(
     spec_name: str,
 ) -> List[Dict[str, Any]]:
     projects: List[Dict[str, Any]] = []
+    base_proj = deepcopy(template_obj.get("PROJECTS", [{}])[0])
+    other_keys = {k: deepcopy(v) for k, v in template_obj.items() if k != "PROJECTS"}
     for idx, point in enumerate(design_points):
         ctx = {
             **point,
             "EXP_ID": f"{idx:03d}",
-            "BASE_NAME": template_obj.get("PROJECTS", [{}])[0].get("NAME"),
+            "BASE_NAME": base_proj.get("NAME"),
         }
 
-        proj = deepcopy(template_obj)
+        proj = {**other_keys, "PROJECTS": [deepcopy(base_proj)]}
 
         # per-factor patches
         for factor_def in spec_obj.get("FACTORS", {}).values():

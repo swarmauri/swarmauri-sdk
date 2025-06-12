@@ -43,10 +43,12 @@ def load_projects_payload(
                 yaml_text = maybe_path.read_text(encoding="utf-8")
             elif "://" in projects_payload:
                 from urllib.parse import urlparse, urlunparse
+                from peagen.plugins import discover_and_register_plugins
+                discover_and_register_plugins()
                 from peagen.plugins.storage_adapters import make_adapter_for_uri
 
                 parsed = urlparse(projects_payload)
-                if not parsed.scheme or not parsed.netloc:
+                if not parsed.scheme:
                     raise ValueError(f"Invalid URI: {projects_payload}")
 
                 dir_path, key = parsed.path.rsplit("/", 1)
