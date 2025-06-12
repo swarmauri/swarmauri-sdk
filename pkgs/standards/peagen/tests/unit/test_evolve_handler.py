@@ -32,7 +32,10 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
     result = await handler.evolve_handler(task)
 
     assert result["jobs"] == 1
-    assert sent and sent[-1]["method"] == "Work.finished"
-    submit = sent[0]
+    assert len(sent) == 1
+    batch = sent[0]
+    assert isinstance(batch, list)
+    assert batch[-1]["method"] == "Work.finished"
+    submit = batch[0]
     assert submit["method"] == "Task.submit"
     assert "action" not in submit["params"]["payload"]
