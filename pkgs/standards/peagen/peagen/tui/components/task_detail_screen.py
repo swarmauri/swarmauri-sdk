@@ -24,9 +24,6 @@ class TaskDetailScreen(ModalScreen[None]):
         with VerticalScroll(id="task_detail_vertical_scroll"):
             yield Label("Task Details", classes="title")
             yield Tree("task", id="task_detail_tree")
-            yield Center(
-                Button("Close", variant="primary", id="close_task_detail_button"),
-            )
 
     def on_mount(self) -> None:
         """Populate the task table when the screen is shown."""
