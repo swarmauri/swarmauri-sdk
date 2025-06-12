@@ -144,18 +144,30 @@ class RemoteBackend:
         self.workers = workers
 
 
+# ...existing code...
 class QueueDashboardApp(App):
     CSS = """
     TabPane#editor { height: 1fr; width:  1fr; }
     TextArea#code_editor { height: 1fr; width:  1fr; }
 
+    /* Styles for the filter section to ensure visibility */
     #filter-section-container {
-        padding: 0 1;
+        padding: 0 1; /* Horizontal padding */
         margin-bottom: 1; /* Gap below the entire filter section */
+        /* Fixed height: Label (1) + Label's padding-bottom (1) + FilterBar (1, assuming compact Selects) */
+        height: 3; 
     }
 
     #filter-title-label {
+        padding-bottom: 1; /* Space between "Filter" title and the FilterBar */
         text-style: bold;
+        /* The Label widget itself is typically 1 cell high */
+    }
+
+    /* Ensure the main TabbedContent (holding Pools, Tasks, etc.) takes up the remaining space */
+    /* This targets the TabbedContent that is a direct child of the main Vertical layout container */
+    Vertical > TabbedContent {
+        height: 1fr; /* Takes up the remaining flexible vertical space */
     }
     """
     TITLE = "Peagen"
