@@ -17,7 +17,6 @@ from urllib.parse import urlparse
 
 from peagen.tui.fileops import download_remote, upload_remote
 from peagen.tui.ws_client import TaskStreamClient
-from rich.progress import ProgressBar
 from textual import events
 from textual.app import App, ComposeResult
 from textual.reactive import reactive
@@ -169,7 +168,7 @@ class QueueDashboardApp(App):
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
         self.tasks_table = DataTable(id="tasks_table")
-        self.tasks_table.add_columns("ID", "Status", "Progress", "Action")
+        self.tasks_table.add_columns("ID", "Pool", "Status", "Action")
 
         self.err_table = DataTable(id="err_table")
         self.err_table.add_columns("Task", "Log")
@@ -249,19 +248,15 @@ class QueueDashboardApp(App):
         self.tasks_table.clear()
         for t in tasks:
             tid = getattr(t, "id", t.get("id"))
+            pool = getattr(t, "pool", t.get("pool", ""))
             status = getattr(t, "status", t.get("status"))
-            pct = getattr(t, "percent", None)
-            if pct is None:
-                done = getattr(t, "done", t.get("done", 0))
-                total = getattr(t, "total", 100)
-                pct = done / total * 100 if total else 0
             action = (
                 getattr(t, "payload", t.get("payload", {})).get("action", "")
             )
             self.tasks_table.add_row(
                 str(tid),
+                pool,
                 status,
-                ProgressBar(total=100, completed=pct),
                 action,
                 key=str(tid),
             )
