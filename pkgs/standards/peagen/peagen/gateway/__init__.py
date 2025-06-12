@@ -32,6 +32,7 @@ from peagen.gateway.db import engine
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway.db_helpers import ensure_status_enum
+from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
@@ -563,6 +564,10 @@ async def health() -> dict:
 @app.on_event("startup")
 async def _on_start():
     if engine.url.get_backend_name() != "sqlite":
+        # ensure schema is up to date for Postgres deployments
+        result = alembic_upgrade()
+        if not result.get("ok", True):
+            log.warning("alembic upgrade failed: %s", result.get("error"))
         await ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
