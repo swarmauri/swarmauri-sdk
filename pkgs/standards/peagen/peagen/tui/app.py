@@ -26,15 +26,16 @@ from textual.reactive import reactive
 from textual.widgets import (
     DataTable,
     Header,
-    Input,
     TabbedContent,
     TabPane,
     TextArea,
+    Select,
 )
 from textual.containers import Vertical
 from peagen.tui.components import (
     DashboardFooter,
     FileTree,
+    FilterBar,
     TemplatesView,
     WorkersView,
     ReconnectScreen,
@@ -190,7 +191,6 @@ class QueueDashboardApp(App):
         ("ctrl+c", "copy_id", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
-        ("f", "toggle_filter_input", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
         ("q", "quit", "Quit"),
     ]
@@ -201,6 +201,7 @@ class QueueDashboardApp(App):
         self.client = TaskStreamClient(ws_url)
         self.backend = RemoteBackend(gateway_url)
         self.sort_key = "time"
+        self.filter_id: str | None = None
         self.filter_pool: str | None = None
         self.filter_status: str | None = None
         self.filter_action: str | None = None
@@ -297,11 +298,10 @@ class QueueDashboardApp(App):
         self.code_editor = TextArea(id="code_editor")
         self.file_tabs = TabbedContent(id="file_tabs")
         self.file_tabs.display = False
-        self.filter_input = Input(placeholder="pool=default status=running", id="filter_input")
-        self.filter_input.display = False
+        self.filter_bar = FilterBar()
 
         with Vertical():
-            yield self.filter_input
+            yield self.filter_bar
             with TabbedContent(initial="pools"):
                 yield TabPane("Pools", self.workers_view, id="pools")
                 yield TabPane("Tasks", self.tasks_table, id="tasks")
@@ -404,21 +404,13 @@ class QueueDashboardApp(App):
             self.filter_label = None if self.filter_label == lbl else lbl
         self.refresh_data()
 
-    def action_toggle_filter_input(self) -> None:
-        """Show or hide the filter input bar."""
-
-        self.filter_input.display = not self.filter_input.display
-        if self.filter_input.display:
-            self.filter_input.value = ""
-            self.filter_input.focus()
-
     def action_clear_filters(self) -> None:
+        self.filter_id = None
         self.filter_pool = None
         self.filter_status = None
         self.filter_action = None
         self.filter_label = None
-        self.filter_input.value = ""
-        self.filter_input.display = False
+        self.filter_bar.clear()
         self.refresh_data()
 
     def action_copy_id(self) -> None:
@@ -435,7 +427,7 @@ class QueueDashboardApp(App):
                 else:  # pragma: no cover - old textual
                     value = widget.get_cell(row, col)
                 text = str(value)
-        elif isinstance(widget, (Input, TextArea)):
+        elif isinstance(widget, TextArea):
             text = getattr(widget, "selected_text", "") or getattr(widget, "value", "")
         if text:
             clipboard_copy(text)
@@ -445,45 +437,36 @@ class QueueDashboardApp(App):
 
         widget = self.focused
         text = clipboard_paste()
-        if isinstance(widget, Input):
-            insert = getattr(widget, "insert_text_at_cursor", None)
-            if insert:
-                insert(text)
-        elif isinstance(widget, TextArea):
+        if isinstance(widget, TextArea):
             insert = getattr(widget, "insert", None) or getattr(widget, "insert_text_at_cursor", None)
             if insert:
                 insert(text)
 
-    async def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Apply filters from the input bar."""
+    def on_select_changed(self, event: Select.Changed) -> None:
+        """Update filter values when a dropdown selection changes."""
 
-        if event.input is not self.filter_input:
-            return
-        text = event.value.strip()
-        self.filter_pool = None
-        self.filter_status = None
-        self.filter_action = None
-        self.filter_label = None
-        for token in text.split():
-            if "=" not in token:
-                continue
-            key, value = token.split("=", 1)
-            if key == "pool":
-                self.filter_pool = value
-            elif key == "status":
-                self.filter_status = value
-            elif key == "action":
-                self.filter_action = value
-            elif key == "label":
-                self.filter_label = value
-        self.filter_input.display = False
+        value = None if event.value == Select.BLANK else str(event.value)
+        if event.select.id == "filter_id":
+            self.filter_id = value
+        elif event.select.id == "filter_pool":
+            self.filter_pool = value
+        elif event.select.id == "filter_status":
+            self.filter_status = value
+        elif event.select.id == "filter_action":
+            self.filter_action = value
+        elif event.select.id == "filter_label":
+            self.filter_label = value
         self.refresh_data()
+
 
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
         tasks = list(self.client.tasks.values()) or self.backend.tasks
+        self.filter_bar.update_options(tasks)
 
         # apply filters
+        if self.filter_id:
+            tasks = [t for t in tasks if str(t.get("id")) == self.filter_id]
         if self.filter_pool:
             tasks = [t for t in tasks if t.get("pool") == self.filter_pool]
         if self.filter_status:

@@ -78,3 +78,31 @@ async def test_click_error_row_opens_detail(monkeypatch):
 
     assert isinstance(captured.get("screen"), DummyScreen)
     assert captured["screen"].task["id"] == "99"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "select_id,attr,value",
+    [
+        ("filter_id", "filter_id", "42"),
+        ("filter_pool", "filter_pool", "default"),
+        ("filter_status", "filter_status", "done"),
+        ("filter_action", "filter_action", "process"),
+        ("filter_label", "filter_label", "foo"),
+    ],
+)
+def test_on_select_changed_updates_filters(select_id, attr, value):
+    app = QueueDashboardApp()
+
+    class DummySelect:
+        def __init__(self, sid):
+            self.id = sid
+
+    class DummyChanged:
+        def __init__(self, sid, val):
+            self.select = DummySelect(sid)
+            self.value = val
+
+    event = DummyChanged(select_id, value)
+    app.on_select_changed(event)
+    assert getattr(app, attr) == value
