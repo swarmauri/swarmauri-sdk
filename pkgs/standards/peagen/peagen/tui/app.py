@@ -23,6 +23,7 @@ from textual.reactive import reactive
 from textual.widgets import (
     DataTable,
     Header,
+    Input,
     TabbedContent,
     TabPane,
     TextArea,
@@ -130,7 +131,7 @@ class QueueDashboardApp(App):
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
         ("s", "cycle_sort", "Sort"),
-        ("f", "filter_by_cell", "Filter"),
+        ("f", "toggle_filter_input", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
         ("q", "quit", "Quit"),
     ]
@@ -227,6 +228,8 @@ class QueueDashboardApp(App):
         self.code_editor = TextArea(id="code_editor")
         self.file_tabs = TabbedContent(id="file_tabs")
         self.file_tabs.display = False
+        self.filter_input = Input(placeholder="pool=default status=running", id="filter_input")
+        self.filter_input.display = False
 
         with TabbedContent(initial="pools"):
             yield TabPane("Pools", self.workers_view, id="pools")
@@ -236,6 +239,7 @@ class QueueDashboardApp(App):
             yield TabPane("Templates", self.templates_tree, id="templates")
 
         yield self.file_tabs
+        yield self.filter_input
         yield DashboardFooter()
 
     # ── key binding helpers ────────────────────────────────────────────────
@@ -285,6 +289,8 @@ class QueueDashboardApp(App):
         if row_key is None:
             return
 
+        row_key = str(row_key)
+
         if row_key in self.collapsed:
             self.collapsed.remove(row_key)
         else:
@@ -326,11 +332,44 @@ class QueueDashboardApp(App):
             self.filter_label = None if self.filter_label == lbl else lbl
         self.refresh_data()
 
+    def action_toggle_filter_input(self) -> None:
+        """Show or hide the filter input bar."""
+
+        self.filter_input.display = not self.filter_input.display
+        if self.filter_input.display:
+            self.filter_input.value = ""
+            self.filter_input.focus()
+
     def action_clear_filters(self) -> None:
         self.filter_pool = None
         self.filter_status = None
         self.filter_action = None
         self.filter_label = None
+        self.refresh_data()
+
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Apply filters from the input bar."""
+
+        if event.input is not self.filter_input:
+            return
+        text = event.value.strip()
+        self.filter_pool = None
+        self.filter_status = None
+        self.filter_action = None
+        self.filter_label = None
+        for token in text.split():
+            if "=" not in token:
+                continue
+            key, value = token.split("=", 1)
+            if key == "pool":
+                self.filter_pool = value
+            elif key == "status":
+                self.filter_status = value
+            elif key == "action":
+                self.filter_action = value
+            elif key == "label":
+                self.filter_label = value
+        self.filter_input.display = False
         self.refresh_data()
 
     # ── periodic refresh logic ─────────────────────────────────────────────
