@@ -9,15 +9,17 @@ import websockets
 
 
 class TaskStreamClient:
-    """Consume task events from ``/ws/tasks`` and maintain a tasks mapping."""
+    """Consume gateway events from ``/ws/tasks``."""
 
     def __init__(self, ws_url: str) -> None:
         self.ws_url = ws_url
         self.tasks: Dict[str, dict] = {}
+        self.workers: Dict[str, dict] = {}
+        self.queues: Dict[str, int] = {}
         self._callbacks: List[Callable[[dict], Awaitable[None]]] = []
 
     def on_event(self, cb: Callable[[dict], Awaitable[None]]) -> None:
-        """Register *cb* to be awaited for every task update."""
+        """Register *cb* to be awaited for every event."""
 
         self._callbacks.append(cb)
 
@@ -29,14 +31,24 @@ class TaskStreamClient:
                         event = json.loads(message)
                     except json.JSONDecodeError:
                         continue
+                    ev_type = event.get("type")
                     data = event.get("data")
                     if not isinstance(data, dict):
                         continue
-                    task_id = data.get("id")
-                    if task_id:
-                        self.tasks[task_id] = data
+                    if ev_type == "task.update":
+                        tid = data.get("id")
+                        if tid:
+                            self.tasks[tid] = data
+                    elif ev_type == "worker.update":
+                        wid = data.get("id")
+                        if wid:
+                            self.workers[wid] = data
+                    elif ev_type == "queue.update":
+                        pool = data.get("pool")
+                        if pool:
+                            self.queues[pool] = int(data.get("length", 0))
                     for cb in self._callbacks:
-                        await cb(data)
+                        await cb(event)
         except (OSError, websockets.exceptions.InvalidStatus):
             # connection failed; just ignore
             pass

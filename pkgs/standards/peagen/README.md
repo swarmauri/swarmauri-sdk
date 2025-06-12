@@ -426,7 +426,8 @@ pea.process_all_projects()
 ### Textual TUI
 
 Run `python -m peagen.tui.app` to launch an experimental dashboard that
-subscribes to the gateway's `/ws/tasks` WebSocket. Use the tab keys to switch
-between task lists, logs and opened files. The footer shows system metrics and
-current time. Remote artifact paths are downloaded via their storage adapter and
-re-uploaded when saving.
+subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
+`task.update`, `worker.update` and `queue.update` events. Use the tab keys to
+switch between task lists, logs and opened files. The footer shows system
+metrics and current time. Remote artifact paths are downloaded via their storage
+adapter and re-uploaded when saving.

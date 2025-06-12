@@ -98,6 +98,12 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
     key = WORKER_KEY.format(workerId)  # e.g.  worker:7917b3bd
     await queue.hset(key, mapping=coerced)
     await queue.expire(key, WORKER_TTL)  # <<—— TTL refresh
+    await _publish_event("worker.update", {"id": workerId, **data})
+
+
+async def _publish_queue_length(pool: str) -> None:
+    qlen = len(await queue.lrange(f"{READY_QUEUE}:{pool}", 0, -1))
+    await _publish_event("queue.update", {"pool": pool, "length": qlen})
 
 
 async def _live_workers_by_pool(pool: str) -> list[dict]:
@@ -171,16 +177,19 @@ async def _persist(task: Task) -> None:
 # ──────────────────────   Publish Event  ─────────────────────────
 
 
-async def _publish_event(task: Task) -> None:
+async def _publish_event(event_type: str, data: dict) -> None:
+    """Send an event to WebSocket subscribers."""
+
     event = {
-        "specversion": "1.0",
-        "type": "dqueue.task.update",
-        "source": f"pool/{task.pool}",
-        "subject": f"task/{task.id}",
+        "type": event_type,
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "data": task.model_dump(),
+        "data": data,
     }
     await queue.publish(PUBSUB_TOPIC, json.dumps(event))
+
+
+async def _publish_task(task: Task) -> None:
+    await _publish_event("task.update", task.model_dump())
 
 
 # ─────────────────────────── RPC endpoint ───────────────────────
@@ -263,13 +272,14 @@ async def task_submit(
 
     # 1) put on the queue for the scheduler
     await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
+    await _publish_queue_length(pool)
 
     # 2) save hash + TTL
     await _save_task(task)
 
     # 3) persist to Postgres & emit CloudEvent (helpers you already have)
     await _persist(task)
-    await _publish_event(task)
+    await _publish_task(task)
 
     log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
     return {"taskId": task.id}
@@ -358,7 +368,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
 
     await _save_task(task)
     await _persist(task)
-    await _publish_event(task)
+    await _publish_task(task)
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
     return task.model_dump()
 
@@ -422,7 +432,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     # persist everywhere
     await _save_task(t)
     await _persist(t)
-    await _publish_event(t)
+    await _publish_task(t)
 
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
@@ -450,6 +460,7 @@ async def scheduler():
 
             queue_key, task_raw = res  # guaranteed 2-tuple here
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
+            await _publish_queue_length(pool)
             task = Task.model_validate_json(task_raw)
 
             # pick first live worker for that pool
@@ -457,6 +468,7 @@ async def scheduler():
             if not worker_list:
                 log.info("no active worker for %s, re-queue %s", pool, task.id)
                 await queue.rpush(queue_key, task_raw)  # push back
+                await _publish_queue_length(pool)
                 await asyncio.sleep(5)
                 continue
 
@@ -476,7 +488,7 @@ async def scheduler():
                 task.status = Status.dispatched
                 await _save_task(task)
                 await _persist(task)
-                await _publish_event(task)
+                await _publish_task(task)
                 log.info(
                     "dispatch %s → %s (HTTP %d)",
                     task.id,
@@ -487,6 +499,7 @@ async def scheduler():
             except Exception as exc:
                 log.warning("dispatch failed (%s) for %s; re-queueing", exc, task.id)
                 await queue.rpush(queue_key, task_raw)  # retry later
+                await _publish_queue_length(pool)
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
