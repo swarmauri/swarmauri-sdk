@@ -28,7 +28,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
                 pool=pool,
                 action="mutate",
                 status=Status.waiting,
-                payload={"action": "mutate", "args": job},
+                payload={"args": job},
             )
         )
 
