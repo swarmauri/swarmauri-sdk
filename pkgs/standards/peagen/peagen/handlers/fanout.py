@@ -55,6 +55,7 @@ async def fan_out(
     )
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        await client.post(gateway, json=batch)
+        response = await client.post(gateway, json=batch)
+        response.raise_for_status()
 
     return child_ids
