@@ -21,6 +21,7 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
+        status=Status.waiting,
         payload={"action": "evolve", "args": args},
     )
 
