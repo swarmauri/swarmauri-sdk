@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant User
+    participant CLI as peagen remote task get
+    participant GW as Gateway RPC
+    participant DB as Results DB
+    User ->> CLI: Run `peagen remote --gateway-url http://gateway/rpc task get <task-id>`
+    CLI ->> GW: JSON-RPC Task.get(task_id)
+    GW ->> DB: SELECT status, result WHERE id=task_id
+    DB -->> GW: task row
+    GW -->> CLI: task status/result JSON
+    CLI -->> User: Display formatted JSON
