@@ -221,7 +221,17 @@ class QueueDashboardApp(App):
         self.tasks_table.focus()
 
         self.err_table = DataTable(id="err_table")
-        self.err_table.add_columns("Task", "Log")
+        self.err_table.add_columns(
+            "ID",
+            "Pool",
+            "Status",
+            "Action",
+            "Labels",
+            "Started",
+            "Finished",
+            "Duration",
+            "Error",
+        )
         # after creating err_table
         self.err_table.cursor_type = "cell"  # ensure per-cell click events
         self.err_table.focus()  # mouse-click instantly focuses table
@@ -501,14 +511,41 @@ class QueueDashboardApp(App):
 
         # 3 – error table
         if self.fail_len:
+            err_row = self.err_table.cursor_row
+            err_col = self.err_table.cursor_column
             self.err_table.clear()
-            for t in (t for t in tasks if getattr(t, "status", t.get("status")) == "failed"):
+            for t in (
+                t for t in tasks if getattr(t, "status", t.get("status")) == "failed"
+            ):
                 err_file = getattr(t, "error_file", t.get("error_file"))
                 link = f"[link=file://{err_file}]open[/link]" if err_file else ""
                 tid = getattr(t, "id", t.get("id"))
                 result = getattr(t, "result", t.get("result", {})) or {}
                 err_msg = result.get("error", "")
-                self.err_table.add_row(str(tid), f"{err_msg} {link}".strip())
+                started = t.get("started_at")
+                finished = t.get("finished_at")
+                duration = t.get("duration")
+                self.err_table.add_row(
+                    str(tid),
+                    t.get("pool", ""),
+                    t.get("status"),
+                    t.get("payload", {}).get("action", ""),
+                    ",".join(t.get("labels", [])),
+                    (
+                        datetime.utcfromtimestamp(started).isoformat(timespec="seconds")
+                        if started
+                        else ""
+                    ),
+                    (
+                        datetime.utcfromtimestamp(finished).isoformat(timespec="seconds")
+                        if finished
+                        else ""
+                    ),
+                    str(duration) if duration is not None else "",
+                    f"{err_msg} {link}".strip(),
+                )
+            if err_row is not None and err_row < len(self.err_table.rows):
+                self.err_table.cursor_coordinate = (err_row, err_col or 0)
 
     # ── open selected file in editor instead of browser ────────────────────
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
