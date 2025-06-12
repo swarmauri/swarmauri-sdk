@@ -8,6 +8,7 @@ import asyncio
 import json
 import uuid
 import httpx
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -237,6 +238,10 @@ def submit_process(  # noqa: PLR0913
     skip_validate: bool = typer.Option(
         False, "--skip-validate", help="Skip validating the DOE spec"
     ),
+    watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
+    interval: float = typer.Option(
+        2.0, "--interval", "-i", help="Seconds between polls"
+    ),
 ) -> None:
     """Enqueue DOE processing on a remote worker."""
     args = {
@@ -269,3 +274,32 @@ def submit_process(  # noqa: PLR0913
         raise typer.Exit(1)
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
+    if watch:
+        def _rpc_call(tid: str) -> dict:
+            req = {
+                "jsonrpc": "2.0",
+                "id": str(uuid.uuid4()),
+                "method": "Task.get",
+                "params": {"taskId": tid},
+            }
+            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            return res["result"]
+
+        while True:
+            task_reply = _rpc_call(task.id)
+            typer.echo(json.dumps(task_reply, indent=2))
+            if task_reply["status"] in {"success", "failed"}:
+                break
+            time.sleep(interval)
+
+        children = task_reply.get("result", {}).get("children", [])
+        for cid in children:
+            while True:
+                child_reply = _rpc_call(cid)
+                typer.echo(json.dumps(child_reply, indent=2))
+                if child_reply["status"] in {"success", "failed"}:
+                    break
+                time.sleep(interval)
+            if child_reply["status"] != "success":
+                typer.secho(f"Child task {cid} failed", fg=typer.colors.RED, err=True)
+                raise typer.Exit(1)

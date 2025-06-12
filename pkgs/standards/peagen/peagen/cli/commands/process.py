@@ -218,6 +218,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         while True:
             task_reply = _rpc_call()
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"finished", "failed"}:
+            if task_reply["status"] in {"success", "failed"}:
                 break
             time.sleep(interval)

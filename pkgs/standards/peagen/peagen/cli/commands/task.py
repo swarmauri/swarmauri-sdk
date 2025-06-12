@@ -39,7 +39,7 @@ def get(  # noqa: D401
         reply = _rpc_call()
         typer.echo(json.dumps(reply, indent=2))
 
-        if not watch or reply["status"] in {"finished", "failed"}:
+        if not watch or reply["status"] in {"success", "failed"}:
             break
         time.sleep(interval)
 
