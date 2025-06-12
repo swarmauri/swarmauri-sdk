@@ -81,3 +81,12 @@ def test_plugin_discovery_runs_once(monkeypatch):
     assert len(calls) == len(plugins.GROUPS)
 
 
+@pytest.mark.unit
+def test_ep_paths_use_plugins_namespace():
+    for group, (ep_group, _base) in plugins.GROUPS.items():
+        if group == "template_sets":
+            assert ep_group == "peagen.template_sets"
+        else:
+            assert ep_group.startswith("peagen.plugins."), ep_group
+
+

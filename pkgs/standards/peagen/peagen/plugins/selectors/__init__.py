@@ -1,4 +1,4 @@
-# peagen/storage_adapters/__init__.py
+# peagen/plugins/storage_adapters/__init__.py
 """Factory helpers for storage adapters."""
 
 from urllib.parse import urlparse
