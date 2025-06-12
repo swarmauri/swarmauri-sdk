@@ -21,11 +21,18 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
-    cfg_path = Path(args["config"]).expanduser() if args.get("config") else None
+    def _resolve_existing(path_str: str) -> Path:
+        path = Path(path_str).expanduser()
+        if path.exists():
+            return path
+        alt = Path(__file__).resolve().parents[2] / path_str
+        return alt if alt.exists() else path
+
+    cfg_path = _resolve_existing(args["config"]) if args.get("config") else None
 
     result = generate_payload(
-        spec_path=Path(args["spec"]).expanduser(),
-        template_path=Path(args["template"]).expanduser(),
+        spec_path=_resolve_existing(args["spec"]),
+        template_path=_resolve_existing(args["template"]),
         output_path=Path(args["output"]).expanduser(),
         cfg_path=cfg_path,
         notify_uri=args.get("notify"),
@@ -47,19 +54,24 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         storage_adapter = FileStorageAdapter(**file_cfg) if file_cfg else None
 
     output_paths = result.get("outputs", [])
-    projects: List[Tuple[str, Dict[str, Any]]] = []
+    projects: List[Tuple[str | bytes, Dict[str, Any]]] = []
     uploaded: List[str] = []
     for p in output_paths:
-        doc = yaml.safe_load(Path(p).read_text())
+        text = Path(p).read_text()
+        doc = yaml.safe_load(text)
         proj = (doc.get("PROJECTS") or [None])[0]
-        uri = str(p)
-        if storage_adapter and not result.get("dry_run"):
+        payload: str | bytes = text
+        if storage_adapter and not result.get("dry_run") and not isinstance(storage_adapter, FileStorageAdapter):
             key = f"{Path(p).name}"
-            with open(p, "rb") as fh:
-                uri = storage_adapter.upload(key, fh)  # type: ignore[attr-defined]
-        uploaded.append(uri)
+            try:
+                with open(p, "rb") as fh:
+                    payload = storage_adapter.upload(key, fh)  # type: ignore[attr-defined]
+            except Exception:
+                payload = text
+        if isinstance(payload, str):
+            uploaded.append(payload)
         if proj is not None:
-            projects.append((uri, proj))
+            projects.append((payload, proj))
     result["outputs"] = uploaded
 
     pool = task_or_dict.get("pool", "default")

@@ -244,9 +244,23 @@ def submit_process(  # noqa: PLR0913
     ),
 ) -> None:
     """Enqueue DOE processing on a remote worker."""
+    def _git_root(path: Path) -> Path:
+        for p in [path] + list(path.parents):
+            if (p / ".git").exists():
+                return p
+        return path
+
+    root = _git_root(Path.cwd())
+
+    def _canonical(p: Path) -> str:
+        try:
+            return str(p.resolve().relative_to(root))
+        except ValueError:
+            return str(p.resolve())
+
     args = {
-        "spec": str(spec),
-        "template": str(template),
+        "spec": _canonical(spec),
+        "template": _canonical(template),
         "output": str(output),
         "config": str(config) if config else None,
         "notify": notify,
