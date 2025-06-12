@@ -37,6 +37,6 @@ class TaskStreamClient:
                         self.tasks[task_id] = data
                     for cb in self._callbacks:
                         await cb(data)
-        except OSError:
+        except (OSError, websockets.exceptions.InvalidStatus):
             # connection failed; just ignore
             pass
