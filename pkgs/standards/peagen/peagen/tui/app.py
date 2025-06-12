@@ -9,19 +9,14 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
-import random
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 from urllib.parse import urlparse
 
 from peagen.tui.fileops import download_remote, upload_remote
 from peagen.tui.ws_client import TaskStreamClient
-
 from rich.progress import ProgressBar
-
-# ── imports ──────────────────────────────────────────────────────────
 from textual import events
 from textual.app import App, ComposeResult
 from textual.reactive import reactive
@@ -40,58 +35,45 @@ from peagen.tui.components import (
     WorkersView,
 )
 
-
-# ───────────────────────────────────  Fake backend  ────────────────────────────────────
-class Task:
-    _ids = itertools.count(1)
-
-    def __init__(self, queue: str):
-        self.id = next(self._ids)
-        self.queue = queue
-        self.total = random.randint(50, 120)
-        self.done = 0
-        self.status = "running"  # running / done / failed
-        self.error_file: Path | None = None
-
-    def step(self):
-        if self.status != "running":
-            return
-        self.done += random.randint(2, 6)
-        if self.done >= self.total:
-            self.done = self.total
-            if random.random() < 0.12:
-                self.status = "failed"
-                self.error_file = Path(f"./logs/task_{self.id}.log")
-            else:
-                self.status = "done"
-
-    @property
-    def percent(self) -> float:
-        return self.done / self.total * 100
+import httpx
 
 
-class FakeBackend:
-    def __init__(self):
-        self.tasks: list[Task] = []
-        self.workers: Dict[str, datetime] = {
-            f"worker-{n}": datetime.utcnow() for n in range(2)
+class RemoteBackend:
+    """Query the gateway for tasks and workers."""
+
+    def __init__(self, gateway_url: str) -> None:
+        self.rpc_url = gateway_url.rstrip("/") + "/rpc"
+        self.http = httpx.AsyncClient(timeout=10.0)
+        self.tasks: List[dict] = []
+        self.workers: Dict[str, datetime] = {}
+
+    async def refresh(self) -> None:
+        await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
+
+    async def fetch_tasks(self) -> None:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "method": "Pool.listTasks",
+            "params": {"poolName": "default"},
         }
+        resp = await self.http.post(self.rpc_url, json=payload)
+        resp.raise_for_status()
+        self.tasks = resp.json().get("result", [])
 
-    async def poll(self):
-        while True:
-            await asyncio.sleep(0.2)
-            if random.random() < 0.25:
-                self.tasks.append(Task("default"))
-            for t in self.tasks:
-                t.step()
-            for w in self.workers:
-                if random.random() < 0.1:
-                    self.workers[w] = datetime.utcnow()
-            self.tasks[:] = [
-                t
-                for t in self.tasks
-                if not (t.status != "running" and random.random() < 0.04)
-            ]
+    async def fetch_workers(self) -> None:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": "2",
+            "method": "Worker.list",
+            "params": {},
+        }
+        resp = await self.http.post(self.rpc_url, json=payload)
+        resp.raise_for_status()
+        data = resp.json().get("result", [])
+        self.workers = {
+            w["id"]: datetime.utcfromtimestamp(int(w["last_seen"])) for w in data
+        }
 
 
 # ───────────────────────────────────  Dashboard app  ────────────────────────────────────
@@ -122,7 +104,7 @@ class QueueDashboardApp(App):
         super().__init__()
         ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
         self.client = TaskStreamClient(ws_url)
-        self.backend = FakeBackend()
+        self.backend = RemoteBackend(gateway_url)
 
     # reactive counters for quick overview
     queue_len = reactive(0)
@@ -132,8 +114,8 @@ class QueueDashboardApp(App):
 
     # ── life-cycle ──────────────────────────────────────────────────────────
     async def on_mount(self):
-        self.run_worker(self.backend.poll(), exclusive=True)
         self.run_worker(self.client.listen(), exclusive=True)
+        self.set_interval(1.0, self.backend.refresh)
         self.set_interval(0.3, self.refresh_data)
 
     async def on_open_url(self, event: events.OpenURL) -> None:
