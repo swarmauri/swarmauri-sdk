@@ -22,17 +22,21 @@ class TaskStreamClient:
         self._callbacks.append(cb)
 
     async def listen(self) -> None:
-        async with websockets.connect(self.ws_url) as ws:
-            async for message in ws:
-                try:
-                    event = json.loads(message)
-                except json.JSONDecodeError:
-                    continue
-                data = event.get("data")
-                if not isinstance(data, dict):
-                    continue
-                task_id = data.get("id")
-                if task_id:
-                    self.tasks[task_id] = data
-                for cb in self._callbacks:
-                    await cb(data)
+        try:
+            async with websockets.connect(self.ws_url) as ws:
+                async for message in ws:
+                    try:
+                        event = json.loads(message)
+                    except json.JSONDecodeError:
+                        continue
+                    data = event.get("data")
+                    if not isinstance(data, dict):
+                        continue
+                    task_id = data.get("id")
+                    if task_id:
+                        self.tasks[task_id] = data
+                    for cb in self._callbacks:
+                        await cb(data)
+        except (OSError, websockets.exceptions.InvalidStatus):
+            # connection failed; just ignore
+            pass

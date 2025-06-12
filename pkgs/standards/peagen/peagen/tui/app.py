@@ -24,19 +24,21 @@ from rich.progress import ProgressBar
 # ── imports ──────────────────────────────────────────────────────────
 from textual import events
 from textual.app import App, ComposeResult
-from textual.containers import VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import (
     DataTable,
-    Footer,
     Header,
-    Static,
     TabbedContent,
     TabPane,
     TextArea,
 )
 
-from peagen.tui.components.tree_view import FileTree
+from peagen.tui.components import (
+    DashboardFooter,
+    FileTree,
+    TemplatesView,
+    WorkersView,
+)
 
 
 # ───────────────────────────────────  Fake backend  ────────────────────────────────────
@@ -107,11 +109,11 @@ class QueueDashboardApp(App):
     """
     TITLE = "Peagen"
     BINDINGS = [
-        ("1", "switch('overview')", "Overview"),
+        ("1", "switch('pools')", "Pools"),
         ("2", "switch('tasks')", "Tasks"),
         ("3", "switch('errors')", "Errors"),
-        ("4", "switch('files')", "Files"),
-        ("5", "switch('editor')", "Editor"),
+        ("4", "switch('artifacts')", "Artifacts"),
+        ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("q", "quit", "Quit"),
     ]
@@ -164,8 +166,9 @@ class QueueDashboardApp(App):
         yield Header()
 
         # widgets whose content we mutate later
-        self.overview_box = Static(id="stats")
+        self.workers_view = WorkersView(id="workers_view")
         self.file_tree = FileTree("tree", id="file_tree")
+        self.templates_tree = TemplatesView(id="templates_tree")
         self.tasks_table = DataTable(id="tasks_table")
         self.tasks_table.add_columns("ID", "Status", "Progress")
 
@@ -176,15 +179,18 @@ class QueueDashboardApp(App):
         self.err_table.focus()  # mouse-click instantly focuses table
 
         self.code_editor = TextArea(id="code_editor")
+        self.file_tabs = TabbedContent(id="file_tabs")
+        self.file_tabs.display = False
 
-        with TabbedContent(initial="overview"):
-            yield TabPane("Overview", VerticalScroll(self.overview_box), id="overview")
+        with TabbedContent(initial="pools"):
+            yield TabPane("Pools", self.workers_view, id="pools")
             yield TabPane("Tasks", self.tasks_table, id="tasks")
             yield TabPane("Errors", self.err_table, id="errors")
-            yield TabPane("Files", self.file_tree, id="files")
-            yield TabPane("Editor", self.code_editor, id="editor")
+            yield TabPane("Artifacts", self.file_tree, id="artifacts")
+            yield TabPane("Templates", self.templates_tree, id="templates")
 
-        yield Footer()
+        yield self.file_tabs
+        yield DashboardFooter()
 
     # ── key binding helpers ────────────────────────────────────────────────
     def action_switch(self, tab_id: str) -> None:
@@ -195,9 +201,10 @@ class QueueDashboardApp(App):
         if not hasattr(self, "_current_file"):
             self.toast("No file loaded.", style="yellow")
             return
+        editor = self.file_tabs.active_pane.query_one(TextArea)
         if getattr(self, "_remote_info", None):
             adapter, key, tmp = self._remote_info
-            tmp.write_text(self.code_editor.value, encoding="utf-8")
+            tmp.write_text(editor.value, encoding="utf-8")
             try:
                 upload_remote(adapter, key, tmp)
                 self.toast("Uploaded remote file", style="green")
@@ -205,9 +212,7 @@ class QueueDashboardApp(App):
                 self.toast(f"Upload failed: {exc}", style="red")
         else:
             try:
-                Path(self._current_file).write_text(
-                    self.code_editor.value, encoding="utf-8"
-                )
+                Path(self._current_file).write_text(editor.value, encoding="utf-8")
                 self.toast(f"Saved {self._current_file}", style="green")
             except Exception as exc:
                 self.toast(f"Save failed: {exc}", style="red")
@@ -217,17 +222,12 @@ class QueueDashboardApp(App):
         tasks = list(self.client.tasks.values()) or self.backend.tasks
         workers = self.backend.workers
 
-        # 1 – overview
+        # 1 – workers and counts
         self.queue_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "running")
         self.done_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "done")
         self.fail_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "failed")
         self.worker_len = len(workers)
-        self.overview_box.update(
-            f"[bold cyan]Active workers:[/bold cyan] {self.worker_len}\n"
-            f"[bold cyan]Tasks running:[/bold cyan] {self.queue_len}\n"
-            f"[bold cyan]Completed:[/bold cyan]     {self.done_len}\n"
-            f"[bold cyan]Failed:[/bold cyan]        {self.fail_len}\n"
-        )
+        self.workers_view.update_workers(workers)
 
         # 2 – tasks table
         running = [t for t in tasks if getattr(t, "status", t.get("status")) == "running"]
@@ -299,10 +299,17 @@ class QueueDashboardApp(App):
             self._remote_info = None
             self._current_file = file_path
 
-        self.code_editor.load_text(text)
-        self.code_editor.language = "python"
-
-        self.action_switch("editor")
+        pane_id = file_path
+        if not self.file_tabs.get_child_by_id(pane_id):
+            editor = TextArea(id=f"editor_{len(self.file_tabs.panes)}")
+            editor.load_text(text)
+            editor.language = "python"
+            await self.file_tabs.add_pane(TabPane(Path(file_path).name, editor, id=pane_id))
+            self.file_tabs.display = True
+        else:
+            editor = self.file_tabs.query_one(f"#{pane_id} TextArea")
+            editor.load_text(text)
+        self.file_tabs.active = pane_id
         self.toast(f"Editing {file_path}", style="success", duration=1.5)
 
 
