@@ -20,6 +20,7 @@ import sys
 from peagen.tui.fileops import download_remote, upload_remote
 from peagen.tui.ws_client import TaskStreamClient
 from textual import events
+from textual.coordinate import Coordinate
 from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import (
@@ -650,7 +651,7 @@ class QueueDashboardApp(App):
                 row_key = getattr(row_obj, "key", None) if row_obj is not None else None
             if row_key is None:
                 if hasattr(table, "get_cell_at"):
-                    cell_value = table.get_cell_at(row_idx, 0)
+                    cell_value = table.get_cell_at(Coordinate(row_idx, 0))
                 else:
                     cell_value = table.get_cell(row_idx, 0)
                 row_key = str(cell_value).strip()
