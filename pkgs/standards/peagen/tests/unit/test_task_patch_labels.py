@@ -34,7 +34,7 @@ async def test_task_patch_updates_labels(monkeypatch):
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
 
-    async def noop(*_):
+    async def noop(task):
         return None
 
     monkeypatch.setattr(gw, "_persist", noop)
