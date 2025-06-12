@@ -67,6 +67,31 @@ EVAL_MANIFEST_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
+# ── Plan schemas ─────────────────────────────────────────────
+DOE_PLAN_V1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("doe_plan.schema.v1.json")
+    .read_text(encoding="utf-8")
+)
+
+EVALUATION_PLAN_V1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("evaluation_plan.schema.v1.json")
+    .read_text(encoding="utf-8")
+)
+
+EVOLVE_PLAN_V1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("evolve_plan.schema.v1.json")
+    .read_text(encoding="utf-8")
+)
+
+ANALYSIS_PLAN_V1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("analysis_plan.schema.v1.json")
+    .read_text(encoding="utf-8")
+)
+
 # ── EXTRAS schemas ─────────────────────────────────────────────
 _extras_pkg = res.files(__package__).joinpath("extras")
 EXTRAS_SCHEMAS = {
@@ -87,5 +112,9 @@ __all__ = [
     "PROJECTS_PAYLOAD_V1_SCHEMA",
     "EVENT_V1_SCHEMA",
     "EVAL_MANIFEST_V1_SCHEMA",
+    "DOE_PLAN_V1_SCHEMA",
+    "EVALUATION_PLAN_V1_SCHEMA",
+    "EVOLVE_PLAN_V1_SCHEMA",
+    "ANALYSIS_PLAN_V1_SCHEMA",
     "EXTRAS_SCHEMAS",
 ]
