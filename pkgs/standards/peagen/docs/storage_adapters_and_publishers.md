@@ -1,6 +1,6 @@
 # Storage Adapters and Publisher Plugins
 
-Peagen writes artifacts to a pluggable storage backend and can publish events during processing. Both systems are extensible so you can integrate your own infrastructure.
+Peagen writes artifacts to a pluggable storage backend and can publish events during processing. Both systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
 
 ## Storage Adapters
 

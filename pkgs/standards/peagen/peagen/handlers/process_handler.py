@@ -17,7 +17,7 @@ from swarmauri_standard.loggers.Logger import Logger
 from typing import Any, Dict, List
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 
 from peagen.core.process_core import (
     load_projects_payload,
