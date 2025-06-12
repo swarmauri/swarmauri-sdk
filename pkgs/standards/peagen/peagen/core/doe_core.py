@@ -239,31 +239,48 @@ def generate_payload(
         spec_name=spec_path.stem,
     )
 
-    bundle = {
-        "PROJECTS": projects,
-        "SOURCE": {
-            "spec": str(spec_path),
-            "template": str(template_path),
-            "spec_checksum": _sha256(spec_path),
-        },
-    }
+    bundles: List[Tuple[Path, Dict[str, Any]]] = []
+    for idx, proj_payload in enumerate(projects):
+        out_path = output_path.parent / (
+            f"{output_path.stem}_{idx:03d}{output_path.suffix}"
+        )
+
+        bundle = {
+            **proj_payload,
+            "SOURCE": {
+                "spec": str(spec_path),
+                "template": str(template_path),
+                "spec_checksum": _sha256(spec_path),
+            },
+        }
+
+        bundles.append((out_path, bundle))
 
     # 2. ------------ write file (unless dry-run) -------------------------
     bytes_written = 0
+    outputs: List[str] = []
     if not dry_run:
-        if output_path.exists() and not force:
-            raise FileExistsError(f"{output_path} exists – use force=True to overwrite")
-        output_path.write_text(yaml.safe_dump(bundle, sort_keys=False), encoding="utf-8")
-        bytes_written = output_path.stat().st_size
+        for out_path, bundle in bundles:
+            if out_path.exists() and not force:
+                raise FileExistsError(
+                    f"{out_path} exists – use force=True to overwrite"
+                )
+            out_path.write_text(
+                yaml.safe_dump(bundle, sort_keys=False), encoding="utf-8"
+            )
+            outputs.append(str(out_path))
+            bytes_written += out_path.stat().st_size
+    else:
+        outputs = [str(p) for p, _ in bundles]
 
     # 3. ------------ optional event publish ------------------------------
     if notify_uri:
-        _publish_event(notify_uri, output_path, len(projects), cfg_path)
+        _publish_event(notify_uri, output_path, len(bundles), cfg_path)
 
     # 4. ------------ summary ---------------------------------------------
     return {
-        "output": str(output_path),
-        "count": len(projects),
+        "outputs": outputs,
+        "count": len(bundles),
         "bytes": bytes_written,
         "llm_keys": llm_keys,
         "other_keys": other_keys,

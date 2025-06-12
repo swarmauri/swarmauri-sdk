@@ -26,9 +26,11 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     monkeypatch.setattr(fanout, "httpx", type("X", (), {"AsyncClient": DummyClient}))
 
     def fake_generate_payload(**kwargs):
-        p = tmp_path / "out.yaml"
-        p.write_text("PROJECTS:\n- NAME: A\n- NAME: B\n")
-        return {"output": str(p)}
+        p1 = tmp_path / "out_0.yaml"
+        p2 = tmp_path / "out_1.yaml"
+        p1.write_text("PROJECTS:\n- NAME: A\n")
+        p2.write_text("PROJECTS:\n- NAME: B\n")
+        return {"outputs": [str(p1), str(p2)]}
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
 

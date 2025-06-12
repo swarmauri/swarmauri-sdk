@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import uuid
 
 import yaml
@@ -29,12 +29,17 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         skip_validate=args.get("skip_validate", False),
     )
 
-    doc = yaml.safe_load(Path(result["output"]).read_text())
-    projects: List[Dict[str, Any]] = doc.get("PROJECTS", [])
+    output_paths = result.get("outputs", [])
+    projects: List[Tuple[str, Dict[str, Any]]] = []
+    for p in output_paths:
+        doc = yaml.safe_load(Path(p).read_text())
+        proj = (doc.get("PROJECTS") or [None])[0]
+        if proj is not None:
+            projects.append((p, proj))
 
     pool = task_or_dict.get("pool", "default")
     children: List[Task] = []
-    for proj in projects:
+    for path, proj in projects:
         children.append(
             Task(
                 id=str(uuid.uuid4()),
@@ -44,7 +49,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
                 payload={
                     "action": "process",
                     "args": {
-                        "projects_payload": result["output"],
+                        "projects_payload": path,
                         "project_name": proj.get("NAME"),
                     },
                 },
