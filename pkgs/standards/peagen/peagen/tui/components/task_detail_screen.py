@@ -1,10 +1,14 @@
-import json  # For pretty printing task details, if needed
+"""Modal screen for displaying task details in a table."""
+
+from __future__ import annotations
+
+import json
 
 from textual.app import ComposeResult
-from textual.containers import Center, VerticalScroll  # Assuming these might be used
-from textual.reactive import reactive  # Import reactive
+from textual.containers import Center, VerticalScroll
+from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Static  # Assuming these might be used
+from textual.widgets import Button, DataTable, Label
 
 
 class TaskDetailScreen(ModalScreen[None]):
@@ -17,19 +21,31 @@ class TaskDetailScreen(ModalScreen[None]):
         self.task = task_data
 
     def compose(self) -> ComposeResult:
-        task_content = "No task data."
-        if self.task is not None:
-            try:
-                task_content = json.dumps(self.task, indent=2)
-            except TypeError:
-                task_content = "Error: Task data is not JSON serializable."
+        """Construct widgets for the detail view."""
 
         with VerticalScroll(id="task_detail_vertical_scroll"):
-            yield Label("Task Details", classes="title")  # Use a class for styling
-            yield Static(task_content, id="task_data_display", markup=False)
+            yield Label("Task Details", classes="title")
+            yield DataTable(id="task_detail_table")
             yield Center(
-                Button("Close", variant="primary", id="close_task_detail_button")
+                Button("Close", variant="primary", id="close_task_detail_button"),
             )
+
+    def on_mount(self) -> None:
+        """Populate the task table when the screen is shown."""
+
+        table = self.query_one("#task_detail_table", DataTable)
+        table.add_columns("Key", "Value")
+
+        if not self.task:
+            table.add_row("-", "No task data")
+            return
+
+        for key, value in self.task.items():
+            if isinstance(value, (dict, list)):
+                value_str = json.dumps(value, indent=2)
+            else:
+                value_str = str(value)
+            table.add_row(str(key), value_str)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Event handler called when a button is pressed."""
