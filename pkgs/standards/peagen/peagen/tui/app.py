@@ -14,6 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 from urllib.parse import urlparse
+import subprocess
+import sys
 
 from peagen.tui.fileops import download_remote, upload_remote
 from peagen.tui.ws_client import TaskStreamClient
@@ -38,6 +40,45 @@ from peagen.tui.components import (
 )
 
 import httpx
+
+
+def clipboard_copy(text: str) -> None:
+    """Write text to the system clipboard."""
+
+    platform = sys.platform
+    if platform.startswith("win"):
+        with subprocess.Popen(["clip"], stdin=subprocess.PIPE, text=True) as proc:
+            proc.communicate(text)
+    elif platform.startswith("darwin"):
+        with subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE, text=True) as proc:
+            proc.communicate(text)
+    else:
+        with subprocess.Popen(
+            ["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE, text=True
+        ) as proc:
+            proc.communicate(text)
+
+
+def clipboard_paste() -> str:
+    """Return the current system clipboard contents."""
+
+    platform = sys.platform
+    if platform.startswith("win"):
+        completed = subprocess.run(
+            ["powershell", "-command", "Get-Clipboard"],
+            capture_output=True,
+            text=True,
+        )
+        return completed.stdout
+    if platform.startswith("darwin"):
+        completed = subprocess.run(["pbpaste"], capture_output=True, text=True)
+        return completed.stdout
+    completed = subprocess.run(
+        ["xclip", "-selection", "clipboard", "-o"],
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout
 
 
 def _format_ts(ts: float | str | None) -> str:
@@ -145,6 +186,7 @@ class QueueDashboardApp(App):
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
+        ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
         ("f", "toggle_filter_input", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
@@ -376,6 +418,39 @@ class QueueDashboardApp(App):
         self.filter_input.value = ""
         self.filter_input.display = False
         self.refresh_data()
+
+    def action_copy_id(self) -> None:
+        """Copy the text from the focused widget to the clipboard."""
+
+        widget = self.focused
+        text = ""
+        if isinstance(widget, DataTable):
+            row = widget.cursor_row
+            col = widget.cursor_column
+            if row is not None and col is not None:
+                if hasattr(widget, "get_cell_at"):
+                    value = widget.get_cell_at(row, col)
+                else:  # pragma: no cover - old textual
+                    value = widget.get_cell(row, col)
+                text = str(value)
+        elif isinstance(widget, (Input, TextArea)):
+            text = getattr(widget, "selected_text", "") or getattr(widget, "value", "")
+        if text:
+            clipboard_copy(text)
+
+    def action_paste_clipboard(self) -> None:
+        """Paste clipboard text into the focused input widget."""
+
+        widget = self.focused
+        text = clipboard_paste()
+        if isinstance(widget, Input):
+            insert = getattr(widget, "insert_text_at_cursor", None)
+            if insert:
+                insert(text)
+        elif isinstance(widget, TextArea):
+            insert = getattr(widget, "insert", None) or getattr(widget, "insert_text_at_cursor", None)
+            if insert:
+                insert(text)
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Apply filters from the input bar."""
