@@ -106,7 +106,7 @@ services:
       - "443:443"   # HTTPS
       - "81:81"     # Admin UI
       - "6379:6379"
-      - "9001:9001"
+      - "9000:9000"
     environment:
       DB_POSTGRES_HOST:     postgres
       DB_POSTGRES_PORT:     5342
