@@ -27,7 +27,6 @@ from textual.widgets import (
     TabPane,
     TextArea,
 )
-
 from peagen.tui.components import (
     DashboardFooter,
     FileTree,
@@ -37,6 +36,20 @@ from peagen.tui.components import (
 )
 
 import httpx
+
+
+def _format_ts(ts: float | str | None) -> str:
+    """Return an ISO timestamp regardless of input type."""
+    if ts is None:
+        return ""
+    try:
+        if isinstance(ts, str):
+            return (
+                datetime.fromisoformat(ts.replace("Z", "+00:00")).isoformat(timespec="seconds")
+            )
+        return datetime.utcfromtimestamp(float(ts)).isoformat(timespec="seconds")
+    except Exception:
+        return ""
 
 
 class RemoteBackend:
@@ -462,16 +475,8 @@ class QueueDashboardApp(App):
                 status,
                 action,
                 labels,
-                (
-                    datetime.utcfromtimestamp(started).isoformat(timespec="seconds")
-                    if started
-                    else ""
-                ),
-                (
-                    datetime.utcfromtimestamp(finished).isoformat(timespec="seconds")
-                    if finished
-                    else ""
-                ),
+                _format_ts(started),
+                _format_ts(finished),
                 str(duration) if duration is not None else "",
                 key=str(tid),
             )
@@ -490,16 +495,8 @@ class QueueDashboardApp(App):
                             child.get("status"),
                             child.get("payload", {}).get("action", ""),
                             c_labels,
-                            (
-                                datetime.utcfromtimestamp(c_start).isoformat(timespec="seconds")
-                                if c_start
-                                else ""
-                            ),
-                            (
-                                datetime.utcfromtimestamp(c_finish).isoformat(timespec="seconds")
-                                if c_finish
-                                else ""
-                            ),
+                            _format_ts(c_start),
+                            _format_ts(c_finish),
                             str(c_dur) if c_dur is not None else "",
                             key=str(cid),
                         )
@@ -531,16 +528,8 @@ class QueueDashboardApp(App):
                     t.get("status"),
                     t.get("payload", {}).get("action", ""),
                     ",".join(t.get("labels", [])),
-                    (
-                        datetime.utcfromtimestamp(started).isoformat(timespec="seconds")
-                        if started
-                        else ""
-                    ),
-                    (
-                        datetime.utcfromtimestamp(finished).isoformat(timespec="seconds")
-                        if finished
-                        else ""
-                    ),
+                    _format_ts(started),
+                    _format_ts(finished),
                     str(duration) if duration is not None else "",
                     f"{err_msg} {link}".strip(),
                 )
