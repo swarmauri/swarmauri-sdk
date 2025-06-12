@@ -262,7 +262,24 @@ class QueueDashboardApp(App):
         row = self.tasks_table.cursor_row
         if row is None:
             return
-        row_key = self.tasks_table.get_row_key(row)
+
+        # ``DataTable``'s API changed across Textual versions.  Newer
+        # releases expose ``get_row_key`` while older versions require
+        # accessing the row object directly.  Support both styles so the
+        # dashboard works regardless of the installed Textual release.
+        if hasattr(self.tasks_table, "get_row_key"):
+            row_key = self.tasks_table.get_row_key(row)
+        else:  # fallback for older versions
+            row_obj = (
+                self.tasks_table.get_row_at(row)
+                if hasattr(self.tasks_table, "get_row_at")
+                else None
+            )
+            row_key = getattr(row_obj, "key", None) if row_obj else None
+
+        if row_key is None:
+            return
+
         if row_key in self.collapsed:
             self.collapsed.remove(row_key)
         else:
