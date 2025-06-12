@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
@@ -45,7 +46,7 @@ class RemoteBackend:
         self.rpc_url = gateway_url.rstrip("/") + "/rpc"
         self.http = httpx.AsyncClient(timeout=10.0)
         self.tasks: List[dict] = []
-        self.workers: Dict[str, datetime] = {}
+        self.workers: Dict[str, dict] = {}
 
     async def refresh(self) -> None:
         await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
@@ -70,10 +71,26 @@ class RemoteBackend:
         }
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
-        data = resp.json().get("result", [])
-        self.workers = {
-            w["id"]: datetime.utcfromtimestamp(int(w["last_seen"])) for w in data
-        }
+        raw_workers = resp.json().get("result", [])
+        workers: Dict[str, dict] = {}
+        for entry in raw_workers:
+            info = {**entry}
+            ts_raw = info.get("last_seen")
+            try:
+                ts = datetime.utcfromtimestamp(int(ts_raw)) if ts_raw else None
+            except (TypeError, ValueError):
+                ts = None
+            info["last_seen"] = ts
+            # attempt to decode JSON-encoded fields
+            for k, v in list(info.items()):
+                if isinstance(v, str) and (v.startswith("{") or v.startswith("[")):
+                    try:
+                        info[k] = json.loads(v)
+                    except Exception:
+                        pass
+            workers[info["id"]] = info
+
+        self.workers = workers
 
 
 # ───────────────────────────────────  Dashboard app  ────────────────────────────────────
@@ -152,7 +169,7 @@ class QueueDashboardApp(App):
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
         self.tasks_table = DataTable(id="tasks_table")
-        self.tasks_table.add_columns("ID", "Status", "Progress")
+        self.tasks_table.add_columns("ID", "Status", "Progress", "Action")
 
         self.err_table = DataTable(id="err_table")
         self.err_table.add_columns("Task", "Log")
@@ -205,12 +222,14 @@ class QueueDashboardApp(App):
         if self.client.workers:
             workers = {}
             for wid, data in self.client.workers.items():
-                ts_raw = data.get("last_seen", datetime.utcnow().timestamp())
+                info = {**data}
+                ts_raw = info.get("last_seen", datetime.utcnow().timestamp())
                 try:
                     ts = float(ts_raw)
                 except (TypeError, ValueError):
                     ts = datetime.utcnow().timestamp()
-                workers[wid] = datetime.utcfromtimestamp(ts)
+                info["last_seen"] = datetime.utcfromtimestamp(ts)
+                workers[wid] = info
         else:
             workers = self.backend.workers
 
@@ -227,38 +246,25 @@ class QueueDashboardApp(App):
         self.workers_view.update_workers(workers)
 
         # 2 – tasks table
-        running = [t for t in tasks if getattr(t, "status", t.get("status")) == "running"]
-        visible = set(self.tasks_table.rows.keys())
-        for t in running:
+        self.tasks_table.clear()
+        for t in tasks:
             tid = getattr(t, "id", t.get("id"))
             status = getattr(t, "status", t.get("status"))
             pct = getattr(t, "percent", None)
             if pct is None:
                 done = getattr(t, "done", t.get("done", 0))
-                total = getattr(t, "total", t.get("total", 100))
+                total = getattr(t, "total", 100)
                 pct = done / total * 100 if total else 0
-            if str(tid) not in visible:
-                self.tasks_table.add_row(
-                    str(tid),
-                    status,
-                    ProgressBar(total=100, completed=pct),
-                    key=str(tid),
-                )
-            else:
-                ...
-                # # only progress cell needs refresh
-                # self.tasks_table.update_cell(
-                #     str(t.id), "Progress",
-                #     ProgressBar(total=100, completed=t.percent),
-                # )
-        # purge finished rows
-        for key in list(self.tasks_table.rows.keys()):
-            if all(
-                str(getattr(t, "id", t.get("id"))) != key
-                or getattr(t, "status", t.get("status")) != "running"
-                for t in tasks
-            ):
-                self.tasks_table.remove_row(key)
+            action = (
+                getattr(t, "payload", t.get("payload", {})).get("action", "")
+            )
+            self.tasks_table.add_row(
+                str(tid),
+                status,
+                ProgressBar(total=100, completed=pct),
+                action,
+                key=str(tid),
+            )
 
         # 3 – error table
         if self.fail_len:
@@ -267,7 +273,9 @@ class QueueDashboardApp(App):
                 err_file = getattr(t, "error_file", t.get("error_file"))
                 link = f"[link=file://{err_file}]open[/link]" if err_file else ""
                 tid = getattr(t, "id", t.get("id"))
-                self.err_table.add_row(str(tid), link)
+                result = getattr(t, "result", t.get("result", {})) or {}
+                err_msg = result.get("error", "")
+                self.err_table.add_row(str(tid), f"{err_msg} {link}".strip())
 
     # ── open selected file in editor instead of browser ────────────────────
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
