@@ -58,7 +58,7 @@ async def ensure_status_enum(engine) -> None:
         if not exists.scalar():
             enum_values = ", ".join(f"'{v}'" for v in values)
             await conn.execute(
-                text(f"CREATE TYPE IF NOT EXISTS status AS ENUM ({enum_values})")
+                text(f"CREATE TYPE status AS ENUM ({enum_values})")
             )
         else:
             res = await conn.execute(
