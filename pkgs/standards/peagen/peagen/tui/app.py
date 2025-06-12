@@ -202,10 +202,21 @@ class QueueDashboardApp(App):
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
         tasks = list(self.client.tasks.values()) or self.backend.tasks
-        workers = self.backend.workers
+        if self.client.workers:
+            workers = {
+                wid: datetime.utcfromtimestamp(data.get("last_seen", datetime.utcnow().timestamp()))
+                for wid, data in self.client.workers.items()
+            }
+        else:
+            workers = self.backend.workers
 
         # 1 – workers and counts
-        self.queue_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "running")
+        if self.client.queues:
+            self.queue_len = sum(self.client.queues.values())
+        else:
+            self.queue_len = sum(
+                1 for t in tasks if getattr(t, "status", t.get("status")) == "running"
+            )
         self.done_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "done")
         self.fail_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "failed")
         self.worker_len = len(workers)

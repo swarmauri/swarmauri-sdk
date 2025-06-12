@@ -31,7 +31,7 @@ async def test_task_submit_id_collision(monkeypatch):
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
-    async def noop(task):
+    async def noop(*_args, **_kwargs):
         return None
 
     monkeypatch.setattr(gw, "_persist", noop)
