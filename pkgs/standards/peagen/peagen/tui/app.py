@@ -1,53 +1,45 @@
-# queue_dash.py – run with  `python -m queue_dash`
-"""Textual dashboard for Peagen.
-
-🚧 editing template-sets not implemented yet
-"""
-
-# 🚧 editing template-sets not implemented yet
-
 from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List
-from urllib.parse import urlparse
 import subprocess
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
+from urllib.parse import urlparse
 
-from peagen.tui.fileops import download_remote, upload_remote
-from peagen.tui.ws_client import TaskStreamClient
+import httpx
 from textual import events
-from textual.coordinate import Coordinate
 from textual.app import App, ComposeResult
+from textual.containers import Vertical
+from textual.coordinate import Coordinate
 from textual.reactive import reactive
+from textual.widget import NoMatches
 from textual.widgets import (
     DataTable,
     Header,
+    Label,  # Added Label
+    Select,
     TabbedContent,
     TabPane,
     TextArea,
-    Select,
 )
-from textual.containers import Vertical
+
 from peagen.tui.components import (
     DashboardFooter,
     FileTree,
     FilterBar,
-    TemplatesView,
-    WorkersView,
     ReconnectScreen,
     TaskDetailScreen,
+    TemplatesView,
+    WorkersView,
 )
-
-import httpx
+from peagen.tui.fileops import download_remote, upload_remote
+from peagen.tui.ws_client import TaskStreamClient
 
 
 def clipboard_copy(text: str) -> None:
-    """Write text to the system clipboard."""
-
     platform = sys.platform
     if platform.startswith("win"):
         with subprocess.Popen(["clip"], stdin=subprocess.PIPE, text=True) as proc:
@@ -63,8 +55,6 @@ def clipboard_copy(text: str) -> None:
 
 
 def clipboard_paste() -> str:
-    """Return the current system clipboard contents."""
-
     platform = sys.platform
     if platform.startswith("win"):
         completed = subprocess.run(
@@ -85,22 +75,18 @@ def clipboard_paste() -> str:
 
 
 def _format_ts(ts: float | str | None) -> str:
-    """Return an ISO timestamp regardless of input type."""
     if ts is None:
         return ""
     try:
         if isinstance(ts, str):
-            return (
-                datetime.fromisoformat(ts.replace("Z", "+00:00")).isoformat(timespec="seconds")
-            )
+            dt_obj = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            return dt_obj.isoformat(timespec="seconds")
         return datetime.utcfromtimestamp(float(ts)).isoformat(timespec="seconds")
     except Exception:
-        return ""
+        return str(ts)
 
 
 class RemoteBackend:
-    """Query the gateway for tasks and workers."""
-
     def __init__(self, gateway_url: str) -> None:
         self.rpc_url = gateway_url.rstrip("/") + "/rpc"
         self.http = httpx.AsyncClient(timeout=10.0)
@@ -109,15 +95,9 @@ class RemoteBackend:
         self.last_error: str | None = None
 
     async def refresh(self) -> bool:
-        """Update cached tasks and workers.
-
-        Returns:
-            bool: ``True`` if the refresh succeeded, ``False`` otherwise.
-        """
-
         try:
             await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self.last_error = str(exc)
             return False
         else:
@@ -154,7 +134,6 @@ class RemoteBackend:
             except (TypeError, ValueError):
                 ts = None
             info["last_seen"] = ts
-            # attempt to decode JSON-encoded fields
             for k, v in list(info.items()):
                 if isinstance(v, str) and (v.startswith("{") or v.startswith("[")):
                     try:
@@ -162,21 +141,21 @@ class RemoteBackend:
                     except Exception:
                         pass
             workers[info["id"]] = info
-
         self.workers = workers
 
 
-# ───────────────────────────────────  Dashboard app  ────────────────────────────────────
 class QueueDashboardApp(App):
     CSS = """
-    TabPane#editor {
-        height: 1fr;            /* let the pane claim vertical space      */
-        width:  1fr;            /* (optional) stretch to full width       */
+    TabPane#editor { height: 1fr; width:  1fr; }
+    TextArea#code_editor { height: 1fr; width:  1fr; }
+
+    #filter-section-container {
+        padding: 0 1;
+        margin-bottom: 1; /* Gap below the entire filter section */
     }
 
-    TextArea#code_editor {
-        height: 1fr;            /* fill the pane completely               */
-        width:  1fr;
+    #filter-title-label {
+        text-style: bold;
     }
     """
     TITLE = "Peagen"
@@ -195,6 +174,13 @@ class QueueDashboardApp(App):
         ("q", "quit", "Quit"),
     ]
 
+    SORT_KEYS = ["time", "pool", "status", "action", "label", "duration"]
+
+    queue_len = reactive(0)
+    done_len = reactive(0)
+    fail_len = reactive(0)
+    worker_len = reactive(0)
+
     def __init__(self, gateway_url: str = "http://localhost:8000") -> None:
         super().__init__()
         ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
@@ -208,22 +194,18 @@ class QueueDashboardApp(App):
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
+        self._filter_debounce_timer = None
+        self._current_file: str | None = None
+        self._remote_info: tuple | None = None
 
-    # reactive counters for quick overview
-    queue_len = reactive(0)
-    done_len = reactive(0)
-    fail_len = reactive(0)
-    worker_len = reactive(0)
-
-    # ── life-cycle ──────────────────────────────────────────────────────────
     async def on_mount(self):
-        self.run_worker(self.client.listen(), exclusive=True)
-        self.set_interval(1.0, self._refresh_backend)
-        self.set_interval(0.3, self.refresh_data)
+        self.run_worker(
+            self.client.listen(), exclusive=True, group="websocket_listener"
+        )
+        self.set_interval(1.0, self._refresh_backend_and_ui)
+        self.trigger_data_processing()
 
-    async def _refresh_backend(self) -> None:
-        """Fetch latest data or prompt reconnect on failure."""
-
+    async def _refresh_backend_and_ui(self) -> None:
         if self._reconnect_screen:
             return
         ok = await self.backend.refresh()
@@ -231,37 +213,302 @@ class QueueDashboardApp(App):
             await self._show_reconnect(self.backend.last_error or "Connection failed")
         elif ok and self._reconnect_screen:
             await self._dismiss_reconnect()
+        self.trigger_data_processing(debounce=False)
+
+    def trigger_data_processing(self, debounce: bool = True) -> None:
+        if debounce:
+            if self._filter_debounce_timer is not None:
+                self._filter_debounce_timer.stop()
+            self._filter_debounce_timer = self.set_timer(
+                0.3,
+                lambda: self.run_worker(
+                    self.async_process_and_update_data(),
+                    exclusive=True,
+                    group="data_refresh_worker",
+                ),
+                name="filter_debounce_timer",
+            )
+        else:
+            self.run_worker(
+                self.async_process_and_update_data(),
+                exclusive=True,
+                group="data_refresh_worker",
+            )
+
+    async def on_select_changed(self, event: Select.Changed) -> None:
+        event.stop()
+        value = str(event.value) if event.value != Select.BLANK else None
+        filter_changed = False
+
+        if event.control.id == "filter_id":
+            if self.filter_id != value:
+                self.filter_id = value
+                filter_changed = True
+        elif event.control.id == "filter_pool":
+            if self.filter_pool != value:
+                self.filter_pool = value
+                filter_changed = True
+        elif event.control.id == "filter_status":
+            if self.filter_status != value:
+                self.filter_status = value
+                filter_changed = True
+        elif event.control.id == "filter_action":
+            if self.filter_action != value:
+                self.filter_action = value
+                filter_changed = True
+        elif event.control.id == "filter_label":
+            if self.filter_label != value:
+                self.filter_label = value
+                filter_changed = True
+
+        if filter_changed:
+            self.trigger_data_processing()
+
+    async def async_process_and_update_data(self) -> None:
+        all_tasks_from_client = list(self.client.tasks.values())
+        all_tasks_from_backend = list(self.backend.tasks)
+        combined_tasks_dict: Dict[str, Any] = {
+            task.get("id"): task for task in all_tasks_from_backend
+        }
+        for task in all_tasks_from_client:
+            combined_tasks_dict[task.get("id")] = task
+        all_tasks = list(combined_tasks_dict.values())
+
+        current_filter_criteria = {
+            "id": self.filter_id,
+            "pool": self.filter_pool,
+            "status": self.filter_status,
+            "action": self.filter_action,
+            "label": self.filter_label,
+            "sort_key": self.sort_key,
+            "collapsed": self.collapsed.copy(),
+        }
+        processed_data = self._perform_filtering_and_sorting(
+            all_tasks, current_filter_criteria
+        )
+        self.call_later(self._update_ui_with_processed_data, processed_data, all_tasks)
+
+    def _perform_filtering_and_sorting(self, tasks_input: list, criteria: dict) -> dict:
+        tasks = list(tasks_input)
+
+        if criteria.get("id"):
+            tasks = [t for t in tasks if str(t.get("id")) == criteria["id"]]
+        if criteria.get("pool"):
+            tasks = [t for t in tasks if t.get("pool") == criteria["pool"]]
+        if criteria.get("status"):
+            tasks = [t for t in tasks if t.get("status") == criteria["status"]]
+        if criteria.get("action"):
+            tasks = [
+                t
+                for t in tasks
+                if t.get("payload", {}).get("action") == criteria["action"]
+            ]
+        if criteria.get("label"):
+            tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
+
+        sort_key = criteria.get("sort_key")
+        if sort_key:
+
+            def _key_func(task_item):
+                if sort_key == "action":
+                    return task_item.get("payload", {}).get("action")
+                if sort_key == "label":
+                    return ",".join(task_item.get("labels", []))
+                if sort_key == "duration":
+                    return task_item.get("duration") or 0
+                if sort_key == "time":
+                    return (
+                        task_item.get("started_at") or task_item.get("finished_at") or 0
+                    )
+                return task_item.get(sort_key)
+
+            tasks.sort(key=lambda t: (_key_func(t) is None, _key_func(t)))
+
+        current_workers = {}
+        source_workers = (
+            self.client.workers if self.client.workers else self.backend.workers
+        )
+        for wid, data in source_workers.items():
+            info = {**data}
+            ts_raw = info.get("last_seen", datetime.utcnow().timestamp())
+            try:
+                ts_float = float(ts_raw)
+            except (TypeError, ValueError):
+                ts_float = datetime.utcnow().timestamp()
+            info["last_seen"] = datetime.utcfromtimestamp(ts_float)
+            current_workers[wid] = info
+
+        if criteria.get("pool"):
+            current_workers = {
+                wid: w
+                for wid, w in current_workers.items()
+                if w.get("pool") == criteria["pool"]
+            }
+
+        calculated_metrics = {}
+        if self.client.queues:
+            calculated_metrics["queue_len"] = sum(self.client.queues.values())
+        else:
+            calculated_metrics["queue_len"] = sum(
+                1 for t in tasks if t.get("status") == "running"
+            )
+        calculated_metrics["done_len"] = sum(
+            1 for t in tasks if t.get("status") == "done"
+        )
+        calculated_metrics["fail_len"] = sum(
+            1 for t in tasks if t.get("status") == "failed"
+        )
+        calculated_metrics["worker_len"] = len(current_workers)
+
+        return {
+            "tasks_to_display": tasks,
+            "workers_data": current_workers,
+            "metrics_data": calculated_metrics,
+            "collapsed_state": criteria["collapsed"],
+        }
+
+    def _update_ui_with_processed_data(
+        self, processed_data: dict, all_tasks_for_options: list
+    ) -> None:
+        tasks_to_display = processed_data["tasks_to_display"]
+        workers_data = processed_data["workers_data"]
+        metrics_data = processed_data["metrics_data"]
+
+        self.queue_len = metrics_data.get("queue_len", 0)
+        self.done_len = metrics_data.get("done_len", 0)
+        self.fail_len = metrics_data.get("fail_len", 0)
+        self.worker_len = metrics_data.get("worker_len", 0)
+
+        if hasattr(self, "workers_view"):
+            self.workers_view.update_workers(workers_data)
+
+        if hasattr(self, "filter_bar"):
+            self.filter_bar.update_options(all_tasks_for_options)
+
+        if hasattr(self, "tasks_table"):
+            current_cursor_row = self.tasks_table.cursor_row
+            current_cursor_column = self.tasks_table.cursor_column
+            self.tasks_table.clear()
+            seen_task_ids: set[str] = set()
+
+            for t_data in tasks_to_display:
+                task_id = str(t_data.get("id", ""))
+                if not task_id or task_id in seen_task_ids:
+                    continue
+                prefix = ""
+                result_data = t_data.get("result") or {}
+                children_ids = result_data.get("children", [])
+                if children_ids:
+                    prefix = "- " if task_id not in self.collapsed else "+ "
+
+                self.tasks_table.add_row(
+                    f"{prefix}{task_id}",
+                    t_data.get("pool", ""),
+                    t_data.get("status", ""),
+                    t_data.get("payload", {}).get("action", ""),
+                    ",".join(t_data.get("labels", [])),
+                    _format_ts(t_data.get("started_at")),
+                    _format_ts(t_data.get("finished_at")),
+                    str(t_data.get("duration", ""))
+                    if t_data.get("duration") is not None
+                    else "",
+                    key=task_id,
+                )
+                seen_task_ids.add(task_id)
+
+                if children_ids and task_id not in self.collapsed:
+                    for child_id_str in children_ids:
+                        child_task = next(
+                            (
+                                ct
+                                for ct in tasks_to_display
+                                if str(ct.get("id")) == str(child_id_str)
+                            ),
+                            None,
+                        )
+                        if child_task and str(child_id_str) not in seen_task_ids:
+                            self.tasks_table.add_row(
+                                f"  {child_id_str}",
+                                child_task.get("pool", ""),
+                                child_task.get("status", ""),
+                                child_task.get("payload", {}).get("action", ""),
+                                ",".join(child_task.get("labels", [])),
+                                _format_ts(child_task.get("started_at")),
+                                _format_ts(child_task.get("finished_at")),
+                                str(child_task.get("duration", ""))
+                                if child_task.get("duration") is not None
+                                else "",
+                                key=str(child_id_str),
+                            )
+                            seen_task_ids.add(str(child_id_str))
+
+            if (
+                current_cursor_row is not None
+                and current_cursor_row < self.tasks_table.row_count
+            ):
+                self.tasks_table.cursor_coordinate = Coordinate(
+                    current_cursor_row, current_cursor_column or 0
+                )
+            elif self.tasks_table.row_count > 0:
+                self.tasks_table.cursor_coordinate = Coordinate(0, 0)
+
+        if hasattr(self, "err_table"):
+            current_err_cursor_row = self.err_table.cursor_row
+            current_err_cursor_column = self.err_table.cursor_column
+            self.err_table.clear()
+            if metrics_data.get("fail_len", 0) > 0:
+                for t_data in (
+                    t for t in tasks_to_display if t.get("status") == "failed"
+                ):
+                    err_file = t_data.get("error_file", "")
+                    link = f"[link=file://{err_file}]open[/link]" if err_file else ""
+                    task_id = str(t_data.get("id", ""))
+                    result_data = t_data.get("result", {}) or {}
+                    err_msg = result_data.get("error", "")
+                    self.err_table.add_row(
+                        task_id,
+                        t_data.get("pool", ""),
+                        t_data.get("status", ""),
+                        t_data.get("payload", {}).get("action", ""),
+                        ",".join(t_data.get("labels", [])),
+                        _format_ts(t_data.get("started_at")),
+                        _format_ts(t_data.get("finished_at")),
+                        str(t_data.get("duration", ""))
+                        if t_data.get("duration") is not None
+                        else "",
+                        f"{err_msg} {link}".strip(),
+                        key=task_id,
+                    )
+            if (
+                current_err_cursor_row is not None
+                and current_err_cursor_row < self.err_table.row_count
+            ):
+                self.err_table.cursor_coordinate = Coordinate(
+                    current_err_cursor_row, current_err_cursor_column or 0
+                )
+            elif self.err_table.row_count > 0:
+                self.err_table.cursor_coordinate = Coordinate(0, 0)
 
     async def on_open_url(self, event: events.OpenURL) -> None:
-        """Catch clicks on [link=file://…] and open them in the editor tab
-        instead of the system browser."""
         if event.url.startswith("file://"):
-            event.prevent_default()  # stop Textual’s built-in handler
-            event.stop()  # don’t bubble any further
+            event.prevent_default()
+            event.stop()
             await self.open_editor(event.url.removeprefix("file://"))
 
-    async def on_file_tree_file_selected(  # ← snake-case of the message
-        self,
-        message: FileTree.FileSelected,
-    ) -> None:
-        """Open the clicked file in the Editor tab."""
-        message.stop()  # suppress any default handling
+    async def on_file_tree_file_selected(self, message: FileTree.FileSelected) -> None:
+        message.stop()
         await self.open_editor(message.path.as_posix())
 
-    # ----------------------------------------------------------------------—
-    # Back-compat shim: use App.notify if it exists, otherwise fall back to log()
     def toast(
         self, message: str, *, style: str = "information", duration: float | None = 2.0
     ) -> None:
-        if hasattr(self, "notify"):  # Textual ≥ 0.30
+        if hasattr(self, "notify"):
             self.notify(message, severity=style, timeout=duration)
-        else:  # very old Textual
+        else:
             self.log(f"[{style.upper()}] {message}")
 
     def compose(self) -> ComposeResult:
         yield Header()
-
-        # widgets whose content we mutate later
         self.workers_view = WorkersView(id="workers_view")
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
@@ -277,7 +524,6 @@ class QueueDashboardApp(App):
             "Duration",
         )
         self.tasks_table.cursor_type = "cell"
-        self.tasks_table.focus()
 
         self.err_table = DataTable(id="err_table")
         self.err_table.add_columns(
@@ -291,18 +537,17 @@ class QueueDashboardApp(App):
             "Duration",
             "Error",
         )
-        # after creating err_table
-        self.err_table.cursor_type = "cell"  # ensure per-cell click events
-        self.err_table.focus()  # mouse-click instantly focuses table
+        self.err_table.cursor_type = "cell"
 
-        self.code_editor = TextArea(id="code_editor")
         self.file_tabs = TabbedContent(id="file_tabs")
         self.file_tabs.display = False
         self.filter_bar = FilterBar()
 
         with Vertical():
-            yield self.filter_bar
-            with TabbedContent(initial="pools"):
+            with Vertical(id="filter-section-container"):
+                yield Label("Filter", id="filter-title-label")
+                yield self.filter_bar
+            with TabbedContent(initial="pools") as main_tabs:
                 yield TabPane("Pools", self.workers_view, id="pools")
                 yield TabPane("Tasks", self.tasks_table, id="tasks")
                 yield TabPane("Errors", self.err_table, id="errors")
@@ -311,98 +556,147 @@ class QueueDashboardApp(App):
 
         yield self.file_tabs
         yield DashboardFooter()
+        self.call_later(self.tasks_table.focus)
 
-    # ── key binding helpers ────────────────────────────────────────────────
     def action_switch(self, tab_id: str) -> None:
-        self.query_one(TabbedContent).active = tab_id
+        try:
+            main_tab_content = self.query(TabbedContent).first()
+            main_tab_content.active = tab_id
+        except NoMatches:
+            self.toast(
+                f"Could not switch to tab ID '{tab_id}'. Main TabbedContent not found.",
+                style="error",
+            )
 
-    # Ctrl-S in the editor
     def action_save_file(self) -> None:
-        if not hasattr(self, "_current_file"):
+        if not self._current_file:
             self.toast("No file loaded.", style="yellow")
             return
-        editor = self.file_tabs.active_pane.query_one(TextArea)
-        if getattr(self, "_remote_info", None):
-            adapter, key, tmp = self._remote_info
-            tmp.write_text(editor.value, encoding="utf-8")
+
+        active_pane = self.file_tabs.active_pane
+        if not active_pane:
+            self.toast("No active file tab to save.", style="yellow")
+            return
+
+        try:
+            editor = active_pane.query_one(TextArea)
+        except NoMatches:
+            self.toast("Could not find editor in the active tab.", style="error")
+            return
+
+        text_to_save = editor.text
+        if self._remote_info:
+            adapter, key, tmp_path_obj = self._remote_info
+            Path(tmp_path_obj).write_text(text_to_save, encoding="utf-8")
             try:
-                upload_remote(adapter, key, tmp)
-                self.toast("Uploaded remote file", style="green")
+                upload_remote(adapter, key, Path(tmp_path_obj))
+                self.toast("Uploaded remote file", style="success")
             except Exception as exc:
-                self.toast(f"Upload failed: {exc}", style="red")
+                self.toast(f"Upload failed: {exc}", style="error")
         else:
             try:
-                Path(self._current_file).write_text(editor.value, encoding="utf-8")
-                self.toast(f"Saved {self._current_file}", style="green")
+                Path(self._current_file).write_text(text_to_save, encoding="utf-8")
+                self.toast(f"Saved {self._current_file}", style="success")
             except Exception as exc:
-                self.toast(f"Save failed: {exc}", style="red")
+                self.toast(f"Save failed: {exc}", style="error")
 
     def action_toggle_children(self) -> None:
         row = self.tasks_table.cursor_row
         if row is None:
             return
-
-        # ``DataTable``'s API changed across Textual versions.  Newer
-        # releases expose ``get_row_key`` while older versions require
-        # accessing the row object directly.  Support both styles so the
-        # dashboard works regardless of the installed Textual release.
         if hasattr(self.tasks_table, "get_row_key"):
             row_key = self.tasks_table.get_row_key(row)
-        else:  # fallback for older versions
+        else:
             row_obj = (
                 self.tasks_table.get_row_at(row)
                 if hasattr(self.tasks_table, "get_row_at")
                 else None
             )
             row_key = getattr(row_obj, "key", None) if row_obj else None
-
         if row_key is None:
             return
-
-        row_key = str(row_key)
-
-        if row_key in self.collapsed:
-            self.collapsed.remove(row_key)
+        row_key_str = str(row_key)
+        if row_key_str in self.collapsed:
+            self.collapsed.remove(row_key_str)
         else:
-            self.collapsed.add(row_key)
-        self.refresh_data()
-
-    SORT_KEYS = ["time", "pool", "status", "action", "label", "duration"]
+            self.collapsed.add(row_key_str)
+        self.trigger_data_processing()
 
     def action_cycle_sort(self) -> None:
         try:
             idx = self.SORT_KEYS.index(self.sort_key)
-        except ValueError:  # pragma: no cover - unknown sort_key
+        except ValueError:
             idx = 0
         self.sort_key = self.SORT_KEYS[(idx + 1) % len(self.SORT_KEYS)]
         self.toast(f"Sorting by {self.sort_key}", duration=1.0)
-        self.refresh_data()
+        self.trigger_data_processing()
 
     def action_filter_by_cell(self) -> None:
         row = self.tasks_table.cursor_row
         col = self.tasks_table.cursor_column
         if row is None or col is None:
             return
+        value = (
+            self.tasks_table.get_cell_at(Coordinate(row, col))
+            if hasattr(self.tasks_table, "get_cell_at")
+            else self.tasks_table.get_cell(row, col)
+        )
 
-        # get cell value
-        if hasattr(self.tasks_table, "get_cell_at"):
-            value = self.tasks_table.get_cell_at(row, col)
-        else:
-            value = self.tasks_table.get_cell(
-                row, col
-            )  # pragma: no cover - old textual
+        col_label_widget = self.tasks_table.columns[col].label
+        col_label = str(col_label_widget)
 
-        col_label = self.tasks_table.columns[col].label
+        filter_changed = False
+        str_value = str(value)
+
         if col_label == "Pool":
-            self.filter_pool = None if self.filter_pool == value else str(value)
+            if self.filter_pool != str_value:
+                self.filter_pool = None if self.filter_pool == str_value else str_value
+                filter_changed = True
         elif col_label == "Status":
-            self.filter_status = None if self.filter_status == value else str(value)
+            if self.filter_status != str_value:
+                self.filter_status = (
+                    None if self.filter_status == str_value else str_value
+                )
+                filter_changed = True
         elif col_label == "Action":
-            self.filter_action = None if self.filter_action == value else str(value)
+            if self.filter_action != str_value:
+                self.filter_action = (
+                    None if self.filter_action == str_value else str_value
+                )
+                filter_changed = True
         elif col_label == "Labels":
-            lbl = str(value).split(",")[0] if value else ""
-            self.filter_label = None if self.filter_label == lbl else lbl
-        self.refresh_data()
+            lbl = str_value.split(",")[0] if str_value else ""
+            if self.filter_label != lbl:
+                self.filter_label = None if self.filter_label == lbl else lbl
+                filter_changed = True
+
+        if filter_changed:
+            if hasattr(self, "filter_bar"):
+                if col_label == "Pool":
+                    self.filter_bar.pool_select.value = (
+                        self.filter_pool
+                        if self.filter_pool is not None
+                        else Select.BLANK
+                    )
+                elif col_label == "Status":
+                    self.filter_bar.status_select.value = (
+                        self.filter_status
+                        if self.filter_status is not None
+                        else Select.BLANK
+                    )
+                elif col_label == "Action":
+                    self.filter_bar.action_select.value = (
+                        self.filter_action
+                        if self.filter_action is not None
+                        else Select.BLANK
+                    )
+                elif col_label == "Labels":
+                    self.filter_bar.label_select.value = (
+                        self.filter_label
+                        if self.filter_label is not None
+                        else Select.BLANK
+                    )
+            self.trigger_data_processing()
 
     def action_clear_filters(self) -> None:
         self.filter_id = None
@@ -410,285 +704,136 @@ class QueueDashboardApp(App):
         self.filter_status = None
         self.filter_action = None
         self.filter_label = None
-        self.filter_bar.clear()
-        self.refresh_data()
+        if hasattr(self, "filter_bar"):
+            self.filter_bar.clear()
+        self.trigger_data_processing()
 
     def action_copy_id(self) -> None:
-        """Copy the text from the focused widget to the clipboard."""
-
         widget = self.focused
         text = ""
         if isinstance(widget, DataTable):
-            row = widget.cursor_row
-            col = widget.cursor_column
+            row, col = widget.cursor_row, widget.cursor_column
             if row is not None and col is not None:
-                if hasattr(widget, "get_cell_at"):
-                    value = widget.get_cell_at(row, col)
-                else:  # pragma: no cover - old textual
-                    value = widget.get_cell(row, col)
+                value = (
+                    widget.get_cell_at(Coordinate(row, col))
+                    if hasattr(widget, "get_cell_at")
+                    else widget.get_cell(row, col)
+                )
                 text = str(value)
         elif isinstance(widget, TextArea):
-            text = getattr(widget, "selected_text", "") or getattr(widget, "value", "")
+            text = widget.selected_text or widget.text
         if text:
             clipboard_copy(text)
 
     def action_paste_clipboard(self) -> None:
-        """Paste clipboard text into the focused input widget."""
-
         widget = self.focused
-        text = clipboard_paste()
+        text_to_paste = clipboard_paste()
         if isinstance(widget, TextArea):
-            insert = getattr(widget, "insert", None) or getattr(widget, "insert_text_at_cursor", None)
-            if insert:
-                insert(text)
+            widget.insert_text_at_cursor(text_to_paste)
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        """Update filter values when a dropdown selection changes."""
-
-        value = None if event.value == Select.BLANK else str(event.value)
-        if event.select.id == "filter_id":
-            self.filter_id = value
-        elif event.select.id == "filter_pool":
-            self.filter_pool = value
-        elif event.select.id == "filter_status":
-            self.filter_status = value
-        elif event.select.id == "filter_action":
-            self.filter_action = value
-        elif event.select.id == "filter_label":
-            self.filter_label = value
-        self.refresh_data()
-
-
-    # ── periodic refresh logic ─────────────────────────────────────────────
-    def refresh_data(self) -> None:
-        tasks = list(self.client.tasks.values()) or self.backend.tasks
-        self.filter_bar.update_options(tasks)
-
-        # apply filters
-        if self.filter_id:
-            tasks = [t for t in tasks if str(t.get("id")) == self.filter_id]
-        if self.filter_pool:
-            tasks = [t for t in tasks if t.get("pool") == self.filter_pool]
-        if self.filter_status:
-            tasks = [t for t in tasks if t.get("status") == self.filter_status]
-        if self.filter_action:
-            tasks = [
-                t
-                for t in tasks
-                if t.get("payload", {}).get("action") == self.filter_action
-            ]
-        if self.filter_label:
-            tasks = [t for t in tasks if self.filter_label in t.get("labels", [])]
-
-        # sort
-        if self.sort_key:
-
-            def _key(task):
-                if self.sort_key == "action":
-                    return task.get("payload", {}).get("action")
-                if self.sort_key == "label":
-                    return ",".join(task.get("labels", []))
-                if self.sort_key == "duration":
-                    return task.get("duration") or 0
-                return task.get(self.sort_key)
-
-            tasks.sort(key=lambda t: _key(t) or "")
-        if self.client.workers:
-            workers = {}
-            for wid, data in self.client.workers.items():
-                info = {**data}
-                ts_raw = info.get("last_seen", datetime.utcnow().timestamp())
-                try:
-                    ts = float(ts_raw)
-                except (TypeError, ValueError):
-                    ts = datetime.utcnow().timestamp()
-                info["last_seen"] = datetime.utcfromtimestamp(ts)
-                workers[wid] = info
-        else:
-            workers = self.backend.workers
-
-        # 1 – workers and counts
-        if self.client.queues:
-            self.queue_len = sum(self.client.queues.values())
-        else:
-            self.queue_len = sum(
-                1 for t in tasks if getattr(t, "status", t.get("status")) == "running"
-            )
-        self.done_len = sum(
-            1 for t in tasks if getattr(t, "status", t.get("status")) == "done"
-        )
-        self.fail_len = sum(
-            1 for t in tasks if getattr(t, "status", t.get("status")) == "failed"
-        )
-        if self.filter_pool:
-            workers = {
-                wid: w
-                for wid, w in workers.items()
-                if w.get("pool") == self.filter_pool
-            }
-        self.worker_len = len(workers)
-        self.workers_view.update_workers(workers)
-
-        # 2 – tasks table
-        row = self.tasks_table.cursor_row
-        column = self.tasks_table.cursor_column
-        self.tasks_table.clear()
-        seen: set[str] = set()
-        for t in tasks:
-            tid = t.get("id")
-            if tid in seen:
-                continue
-            pool = t.get("pool", "")
-            status = t.get("status")
-            action = t.get("payload", {}).get("action", "")
-            labels = ",".join(t.get("labels", []))
-            started = t.get("started_at")
-            finished = t.get("finished_at")
-            duration = t.get("duration")
-            ts = t.get("time", "")
-            prefix = ""
-            children = t.get("result", {}).get("children")
-            if children:
-                prefix = "- " if tid not in self.collapsed else "+ "
-            self.tasks_table.add_row(
-                f"{prefix}{tid}",
-                pool,
-                status,
-                action,
-                labels,
-                _format_ts(started),
-                _format_ts(finished),
-                str(duration) if duration is not None else "",
-                key=str(tid),
-            )
-            seen.add(tid)
-            if children and tid not in self.collapsed:
-                for cid in children:
-                    child = next((c for c in tasks if c.get("id") == cid), None)
-                    if child and cid not in seen:
-                        c_labels = ",".join(child.get("labels", []))
-                        c_start = child.get("started_at")
-                        c_finish = child.get("finished_at")
-                        c_dur = child.get("duration")
-                        self.tasks_table.add_row(
-                            f"  {cid}",
-                            child.get("pool", ""),
-                            child.get("status"),
-                            child.get("payload", {}).get("action", ""),
-                            c_labels,
-                            _format_ts(c_start),
-                            _format_ts(c_finish),
-                            str(c_dur) if c_dur is not None else "",
-                            key=str(cid),
-                        )
-                        seen.add(cid)
-
-        # restore selection
-        if row is not None and row < len(self.tasks_table.rows):
-            self.tasks_table.cursor_coordinate = (row, column or 0)
-
-        # 3 – error table
-        if self.fail_len:
-            err_row = self.err_table.cursor_row
-            err_col = self.err_table.cursor_column
-            self.err_table.clear()
-            for t in (
-                t for t in tasks if getattr(t, "status", t.get("status")) == "failed"
-            ):
-                err_file = getattr(t, "error_file", t.get("error_file"))
-                link = f"[link=file://{err_file}]open[/link]" if err_file else ""
-                tid = getattr(t, "id", t.get("id"))
-                result = getattr(t, "result", t.get("result", {})) or {}
-                err_msg = result.get("error", "")
-                started = t.get("started_at")
-                finished = t.get("finished_at")
-                duration = t.get("duration")
-                self.err_table.add_row(
-                    str(tid),
-                    t.get("pool", ""),
-                    t.get("status"),
-                    t.get("payload", {}).get("action", ""),
-                    ",".join(t.get("labels", [])),
-                    _format_ts(started),
-                    _format_ts(finished),
-                    str(duration) if duration is not None else "",
-                    f"{err_msg} {link}".strip(),
-                )
-            if err_row is not None and err_row < len(self.err_table.rows):
-                self.err_table.cursor_coordinate = (err_row, err_col or 0)
-
-    # ── open selected file in editor instead of browser ────────────────────
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
-            path = event.value.split("=", 1)[1].split("]", 1)[0]
-            await self.open_editor(Path(path).as_posix())
+            path_str = event.value.split("=", 1)[1].split("]", 1)[0]
+            await self.open_editor(Path(path_str).as_posix())
             return
 
         table = event.data_table
-        if table in {self.tasks_table, self.err_table}:
+        if table is self.tasks_table or table is self.err_table:
             row_idx = event.coordinate.row
+            row_key: str | None = None
             if hasattr(table, "get_row_key"):
                 row_key = table.get_row_key(row_idx)
             else:
-                row_obj = table.get_row_at(row_idx) if hasattr(table, "get_row_at") else None
+                row_obj = (
+                    table.get_row_at(row_idx) if hasattr(table, "get_row_at") else None
+                )
                 row_key = getattr(row_obj, "key", None) if row_obj is not None else None
             if row_key is None:
-                if hasattr(table, "get_cell_at"):
+                try:
                     cell_value = table.get_cell_at(Coordinate(row_idx, 0))
-                else:
-                    cell_value = table.get_cell(row_idx, 0)
-                row_key = str(cell_value).strip()
-                if row_key.startswith("- ") or row_key.startswith("+ "):
-                    row_key = row_key[2:]
-                row_key = row_key.strip()
-            await self.open_task_detail(str(row_key))
+                    row_key = str(cell_value).strip()
+                    if row_key.startswith(("- ", "+ ")):
+                        row_key = row_key[2:]
+                    row_key = row_key.strip()
+                except Exception:
+                    self.toast("Could not determine task ID.", style="error")
+                    return
+            if row_key:
+                await self.open_task_detail(str(row_key))
+            else:
+                self.toast("Could not determine task ID.", style="error")
 
     async def open_task_detail(self, task_id: str) -> None:
-        """Open a modal with details for ``task_id``."""
-
         task = self.client.tasks.get(task_id)
         if not task:
-            task = next((t for t in self.backend.tasks if str(t.get("id")) == task_id), None)
+            task = next(
+                (t for t in self.backend.tasks if str(t.get("id")) == task_id), None
+            )
         if task:
-            await self.push_screen(TaskDetailScreen(task))
+            await self.push_screen(TaskDetailScreen(task_data=task))
+        else:
+            self.toast(f"Task details not found for ID: {task_id}", style="warning")
 
-    # ----------------------------------------------------------------------—
     async def open_editor(self, file_path: str) -> None:
         parsed = urlparse(file_path)
+        text = ""
+        self._remote_info = None
+        self._current_file = None
+        actual_file_path = file_path
+
         if parsed.scheme and parsed.scheme != "file":
             try:
-                tmp, adapter, key = download_remote(file_path)
+                tmp_path_obj, adapter, key = download_remote(file_path)
+                self._remote_info = (adapter, key, tmp_path_obj)
+                text = tmp_path_obj.read_text(encoding="utf-8")
+                self._current_file = tmp_path_obj.as_posix()
+                actual_file_path = file_path
             except Exception as exc:
                 self.toast(f"Cannot download {file_path}: {exc}", style="error")
                 return
-            self._remote_info = (adapter, key, tmp)
-            text = tmp.read_text(encoding="utf-8")
-            self._current_file = tmp.as_posix()
         else:
+            local_path = Path(file_path)
             try:
-                text = Path(file_path).read_text(encoding="utf-8")
+                text = local_path.read_text(encoding="utf-8")
+                self._current_file = local_path.as_posix()
+                actual_file_path = self._current_file
             except Exception as exc:
                 self.toast(f"Cannot open {file_path}: {exc}", style="error")
                 return
-            self._remote_info = None
-            self._current_file = file_path
 
-        pane_id = file_path
-        if not self.file_tabs.get_child_by_id(pane_id):
-            editor = TextArea(id=f"editor_{len(self.file_tabs.panes)}")
+        pane_id = actual_file_path
+        lang_map = {
+            ".py": "python",
+            ".js": "javascript",
+            ".json": "json",
+            ".yaml": "yaml",
+            ".yml": "yaml",
+            ".md": "markdown",
+            ".html": "html",
+            ".css": "css",
+            ".toml": "toml",
+            ".txt": "text",
+            "": "text",
+        }
+        extension = Path(file_path).suffix.lower()
+        language = lang_map.get(extension, "text")
+
+        try:
+            existing_pane = self.file_tabs.get_pane(pane_id)
+            editor = existing_pane.query_one(TextArea)
             editor.load_text(text)
-            editor.language = "python"
-            await self.file_tabs.add_pane(
-                TabPane(Path(file_path).name, editor, id=pane_id)
-            )
-            self.file_tabs.display = True
-        else:
-            editor = self.file_tabs.query_one(f"#{pane_id} TextArea")
-            editor.load_text(text)
+            editor.language = language
+        except NoMatches:
+            editor_id = f"editor_{self.file_tabs.tab_count}"
+            editor = TextArea(text, id=editor_id, language=language)
+            new_pane_widget = TabPane(Path(file_path).name, editor, id=pane_id)
+            if not self.file_tabs.display:
+                self.file_tabs.display = True
+            await self.file_tabs.add_pane(new_pane_widget)
+
         self.file_tabs.active = pane_id
-        self.toast(f"Editing {file_path}", style="success", duration=1.5)
+        self.toast(f"Editing {Path(file_path).name}", style="success", duration=1.5)
 
-    # ------------------------------------------------------------------
     async def _show_reconnect(self, message: str) -> None:
         if self._reconnect_screen:
             return
@@ -701,20 +846,27 @@ class QueueDashboardApp(App):
             self._reconnect_screen = None
 
     async def retry_connection(self) -> None:
-        self.run_worker(self.client.listen(), exclusive=True)
+        self.run_worker(
+            self.client.listen(), exclusive=True, group="websocket_listener_retry"
+        )
         ok = await self.backend.refresh()
         if ok:
             await self._dismiss_reconnect()
         else:
-            await self._show_reconnect(self.backend.last_error or "Connection failed")
+            if self._reconnect_screen:
+                self._reconnect_screen.message = (
+                    self.backend.last_error or "Connection failed"
+                )
+            else:
+                await self._show_reconnect(
+                    self.backend.last_error or "Connection failed"
+                )
 
 
-# ────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Peagen dashboard")
     parser.add_argument("--gateway-url", default="http://localhost:8000")
     args = parser.parse_args()
-
     QueueDashboardApp(gateway_url=args.gateway_url).run()

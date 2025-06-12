@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Any, Dict, Iterable
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal
@@ -12,45 +12,109 @@ class FilterBar(Horizontal):
 
     def __init__(self) -> None:
         super().__init__()
-        self.id_select = Select(prompt="id", allow_blank=True, id="filter_id", compact=True)
-        self.pool_select = Select(prompt="pool", allow_blank=True, id="filter_pool", compact=True)
-        self.status_select = Select(prompt="status", allow_blank=True, id="filter_status", compact=True)
-        self.action_select = Select(prompt="action", allow_blank=True, id="filter_action", compact=True)
-        self.label_select = Select(prompt="label", allow_blank=True, id="filter_label", compact=True)
+        self._select_widget_configs: Dict[Select, Dict[str, Any]] = {}
 
-    def compose(self) -> ComposeResult:  # pragma: no cover - UI layout
-        yield self.id_select
+        select_definitions = [
+            {
+                "name": "pool_select",
+                "prompt": "pool",
+                "filter_id": "filter_pool",
+                "allow_blank": True,
+            },
+            {
+                "name": "status_select",
+                "prompt": "status",
+                "filter_id": "filter_status",
+                "allow_blank": True,
+            },
+            {
+                "name": "action_select",
+                "prompt": "action",
+                "filter_id": "filter_action",
+                "allow_blank": True,
+            },
+            {
+                "name": "label_select",
+                "prompt": "label",
+                "filter_id": "filter_label",
+                "allow_blank": True,
+            },
+        ]
+
+        for definition in select_definitions:
+            select_widget = Select(
+                [],
+                prompt=definition["prompt"],
+                allow_blank=definition["allow_blank"],
+                id=definition["filter_id"],
+                compact=True,
+            )
+            setattr(self, definition["name"], select_widget)
+            self._select_widget_configs[select_widget] = {
+                "allow_blank": definition["allow_blank"]
+            }
+
+    def compose(self) -> ComposeResult:
         yield self.pool_select
         yield self.status_select
         yield self.action_select
         yield self.label_select
 
+    def _get_select_allow_blank(self, select: Select) -> bool:
+        return self._select_widget_configs.get(select, {}).get("allow_blank", False)
+
     def _set_options(self, select: Select, values: Iterable[str]) -> None:
-        current = select.value
-        select.set_options([(v, v) for v in sorted(values)])
-        if current in {v for _, v in select._options}:  # type: ignore[attr-defined]
-            select.value = current
+        current_value_before_update = select.value
+
+        options_list = [(str(v), str(v)) for v in sorted(set(values)) if v is not None]
+        select.set_options(options_list)
+
+        select_allows_blank = self._get_select_allow_blank(select)
+
+        if (
+            current_value_before_update is not None
+            and current_value_before_update != Select.BLANK
+            and any(
+                opt_val == current_value_before_update for _, opt_val in options_list
+            )
+        ):
+            select.value = current_value_before_update
+        elif not select_allows_blank and options_list:
+            if select.value == Select.BLANK or not any(
+                opt_val == select.value for _, opt_val in options_list
+            ):
+                select.value = options_list[0][1]
+        elif select_allows_blank:
+            if select.value != Select.BLANK and not any(
+                opt_val == select.value for _, opt_val in options_list
+            ):
+                select.value = Select.BLANK
+            elif not options_list:
+                select.value = Select.BLANK
 
     def update_options(self, tasks: Iterable[dict]) -> None:
-        """Rebuild dropdown options from ``tasks``."""
-        ids = {str(t.get("id")) for t in tasks if t.get("id") is not None}
-        pools = {t.get("pool") for t in tasks if t.get("pool")}
-        statuses = {t.get("status") for t in tasks if t.get("status")}
-        actions = {t.get("payload", {}).get("action") for t in tasks if t.get("payload", {}).get("action")}
-        labels = {lbl for t in tasks for lbl in t.get("labels", [])}
-        self._set_options(self.id_select, ids)
+        pools = {str(t.get("pool")) for t in tasks if t.get("pool") is not None}
+        statuses = {str(t.get("status")) for t in tasks if t.get("status") is not None}
+        actions = {
+            str(t.get("payload", {}).get("action"))
+            for t in tasks
+            if t.get("payload", {}).get("action") is not None
+        }
+        labels = {
+            str(lbl) for t in tasks for lbl in t.get("labels", []) if lbl is not None
+        }
+
         self._set_options(self.pool_select, pools)
         self._set_options(self.status_select, statuses)
         self._set_options(self.action_select, actions)
         self._set_options(self.label_select, labels)
 
     def clear(self) -> None:
-        """Clear all dropdown selections."""
-        for select in (
-            self.id_select,
+        for select_widget in (
             self.pool_select,
             self.status_select,
             self.action_select,
             self.label_select,
         ):
-            select.clear()
+            if self._get_select_allow_blank(select_widget):
+                select_widget.value = Select.BLANK
