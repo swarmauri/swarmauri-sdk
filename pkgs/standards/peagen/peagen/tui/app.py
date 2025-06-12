@@ -129,6 +129,8 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
+        ("y", "copy_id", "Copy"),
+
         ("s", "cycle_sort", "Sort"),
         ("f", "filter_by_cell", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
@@ -332,6 +334,36 @@ class QueueDashboardApp(App):
         self.filter_action = None
         self.filter_label = None
         self.refresh_data()
+
+    def action_copy_id(self) -> None:
+        """Copy the selected task's ID to the system clipboard."""
+        if self.query_one(TabbedContent).active != "tasks":
+            return
+
+        row = self.tasks_table.cursor_row
+        if row is None:
+            return
+
+        if hasattr(self.tasks_table, "get_row_key"):
+            row_key = self.tasks_table.get_row_key(row)
+        else:  # pragma: no cover - old Textual
+            row_obj = (
+                self.tasks_table.get_row_at(row)
+                if hasattr(self.tasks_table, "get_row_at")
+                else None
+            )
+            row_key = getattr(row_obj, "key", None) if row_obj else None
+
+        if not row_key:
+            return
+
+        try:
+            from swarmauri_state_clipboard import ClipboardState
+
+            ClipboardState.clipboard_paste(str(row_key))
+            self.toast(f"Copied {row_key}", style="green")
+        except Exception as exc:  # noqa: BLE001
+            self.toast(f"Copy failed: {exc}", style="red")
 
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
