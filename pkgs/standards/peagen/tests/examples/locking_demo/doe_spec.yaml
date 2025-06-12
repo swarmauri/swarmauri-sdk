@@ -1,0 +1,10 @@
+schemaVersion: "1.0.1"
+FACTORS:
+  SUFFIX:
+    description: "Project suffix"
+    code: SFX
+    levels: [001, 002]
+    patches:
+      - op: replace
+        path: /PROJECTS/0/NAME
+        value: "ExampleParserProject-{{ SFX }}"

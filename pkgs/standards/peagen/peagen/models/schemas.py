@@ -43,6 +43,8 @@ class Task(BaseModel):
     config_toml: str | None = None
     started_at: float | None = None
     finished_at: float | None = None
+    lock_hash: str | None = None
+    chain_hash: str | None = None
 
     @property
     def duration(self) -> int | None:

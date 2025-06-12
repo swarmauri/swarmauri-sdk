@@ -35,6 +35,8 @@ class TaskRun(Base):
     in_degree    = Column(psql.INTEGER, nullable=False, default=0)
     config_toml  = Column(String, nullable=True)
     artifact_uri = Column(String, nullable=True)
+    lock_hash    = Column(String, nullable=True)
+    chain_hash   = Column(String, nullable=True)
     started_at   = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
     finished_at  = Column(TIMESTAMP(timezone=True), nullable=True)
 
@@ -59,6 +61,8 @@ class TaskRun(Base):
                 if task.result and isinstance(task.result, dict)
                 else None
             ),
+            lock_hash=getattr(task, "lock_hash", None),
+            chain_hash=getattr(task, "chain_hash", None),
             started_at=(
                 dt.datetime.utcfromtimestamp(task.started_at)
                 if task.started_at
@@ -98,6 +102,8 @@ class TaskRun(Base):
             "in_degree": self.in_degree,
             "config_toml": self.config_toml,
             "artifact_uri": self.artifact_uri,
+            "lock_hash": self.lock_hash,
+            "chain_hash": self.chain_hash,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "duration": (

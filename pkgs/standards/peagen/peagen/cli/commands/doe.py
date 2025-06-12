@@ -16,18 +16,27 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.models import Status, Task
+from peagen.core import lock_plan, chain_hash
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 def _make_task(args: dict, action: str = "doe") -> Task:
-    return Task(
+    lock_hash = None
+    if "spec" in args and "template" in args:
+        spec_lock = lock_plan(args["spec"])
+        tmpl_lock = lock_plan(args["template"])
+        lock_hash = chain_hash(tmpl_lock.encode(), spec_lock)
+
+    return Task(  # type: ignore[call-arg]
         id=str(uuid.uuid4()),
         pool="default",
         action=action,
         status=Status.waiting,
         payload={"action": action, "args": args},
+        lock_hash=lock_hash,
+        chain_hash=lock_hash,
     )
 
 
