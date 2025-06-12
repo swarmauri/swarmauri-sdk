@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import resolve_plugin_spec
+from peagen.errors import PatchTargetMissingError
 
 # ─────────────────────────────── util ──────────────────────────────────────
 _LLM_FALLBACK_KEYS = {
@@ -48,7 +49,11 @@ def _load_yaml(uri: str | Path) -> Dict[str, Any]:
 
 
 def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> Dict:
-    return jsonpatch.apply_patch(doc, patch_ops, in_place=False)
+    """Apply JSON patch operations and raise a custom error on failure."""
+    try:
+        return jsonpatch.apply_patch(doc, patch_ops, in_place=False)
+    except (jsonpatch.JsonPatchConflict, jsonpatch.JsonPointerException) as exc:
+        raise PatchTargetMissingError(str(exc)) from exc
 
 
 def _ctx_lookup(expr: str, ctx: Dict[str, Any]) -> Any:
@@ -126,7 +131,7 @@ def build_design_points(
         for oth in _matrix(other_map or {"_dummy": [None]})
     ]
 
-    return list(llm_codes.keys()), list(other_codes.keys()), design_points
+    return list(llm_codes.keys()), list(other_codes.keys()), design_points  # pyright: ignore[reportReturnType]
 
 
 def generate_projects(
