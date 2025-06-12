@@ -1,42 +1,56 @@
 import pytest
 from textual.coordinate import Coordinate
+from textual.events import Click
+from rich.style import Style
 
 from peagen.tui.app import QueueDashboardApp
 
 
 class DummyScreen:
-    def __init__(self, task):
-        self.task = task
+    def __init__(self, task_data):
+        self.task = task_data
 
 
 class DummyTable:
-    def __init__(self, key, value):
+    def __init__(self, key):
         self.key = key
-        self.value = value
+        self.cb = None
+        self.style = Style(meta={"row": 0, "column": 0})
 
-    def get_row_at(self, row):  # old API path
+    async def _on_click(self, event: Click) -> None:
+        if event.chain == 2 and self.cb:
+            await self.cb(self.key)
+
+    def get_row_at(self, row):
         class Row:
             key = self.key
         return Row()
 
     def get_cell_at(self, row, col):
-        return self.value
+        return self.key
 
 
 class DummyEvent:
-    def __init__(self, table, value):
+    def __init__(self, table):
         self.data_table = table
-        self.value = value
+        self.value = table.key
         self.coordinate = Coordinate(0, 0)
+        self.style = Style(meta={"row": 0, "column": 0})
+        self.chain = 2
+
+    def stop(self):
+        pass
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_click_task_row_opens_detail(monkeypatch):
+async def test_double_click_task_row_opens_detail(monkeypatch):
     app = QueueDashboardApp()
     app.backend.tasks = [{"id": "42"}]
-    app.tasks_table = DummyTable("42", "42")
-    app.err_table = DummyTable("x", "x")
+    table = DummyTable("42")
+    table.cb = app.open_task_detail
+    app.tasks_table = table
+    app.err_table = DummyTable("x")
 
     monkeypatch.setattr("peagen.tui.app.TaskDetailScreen", DummyScreen)
 
@@ -47,9 +61,8 @@ async def test_click_task_row_opens_detail(monkeypatch):
 
     monkeypatch.setattr(app, "push_screen", fake_push)
 
-    event = DummyEvent(app.tasks_table, "42")
-
-    await app.on_data_table_cell_selected(event)
+    event = Click(table, 0, 0, 0, 0, 1, False, False, False, style=table.style, chain=2)
+    await table._on_click(event)
 
     assert isinstance(captured.get("screen"), DummyScreen)
     assert captured["screen"].task["id"] == "42"
@@ -57,11 +70,13 @@ async def test_click_task_row_opens_detail(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_click_error_row_opens_detail(monkeypatch):
+async def test_double_click_error_row_opens_detail(monkeypatch):
     app = QueueDashboardApp()
     app.backend.tasks = [{"id": "99"}]
-    app.err_table = DummyTable("99", "99")
-    app.tasks_table = DummyTable("y", "y")
+    table = DummyTable("99")
+    table.cb = app.open_task_detail
+    app.err_table = table
+    app.tasks_table = DummyTable("y")
 
     monkeypatch.setattr("peagen.tui.app.TaskDetailScreen", DummyScreen)
 
@@ -72,9 +87,8 @@ async def test_click_error_row_opens_detail(monkeypatch):
 
     monkeypatch.setattr(app, "push_screen", fake_push)
 
-    event = DummyEvent(app.err_table, "99")
-
-    await app.on_data_table_cell_selected(event)
+    event = Click(table, 0, 0, 0, 0, 1, False, False, False, style=table.style, chain=2)
+    await table._on_click(event)
 
     assert isinstance(captured.get("screen"), DummyScreen)
     assert captured["screen"].task["id"] == "99"
@@ -103,6 +117,15 @@ def test_on_select_changed_updates_filters(select_id, attr, value):
             self.select = DummySelect(sid)
             self.value = val
 
+        def stop(self):
+            pass
+
+        @property
+        def control(self):
+            return self.select
+
     event = DummyChanged(select_id, value)
-    app.on_select_changed(event)
+    import asyncio
+    asyncio.run(app.on_select_changed(event))
     assert getattr(app, attr) == value
+

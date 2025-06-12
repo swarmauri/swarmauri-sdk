@@ -32,6 +32,7 @@ from peagen.tui.components import (
     FilterBar,
     ReconnectScreen,
     TaskDetailScreen,
+    TaskTable,
     TemplatesView,
     WorkersView,
 )
@@ -524,7 +525,7 @@ class QueueDashboardApp(App):
         self.workers_view = WorkersView(id="workers_view")
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
-        self.tasks_table = DataTable(id="tasks_table")
+        self.tasks_table = TaskTable(self.open_task_detail, id="tasks_table")
         self.tasks_table.add_columns(
             "ID",
             "Pool",
@@ -537,7 +538,7 @@ class QueueDashboardApp(App):
         )
         self.tasks_table.cursor_type = "cell"
 
-        self.err_table = DataTable(id="err_table")
+        self.err_table = TaskTable(self.open_task_detail, id="err_table")
         self.err_table.add_columns(
             "ID",
             "Pool",
@@ -559,7 +560,7 @@ class QueueDashboardApp(App):
             with Vertical(id="filter-section-container"):
                 yield Label("Filter", id="filter-title-label")
                 yield self.filter_bar
-            with TabbedContent(initial="pools") as main_tabs:
+            with TabbedContent(initial="pools"):
                 yield TabPane("Pools", self.workers_view, id="pools")
                 yield TabPane("Tasks", self.tasks_table, id="tasks")
                 yield TabPane("Errors", self.err_table, id="errors")
@@ -749,31 +750,8 @@ class QueueDashboardApp(App):
             await self.open_editor(Path(path_str).as_posix())
             return
 
-        table = event.data_table
-        if table is self.tasks_table or table is self.err_table:
-            row_idx = event.coordinate.row
-            row_key: str | None = None
-            if hasattr(table, "get_row_key"):
-                row_key = table.get_row_key(row_idx)
-            else:
-                row_obj = (
-                    table.get_row_at(row_idx) if hasattr(table, "get_row_at") else None
-                )
-                row_key = getattr(row_obj, "key", None) if row_obj is not None else None
-            if row_key is None:
-                try:
-                    cell_value = table.get_cell_at(Coordinate(row_idx, 0))
-                    row_key = str(cell_value).strip()
-                    if row_key.startswith(("- ", "+ ")):
-                        row_key = row_key[2:]
-                    row_key = row_key.strip()
-                except Exception:
-                    self.toast("Could not determine task ID.", style="error")
-                    return
-            if row_key:
-                await self.open_task_detail(str(row_key))
-            else:
-                self.toast("Could not determine task ID.", style="error")
+        # Selection events no longer open task details automatically.
+        return
 
     async def open_task_detail(self, task_id: str) -> None:
         task = self.client.tasks.get(task_id)
