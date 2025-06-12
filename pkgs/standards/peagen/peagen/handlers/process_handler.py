@@ -79,6 +79,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             start_idx=args.get("start_idx", 0),
             start_file=args.get("start_file"),
             transitive=args.get("transitive", False),
+            parent_task_id=task.get("id"),
         )
         result_map: Dict[str, List[Dict[str, Any]]] = {project_name: processed}
     else:
@@ -86,6 +87,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             projects_payload,
             cfg=cfg,
             transitive=args.get("transitive", False),
+            parent_task_id=task.get("id"),
         )
 
     # ------------------------------------------------------------------ #

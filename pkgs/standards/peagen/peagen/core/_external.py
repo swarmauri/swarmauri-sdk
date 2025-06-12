@@ -29,7 +29,7 @@ logger.set_level(logging.INFO)
 
 load_dotenv()
 
-def call_external_agent(
+def _direct_call_external_agent(
     prompt: str,
     agent_env: Dict[str, str],
     cfg: Optional[Dict[str, Any]] = None,
@@ -135,6 +135,81 @@ def call_external_agent(
     # Clean up
     del agent
     return content
+
+
+async def _spawn_llm_child_task(
+    prompt: str,
+    agent_env: Dict[str, str],
+    cfg: Optional[Dict[str, Any]],
+    parent_task_id: str,
+    logger: Optional[Any] = logger,
+) -> str:
+    """Spawn a child task that performs the LLM call and patch the parent."""
+
+    import uuid
+    import httpx
+    from peagen.models import Task, Status
+
+    gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+    pool = os.getenv("DQ_POOL", "default")
+
+    child = Task(
+        id=str(uuid.uuid4()),
+        pool=pool,
+        action="llm",
+        status=Status.waiting,
+        payload={"action": "llm", "args": {"prompt": prompt, "agent_env": agent_env}},
+    )
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await client.post(
+            gateway,
+            json={
+                "jsonrpc": "2.0",
+                "method": "Task.submit",
+                "params": {"taskId": child.id, "pool": child.pool, "payload": child.payload},
+            },
+        )
+
+        patch = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "Task.patch",
+            "params": {"taskId": parent_task_id, "changes": {"result": {"children": [child.id]}}},
+        }
+        await client.post(gateway, json=patch)
+
+        result = _direct_call_external_agent(prompt, agent_env, cfg, logger=logger)
+
+        finish = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "Work.finished",
+            "params": {"taskId": child.id, "status": "success", "result": {"content": result}},
+        }
+        await client.post(gateway, json=finish)
+
+    return result
+
+
+def call_external_agent(
+    prompt: str,
+    agent_env: Dict[str, str],
+    cfg: Optional[Dict[str, Any]] = None,
+    truncate_: bool = False,
+    logger: Optional[Any] = logger,
+    parent_task_id: Optional[str] = None,
+) -> str:
+    """Call the external agent, optionally spawning a child task."""
+
+    if parent_task_id:
+        import asyncio
+
+        return asyncio.run(
+            _spawn_llm_child_task(prompt, agent_env, cfg, parent_task_id, logger)
+        )
+
+    return _direct_call_external_agent(prompt, agent_env, cfg, truncate_, logger)
 
 
 def chunk_content(full_content: str, logger: Optional[Any] = logger) -> str:
