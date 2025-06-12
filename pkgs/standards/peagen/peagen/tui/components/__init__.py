@@ -6,6 +6,7 @@ from .log_view import LogView
 from .metrics_tab import MetricsTab
 from .workers_view import WorkersView
 from .templates_view import TemplatesView
+from .reconnect_screen import ReconnectScreen
 
 __all__ = [
     "DashboardFooter",
@@ -14,5 +15,6 @@ __all__ = [
     "MetricsTab",
     "WorkersView",
     "TemplatesView",
+    "ReconnectScreen",
 ]
 
