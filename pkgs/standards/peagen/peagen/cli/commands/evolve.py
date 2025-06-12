@@ -11,7 +11,7 @@ import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.models import Task
+from peagen.models import Status, Task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -21,6 +21,7 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
+        status=Status.waiting,
         payload={"action": "evolve", "args": args},
     )
 

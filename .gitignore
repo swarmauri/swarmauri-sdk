@@ -22,3 +22,5 @@ pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
 /pkgs/standards/ptree_dag/pkgs
 *secrets/*
 !.gitkeep          # keep the empty dir in repo
+peagen_artifacts/
+gateway.db

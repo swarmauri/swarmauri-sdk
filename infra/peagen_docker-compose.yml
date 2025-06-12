@@ -22,6 +22,7 @@ services:
       MINIO_ROOT_USER:      ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
       MINIO_CONFIG_DIR:     /root/.minio
+      MINIO_BROWSER_REDIRECT_URL: https://msnadm.peagen.com/
     volumes:
       - "${DATA_ROOT}/minio/data:/data"               # bucket objects
       - "${CONFIG_ROOT}/minio:/root/.minio"           # users / policies

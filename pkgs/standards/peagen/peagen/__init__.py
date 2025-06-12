@@ -13,7 +13,13 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 
-
 from .plugin_manager import PluginManager, resolve_plugin_spec
+from .errors import PatchTargetMissingError
 
-__all__ = ["__package_name__", "__version__", "PluginManager", "resolve_plugin_spec"]
+__all__ = [
+    "__package_name__",
+    "__version__",
+    "PluginManager",
+    "resolve_plugin_spec",
+    "PatchTargetMissingError",
+]
