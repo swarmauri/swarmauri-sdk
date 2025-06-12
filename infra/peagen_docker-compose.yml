@@ -147,8 +147,6 @@ services:
       REDIS_HOST:           redis
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0
-      MINIO_USER:           ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -173,6 +171,11 @@ services:
     environment:
       DQ_GATEWAY:               "http://gateway:8000/rpc"
       DQ_POOL:                  "default"
+      GROQ_API_KEY:             ${GROQ_API_KEY}
+      MINIO_ENDPOINT:           "minio:9000"
+      MINIO_BUCKET:             "test"
+      MINIO_ACCESS_KEY:         ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY:         ${MINIO_SECRET_KEY}
     restart: unless-stopped
     networks: [app_net]
 
