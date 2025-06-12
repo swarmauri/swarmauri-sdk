@@ -113,14 +113,30 @@ class QueueDashboardApp(App):
         ("4", "switch('artifacts')", "Artifacts"),
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
+        ("c", "toggle_children", "Collapse"),
         ("q", "quit", "Quit"),
     ]
 
-    def __init__(self, gateway_url: str = "http://localhost:8000") -> None:
+    def __init__(
+        self,
+        gateway_url: str = "http://localhost:8000",
+        *,
+        sort_key: str | None = None,
+        filter_pool: str | None = None,
+        filter_status: str | None = None,
+        filter_action: str | None = None,
+        filter_label: str | None = None,
+    ) -> None:
         super().__init__()
         ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
         self.client = TaskStreamClient(ws_url)
         self.backend = RemoteBackend(gateway_url)
+        self.sort_key = sort_key or "time"
+        self.filter_pool = filter_pool
+        self.filter_status = filter_status
+        self.filter_action = filter_action
+        self.filter_label = filter_label
+        self.collapsed: set[str] = set()
 
     # reactive counters for quick overview
     queue_len = reactive(0)
@@ -168,7 +184,7 @@ class QueueDashboardApp(App):
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
         self.tasks_table = DataTable(id="tasks_table")
-        self.tasks_table.add_columns("ID", "Pool", "Status", "Action", "Labels")
+        self.tasks_table.add_columns("ID", "Pool", "Status", "Action", "Labels", "Time")
 
         self.err_table = DataTable(id="err_table")
         self.err_table.add_columns("Task", "Log")
@@ -215,9 +231,48 @@ class QueueDashboardApp(App):
             except Exception as exc:
                 self.toast(f"Save failed: {exc}", style="red")
 
+    def action_toggle_children(self) -> None:
+        row = self.tasks_table.cursor_row
+        if row is None:
+            return
+        row_key = self.tasks_table.get_row_key(row)
+        if row_key in self.collapsed:
+            self.collapsed.remove(row_key)
+        else:
+            self.collapsed.add(row_key)
+
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
         tasks = list(self.client.tasks.values()) or self.backend.tasks
+
+        # apply filters
+        if self.filter_pool:
+            tasks = [t for t in tasks if t.get("pool") == self.filter_pool]
+        if self.filter_status:
+            tasks = [t for t in tasks if t.get("status") == self.filter_status]
+        if self.filter_action:
+            tasks = [
+                t
+                for t in tasks
+                if t.get("payload", {}).get("action") == self.filter_action
+            ]
+        if self.filter_label:
+            tasks = [
+                t
+                for t in tasks
+                if self.filter_label in t.get("labels", [])
+            ]
+
+        # sort
+        if self.sort_key:
+            def _key(task):
+                if self.sort_key == "action":
+                    return task.get("payload", {}).get("action")
+                if self.sort_key == "label":
+                    return ",".join(task.get("labels", []))
+                return task.get(self.sort_key)
+
+            tasks.sort(key=lambda t: _key(t) or "")
         if self.client.workers:
             workers = {}
             for wid, data in self.client.workers.items():
@@ -246,22 +301,46 @@ class QueueDashboardApp(App):
 
         # 2 – tasks table
         self.tasks_table.clear()
+        seen: set[str] = set()
         for t in tasks:
-            tid = getattr(t, "id", t.get("id"))
-            pool = getattr(t, "pool", t.get("pool", ""))
-            status = getattr(t, "status", t.get("status"))
-            action = (
-                getattr(t, "payload", t.get("payload", {})).get("action", "")
-            )
-            labels = ",".join(getattr(t, "labels", t.get("labels", [])))
+            tid = t.get("id")
+            if tid in seen:
+                continue
+            pool = t.get("pool", "")
+            status = t.get("status")
+            action = t.get("payload", {}).get("action", "")
+            labels = ",".join(t.get("labels", []))
+            ts = t.get("time", "")
+            prefix = ""
+            children = t.get("result", {}).get("children")
+            if children:
+                prefix = "- " if tid not in self.collapsed else "+ "
             self.tasks_table.add_row(
-                str(tid),
+                f"{prefix}{tid}",
                 pool,
                 status,
                 action,
                 labels,
+                ts,
                 key=str(tid),
             )
+            seen.add(tid)
+            if children and tid not in self.collapsed:
+                for cid in children:
+                    child = next((c for c in tasks if c.get("id") == cid), None)
+                    if child and cid not in seen:
+                        c_labels = ",".join(child.get("labels", []))
+                        c_ts = child.get("time", "")
+                        self.tasks_table.add_row(
+                            f"  {cid}",
+                            child.get("pool", ""),
+                            child.get("status"),
+                            child.get("payload", {}).get("action", ""),
+                            c_labels,
+                            c_ts,
+                            key=str(cid),
+                        )
+                        seen.add(cid)
 
         # 3 – error table
         if self.fail_len:
@@ -317,4 +396,22 @@ class QueueDashboardApp(App):
 
 # ────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    QueueDashboardApp().run()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Peagen dashboard")
+    parser.add_argument("--gateway-url", default="http://localhost:8000")
+    parser.add_argument("--sort", choices=["time", "pool", "status", "action", "label"], default="time")
+    parser.add_argument("--filter-pool")
+    parser.add_argument("--filter-status")
+    parser.add_argument("--filter-action")
+    parser.add_argument("--filter-label")
+    args = parser.parse_args()
+
+    QueueDashboardApp(
+        gateway_url=args.gateway_url,
+        sort_key=args.sort,
+        filter_pool=args.filter_pool,
+        filter_status=args.filter_status,
+        filter_action=args.filter_action,
+        filter_label=args.filter_label,
+    ).run()
