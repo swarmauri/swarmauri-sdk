@@ -28,6 +28,7 @@ from textual.widgets import (
     TabPane,
     TextArea,
 )
+from textual.containers import Vertical
 from peagen.tui.components import (
     DashboardFooter,
     FileTree,
@@ -255,15 +256,16 @@ class QueueDashboardApp(App):
         self.filter_input = Input(placeholder="pool=default status=running", id="filter_input")
         self.filter_input.display = False
 
-        with TabbedContent(initial="pools"):
-            yield TabPane("Pools", self.workers_view, id="pools")
-            yield TabPane("Tasks", self.tasks_table, id="tasks")
-            yield TabPane("Errors", self.err_table, id="errors")
-            yield TabPane("Artifacts", self.file_tree, id="artifacts")
-            yield TabPane("Templates", self.templates_tree, id="templates")
+        with Vertical():
+            yield self.filter_input
+            with TabbedContent(initial="pools"):
+                yield TabPane("Pools", self.workers_view, id="pools")
+                yield TabPane("Tasks", self.tasks_table, id="tasks")
+                yield TabPane("Errors", self.err_table, id="errors")
+                yield TabPane("Artifacts", self.file_tree, id="artifacts")
+                yield TabPane("Templates", self.templates_tree, id="templates")
 
         yield self.file_tabs
-        yield self.filter_input
         yield DashboardFooter()
 
     # ── key binding helpers ────────────────────────────────────────────────
@@ -371,6 +373,8 @@ class QueueDashboardApp(App):
         self.filter_status = None
         self.filter_action = None
         self.filter_label = None
+        self.filter_input.value = ""
+        self.filter_input.display = False
         self.refresh_data()
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
@@ -456,6 +460,12 @@ class QueueDashboardApp(App):
         self.fail_len = sum(
             1 for t in tasks if getattr(t, "status", t.get("status")) == "failed"
         )
+        if self.filter_pool:
+            workers = {
+                wid: w
+                for wid, w in workers.items()
+                if w.get("pool") == self.filter_pool
+            }
         self.worker_len = len(workers)
         self.workers_view.update_workers(workers)
 
