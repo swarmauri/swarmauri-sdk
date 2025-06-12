@@ -158,6 +158,7 @@ class QueueDashboardApp(App):
         text-style: bold;
     }
     """
+    CSS_PATH = "app.css"
     TITLE = "Peagen"
     BINDINGS = [
         ("1", "switch('pools')", "Pools"),
@@ -547,7 +548,7 @@ class QueueDashboardApp(App):
             with Vertical(id="filter-section-container"):
                 yield Label("Filter", id="filter-title-label")
                 yield self.filter_bar
-            with TabbedContent(initial="pools") as main_tabs:
+            with TabbedContent(initial="pools"):
                 yield TabPane("Pools", self.workers_view, id="pools")
                 yield TabPane("Tasks", self.tasks_table, id="tasks")
                 yield TabPane("Errors", self.err_table, id="errors")
