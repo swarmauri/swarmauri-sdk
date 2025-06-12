@@ -38,6 +38,8 @@ class TaskStreamClient:
                     if ev_type == "task.update":
                         tid = data.get("id")
                         if tid:
+                            if "time" in event:
+                                data["time"] = event["time"]
                             self.tasks[tid] = data
                     elif ev_type == "worker.update":
                         wid = data.get("id")
