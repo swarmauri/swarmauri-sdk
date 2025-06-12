@@ -194,7 +194,10 @@ async def _publish_event(event_type: str, data: dict) -> None:
 
 
 async def _publish_task(task: Task) -> None:
-    await _publish_event("task.update", task.model_dump())
+    data = task.model_dump()
+    if task.duration is not None:
+        data["duration"] = task.duration
+    await _publish_event("task.update", data)
 
 
 # ─────────────────────────── RPC endpoint ───────────────────────
@@ -382,7 +385,10 @@ async def task_patch(taskId: str, changes: dict) -> dict:
 async def task_get(taskId: str):
     # hot cache
     if t := await _load_task(taskId):
-        return t.model_dump()
+        data = t.model_dump()
+        if t.duration is not None:
+            data["duration"] = t.duration
+        return data
 
     # authoritative fallback (Postgres)
     try:
@@ -395,7 +401,14 @@ async def task_get(taskId: str):
 @rpc.method("Pool.listTasks")
 async def pool_list(poolName: str):
     ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", 0, -1)
-    return [Task.model_validate_json(r).model_dump() for r in ids]
+    tasks = []
+    for r in ids:
+        t = Task.model_validate_json(r)
+        data = t.model_dump()
+        if t.duration is not None:
+            data["duration"] = t.duration
+        tasks.append(data)
+    return tasks
 
 
 # ─────────────────────────── Worker RPCs ────────────────────────
@@ -455,6 +468,13 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     # update in-memory object
     t.status = Status(status)
     t.result = result
+    now = time.time()
+    if status == "running" and t.started_at is None:
+        t.started_at = now
+    elif status in {"success", "failed", "cancelled"}:
+        if t.started_at is None:
+            t.started_at = now
+        t.finished_at = now
 
     # persist everywhere
     await _save_task(t)

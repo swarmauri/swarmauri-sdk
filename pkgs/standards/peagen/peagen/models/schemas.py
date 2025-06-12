@@ -41,6 +41,15 @@ class Task(BaseModel):
     labels: List[str] = Field(default_factory=list)
     in_degree: int = 0
     config_toml: str | None = None
+    started_at: float | None = None
+    finished_at: float | None = None
+
+    @property
+    def duration(self) -> int | None:
+        """Return runtime in seconds if start and end are known."""
+        if self.started_at is None or self.finished_at is None:
+            return None
+        return int(self.finished_at - self.started_at)
 
     def get(self, key: str, default=None):
         """Dictionary-style access to Task fields."""

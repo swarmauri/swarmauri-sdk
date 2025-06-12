@@ -33,4 +33,9 @@ async def get_task_result(task_id: str) -> Dict:
             "artifact_uri": tr.artifact_uri,
             "started_at": tr.started_at.isoformat() if tr.started_at else None,
             "finished_at": tr.finished_at.isoformat() if tr.finished_at else None,
+            "duration": (
+                int((tr.finished_at - tr.started_at).total_seconds())
+                if tr.started_at and tr.finished_at
+                else None
+            ),
         }
