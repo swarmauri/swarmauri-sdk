@@ -58,5 +58,5 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     assert sent[-1]["method"] == "Work.finished"
     assert sent[-1]["params"]["status"] == "waiting"
     assert result["children"] and len(result["children"]) == 2
-    assert result["outputs"][0].startswith("file://dummy/")
-    assert sent[0]["params"]["payload"]["args"]["projects_payload"].startswith("file://dummy/")
+    assert result["outputs"][0].startswith("PROJECTS:")
+    assert sent[0]["params"]["payload"]["args"]["projects_payload"].startswith("PROJECTS:")
