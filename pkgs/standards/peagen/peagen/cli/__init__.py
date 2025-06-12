@@ -39,8 +39,12 @@ from .commands import (
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
-local_app = typer.Typer()  # will host all *run* commands
-remote_app = typer.Typer()  # will host all *submit* commands
+local_app = typer.Typer(
+    help="Commands executed locally on this machine."
+)
+remote_app = typer.Typer(
+    help="Commands that submit tasks to a JSON-RPC gateway."
+)
 
 
 # ───────────────────── LOCAL GLOBAL CALLBACK ───────────────────────────────
@@ -123,6 +127,7 @@ def _global_remote_ctx(  # noqa: D401
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
+    """Set remote command defaults and stash them in ``ctx.obj``."""
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)

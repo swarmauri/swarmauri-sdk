@@ -80,10 +80,20 @@ def run(
 @remote_fetch_app.command("fetch")
 def submit(
     ctx: typer.Context,
-    manifests: List[str] = typer.Argument(...),
-    out_dir: Optional[Path] = typer.Option(None, "--out", "-o"),
-    no_source: bool = typer.Option(False, "--no-source/--with-source"),
-    install_template_sets_flag: bool = typer.Option(True)
+    manifests: List[str] = typer.Argument(
+        ..., help="Manifest JSON URI(s)"
+    ),
+    out_dir: Optional[Path] = typer.Option(
+        None, "--out", "-o", help="Destination folder on the worker"
+    ),
+    no_source: bool = typer.Option(
+        False, "--no-source/--with-source", help="Skip cloning source packages"
+    ),
+    install_template_sets_flag: bool = typer.Option(
+        True,
+        "--install-template-sets/--no-install-template-sets",
+        help="Install template sets referenced by the manifest(s)",
+    )
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
     args = _collect_args(manifests, out_dir, no_source, install_template_sets_flag)

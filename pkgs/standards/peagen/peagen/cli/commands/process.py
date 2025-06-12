@@ -124,13 +124,27 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
 @remote_process_app.command("process")
 def submit(  # noqa: PLR0913 – CLI signature needs many options
     ctx: typer.Context,
-    projects_payload: str = typer.Argument(...),
-    project_name: Optional[str] = typer.Option(None),
-    start_idx: int = typer.Option(0),
-    start_file: Optional[str] = typer.Option(None),
-    transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
-    agent_env: Optional[str] = typer.Option(None),
-    output_base: Optional[Path] = typer.Option(None, "--output-base"),
+    projects_payload: str = typer.Argument(
+        ..., help="Path to YAML file or inline text for PROJECTS"
+    ),
+    project_name: Optional[str] = typer.Option(
+        None, help="Process only a single project by its NAME"
+    ),
+    start_idx: int = typer.Option(
+        0, help="Index offset for rendered filenames"
+    ),
+    start_file: Optional[str] = typer.Option(
+        None, help="Skip files until this RENDERED_FILE_NAME is reached"
+    ),
+    transitive: bool = typer.Option(
+        False, "--transitive/--no-transitive", help="Include transitive deps"
+    ),
+    agent_env: Optional[str] = typer.Option(
+        None, help="JSON settings for the LLM agent environment"
+    ),
+    output_base: Optional[Path] = typer.Option(
+        None, "--output-base", help="Root dir for materialised artifacts"
+    ),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"

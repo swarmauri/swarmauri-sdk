@@ -75,30 +75,45 @@ def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
 
 
 @remote_task_app.command("pause")
-def pause(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+def pause(
+    ctx: typer.Context,
+    selector: str = typer.Argument(..., help="Task ID or label selector"),
+) -> None:
     """Pause one task or all tasks matching a label."""
     _simple_call(ctx, "Task.pause", selector)
 
 
 @remote_task_app.command("resume")
-def resume(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+def resume(
+    ctx: typer.Context,
+    selector: str = typer.Argument(..., help="Task ID or label selector"),
+) -> None:
     """Resume a paused task or label set."""
     _simple_call(ctx, "Task.resume", selector)
 
 
 @remote_task_app.command("cancel")
-def cancel(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+def cancel(
+    ctx: typer.Context,
+    selector: str = typer.Argument(..., help="Task ID or label selector"),
+) -> None:
     """Cancel a task or label set."""
     _simple_call(ctx, "Task.cancel", selector)
 
 
 @remote_task_app.command("retry")
-def retry(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+def retry(
+    ctx: typer.Context,
+    selector: str = typer.Argument(..., help="Task ID or label selector"),
+) -> None:
     """Retry a task or label set."""
     _simple_call(ctx, "Task.retry", selector)
 
 
 @remote_task_app.command("retry-from")
-def retry_from(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+def retry_from(
+    ctx: typer.Context,
+    selector: str = typer.Argument(..., help="Task ID or label selector"),
+) -> None:
     """Retry a task and its descendants."""
     _simple_call(ctx, "Task.retry_from", selector)

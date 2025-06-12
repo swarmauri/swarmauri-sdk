@@ -49,6 +49,7 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
 # ─── list ──────────────────────────────
 @local_template_sets_app.command("list", help="List all discovered template-sets.")
 def run_list():
+    """List template-set packages found on the search path."""
     result = _run_handler({"operation": "list"})
     discovered = {e["name"]: e.get("paths", []) for e in result.get("sets", [])}
     if not discovered:
@@ -67,6 +68,7 @@ def submit_list(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list"}
     try:
         task_id = _submit_task(args, gateway_url)
@@ -81,6 +83,7 @@ def submit_list(
 def run_show(
     name: str = typer.Argument(..., metavar="SET_NAME"),
 ):
+    """Show metadata and files for a template-set."""
     try:
         info = _run_handler({"operation": "show", "name": name})
     except Exception as exc:  # noqa: BLE001
@@ -108,6 +111,7 @@ def submit_show(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name}
     try:
         task_id = _submit_task(args, gateway_url)
@@ -149,6 +153,7 @@ def run_add(
         help="Re-install even if the distribution is already present.",
     ),
 ):
+    """Install a template-set from PyPI, wheel, or directory."""
     typer.echo("⏳  Installing via pip …")
     try:
         result = _run_handler(
@@ -183,12 +188,17 @@ def submit_add(
     from_bundle: Optional[str] = typer.Option(
         None, "--from-bundle", help="Install from bundled archive"
     ),
-    editable: bool = typer.Option(False, "--editable", "-e"),
-    force: bool = typer.Option(False, "--force"),
+    editable: bool = typer.Option(
+        False, "--editable", "-e", help="Install the source in editable mode"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Re-install even if already present"
+    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a template-set installation job via JSON-RPC."""
     args = {
         "operation": "add",
         "source": source,
@@ -211,6 +221,7 @@ def run_remove(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
 ):
+    """Remove the package that provides a template-set."""
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
             typer.echo("Aborted.")
@@ -239,6 +250,7 @@ def submit_remove(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Submit a template-set removal job via JSON-RPC."""
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
             typer.echo("Aborted.")
