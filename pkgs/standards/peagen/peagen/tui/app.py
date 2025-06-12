@@ -37,6 +37,7 @@ from peagen.tui.components import (
     TemplatesView,
     WorkersView,
     ReconnectScreen,
+    TaskDetailScreen,
 )
 
 import httpx
@@ -637,6 +638,35 @@ class QueueDashboardApp(App):
         if isinstance(event.value, str) and event.value.startswith("[link="):
             path = event.value.split("=", 1)[1].split("]", 1)[0]
             await self.open_editor(Path(path).as_posix())
+            return
+
+        table = event.data_table
+        if table in {self.tasks_table, self.err_table}:
+            row_idx = event.coordinate.row
+            if hasattr(table, "get_row_key"):
+                row_key = table.get_row_key(row_idx)
+            else:
+                row_obj = table.get_row_at(row_idx) if hasattr(table, "get_row_at") else None
+                row_key = getattr(row_obj, "key", None) if row_obj is not None else None
+            if row_key is None:
+                if hasattr(table, "get_cell_at"):
+                    cell_value = table.get_cell_at(row_idx, 0)
+                else:
+                    cell_value = table.get_cell(row_idx, 0)
+                row_key = str(cell_value).strip()
+                if row_key.startswith("- ") or row_key.startswith("+ "):
+                    row_key = row_key[2:]
+                row_key = row_key.strip()
+            await self.open_task_detail(str(row_key))
+
+    async def open_task_detail(self, task_id: str) -> None:
+        """Open a modal with details for ``task_id``."""
+
+        task = self.client.tasks.get(task_id)
+        if not task:
+            task = next((t for t in self.backend.tasks if str(t.get("id")) == task_id), None)
+        if task:
+            await self.push_screen(TaskDetailScreen(task))
 
     # ----------------------------------------------------------------------—
     async def open_editor(self, file_path: str) -> None:
