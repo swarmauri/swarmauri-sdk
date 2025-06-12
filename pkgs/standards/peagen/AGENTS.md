@@ -127,3 +127,39 @@ peagen remote --gateway-url http://localhost:8000/rpc task get <task-id>
 
 ---
 Use this guide whenever you need to spin up a demo environment or troubleshoot deployments.
+
+## Pull Request Validation Steps
+
+After making changes to this package, confirm that tasks run successfully in
+both remote and local modes. All `peagen` commands should include the `-q` flag
+to suppress the banner output.
+
+### Remote
+
+1. Start the gateway and worker with **Redis** queue, **Redis pubsub**,
+   **MinIO** storage, and **Postgres** as the results backend.
+2. Submit a task and wait for completion:
+   ```bash
+   peagen remote -q --gateway-url http://localhost:8000/rpc \
+     process projects_payload.yaml --watch
+   ```
+3. Fetch the parent task to verify it succeeded:
+   ```bash
+   peagen remote -q --gateway-url http://localhost:8000/rpc task get <task-id>
+   ```
+
+### Local
+
+1. Start the gateway and worker with an **in-memory** queue, no pubsub, local
+   filesystem storage, and the local filesystem results backend.
+2. Submit a task and wait for completion:
+   ```bash
+   peagen local -q process projects_payload.yaml --watch
+   ```
+3. Verify success with:
+   ```bash
+   peagen local -q task get <task-id>
+   ```
+
+If any step fails, debug the issue and rerun `ruff check` and `pytest` until all
+checks pass.

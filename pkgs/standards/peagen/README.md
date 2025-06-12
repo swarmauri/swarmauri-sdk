@@ -422,3 +422,11 @@ pea.process_all_projects()
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
 * **Adding New Commands:** Define a new subcommand in `cli.py`, wire it into the parser, instantiate `Peagen`, and call core methods.
 * **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/templates/`, update docs/README, and open a PR tagging maintainers.
+
+### Textual TUI
+
+Run `python -m peagen.tui.app` to launch an experimental dashboard that
+subscribes to the gateway's `/ws/tasks` WebSocket. Use the tab keys to switch
+between task lists, logs and opened files. The footer shows system metrics and
+current time. Remote artifact paths are downloaded via their storage adapter and
+re-uploaded when saving.

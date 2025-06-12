@@ -23,6 +23,7 @@ from .commands import (
     local_init_app,
     local_process_app,
     local_mutate_app,
+    local_evolve_app,
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
@@ -32,6 +33,7 @@ from .commands import (
     remote_fetch_app,
     remote_process_app,
     remote_mutate_app,
+    remote_evolve_app,
     remote_sort_app,
     remote_task_app,
     remote_template_sets_app,
@@ -39,8 +41,12 @@ from .commands import (
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
-local_app = typer.Typer()  # will host all *run* commands
-remote_app = typer.Typer()  # will host all *submit* commands
+local_app = typer.Typer(
+    help="Commands executed locally on this machine."
+)
+remote_app = typer.Typer(
+    help="Commands that submit tasks to a JSON-RPC gateway."
+)
 
 
 # ───────────────────── LOCAL GLOBAL CALLBACK ───────────────────────────────
@@ -123,6 +129,7 @@ def _global_remote_ctx(  # noqa: D401
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
+    """Set remote command defaults and stash them in ``ctx.obj``."""
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)
@@ -149,6 +156,7 @@ local_app.add_typer(local_db_app, name="db")
 local_app.add_typer(local_init_app,          name="init")
 local_app.add_typer(local_process_app)
 local_app.add_typer(local_mutate_app)
+local_app.add_typer(local_evolve_app)
 local_app.add_typer(local_sort_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
@@ -159,6 +167,7 @@ remote_app.add_typer(remote_eval_app)
 remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_mutate_app)
+remote_app.add_typer(remote_evolve_app)
 remote_app.add_typer(remote_sort_app)
 remote_app.add_typer(remote_task_app, name="task")
 remote_app.add_typer(remote_template_sets_app, name="template-set")

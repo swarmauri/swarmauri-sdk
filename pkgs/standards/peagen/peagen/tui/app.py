@@ -1,4 +1,11 @@
 # queue_dash.py – run with  `python -m queue_dash`
+"""Textual dashboard for Peagen.
+
+🚧 editing template-sets not implemented yet
+"""
+
+# 🚧 editing template-sets not implemented yet
+
 from __future__ import annotations
 
 import asyncio
@@ -7,6 +14,10 @@ import random
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
+from urllib.parse import urlparse
+
+from peagen.tui.fileops import download_remote, upload_remote
+from peagen.tui.ws_client import TaskStreamClient
 
 from rich.progress import ProgressBar
 
@@ -105,7 +116,11 @@ class QueueDashboardApp(App):
         ("q", "quit", "Quit"),
     ]
 
-    backend = FakeBackend()
+    def __init__(self, gateway_url: str = "http://localhost:8000") -> None:
+        super().__init__()
+        ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
+        self.client = TaskStreamClient(ws_url)
+        self.backend = FakeBackend()
 
     # reactive counters for quick overview
     queue_len = reactive(0)
@@ -115,8 +130,9 @@ class QueueDashboardApp(App):
 
     # ── life-cycle ──────────────────────────────────────────────────────────
     async def on_mount(self):
-        self.run_worker(self.backend.poll(), exclusive=True)  # background poller
-        self.set_interval(0.3, self.refresh_data)  # UI refresh timer
+        self.run_worker(self.backend.poll(), exclusive=True)
+        self.run_worker(self.client.listen(), exclusive=True)
+        self.set_interval(0.3, self.refresh_data)
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         """Catch clicks on [link=file://…] and open them in the editor tab
@@ -179,22 +195,32 @@ class QueueDashboardApp(App):
         if not hasattr(self, "_current_file"):
             self.toast("No file loaded.", style="yellow")
             return
-        try:
-            Path(self._current_file).write_text(
-                self.code_editor.value, encoding="utf-8"
-            )
-            self.toast(f"Saved {self._current_file}", style="green")
-        except Exception as exc:
-            self.toast(f"Save failed: {exc}", style="red")
+        if getattr(self, "_remote_info", None):
+            adapter, key, tmp = self._remote_info
+            tmp.write_text(self.code_editor.value, encoding="utf-8")
+            try:
+                upload_remote(adapter, key, tmp)
+                self.toast("Uploaded remote file", style="green")
+            except Exception as exc:
+                self.toast(f"Upload failed: {exc}", style="red")
+        else:
+            try:
+                Path(self._current_file).write_text(
+                    self.code_editor.value, encoding="utf-8"
+                )
+                self.toast(f"Saved {self._current_file}", style="green")
+            except Exception as exc:
+                self.toast(f"Save failed: {exc}", style="red")
 
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
-        tasks, workers = self.backend.tasks, self.backend.workers
+        tasks = list(self.client.tasks.values()) or self.backend.tasks
+        workers = self.backend.workers
 
         # 1 – overview
-        self.queue_len = sum(1 for t in tasks if t.status == "running")
-        self.done_len = sum(1 for t in tasks if t.status == "done")
-        self.fail_len = sum(1 for t in tasks if t.status == "failed")
+        self.queue_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "running")
+        self.done_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "done")
+        self.fail_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "failed")
         self.worker_len = len(workers)
         self.overview_box.update(
             f"[bold cyan]Active workers:[/bold cyan] {self.worker_len}\n"
@@ -204,15 +230,22 @@ class QueueDashboardApp(App):
         )
 
         # 2 – tasks table
-        running = [t for t in tasks if t.status == "running"]
+        running = [t for t in tasks if getattr(t, "status", t.get("status")) == "running"]
         visible = set(self.tasks_table.rows.keys())
         for t in running:
-            if str(t.id) not in visible:
+            tid = getattr(t, "id", t.get("id"))
+            status = getattr(t, "status", t.get("status"))
+            pct = getattr(t, "percent", None)
+            if pct is None:
+                done = getattr(t, "done", t.get("done", 0))
+                total = getattr(t, "total", t.get("total", 100))
+                pct = done / total * 100 if total else 0
+            if str(tid) not in visible:
                 self.tasks_table.add_row(
-                    str(t.id),
-                    t.status,
-                    ProgressBar(total=100, completed=t.percent),
-                    key=str(t.id),
+                    str(tid),
+                    status,
+                    ProgressBar(total=100, completed=pct),
+                    key=str(tid),
                 )
             else:
                 ...
@@ -223,17 +256,21 @@ class QueueDashboardApp(App):
                 # )
         # purge finished rows
         for key in list(self.tasks_table.rows.keys()):
-            if all(str(t.id) != key or t.status != "running" for t in tasks):
+            if all(
+                str(getattr(t, "id", t.get("id"))) != key
+                or getattr(t, "status", t.get("status")) != "running"
+                for t in tasks
+            ):
                 self.tasks_table.remove_row(key)
 
         # 3 – error table
         if self.fail_len:
             self.err_table.clear()
-            for t in (t for t in tasks if t.status == "failed"):
-                link = (
-                    f"[link=file://{t.error_file}]open[/link]" if t.error_file else ""
-                )
-                self.err_table.add_row(str(t.id), link)
+            for t in (t for t in tasks if getattr(t, "status", t.get("status")) == "failed"):
+                err_file = getattr(t, "error_file", t.get("error_file"))
+                link = f"[link=file://{err_file}]open[/link]" if err_file else ""
+                tid = getattr(t, "id", t.get("id"))
+                self.err_table.add_row(str(tid), link)
 
     # ── open selected file in editor instead of browser ────────────────────
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
@@ -243,15 +280,26 @@ class QueueDashboardApp(App):
 
     # ----------------------------------------------------------------------—
     async def open_editor(self, file_path: str) -> None:
-        try:
-            text = Path(file_path).read_text(encoding="utf-8")
-        except Exception as exc:
-            self.toast(f"Cannot open {file_path}: {exc}", style="error")
-            return
+        parsed = urlparse(file_path)
+        if parsed.scheme and parsed.scheme != "file":
+            try:
+                tmp, adapter, key = download_remote(file_path)
+            except Exception as exc:
+                self.toast(f"Cannot download {file_path}: {exc}", style="error")
+                return
+            self._remote_info = (adapter, key, tmp)
+            text = tmp.read_text(encoding="utf-8")
+            self._current_file = tmp.as_posix()
+        else:
+            try:
+                text = Path(file_path).read_text(encoding="utf-8")
+            except Exception as exc:
+                self.toast(f"Cannot open {file_path}: {exc}", style="error")
+                return
+            self._remote_info = None
+            self._current_file = file_path
 
-        self._current_file = file_path
-        self.code_editor.load_text(text)  # ← the crucial fix
-        # optional: basic syntax-highlight selection
+        self.code_editor.load_text(text)
         self.code_editor.language = "python"
 
         self.action_switch("editor")

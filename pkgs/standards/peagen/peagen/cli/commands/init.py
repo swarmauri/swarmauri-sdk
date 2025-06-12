@@ -31,11 +31,21 @@ remote_init_app = typer.Typer(
 @local_init_app.command("project")
 def local_init_project(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
-    template_set: str = typer.Option("default", "--template-set"),
-    provider: Optional[str] = typer.Option(None, "--provider"),
-    with_doe: bool = typer.Option(False, "--with-doe"),
-    with_eval_stub: bool = typer.Option(False, "--with-eval-stub"),
+    path: Path = typer.Argument(
+        ".", exists=False, dir_okay=True, file_okay=False, help="Target directory"
+    ),
+    template_set: str = typer.Option(
+        "default", "--template-set", help="Template-set to initialise with"
+    ),
+    provider: Optional[str] = typer.Option(
+        None, "--provider", help="LLM provider slug for the project"
+    ),
+    with_doe: bool = typer.Option(
+        False, "--with-doe", help="Also create a DOE specification stub"
+    ),
+    with_eval_stub: bool = typer.Option(
+        False, "--with-eval-stub", help="Add an evaluation harness"
+    ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
 ):
     """Create a new Peagen project skeleton locally."""
@@ -59,11 +69,21 @@ def local_init_project(
 @remote_init_app.command("project")
 def remote_init_project(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", exists=False, dir_okay=True, file_okay=False),
-    template_set: str = typer.Option("default", "--template-set"),
-    provider: Optional[str] = typer.Option(None, "--provider"),
-    with_doe: bool = typer.Option(False, "--with-doe"),
-    with_eval_stub: bool = typer.Option(False, "--with-eval-stub"),
+    path: Path = typer.Argument(
+        ".", exists=False, dir_okay=True, file_okay=False, help="Target directory"
+    ),
+    template_set: str = typer.Option(
+        "default", "--template-set", help="Template-set to initialise with"
+    ),
+    provider: Optional[str] = typer.Option(
+        None, "--provider", help="LLM provider slug for the project"
+    ),
+    with_doe: bool = typer.Option(
+        False, "--with-doe", help="Also create a DOE specification stub"
+    ),
+    with_eval_stub: bool = typer.Option(
+        False, "--with-eval-stub", help="Add an evaluation harness"
+    ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
@@ -86,11 +106,21 @@ def remote_init_project(
 @local_init_app.command("template-set")
 def local_init_template_set(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
-    org: Optional[str] = typer.Option(None, "--org"),
-    use_uv: bool = typer.Option(True, "--uv/--no-uv"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Location for the new package"
+    ),
+    name: Optional[str] = typer.Option(
+        None, "--name", help="Template-set identifier"
+    ),
+    org: Optional[str] = typer.Option(
+        None, "--org", help="Organisation or namespace"
+    ),
+    use_uv: bool = typer.Option(
+        True, "--uv/--no-uv", help="Use uv for installing dependencies"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
 ):
     """Create a template-set wheel skeleton locally."""
     self = Logger(name="init_template_set")
@@ -112,11 +142,21 @@ def local_init_template_set(
 @remote_init_app.command("template-set")
 def remote_init_template_set(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    name: Optional[str] = typer.Option(None, "--name", help="Template-set ID."),
-    org: Optional[str] = typer.Option(None, "--org"),
-    use_uv: bool = typer.Option(True, "--uv/--no-uv"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Location for the new package"
+    ),
+    name: Optional[str] = typer.Option(
+        None, "--name", help="Template-set identifier"
+    ),
+    org: Optional[str] = typer.Option(
+        None, "--org", help="Organisation or namespace"
+    ),
+    use_uv: bool = typer.Option(
+        True, "--uv/--no-uv", help="Use uv for installing dependencies"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -137,10 +177,18 @@ def remote_init_template_set(
 @local_init_app.command("doe-spec")
 def local_init_doe_spec(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    name: Optional[str] = typer.Option(None, "--name"),
-    org: Optional[str] = typer.Option(None, "--org"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Directory for the spec"
+    ),
+    name: Optional[str] = typer.Option(
+        None, "--name", help="DOE spec identifier"
+    ),
+    org: Optional[str] = typer.Option(
+        None, "--org", help="Organisation or namespace"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
 ):
     """Create a DOE-spec stub locally."""
     self = Logger(name="init_doe_spec")
@@ -160,10 +208,18 @@ def local_init_doe_spec(
 @remote_init_app.command("doe-spec")
 def remote_init_doe_spec(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    name: Optional[str] = typer.Option(None, "--name"),
-    org: Optional[str] = typer.Option(None, "--org"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Directory for the spec"
+    ),
+    name: Optional[str] = typer.Option(
+        None, "--name", help="DOE spec identifier"
+    ),
+    org: Optional[str] = typer.Option(
+        None, "--org", help="Organisation or namespace"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -183,9 +239,15 @@ def remote_init_doe_spec(
 @local_init_app.command("ci")
 def local_init_ci(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    github: bool = typer.Option(True, "--github/--gitlab"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Directory for the CI file"
+    ),
+    github: bool = typer.Option(
+        True, "--github/--gitlab", help="Generate config for GitHub or GitLab"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
 ):
     """Drop a CI pipeline file for GitHub or GitLab locally."""
     self = Logger(name="init_ci")
@@ -204,9 +266,15 @@ def local_init_ci(
 @remote_init_app.command("ci")
 def remote_init_ci(
     ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    github: bool = typer.Option(True, "--github/--gitlab"),
-    force: bool = typer.Option(False, "--force"),
+    path: Path = typer.Argument(
+        ".", dir_okay=True, file_okay=False, help="Directory for the CI file"
+    ),
+    github: bool = typer.Option(
+        True, "--github/--gitlab", help="Generate config for GitHub or GitLab"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite destination if not empty"
+    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),

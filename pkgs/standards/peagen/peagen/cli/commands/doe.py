@@ -35,16 +35,38 @@ def _make_task(args: dict, action: str = "doe") -> Task:
 @local_doe_app.command("gen")
 def run_gen(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(..., exists=True),
-    template: Path = typer.Argument(..., exists=True),
-    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
-    config: Optional[Path] = typer.Option(None, "-c", "--config"),
-    notify: Optional[str] = typer.Option(None, "--notify"),
-    dry_run: bool = typer.Option(False, "--dry-run"),
-    force: bool = typer.Option(False, "--force"),
-    skip_validate: bool = typer.Option(False, "--skip-validate"),
-    json_out: bool = typer.Option(False, "--json"),
-):
+    spec: Path = typer.Argument(
+        ..., exists=True, help="Path to the DOE specification YAML"
+    ),
+    template: Path = typer.Argument(
+        ..., exists=True, help="Path to the project-payload template"
+    ),
+    output: Path = typer.Option(
+        "project_payloads.yaml",
+        "--output",
+        "-o",
+        help="Destination YAML file for generated payloads",
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "-c", "--config", help="Override configuration for this run"
+    ),
+    notify: Optional[str] = typer.Option(
+        None, "--notify", help="Webhook URL for completion notification"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Simulate the run without writing files"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite output even if it exists"
+    ),
+    skip_validate: bool = typer.Option(
+        False, "--skip-validate", help="Skip validating the DOE spec"
+    ),
+    json_out: bool = typer.Option(
+        False, "--json", help="Print the result dictionary as JSON"
+    ),
+) -> None:
+    """Generate a project‑payload bundle from a DOE spec locally."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -66,15 +88,35 @@ def run_gen(  # noqa: PLR0913
 @remote_doe_app.command("gen")
 def submit_gen(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(..., exists=True),
-    template: Path = typer.Argument(..., exists=True),
-    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
-    config: Optional[Path] = typer.Option(None, "-c", "--config"),
-    notify: Optional[str] = typer.Option(None, "--notify"),
-    dry_run: bool = typer.Option(False, "--dry-run"),
-    force: bool = typer.Option(False, "--force"),
-    skip_validate: bool = typer.Option(False, "--skip-validate"),
-):
+    spec: Path = typer.Argument(
+        ..., exists=True, help="Path to the DOE specification YAML"
+    ),
+    template: Path = typer.Argument(
+        ..., exists=True, help="Path to the project-payload template"
+    ),
+    output: Path = typer.Option(
+        "project_payloads.yaml",
+        "--output",
+        "-o",
+        help="Destination YAML file for generated payloads",
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "-c", "--config", help="Override configuration for this run"
+    ),
+    notify: Optional[str] = typer.Option(
+        None, "--notify", help="Webhook URL for completion notification"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Simulate the run without writing files"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite output even if it exists"
+    ),
+    skip_validate: bool = typer.Option(
+        False, "--skip-validate", help="Skip validating the DOE spec"
+    ),
+) -> None:
+    """Submit a DOE generation task to a remote worker."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -111,16 +153,38 @@ def submit_gen(  # noqa: PLR0913
 @local_doe_app.command("process")
 def run_process(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(..., exists=True),
-    template: Path = typer.Argument(..., exists=True),
-    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
-    config: Optional[Path] = typer.Option(None, "-c", "--config"),
-    notify: Optional[str] = typer.Option(None, "--notify"),
-    dry_run: bool = typer.Option(False, "--dry-run"),
-    force: bool = typer.Option(False, "--force"),
-    skip_validate: bool = typer.Option(False, "--skip-validate"),
-    json_out: bool = typer.Option(False, "--json"),
-):
+    spec: Path = typer.Argument(
+        ..., exists=True, help="Path to the DOE specification YAML"
+    ),
+    template: Path = typer.Argument(
+        ..., exists=True, help="Path to the project-payload template"
+    ),
+    output: Path = typer.Option(
+        "project_payloads.yaml",
+        "--output",
+        "-o",
+        help="Destination YAML file for generated payloads",
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "-c", "--config", help="Override configuration for this run"
+    ),
+    notify: Optional[str] = typer.Option(
+        None, "--notify", help="Webhook URL for completion notification"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Simulate the run without writing files"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite output even if it exists"
+    ),
+    skip_validate: bool = typer.Option(
+        False, "--skip-validate", help="Skip validating the DOE spec"
+    ),
+    json_out: bool = typer.Option(
+        False, "--json", help="Print the result dictionary as JSON"
+    ),
+) -> None:
+    """Process a DOE specification locally."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -142,15 +206,35 @@ def run_process(  # noqa: PLR0913
 @remote_doe_app.command("process")
 def submit_process(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(..., exists=True),
-    template: Path = typer.Argument(..., exists=True),
-    output: Path = typer.Option("project_payloads.yaml", "--output", "-o"),
-    config: Optional[Path] = typer.Option(None, "-c", "--config"),
-    notify: Optional[str] = typer.Option(None, "--notify"),
-    dry_run: bool = typer.Option(False, "--dry-run"),
-    force: bool = typer.Option(False, "--force"),
-    skip_validate: bool = typer.Option(False, "--skip-validate"),
-):
+    spec: Path = typer.Argument(
+        ..., exists=True, help="Path to the DOE specification YAML"
+    ),
+    template: Path = typer.Argument(
+        ..., exists=True, help="Path to the project-payload template"
+    ),
+    output: Path = typer.Option(
+        "project_payloads.yaml",
+        "--output",
+        "-o",
+        help="Destination YAML file for generated payloads",
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "-c", "--config", help="Override configuration for this run"
+    ),
+    notify: Optional[str] = typer.Option(
+        None, "--notify", help="Webhook URL for completion notification"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Simulate the run without writing files"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite output even if it exists"
+    ),
+    skip_validate: bool = typer.Option(
+        False, "--skip-validate", help="Skip validating the DOE spec"
+    ),
+) -> None:
+    """Enqueue DOE processing on a remote worker."""
     args = {
         "spec": str(spec),
         "template": str(template),

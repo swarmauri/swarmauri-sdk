@@ -8,6 +8,7 @@ from .db import local_db_app
 from .init import local_init_app, remote_init_app
 from .process import local_process_app, remote_process_app
 from .mutate import local_mutate_app, remote_mutate_app
+from .evolve import local_evolve_app, remote_evolve_app
 from .sort import local_sort_app, remote_sort_app
 from .task import remote_task_app
 from .templates import local_template_sets_app, remote_template_sets_app
@@ -20,6 +21,8 @@ __all__ = [
     "remote_eval_app",
     "local_mutate_app",
     "remote_mutate_app",
+    "local_evolve_app",
+    "remote_evolve_app",
     "local_extras_app",
     "remote_extras_app",
     "local_fetch_app",
