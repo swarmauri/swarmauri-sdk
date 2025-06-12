@@ -26,7 +26,7 @@ class TaskDetailScreen(ModalScreen[None]):
 
         with VerticalScroll(id="task_detail_vertical_scroll"):
             yield Label("Task Details", classes="title")  # Use a class for styling
-            yield Static(task_content, id="task_data_display")
+            yield Static(task_content, id="task_data_display", markup=False)
             yield Center(
                 Button("Close", variant="primary", id="close_task_detail_button")
             )
