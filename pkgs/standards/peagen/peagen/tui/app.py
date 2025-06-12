@@ -143,8 +143,7 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
-        ("y", "copy_id", "Copy"),
-
+        ("ctrl+c", "copy_id", "Copy"),
         ("s", "cycle_sort", "Sort"),
         ("f", "toggle_filter_input", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
@@ -343,7 +342,9 @@ class QueueDashboardApp(App):
         if hasattr(self.tasks_table, "get_cell_at"):
             value = self.tasks_table.get_cell_at(row, col)
         else:
-            value = self.tasks_table.get_cell(row, col)  # pragma: no cover - old textual
+            value = self.tasks_table.get_cell(
+                row, col
+            )  # pragma: no cover - old textual
 
         col_label = self.tasks_table.columns[col].label
         if col_label == "Pool":
@@ -413,14 +414,11 @@ class QueueDashboardApp(App):
                 if t.get("payload", {}).get("action") == self.filter_action
             ]
         if self.filter_label:
-            tasks = [
-                t
-                for t in tasks
-                if self.filter_label in t.get("labels", [])
-            ]
+            tasks = [t for t in tasks if self.filter_label in t.get("labels", [])]
 
         # sort
         if self.sort_key:
+
             def _key(task):
                 if self.sort_key == "action":
                     return task.get("payload", {}).get("action")
@@ -452,8 +450,12 @@ class QueueDashboardApp(App):
             self.queue_len = sum(
                 1 for t in tasks if getattr(t, "status", t.get("status")) == "running"
             )
-        self.done_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "done")
-        self.fail_len = sum(1 for t in tasks if getattr(t, "status", t.get("status")) == "failed")
+        self.done_len = sum(
+            1 for t in tasks if getattr(t, "status", t.get("status")) == "done"
+        )
+        self.fail_len = sum(
+            1 for t in tasks if getattr(t, "status", t.get("status")) == "failed"
+        )
         self.worker_len = len(workers)
         self.workers_view.update_workers(workers)
 
@@ -577,7 +579,9 @@ class QueueDashboardApp(App):
             editor = TextArea(id=f"editor_{len(self.file_tabs.panes)}")
             editor.load_text(text)
             editor.language = "python"
-            await self.file_tabs.add_pane(TabPane(Path(file_path).name, editor, id=pane_id))
+            await self.file_tabs.add_pane(
+                TabPane(Path(file_path).name, editor, id=pane_id)
+            )
             self.file_tabs.display = True
         else:
             editor = self.file_tabs.query_one(f"#{pane_id} TextArea")
