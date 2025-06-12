@@ -1,8 +1,0 @@
-#task_detail_table {
-    height: auto;
-    width: 100%;
-}
-
-#task_detail_table DataTableCell {
-    white-space: pre-wrap;
-}

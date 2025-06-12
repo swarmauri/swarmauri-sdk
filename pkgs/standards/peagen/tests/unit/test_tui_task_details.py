@@ -1,15 +1,12 @@
 import pytest
 from textual.coordinate import Coordinate
-from textual.app import App
-from textual.widgets import DataTable
-from peagen.tui.components.task_detail_screen import TaskDetailScreen
 
 from peagen.tui.app import QueueDashboardApp
 
 
 class DummyScreen:
-    def __init__(self, task_data=None, task=None):
-        self.task = task_data if task_data is not None else task
+    def __init__(self, task):
+        self.task = task
 
 
 class DummyTable:
@@ -84,7 +81,6 @@ async def test_click_error_row_opens_detail(monkeypatch):
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "select_id,attr,value",
     [
@@ -95,7 +91,7 @@ async def test_click_error_row_opens_detail(monkeypatch):
         ("filter_label", "filter_label", "foo"),
     ],
 )
-async def test_on_select_changed_updates_filters(select_id, attr, value):
+def test_on_select_changed_updates_filters(select_id, attr, value):
     app = QueueDashboardApp()
 
     class DummySelect:
@@ -105,26 +101,8 @@ async def test_on_select_changed_updates_filters(select_id, attr, value):
     class DummyChanged:
         def __init__(self, sid, val):
             self.select = DummySelect(sid)
-            self.control = self.select
             self.value = val
 
-        def stop(self):
-            pass
-
     event = DummyChanged(select_id, value)
-    await app.on_select_changed(event)
+    app.on_select_changed(event)
     assert getattr(app, attr) == value
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_task_detail_compose_rows():
-    task = {"a": 1, "b": 2, "c": 3}
-
-    class TestApp(App):
-        def compose(self):
-            yield TaskDetailScreen(task_data=task)
-
-    async with TestApp().run_test() as pilot:
-        screen = pilot.app.screen_stack[-1]
-        table = screen.query_one(DataTable)
-        assert len(table.rows) == len(task)
