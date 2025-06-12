@@ -59,6 +59,11 @@ class TaskRun(Base):
                 if task.result and isinstance(task.result, dict)
                 else None
             ),
+            started_at=(
+                dt.datetime.utcfromtimestamp(task.started_at)
+                if task.started_at
+                else dt.datetime.utcnow()
+            ),
             finished_at=dt.datetime.utcnow()
             if task.status in {Status.success, Status.failed, Status.cancelled}
             else None,
@@ -95,5 +100,10 @@ class TaskRun(Base):
             "artifact_uri": self.artifact_uri,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
+            "duration": (
+                int((self.finished_at - self.started_at).total_seconds())
+                if self.started_at and self.finished_at
+                else None
+            ),
         }
         return {k: v for k, v in data.items() if k not in exclude}
