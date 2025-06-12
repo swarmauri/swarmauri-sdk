@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.screen import Screen
+from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
 
-class ReconnectScreen(Screen):
+class ReconnectScreen(ModalScreen[None]):
     """Display a connection error with retry logic."""
 
     def __init__(self, message: str, on_retry) -> None:
-        super().__init__(modal=True)
+        super().__init__()
         self.message = message
         self.on_retry = on_retry
         self._counter = 30
