@@ -30,11 +30,11 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
         calls["load"] = payload
         return [{"NAME": project_name}] if project_name else []
 
-    def fake_single(project, cfg, start_idx, start_file, transitive):
+    def fake_single(project, cfg, start_idx, start_file, transitive, *a, **kw):
         calls["single"] = project
         return ["done"], 0
 
-    def fake_all(payload, cfg, transitive):
+    def fake_all(payload, cfg, transitive, *a, **kw):
         calls["all"] = payload
         return {"all": True}
 
