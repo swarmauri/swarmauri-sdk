@@ -203,10 +203,14 @@ class QueueDashboardApp(App):
     def refresh_data(self) -> None:
         tasks = list(self.client.tasks.values()) or self.backend.tasks
         if self.client.workers:
-            workers = {
-                wid: datetime.utcfromtimestamp(data.get("last_seen", datetime.utcnow().timestamp()))
-                for wid, data in self.client.workers.items()
-            }
+            workers = {}
+            for wid, data in self.client.workers.items():
+                ts_raw = data.get("last_seen", datetime.utcnow().timestamp())
+                try:
+                    ts = float(ts_raw)
+                except (TypeError, ValueError):
+                    ts = datetime.utcnow().timestamp()
+                workers[wid] = datetime.utcfromtimestamp(ts)
         else:
             workers = self.backend.workers
 
