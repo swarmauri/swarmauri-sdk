@@ -25,6 +25,23 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     import peagen.handlers.fanout as fanout
     monkeypatch.setattr(fanout, "httpx", type("X", (), {"AsyncClient": DummyClient}))
 
+    class DummyPM:
+        def __init__(self, cfg):
+            pass
+
+        def get(self, name):
+            return DummyAdapter()
+
+    class DummyAdapter:
+        root_uri = "file://dummy/"
+
+        def upload(self, key, fh):
+            return f"{self.root_uri}{key}"
+
+    monkeypatch.setattr(handler, "PluginManager", DummyPM)
+    monkeypatch.setattr(handler, "FileStorageAdapter", DummyAdapter)
+    monkeypatch.setattr(handler, "resolve_cfg", lambda toml_path=".peagen.toml": {})
+
     def fake_generate_payload(**kwargs):
         p1 = tmp_path / "out_0.yaml"
         p2 = tmp_path / "out_1.yaml"
@@ -41,3 +58,5 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     assert sent[-1]["method"] == "Work.finished"
     assert sent[-1]["params"]["status"] == "waiting"
     assert result["children"] and len(result["children"]) == 2
+    assert result["outputs"][0].startswith("file://dummy/")
+    assert sent[0]["params"]["payload"]["args"]["projects_payload"].startswith("file://dummy/")
