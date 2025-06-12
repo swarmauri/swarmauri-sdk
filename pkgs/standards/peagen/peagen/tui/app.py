@@ -33,6 +33,7 @@ from peagen.tui.components import (
     FileTree,
     TemplatesView,
     WorkersView,
+    ReconnectScreen,
 )
 
 import httpx
@@ -46,9 +47,23 @@ class RemoteBackend:
         self.http = httpx.AsyncClient(timeout=10.0)
         self.tasks: List[dict] = []
         self.workers: Dict[str, dict] = {}
+        self.last_error: str | None = None
 
-    async def refresh(self) -> None:
-        await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
+    async def refresh(self) -> bool:
+        """Update cached tasks and workers.
+
+        Returns:
+            bool: ``True`` if the refresh succeeded, ``False`` otherwise.
+        """
+
+        try:
+            await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
+        except Exception as exc:  # noqa: BLE001
+            self.last_error = str(exc)
+            return False
+        else:
+            self.last_error = None
+            return True
 
     async def fetch_tasks(self) -> None:
         payload = {
@@ -137,6 +152,7 @@ class QueueDashboardApp(App):
         self.filter_action = filter_action
         self.filter_label = filter_label
         self.collapsed: set[str] = set()
+        self._reconnect_screen: ReconnectScreen | None = None
 
     # reactive counters for quick overview
     queue_len = reactive(0)
@@ -147,8 +163,19 @@ class QueueDashboardApp(App):
     # ── life-cycle ──────────────────────────────────────────────────────────
     async def on_mount(self):
         self.run_worker(self.client.listen(), exclusive=True)
-        self.set_interval(1.0, self.backend.refresh)
+        self.set_interval(1.0, self._refresh_backend)
         self.set_interval(0.3, self.refresh_data)
+
+    async def _refresh_backend(self) -> None:
+        """Fetch latest data or prompt reconnect on failure."""
+
+        if self._reconnect_screen:
+            return
+        ok = await self.backend.refresh()
+        if not ok and not self._reconnect_screen:
+            await self._show_reconnect(self.backend.last_error or "Connection failed")
+        elif ok and self._reconnect_screen:
+            await self._dismiss_reconnect()
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         """Catch clicks on [link=file://…] and open them in the editor tab
@@ -392,6 +419,26 @@ class QueueDashboardApp(App):
             editor.load_text(text)
         self.file_tabs.active = pane_id
         self.toast(f"Editing {file_path}", style="success", duration=1.5)
+
+    # ------------------------------------------------------------------
+    async def _show_reconnect(self, message: str) -> None:
+        if self._reconnect_screen:
+            return
+        self._reconnect_screen = ReconnectScreen(message, self.retry_connection)
+        await self.push_screen(self._reconnect_screen)
+
+    async def _dismiss_reconnect(self) -> None:
+        if self._reconnect_screen:
+            await self._reconnect_screen.dismiss()
+            self._reconnect_screen = None
+
+    async def retry_connection(self) -> None:
+        self.run_worker(self.client.listen(), exclusive=True)
+        ok = await self.backend.refresh()
+        if ok:
+            await self._dismiss_reconnect()
+        else:
+            await self._show_reconnect(self.backend.last_error or "Connection failed")
 
 
 # ────────────────────────────────────────────────────────────────────────────
