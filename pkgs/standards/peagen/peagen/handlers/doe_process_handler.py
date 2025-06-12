@@ -2,16 +2,14 @@
 """Handler for DOE workflow that spawns process tasks."""
 from __future__ import annotations
 
-import os
-import uuid
 from pathlib import Path
 from typing import Any, Dict, List
 
-import httpx
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.models import Task, Status
+from peagen.models import Task
+from peagen.handlers.fanout import fanout
 
 
 async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
@@ -33,52 +31,12 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     doc = yaml.safe_load(Path(result["output"]).read_text())
     projects: List[Dict[str, Any]] = doc.get("PROJECTS", [])
 
-    gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-    pool = task_or_dict.get("pool", "default")
-
-    child_ids: List[str] = []
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        for proj in projects:
-            child = Task(
-                    id=str(uuid.uuid4()),
-                    pool=pool,
-                    action="process",
-                    status=Status.waiting,
-                    payload={
-                        "action": "process",
-                        "args": {
-                            "projects_payload": result["output"],
-                            "project_name": proj.get("NAME"),
-                        },
-                    },
-            )
-            req = {
-                "jsonrpc": "2.0",
-                "method": "Task.submit",
-                "params": {
-                    "taskId": child.id,
-                    "pool": child.pool,
-                    "payload": child.payload,
-                },
-            }
-            await client.post(gateway, json=req)
-            child_ids.append(child.id)
-
-        task_id = task_or_dict["id"] if isinstance(task_or_dict, dict) else task_or_dict.id
-        patch = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": "Task.patch",
-            "params": {"taskId": task_id, "changes": {"result": {"children": child_ids}}},
+    child_args = [
+        {
+            "projects_payload": result["output"],
+            "project_name": proj.get("NAME"),
         }
-        await client.post(gateway, json=patch)
+        for proj in projects
+    ]
 
-        finish = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": "Work.finished",
-            "params": {"taskId": task_id, "status": "waiting", "result": result},
-        }
-        await client.post(gateway, json=finish)
-
-    return {"children": child_ids, **result}
+    return await fanout(task_or_dict, "process", child_args, result)
