@@ -11,16 +11,19 @@ from typing import Any, Dict, Optional
 # Config – group key → (entry-point group string, expected base class)
 # ---------------------------------------------------------------------------
 GROUPS = {
-    "consumers": ("peagen.consumers", object),
-    "evaluator_pools": ("peagen.evaluator_pools", object),
-    "evaluators": ("peagen.evaluators", object),
-    "mutators": ("peagen.mutators", object),
-    "programs": ("peagen.programs", object),
-    "publishers": ("peagen.publishers", object),
-    "queues": ("peagen.queues", object),
-    "result_backends": ("peagen.result_backends", object),
-    "storage_adapters": ("peagen.storage_adapters", object),
-    "selectors": ("peagen.selectors", object),
+    # entry point groups
+    # built-in implementations live under ``peagen.plugins``
+    "consumers": ("peagen.plugins.consumers", object),
+    "evaluator_pools": ("peagen.plugins.evaluator_pools", object),
+    "evaluators": ("peagen.plugins.evaluators", object),
+    "mutators": ("peagen.plugins.mutators", object),
+    "programs": ("peagen.plugins.programs", object),
+    "publishers": ("peagen.plugins.publishers", object),
+    "queues": ("peagen.plugins.queues", object),
+    "result_backends": ("peagen.plugins.result_backends", object),
+    "storage_adapters": ("peagen.plugins.storage_adapters", object),
+    "selectors": ("peagen.plugins.selectors", object),
+    # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
 }
 

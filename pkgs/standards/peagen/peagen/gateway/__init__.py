@@ -408,6 +408,28 @@ async def worker_heartbeat(
     return {"ok": True}
 
 
+@rpc.method("Worker.list")
+async def worker_list(pool: str | None = None) -> list[dict]:
+    """Return active workers, optionally filtered by *pool*."""
+
+    keys = await queue.keys("worker:*")
+    workers = []
+    now = int(asyncio.get_event_loop().time())
+    for key in keys:
+        w = await queue.hgetall(key)
+        if not w:
+            continue
+        if now - int(w.get("last_seen", 0)) > WORKER_TTL:
+            continue
+        if pool and w.get("pool") != pool:
+            continue
+        workers.append({
+            "id": key.split(":", 1)[1],
+            **{k: v for k, v in w.items()},
+        })
+    return workers
+
+
 @rpc.method("Work.finished")
 async def work_finished(taskId: str, status: str, result: dict | None = None):
     t = await _load_task(taskId)

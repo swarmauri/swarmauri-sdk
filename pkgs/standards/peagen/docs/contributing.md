@@ -16,12 +16,12 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
 - Implement a class exposing `upload()` and `download()`.
   The `upload()` method must return the artifact URI so Peagen can store
   references in manifests and task payloads.
-- Register it via the **`peagen.storage_adapters`** entry point group.
+- Register it via the **`peagen.plugins.storage_adapters`** entry point group.
 
 ## Publishers
 
 - Publishers broadcast events produced by the CLI.
-- Create a class with a `publish()` method and add it under the **`peagen.publishers`** group.
+- Create a class with a `publish()` method and add it under the **`peagen.plugins.publishers`** group.
 
 ## Evaluation Pools
 
