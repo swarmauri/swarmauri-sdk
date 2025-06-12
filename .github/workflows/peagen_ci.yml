@@ -36,6 +36,7 @@ jobs:
       id: deploy
       run: |
         # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull   # optional
+        sudo docker system prune -f
         sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
         sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
 
