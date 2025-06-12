@@ -1,6 +1,9 @@
 from datetime import datetime
 
-import psutil
+try:  # psutil may not be installed in minimal test env
+    import psutil
+except Exception:  # pragma: no cover - optional dependency
+    psutil = None
 from textual.reactive import reactive
 from textual.widgets import Footer
 
@@ -15,9 +18,13 @@ class DashboardFooter(Footer):
 
     def update_metrics(self) -> None:
         self.clock = datetime.now().strftime("%H:%M:%S")
-        self.metrics = (
-            f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
-        )
+        if psutil:
+            self.metrics = (
+                f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
+            )
+        else:  # pragma: no cover - missing psutil
+            self.metrics = "CPU: n/a | MEM: n/a"
 
     def render(self) -> str:
         return f"{self.clock} | {self.metrics} | {self.hint}"
+
