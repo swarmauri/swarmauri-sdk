@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.containers import Center, VerticalScroll
+from textual.containers import VerticalScroll
 from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Tree
@@ -24,6 +24,7 @@ class TaskDetailScreen(ModalScreen[None]):
         with VerticalScroll(id="task_detail_vertical_scroll"):
             yield Label("Task Details", classes="title")
             yield Tree("task", id="task_detail_tree")
+        yield Button("Close", id="close_task_detail_button", variant="primary")
 
     def on_mount(self) -> None:
         """Populate the task table when the screen is shown."""
@@ -43,10 +44,15 @@ class TaskDetailScreen(ModalScreen[None]):
             for key, value in data.items():
                 if isinstance(value, (dict, list)):
                     child = node.add(str(key), expand=True)
+                    # recurse into dict or list
                     self._populate_tree(child, value)
                 else:
                     node.add_leaf(f"{key}: {value}")
         elif isinstance(data, list):
+            # handle empty list
+            if not data:
+                node.add_leaf("[]")
+                return
             for idx, item in enumerate(data):
                 if isinstance(item, (dict, list)):
                     child = node.add(f"[{idx}]", expand=True)
