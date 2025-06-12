@@ -6,7 +6,8 @@ from typing import Dict, Any
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from peagen.models import Status, TaskRun
+import sqlalchemy as sa
+from peagen.models import Status, TaskRun, Manifest, TaskRevision
 
 log = Logger(name="upsert")
 
@@ -43,6 +44,56 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     )
     result = await session.execute(stmt)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
+
+
+async def upsert_manifest(session: AsyncSession, design_hash: str, plan_hash: str) -> Manifest:
+    """Insert or retrieve a Manifest row by its hash pair."""
+    stmt = (
+        pg_insert(Manifest)
+        .values(design_hash=design_hash, plan_hash=plan_hash)
+        .on_conflict_do_nothing()
+        .returning(Manifest)
+    )
+    result = await session.execute(stmt)
+    row = result.fetchone()
+    if row:
+        return row[0]
+    stmt = sa.select(Manifest).where(
+        Manifest.design_hash == design_hash,
+        Manifest.plan_hash == plan_hash,
+    )
+    row = (await session.execute(stmt)).scalar_one()
+    return row
+
+
+async def insert_revision(
+    session: AsyncSession,
+    task_id: str,
+    rev_hash: str,
+    payload_hash: str,
+    payload_b64: str,
+    parent_hash: str | None,
+) -> None:
+    """Insert a new TaskRevision row."""
+    stmt = pg_insert(TaskRevision).values(
+        task_id=task_id,
+        rev_hash=rev_hash,
+        parent_hash=parent_hash,
+        payload_hash=payload_hash,
+        payload_b64=payload_b64,
+    )
+    await session.execute(stmt)
+
+
+async def latest_revision(session: AsyncSession, task_id: str) -> TaskRevision | None:
+    stmt = (
+        sa.select(TaskRevision)
+        .where(TaskRevision.task_id == task_id)
+        .order_by(TaskRevision.ts_created.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def ensure_status_enum(engine) -> None:

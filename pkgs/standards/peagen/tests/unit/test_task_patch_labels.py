@@ -13,6 +13,29 @@ async def test_task_patch_updates_labels(monkeypatch):
         async def store(self, task_run):
             pass
 
+    class DummySession:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def execute(self, *args, **kwargs):
+            class _R:
+                def fetchone(self_inner):
+                    return None
+
+                def scalar_one(self_inner):
+                    return None
+
+                def scalar_one_or_none(self_inner):
+                    return None
+
+            return _R()
+
+        async def commit(self):
+            pass
+
     class StubPM:
         def __init__(self, cfg):
             pass
@@ -33,6 +56,10 @@ async def test_task_patch_updates_labels(monkeypatch):
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
+    monkeypatch.setattr(gw, "Session", lambda: DummySession())
+    monkeypatch.setattr(gw, "insert_revision", lambda *a, **kw: None)
+    monkeypatch.setattr(gw, "latest_revision", lambda *a, **kw: None)
+    monkeypatch.setattr(gw, "upsert_manifest", lambda *a, **kw: None)
 
     async def noop(*_args, **_kwargs):
         return None
@@ -47,6 +74,6 @@ async def test_task_patch_updates_labels(monkeypatch):
     result = await task_submit(pool="p", payload={}, taskId=None)
     tid = result["taskId"]
 
-    await task_patch(taskId=tid, changes={"labels": ["patched"]})
+    await task_patch(taskId=tid, changes={"labels": ["patched"], "parent_rev_hash": None})
     patched = await task_get(tid)
     assert patched["labels"] == ["patched"]

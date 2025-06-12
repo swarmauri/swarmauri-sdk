@@ -15,5 +15,13 @@ except PackageNotFoundError:
 
 
 from .plugin_manager import PluginManager, resolve_plugin_spec
+from .errors import PeagenError, PeagenHashMismatchError
 
-__all__ = ["__package_name__", "__version__", "PluginManager", "resolve_plugin_spec"]
+__all__ = [
+    "__package_name__",
+    "__version__",
+    "PluginManager",
+    "resolve_plugin_spec",
+    "PeagenError",
+    "PeagenHashMismatchError",
+]

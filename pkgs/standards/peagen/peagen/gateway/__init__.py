@@ -15,6 +15,8 @@ from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
 import json
+import hashlib
+import base64
 import httpx
 import time
 from json.decoder import JSONDecodeError
@@ -28,13 +30,19 @@ from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.db import engine
+from peagen.gateway.db import engine, Session
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import ensure_status_enum
+from peagen.gateway.db_helpers import (
+    ensure_status_enum,
+    upsert_manifest,
+    insert_revision,
+    latest_revision,
+)
 import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
+from peagen.errors import PeagenHashMismatchError
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -278,6 +286,25 @@ async def task_submit(
         config_toml=config_toml,
     )
 
+    payload_raw = json.dumps(task.payload, separators=(",", ":"))
+    payload_hash = hashlib.sha256(payload_raw.encode()).hexdigest()
+    rev_hash = hashlib.sha256(payload_hash.encode()).hexdigest()
+
+    if task.payload.get("design_hash") and task.payload.get("plan_hash"):
+        spec_dh = task.payload["design_hash"]
+        spec_ph = task.payload["plan_hash"]
+        async with Session() as sess:
+            await upsert_manifest(sess, spec_dh, spec_ph)
+            await insert_revision(
+                sess,
+                task.id,
+                rev_hash,
+                payload_hash,
+                base64.b64encode(payload_raw.encode()).decode(),
+                None,
+            )
+            await sess.commit()
+
     # 1) put on the queue for the scheduler
     await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
     await _publish_queue_length(pool)
@@ -367,16 +394,38 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     if not task:
         raise ValueError("task not found")
 
-    for field, value in changes.items():
-        if field not in Task.model_fields:
-            continue
-        if field == "status":
-            value = Status(value)
-        setattr(task, field, value)
+    parent = changes.pop("parent_rev_hash", None)
+    async with Session() as sess:
+        latest = await latest_revision(sess, taskId)
+        if (latest and parent != latest.rev_hash) or (not latest and parent):
+            raise PeagenHashMismatchError("parent hash mismatch")
 
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
+        for field, value in changes.items():
+            if field not in Task.model_fields:
+                continue
+            if field == "status":
+                value = Status(value)
+            setattr(task, field, value)
+
+        await _save_task(task)
+        await _persist(task)
+        await _publish_task(task)
+
+        payload_raw = json.dumps(task.payload, separators=(",", ":"))
+        payload_hash = hashlib.sha256(payload_raw.encode()).hexdigest()
+        prev_hash = latest.rev_hash if latest else ""
+        rev_hash = hashlib.sha256((prev_hash + payload_hash).encode()).hexdigest()
+
+        await insert_revision(
+            sess,
+            task.id,
+            rev_hash,
+            payload_hash,
+            base64.b64encode(payload_raw.encode()).decode(),
+            prev_hash or None,
+        )
+        await sess.commit()
+
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
     return task.model_dump()
 
