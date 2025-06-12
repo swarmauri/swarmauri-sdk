@@ -168,7 +168,7 @@ class QueueDashboardApp(App):
         self.file_tree = FileTree("tree", id="file_tree")
         self.templates_tree = TemplatesView(id="templates_tree")
         self.tasks_table = DataTable(id="tasks_table")
-        self.tasks_table.add_columns("ID", "Pool", "Status", "Action")
+        self.tasks_table.add_columns("ID", "Pool", "Status", "Action", "Labels")
 
         self.err_table = DataTable(id="err_table")
         self.err_table.add_columns("Task", "Log")
@@ -253,11 +253,13 @@ class QueueDashboardApp(App):
             action = (
                 getattr(t, "payload", t.get("payload", {})).get("action", "")
             )
+            labels = ",".join(getattr(t, "labels", t.get("labels", [])))
             self.tasks_table.add_row(
                 str(tid),
                 pool,
                 status,
                 action,
+                labels,
                 key=str(tid),
             )
 
