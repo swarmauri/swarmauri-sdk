@@ -114,6 +114,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "textual>=3.3.0",
 ]
 
 [project.entry-points."peagen.template_sets"]
