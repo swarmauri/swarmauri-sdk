@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 import uuid
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from peagen.core.doe_core import generate_payload
+from peagen.core import lock_plan, TaskChainer, chain_hash
 from peagen.models import Task, Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
@@ -21,11 +22,14 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
+    spec_path = Path(args["spec"]).expanduser()
+    template_path = Path(args["template"]).expanduser()
     cfg_path = Path(args["config"]).expanduser() if args.get("config") else None
 
+
     result = generate_payload(
-        spec_path=Path(args["spec"]).expanduser(),
-        template_path=Path(args["template"]).expanduser(),
+        spec_path=spec_path,
+        template_path=template_path,
         output_path=Path(args["output"]).expanduser(),
         cfg_path=cfg_path,
         notify_uri=args.get("notify"),
@@ -34,52 +38,37 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         skip_validate=args.get("skip_validate", False),
     )
 
-    cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
-    pm = PluginManager(cfg)
-    try:
-        storage_adapter = pm.get("storage_adapters")
-    except Exception:
-        file_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("file", {})
-        )
-        storage_adapter = FileStorageAdapter(**file_cfg) if file_cfg else None
+    lock_hash = chain_hash(lock_plan(template_path).encode(), lock_plan(spec_path))
+    chainer = TaskChainer(lock_hash)
+    if isinstance(task_or_dict, Task):
+        task_or_dict.lock_hash = lock_hash
+        task_or_dict.chain_hash = lock_hash
 
-    output_paths = result.get("outputs", [])
-    projects: List[Tuple[str, Dict[str, Any]]] = []
-    uploaded: List[str] = []
-    for p in output_paths:
-        doc = yaml.safe_load(Path(p).read_text())
-        proj = (doc.get("PROJECTS") or [None])[0]
-        uri = str(p)
-        if storage_adapter and not result.get("dry_run"):
-            key = f"{Path(p).name}"
-            with open(p, "rb") as fh:
-                uri = storage_adapter.upload(key, fh)  # type: ignore[attr-defined]
-        uploaded.append(uri)
-        if proj is not None:
-            projects.append((uri, proj))
-    result["outputs"] = uploaded
+    artifact_data = Path(result["output"]).read_bytes()
+    chainer.add_artifact(artifact_data)
+    doc = yaml.safe_load(artifact_data)
+    projects: List[Dict[str, Any]] = doc.get("PROJECTS", [])
 
     pool = task_or_dict.get("pool", "default")
     children: List[Task] = []
-    for path, proj in projects:
-        children.append(
-            Task(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                action="process",
-                status=Status.waiting,
-                payload={
-                    "action": "process",
-                    "args": {
-                        "projects_payload": path,
-                        "project_name": proj.get("NAME"),
-                    },
+    for proj in projects:
+        child = Task(  # type: ignore[call-arg]
+            id=str(uuid.uuid4()),
+            pool=pool,
+            action="process",
+            status=Status.waiting,
+            payload={
+                "action": "process",
+                "args": {
+                    "projects_payload": result["output"],
+                    "project_name": proj.get("NAME"),
+
                 },
-            )
+            },
+            lock_hash=lock_hash,
         )
+        child.chain_hash = chainer.add_task(child.payload)
+        children.append(child)
 
     child_ids = await fan_out(task_or_dict, children, result=result, final_status=Status.waiting)
-    return {"children": child_ids, **result}
+    return {"children": child_ids, "lock_hash": lock_hash, "chain_hash": chainer.current_hash, **result}

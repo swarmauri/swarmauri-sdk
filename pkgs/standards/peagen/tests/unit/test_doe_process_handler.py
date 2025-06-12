@@ -50,6 +50,7 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
         return {"outputs": [str(p1), str(p2)]}
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
+    monkeypatch.setattr(handler, "lock_plan", lambda p: "LOCK")
 
     task = {"id": "T0", "pool": "default", "payload": {"args": {"spec": "s", "template": "t", "output": str(tmp_path / "out.yaml")}}}
     result = await handler.doe_process_handler(task)
@@ -58,5 +59,6 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     assert sent[-1]["method"] == "Work.finished"
     assert sent[-1]["params"]["status"] == "waiting"
     assert result["children"] and len(result["children"]) == 2
-    assert result["outputs"][0].startswith("file://dummy/")
-    assert sent[0]["params"]["payload"]["args"]["projects_payload"].startswith("file://dummy/")
+    assert result["lock_hash"]
+    assert result["chain_hash"]
+
