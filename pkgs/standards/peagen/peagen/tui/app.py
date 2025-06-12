@@ -87,6 +87,25 @@ def _format_ts(ts: float | str | None) -> str:
         return str(ts)
 
 
+def _truncate_id(task_id: str, length: int = 4) -> str:
+    """Return a shortened representation of *task_id*.
+
+    If the ID is longer than ``2 * length`` characters, the output keeps the
+    first and last ``length`` characters separated by an ellipsis.
+
+    Args:
+        task_id: The full task identifier string.
+        length: Number of characters to show at both ends.
+
+    Returns:
+        The truncated ID for display.
+    """
+
+    if len(task_id) <= length * 2:
+        return task_id
+    return f"{task_id[:length]}...{task_id[-length:]}"
+
+
 class RemoteBackend:
     def __init__(self, gateway_url: str) -> None:
         self.rpc_url = gateway_url.rstrip("/") + "/rpc"
@@ -415,7 +434,7 @@ class QueueDashboardApp(App):
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
                 self.tasks_table.add_row(
-                    f"{prefix}{task_id}",
+                    f"{prefix}{_truncate_id(task_id)}",
                     t_data.get("pool", ""),
                     t_data.get("status", ""),
                     t_data.get("payload", {}).get("action", ""),
@@ -441,7 +460,7 @@ class QueueDashboardApp(App):
                         )
                         if child_task and str(child_id_str) not in seen_task_ids:
                             self.tasks_table.add_row(
-                                f"  {child_id_str}",
+                                f"  {_truncate_id(str(child_id_str))}",
                                 child_task.get("pool", ""),
                                 child_task.get("status", ""),
                                 child_task.get("payload", {}).get("action", ""),
@@ -479,7 +498,7 @@ class QueueDashboardApp(App):
                     result_data = t_data.get("result", {}) or {}
                     err_msg = result_data.get("error", "")
                     self.err_table.add_row(
-                        task_id,
+                        _truncate_id(task_id),
                         t_data.get("pool", ""),
                         t_data.get("status", ""),
                         t_data.get("payload", {}).get("action", ""),
