@@ -7,8 +7,9 @@ from peagen.errors import PatchTargetMissingError
 
 @pytest.mark.unit
 def test_generate_payload_missing_patch(tmp_path: Path):
-    spec = Path("pkgs/standards/peagen/tests/examples/doe_specs/doe_spec.yaml")
-    template = Path("pkgs/standards/peagen/docs/examples/base_example_project.yaml")
+    root = Path(__file__).resolve().parents[2]
+    spec = root / "tests/examples/doe_specs/doe_spec.yaml"
+    template = root / "docs/examples/base_example_project.yaml"
     output = tmp_path / "out.yaml"
     with pytest.raises(PatchTargetMissingError):
         generate_payload(

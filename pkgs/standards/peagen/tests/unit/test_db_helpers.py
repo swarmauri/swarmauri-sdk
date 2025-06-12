@@ -55,7 +55,7 @@ async def test_ensure_status_enum_creates_if_missing():
     conn = DummyConn(exists=False)
     engine = DummyEngine(conn)
     await ensure_status_enum(engine)
-    assert any("CREATE TYPE IF NOT EXISTS status" in q for q in conn.queries)
+    assert any("CREATE TYPE status" in q for q in conn.queries)
 
 
 @pytest.mark.unit
