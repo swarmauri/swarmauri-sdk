@@ -23,11 +23,11 @@ from textual.reactive import reactive
 from textual.widgets import (
     DataTable,
     Header,
+    Input,
     TabbedContent,
     TabPane,
     TextArea,
 )
-
 from peagen.tui.components import (
     DashboardFooter,
     FileTree,
@@ -37,6 +37,20 @@ from peagen.tui.components import (
 )
 
 import httpx
+
+
+def _format_ts(ts: float | str | None) -> str:
+    """Return an ISO timestamp regardless of input type."""
+    if ts is None:
+        return ""
+    try:
+        if isinstance(ts, str):
+            return (
+                datetime.fromisoformat(ts.replace("Z", "+00:00")).isoformat(timespec="seconds")
+            )
+        return datetime.utcfromtimestamp(float(ts)).isoformat(timespec="seconds")
+    except Exception:
+        return ""
 
 
 class RemoteBackend:
@@ -131,7 +145,7 @@ class QueueDashboardApp(App):
         ("c", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
         ("s", "cycle_sort", "Sort"),
-        ("f", "filter_by_cell", "Filter"),
+        ("f", "toggle_filter_input", "Filter"),
         ("escape", "clear_filters", "Clear Filters"),
         ("q", "quit", "Quit"),
     ]
@@ -238,6 +252,8 @@ class QueueDashboardApp(App):
         self.code_editor = TextArea(id="code_editor")
         self.file_tabs = TabbedContent(id="file_tabs")
         self.file_tabs.display = False
+        self.filter_input = Input(placeholder="pool=default status=running", id="filter_input")
+        self.filter_input.display = False
 
         with TabbedContent(initial="pools"):
             yield TabPane("Pools", self.workers_view, id="pools")
@@ -247,6 +263,7 @@ class QueueDashboardApp(App):
             yield TabPane("Templates", self.templates_tree, id="templates")
 
         yield self.file_tabs
+        yield self.filter_input
         yield DashboardFooter()
 
     # ── key binding helpers ────────────────────────────────────────────────
@@ -296,6 +313,8 @@ class QueueDashboardApp(App):
         if row_key is None:
             return
 
+        row_key = str(row_key)
+
         if row_key in self.collapsed:
             self.collapsed.remove(row_key)
         else:
@@ -339,6 +358,14 @@ class QueueDashboardApp(App):
             self.filter_label = None if self.filter_label == lbl else lbl
         self.refresh_data()
 
+    def action_toggle_filter_input(self) -> None:
+        """Show or hide the filter input bar."""
+
+        self.filter_input.display = not self.filter_input.display
+        if self.filter_input.display:
+            self.filter_input.value = ""
+            self.filter_input.focus()
+
     def action_clear_filters(self) -> None:
         self.filter_pool = None
         self.filter_status = None
@@ -346,35 +373,30 @@ class QueueDashboardApp(App):
         self.filter_label = None
         self.refresh_data()
 
-    def action_copy_id(self) -> None:
-        """Copy the selected task's ID to the system clipboard."""
-        if self.query_one(TabbedContent).active != "tasks":
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Apply filters from the input bar."""
+
+        if event.input is not self.filter_input:
             return
-
-        row = self.tasks_table.cursor_row
-        if row is None:
-            return
-
-        if hasattr(self.tasks_table, "get_row_key"):
-            row_key = self.tasks_table.get_row_key(row)
-        else:  # pragma: no cover - old Textual
-            row_obj = (
-                self.tasks_table.get_row_at(row)
-                if hasattr(self.tasks_table, "get_row_at")
-                else None
-            )
-            row_key = getattr(row_obj, "key", None) if row_obj else None
-
-        if not row_key:
-            return
-
-        try:
-            from swarmauri_state_clipboard import ClipboardState
-
-            ClipboardState.clipboard_paste(str(row_key))
-            self.toast(f"Copied {row_key}", style="green")
-        except Exception as exc:  # noqa: BLE001
-            self.toast(f"Copy failed: {exc}", style="red")
+        text = event.value.strip()
+        self.filter_pool = None
+        self.filter_status = None
+        self.filter_action = None
+        self.filter_label = None
+        for token in text.split():
+            if "=" not in token:
+                continue
+            key, value = token.split("=", 1)
+            if key == "pool":
+                self.filter_pool = value
+            elif key == "status":
+                self.filter_status = value
+            elif key == "action":
+                self.filter_action = value
+            elif key == "label":
+                self.filter_label = value
+        self.filter_input.display = False
+        self.refresh_data()
 
     # ── periodic refresh logic ─────────────────────────────────────────────
     def refresh_data(self) -> None:
@@ -464,16 +486,8 @@ class QueueDashboardApp(App):
                 status,
                 action,
                 labels,
-                (
-                    datetime.utcfromtimestamp(started).isoformat(timespec="seconds")
-                    if started
-                    else ""
-                ),
-                (
-                    datetime.utcfromtimestamp(finished).isoformat(timespec="seconds")
-                    if finished
-                    else ""
-                ),
+                _format_ts(started),
+                _format_ts(finished),
                 str(duration) if duration is not None else "",
                 key=str(tid),
             )
@@ -492,20 +506,8 @@ class QueueDashboardApp(App):
                             child.get("status"),
                             child.get("payload", {}).get("action", ""),
                             c_labels,
-                            (
-                                datetime.utcfromtimestamp(c_start).isoformat(
-                                    timespec="seconds"
-                                )
-                                if c_start
-                                else ""
-                            ),
-                            (
-                                datetime.utcfromtimestamp(c_finish).isoformat(
-                                    timespec="seconds"
-                                )
-                                if c_finish
-                                else ""
-                            ),
+                            _format_ts(c_start),
+                            _format_ts(c_finish),
                             str(c_dur) if c_dur is not None else "",
                             key=str(cid),
                         )
@@ -537,18 +539,8 @@ class QueueDashboardApp(App):
                     t.get("status"),
                     t.get("payload", {}).get("action", ""),
                     ",".join(t.get("labels", [])),
-                    (
-                        datetime.utcfromtimestamp(started).isoformat(timespec="seconds")
-                        if started
-                        else ""
-                    ),
-                    (
-                        datetime.utcfromtimestamp(finished).isoformat(
-                            timespec="seconds"
-                        )
-                        if finished
-                        else ""
-                    ),
+                    _format_ts(started),
+                    _format_ts(finished),
                     str(duration) if duration is not None else "",
                     f"{err_msg} {link}".strip(),
                 )
