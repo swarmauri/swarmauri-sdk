@@ -98,6 +98,11 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
     key = WORKER_KEY.format(workerId)  # e.g.  worker:7917b3bd
     await queue.hset(key, mapping=coerced)
     await queue.expire(key, WORKER_TTL)  # <<—— TTL refresh
+    # ensure the worker's pool is tracked so WebSocket clients
+    # receive queue length updates even before a task is submitted
+    pool = data.get("pool")
+    if pool:
+        await queue.sadd("pools", pool)
     await _publish_event("worker.update", {"id": workerId, **data})
 
 
