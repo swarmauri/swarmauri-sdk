@@ -68,13 +68,7 @@ def __global_local_ctx(  # noqa: D401
     ),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
-    """
-    Runs **once** before any sub-command.
-
-    * Sets the root logging level.
-    * Stores ``config`` path & ``verbosity`` in ``ctx.obj`` so every command
-      can reuse them.
-    """
+    """Configure logging and working directory for local commands."""
     # 0) Banner -------------------------------------------------------------
     if not quiet:
         _print_banner()
@@ -123,6 +117,7 @@ def _global_remote_ctx(  # noqa: D401
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
+    """Prepare options shared by all remote sub-commands."""
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)

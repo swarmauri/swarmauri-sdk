@@ -49,6 +49,7 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
 # ─── list ──────────────────────────────
 @local_template_sets_app.command("list", help="List all discovered template-sets.")
 def run_list():
+    """Display all template-sets found on the current search path."""
     result = _run_handler({"operation": "list"})
     discovered = {e["name"]: e.get("paths", []) for e in result.get("sets", [])}
     if not discovered:
@@ -67,6 +68,7 @@ def submit_list(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Request the list of template-sets from a remote worker."""
     args = {"operation": "list"}
     try:
         task_id = _submit_task(args, gateway_url)
@@ -81,6 +83,7 @@ def submit_list(
 def run_show(
     name: str = typer.Argument(..., metavar="SET_NAME"),
 ):
+    """Print the files and locations belonging to a template-set."""
     try:
         info = _run_handler({"operation": "show", "name": name})
     except Exception as exc:  # noqa: BLE001
@@ -108,6 +111,7 @@ def submit_show(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Request details about a template-set from a remote worker."""
     args = {"operation": "show", "name": name}
     try:
         task_id = _submit_task(args, gateway_url)
@@ -149,6 +153,7 @@ def run_add(
         help="Re-install even if the distribution is already present.",
     ),
 ):
+    """Install a template-set distribution locally using pip."""
     typer.echo("⏳  Installing via pip …")
     try:
         result = _run_handler(
@@ -189,6 +194,7 @@ def submit_add(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Enqueue installation of a template-set on a remote worker."""
     args = {
         "operation": "add",
         "source": source,
@@ -211,6 +217,7 @@ def run_remove(
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
 ):
+    """Uninstall the distribution providing a template-set."""
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
             typer.echo("Aborted.")
@@ -239,6 +246,7 @@ def submit_remove(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ):
+    """Request removal of a template-set on a remote worker."""
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
             typer.echo("Aborted.")

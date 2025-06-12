@@ -40,6 +40,7 @@ def run(
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out"),
 ):
+    """Run the mutation workflow locally and return the result."""
     args = {
         "workspace_uri": workspace_uri,
         "target_file": target_file,
@@ -69,6 +70,7 @@ def submit(
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
     gens: int = typer.Option(1, help="Number of generations"),
 ):
+    """Submit a mutation task via JSON-RPC and exit immediately."""
     args = {
         "workspace_uri": workspace_uri,
         "target_file": target_file,

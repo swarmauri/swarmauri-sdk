@@ -45,6 +45,7 @@ def run_gen(  # noqa: PLR0913
     skip_validate: bool = typer.Option(False, "--skip-validate"),
     json_out: bool = typer.Option(False, "--json"),
 ):
+    """Generate project payloads locally from a DOE specification."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -75,6 +76,7 @@ def submit_gen(  # noqa: PLR0913
     force: bool = typer.Option(False, "--force"),
     skip_validate: bool = typer.Option(False, "--skip-validate"),
 ):
+    """Submit DOE generation to a remote worker and return the task ID."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -121,6 +123,7 @@ def run_process(  # noqa: PLR0913
     skip_validate: bool = typer.Option(False, "--skip-validate"),
     json_out: bool = typer.Option(False, "--json"),
 ):
+    """Run DOE generation and immediately process the resulting payloads."""
     args = {
         "spec": str(spec),
         "template": str(template),
@@ -151,6 +154,7 @@ def submit_process(  # noqa: PLR0913
     force: bool = typer.Option(False, "--force"),
     skip_validate: bool = typer.Option(False, "--skip-validate"),
 ):
+    """Submit DOE processing to a remote worker farm."""
     args = {
         "spec": str(spec),
         "template": str(template),
