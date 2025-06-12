@@ -22,7 +22,8 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
                     pass
             return R()
 
-    monkeypatch.setattr(handler, "httpx", type("X", (), {"AsyncClient": DummyClient}))
+    import peagen.handlers.fanout as fanout
+    monkeypatch.setattr(fanout, "httpx", type("X", (), {"AsyncClient": DummyClient}))
 
     def fake_generate_payload(**kwargs):
         p = tmp_path / "out.yaml"
