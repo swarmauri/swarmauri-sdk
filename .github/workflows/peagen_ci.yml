@@ -44,7 +44,7 @@ jobs:
     - name: Run Alembic migrations
       if: success()          # <- deploy must have succeeded
       run: |
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway alembic upgrade head | tee migration.log
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway peagen db upgrade | tee migration.log
 
     - name: Upload migration logs
       if: success()
