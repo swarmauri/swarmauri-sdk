@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Center, Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
@@ -16,14 +16,16 @@ class ReconnectScreen(ModalScreen[None]):
         self._counter = 30
 
     def compose(self) -> ComposeResult:  # pragma: no cover - ui code
-        yield Vertical(
-            Static(self.message, id="error-message"),
-            Horizontal(
-                Button("Retry", id="retry"),
-                Button("Close", id="close"),
-            ),
-            Static(f"Retrying in {self._counter}s", id="timer"),
-            id="reconnect-box",
+        yield Center(
+            Vertical(
+                Static(self.message, id="error-message"),
+                Horizontal(
+                    Button("Retry", id="retry"),
+                    Button("Close", id="close"),
+                ),
+                Static(f"Retrying in {self._counter}s", id="timer"),
+                id="reconnect-box",
+            )
         )
 
     def on_mount(self) -> None:  # pragma: no cover - ui code
