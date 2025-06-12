@@ -141,7 +141,7 @@ app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 
 
-local_app.add_typer(local_doe_app,)
+local_app.add_typer(local_doe_app, name="doe")
 local_app.add_typer(local_eval_app,)
 local_app.add_typer(local_extras_app, name="extras-schemas")
 local_app.add_typer(local_fetch_app,)
@@ -154,7 +154,7 @@ local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
 
 
-remote_app.add_typer(remote_doe_app)
+remote_app.add_typer(remote_doe_app, name="doe")
 remote_app.add_typer(remote_eval_app)
 remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_process_app)

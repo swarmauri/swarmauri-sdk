@@ -20,10 +20,10 @@ import time
 from json.decoder import JSONDecodeError
 from typing import Optional
 
-from fastapi import FastAPI, Request, Response, Body
+from fastapi import FastAPI, Request, Response
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
+from peagen.transport import RPCDispatcher, RPCRequest, RPCError
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
@@ -32,8 +32,11 @@ from peagen.gateway.db import engine
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway.db_helpers import ensure_status_enum
+import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
+
+TASK_KEY = defaults.CONFIG["task_key"]
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -52,6 +55,9 @@ app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
 
 cfg = resolve_cfg()
+CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
+READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
+PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
 rpc = RPCDispatcher()
@@ -111,7 +117,7 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
 def _task_key(tid: str) -> str:
-    return f"task:{tid}"
+    return TASK_KEY.format(tid)
 
 
 async def _save_task(task: Task) -> None:
@@ -129,6 +135,26 @@ async def _save_task(task: Task) -> None:
 async def _load_task(tid: str) -> Task | None:
     data = await queue.hget(_task_key(tid), "blob")
     return Task.model_validate_json(data) if data else None
+
+
+async def _select_tasks(selector: str) -> list[Task]:
+    """Return tasks matching *selector*.
+
+    A selector may be a task-id or ``label:<name>``.
+    """
+    if selector.startswith("label:"):
+        label = selector.split(":", 1)[1]
+        tasks = []
+        for key in await queue.keys("task:*"):
+            data = await queue.hget(key, "blob")
+            if not data:
+                continue
+            t = Task.model_validate_json(data)
+            if label in t.labels:
+                tasks.append(t)
+        return tasks
+    t = await _load_task(selector)
+    return [t] if t else []
 
 
 # ──────────────────────   Results Backend ────────────────────────
@@ -154,27 +180,14 @@ async def _publish_event(task: Task) -> None:
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "data": task.model_dump(),
     }
-    await queue.publish("task:update", json.dumps(event))
+    await queue.publish(PUBSUB_TOPIC, json.dumps(event))
 
 
 # ─────────────────────────── RPC endpoint ───────────────────────
-@app.post(
-    "/rpc",
-    response_model=RPCResponse,
-    response_model_exclude_none=True,
-    summary="JSON-RPC 2.0 endpoint",
-)
-async def rpc_endpoint(
-    request: Request,
-    body: RPCRequest = Body(..., description="JSON-RPC 2.0 envelope"),
-):
+@app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
+async def rpc_endpoint(request: Request):
     try:
-        # give the call an id if the client omitted one
-        if body.id is None:
-            body.id = str(uuid.uuid4())
-
-        payload = body.model_dump()
-        log.debug("RPC in  <- %s", payload)
+        raw = await request.json()
     except JSONDecodeError:
         log.warning("parse error from %s", request.client.host)
         return Response(
@@ -183,10 +196,21 @@ async def rpc_endpoint(
             media_type="application/json",
         )
 
+    def _ensure_id(obj: dict) -> dict:
+        if obj.get("id") is None:
+            obj["id"] = str(uuid.uuid4())
+        return RPCRequest.model_validate(obj).model_dump()
+
+    if isinstance(raw, list):
+        payload = [_ensure_id(item) for item in raw]
+    else:
+        payload = _ensure_id(raw)
+
+    log.debug("RPC in  <- %s", payload)
     resp = await rpc.dispatch(payload)
-    if "error" in resp:
-        log.warning(f"{body.method} '{body}'")
-        log.warning(f"{body.method} '{resp['error']}'")
+    if isinstance(resp, dict) and "error" in resp:
+        method = payload.get("method") if isinstance(payload, dict) else "batch"
+        log.warning(f"{method} '{resp['error']}'")
     log.debug("RPC out -> %s", resp)
     return resp
 
@@ -216,32 +240,29 @@ async def task_submit(
     deps: list[str] | None = None,
     edge_pred: str | None = None,
     labels: list[str] | None = None,
+    in_degree: int | None = None,
     config_toml: str | None = None,
 ):
     await queue.sadd("pools", pool)  # track pool even if not created
 
-    if taskId:
-        task = Task(
-            id=taskId,
-            pool=pool,
-            payload=payload,
-            deps=deps or [],
-            edge_pred=edge_pred,
-            labels=labels or [],
-            config_toml=config_toml,
-        )
-    else:
-        task = Task(
-            pool=pool,
-            payload=payload,
-            deps=deps or [],
-            edge_pred=edge_pred,
-            labels=labels or [],
-            config_toml=config_toml,
-        )
+    if taskId and await _load_task(taskId):
+        new_id = str(uuid.uuid4())
+        log.warning("task id collision: %s → %s", taskId, new_id)
+        taskId = new_id
+
+    task = Task(
+        id=taskId or str(uuid.uuid4()),
+        pool=pool,
+        payload=payload,
+        deps=deps or [],
+        edge_pred=edge_pred,
+        labels=labels or [],
+        in_degree=in_degree or 0,
+        config_toml=config_toml,
+    )
 
     # 1) put on the queue for the scheduler
-    await queue.rpush(f"queue:{pool}", task.model_dump_json())
+    await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
 
     # 2) save hash + TTL
     await _save_task(task)
@@ -255,14 +276,91 @@ async def task_submit(
 
 
 @rpc.method("Task.cancel")
-async def task_cancel(taskId: str):
-    t = await _load_task(taskId)
-    if not t:
+async def task_cancel(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "cancel", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("cancel %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.pause")
+async def task_pause(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "pause", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("pause %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.resume")
+async def task_resume(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "resume", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("resume %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.retry")
+async def task_retry(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "retry", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("retry %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Task.retry_from")
+async def task_retry_from(selector: str):
+    targets = await _select_tasks(selector)
+    from peagen.handlers import control_handler
+
+    count = await control_handler.apply(
+        "retry_from", queue, targets, READY_QUEUE, TASK_TTL
+    )
+    log.info("retry_from %s -> %d tasks", selector, count)
+    return {"count": count}
+
+
+@rpc.method("Guard.set")
+async def guard_set(label: str, spec: dict):
+    await queue.hset(f"guard:{label}", mapping=spec)
+    log.info("guard set %s", label)
+    return {"ok": True}
+
+
+@rpc.method("Task.patch")
+async def task_patch(taskId: str, changes: dict) -> dict:
+    """Update persisted metadata for an existing task."""
+    task = await _load_task(taskId)
+    if not task:
         raise ValueError("task not found")
-    t.status = Status.cancelled
-    await _save_task(t)
-    log.info("task %s cancelled", taskId)
-    return {}
+
+    for field, value in changes.items():
+        if field not in Task.model_fields:
+            continue
+        if field == "status":
+            value = Status(value)
+        setattr(task, field, value)
+
+    await _save_task(task)
+    await _persist(task)
+    await _publish_event(task)
+    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
+    return task.model_dump()
 
 
 @rpc.method("Task.get")
@@ -281,7 +379,7 @@ async def task_get(taskId: str):
 
 @rpc.method("Pool.listTasks")
 async def pool_list(poolName: str):
-    ids = await queue.lrange(f"queue:{poolName}", 0, -1)
+    ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", 0, -1)
     return [Task.model_validate_json(r).model_dump() for r in ids]
 
 
@@ -342,7 +440,7 @@ async def scheduler():
                 continue
 
             # build key list once per tick → ["queue:demo", "queue:beta", ...]
-            keys = [f"queue:{p}" for p in pools]
+            keys = [f"{READY_QUEUE}:{p}" for p in pools]
 
             # BLPOP across *all* pools, 0.5-sec timeout
             res = await queue.blpop(keys, 0.5)
@@ -351,7 +449,7 @@ async def scheduler():
                 continue
 
             queue_key, task_raw = res  # guaranteed 2-tuple here
-            pool = queue_key.split(":", 1)[1]  # "queue:demo" → "demo"
+            pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             task = Task.model_validate_json(task_raw)
 
             # pick first live worker for that pool
@@ -404,9 +502,9 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
-    await ensure_status_enum(engine)
-
-    if engine.url.get_backend_name() == "sqlite":      # ← guard
+    if engine.url.get_backend_name() != "sqlite":
+        await ensure_status_enum(engine)
+    else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)

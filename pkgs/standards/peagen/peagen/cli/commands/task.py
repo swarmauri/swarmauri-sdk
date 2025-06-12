@@ -42,3 +42,63 @@ def get(  # noqa: D401
         if not watch or reply["status"] in {"finished", "failed"}:
             break
         time.sleep(interval)
+
+
+@remote_task_app.command("patch")
+def patch_task(
+    ctx: typer.Context,
+    task_id: str = typer.Argument(..., help="UUID of the task to update"),
+    changes: str = typer.Argument(..., help="JSON string of fields to modify"),
+):
+    """Send a Task.patch RPC call."""
+
+    payload = json.loads(changes)
+    req = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": "Task.patch",
+        "params": {"taskId": task_id, "changes": payload},
+    }
+    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    typer.echo(json.dumps(res["result"], indent=2))
+
+
+def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
+    req = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": method,
+        "params": {"selector": selector},
+    }
+    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    typer.echo(json.dumps(res["result"], indent=2))
+
+
+@remote_task_app.command("pause")
+def pause(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Pause one task or all tasks matching a label."""
+    _simple_call(ctx, "Task.pause", selector)
+
+
+@remote_task_app.command("resume")
+def resume(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Resume a paused task or label set."""
+    _simple_call(ctx, "Task.resume", selector)
+
+
+@remote_task_app.command("cancel")
+def cancel(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Cancel a task or label set."""
+    _simple_call(ctx, "Task.cancel", selector)
+
+
+@remote_task_app.command("retry")
+def retry(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Retry a task or label set."""
+    _simple_call(ctx, "Task.retry", selector)
+
+
+@remote_task_app.command("retry-from")
+def retry_from(ctx: typer.Context, selector: str = typer.Argument(...)) -> None:
+    """Retry a task and its descendants."""
+    _simple_call(ctx, "Task.retry_from", selector)

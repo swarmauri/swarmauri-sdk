@@ -2,6 +2,7 @@
 
 from peagen.worker.base import WorkerBase
 from peagen.handlers.doe_handler import doe_handler
+from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.handlers.fetch_handler import fetch_handler
 from peagen.handlers.eval_handler import eval_handler
 from peagen.handlers.process_handler import process_handler
@@ -19,6 +20,7 @@ class PeagenWorker(WorkerBase):
         super().__init__()
         # Register all handlers you want this worker to support:
         self.register_handler("doe", doe_handler)
+        self.register_handler("doe_process", doe_process_handler)
         self.register_handler("eval", eval_handler)
         self.register_handler("fetch", fetch_handler)
         self.register_handler("process", process_handler)

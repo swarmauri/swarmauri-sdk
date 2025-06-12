@@ -15,11 +15,11 @@ import json
 import uuid
 import time
 from pathlib import Path
+import tempfile
 from typing import Any, Dict, Optional
 
 import httpx
 import typer
-import yaml
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
@@ -137,19 +137,19 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     ),
 ):
     """Enqueue a processing task via JSON-RPC and return immediately."""
-    # Parse the YAML locally and send the resulting dict to remote workers
+    # Pass a pointer to the YAML file rather than embedding the text
     path = Path(projects_payload)
     if path.is_file():
-        yaml_text = path.read_text(encoding="utf-8")
+        payload_pointer = str(path.resolve())
     else:
         if path.suffix in {".yml", ".yaml"}:
             raise typer.BadParameter(f"File not found: {projects_payload}")
-        yaml_text = projects_payload
-
-    yaml_data = yaml.safe_load(yaml_text)
+        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_") ) / "projects_payload.yaml"
+        tmp.write_text(projects_payload, encoding="utf-8")
+        payload_pointer = str(tmp)
 
     args = _collect_args(
-        yaml_data,
+        payload_pointer,
         project_name,
         start_idx,
         start_file,
