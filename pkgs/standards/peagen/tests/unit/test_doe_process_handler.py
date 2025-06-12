@@ -35,7 +35,11 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     task = {"id": "T0", "pool": "default", "payload": {"args": {"spec": "s", "template": "t", "output": str(tmp_path / "out.yaml")}}}
     result = await handler.doe_process_handler(task)
 
-    assert len(sent) == 4
-    assert sent[-1]["method"] == "Work.finished"
-    assert sent[-1]["params"]["status"] == "waiting"
+    assert len(sent) == 1
+    batch = sent[0]
+    assert isinstance(batch, list)
+    assert batch[-1]["method"] == "Work.finished"
+    assert batch[-1]["params"]["status"] == "waiting"
+    submits = [req for req in batch if req.get("method") == "Task.submit"]
+    assert len(submits) == 2
     assert result["children"] and len(result["children"]) == 2

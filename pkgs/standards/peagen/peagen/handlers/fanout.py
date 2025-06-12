@@ -21,9 +21,10 @@ async def fan_out(
     parent_id = parent.get("id") if isinstance(parent, dict) else parent.id
 
     child_ids: List[str] = []
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        for child in children:
-            req = {
+    batch: List[Dict[str, Any]] = []
+    for child in children:
+        batch.append(
+            {
                 "jsonrpc": "2.0",
                 "method": "Task.submit",
                 "params": {
@@ -32,23 +33,28 @@ async def fan_out(
                     "payload": child.payload,
                 },
             }
-            await client.post(gateway, json=req)
-            child_ids.append(child.id)
+        )
+        child_ids.append(child.id)
 
-        patch = {
+    batch.append(
+        {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Task.patch",
             "params": {"taskId": parent_id, "changes": {"result": {"children": child_ids}}},
         }
-        await client.post(gateway, json=patch)
+    )
 
-        finish = {
+    batch.append(
+        {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Work.finished",
             "params": {"taskId": parent_id, "status": final_status.value, "result": result},
         }
-        await client.post(gateway, json=finish)
+    )
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await client.post(gateway, json=batch)
 
     return child_ids
