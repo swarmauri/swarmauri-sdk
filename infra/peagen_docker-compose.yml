@@ -17,7 +17,7 @@ services:
     command: server /data --console-address ":9001"
     ports:
       - 9000
-      - "9001:9001"
+      - 9001
     environment:
       MINIO_ROOT_USER:      ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}
@@ -106,6 +106,7 @@ services:
       - "443:443"   # HTTPS
       - "81:81"     # Admin UI
       - "6379:6379"
+      - "9001:9001"
     environment:
       DB_POSTGRES_HOST:     postgres
       DB_POSTGRES_PORT:     5342
