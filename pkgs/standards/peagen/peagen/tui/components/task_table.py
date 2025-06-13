@@ -31,11 +31,24 @@ class TaskTable(DataTable):
             return
         row_index = meta["row"]
         row_key = None
-        if hasattr(self, "get_row_key"):
-            row_key = self.get_row_key(row_index)
+
+        if hasattr(self, "ordered_rows"):
+            try:
+                row_key = self.ordered_rows[row_index].key
+            except Exception:
+                row_key = None
+
+        if row_key is None and hasattr(self, "get_row_key"):
+            try:
+                row_key = self.get_row_key(row_index)  # type: ignore[attr-defined]
+            except Exception:
+                row_key = None
         if row_key is None and hasattr(self, "get_row_at"):
-            row_obj = self.get_row_at(row_index)
-            row_key = getattr(row_obj, "key", None)
+            try:
+                row_obj = self.get_row_at(row_index)
+                row_key = getattr(row_obj, "key", None)
+            except Exception:
+                row_key = None
         if row_key is None:
             try:
                 cell_value = self.get_cell_at(Coordinate(row_index, 0))
