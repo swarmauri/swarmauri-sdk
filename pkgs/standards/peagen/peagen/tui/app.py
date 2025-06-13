@@ -756,7 +756,7 @@ class QueueDashboardApp(App):
                     except Exception:
                         key_value = None
             if key_value is not None:
-                text = str(key_value)
+                text = str(getattr(key_value, "value", key_value))
             else:
                 row, col = widget.cursor_row, widget.cursor_column
                 if row is not None and col is not None:

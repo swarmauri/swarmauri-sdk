@@ -59,4 +59,6 @@ class TaskTable(DataTable):
             except Exception:
                 return
         if row_key is not None:
-            await self._open_cb(str(row_key))
+            key_value = getattr(row_key, "value", row_key)
+            if key_value is not None:
+                await self._open_cb(str(key_value))
