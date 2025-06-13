@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from textual import events
-from textual.widgets import DataTable
 from textual.coordinate import Coordinate
+from textual.widgets import DataTable
 
 
 class TaskTable(DataTable):
@@ -47,4 +47,3 @@ class TaskTable(DataTable):
                 return
         if row_key is not None:
             await self._open_cb(str(row_key))
-

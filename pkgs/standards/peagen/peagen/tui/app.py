@@ -163,8 +163,6 @@ class RemoteBackend:
             workers[info["id"]] = info
         self.workers = workers
 
-
-# ...existing code...
 class QueueDashboardApp(App):
     CSS = """
     TabPane#editor { height: 1fr; width:  1fr; }
