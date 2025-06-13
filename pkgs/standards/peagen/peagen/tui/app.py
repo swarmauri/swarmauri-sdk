@@ -742,14 +742,30 @@ class QueueDashboardApp(App):
         widget = self.focused
         text = ""
         if isinstance(widget, DataTable):
-            row, col = widget.cursor_row, widget.cursor_column
-            if row is not None and col is not None:
-                value = (
-                    widget.get_cell_at(Coordinate(row, col))
-                    if hasattr(widget, "get_cell_at")
-                    else widget.get_cell(row, col)
-                )
-                text = str(value)
+            row = widget.cursor_row
+            key_value = None
+            if row is not None:
+                if hasattr(widget, "ordered_rows"):
+                    try:
+                        key_value = widget.ordered_rows[row].key
+                    except Exception:
+                        key_value = None
+                if key_value is None and hasattr(widget, "get_row_key"):
+                    try:
+                        key_value = widget.get_row_key(row)  # type: ignore[attr-defined]
+                    except Exception:
+                        key_value = None
+            if key_value is not None:
+                text = str(key_value)
+            else:
+                row, col = widget.cursor_row, widget.cursor_column
+                if row is not None and col is not None:
+                    value = (
+                        widget.get_cell_at(Coordinate(row, col))
+                        if hasattr(widget, "get_cell_at")
+                        else widget.get_cell(row, col)
+                    )
+                    text = str(value)
         elif isinstance(widget, TextArea):
             text = widget.selected_text or widget.text
         if text:
