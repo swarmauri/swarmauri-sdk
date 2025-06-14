@@ -3,7 +3,7 @@
 We welcome contributions to improve this project. Please follow these guidelines to ensure a smooth contribution process.
 
 ### Code of Conduct
-The Code of Conduct for this project will be available soon. Once available, please make sure to review and adhere to it. 
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
 ### Reporting Bugs
 To report bugs, please follow these steps:
