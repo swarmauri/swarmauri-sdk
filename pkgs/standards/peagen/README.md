@@ -368,7 +368,7 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 
 ### Storage Adapters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available adapters include `FileStorageAdapter` and `MinioStorageAdapter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available adapters include `FileStorageAdapter`, `MinioStorageAdapter`, and `GitHttpStorageAdapter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
@@ -391,10 +391,12 @@ adapters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.plugins.storage_adapters.git_http_storage_adapter import GitHttpStorageAdapter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
-store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+store = GitHttpStorageAdapter.from_uri(
+    "git+http://example.com/repo.git#main/artifacts"
+)
 bus = WebhookPublisher("https://example.com/peagen")
 ```
 
