@@ -139,6 +139,7 @@ minio   = "peagen.plugins.storage_adapters.minio_storage_adapter:MinioStorageAda
 file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapter"
 github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
 gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
+"git+http"    = "peagen.plugins.storage_adapters.git_http_storage_adapter:GitHttpStorageAdapter"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
