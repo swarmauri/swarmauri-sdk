@@ -15,6 +15,7 @@ except PackageNotFoundError:
 
 from .plugin_manager import PluginManager, resolve_plugin_spec
 from .errors import PatchTargetMissingError
+from .git.filters import setup_s3fs_filters
 
 __all__ = [
     "__package_name__",
@@ -22,4 +23,5 @@ __all__ = [
     "PluginManager",
     "resolve_plugin_spec",
     "PatchTargetMissingError",
+    "setup_s3fs_filters",
 ]

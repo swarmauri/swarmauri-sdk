@@ -12,6 +12,11 @@ Peagen writes artifacts to a pluggable storage backend and can publish events du
 - `GithubReleaseStorageAdapter` – uploads artifacts as release assets and
   exposes a `root_uri` like `ghrel://org/repo/tag/` for retrieval.
 
+To offload large files transparently, use the `setup_s3fs_filters()` helper
+which registers Git clean/smudge filters. After adding patterns to
+`.gitattributes`, committed files are replaced by small JSON pointers such as:
+`{"s3": "bucket/ab/digest.ext", "sha256": "..."}`.
+
 Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
 tables. For example:
 

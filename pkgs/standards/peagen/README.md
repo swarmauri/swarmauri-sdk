@@ -418,6 +418,11 @@ bus.publish("peagen.events", {"type": "process.started"})
 pea.process_all_projects()
 ```
 
+Large artifacts can be stored outside the Git repository using S3-backed
+filters. Call `setup_s3fs_filters()` once in a repository to register the
+`s3fs` clean and smudge commands. Files matching your `.gitattributes` rules
+will be replaced with tiny JSON pointers referencing the uploaded object.
+
 ### Contributing & Extending Templates
 
 * **Template Conventions:** Place new Jinja2 files under your `TEMPLATE_BASE_DIR` as `*.j2`, using the same context variables (`projects`, `packages`, `modules`) that core templates rely on.
