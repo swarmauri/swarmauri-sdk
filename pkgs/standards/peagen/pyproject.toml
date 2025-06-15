@@ -97,6 +97,8 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.scripts]
 peagen = "peagen.cli:app"
+peagen-s3-clean = "peagen.git.filters:s3_clean_main"
+peagen-s3-smudge = "peagen.git.filters:s3_smudge_main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
