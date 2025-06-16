@@ -116,7 +116,7 @@ def submit(  # noqa: PLR0913
         "jsonrpc": "2.0",
         "id": task.id,
         "method": "Task.submit",
-        "params": {"task": task.model_dump()},
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
     with httpx.Client(timeout=30.0) as client:
