@@ -163,6 +163,7 @@ class RemoteBackend:
             workers[info["id"]] = info
         self.workers = workers
 
+
 class QueueDashboardApp(App):
     CSS = """
     TabPane#editor { height: 1fr; width:  1fr; }
@@ -768,6 +769,8 @@ class QueueDashboardApp(App):
                     text = str(value)
         elif isinstance(widget, TextArea):
             text = widget.selected_text or widget.text
+        elif hasattr(widget, "selected_text"):
+            text = widget.selected_text
         if text:
             clipboard_copy(text)
 
@@ -776,6 +779,10 @@ class QueueDashboardApp(App):
         text_to_paste = clipboard_paste()
         if isinstance(widget, TextArea):
             widget.insert_text_at_cursor(text_to_paste)
+        elif hasattr(widget, "insert_text_at_cursor"):
+            widget.insert_text_at_cursor(text_to_paste)
+        elif hasattr(widget, "insert"):
+            widget.insert(text_to_paste)
 
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
