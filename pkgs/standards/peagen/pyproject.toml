@@ -155,3 +155,7 @@ in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
+"peagen" = [
+  "tests/examples/locking_demo/*",
+  "tests/examples/peagen_tomls/*",
+]
