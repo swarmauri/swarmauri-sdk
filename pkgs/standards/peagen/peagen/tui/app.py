@@ -228,23 +228,73 @@ class QueueDashboardApp(App):
         self._filter_debounce_timer = None
         self._current_file: str | None = None
         self._remote_info: tuple | None = None
+        self.ws_connected = False  # Track WebSocket connection status
 
     async def on_mount(self):
+        # Register for connection status changes
+        self.client.on_connection_change(self.on_websocket_connection_change)
+
         self.run_worker(
             self.client.listen(), exclusive=True, group="websocket_listener"
         )
         self.set_interval(1.0, self._refresh_backend_and_ui)
         self.trigger_data_processing()
 
+    async def on_websocket_connection_change(
+        self, is_connected: bool, error_msg: str
+    ) -> None:
+        """Handle websocket connection status changes."""
+        self.ws_connected = is_connected
+
+        if not is_connected:
+            # Show reconnect screen for websocket disconnection
+            await self._show_reconnect(f"WebSocket disconnected: {error_msg}")
+        elif is_connected and self._reconnect_screen:
+            # Only dismiss if the backend is also connected
+            ok = await self.backend.refresh()
+            if ok:
+                await self._dismiss_reconnect()
+                self.toast("Connection re-established", duration=2.0)
+                self.trigger_data_processing(debounce=False)
+
     async def _refresh_backend_and_ui(self) -> None:
         if self._reconnect_screen:
             return
+
         ok = await self.backend.refresh()
+
+        # Handle backend API connection issues
         if not ok and not self._reconnect_screen:
             await self._show_reconnect(self.backend.last_error or "Connection failed")
-        elif ok and self._reconnect_screen:
+        # Only dismiss reconnect screen if both backend and websocket are working
+        elif ok and self.ws_connected and self._reconnect_screen:
             await self._dismiss_reconnect()
+
+        # Always update the UI if possible
         self.trigger_data_processing(debounce=False)
+
+    async def retry_connection(self) -> None:
+        # Restart the websocket listener
+        self.run_worker(
+            self.client.listen(), exclusive=True, group="websocket_listener_retry"
+        )
+
+        # Try to refresh backend data
+        ok = await self.backend.refresh()
+
+        # Only dismiss if both backend and websocket are connected
+        if ok and self.ws_connected:
+            await self._dismiss_reconnect()
+        else:
+            # Update the message with the current error state
+            error_msg = self.backend.last_error or "Connection failed"
+            if not self.ws_connected:
+                error_msg = f"WebSocket disconnected. {error_msg}"
+
+            if self._reconnect_screen:
+                self._reconnect_screen.message = error_msg
+            else:
+                await self._show_reconnect(error_msg)
 
     def trigger_data_processing(self, debounce: bool = True) -> None:
         if debounce:
@@ -874,23 +924,6 @@ class QueueDashboardApp(App):
         if self._reconnect_screen:
             await self._reconnect_screen.dismiss()
             self._reconnect_screen = None
-
-    async def retry_connection(self) -> None:
-        self.run_worker(
-            self.client.listen(), exclusive=True, group="websocket_listener_retry"
-        )
-        ok = await self.backend.refresh()
-        if ok:
-            await self._dismiss_reconnect()
-        else:
-            if self._reconnect_screen:
-                self._reconnect_screen.message = (
-                    self.backend.last_error or "Connection failed"
-                )
-            else:
-                await self._show_reconnect(
-                    self.backend.last_error or "Connection failed"
-                )
 
 
 if __name__ == "__main__":

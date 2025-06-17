@@ -17,15 +17,35 @@ class TaskStreamClient:
         self.workers: Dict[str, dict] = {}
         self.queues: Dict[str, int] = {}
         self._callbacks: List[Callable[[dict], Awaitable[None]]] = []
+        self._connection_callbacks: List[Callable[[bool, str], Awaitable[None]]] = []
+        self.connected = False
 
     def on_event(self, cb: Callable[[dict], Awaitable[None]]) -> None:
         """Register *cb* to be awaited for every event."""
-
         self._callbacks.append(cb)
+
+    def on_connection_change(self, cb: Callable[[bool, str], Awaitable[None]]) -> None:
+        """Register callback for connection status changes.
+
+        Args:
+            cb: Async callback that takes (is_connected, error_message)
+        """
+        self._connection_callbacks.append(cb)
+
+    async def _notify_connection_change(
+        self, is_connected: bool, error_msg: str = ""
+    ) -> None:
+        """Notify all registered callbacks about connection status change."""
+        self.connected = is_connected
+        for cb in self._connection_callbacks:
+            await cb(is_connected, error_msg)
 
     async def listen(self) -> None:
         try:
             async with websockets.connect(self.ws_url) as ws:
+                # Connection established
+                await self._notify_connection_change(True)
+
                 async for message in ws:
                     try:
                         event = json.loads(message)
@@ -51,6 +71,10 @@ class TaskStreamClient:
                             self.queues[pool] = int(data.get("length", 0))
                     for cb in self._callbacks:
                         await cb(event)
-        except (OSError, websockets.exceptions.InvalidStatus):
-            # connection failed; just ignore
-            pass
+        except (
+            OSError,
+            websockets.exceptions.InvalidStatus,
+            websockets.exceptions.ConnectionClosed,
+        ) as e:
+            # Report the disconnection with the error
+            await self._notify_connection_change(False, str(e))
