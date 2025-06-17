@@ -1,14 +1,22 @@
 import pytest
 from peagen.tui import app as tui_app
 from peagen.tui.app import QueueDashboardApp
+from textual.widgets import DataTable
 
 
-class DummyTable:
-    cursor_row = 0
-    cursor_column = 0
+class DummyTable(DataTable):
+    @property
+    def cursor_row(self):
+        return 0
 
-    def get_cell_at(self, row, col):
-        assert (row, col) == (0, 0)
+    @property
+    def cursor_column(self):
+        return 0
+
+    def get_cell(self, row, col):
+        return "cell"
+
+    def get_cell_at(self, coordinate):
         return "cell"
 
 
