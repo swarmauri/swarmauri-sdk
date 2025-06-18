@@ -11,6 +11,8 @@ Peagen writes artifacts to a pluggable storage backend and can publish events du
 - `GithubStorageAdapter` – saves files into a GitHub repository.
 - `GithubReleaseStorageAdapter` – uploads artifacts as release assets and
   exposes a `root_uri` like `ghrel://org/repo/tag/` for retrieval.
+- `GitHttpStorageAdapter` – pushes to and fetches from a git HTTP server using
+  URIs like `git+http://host/repo.git#branch/prefix`.
 
 Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
 tables. For example:

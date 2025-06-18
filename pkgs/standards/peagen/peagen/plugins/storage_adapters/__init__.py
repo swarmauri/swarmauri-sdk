@@ -6,6 +6,7 @@ from .file_storage_adapter import FileStorageAdapter
 from .minio_storage_adapter import MinioStorageAdapter
 from .github_storage_adapter import GithubStorageAdapter
 from .gh_release_storage_adapter import GithubReleaseStorageAdapter
+from .git_http_storage_adapter import GitHttpStorageAdapter
 from peagen.plugins import registry
 
 
@@ -25,5 +26,6 @@ __all__ = [
     "MinioStorageAdapter",
     "GithubStorageAdapter",
     "GithubReleaseStorageAdapter",
+    "GitHttpStorageAdapter",
     "make_adapter_for_uri",
 ]
