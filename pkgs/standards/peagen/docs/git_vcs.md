@@ -38,7 +38,6 @@ Example::
     peagen init filter s3://mybucket
 
 If no URI is provided the command defaults to ``s3://peagen`` using ``S3FSFilter``.
-
 To enable the filter manually in an existing repository use the
 following snippet::
 
