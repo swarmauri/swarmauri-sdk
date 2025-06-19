@@ -41,6 +41,19 @@ You can also run ``peagen dx filter`` as a quick shortcut::
 
     peagen dx filter s3://mybucket
 
+To enable the filter manually in an existing repository use the
+following snippet::
+
+    with r.config_writer() as cw:
+        s = 'filter "minio-oid"'
+        cw.set_value(s, "clean", clean_cmd)
+        cw.set_value(s, "smudge", smudge_cmd)
+        cw.set_value(s, "required", "true")
+    (REPO_DIR / ".gitattributes").write_text(
+        "workspace/** filter=minio-oid diff=minio-oid\n"
+        "workspace/artifacts/** -filter -diff\n"
+    )
+
 The ``init project`` command accepts ``--git-remote`` to set an origin
 URL during repository creation and ``--filter-uri`` to configure the
 default filter in the generated ``.peagen.toml``.
