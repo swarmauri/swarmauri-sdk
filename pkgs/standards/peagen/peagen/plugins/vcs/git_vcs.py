@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
+import os
 
 from git import Repo
 
@@ -30,6 +31,13 @@ class GitVCS:
                 sect = 'remote "origin"'
                 cw.set_value(sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
                 cw.set_value(sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
+
+        # ensure we have a commit identity to avoid git errors
+        with self.repo.config_reader() as cr, self.repo.config_writer() as cw:
+            if not cr.has_option("user", "name"):
+                cw.set_value("user", "name", os.getenv("GIT_AUTHOR_NAME", "Peagen"))
+            if not cr.has_option("user", "email"):
+                cw.set_value("user", "email", os.getenv("GIT_AUTHOR_EMAIL", "peagen@example.com"))
 
     # ------------------------------------------------------------------ init/use
     @classmethod
