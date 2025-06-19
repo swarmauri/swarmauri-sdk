@@ -33,13 +33,13 @@ sequenceDiagram
     end
     CLI ->> Pool: evaluate_programs(list of Program objects)
     Pool -->> CLI: Returns results list (scores & metadata)
-    CLI ->> CLI: Build eval manifest (schemaVersion, evaluators, results)
+    CLI ->> CLI: Build eval report (schemaVersion, evaluators, results)
     alt if --json output
-        CLI -->> User: Print JSON-formatted eval manifest
+        CLI -->> User: Print JSON-formatted eval report
     else
         CLI ->> FS: Ensure output directory (default: `<workspace>/.peagen/`)
-        CLI ->> FS: Write eval_manifest.json to output directory
-        CLI -->> User: Print path to eval_manifest file
+        CLI ->> FS: Write eval_report.json to output directory
+        CLI -->> User: Print path to eval_report file
     end
     opt if --strict flag
         CLI ->> CLI: "Check all result scores. if any 0, Exit with code 3"

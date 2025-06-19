@@ -15,5 +15,5 @@ async def test_eval_handler(monkeypatch, strict):
     args = {"workspace_uri": "ws", "strict": strict}
     result = await handler.eval_handler({"payload": {"args": args}})
 
-    assert result["manifest"]["results"][0]["score"] == 0
+    assert result["report"]["results"][0]["score"] == 0
     assert result["strict_failed"] == (strict and True)

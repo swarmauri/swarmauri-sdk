@@ -215,7 +215,7 @@ def _handle_copy(
     commit_paths: List[Path],
 ) -> None:
     """
-    Render a COPY record and save/upload it, then add to the manifest.
+    Render a COPY record and save/upload it, then track it for a commit.
     """
     log = logger or globals().get("logger")
     rendered_name = rec.get("RENDERED_FILE_NAME")
@@ -253,7 +253,7 @@ def _handle_generate(
     commit_paths: List[Path],
 ) -> None:
     """
-    Render a GENERATE record by calling the external agent, save/upload it, then add to the manifest.
+    Render a GENERATE record by calling the external agent, save/upload it, then track it for a commit.
     """
     log = logger or globals().get("logger")
     rendered_name = rec.get("RENDERED_FILE_NAME")
@@ -373,7 +373,7 @@ def process_single_project(
             )
         return sorted_records, next_idx
 
-    # ─── STEP 4: Prepare manifest (workspace already exists) ───────────────
+    # ─── STEP 4: Prepare commit tracking (workspace already exists) ──────────
     commit_paths: List[Path] = []
     vcs: GitVCS | None = cfg.get("vcs")
     if logger:

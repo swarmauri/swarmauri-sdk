@@ -27,8 +27,8 @@ SHA identifiers are supported via ``git+<url>@<ref>``.
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
 to set up ``clean`` and ``smudge`` scripts and record the filter URI in
-``.peagen.toml``. Built‑in filters include ``file://`` and ``s3://`` via
-``S3FSFilter``.
+``.peagen.toml``. Built‑in filters include ``s3://`` via
+``S3FSFilter`` and ``MinioFilter`` for MinIO endpoints.
 
 Additional helpers let tasks create branches (``fan_out``), move refs
 (``promote``), apply tags, or reset a working tree with ``clean_reset``.
@@ -37,9 +37,8 @@ Example::
 
     peagen init filter s3://mybucket
 
-You can also run ``peagen dx filter`` as a quick shortcut::
-
-    peagen dx filter s3://mybucket
+You can also run ``peagen dx filter`` as a quick shortcut. If no URI is
+provided both commands default to ``s3://peagen`` using ``S3FSFilter``.
 
 To enable the filter manually in an existing repository use the
 following snippet::

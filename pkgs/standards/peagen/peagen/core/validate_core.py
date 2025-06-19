@@ -13,7 +13,6 @@ from peagen._utils.config_loader import load_peagen_toml
 from peagen.schemas import (
     PEAGEN_TOML_V1_SCHEMA,
     DOE_SPEC_V1_SCHEMA,
-    MANIFEST_V3_SCHEMA,
     PTREE_V1_SCHEMA,
     PROJECTS_PAYLOAD_V1_SCHEMA,
 )
@@ -64,13 +63,6 @@ def validate_doe_spec(path: Path) -> Dict[str, Any]:
     return {"ok": not errs, "errors": errs}
 
 
-def validate_manifest(path: Path) -> Dict[str, Any]:
-    data = _load_json(path)
-    if data is None or isinstance(data, dict) and "_json_error" in data:
-        return {"ok": False, "errors": [data.get("_json_error", "JSON error")]}  # type: ignore[union-attr]
-    errs = _collect_errors(data, MANIFEST_V3_SCHEMA)
-    return {"ok": not errs, "errors": errs}
-
 
 def validate_ptree(path: Path) -> Dict[str, Any]:
     data = _load_yaml(path)
@@ -96,8 +88,6 @@ def validate_artifact(kind: str, path: Optional[Path]) -> Dict[str, Any]:
         return {"ok": False, "errors": ["path is required"]}
     if kind == "doe":
         return validate_doe_spec(path)
-    if kind == "manifest":
-        return validate_manifest(path)
     if kind == "ptree":
         return validate_ptree(path)
     if kind == "projects_payload":

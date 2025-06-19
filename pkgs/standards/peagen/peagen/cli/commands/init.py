@@ -30,15 +30,18 @@ remote_init_app = typer.Typer(
 
 @local_init_app.command("filter")
 def local_init_filter(
-    uri: str,
+    uri: str | None = None,
     name: str = "default",
     config: Path = Path(".peagen.toml"),
     repo: Path = Path("."),
 ) -> None:
-    """Add a git filter entry and configure the repository."""
+    """Add a git filter entry and configure the repository.
+
+    If *uri* is omitted, the default ``s3://peagen`` filter is used.
+    """
     add_filter(uri, name=name, config=config)
     init_git_filter(repo, uri, name=name)
-    typer.echo(f"Configured filter '{name}' -> {uri} in {config}")
+    typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'} in {config}")
 
 
 # ── init project ─────────────────────────────────────────────────────────────

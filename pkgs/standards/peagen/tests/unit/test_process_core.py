@@ -117,7 +117,7 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
     End-to-end integration: process_single_project should:
       - Render ptree.yaml.j2,
       - Generate a file mod1.txt with correct content,
-      - Create a manifest that lists the generated file.
+      - Write a tracking record for the generated file.
     """
     payload = yaml.safe_load(tmp_project_payload.read_text())
     project = payload["PROJECTS"][0]

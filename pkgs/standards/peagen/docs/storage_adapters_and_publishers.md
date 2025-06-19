@@ -11,9 +11,7 @@ Workspaces themselves may be managed in a Git repository using the
 
 ``Peagen`` now accepts a ``git_filter`` implementing ``upload()`` and ``download()`` methods. Built-in filters include:
 
-- ``FileFilter`` – stores artifacts on the local filesystem.
 - ``MinioFilter`` – targets S3 compatible object stores.
-- ``GithubFilter`` – saves files into a GitHub repository.
 - ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
 - ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage.
 

@@ -26,8 +26,15 @@ def _dump_simple_toml(data: dict) -> str:
     return "\n".join(lines)
 
 
-def add_filter(uri: str, name: str = "default", config: Path = Path(".peagen.toml")) -> None:
-    """Add a git filter entry to ``config``."""
+DEFAULT_FILTER_URI = "s3://peagen"
+
+
+def add_filter(uri: str | None = None, name: str = "default", config: Path = Path(".peagen.toml")) -> None:
+    """Add a git filter entry to ``config``.
+
+    If *uri* is omitted, ``s3://peagen`` is used with :class:`S3FSFilter`.
+    """
+    uri = uri or DEFAULT_FILTER_URI
     cfg: dict = {}
     if config.exists():
         cfg = tomllib.loads(config.read_text())
@@ -39,7 +46,12 @@ def add_filter(uri: str, name: str = "default", config: Path = Path(".peagen.tom
     config.write_text(_dump_simple_toml(cfg), encoding="utf-8")
 
 
-def init_git_filter(repo: Repo | str, uri: str, *, name: str = "default") -> None:
+def init_git_filter(
+    repo: Repo | str,
+    uri: str | None = None,
+    *,
+    name: str = "default",
+) -> None:
     """Configure ``repo`` to use *name* for workspace paths.
 
     The filter will store blobs using ``peagen.plugins.git_filters`` based on
@@ -49,6 +61,7 @@ def init_git_filter(repo: Repo | str, uri: str, *, name: str = "default") -> Non
     filter while ``workspace/artifacts/**`` is ignored.
     """
 
+    uri = uri or DEFAULT_FILTER_URI
     r = Repo(repo) if not isinstance(repo, Repo) else repo
 
     filter_dir = Path(r.git_dir) / "filters" / name

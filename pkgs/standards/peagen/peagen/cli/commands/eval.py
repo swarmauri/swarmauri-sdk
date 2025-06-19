@@ -61,16 +61,16 @@ def run(  # noqa: PLR0913 – CLI needs many options
     }
     task = _build_task(args)
     result = asyncio.run(eval_handler(task))
-    manifest = result["manifest"]
+    report = result["report"]
 
     # ----- output ----------------------------------------------------------
     if json_out:
-        typer.echo(json.dumps(manifest, indent=2))
+        typer.echo(json.dumps(report, indent=2))
     else:
         out_dir = out or Path(workspace_uri) / ".peagen"
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_file = out_dir / "eval_manifest.json"
-        out_file.write_text(json.dumps(manifest, indent=2))
+        out_file = out_dir / "eval_report.json"
+        out_file.write_text(json.dumps(report, indent=2))
         typer.echo(str(out_file))
 
     # ----- strict gate -----------------------------------------------------

@@ -4,17 +4,17 @@ sequenceDiagram
     participant FS as File System
     participant Schema as JSONSchema
     User ->> CLI: Run `peagen remote program validate <target> [--license-allow X --license-deny Y]`
-    CLI ->> FS: Determine manifest file(s):
-    alt if target is a JSON file: 
+    CLI ->> FS: Determine workspace descriptor(s):
+    alt if target is a JSON file:
         CLI -->> FS: use it
-    else if target is a directory: 
-        CLI -->> FS: collect all `.peagen/*_manifest.json` files
+    else if target is a directory:
+        CLI -->> FS: collect all `.peagen/*_workspace.json` files
     end
-    CLI ->> FS: Read each manifest JSON
-    CLI ->> Schema: Validate manifest data against MANIFEST_V3_SCHEMA
+    CLI ->> FS: Read each descriptor JSON
+    CLI ->> Schema: Validate descriptor data against WORKSPACE_SCHEMA
     Schema -->> CLI: Return validation result for each (errors if any)
     alt if any schema errors
-        CLI -->> User: Print "[ERROR] ... <manifest>: <message>" for each error
+        CLI -->> User: Print "[ERROR] ... <descriptor>: <message>" for each error
         CLI -->> User: Exit with failure code
     else
         CLI -->> User: Print "schema ✅" (schema valid)
