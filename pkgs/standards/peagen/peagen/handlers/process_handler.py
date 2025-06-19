@@ -14,14 +14,10 @@ returns a JSON-serialisable result mapping.
 from __future__ import annotations
 
 from swarmauri_standard.loggers.Logger import Logger
-import os
-from urllib.parse import urlparse
-from pathlib import Path
 from typing import Any, Dict, List
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
-from peagen.plugins.vcs import pea_ref
 
 from peagen.core.process_core import (
     load_projects_payload,
@@ -65,6 +61,11 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         except Exception:
             cfg["storage_adapter"] = None
 
+    try:
+        cfg["vcs"] = pm.get("vcs")
+    except Exception:  # pragma: no cover - optional
+        cfg["vcs"] = None
+
     # Pass through any LLM / agent parameters verbatim
     cfg["agent_env"] = args.get("agent_env", {})
 
@@ -92,24 +93,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             transitive=args.get("transitive", False),
         )
 
-    try:
-        vcs = pm.get("vcs")
-    except Exception:  # pragma: no cover - optional
-        vcs = None
-
-    if vcs and cfg.get("manifest_path"):
-        manifest_uri = cfg["manifest_path"]
-        path = Path(urlparse(manifest_uri).path if "://" in manifest_uri else manifest_uri).resolve()
-        if path.exists():
-            repo_root = Path(vcs.repo.working_tree_dir)
-            rel = os.path.relpath(path, repo_root)
-            vcs.commit([rel], f"process {path.stem}")
-            vcs.create_branch(pea_ref("analysis", path.stem), checkout=False)
-
     # ------------------------------------------------------------------ #
     # 3) Shape unified response
     # ------------------------------------------------------------------ #
-    return {
-        "processed": result_map,
-        "manifest": cfg.get("manifest_path"),  # may be None
-    }
+    return {"processed": result_map}

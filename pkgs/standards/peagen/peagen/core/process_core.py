@@ -4,7 +4,6 @@ import os
 import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-from datetime import datetime, timezone
 
 from swarmauri_standard.loggers.Logger import Logger
 
@@ -13,7 +12,7 @@ from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 from peagen._utils._context import _create_context
 from peagen.core.sort_core import sort_file_records
 from peagen.core.render_core import _render_copy_template, _render_generate_template
-from peagen.core.manifest_writer import ManifestWriter
+from peagen.plugins.vcs import GitVCS
 from peagen._utils.slug_utils import slugify
 
 from peagen._utils._search_template_sets import (
@@ -213,7 +212,7 @@ def _handle_copy(
     storage_adapter: Any,
     project_name: str,
     logger: Optional[Any],
-    manifest_writer: ManifestWriter,
+    commit_paths: List[Path],
 ) -> None:
     """
     Render a COPY record and save/upload it, then add to the manifest.
@@ -231,23 +230,14 @@ def _handle_copy(
     if log:
         log.info(f" - Saved COPY to {out_path}")
 
-    artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            artifact_uri = storage_adapter.upload(key, fsrc)
+            storage_adapter.upload(key, fsrc)
         if log:
             log.info(f" - Uploaded COPY to storage key: {key}")
 
-    manifest_writer.add(
-        {
-            "file": rendered_name,
-            "artifact_uri": artifact_uri,
-            "saved_at": datetime.now(timezone.utc).isoformat(),
-        }
-    )
-    if log:
-        log.debug(f" - Manifest entry added for '{rendered_name}'")
+    commit_paths.append(out_path)
 
 
 def _handle_generate(
@@ -260,7 +250,7 @@ def _handle_generate(
     storage_adapter: Any,
     project_name: str,
     logger: Optional[Any],
-    manifest_writer: ManifestWriter,
+    commit_paths: List[Path],
 ) -> None:
     """
     Render a GENERATE record by calling the external agent, save/upload it, then add to the manifest.
@@ -297,23 +287,14 @@ def _handle_generate(
     if log:
         log.info(f" - Saved GENERATE to {out_path}")
 
-    artifact_uri = None
     if storage_adapter:
         key = f"{project_name}/{rendered_name}"
         with open(out_path, "rb") as fsrc:
-            artifact_uri = storage_adapter.upload(key, fsrc)
+            storage_adapter.upload(key, fsrc)
         if log:
             log.info(f" - Uploaded GENERATE to storage key: {key}")
 
-    manifest_writer.add(
-        {
-            "file": rendered_name,
-            "artifact_uri": artifact_uri,
-            "saved_at": datetime.now(timezone.utc).isoformat(),
-        }
-    )
-    if log:
-        log.debug(f" - Manifest entry added for '{rendered_name}'")
+    commit_paths.append(out_path)
 
 
 def process_single_project(
@@ -331,8 +312,7 @@ def process_single_project(
     4) If sorted_records is nonempty:
        a) Write each file (COPY or GENERATE) under the default output (<cwd>/<project_name>/…).
        b) Upload to storage if a storage_adapter is in cfg (optional).
-       c) Stream each saved file into a ManifestWriter, finalize at end.
-       d) Populate cfg["manifest_path"] with the manifest's final path.
+       c) Commit generated files to Git if ``cfg['vcs']`` is present.
     Returns (sorted_records, next_idx).
     """
     logger = cfg.get("logger") or globals().get("logger")
@@ -394,29 +374,8 @@ def process_single_project(
         return sorted_records, next_idx
 
     # ─── STEP 4: Prepare manifest (workspace already exists) ───────────────
-    workspace_uri = None
-    if storage_adapter:
-        for attr in ("workspace_uri", "base_uri", "root_uri"):
-            if hasattr(storage_adapter, attr):
-                workspace_uri = getattr(storage_adapter, attr)
-                break
-
-    manifest_meta = {
-        "schema_version": 3,
-        "workspace_uri": workspace_uri,
-        "project": project_name,
-        "source_packages": source_pkgs,
-        "peagen_version": cfg.get("peagen_version", None),
-    }
-    manifest_dir = workspace_root / ".peagen"
-    manifest_dir.mkdir(parents=True, exist_ok=True)
-
-    manifest_writer = ManifestWriter(
-        slug=slugify(project_name),
-        adapter=storage_adapter,
-        tmp_root=manifest_dir,
-        meta=manifest_meta,
-    )
+    commit_paths: List[Path] = []
+    vcs: GitVCS | None = cfg.get("vcs")
     if logger:
         logger.info(f"Processing files under: {workspace_root}")
         logger.info("Beginning file-by-file rendering:")
@@ -464,7 +423,7 @@ def process_single_project(
                 storage_adapter,
                 project_name,
                 logger,
-                manifest_writer,
+                commit_paths,
             )
         elif process_type == "GENERATE":
             if logger:
@@ -479,7 +438,7 @@ def process_single_project(
                 storage_adapter,
                 project_name,
                 logger,
-                manifest_writer,
+                commit_paths,
             )
         else:
             if logger:
@@ -487,15 +446,13 @@ def process_single_project(
                     f"Unknown PROCESS_TYPE '{process_type}' for file '{rendered_name}'; skipping."
                 )
 
-    # ─── STEP 6: Finalize manifest ────────────────────────────────────────
-    final_manifest_uri = manifest_writer.finalise()
-
-    cfg["manifest_path"] = str(final_manifest_uri)
+    # ─── STEP 6: Commit results ───────────────────────────────────────────
+    if vcs and commit_paths:
+        repo_root = Path(vcs.repo.working_tree_dir)
+        rels = [os.path.relpath(p, repo_root) for p in commit_paths]
+        vcs.commit(rels, f"process {project_name}")
     if logger:
-        logger.info(f"Manifest written to: {final_manifest_uri}")
-        logger.info(
-            f"========== Completed project '{project_name}' ==========\n"
-        )
+        logger.info(f"========== Completed project '{project_name}' ==========\n")
     return sorted_records, next_idx
 
 

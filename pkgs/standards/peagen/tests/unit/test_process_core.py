@@ -162,6 +162,3 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
     content = out_file.read_text()
     assert "Generated for test_project: pkgA.mod1" in content
 
-    # Ensure a manifest URI was returned
-    manifest_uri = cfg.get("manifest_path")
-    assert manifest_uri is not None
