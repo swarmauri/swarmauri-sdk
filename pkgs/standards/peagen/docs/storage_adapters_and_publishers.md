@@ -2,6 +2,8 @@
 
 Peagen writes artifacts through pluggable **git filters** and can publish events during processing. These systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
 
+``storage_adapters`` have been deprecated. Use ``peagen init filter`` to set up a git filter instead and reference it via ``[storage.filters]`` in ``.peagen.toml``.
+
 Workspaces themselves may be managed in a Git repository using the
 ``vcs`` plugin group. See :doc:`git_vcs` for details.
 

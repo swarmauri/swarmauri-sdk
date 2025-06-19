@@ -8,7 +8,10 @@ is created via the ``vcs`` plugin group.
 ```python
 from peagen.plugins.vcs import GitVCS, pea_ref, RUN_REF
 
-vcs = GitVCS.ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
+# open or create a repository locally
+vcs = GitVCS.ensure_repo("./repo")
+# clone a remote repository if needed
+vcs_remote = GitVCS.ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
 vcs.commit(["results.json"], "initial result")
 run_ref = pea_ref("run", "exp-a")
 vcs.tag(run_ref)
@@ -26,6 +29,9 @@ Git filters store artifacts outside the repository. Run ``peagen init filter``
 to set up ``clean`` and ``smudge`` scripts and record the filter URI in
 ``.peagen.toml``. Built‑in filters include ``file://`` and ``s3://`` via
 ``S3FSFilter``.
+
+Additional helpers let tasks create branches (``fan_out``), move refs
+(``promote``), apply tags, or reset a working tree with ``clean_reset``.
 
 Example::
 
