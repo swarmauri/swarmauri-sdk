@@ -205,7 +205,30 @@ class QueueDashboardApp(App):
         ("q", "quit", "Quit"),
     ]
 
-    SORT_KEYS = ["time", "pool", "status", "action", "label", "duration"]
+    SORT_KEYS = [
+        "time",
+        "pool",
+        "status",
+        "action",
+        "label",
+        "duration",
+        "id",
+        "started_at",
+        "finished_at",
+        "error",
+    ]
+
+    COLUMN_LABEL_TO_SORT_KEY = {
+        "ID": "id",
+        "Pool": "pool",
+        "Status": "status",
+        "Action": "action",
+        "Labels": "label",
+        "Started": "started_at",
+        "Finished": "finished_at",
+        "Duration": "duration",
+        "Error": "error",
+    }
 
     queue_len = reactive(0)
     done_len = reactive(0)
@@ -842,6 +865,29 @@ class QueueDashboardApp(App):
 
         # Selection events no longer open task details automatically.
         return
+
+    async def on_data_table_header_selected(
+        self, event: DataTable.HeaderSelected
+    ) -> None:
+        """Sort a table when the user clicks a column header."""
+        table = event.control
+        column_key = event.column_key
+
+        reverse = False
+        last_key = getattr(table, "_last_sort_key", None)
+        last_reverse = getattr(table, "_last_sort_reverse", False)
+        if last_key == column_key:
+            reverse = not last_reverse
+
+        table.sort(column_key, reverse=reverse)
+        table._last_sort_key = column_key
+        table._last_sort_reverse = reverse
+
+        label_plain = event.label.plain
+        sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(label_plain)
+        if sort_key:
+            self.sort_key = sort_key
+        event.stop()
 
     async def open_task_detail(self, task_id: str) -> None:
         task = self.client.tasks.get(task_id)
