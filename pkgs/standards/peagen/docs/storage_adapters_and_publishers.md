@@ -4,10 +4,11 @@ Peagen writes artifacts to a pluggable storage backend and can publish events du
 
 ## Storage Adapters
 
-`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Four adapters ship with the SDK:
+`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Five adapters ship with the SDK:
 
 - `FileStorageAdapter` – stores artifacts on the local filesystem.
 - `MinioStorageAdapter` – targets S3 compatible object stores.
+- `S3FSStorageAdapter` – uses the `s3fs` library for AWS S3.
 - `GithubStorageAdapter` – saves files into a GitHub repository.
 - `GithubReleaseStorageAdapter` – uploads artifacts as release assets and
   exposes a `root_uri` like `ghrel://org/repo/tag/` for retrieval.
