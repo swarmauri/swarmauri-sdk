@@ -38,6 +38,7 @@ from .commands import (
     remote_task_app,
     remote_template_sets_app,
     remote_validate_app,
+    dashboard_app,
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
@@ -146,6 +147,7 @@ def _global_remote_ctx(  # noqa: D401
 
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
+app.add_typer(dashboard_app)
 
 
 local_app.add_typer(local_doe_app, name="doe")
