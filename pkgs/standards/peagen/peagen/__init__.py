@@ -15,6 +15,15 @@ except PackageNotFoundError:
 
 from .plugin_manager import PluginManager, resolve_plugin_spec
 from .errors import PatchTargetMissingError
+from .git import (
+    PEAGEN_REFS_PREFIX,
+    FACTOR_REF,
+    RUN_REF,
+    ANALYSIS_REF,
+    EVO_REF,
+    PROMOTED_REF,
+    pea_ref,
+)
 
 __all__ = [
     "__package_name__",
@@ -22,4 +31,11 @@ __all__ = [
     "PluginManager",
     "resolve_plugin_spec",
     "PatchTargetMissingError",
+    "PEAGEN_REFS_PREFIX",
+    "FACTOR_REF",
+    "RUN_REF",
+    "ANALYSIS_REF",
+    "EVO_REF",
+    "PROMOTED_REF",
+    "pea_ref",
 ]
