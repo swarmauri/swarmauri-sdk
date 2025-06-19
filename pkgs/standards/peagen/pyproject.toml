@@ -66,6 +66,7 @@ dependencies = [
     # artifacts
     "PyGithub", # this storage adapter needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
+    "GitPython",
 
 ]
 
