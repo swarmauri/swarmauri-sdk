@@ -13,7 +13,9 @@ Workspaces themselves may be managed in a Git repository using the
 
 - ``MinioFilter`` – targets S3 compatible object stores.
 - ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
-- ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage.
+- ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage and exposes a
+  ``root_uri`` like ``s3://bucket/prefix/``. Credentials may be provided under
+  ``[storage.filters.s3fs]`` in ``.peagen.toml``.
 
 Enable any of these via `.peagen.toml` using the `[storage.filters.<name>]`
 tables. For example:
