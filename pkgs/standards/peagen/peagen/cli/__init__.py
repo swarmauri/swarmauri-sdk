@@ -27,6 +27,7 @@ from .commands import (
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
+    local_dx_app,
   
     remote_doe_app,
     remote_eval_app,
@@ -160,6 +161,7 @@ local_app.add_typer(local_evolve_app)
 local_app.add_typer(local_sort_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
+local_app.add_typer(local_dx_app, name="dx")
 
 
 remote_app.add_typer(remote_doe_app, name="doe")

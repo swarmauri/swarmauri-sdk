@@ -37,6 +37,10 @@ Example::
 
     peagen init filter s3://mybucket
 
+You can also run ``peagen dx filter`` as a quick shortcut::
+
+    peagen dx filter s3://mybucket
+
 The ``init project`` command accepts ``--git-remote`` to set an origin
 URL during repository creation and ``--filter-uri`` to configure the
 default filter in the generated ``.peagen.toml``.
@@ -45,3 +49,12 @@ Peagen tasks use the VCS when available. DOE expansions and Evolve jobs
 create branches for each spawned run, allowing easy inspection of
 intermediate results. The ``vcs`` plugin can also commit generated
 files automatically.
+
+When a repository is cloned via :class:`GitVCS`, the ``origin`` remote is
+configured to fetch and push all ``refs/pea/*`` references automatically:
+
+```
+with r.config_writer() as cw:
+    cw.set_value('remote "origin"', 'fetch', '+refs/pea/*:refs/pea/*')
+    cw.set_value('remote "origin"', 'push', 'refs/pea/*:refs/pea/*')
+```

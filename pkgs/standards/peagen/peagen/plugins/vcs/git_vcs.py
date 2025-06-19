@@ -5,6 +5,8 @@ from typing import Iterable
 
 from git import Repo
 
+from .constants import PEAGEN_REFS_PREFIX
+
 
 class GitVCS:
     """Lightweight wrapper around :class:`git.Repo`."""
@@ -17,8 +19,17 @@ class GitVCS:
             self.repo = Repo.clone_from(remote_url, p)
         else:
             self.repo = Repo.init(p)
-        if remote_url and "origin" not in self.repo.remotes:
-            self.repo.create_remote("origin", remote_url)
+
+        if remote_url:
+            if "origin" in self.repo.remotes:
+                self.repo.remotes.origin.set_url(remote_url)
+            else:
+                self.repo.create_remote("origin", remote_url)
+
+            with self.repo.config_writer() as cw:
+                sect = 'remote "origin"'
+                cw.set_value(sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
+                cw.set_value(sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
 
     # ------------------------------------------------------------------ init/use
     @classmethod
@@ -52,6 +63,10 @@ class GitVCS:
         self.repo.git.fetch(remote, ref)
         if checkout:
             self.repo.git.checkout("FETCH_HEAD")
+
+    def push(self, ref: str, *, remote: str = "origin") -> None:
+        """Push ``ref`` to *remote*."""
+        self.repo.git.push(remote, ref)
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""
