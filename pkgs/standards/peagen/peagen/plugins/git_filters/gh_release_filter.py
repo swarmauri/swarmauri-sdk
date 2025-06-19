@@ -161,7 +161,7 @@ class GithubReleaseFilter:
         cfg = load_peagen_toml()
         gh_cfg = (
             cfg.get("storage", {})
-            .get("adapters", {})
+            .get("filters", {})
             .get("gh_release", {})
         )
 

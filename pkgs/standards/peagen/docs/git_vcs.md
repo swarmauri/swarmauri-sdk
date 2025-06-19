@@ -37,8 +37,7 @@ Example::
 
     peagen init filter s3://mybucket
 
-You can also run ``peagen dx filter`` as a quick shortcut. If no URI is
-provided both commands default to ``s3://peagen`` using ``S3FSFilter``.
+If no URI is provided the command defaults to ``s3://peagen`` using ``S3FSFilter``.
 
 To enable the filter manually in an existing repository use the
 following snippet::

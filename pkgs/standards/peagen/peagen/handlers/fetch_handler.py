@@ -28,7 +28,7 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     # normalise ---------------------------------------------
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
-    uris: List[str] = args.get("workspaces") or args.get("manifests", [])
+    uris: List[str] = args.get("workspaces", [])
 
     summary = fetch_many(
         workspace_uris=uris,

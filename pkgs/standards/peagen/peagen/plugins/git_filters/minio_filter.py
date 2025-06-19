@@ -144,7 +144,7 @@ class MinioFilter:
         cfg = load_peagen_toml()
         minio_cfg = (
             cfg.get("storage", {})
-            .get("adapters", {})
+            .get("filters", {})
             .get("minio", {})
         )
 

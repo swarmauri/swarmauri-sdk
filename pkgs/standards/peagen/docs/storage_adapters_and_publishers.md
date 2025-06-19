@@ -15,26 +15,26 @@ Workspaces themselves may be managed in a Git repository using the
 - ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
 - ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage.
 
-Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
+Enable any of these via `.peagen.toml` using the `[storage.filters.<name>]`
 tables. For example:
 
 ```toml
 [storage]
-default_storage_adapter = "file"
+default_filter = "file"
 
-[storage.adapters.file]
+[storage.filters.file]
 output_dir = "./peagen_artifacts"
 
-[storage.adapters.minio]
+[storage.filters.minio]
 endpoint = "localhost:9000"
 bucket = "peagen"
 
-[storage.adapters.github]
+[storage.filters.github]
 token = "ghp_..."
 org = "my-org"
 repo = "my-repo"
 
-[storage.adapters.gh_release]
+[storage.filters.gh_release]
 token = "ghp_..."
 org = "my-org"
 repo = "my-repo"
@@ -45,11 +45,11 @@ To use a different solution, subclass one of these classes or implement the same
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.plugins.git_filters.minio_filter import MinioFilter
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    storage_adapter=FileStorageAdapter("./artifacts"),
+    git_filter=MinioFilter.from_uri("s3://localhost:9000/peagen"),
 )
 ```
 

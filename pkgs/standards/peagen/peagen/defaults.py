@@ -35,5 +35,5 @@ CONFIG = {
     # Sensible local defaults so `peagen local` works without a config file
     "queues": {"default_queue": "in_memory", "adapters": {"in_memory": {"maxsize": 0}}},
     "result_backends": {"default_backend": "local_fs", "adapters": {"local_fs": {"root_dir": "./task_runs"}}},
-    "storage": {"default_storage_adapter": "file", "adapters": {"file": {"output_dir": "./peagen_artifacts"}}},
+    "storage": {"default_filter": "file", "filters": {"file": {"output_dir": "./peagen_artifacts"}}},
 }
