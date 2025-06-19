@@ -426,7 +426,7 @@ pea.process_all_projects()
 
 ### Textual TUI
 
-Run `python -m peagen.tui.app` to launch an experimental dashboard that
+Run `peagen tui` to launch an experimental dashboard that
 subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
 `task.update`, `worker.update` and `queue.update` events. Use the tab keys to
 switch between task lists, logs and opened files. The footer shows system
