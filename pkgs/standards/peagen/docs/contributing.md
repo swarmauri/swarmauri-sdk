@@ -15,7 +15,7 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
 
 - Implement a class exposing `upload()` and `download()`.
   The `upload()` method must return the artifact URI so Peagen can store
-  references in manifests and task payloads.
+  references in Git commits and task payloads.
 - Register it via the **`peagen.plugins.git_filters`** entry point group.
 
 ## Publishers

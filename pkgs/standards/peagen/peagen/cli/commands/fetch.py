@@ -23,8 +23,8 @@ from peagen.handlers.fetch_handler import fetch_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-local_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
-remote_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
+local_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
+remote_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
@@ -38,13 +38,13 @@ def _build_task(args: dict) -> Task:
 
 
 def _collect_args(
-    manifests: List[str],
+    workspaces: List[str],
     out_dir: Optional[Path],
     no_source: bool,
     install_template_sets_flag: bool,
 ) -> dict:
     return {
-        "manifests": manifests,
+        "workspaces": workspaces,
         "out_dir": str(out_dir.expanduser()) if out_dir else None,
         "no_source": no_source,
         "install_template_sets": install_template_sets_flag,
@@ -55,7 +55,7 @@ def _collect_args(
 @local_fetch_app.command("fetch")
 def run(
     ctx: typer.Context,
-    manifests: List[str] = typer.Argument(..., help="Manifest JSON URI(s)"),
+    manifests: List[str] = typer.Argument(..., help="Workspace URI(s)"),
     out_dir: Optional[Path] = typer.Option(
         None, "--out", "-o", help="Destination folder (temp dir if omitted)"
     ),
@@ -81,7 +81,7 @@ def run(
 def submit(
     ctx: typer.Context,
     manifests: List[str] = typer.Argument(
-        ..., help="Manifest JSON URI(s)"
+        ..., help="Workspace URI(s)"
     ),
     out_dir: Optional[Path] = typer.Option(
         None, "--out", "-o", help="Destination folder on the worker"

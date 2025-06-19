@@ -55,7 +55,7 @@ pea = Peagen(
 )
 ```
 
-Any class providing `upload()` and `download()` can serve as the adapter, enabling integrations with cloud services or databases. The `upload()` method should return the artifact URI so Peagen can reference it in manifests and task payloads.
+Any class providing `upload()` and `download()` can serve as the adapter, enabling integrations with cloud services or databases. The `upload()` method should return the artifact URI so Peagen can reference it in Git commits and task payloads.
 
 ## Publisher Plugins
 

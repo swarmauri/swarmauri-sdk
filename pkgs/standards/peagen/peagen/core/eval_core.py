@@ -94,7 +94,7 @@ def _collect_programs(workspace_uri: str, pattern: str) -> Tuple[List[Path], Lis
         from peagen.core.fetch_core import fetch_single  # local import to avoid cycle
 
         with temp_workspace() as tmp_dir:
-            fetch_single(workspace_uri, dest_root=tmp_dir, install_template_sets_flag=False)
+            fetch_single(workspace_uri, dest_root=tmp_dir)
             workspace_path = tmp_dir
     else:
         workspace_path = Path(PathOrURI(workspace_uri))
