@@ -36,6 +36,7 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             force=args.get("force", False),
             git_remote=args.get("git_remote"),
             filter_uri=args.get("filter_uri"),
+            add_filter_config=args.get("add_filter_config", False),
         )
 
     if kind == "template-set":

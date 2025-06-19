@@ -45,11 +45,6 @@ EVENT_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
 )
 
-EVAL_MANIFEST_V1_SCHEMA = json.loads(
-    res.files(__package__)
-    .joinpath("eval_manifest.schema.v1.json")
-    .read_text(encoding="utf-8")
-)
 
 # ── EXTRAS schemas ─────────────────────────────────────────────
 _extras_pkg = res.files(__package__).joinpath("extras")
@@ -68,6 +63,5 @@ __all__ = [
     "PTREE_V1_SCHEMA",
     "PROJECTS_PAYLOAD_V1_SCHEMA",
     "EVENT_V1_SCHEMA",
-    "EVAL_MANIFEST_V1_SCHEMA",
     "EXTRAS_SCHEMAS",
 ]

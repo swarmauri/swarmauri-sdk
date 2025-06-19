@@ -26,8 +26,8 @@ When fetching a workspace, a ``workspace_uri`` beginning with
 SHA identifiers are supported via ``git+<url>@<ref>``.
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
-to set up ``clean`` and ``smudge`` scripts and record the filter URI in
-``.peagen.toml``. Built‑in filters include ``s3://`` via
+to write ``clean`` and ``smudge`` helpers. Pass ``--add-config`` to also store
+the filter URI in ``.peagen.toml``. Built‑in filters include ``s3://`` via
 ``S3FSFilter`` and ``MinioFilter`` for MinIO endpoints.
 
 Additional helpers let tasks create branches (``fan_out``), move refs
@@ -52,8 +52,9 @@ following snippet::
     )
 
 The ``init project`` command accepts ``--git-remote`` to set an origin
-URL during repository creation and ``--filter-uri`` to configure the
-default filter in the generated ``.peagen.toml``.
+URL during repository creation and ``--filter-uri`` to initialise a
+filter. Use ``--add-filter-config`` to also write the URI to the
+generated ``.peagen.toml``.
 
 Peagen tasks use the VCS when available. DOE expansions and Evolve jobs
 create branches for each spawned run, allowing easy inspection of

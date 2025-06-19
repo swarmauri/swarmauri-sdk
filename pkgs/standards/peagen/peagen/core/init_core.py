@@ -76,6 +76,7 @@ def init_project(
     force: bool = False,
     git_remote: str | None = None,
     filter_uri: str | None = None,
+    add_filter_config: bool = False,
 ) -> Dict[str, Any]:
     """Create a new Peagen project skeleton."""
     tmpl_mod = registry["template_sets"].get("init-project")
@@ -100,8 +101,10 @@ def init_project(
     vcs.commit(["."], "initial commit")
 
     if filter_uri:
-        from peagen._utils.git_filter import add_filter
-        add_filter(filter_uri, config=path / ".peagen.toml")
+        from peagen._utils.git_filter import add_filter, init_git_filter
+        init_git_filter(vcs.repo, filter_uri)
+        if add_filter_config:
+            add_filter(filter_uri, config=path / ".peagen.toml")
 
     return {"created": str(path), "next": "peagen process"}
 

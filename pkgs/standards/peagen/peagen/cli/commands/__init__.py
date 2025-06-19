@@ -13,7 +13,6 @@ from .sort import local_sort_app, remote_sort_app
 from .task import remote_task_app
 from .templates import local_template_sets_app, remote_template_sets_app
 from .validate import local_validate_app, remote_validate_app
-from .dx import local_dx_app
 
 __all__ = [
     "local_doe_app",
@@ -40,5 +39,4 @@ __all__ = [
     "remote_template_sets_app",
     "local_validate_app",
     "remote_validate_app",
-    "local_dx_app",
 ]

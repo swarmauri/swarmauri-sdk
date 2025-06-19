@@ -34,14 +34,19 @@ def local_init_filter(
     name: str = "default",
     config: Path = Path(".peagen.toml"),
     repo: Path = Path("."),
+    add_config: bool = typer.Option(False, "--add-config", help="Write filter settings to config"),
 ) -> None:
-    """Add a git filter entry and configure the repository.
+    """Configure *repo* with a git filter.
 
-    If *uri* is omitted, the default ``s3://peagen`` filter is used.
+    If *uri* is omitted, ``s3://peagen`` is used. Use ``--add-config`` to update
+    ``config`` with the filter entry.
     """
-    add_filter(uri, name=name, config=config)
     init_git_filter(repo, uri, name=name)
-    typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'} in {config}")
+    if add_config:
+        add_filter(uri, name=name, config=config)
+        typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'} in {config}")
+    else:
+        typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'}")
 
 
 # ── init project ─────────────────────────────────────────────────────────────
@@ -70,6 +75,11 @@ def local_init_project(
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
     ),
+    add_filter_config: bool = typer.Option(
+        False,
+        "--add-filter-config",
+        help="Also record filter in .peagen.toml",
+    ),
 ):
     """Create a new Peagen project skeleton locally."""
     self = Logger(name="init_project")
@@ -84,11 +94,12 @@ def local_init_project(
         "force": force,
         "git_remote": git_remote,
         "filter_uri": filter_uri,
+        "add_filter_config": add_filter_config,
     }
 
     result = _call_handler(args)
     _summary(path, result["next"])
-    if filter_uri:
+    if filter_uri and add_filter_config:
         add_filter(filter_uri, config=path / ".peagen.toml")
     self.logger.info("Exiting local init_project command")
 
@@ -117,6 +128,9 @@ def remote_init_project(
     ),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
+    ),
+    add_filter_config: bool = typer.Option(
+        False, "--add-filter-config", help="Also record filter in .peagen.toml"
     ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
