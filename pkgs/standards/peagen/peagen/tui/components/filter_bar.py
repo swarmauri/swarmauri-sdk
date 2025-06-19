@@ -6,6 +6,8 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Select
 
+from peagen.models.schemas import Status
+
 
 class FilterBar(Horizontal):
     """Dropdown filters for the dashboard."""
@@ -94,7 +96,7 @@ class FilterBar(Horizontal):
 
     def update_options(self, tasks: Iterable[dict]) -> None:
         pools = {str(t.get("pool")) for t in tasks if t.get("pool") is not None}
-        statuses = {str(t.get("status")) for t in tasks if t.get("status") is not None}
+        statuses = {status.value for status in Status}
         actions = {
             str(t.get("payload", {}).get("action"))
             for t in tasks
