@@ -9,18 +9,11 @@ from __future__ import annotations
 import io
 import os
 import shutil
-import warnings
 from pathlib import Path
 from typing import BinaryIO
 
-warnings.warn(
-    "peagen.plugins.storage_adapters.file_storage_adapter is deprecated; use peagen.plugins.git_filters.file_filter instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
-
-class FileStorageAdapter:
+class FileFilter:
     """Write and read artefacts on the local disk."""
 
     def __init__(self, output_dir: str | os.PathLike, *, prefix: str = ""):
@@ -102,7 +95,24 @@ class FileStorageAdapter:
                 shutil.copy2(path, target)
 
     @classmethod
-    def from_uri(cls, uri: str) -> "FileStorageAdapter":
+    def from_uri(cls, uri: str) -> "FileFilter":
         """Instantiate the adapter from a ``file://`` URI."""
         path = Path(uri[7:]).resolve()
         return cls(output_dir=path)
+
+    # ---------------------------------------------------------------- oid helpers
+    def clean(self, data: bytes) -> str:
+        """Store *data* addressed by its SHA256 and return the OID."""
+        import hashlib
+        oid = "sha256:" + hashlib.sha256(data).hexdigest()
+        try:
+            self.download(oid)
+        except FileNotFoundError:
+            self.upload(oid, io.BytesIO(data))
+        return oid
+
+    def smudge(self, oid: str) -> bytes:
+        """Return the original bytes for *oid*."""
+        with self.download(oid) as fh:
+            return fh.read()
+

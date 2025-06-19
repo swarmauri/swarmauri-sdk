@@ -21,7 +21,10 @@ GROUPS = {
     "publishers": ("peagen.plugins.publishers", object),
     "queues": ("peagen.plugins.queues", object),
     "result_backends": ("peagen.plugins.result_backends", object),
+    # deprecated: storage adapters are now git filters
     "storage_adapters": ("peagen.plugins.storage_adapters", object),
+    "git_filters": ("peagen.plugins.git_filters", object),
+    "vcs": ("peagen.plugins.vcs", object),
     "selectors": ("peagen.plugins.selectors", object),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
@@ -105,10 +108,16 @@ class PluginManager:
     """Centralised plugin loader for peagen plugins."""
 
     GROUP_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
+        # deprecated: use git_filters instead
         "storage_adapters": {
             "section": "storage",
             "items": "adapters",
             "default": "default_storage_adapter",
+        },
+        "git_filters": {
+            "section": "storage",
+            "items": "filters",
+            "default": "default_filter",
         },
         "publishers": {
             "section": "publishers",
@@ -154,6 +163,11 @@ class PluginManager:
             "section": "programs",
             "items": "plugins",
             "default": "default_program",
+        },
+        "vcs": {
+            "section": "vcs",
+            "single": "provider",
+            "default": "default_vcs",
         },
         "selectors": {
             "section": "selectors",

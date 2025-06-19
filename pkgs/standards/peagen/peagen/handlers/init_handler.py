@@ -34,6 +34,8 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             with_doe=args.get("with_doe", False),
             with_eval_stub=args.get("with_eval_stub", False),
             force=args.get("force", False),
+            git_remote=args.get("git_remote"),
+            filter_uri=args.get("filter_uri"),
         )
 
     if kind == "template-set":

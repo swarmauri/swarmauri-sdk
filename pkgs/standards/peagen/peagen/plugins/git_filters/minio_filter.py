@@ -8,7 +8,6 @@ from __future__ import annotations
 import io
 import os
 import shutil
-import warnings
 from pathlib import Path
 from typing import BinaryIO, Optional
 
@@ -18,14 +17,8 @@ from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
 
-warnings.warn(
-    "peagen.plugins.storage_adapters.minio_storage_adapter is deprecated; use peagen.plugins.git_filters.minio_filter instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
-
-class MinioStorageAdapter:
+class MinioFilter:
     """Simple wrapper around the MinIO client for use with Peagen."""
 
     def __init__(
@@ -138,7 +131,7 @@ class MinioStorageAdapter:
 
     # ------------------------------------------------------------------
     @classmethod
-    def from_uri(cls, uri: str) -> "MinioStorageAdapter":
+    def from_uri(cls, uri: str) -> "MinioFilter":
         """Create an adapter from a ``minio[s]://`` URI and env/TOML creds."""
         from urllib.parse import urlparse
 
@@ -172,3 +165,19 @@ class MinioStorageAdapter:
             secure=secure,
             prefix=prefix,
         )
+
+    # ---------------------------------------------------------------- oid helpers
+    def clean(self, data: bytes) -> str:
+        """Store *data* under its SHA256 and return the OID."""
+        import hashlib
+        oid = "sha256:" + hashlib.sha256(data).hexdigest()
+        try:
+            self.download(oid)
+        except FileNotFoundError:
+            self.upload(oid, io.BytesIO(data))
+        return oid
+
+    def smudge(self, oid: str) -> bytes:
+        """Retrieve bytes for *oid*."""
+        with self.download(oid) as fh:
+            return fh.read()

@@ -1,0 +1,41 @@
+# Git VCS Integration
+
+Peagen can store and manage artifacts inside a Git repository. The
+:mod:`peagen.plugins.vcs` package exposes a small helper class
+:class:`GitVCS` which wraps the `git` Python bindings. A default instance
+is created via the ``vcs`` plugin group.
+
+```python
+from peagen.plugins.vcs import GitVCS, pea_ref, RUN_REF
+
+vcs = GitVCS.ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
+vcs.commit(["results.json"], "initial result")
+run_ref = pea_ref("run", "exp-a")
+vcs.tag(run_ref)
+```
+
+Git references follow the ``refs/pea/<kind>`` convention. Constants are
+exported for common prefixes such as :data:`RUN_REF` and
+:data:`PROMOTED_REF`.
+
+When fetching a workspace, a ``workspace_uri`` beginning with
+``git+`` will be cloned to the destination directory. Both branches and
+SHA identifiers are supported via ``git+<url>@<ref>``.
+
+Git filters store artifacts outside the repository. Run ``peagen init filter``
+to set up ``clean`` and ``smudge`` scripts and record the filter URI in
+``.peagen.toml``. Built‑in filters include ``file://`` and ``s3://`` via
+``S3FSFilter``.
+
+Example::
+
+    peagen init filter s3://mybucket
+
+The ``init project`` command accepts ``--git-remote`` to set an origin
+URL during repository creation and ``--filter-uri`` to configure the
+default filter in the generated ``.peagen.toml``.
+
+Peagen tasks use the VCS when available. DOE expansions and Evolve jobs
+create branches for each spawned run, allowing easy inspection of
+intermediate results. The ``vcs`` plugin can also commit generated
+files automatically.

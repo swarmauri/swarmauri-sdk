@@ -1,16 +1,19 @@
-# Storage Adapters and Publisher Plugins
+# Git Filters and Publisher Plugins
 
-Peagen writes artifacts to a pluggable storage backend and can publish events during processing. Both systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
+Peagen writes artifacts through pluggable **git filters** and can publish events during processing. These systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
 
-## Storage Adapters
+Workspaces themselves may be managed in a Git repository using the
+``vcs`` plugin group. See :doc:`git_vcs` for details.
 
-`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Four adapters ship with the SDK:
+## Git Filters
 
-- `FileStorageAdapter` – stores artifacts on the local filesystem.
-- `MinioStorageAdapter` – targets S3 compatible object stores.
-- `GithubStorageAdapter` – saves files into a GitHub repository.
-- `GithubReleaseStorageAdapter` – uploads artifacts as release assets and
-  exposes a `root_uri` like `ghrel://org/repo/tag/` for retrieval.
+``Peagen`` now accepts a ``git_filter`` implementing ``upload()`` and ``download()`` methods. Built-in filters include:
+
+- ``FileFilter`` – stores artifacts on the local filesystem.
+- ``MinioFilter`` – targets S3 compatible object stores.
+- ``GithubFilter`` – saves files into a GitHub repository.
+- ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
+- ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage.
 
 Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
 tables. For example:

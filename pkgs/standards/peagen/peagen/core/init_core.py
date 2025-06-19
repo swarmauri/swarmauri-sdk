@@ -74,6 +74,8 @@ def init_project(
     with_doe: bool = False,
     with_eval_stub: bool = False,
     force: bool = False,
+    git_remote: str | None = None,
+    filter_uri: str | None = None,
 ) -> Dict[str, Any]:
     """Create a new Peagen project skeleton."""
     tmpl_mod = registry["template_sets"].get("init-project")
@@ -92,6 +94,15 @@ def init_project(
     }
 
     _render_scaffold(src_root, path, context, force)
+
+    from peagen.plugins.vcs import GitVCS
+    vcs = GitVCS.ensure_repo(path, remote_url=git_remote)
+    vcs.commit(["."], "initial commit")
+
+    if filter_uri:
+        from peagen._utils.git_filter import add_filter
+        add_filter(filter_uri, config=path / ".peagen.toml")
+
     return {"created": str(path), "next": "peagen process"}
 
 

@@ -66,7 +66,8 @@ dependencies = [
     # artifacts
     "PyGithub", # this storage adapter needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
-
+    "GitPython",
+    "s3fs",
 ]
 
 
@@ -139,6 +140,16 @@ minio   = "peagen.plugins.storage_adapters.minio_storage_adapter:MinioStorageAda
 file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapter"
 github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
 gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
+
+[project.entry-points."peagen.plugins.git_filters"]
+minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
+file    = "peagen.plugins.git_filters.file_filter:FileFilter"
+github    = "peagen.plugins.git_filters.github_filter:GithubFilter"
+gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"
+s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
+
+[project.entry-points."peagen.plugins.vcs"]
+git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"

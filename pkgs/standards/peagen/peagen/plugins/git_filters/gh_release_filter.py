@@ -8,22 +8,16 @@ import io
 import os
 import shutil
 import tempfile
-import warnings
 from pathlib import Path
 from typing import BinaryIO, Optional
 
 from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
-warnings.warn(
-    "peagen.plugins.storage_adapters.gh_release_storage_adapter is deprecated; use peagen.plugins.git_filters.gh_release_filter instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
+class GithubReleaseFilter:
+    """Git filter that uses GitHub Releases to store and retrieve assets."""
 
-class GithubReleaseStorageAdapter:
-    """Storage adapter that uses GitHub Releases to store and retrieve assets."""
 
     def __init__(
         self,
@@ -51,6 +45,7 @@ class GithubReleaseStorageAdapter:
         )
 
     # ----------------------------------------------------------------- helpers
+
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         if self._prefix:
@@ -91,6 +86,7 @@ class GithubReleaseStorageAdapter:
         data.seek(0)
         content = data.read()
 
+
         for asset in self._release.get_assets():
             if asset.name == key:
                 asset.delete_asset()
@@ -106,6 +102,7 @@ class GithubReleaseStorageAdapter:
     def download(self, key: str) -> BinaryIO:
         """Return the bytes of asset ``key`` as a BytesIO object."""
         key = self._full_key(key)
+
 
         for asset in self._release.get_assets():
             if asset.name == key:
@@ -153,7 +150,7 @@ class GithubReleaseStorageAdapter:
 
     # --------------------------------------------------------------------- class
     @classmethod
-    def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":
+    def from_uri(cls, uri: str) -> "GithubReleaseFilter":
         from urllib.parse import urlparse
 
         p = urlparse(uri)
@@ -178,4 +175,21 @@ class GithubReleaseStorageAdapter:
             prefix=prefix,
         )
 
-__all__ = ["GithubReleaseStorageAdapter"]
+    # ---------------------------------------------------------------- oid helpers
+    def clean(self, data: bytes) -> str:
+        import hashlib
+        import io
+
+        oid = "sha256:" + hashlib.sha256(data).hexdigest()
+        try:
+            self.download(oid)
+        except FileNotFoundError:
+            self.upload(oid, io.BytesIO(data))
+        return oid
+
+    def smudge(self, oid: str) -> bytes:
+        with self.download(oid) as fh:
+            return fh.read()
+
+__all__ = ["GithubReleaseFilter"]
+

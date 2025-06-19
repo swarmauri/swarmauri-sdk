@@ -20,6 +20,7 @@ from urllib.parse import urlparse, urlunparse
 from peagen._utils._template_sets import install_template_sets          # legacy helper
 from peagen._utils._source_packages import materialise_packages          # legacy helper
 from peagen.plugins.storage_adapters import make_adapter_for_uri          # adapter factory
+from peagen.plugins.vcs import GitVCS
 
 
 # ─────────────────────────── low-level helpers ────────────────────────────
@@ -52,9 +53,16 @@ def _materialise_workspace(manifest: Dict[str, Any], dest: Path) -> None:
     Download the *workspace* snapshot referenced by *manifest* into *dest*.
     """
     ws_uri = manifest["workspace_uri"]
-    adapter = make_adapter_for_uri(ws_uri)
-    prefix = getattr(adapter, "_prefix", "")
-    adapter.download_prefix(prefix, dest)                # type: ignore[attr-defined]
+    if ws_uri.startswith("git+"):
+        url_ref = ws_uri[4:]
+        url, _, ref = url_ref.partition("@")
+        ref = ref or "HEAD"
+        vcs = GitVCS.ensure_repo(dest, remote_url=url)
+        vcs.checkout(ref)
+    else:
+        adapter = make_adapter_for_uri(ws_uri)
+        prefix = getattr(adapter, "_prefix", "")
+        adapter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
 
 
 # ───────────────────────────── public API ─────────────────────────────────
