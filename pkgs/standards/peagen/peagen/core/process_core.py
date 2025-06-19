@@ -261,6 +261,7 @@ def _handle_generate(
     project_name: str,
     logger: Optional[Any],
     manifest_writer: ManifestWriter,
+    parent_task_id: Optional[str] = None,
 ) -> None:
     """
     Render a GENERATE record by calling the external agent, save/upload it, then add to the manifest.
@@ -287,6 +288,7 @@ def _handle_generate(
         j2,
         agent_env,
         cfg,
+        parent_task_id,
     )
     if log:
         log.debug(content)
@@ -322,6 +324,7 @@ def process_single_project(
     start_idx: int = 0,
     start_file: Optional[str] = None,
     transitive: bool = False,
+    parent_task_id: Optional[str] = None,
 ) -> Tuple[List[Dict[str, Any]], int]:
     """
     1) Build a global Jinja search path that includes built-ins, plugins, and workspace.
@@ -480,6 +483,7 @@ def process_single_project(
                 project_name,
                 logger,
                 manifest_writer,
+                parent_task_id,
             )
         else:
             if logger:
@@ -503,6 +507,7 @@ def process_all_projects(
     projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
     cfg: Dict[str, Any],
     transitive: bool = False,
+    parent_task_id: Optional[str] = None,
 ) -> Dict[str, List[Dict[str, Any]]]:
     """Process every project described in ``projects_payload``.
 
@@ -522,6 +527,7 @@ def process_all_projects(
             start_idx=next_idx,
             start_file=None,
             transitive=transitive,
+            parent_task_id=parent_task_id,
         )
         results[name] = recs
 

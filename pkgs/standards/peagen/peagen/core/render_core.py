@@ -58,6 +58,7 @@ def _render_generate_template(
     j2_instance: Any,
     agent_env: Dict[str, str] = {},
     cfg: Optional[Dict[str, Any]] = None,
+    parent_task_id: Optional[str] = None,
 ) -> str:
     """
     Render a GENERATE‐style template.  
@@ -75,8 +76,14 @@ def _render_generate_template(
         rendered_prompt = j2_instance.fill(context)
         import inspect
         sig = inspect.signature(call_external_agent)
-        if len(sig.parameters) >= 4:
-            resp = call_external_agent(rendered_prompt, agent_env, cfg, logger)
+        if len(sig.parameters) >= 6:
+            resp = call_external_agent(
+                rendered_prompt,
+                agent_env,
+                cfg,
+                logger=logger,
+                parent_task_id=parent_task_id,
+            )
         else:
             resp = call_external_agent(rendered_prompt, agent_env, logger=logger)
         if logger:
