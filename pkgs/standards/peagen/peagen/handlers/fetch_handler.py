@@ -33,5 +33,7 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     summary = fetch_many(
         workspace_uris=uris,
         out_dir=Path(args["out_dir"]).expanduser() if args.get("out_dir") else None,
+        install_template_sets_flag=args.get("install_template_sets", True),
+        no_source=args.get("no_source", False),
     )
     return summary
