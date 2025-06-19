@@ -241,6 +241,7 @@ class QueueDashboardApp(App):
         self.client = TaskStreamClient(ws_url)
         self.backend = RemoteBackend(gateway_url)
         self.sort_key = "time"
+        self.sort_reverse = False
         self.filter_id: str | None = None
         self.filter_pool: str | None = None
         self.filter_status: str | None = None
@@ -385,6 +386,7 @@ class QueueDashboardApp(App):
             "action": self.filter_action,
             "label": self.filter_label,
             "sort_key": self.sort_key,
+            "sort_reverse": self.sort_reverse,
             "collapsed": self.collapsed.copy(),
         }
         processed_data = self._perform_filtering_and_sorting(
@@ -411,6 +413,7 @@ class QueueDashboardApp(App):
             tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
 
         sort_key = criteria.get("sort_key")
+        sort_reverse = criteria.get("sort_reverse", False)
         if sort_key:
 
             def _key_func(task_item):
@@ -426,7 +429,10 @@ class QueueDashboardApp(App):
                     )
                 return task_item.get(sort_key)
 
-            tasks.sort(key=lambda t: (_key_func(t) is None, _key_func(t)))
+            tasks_with_val = [t for t in tasks if _key_func(t) is not None]
+            tasks_without_val = [t for t in tasks if _key_func(t) is None]
+            tasks_with_val.sort(key=_key_func, reverse=sort_reverse)
+            tasks = tasks_with_val + tasks_without_val
 
         current_workers = {}
         source_workers = (
@@ -732,6 +738,7 @@ class QueueDashboardApp(App):
         except ValueError:
             idx = 0
         self.sort_key = self.SORT_KEYS[(idx + 1) % len(self.SORT_KEYS)]
+        self.sort_reverse = False
         self.toast(f"Sorting by {self.sort_key}", duration=1.0)
         self.trigger_data_processing()
 
@@ -887,6 +894,8 @@ class QueueDashboardApp(App):
         sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(label_plain)
         if sort_key:
             self.sort_key = sort_key
+        self.sort_reverse = reverse
+        self.trigger_data_processing(debounce=False)
         event.stop()
 
     async def open_task_detail(self, task_id: str) -> None:
