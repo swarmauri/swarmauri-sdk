@@ -139,11 +139,15 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, "HEAD")
+            vcs.create_branch(branch, base_ref)
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
                 art_bytes = (spec_dir / lvl["artifactRef"]).read_bytes()
+            else:
+                current_art = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
+                if current_art.exists():
+                    art_bytes = current_art.read_bytes()
             patch_path = (spec_dir / lvl["patchRef"]).expanduser()
             kind = lvl.get("patchKind", "json-patch")
             patched = apply_patch(art_bytes, patch_path, kind)
