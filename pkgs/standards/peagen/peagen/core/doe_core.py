@@ -25,6 +25,7 @@ from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import resolve_plugin_spec
 from peagen.errors import PatchTargetMissingError
 from peagen.schemas import DOE_SPEC_V2_SCHEMA
+from peagen.plugins.vcs import pea_ref
 from peagen._utils._validation import _validate
 
 # ─────────────────────────────── util ──────────────────────────────────────
@@ -118,6 +119,50 @@ def _apply_factor_patches(base: bytes, idx: dict[str, dict[str, Any]], point: di
         kind = level.get("patchKind", "json-patch")
         result = apply_patch(result, patch_path, kind)
     return result
+
+
+def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
+    """Create a branch for each factor level with its patched artifact."""
+
+    base_path = (spec_dir / spec["baseArtifact"]).expanduser()
+    base_bytes = base_path.read_bytes()
+    branches: list[str] = []
+    for fac in spec.get("factors", []):
+        for lvl in fac.get("levels", []):
+            branch = pea_ref("factor", fac["name"], lvl["id"])
+            vcs.create_branch(branch, "HEAD")
+            vcs.switch(branch)
+            art_bytes = base_bytes
+            if lvl.get("artifactRef"):
+                art_bytes = (spec_dir / lvl["artifactRef"]).read_bytes()
+            patch_path = (spec_dir / lvl["patchRef"]).expanduser()
+            kind = lvl.get("patchKind", "json-patch")
+            patched = apply_patch(art_bytes, patch_path, kind)
+            target = Path(vcs.repo.working_tree_dir) / lvl["targetRef"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(patched)
+            vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"factor {fac['name']}={lvl['id']}")
+            branches.append(branch)
+    vcs.switch("HEAD")
+    return branches
+
+
+def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
+    """Create run branches by merging factor level branches."""
+
+    branches: list[str] = []
+    for point in design_points:
+        label = "_".join(f"{k}-{v}" for k, v in point.items())
+        branch = pea_ref("run", label)
+        vcs.create_branch(branch, "HEAD")
+        vcs.switch(branch)
+        parents = [pea_ref("factor", k, v) for k, v in point.items()]
+        if parents:
+            vcs.repo.git.merge("--no-ff", "--no-edit", *parents)
+        vcs.repo.git.commit("-m", f"run {label}")
+        branches.append(branch)
+    vcs.switch("HEAD")
+    return branches
 
 def _render_patch_ops(
     patch_ops: List[Dict[str, Any]], ctx: Dict[str, Any]

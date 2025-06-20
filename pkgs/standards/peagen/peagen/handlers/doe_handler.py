@@ -5,11 +5,16 @@ from pathlib import Path
 from typing import Any, Dict, List
 import os
 
-from peagen.core.doe_core import generate_payload  #  ←── renamed import
+from peagen.core.doe_core import (
+    generate_payload,
+    create_factor_branches,
+    create_run_branches,
+    _matrix_v2,
+)
 from peagen.models import Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.plugins.vcs import pea_ref
+import yaml
 
 
 async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
@@ -39,7 +44,11 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         rel_paths: List[str] = [os.path.relpath(p, repo_root) for p in result.get("outputs", [])]
         if rel_paths:
             vcs.commit(rel_paths, f"doe {Path(args['spec']).stem}")
-            branches = [pea_ref("run", Path(p).stem) for p in result.get("outputs", [])]
-            vcs.fan_out("HEAD", branches)
+
+        spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
+        if spec_obj.get("baseArtifact"):
+            create_factor_branches(vcs, spec_obj, Path(args["spec"]).expanduser().parent)
+            points = _matrix_v2(spec_obj.get("factors", []))
+            create_run_branches(vcs, points)
 
     return result
