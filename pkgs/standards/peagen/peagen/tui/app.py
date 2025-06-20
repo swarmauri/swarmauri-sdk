@@ -899,6 +899,7 @@ class QueueDashboardApp(App):
             .strip()
         )
         sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(cleaned_label)
+    
         if sort_key:
             self.sort_key = sort_key
         self.sort_reverse = reverse
