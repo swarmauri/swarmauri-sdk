@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import jsonpatch
 from peagen.core.patch_core import apply_patch
+from peagen.core.eval_core import evaluate_workspace
 import yaml
 from jinja2 import Template
 from urllib.parse import urlparse
@@ -289,6 +290,9 @@ def generate_payload(
     dry_run: bool = False,
     force: bool = False,
     skip_validate: bool = False,
+    evaluate_runs: bool = False,
+    eval_program_glob: str = "**/*.*",
+    eval_pool: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Expand *spec_path* × *template_path* into a project-payload bundle.
@@ -376,10 +380,25 @@ def generate_payload(
     if notify_uri:
         _publish_event(notify_uri, output_path, len(bundles), cfg_path)
 
+    evaluations: List[Dict[str, Any]] = []
+    if evaluate_runs:
+        for art in artifact_outputs:
+            try:
+                report = evaluate_workspace(
+                    workspace_uri=str(Path(art).parent),
+                    program_glob=eval_program_glob,
+                    pool_ref=eval_pool,
+                    cfg_path=cfg_path,
+                )
+                evaluations.append(report)
+            except Exception as exc:  # pragma: no cover - optional
+                evaluations.append({"workspace": str(Path(art).parent), "error": str(exc)})
+
     # 4. ------------ summary ---------------------------------------------
     return {
         "outputs": outputs,
         "artifact_outputs": artifact_outputs,
+        "evaluations": evaluations,
         "count": len(bundles),
         "bytes": bytes_written,
         "llm_keys": llm_keys,
