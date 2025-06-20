@@ -104,6 +104,19 @@ def _matrix_v2(factors: List[dict[str, Any]]) -> List[dict[str, str]]:
         lists.append(pairs)
     return [dict(p) for p in itertools.product(*lists)]
 
+def _matrix_factor_sets(factor_sets: List[dict[str, Any]]) -> List[dict[str, str]]:
+    """Expand *factor_sets* into a list of design points."""
+    points: list[dict[str, str]] = []
+    for fs in factor_sets:
+        cp = fs.get("cartesianProduct", {})
+        if not cp:
+            continue
+        names = list(cp.keys())
+        values = [cp[n] for n in names]
+        for combo in itertools.product(*values):
+            points.append(dict(zip(names, combo)))
+    return points
+
 def _factor_index(factors: List[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     idx = {}
     for fac in factors:
@@ -311,7 +324,11 @@ def generate_payload(
 
     factors = spec_obj.get("factors", [])
     factor_idx = _factor_index(factors)
-    design_points = _matrix_v2(factors)
+    factor_sets = spec_obj.get("factorSets", [])
+    if factor_sets:
+        design_points = _matrix_factor_sets(factor_sets)
+    else:
+        design_points = _matrix_v2(factors)
     llm_keys: List[str] = []
     other_keys = [f["name"] for f in factors]
 
