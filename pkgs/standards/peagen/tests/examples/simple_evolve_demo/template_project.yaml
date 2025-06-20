@@ -1,0 +1,13 @@
+schemaVersion: "1.0.0"
+PROJECTS:
+- NAME: ExampleWorkspace
+  ROOT: "workspace"
+  TEMPLATE_SET: swarmauri_base
+  PACKAGES:
+  - NAME: "workspace"
+    MODULES:
+    - NAME: "main"
+      EXTRAS:
+        PURPOSE: "Demo module"
+        DESCRIPTION: "Demo module"
+        RESOURCE_KIND: "workspace"

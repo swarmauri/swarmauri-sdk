@@ -1,3 +1,12 @@
+version: "2.0.0"
+meta:
+  name: evolve-example-2
+population:
+  size: 1
+  generations: 1
+  init:
+    baseArtifacts:
+      - workspace
 JOBS:
   - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/evolve_example_2/workspace
     target_file: main.py
@@ -5,6 +14,11 @@ JOBS:
     entry_fn: add
     config: pkgs/standards/peagen/tests/examples/evolve_example_2/cfg/remote.toml
 operators:
+  selection:
+    kind: default_selector
   mutation:
     - kind: echo_mutator
       probability: 1
+      uri: patches/echo.patch
+  fitness:
+    kind: PerformanceEvaluator
