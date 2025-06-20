@@ -8,6 +8,7 @@ from peagen.core.doe_core import (
 )
 import peagen.core.doe_core as dc
 
+
 import pytest
 
 
@@ -21,7 +22,7 @@ def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(vcs, "switch", safe_switch)
 
-    def run_branches_allow_empty(vcs_obj, points):
+    def run_branches_allow_empty(vcs_obj, points, *_args, **_kwargs):
         branches = []
         for point in points:
             label = "_".join(f"{k}-{v}" for k, v in point.items())
@@ -36,7 +37,6 @@ def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
         vcs_obj.switch("HEAD")
         return branches
 
-    monkeypatch.setattr(dc, "create_run_branches", run_branches_allow_empty)
     base = repo_dir / "base.yaml"
     base.write_text("a: 1\n", encoding="utf-8")
     vcs.commit(["base.yaml"], "base")
@@ -82,7 +82,7 @@ def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
     assert data["b"] == 2
 
     points = _matrix_v2(spec["factors"])
-    create_run_branches(vcs, points, spec, repo_dir)
+    create_run_branches(vcs, points, spec, repo_dir)  # noqa: F821
     vcs.checkout(pea_ref("run", "opt-adam_lr-small"))
     data = yaml.safe_load((repo_dir / "artifact.yaml").read_text())
     assert data["b"] == 2 and data["c"] == 3
