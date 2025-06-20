@@ -15,6 +15,7 @@ except PackageNotFoundError:
 
 from .plugin_manager import PluginManager, resolve_plugin_spec
 from .errors import PatchTargetMissingError
+from .core.patch_core import apply_patch
 
 __all__ = [
     "__package_name__",
@@ -22,4 +23,5 @@ __all__ = [
     "PluginManager",
     "resolve_plugin_spec",
     "PatchTargetMissingError",
+    "apply_patch",
 ]
