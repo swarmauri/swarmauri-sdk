@@ -22,6 +22,7 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "gens": 3,
         "profile_mod": None,
         "config": None,
+        "mutations": [{"kind": "echo_mutator", "probability": 1}],
     }
 
     result = await handler.mutate_handler({"payload": {"args": args}})
@@ -32,3 +33,4 @@ async def test_mutate_handler_invokes_core(monkeypatch):
     assert captured["import_path"] == "mod"
     assert captured["entry_fn"] == "f"
     assert captured["gens"] == 3
+    assert captured["mutations"] == [{"kind": "echo_mutator", "probability": 1}]

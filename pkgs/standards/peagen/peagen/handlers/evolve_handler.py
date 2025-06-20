@@ -1,4 +1,5 @@
 """Expand an evolve spec into multiple mutate tasks."""
+
 from __future__ import annotations
 
 import uuid
@@ -29,10 +30,13 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     spec_path = Path(args["evolve_spec"]).expanduser()
     doc = yaml.safe_load(spec_path.read_text())
     jobs: List[Dict[str, Any]] = doc.get("JOBS", [])
+    mutations = doc.get("operators", {}).get("mutation")
 
     pool = task_or_dict.get("pool", "default")
     children: List[Task] = []
     for job in jobs:
+        if mutations is not None:
+            job.setdefault("mutations", mutations)
         children.append(
             Task(
                 id=str(uuid.uuid4()),
@@ -43,7 +47,12 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             )
         )
 
-    child_ids = await fan_out(task_or_dict, children, result={"evolve_spec": str(spec_path)}, final_status=Status.waiting)
+    child_ids = await fan_out(
+        task_or_dict,
+        children,
+        result={"evolve_spec": str(spec_path)},
+        final_status=Status.waiting,
+    )
 
     if vcs:
         repo_root = Path(vcs.repo.working_tree_dir)
