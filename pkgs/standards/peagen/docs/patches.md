@@ -48,6 +48,5 @@ Value        Engine does…                                  Notes
 git          runs git apply in a scratch work-tree         For plain-text (code, Dockerfile).
 json-patch   RFC 6902 op list                              Precise adds / removes / replaces.
 json-merge   RFC 7386 overlay                              Whole sub-trees replaced; null deletes.
-cue          CUE unification                               Merge schema + defaults + data; patch file is a CUE struct.
 (others)     any plugin name                               The engine loads it via entry-points; schema allows free strings.
 ```
