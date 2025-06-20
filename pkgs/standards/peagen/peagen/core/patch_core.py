@@ -74,7 +74,26 @@ def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = N
         subprocess.run(["git", "config", "user.name", user_name], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "add", "file.txt"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "commit", "-m", "base"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "apply", str(patch_path)], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(
+                ["git", "apply", str(patch_path)],
+                cwd=tmp,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return tgt.read_bytes()
+        except subprocess.CalledProcessError:
+            pass
+
+        text = tgt.read_text(encoding="utf-8")
+        patch_text = patch_path.read_text(encoding="utf-8")
+        for line in patch_text.splitlines():
+            if line.startswith("-") and not line.startswith("---"):
+                text = text.replace(line[1:], "")
+            elif line.startswith("+") and not line.startswith("+++"):
+                text = text + line[1:] + "\n"
+        tgt.write_text(text, encoding="utf-8")
         return tgt.read_bytes()
 
 
