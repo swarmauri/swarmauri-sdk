@@ -151,8 +151,17 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     return branches
 
 
-def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
-    """Create run branches by merging factor level branches."""
+def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
+    """Create run branches by applying factor patches for each design point."""
+
+    factors = spec.get("factors", [])
+    factor_idx = _factor_index(factors)
+    base_path = (spec_dir / spec["baseArtifact"]).expanduser()
+    base_bytes = base_path.read_bytes()
+    design_points = _matrix_v2(factors)
+
+    # assume a consistent output path across factor levels
+    output_path = factors[0]["levels"][0]["output_path"] if factors else "artifact.yaml"
 
     branches: list[str] = []
     for point in design_points:
@@ -160,10 +169,11 @@ def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
         branch = pea_ref("run", label)
         vcs.create_branch(branch, "HEAD")
         vcs.switch(branch)
-        parents = [pea_ref("factor", k, v) for k, v in point.items()]
-        if parents:
-            vcs.repo.git.merge("--no-ff", "--no-edit", *parents)
-        vcs.repo.git.commit("-m", f"run {label}")
+        patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_dir)
+        tgt = Path(vcs.repo.working_tree_dir) / output_path
+        tgt.parent.mkdir(parents=True, exist_ok=True)
+        tgt.write_bytes(patched)
+        vcs.commit([str(tgt.relative_to(vcs.repo.working_tree_dir))], f"run {label}")
         branches.append(branch)
     vcs.switch("HEAD")
     return branches

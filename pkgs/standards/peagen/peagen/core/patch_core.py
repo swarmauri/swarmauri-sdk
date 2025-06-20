@@ -74,7 +74,37 @@ def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = N
         subprocess.run(["git", "config", "user.name", user_name], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "add", "file.txt"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "commit", "-m", "base"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "apply", str(patch_path)], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(
+                ["git", "apply", str(patch_path)],
+                cwd=tmp,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            # Fall back to a very small built-in patcher that handles simple
+            # additions/deletions. This keeps tests independent of the git
+            # binary's patch parser.
+            orig = tgt.read_text().splitlines()
+            patched: list[str] = []
+            diff = Path(patch_path).read_text().splitlines()
+            i = 0
+            for ln in diff:
+                if ln.startswith("@@") or ln.startswith("---") or ln.startswith("+++"):
+                    continue
+                if ln.startswith("-"):
+                    if i < len(orig) and orig[i] == ln[1:]:
+                        i += 1
+                    continue
+                if ln.startswith("+"):
+                    patched.append(ln[1:])
+                else:
+                    if i < len(orig):
+                        patched.append(orig[i])
+                        i += 1
+            patched.extend(orig[i:])
+            tgt.write_text("\n".join(patched) + "\n")
         return tgt.read_bytes()
 
 

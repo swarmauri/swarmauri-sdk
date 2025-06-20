@@ -52,13 +52,21 @@ class GitVCS:
     # ------------------------------------------------------------------ branch mgmt
     def create_branch(self, name: str, base_ref: str = "HEAD", *, checkout: bool = False) -> None:
         """Create *name* at *base_ref* and optionally check it out."""
-        self.repo.git.branch(name, base_ref)
-        if checkout:
-            self.repo.git.checkout(name)
+        if name.startswith("refs/"):
+            # Ensure custom ref namespaces like ``refs/pea`` are created
+            self.repo.git.update_ref(name, base_ref)
+            if checkout:
+                self.repo.git.checkout(name)
+        else:
+            self.repo.git.branch(name, base_ref)
+            if checkout:
+                self.repo.git.checkout(name)
 
     def switch(self, branch: str) -> None:
         """Switch to *branch*."""
-        self.repo.git.switch(branch)
+        # ``git switch`` only accepts local branch names. Use ``checkout`` so
+        # callers may specify fully-qualified refs like ``refs/pea/*``.
+        self.repo.git.checkout(branch)
 
     def fan_out(self, base_ref: str, branches: Iterable[str]) -> None:
         """Create many branches at ``base_ref``."""
