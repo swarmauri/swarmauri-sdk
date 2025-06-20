@@ -19,7 +19,7 @@ def run_validate(
     ctx: typer.Context,
     kind: str = typer.Argument(
         ...,
-        help="Kind of artifact to validate (config, doe, ptree, projects_payload).",
+        help="Kind of artifact to validate (config, doe, evolve, ptree, projects_payload).",
     ),
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
