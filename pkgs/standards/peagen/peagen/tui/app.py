@@ -219,6 +219,7 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
+        ("space", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
@@ -544,6 +545,7 @@ class QueueDashboardApp(App):
                 result_data = t_data.get("result") or {}
                 children_ids = result_data.get("children", [])
                 if children_ids:
+                    # Display '-' when expanded and '+' when collapsed
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
                 self.tasks_table.add_row(
