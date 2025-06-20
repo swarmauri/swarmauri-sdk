@@ -16,6 +16,17 @@ from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
 
+def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
+    """Return a tuple of (Path | None, parsed YAML)."""
+    path = Path(path_or_text).expanduser()
+    if path.exists():
+        return path, yaml.safe_load(path.read_text())
+    alt = Path(__file__).resolve().parents[2] / path_or_text
+    if alt.exists():
+        return alt, yaml.safe_load(alt.read_text())
+    return None, yaml.safe_load(path_or_text)
+
+
 async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
@@ -39,7 +50,8 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs = pm.get("vcs")
     except Exception:  # pragma: no cover - optional
         vcs = None
-    doc = yaml.safe_load(spec_path.read_text())
+
+    spec_path, doc = _load_spec(args["evolve_spec"])
     jobs: List[Dict[str, Any]] = doc.get("JOBS", [])
     mutations = doc.get("operators", {}).get("mutation")
 
@@ -52,20 +64,19 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             Task(
                 id=str(uuid.uuid4()),
                 pool=pool,
-                action="mutate",
                 status=Status.waiting,
-                payload={"args": job},
+                payload={"action": "mutate", "args": job},
             )
         )
 
     child_ids = await fan_out(
         task_or_dict,
         children,
-        result={"evolve_spec": str(spec_path)},
+        result={"evolve_spec": args["evolve_spec"]},
         final_status=Status.waiting,
     )
 
-    if vcs:
+    if vcs and spec_path:
         repo_root = Path(vcs.repo.working_tree_dir)
         rel_spec = os.path.relpath(spec_path, repo_root)
         vcs.commit([rel_spec], f"evolve {spec_path.stem}")

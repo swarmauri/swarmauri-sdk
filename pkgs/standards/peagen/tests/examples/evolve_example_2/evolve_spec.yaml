@@ -1,0 +1,10 @@
+JOBS:
+  - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/evolve_example_2/workspace
+    target_file: main.py
+    import_path: workspace.main
+    entry_fn: add
+    config: pkgs/standards/peagen/tests/examples/evolve_example_2/cfg/remote.toml
+operators:
+  mutation:
+    - kind: echo_mutator
+      probability: 1
