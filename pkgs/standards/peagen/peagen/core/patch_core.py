@@ -95,8 +95,6 @@ def apply_patch(base: bytes, patch_path: Path, kind: str) -> bytes:
         return yaml.safe_dump(patched, sort_keys=False).encode("utf-8")
     if kind == "git":
         return _apply_git_patch(base, patch_path)
-    if kind == "cue":
-        raise NotImplementedError("cue patching requires the 'cue' tool")
     raise ValueError(f"unknown patch kind: {kind}")
 
 

@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import jsonpatch
+from peagen.core.patch_core import apply_patch
 import yaml
 from jinja2 import Template
 from urllib.parse import urlparse
@@ -90,6 +91,33 @@ def _matrix(factor_map: Dict[str, Any]) -> List[Tuple[Tuple[str, Any], ...]]:
 
     return list(itertools.product(*lists))
 
+
+# New DOE v2 helpers
+def _matrix_v2(factors: List[dict[str, Any]]) -> List[dict[str, str]]:
+    if not factors:
+        return [{}]
+    lists = []
+    for fac in factors:
+        pairs = [(fac["name"], lv["id"]) for lv in fac.get("levels", [])]
+        lists.append(pairs)
+    return [dict(p) for p in itertools.product(*lists)]
+
+def _factor_index(factors: List[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    idx = {}
+    for fac in factors:
+        idx[fac["name"]] = {lv["id"]: lv for lv in fac.get("levels", [])}
+    return idx
+
+def _apply_factor_patches(base: bytes, idx: dict[str, dict[str, Any]], point: dict[str, str], root: Path) -> bytes:
+    result = base
+    for name, lvl_id in point.items():
+        level = idx.get(name, {}).get(lvl_id)
+        if not level:
+            continue
+        patch_path = (root / level["patchRef"]).expanduser()
+        kind = level.get("patchKind", "json-patch")
+        result = apply_patch(result, patch_path, kind)
+    return result
 
 def _render_patch_ops(
     patch_ops: List[Dict[str, Any]], ctx: Dict[str, Any]
@@ -230,19 +258,14 @@ def generate_payload(
     if not skip_validate:
         _validate(spec_obj, DOE_SPEC_V2_SCHEMA, "DOE spec")
 
-    llm_map = spec_obj.get("LLM_FACTORS", {})
-    other_map = spec_obj.get("FACTORS", {})
+    factors = spec_obj.get("factors", [])
+    factor_idx = _factor_index(factors)
+    design_points = _matrix_v2(factors)
+    llm_keys: List[str] = []
+    other_keys = [f["name"] for f in factors]
 
-    # fallback for old specs with only FACTORS
-    if not llm_map:
-        guessed = {k: v for k, v in other_map.items() if k in _LLM_FALLBACK_KEYS}
-        llm_map = guessed
-        other_map = {k: v for k, v in other_map.items() if k not in guessed}
-
-    llm_keys, other_keys, design_points = build_design_points(llm_map, other_map)
-
-    llm_codes = {k: llm_map[k].get("code", k) if isinstance(llm_map.get(k), dict) else k for k in llm_map}
-    other_codes = {k: other_map[k].get("code", k) if isinstance(other_map.get(k), dict) else k for k in other_map}
+    llm_codes: Dict[str, str] = {}
+    other_codes = {name: name for name in other_keys}
 
     projects = generate_projects(
         template_obj=template_obj,
@@ -269,7 +292,18 @@ def generate_payload(
         }
 
         bundles.append((out_path, bundle))
+    artifact_outputs = []
+    if spec_obj.get("baseArtifact"):
+        base_path = (spec_path.parent / spec_obj["baseArtifact"]).expanduser()
+        base_bytes = base_path.read_bytes()
+        for idx2, point in enumerate(design_points):
+            patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_path.parent)
+            tgt = output_path.parent / f"{base_path.stem}_{idx2:03d}{base_path.suffix}"
+            if not dry_run:
+                tgt.write_bytes(patched)
+            artifact_outputs.append(str(tgt))
 
+    
     # 2. ------------ write file (unless dry-run) -------------------------
     bytes_written = 0
     outputs: List[str] = []
@@ -294,6 +328,7 @@ def generate_payload(
     # 4. ------------ summary ---------------------------------------------
     return {
         "outputs": outputs,
+        "artifact_outputs": artifact_outputs,
         "count": len(bundles),
         "bytes": bytes_written,
         "llm_keys": llm_keys,
