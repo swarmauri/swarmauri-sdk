@@ -1,0 +1,10 @@
+JOBS:
+  - workspace_uri: workspace
+    target_file: main.py
+    import_path: workspace.main
+    entry_fn: greet
+    config: pkgs/standards/peagen/tests/examples/simple_evolve_demo/cfg/remote.toml
+operators:
+  mutation:
+    - kind: echo_mutator
+      probability: 1
