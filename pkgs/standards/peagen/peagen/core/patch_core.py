@@ -66,13 +66,13 @@ def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = N
 
     with TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
-        tgt = tmp / "base_input"
+        tgt = tmp / "file.txt"
         tgt.write_bytes(base)
 
         subprocess.run(["git", "init"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "config", "user.email", user_email], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "config", "user.name", user_name], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "add", "base_input"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "add", "file.txt"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "commit", "-m", "base"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "apply", str(patch_path)], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return tgt.read_bytes()
