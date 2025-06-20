@@ -891,15 +891,7 @@ class QueueDashboardApp(App):
         table._last_sort_reverse = reverse
 
         label_plain = event.label.plain
-        cleaned_label = (
-            label_plain.replace("▲", "")
-            .replace("▼", "")
-            .replace("⬆", "")
-            .replace("⬇", "")
-            .strip()
-        )
-        sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(cleaned_label)
-    
+        sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(label_plain)
         if sort_key:
             self.sort_key = sort_key
         self.sort_reverse = reverse
