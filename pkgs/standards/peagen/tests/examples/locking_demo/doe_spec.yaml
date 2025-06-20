@@ -1,10 +1,19 @@
-schemaVersion: "1.0.1"
-FACTORS:
-  SUFFIX:
-    description: "Project suffix"
-    code: SFX
-    levels: [001, 002]
-    patches:
-      - op: replace
-        path: /PROJECTS/0/NAME
-        value: "ExampleParserProject-{{ SFX }}"
+version: v2
+meta:
+  name: locking-demo
+factors:
+  - name: suffix
+    levels:
+      - id: "001"
+        patchRef: patches/suffix_001.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+      - id: "002"
+        patchRef: patches/suffix_002.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+factorSets:
+  - name: grid
+    cartesianProduct:
+      suffix: ["001", "002"]
+    uriTemplate: "{suffix}"
