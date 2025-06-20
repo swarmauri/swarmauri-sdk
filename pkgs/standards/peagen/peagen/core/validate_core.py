@@ -12,7 +12,7 @@ from peagen._utils._validation import _path
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.schemas import (
     PEAGEN_TOML_V1_SCHEMA,
-    DOE_SPEC_V1_SCHEMA,
+    DOE_SPEC_V2_SCHEMA,
     PTREE_V1_SCHEMA,
     PROJECTS_PAYLOAD_V1_SCHEMA,
 )
@@ -59,7 +59,16 @@ def validate_doe_spec(path: Path) -> Dict[str, Any]:
     data = _load_yaml(path)
     if data is None or isinstance(data, dict) and "_yaml_error" in data:
         return {"ok": False, "errors": [data.get("_yaml_error", "YAML error")]}  # type: ignore[union-attr]
-    errs = _collect_errors(data, DOE_SPEC_V1_SCHEMA)
+
+    if "version" not in data:
+        return {"ok": False, "errors": ["legacy DOE specs are no longer supported"]}
+    if data.get("version") != "v1":
+        return {
+            "ok": False,
+            "errors": [f"unsupported DOE spec version: {data.get('version')!r}"],
+        }
+
+    errs = _collect_errors(data, DOE_SPEC_V2_SCHEMA)
     return {"ok": not errs, "errors": errs}
 
 

@@ -218,6 +218,11 @@ def generate_payload(
     spec_obj = _load_yaml(spec_path)
     template_obj = _load_yaml(template_path)
 
+    if "version" not in spec_obj:
+        raise ValueError("legacy DOE specs are no longer supported")
+    if spec_obj.get("version") != "v1":
+        raise ValueError(f"unsupported DOE spec version: {spec_obj.get('version')!r}")
+
     if not skip_validate:
         ...
         # placeholder
