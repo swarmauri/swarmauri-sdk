@@ -23,6 +23,8 @@ from urllib.parse import urlparse
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import resolve_plugin_spec
 from peagen.errors import PatchTargetMissingError
+from peagen.schemas import DOE_SPEC_V2_SCHEMA
+from peagen._utils._validation import _validate
 
 # ─────────────────────────────── util ──────────────────────────────────────
 _LLM_FALLBACK_KEYS = {
@@ -220,13 +222,13 @@ def generate_payload(
 
     if "version" not in spec_obj:
         raise ValueError("legacy DOE specs are no longer supported")
-    if spec_obj.get("version") != "v1":
-        raise ValueError(f"unsupported DOE spec version: {spec_obj.get('version')!r}")
+    if spec_obj.get("version") != "v2":
+        raise ValueError(
+            f"unsupported DOE spec version: {spec_obj.get('version')!r}"
+        )
 
     if not skip_validate:
-        ...
-        # placeholder
-        # _validate(spec_obj, DOE_SPEC_V1_1_SCHEMA, "DOE spec")
+        _validate(spec_obj, DOE_SPEC_V2_SCHEMA, "DOE spec")
 
     llm_map = spec_obj.get("LLM_FACTORS", {})
     other_map = spec_obj.get("FACTORS", {})

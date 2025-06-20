@@ -3,7 +3,7 @@
   "$id":     "https://example.com/schema/doe_spec.schema.json",
 
   "title":   "DOE_SPEC",
-  "$comment": "Design-of-Experiments specification – schema v1 (2025-06-19)",
+  "$comment": "Design-of-Experiments specification – schema v2 (2025-06-19)",
   "type":    "object",
 
   "required": ["version", "meta"],
@@ -12,7 +12,7 @@
   "properties": {
     "version": {
       "type": "string",
-      "enum": ["v1"],
+      "enum": ["v2"],
       "$comment": "Bump to a new major version for breaking schema changes."
     },
 

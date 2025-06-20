@@ -62,7 +62,7 @@ def validate_doe_spec(path: Path) -> Dict[str, Any]:
 
     if "version" not in data:
         return {"ok": False, "errors": ["legacy DOE specs are no longer supported"]}
-    if data.get("version") != "v1":
+    if data.get("version") != "v2":
         return {
             "ok": False,
             "errors": [f"unsupported DOE spec version: {data.get('version')!r}"],
