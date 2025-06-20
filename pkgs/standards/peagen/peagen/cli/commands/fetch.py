@@ -28,12 +28,12 @@ remote_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
+    """Construct a Task with the fetch action embedded in the payload."""
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="fetch",
         status=Status.waiting,
-        payload={"args": args},
+        payload={"action": "fetch", "args": args},
     )
 
 

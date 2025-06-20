@@ -135,8 +135,7 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     base_path = (spec_dir / spec["baseArtifact"]).expanduser()
     base_bytes = base_path.read_bytes()
     branches: list[str] = []
-    base_ref = "HEAD"
-    current_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
@@ -155,22 +154,39 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
             target = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(patched)
-            vcs.commit(
-                [str(target.relative_to(vcs.repo.working_tree_dir))],
-                f"factor {fac['name']}={lvl['id']}",
-            )
+            rel_art = str(target.relative_to(vcs.repo.working_tree_dir))
+            rel_patch = str(patch_path.relative_to(vcs.repo.working_tree_dir)) if patch_path.is_file() and patch_path.is_relative_to(vcs.repo.working_tree_dir) else None
+            paths = [p for p in [rel_art, rel_patch] if p]
+            vcs.commit(paths, f"factor {fac['name']}={lvl['id']}")
             branches.append(branch)
-            vcs.switch(base_ref)
-    if current_branch:
-        vcs.checkout(current_branch)
+    if start_branch:
+        vcs.switch(start_branch)
     else:
-        vcs.switch("HEAD")
+        vcs.repo.git.switch("--detach", vcs.repo.head.commit.hexsha)
     return branches
 
 
-def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
+def create_run_branches(
+    vcs,
+    design_points: list[dict[str, str]],
+    spec: dict[str, Any] | None = None,
+    spec_dir: Path | None = None,
+) -> list[str]:
     """Create run branches by merging factor level branches."""
 
+    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    base_bytes = None
+    factor_idx = None
+    out_path = None
+    if spec and spec_dir and spec.get("baseArtifact"):
+        base_path = (spec_dir / spec["baseArtifact"]).expanduser()
+        base_bytes = base_path.read_bytes()
+        factor_idx = _factor_index(spec.get("factors", []))
+        # assume consistent output_path across levels
+        for fac in spec.get("factors", []):
+            if fac.get("levels"):
+                out_path = fac["levels"][0].get("output_path")
+                break
     branches: list[str] = []
     for point in design_points:
         label = "_".join(f"{k}-{v}" for k, v in point.items())
@@ -180,9 +196,19 @@ def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
         parents = [pea_ref("factor", k, v) for k, v in point.items()]
         if parents:
             vcs.repo.git.merge("--no-ff", "--no-edit", *parents)
-        vcs.repo.git.commit("-m", f"run {label}", "--allow-empty")
+        if base_bytes is not None and factor_idx is not None and out_path:
+            patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_dir or Path.cwd())
+            target = Path(vcs.repo.working_tree_dir) / out_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(patched)
+            vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"run {label}")
+        else:
+            vcs.repo.git.commit("--allow-empty", "-m", f"run {label}")
         branches.append(branch)
-    vcs.switch("HEAD")
+    if start_branch:
+        vcs.switch(start_branch)
+    else:
+        vcs.repo.git.switch("--detach", vcs.repo.head.commit.hexsha)
     return branches
 
 
@@ -248,7 +274,8 @@ def generate_projects(
     spec_name: str,
 ) -> List[Dict[str, Any]]:
     projects: List[Dict[str, Any]] = []
-    base_proj = deepcopy(template_obj.get("PROJECTS", [{}])[0])
+    base_list = template_obj.get("PROJECTS", [])
+    base_proj = deepcopy(base_list[0]) if base_list else {}
     other_keys = {k: deepcopy(v) for k, v in template_obj.items() if k != "PROJECTS"}
     for idx, point in enumerate(design_points):
         ctx = {
