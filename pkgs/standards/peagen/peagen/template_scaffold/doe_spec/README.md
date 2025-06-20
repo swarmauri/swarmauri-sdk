@@ -10,7 +10,8 @@
 
 ## Editing guidelines
 
-1. **Change factors** in `doe_spec.yml` – keep snake-case keys.
-2. Run `peagen validate doe-spec doe_spec.yml` to check schema + checksum.
-3. Bump the **version** in `spec.yaml` when you publish a new design.
-4. Never mutate a version that has already been used in production runs.
+1. **Edit `doe_spec.yml`** to adjust factors or factor sets.
+2. Ensure `version: v2` remains unchanged; older schemas are deprecated.
+3. Run `peagen validate doe-spec doe_spec.yml` to check schema + checksum.
+4. Bump the **version** in `spec.yaml` when you publish a new design.
+5. Never mutate a version that has already been used in production runs.

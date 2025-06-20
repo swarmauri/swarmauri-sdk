@@ -8,10 +8,13 @@ import typer
 
 from peagen.handlers.init_handler import init_handler
 from peagen.models.schemas import Task
+from peagen.plugins import discover_and_register_plugins
 
 
 def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     """Invoke ``init_handler`` synchronously."""
+    # Ensure plugin templates are registered before invoking handlers
+    discover_and_register_plugins()
     task = Task(
         id=str(uuid.uuid4()),
         pool="default",
