@@ -270,6 +270,7 @@ class QueueDashboardApp(App):
         self.filter_action: str | None = None
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
+        self._seen_parents: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
         self._filter_debounce_timer = None
         self._current_file: str | None = None
@@ -400,6 +401,14 @@ class QueueDashboardApp(App):
         for task in all_tasks_from_client:
             combined_tasks_dict[task.get("id")] = task
         all_tasks = list(combined_tasks_dict.values())
+
+        for task in all_tasks:
+            result_data = task.get("result") or {}
+            if result_data.get("children"):
+                tid_str = str(task.get("id"))
+                if tid_str not in self._seen_parents:
+                    self._seen_parents.add(tid_str)
+                    self.collapsed.add(tid_str)
 
         current_filter_criteria = {
             "id": self.filter_id,
