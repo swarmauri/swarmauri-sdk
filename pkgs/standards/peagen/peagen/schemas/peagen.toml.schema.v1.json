@@ -36,8 +36,8 @@
     "storage": {
       "type": "object",
       "properties": {
-        "default_storage_adapter": { "type": "string" },
-        "adapters": {
+        "default_filter": { "type": "string" },
+        "filters": {
           "type": "object",
           "patternProperties": {
             "^[A-Za-z0-9_\\-]+$": {
@@ -49,7 +49,7 @@
           "additionalProperties": false
         }
       },
-      "required": [ "default_storage_adapter", "adapters" ],
+      "required": [ "default_filter", "filters" ],
       "additionalProperties": false
     },
 

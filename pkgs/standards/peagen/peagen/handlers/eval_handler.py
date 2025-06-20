@@ -6,7 +6,7 @@ The worker runtime (or a local CLI run) calls this coroutine with
 either a plain dict (decoded JSON-RPC) or a peagen.models.Task object.
 
 Returns a JSON-serialisable mapping:
-  { "manifest": {…}, "strict_failed": bool }
+  { "report": {…}, "strict_failed": bool }
 """
 
 from __future__ import annotations
@@ -21,8 +21,12 @@ from peagen.models import Task  # for typing only
 async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    if repo:
+        args["workspace_uri"] = f"git+{repo}@{ref}"
 
-    manifest = evaluate_workspace(
+    report = evaluate_workspace(
         workspace_uri=args["workspace_uri"],
         program_glob=args.get("program_glob", "**/*.*"),
         pool_ref=args.get("pool"),
@@ -32,6 +36,6 @@ async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     )
 
     strict = args.get("strict", False)
-    strict_failed = strict and any(r["score"] == 0 for r in manifest["results"])
+    strict_failed = strict and any(r["score"] == 0 for r in report["results"])
 
-    return {"manifest": manifest, "strict_failed": strict_failed}
+    return {"report": report, "strict_failed": strict_failed}

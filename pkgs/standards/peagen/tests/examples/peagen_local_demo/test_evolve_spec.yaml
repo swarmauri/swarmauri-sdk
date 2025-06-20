@@ -1,0 +1,9 @@
+JOBS:
+  - workspace_uri: test_workspace
+    target_file: main.py
+    import_path: main
+    entry_fn: main
+    operators:
+      mutation:
+        - kind: echo_mutator
+          probability: 1

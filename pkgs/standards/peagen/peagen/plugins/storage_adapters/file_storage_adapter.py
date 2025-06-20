@@ -9,8 +9,15 @@ from __future__ import annotations
 import io
 import os
 import shutil
+import warnings
 from pathlib import Path
 from typing import BinaryIO
+
+warnings.warn(
+    "peagen.plugins.storage_adapters.file_storage_adapter is deprecated; use peagen.plugins.git_filters.file_filter instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class FileStorageAdapter:
@@ -99,4 +106,3 @@ class FileStorageAdapter:
         """Instantiate the adapter from a ``file://`` URI."""
         path = Path(uri[7:]).resolve()
         return cls(output_dir=path)
-

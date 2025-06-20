@@ -1,4 +1,4 @@
-# File manifest for template-set 
+# File tree for template-set
 schemaVersion: "1.0.0"
 ptree:
   - FILE_NAME: "{{ PROJECT_ROOT }}/greeting.txt.j2"

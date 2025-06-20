@@ -1,16 +1,13 @@
-# peagen/plugins/storage_adapters/__init__.py
-"""Factory helpers for storage adapters."""
+"""Built-in selector plugins."""
 
-from urllib.parse import urlparse
-from peagen.plugins import registry
+from .selector_base import SelectorBase
+from .result_backend_selector import ResultBackendSelector
+from .bootstrap_selector import BootstrapSelector
+from .input_selector import InputSelector
 
-
-def make_adapter_for_uri(uri: str):
-    scheme = urlparse(uri).scheme or "file"  # 'file' if path like /home/...
-    try:
-        adapter_cls = registry["storage_adapters"][scheme]
-    except KeyError:
-        raise ValueError(f"No storage adapter registered for scheme '{scheme}'")
-    if not hasattr(adapter_cls, "from_uri"):
-        raise TypeError(f"{adapter_cls.__name__} lacks required from_uri()")
-    return adapter_cls.from_uri(uri)
+__all__ = [
+    "SelectorBase",
+    "ResultBackendSelector",
+    "BootstrapSelector",
+    "InputSelector",
+]

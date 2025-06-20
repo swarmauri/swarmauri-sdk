@@ -23,28 +23,33 @@ from peagen.handlers.fetch_handler import fetch_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-local_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
-remote_fetch_app = typer.Typer(help="Reconstruct Peagen workspaces from manifest(s).")
+local_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
+remote_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
+    """Construct a Task with the fetch action embedded in the payload."""
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="fetch",
         status=Status.waiting,
-        payload={"args": args},
+        payload={"action": "fetch", "args": args},
     )
 
 
 def _collect_args(
-    manifests: List[str],
+    workspaces: List[str],
     out_dir: Optional[Path],
     no_source: bool,
     install_template_sets_flag: bool,
+    repo: Optional[str] = None,
+    ref: str = "HEAD",
 ) -> dict:
+    if repo:
+        workspaces = [f"git+{repo}@{ref}"]
+
     return {
-        "manifests": manifests,
+        "workspaces": workspaces,
         "out_dir": str(out_dir.expanduser()) if out_dir else None,
         "no_source": no_source,
         "install_template_sets": install_template_sets_flag,
@@ -55,7 +60,7 @@ def _collect_args(
 @local_fetch_app.command("fetch")
 def run(
     ctx: typer.Context,
-    manifests: List[str] = typer.Argument(..., help="Manifest JSON URI(s)"),
+    workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
     out_dir: Optional[Path] = typer.Option(
         None, "--out", "-o", help="Destination folder (temp dir if omitted)"
     ),
@@ -65,11 +70,13 @@ def run(
     install_template_sets_flag: bool = typer.Option(
         True,
         "--install-template-sets/--no-install-template-sets",
-        help="Install template sets referenced by the manifest(s)",
+        help="Install template sets referenced by the workspace descriptor",
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Synchronously build the workspace on this machine."""
-    args = _collect_args(manifests, out_dir, no_source, install_template_sets_flag)
+    args = _collect_args(workspaces or [], out_dir, no_source, install_template_sets_flag, repo, ref)
     task = _build_task(args)
 
     result = asyncio.run(fetch_handler(task))
@@ -80,9 +87,7 @@ def run(
 @remote_fetch_app.command("fetch")
 def submit(
     ctx: typer.Context,
-    manifests: List[str] = typer.Argument(
-        ..., help="Manifest JSON URI(s)"
-    ),
+    workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
     out_dir: Optional[Path] = typer.Option(
         None, "--out", "-o", help="Destination folder on the worker"
     ),
@@ -92,11 +97,13 @@ def submit(
     install_template_sets_flag: bool = typer.Option(
         True,
         "--install-template-sets/--no-install-template-sets",
-        help="Install template sets referenced by the manifest(s)",
-    )
+        help="Install template sets referenced by the workspace descriptor",
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
-    args = _collect_args(manifests, out_dir, no_source, install_template_sets_flag)
+    args = _collect_args(workspaces or [], out_dir, no_source, install_template_sets_flag, repo, ref)
     task = _build_task(args)
 
     rpc_req = {

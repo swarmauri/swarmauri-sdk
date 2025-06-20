@@ -87,6 +87,27 @@ def _format_ts(ts: float | str | None) -> str:
         return str(ts)
 
 
+def _calc_duration(
+    start: float | str | None, finish: float | str | None
+) -> int | None:
+    """Return elapsed seconds between ``start`` and ``finish`` if possible."""
+
+    if start is None or finish is None:
+        return None
+    try:
+        if isinstance(start, str):
+            start_ts = datetime.fromisoformat(start.replace("Z", "+00:00")).timestamp()
+        else:
+            start_ts = float(start)
+        if isinstance(finish, str):
+            finish_ts = datetime.fromisoformat(finish.replace("Z", "+00:00")).timestamp()
+        else:
+            finish_ts = float(finish)
+        return int(finish_ts - start_ts)
+    except Exception:
+        return None
+
+
 def _truncate_id(task_id: str, length: int = 4) -> str:
     """Return a shortened representation of *task_id*.
 
@@ -198,6 +219,7 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
+        ("space", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
@@ -205,7 +227,30 @@ class QueueDashboardApp(App):
         ("q", "quit", "Quit"),
     ]
 
-    SORT_KEYS = ["time", "pool", "status", "action", "label", "duration"]
+    SORT_KEYS = [
+        "time",
+        "pool",
+        "status",
+        "action",
+        "label",
+        "duration",
+        "id",
+        "started_at",
+        "finished_at",
+        "error",
+    ]
+
+    COLUMN_LABEL_TO_SORT_KEY = {
+        "ID": "id",
+        "Pool": "pool",
+        "Status": "status",
+        "Action": "action",
+        "Labels": "label",
+        "Started": "started_at",
+        "Finished": "finished_at",
+        "Duration (s)": "duration",
+        "Error": "error",
+    }
 
     queue_len = reactive(0)
     done_len = reactive(0)
@@ -218,12 +263,14 @@ class QueueDashboardApp(App):
         self.client = TaskStreamClient(ws_url)
         self.backend = RemoteBackend(gateway_url)
         self.sort_key = "time"
+        self.sort_reverse = False
         self.filter_id: str | None = None
         self.filter_pool: str | None = None
         self.filter_status: str | None = None
         self.filter_action: str | None = None
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
+        self._seen_parents: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
         self._filter_debounce_timer = None
         self._current_file: str | None = None
@@ -355,6 +402,14 @@ class QueueDashboardApp(App):
             combined_tasks_dict[task.get("id")] = task
         all_tasks = list(combined_tasks_dict.values())
 
+        for task in all_tasks:
+            result_data = task.get("result") or {}
+            if result_data.get("children"):
+                tid_str = str(task.get("id"))
+                if tid_str not in self._seen_parents:
+                    self._seen_parents.add(tid_str)
+                    self.collapsed.add(tid_str)
+
         current_filter_criteria = {
             "id": self.filter_id,
             "pool": self.filter_pool,
@@ -362,6 +417,7 @@ class QueueDashboardApp(App):
             "action": self.filter_action,
             "label": self.filter_label,
             "sort_key": self.sort_key,
+            "sort_reverse": self.sort_reverse,
             "collapsed": self.collapsed.copy(),
         }
         processed_data = self._perform_filtering_and_sorting(
@@ -387,7 +443,14 @@ class QueueDashboardApp(App):
         if criteria.get("label"):
             tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
 
+        for t in tasks:
+            if t.get("duration") is None:
+                t["duration"] = _calc_duration(
+                    t.get("started_at"), t.get("finished_at")
+                )
+
         sort_key = criteria.get("sort_key")
+        sort_reverse = criteria.get("sort_reverse", False)
         if sort_key:
 
             def _key_func(task_item):
@@ -401,9 +464,20 @@ class QueueDashboardApp(App):
                     return (
                         task_item.get("started_at") or task_item.get("finished_at") or 0
                     )
+                if sort_key == "status":
+                    from peagen.models.schemas import Status
+                    status_value = task_item.get("status")
+                    try:
+                        status_index = list(Status).index(Status(status_value)) if status_value else float('inf')
+                        return status_index
+                    except (ValueError, TypeError):
+                        return float('inf')
                 return task_item.get(sort_key)
 
-            tasks.sort(key=lambda t: (_key_func(t) is None, _key_func(t)))
+            tasks_with_val = [t for t in tasks if _key_func(t) is not None]
+            tasks_without_val = [t for t in tasks if _key_func(t) is None]
+            tasks_with_val.sort(key=_key_func, reverse=sort_reverse)
+            tasks = tasks_with_val + tasks_without_val
 
         current_workers = {}
         source_workers = (
@@ -480,6 +554,7 @@ class QueueDashboardApp(App):
                 result_data = t_data.get("result") or {}
                 children_ids = result_data.get("children", [])
                 if children_ids:
+                    # Display '-' when expanded and '+' when collapsed
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
                 self.tasks_table.add_row(
@@ -602,7 +677,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
         )
         self.tasks_table.cursor_type = "cell"
 
@@ -615,7 +690,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
             "Error",
         )
         self.err_table.cursor_type = "cell"
@@ -709,6 +784,7 @@ class QueueDashboardApp(App):
         except ValueError:
             idx = 0
         self.sort_key = self.SORT_KEYS[(idx + 1) % len(self.SORT_KEYS)]
+        self.sort_reverse = False
         self.toast(f"Sorting by {self.sort_key}", duration=1.0)
         self.trigger_data_processing()
 
@@ -842,6 +918,31 @@ class QueueDashboardApp(App):
 
         # Selection events no longer open task details automatically.
         return
+
+    async def on_data_table_header_selected(
+        self, event: DataTable.HeaderSelected
+    ) -> None:
+        """Sort a table when the user clicks a column header."""
+        table = event.control
+        column_key = event.column_key
+
+        reverse = False
+        last_key = getattr(table, "_last_sort_key", None)
+        last_reverse = getattr(table, "_last_sort_reverse", False)
+        if last_key == column_key:
+            reverse = not last_reverse
+
+        table.sort(column_key, reverse=reverse)
+        table._last_sort_key = column_key
+        table._last_sort_reverse = reverse
+
+        label_plain = event.label.plain
+        sort_key = self.COLUMN_LABEL_TO_SORT_KEY.get(label_plain)
+        if sort_key:
+            self.sort_key = sort_key
+        self.sort_reverse = reverse
+        self.trigger_data_processing(debounce=False)
+        event.stop()
 
     async def open_task_detail(self, task_id: str) -> None:
         task = self.client.tasks.get(task_id)

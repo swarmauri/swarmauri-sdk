@@ -20,20 +20,24 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     """
     Parameters (in task.payload.args)
     ---------------------------------
-    manifests: List[str]   – one or more manifest URIs
+    workspaces: List[str]  – one or more workspace URIs
     out_dir:   str | None  – destination workspace folder
-    no_source: bool        – skip cloning/copying source packages
-    install_template_sets: bool – install template sets (default True)
+    no_source: bool        – ignored
+    install_template_sets: bool – ignored
     """
     # normalise ---------------------------------------------
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
-    manifests: List[str] = args["manifests"]
+    uris: List[str] = args.get("workspaces", [])
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
 
     summary = fetch_many(
-        manifest_uris=manifests,
+        workspace_uris=uris,
+        repo=repo,
+        ref=ref,
         out_dir=Path(args["out_dir"]).expanduser() if args.get("out_dir") else None,
-        no_source=args.get("no_source", False),
         install_template_sets_flag=args.get("install_template_sets", True),
+        no_source=args.get("no_source", False),
     )
     return summary

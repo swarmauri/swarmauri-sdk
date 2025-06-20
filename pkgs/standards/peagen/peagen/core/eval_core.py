@@ -4,7 +4,7 @@ Pure business-logic for evaluating programs with an EvaluatorPool.
 
 Functions
 ---------
-evaluate_workspace()  – orchestrates one evaluation run and returns a manifest
+evaluate_workspace()  – orchestrates one evaluation run and returns a report
 """
 
 from __future__ import annotations
@@ -94,7 +94,7 @@ def _collect_programs(workspace_uri: str, pattern: str) -> Tuple[List[Path], Lis
         from peagen.core.fetch_core import fetch_single  # local import to avoid cycle
 
         with temp_workspace() as tmp_dir:
-            fetch_single(workspace_uri, dest_root=tmp_dir, install_template_sets_flag=False)
+            fetch_single(workspace_uri, dest_root=tmp_dir)
             workspace_path = tmp_dir
     else:
         workspace_path = Path(PathOrURI(workspace_uri))
@@ -122,7 +122,7 @@ def evaluate_workspace(
     """
     Evaluate programs in *workspace_uri* according to configuration.
 
-    Returns a JSON-serialisable manifest (no I/O side-effects).
+    Returns a JSON-serialisable report (no I/O side-effects).
     """
     # 1) resolve configuration file (.peagen.toml) -------------------------
     if cfg_path is None:
@@ -157,8 +157,8 @@ def evaluate_workspace(
         else list(zip(prog_paths, results))
     )
 
-    # 6) build manifest ----------------------------------------------------
-    manifest = {
+    # 6) build report ----------------------------------------------------
+    report = {
         "schemaVersion": "1.0.0",
         "evaluators": pool.get_evaluator_names(),
         "results": [
@@ -170,4 +170,4 @@ def evaluate_workspace(
             for pp, rr in paired
         ],
     }
-    return manifest
+    return report

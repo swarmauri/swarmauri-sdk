@@ -33,7 +33,7 @@ def _pip_install(path: str, editable: bool = False) -> None:
 
 
 def install_template_sets(specs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Install each template-set spec and return manifest info."""
+    """Install each template-set spec and return metadata."""
     installed: List[Dict[str, Any]] = []
     tmp_root = Path(tempfile.mkdtemp(prefix="tmplset_"))
     for spec in specs:

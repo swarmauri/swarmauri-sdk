@@ -11,7 +11,9 @@ from .mutate import local_mutate_app, remote_mutate_app
 from .evolve import local_evolve_app, remote_evolve_app
 from .sort import local_sort_app, remote_sort_app
 from .task import remote_task_app
+from .analysis import local_analysis_app, remote_analysis_app
 from .templates import local_template_sets_app, remote_template_sets_app
+from .tui import dashboard_app
 from .validate import local_validate_app, remote_validate_app
 
 __all__ = [
@@ -35,8 +37,11 @@ __all__ = [
     "local_sort_app",
     "remote_sort_app",
     "remote_task_app",
+    "local_analysis_app",
+    "remote_analysis_app",
     "local_template_sets_app",
     "remote_template_sets_app",
     "local_validate_app",
     "remote_validate_app",
+    "dashboard_app",
 ]

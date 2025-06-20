@@ -133,9 +133,9 @@ default_model_name = "gpt-4"
 openai = "sk-..."
 
 [storage]
-default_adapter = "file"
+default_filter = "file"
 
-[storage.adapters.file]
+[storage.filters.file]
 output_dir = "./peagen_artifacts"
 ```
 
@@ -366,9 +366,9 @@ projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
 
-### Storage Adapters & Publishers
+### Git Filters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available adapters include `FileStorageAdapter` and `MinioStorageAdapter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available filters include `S3FSFilter` and `MinioFilter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
@@ -385,16 +385,16 @@ renders files concurrently while still honoring dependency order. Leaving the
 flag unset or `0` processes files sequentially.
 
 Artifact locations are resolved via the `--artifacts` flag. Targets may be a
-local directory (`file:///./peagen_artifacts`) using `FileStorageAdapter` or an
-S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
-adapters and publishers can be supplied programmatically:
+local directory (`file:///./peagen_artifacts`) using `S3FSFilter` or an
+S3/MinIO endpoint (`s3://host:9000`) handled by `MinioFilter`. Custom
+filters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.storage_adapters.minio_storage_adapter import MinioStorageAdapter
+from peagen.plugins.git_filters.minio_filter import MinioFilter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
-store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+store = MinioFilter.from_uri("s3://localhost:9000/peagen")
 bus = WebhookPublisher("https://example.com/peagen")
 ```
 
@@ -404,13 +404,13 @@ Another Example:
 from peagen.plugins.publishers.redis_publisher import RedisPublisher
 from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
-store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+store = MinioFilter.from_uri("s3://localhost:9000/peagen")
 bus = RedisPublisher("redis://localhost:6379/0")
 # bus = RabbitMQPublisher(host="localhost", port=5672, routing_key="peagen.events")
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    storage_adapter=store,
+    git_filter=store,
     agent_env={"provider": "openai", "model_name": "gpt-4"},
 )
 
@@ -426,9 +426,12 @@ pea.process_all_projects()
 
 ### Textual TUI
 
-Run `python -m peagen.tui.app` to launch an experimental dashboard that
+Run `peagen tui` to launch an experimental dashboard that
 subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
 `task.update`, `worker.update` and `queue.update` events. Use the tab keys to
 switch between task lists, logs and opened files. The footer shows system
-metrics and current time. Remote artifact paths are downloaded via their storage
-adapter and re-uploaded when saving.
+metrics and current time. Remote artifact paths are downloaded via their git
+filter and re-uploaded when saving.
+
+## Results Backends
+Peagen supports pluggable results backends. Built-in options include `local_fs`, `postgres`, and `in_memory`.

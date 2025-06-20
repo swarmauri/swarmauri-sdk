@@ -66,7 +66,8 @@ dependencies = [
     # artifacts
     "PyGithub", # this storage adapter needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
-
+    "GitPython",
+    "s3fs",
 ]
 
 
@@ -140,6 +141,14 @@ file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapt
 github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
 gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 
+[project.entry-points."peagen.plugins.git_filters"]
+minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
+gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"
+s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
+
+[project.entry-points."peagen.plugins.vcs"]
+git = "peagen.plugins.vcs.git_vcs:GitVCS"
+
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.plugins.publishers.webhook_publisher:WebhookPublisher"
@@ -148,14 +157,27 @@ rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
 [project.entry-points."peagen.plugins.result_backends"]
 local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"
 postgres = "peagen.plugins.result_backends.postgres_backend:PostgresResultBackend"
+in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBackend"
 
 [project.entry-points."peagen.plugins.queues"]
 redis = "peagen.plugins.queues.redis_queue:RedisQueue"
 in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
+
+[project.entry-points."peagen.plugins.selectors"]
+result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackendSelector"
+bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
+input = "peagen.plugins.selectors.input_selector:InputSelector"
+
+[project.entry-points."peagen.plugins.mutators"]
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
+llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen" = [
   "tests/examples/locking_demo/*",
   "tests/examples/peagen_tomls/*",
+  "tests/examples/2x2Grid/*",
 ]

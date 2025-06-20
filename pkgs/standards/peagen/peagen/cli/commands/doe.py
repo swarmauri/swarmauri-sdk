@@ -66,6 +66,11 @@ def run_gen(  # noqa: PLR0913
     json_out: bool = typer.Option(
         False, "--json", help="Print the result dictionary as JSON"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Generate a project‑payload bundle from a DOE spec locally."""
     args = {
@@ -77,7 +82,10 @@ def run_gen(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe")
     result = asyncio.run(doe_handler(task))
@@ -120,6 +128,11 @@ def submit_gen(  # noqa: PLR0913
     skip_validate: bool = typer.Option(
         False, "--skip-validate", help="Skip validating the DOE spec"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Submit a DOE generation task to a remote worker."""
     args = {
@@ -131,7 +144,10 @@ def submit_gen(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe")
 
     rpc_req = {
@@ -188,6 +204,11 @@ def run_process(  # noqa: PLR0913
     json_out: bool = typer.Option(
         False, "--json", help="Print the result dictionary as JSON"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Process a DOE specification locally."""
     args = {
@@ -199,7 +220,10 @@ def run_process(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe_process")
     result = asyncio.run(doe_process_handler(task))
@@ -238,10 +262,15 @@ def submit_process(  # noqa: PLR0913
     skip_validate: bool = typer.Option(
         False, "--skip-validate", help="Skip validating the DOE spec"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Enqueue DOE processing on a remote worker."""
     def _git_root(path: Path) -> Path:
@@ -267,7 +296,10 @@ def submit_process(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe_process")
 
     rpc_req = {

@@ -49,10 +49,12 @@ def run(  # noqa: PLR0913 – CLI needs many options
     skip_failed: bool = typer.Option(False, "--skip-failed/--include-failed"),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Run evaluation synchronously on this machine."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "program_glob": program_glob,
         "pool": pool,
         "async_eval": async_eval,
@@ -61,16 +63,16 @@ def run(  # noqa: PLR0913 – CLI needs many options
     }
     task = _build_task(args)
     result = asyncio.run(eval_handler(task))
-    manifest = result["manifest"]
+    report = result["report"]
 
     # ----- output ----------------------------------------------------------
     if json_out:
-        typer.echo(json.dumps(manifest, indent=2))
+        typer.echo(json.dumps(report, indent=2))
     else:
         out_dir = out or Path(workspace_uri) / ".peagen"
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_file = out_dir / "eval_manifest.json"
-        out_file.write_text(json.dumps(manifest, indent=2))
+        out_file = out_dir / "eval_report.json"
+        out_file.write_text(json.dumps(report, indent=2))
         typer.echo(str(out_file))
 
     # ----- strict gate -----------------------------------------------------
@@ -100,10 +102,12 @@ def submit(  # noqa: PLR0913
     skip_failed: bool = typer.Option(
         False, "--skip-failed/--include-failed", help="Ignore failed programs"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue evaluation on a remote worker."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "program_glob": program_glob,
         "pool": pool,
         "async_eval": async_eval,

@@ -8,6 +8,7 @@ from __future__ import annotations
 import io
 import os
 import shutil
+import warnings
 from pathlib import Path
 from typing import BinaryIO, Optional
 
@@ -16,6 +17,12 @@ from minio.error import S3Error
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+
+warnings.warn(
+    "peagen.plugins.storage_adapters.minio_storage_adapter is deprecated; use peagen.plugins.git_filters.minio_filter instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class MinioStorageAdapter:

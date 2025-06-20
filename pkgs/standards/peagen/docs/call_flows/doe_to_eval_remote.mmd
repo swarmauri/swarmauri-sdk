@@ -17,14 +17,14 @@ sequenceDiagram
     %% PROCESS
     U ->> PROC: `peagen remote process project_payloads.yaml`
     PROC ->> PE: init(env, templates, storage)
-    PE ->> FS: render workspace → `workspace/`, `*_manifest.json`
+    PE ->> FS: render workspace → `workspace/`, `workspace.json`
     PROC -->> U: Generation done  
-    Note over FS: 🗎 Artifact ② workspace + manifest
+    Note over FS: 🗎 Artifact ② workspace + descriptor
     
     %% EVAL (same workspace)
     U ->> EVAL: `peagen remote eval workspace/ --pool MyPool`
     EVAL ->> POOL: evaluate_programs(programs)
     POOL -->> EVAL: results[]
-    EVAL ->> FS: write `.peagen/eval_manifest.json`
+    EVAL ->> FS: write `.peagen/eval_report.json`
     EVAL -->> U: Evaluation complete  
-    Note over FS: 🗎 Artifact ③ `eval_manifest.json`
+    Note over FS: 🗎 Artifact ③ `eval_report.json`

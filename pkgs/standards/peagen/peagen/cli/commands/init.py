@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen._utils._init import _call_handler, _submit_task, _summary
+from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -25,6 +26,27 @@ local_init_app = typer.Typer(
 remote_init_app = typer.Typer(
     help="Bootstrap Peagen artefacts (project, template-set …) via JSON-RPC",
 )
+
+
+@local_init_app.command("filter")
+def local_init_filter(
+    uri: str | None = None,
+    name: str = "default",
+    config: Path = Path(".peagen.toml"),
+    repo: Path = Path("."),
+    add_config: bool = typer.Option(False, "--add-config", help="Write filter settings to config"),
+) -> None:
+    """Configure *repo* with a git filter.
+
+    If *uri* is omitted, ``s3://peagen`` is used. Use ``--add-config`` to update
+    ``config`` with the filter entry.
+    """
+    init_git_filter(repo, uri, name=name)
+    if add_config:
+        add_filter(uri, name=name, config=config)
+        typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'} in {config}")
+    else:
+        typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'}")
 
 
 # ── init project ─────────────────────────────────────────────────────────────
@@ -47,6 +69,17 @@ def local_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
+    git_remote: str = typer.Option(
+        None, "--git-remote", help="Initial Git remote URL"
+    ),
+    filter_uri: str = typer.Option(
+        None, "--filter-uri", help="Configure git filter with this URI"
+    ),
+    add_filter_config: bool = typer.Option(
+        False,
+        "--add-filter-config",
+        help="Also record filter in .peagen.toml",
+    ),
 ):
     """Create a new Peagen project skeleton locally."""
     self = Logger(name="init_project")
@@ -59,10 +92,15 @@ def local_init_project(
         "with_doe": with_doe,
         "with_eval_stub": with_eval_stub,
         "force": force,
+        "git_remote": git_remote,
+        "filter_uri": filter_uri,
+        "add_filter_config": add_filter_config,
     }
 
     result = _call_handler(args)
     _summary(path, result["next"])
+    if filter_uri and add_filter_config:
+        add_filter(filter_uri, config=path / ".peagen.toml")
     self.logger.info("Exiting local init_project command")
 
 
@@ -85,6 +123,15 @@ def remote_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
+    git_remote: str = typer.Option(
+        None, "--git-remote", help="Initial Git remote URL"
+    ),
+    filter_uri: str = typer.Option(
+        None, "--filter-uri", help="Configure git filter with this URI"
+    ),
+    add_filter_config: bool = typer.Option(
+        False, "--add-filter-config", help="Also record filter in .peagen.toml"
+    ),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -98,6 +145,8 @@ def remote_init_project(
         "with_doe": with_doe,
         "with_eval_stub": with_eval_stub,
         "force": force,
+        "git_remote": git_remote,
+        "filter_uri": filter_uri,
     }
     _submit_task(args, gateway_url, "init project")
 

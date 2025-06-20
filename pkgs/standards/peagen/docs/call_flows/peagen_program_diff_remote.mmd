@@ -8,7 +8,7 @@ sequenceDiagram
     alt if input is directory
         CLI ->> FS: Use it as a workspace
     else
-        CLI ->> Net: Download manifest & files (ensure workspace)
+        CLI ->> Net: Download descriptor & files (ensure workspace)
         Net -->> CLI: Returns temp workspace directory
     end
     CLI ->> FS: Scan left workspace for all file paths
