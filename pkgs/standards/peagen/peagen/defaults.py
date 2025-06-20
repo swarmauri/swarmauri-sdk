@@ -36,4 +36,5 @@ CONFIG = {
     "queues": {"default_queue": "in_memory", "adapters": {"in_memory": {"maxsize": 0}}},
     "result_backends": {"default_backend": "local_fs", "adapters": {"local_fs": {"root_dir": "./task_runs"}}},
     "storage": {"default_filter": "file", "filters": {"file": {"output_dir": "./peagen_artifacts"}}},
+    "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
 }
