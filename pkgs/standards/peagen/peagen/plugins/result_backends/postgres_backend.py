@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from peagen.models import TaskRun
+from .base import ResultBackendBase
 
 Session = None
 upsert_task = None
@@ -16,7 +17,7 @@ def _ensure_deps() -> None:
         upsert_task = _upsert_task
 
 
-class PostgresResultBackend:
+class PostgresResultBackend(ResultBackendBase):
     """Store TaskRun rows in Postgres using the gateway's engine."""
 
     def __init__(self, dsn: str | None = None, **_: object) -> None:
