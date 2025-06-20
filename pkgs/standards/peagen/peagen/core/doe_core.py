@@ -107,13 +107,17 @@ def _matrix_v2(factors: List[dict[str, Any]]) -> List[dict[str, str]]:
         lists.append(pairs)
     return [dict(p) for p in itertools.product(*lists)]
 
+
 def _factor_index(factors: List[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     idx = {}
     for fac in factors:
         idx[fac["name"]] = {lv["id"]: lv for lv in fac.get("levels", [])}
     return idx
 
-def _apply_factor_patches(base: bytes, idx: dict[str, dict[str, Any]], point: dict[str, str], root: Path) -> bytes:
+
+def _apply_factor_patches(
+    base: bytes, idx: dict[str, dict[str, Any]], point: dict[str, str], root: Path
+) -> bytes:
     result = base
     for name, lvl_id in point.items():
         level = idx.get(name, {}).get(lvl_id)
@@ -131,23 +135,34 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     base_path = (spec_dir / spec["baseArtifact"]).expanduser()
     base_bytes = base_path.read_bytes()
     branches: list[str] = []
+    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, "HEAD")
+            vcs.create_branch(branch, base_ref)
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
                 art_bytes = (spec_dir / lvl["artifactRef"]).read_bytes()
+            else:
+                current_art = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
+                if current_art.exists():
+                    art_bytes = current_art.read_bytes()
             patch_path = (spec_dir / lvl["patchRef"]).expanduser()
             kind = lvl.get("patchKind", "json-patch")
             patched = apply_patch(art_bytes, patch_path, kind)
             target = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(patched)
-            vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"factor {fac['name']}={lvl['id']}")
+            rel_art = str(target.relative_to(vcs.repo.working_tree_dir))
+            rel_patch = str(patch_path.relative_to(vcs.repo.working_tree_dir)) if patch_path.is_file() and patch_path.is_relative_to(vcs.repo.working_tree_dir) else None
+            paths = [p for p in [rel_art, rel_patch] if p]
+            vcs.commit(paths, f"factor {fac['name']}={lvl['id']}")
             branches.append(branch)
-    vcs.switch("HEAD")
+    if start_branch:
+        vcs.switch(start_branch)
+    else:
+        vcs.repo.git.switch("--detach", vcs.repo.head.commit.hexsha)
     return branches
 
 
@@ -163,6 +178,19 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
     # assume a consistent output path across factor levels
     output_path = factors[0]["levels"][0]["output_path"] if factors else "artifact.yaml"
 
+    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    base_bytes = None
+    factor_idx = None
+    out_path = None
+    if spec and spec_dir and spec.get("baseArtifact"):
+        base_path = (spec_dir / spec["baseArtifact"]).expanduser()
+        base_bytes = base_path.read_bytes()
+        factor_idx = _factor_index(spec.get("factors", []))
+        # assume consistent output_path across levels
+        for fac in spec.get("factors", []):
+            if fac.get("levels"):
+                out_path = fac["levels"][0].get("output_path")
+                break
     branches: list[str] = []
     for point in design_points:
         label = "_".join(f"{k}-{v}" for k, v in point.items())
@@ -175,8 +203,12 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
         tgt.write_bytes(patched)
         vcs.commit([str(tgt.relative_to(vcs.repo.working_tree_dir))], f"run {label}")
         branches.append(branch)
-    vcs.switch("HEAD")
+    if start_branch:
+        vcs.switch(start_branch)
+    else:
+        vcs.repo.git.switch("--detach", vcs.repo.head.commit.hexsha)
     return branches
+
 
 def _render_patch_ops(
     patch_ops: List[Dict[str, Any]], ctx: Dict[str, Any]
@@ -213,10 +245,12 @@ def build_design_points(
 ) -> Tuple[List[str], List[str], List[Dict[str, Any]]]:
     """Return (llm_keys, other_keys, design_points list)."""
     llm_codes = {
-        (spec.get("code") if isinstance(spec, dict) else n): n for n, spec in llm_map.items()
+        (spec.get("code") if isinstance(spec, dict) else n): n
+        for n, spec in llm_map.items()
     }
     other_codes = {
-        (spec.get("code") if isinstance(spec, dict) else n): n for n, spec in other_map.items()
+        (spec.get("code") if isinstance(spec, dict) else n): n
+        for n, spec in other_map.items()
     }
 
     design_points = [
@@ -238,7 +272,8 @@ def generate_projects(
     spec_name: str,
 ) -> List[Dict[str, Any]]:
     projects: List[Dict[str, Any]] = []
-    base_proj = deepcopy(template_obj.get("PROJECTS", [{}])[0])
+    base_list = template_obj.get("PROJECTS", [])
+    base_proj = deepcopy(base_list[0]) if base_list else {}
     other_keys = {k: deepcopy(v) for k, v in template_obj.items() if k != "PROJECTS"}
     for idx, point in enumerate(design_points):
         ctx = {
@@ -263,7 +298,9 @@ def generate_projects(
 
         # META section
         llm_factors = {llm_codes.get(k, k): point[k] for k in llm_codes}
-        other_factors = {other_codes.get(k, k): point[k] for k in other_codes if k in point}
+        other_factors = {
+            other_codes.get(k, k): point[k] for k in other_codes if k in point
+        }
 
         meta = {
             "design_id": f"{spec_name}-{idx:03d}",
@@ -276,7 +313,9 @@ def generate_projects(
     return projects
 
 
-def _publish_event(notify_uri: str, output_path: Path, count: int, cfg_path: Optional[Path]) -> None:
+def _publish_event(
+    notify_uri: str, output_path: Path, count: int, cfg_path: Optional[Path]
+) -> None:
     nt = urlparse(notify_uri)
     pub_name = nt.scheme or notify_uri
 
@@ -318,9 +357,7 @@ def generate_payload(
     if "version" not in spec_obj:
         raise ValueError("legacy DOE specs are no longer supported")
     if spec_obj.get("version") != "v2":
-        raise ValueError(
-            f"unsupported DOE spec version: {spec_obj.get('version')!r}"
-        )
+        raise ValueError(f"unsupported DOE spec version: {spec_obj.get('version')!r}")
 
     if not skip_validate:
         _validate(spec_obj, DOE_SPEC_V2_SCHEMA, "DOE spec")
@@ -364,13 +401,14 @@ def generate_payload(
         base_path = (spec_path.parent / spec_obj["baseArtifact"]).expanduser()
         base_bytes = base_path.read_bytes()
         for idx2, point in enumerate(design_points):
-            patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_path.parent)
+            patched = _apply_factor_patches(
+                base_bytes, factor_idx, point, spec_path.parent
+            )
             tgt = output_path.parent / f"{base_path.stem}_{idx2:03d}{base_path.suffix}"
             if not dry_run:
                 tgt.write_bytes(patched)
             artifact_outputs.append(str(tgt))
 
-    
     # 2. ------------ write file (unless dry-run) -------------------------
     bytes_written = 0
     outputs: List[str] = []

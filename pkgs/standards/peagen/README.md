@@ -432,3 +432,6 @@ subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
 switch between task lists, logs and opened files. The footer shows system
 metrics and current time. Remote artifact paths are downloaded via their git
 filter and re-uploaded when saving.
+
+## Results Backends
+Peagen supports pluggable results backends. Built-in options include `local_fs`, `postgres`, and `in_memory`.

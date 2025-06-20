@@ -13,16 +13,15 @@ This document explains how to launch the Peagen gateway and worker services and 
 
 Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
 
-For quick local testing you can rely on the in-memory queue and filesystem result backend:
+For quick local testing you can rely on the in-memory queue and an in-memory results backend:
 
 ```toml
 [queues]
 default_queue = "in_memory"
 
 [result_backends]
-default_backend = "local_fs"
-[result_backends.adapters.local_fs]
-root_dir = "./task_runs"
+default_backend = "in_memory"
+[result_backends.adapters.in_memory]
 ```
 
 Production deployments typically use Redis and Postgres instead:
@@ -150,8 +149,8 @@ to suppress the banner output.
 
 ### Local
 
-1. Start the gateway and worker with an **in-memory** queue, no pubsub, local
-   filesystem storage, and the local filesystem results backend.
+1. Start the gateway and worker with an **in-memory** queue, no pubsub,
+   filesystem storage, and the **in-memory** results backend.
 2. Submit a task and wait for completion:
    ```bash
    peagen local -q process projects_payload.yaml --watch

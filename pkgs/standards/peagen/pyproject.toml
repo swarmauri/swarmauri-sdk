@@ -157,6 +157,7 @@ rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
 [project.entry-points."peagen.plugins.result_backends"]
 local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"
 postgres = "peagen.plugins.result_backends.postgres_backend:PostgresResultBackend"
+in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBackend"
 
 [project.entry-points."peagen.plugins.queues"]
 redis = "peagen.plugins.queues.redis_queue:RedisQueue"

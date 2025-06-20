@@ -5,6 +5,7 @@ import pytest
 from peagen.models.task_run import TaskRun, Status
 from peagen.plugins.result_backends.localfs_backend import LocalFsResultBackend
 from peagen.plugins.result_backends.postgres_backend import PostgresResultBackend
+from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend
 
 
 @pytest.mark.unit
@@ -66,3 +67,20 @@ async def test_postgres_backend_invokes_helpers(monkeypatch):
 
     assert calls["task"] is tr
     assert calls["committed"] is True
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_in_memory_backend_stores_in_dict():
+    backend = InMemoryResultBackend()
+    tr = TaskRun(
+        id=uuid.uuid4(),
+        pool="p",
+        task_type="t",
+        status=Status.success,
+        payload={},
+        result=None,
+    )
+    await backend.store(tr)
+    assert str(tr.id) in backend.tasks
+    assert backend.tasks[str(tr.id)] is tr
