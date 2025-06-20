@@ -47,5 +47,5 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
     assert sent and sent[-1]["method"] == "Work.finished"
     submit = sent[0]
     assert submit["method"] == "Task.submit"
-    assert "action" not in submit["params"]["payload"]
+    assert submit["params"]["payload"]["action"] == "mutate"
     assert submit["params"]["payload"]["args"].get("mutations")
