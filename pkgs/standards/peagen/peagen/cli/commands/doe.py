@@ -66,6 +66,9 @@ def run_gen(  # noqa: PLR0913
     json_out: bool = typer.Option(
         False, "--json", help="Print the result dictionary as JSON"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
 ) -> None:
     """Generate a project‑payload bundle from a DOE spec locally."""
     args = {
@@ -77,6 +80,7 @@ def run_gen(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
 
     task = _make_task(args, action="doe")
@@ -120,6 +124,9 @@ def submit_gen(  # noqa: PLR0913
     skip_validate: bool = typer.Option(
         False, "--skip-validate", help="Skip validating the DOE spec"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
 ) -> None:
     """Submit a DOE generation task to a remote worker."""
     args = {
@@ -131,6 +138,7 @@ def submit_gen(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
     task = _make_task(args, action="doe")
 
@@ -188,6 +196,9 @@ def run_process(  # noqa: PLR0913
     json_out: bool = typer.Option(
         False, "--json", help="Print the result dictionary as JSON"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
 ) -> None:
     """Process a DOE specification locally."""
     args = {
@@ -199,6 +210,7 @@ def run_process(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
 
     task = _make_task(args, action="doe_process")
@@ -238,6 +250,9 @@ def submit_process(  # noqa: PLR0913
     skip_validate: bool = typer.Option(
         False, "--skip-validate", help="Skip validating the DOE spec"
     ),
+    evaluate_runs: bool = typer.Option(
+        False, "--eval-runs", help="Evaluate each run after generation"
+    ),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
@@ -267,6 +282,7 @@ def submit_process(  # noqa: PLR0913
         "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
     }
     task = _make_task(args, action="doe_process")
 

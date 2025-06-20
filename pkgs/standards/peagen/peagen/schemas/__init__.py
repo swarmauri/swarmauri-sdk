@@ -30,6 +30,12 @@ DOE_SPEC_V1_1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
+DOE_SPEC_V2_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("doe_spec.schema.v2.json")
+    .read_text(encoding="utf-8")
+)
+
 PTREE_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("ptree.schema.v1.json").read_text(encoding="utf-8")
 )
@@ -43,6 +49,16 @@ PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
 
 EVENT_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
+)
+
+EVOLVE_SPEC_V1_SCHEMA = json.loads(
+    res.files(__package__)
+    .joinpath("evolve_spec.schema.v1.json")
+    .read_text(encoding="utf-8")
+)
+
+LLM_PATCH_V1_SCHEMA = json.loads(
+    res.files(__package__).joinpath("llm_patch.schema.v1.json").read_text(encoding="utf-8")
 )
 
 
@@ -60,8 +76,11 @@ __all__ = [
     "PEAGEN_TOML_V1_1_SCHEMA",
     "DOE_SPEC_V1_SCHEMA",
     "DOE_SPEC_V1_1_SCHEMA",
+    "DOE_SPEC_V2_SCHEMA",
     "PTREE_V1_SCHEMA",
     "PROJECTS_PAYLOAD_V1_SCHEMA",
     "EVENT_V1_SCHEMA",
+    "EVOLVE_SPEC_V1_SCHEMA",
+    "LLM_PATCH_V1_SCHEMA",
     "EXTRAS_SCHEMAS",
 ]

@@ -39,6 +39,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         dry_run=args.get("dry_run", False),
         force=args.get("force", False),
         skip_validate=args.get("skip_validate", False),
+        evaluate_runs=args.get("evaluate_runs", False),
     )
 
     cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
