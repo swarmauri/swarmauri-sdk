@@ -270,9 +270,6 @@ class QueueDashboardApp(App):
         self.filter_action: str | None = None
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
-        # Track parent tasks we've already encountered so we only
-        # auto-collapse new ones once
-        self._seen_parents: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
         self._filter_debounce_timer = None
         self._current_file: str | None = None
@@ -548,14 +545,6 @@ class QueueDashboardApp(App):
                 result_data = t_data.get("result") or {}
                 children_ids = result_data.get("children", [])
                 if children_ids:
-                    if (
-                        task_id not in self._seen_parents
-                        and task_id not in self.collapsed
-                    ):
-                        # Collapse new parent tasks by default
-                        self.collapsed.add(task_id)
-                        self._seen_parents.add(task_id)
-
                     # Display '-' when expanded and '+' when collapsed
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
@@ -599,9 +588,6 @@ class QueueDashboardApp(App):
                                 key=str(child_id_str),
                             )
                             seen_task_ids.add(str(child_id_str))
-                elif children_ids:
-                    # Skip displaying children when the parent is collapsed
-                    seen_task_ids.update(str(cid) for cid in children_ids)
 
             if (
                 current_cursor_row is not None
