@@ -6,6 +6,8 @@ from peagen.core.doe_core import (
     create_run_branches,
     _matrix_v2,
 )
+import peagen.core.doe_core as dc
+
 
 import pytest
 
