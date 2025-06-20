@@ -16,6 +16,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import json
+
 import jsonpatch
 from peagen.core.patch_core import apply_patch
 from peagen.core.eval_core import evaluate_workspace
@@ -383,16 +385,23 @@ def generate_payload(
     evaluations: List[Dict[str, Any]] = []
     if evaluate_runs:
         for art in artifact_outputs:
+            ws = Path(art).parent
             try:
                 report = evaluate_workspace(
-                    workspace_uri=str(Path(art).parent),
+                    workspace_uri=str(ws),
                     program_glob=eval_program_glob,
                     pool_ref=eval_pool,
                     cfg_path=cfg_path,
                 )
                 evaluations.append(report)
+                out_dir = ws / ".peagen"
+                out_dir.mkdir(parents=True, exist_ok=True)
+                (out_dir / "eval_results.json").write_text(
+                    json.dumps(report, indent=2),
+                    encoding="utf-8",
+                )
             except Exception as exc:  # pragma: no cover - optional
-                evaluations.append({"workspace": str(Path(art).parent), "error": str(exc)})
+                evaluations.append({"workspace": str(ws), "error": str(exc)})
 
     # 4. ------------ summary ---------------------------------------------
     return {
