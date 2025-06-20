@@ -163,6 +163,11 @@ in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBack
 redis = "peagen.plugins.queues.redis_queue:RedisQueue"
 in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
 
+[project.entry-points."peagen.plugins.selectors"]
+result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackendSelector"
+bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
+input = "peagen.plugins.selectors.input_selector:InputSelector"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen" = [
