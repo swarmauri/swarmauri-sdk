@@ -29,15 +29,21 @@ class GitVCS:
 
             with self.repo.config_writer() as cw:
                 sect = 'remote "origin"'
-                cw.set_value(sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
-                cw.set_value(sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
+                cw.set_value(
+                    sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
+                )
+                cw.set_value(
+                    sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
+                )
 
         # ensure we have a commit identity to avoid git errors
         with self.repo.config_reader() as cr, self.repo.config_writer() as cw:
             if not cr.has_option("user", "name"):
                 cw.set_value("user", "name", os.getenv("GIT_AUTHOR_NAME", "Peagen"))
             if not cr.has_option("user", "email"):
-                cw.set_value("user", "email", os.getenv("GIT_AUTHOR_EMAIL", "peagen@example.com"))
+                cw.set_value(
+                    "user", "email", os.getenv("GIT_AUTHOR_EMAIL", "peagen@example.com")
+                )
 
     # ------------------------------------------------------------------ init/use
     @classmethod
@@ -50,7 +56,9 @@ class GitVCS:
         return cls(path, remote_url=remote_url)
 
     # ------------------------------------------------------------------ branch mgmt
-    def create_branch(self, name: str, base_ref: str = "HEAD", *, checkout: bool = False) -> None:
+    def create_branch(
+        self, name: str, base_ref: str = "HEAD", *, checkout: bool = False
+    ) -> None:
         """Create *name* at *base_ref* and optionally check it out."""
         self.repo.git.branch(name, base_ref)
         if checkout:
@@ -58,7 +66,10 @@ class GitVCS:
 
     def switch(self, branch: str) -> None:
         """Switch to *branch*."""
-        self.repo.git.switch(branch)
+        if branch == "HEAD":
+            self.repo.git.switch("--detach", branch)
+        else:
+            self.repo.git.switch(branch)
 
     def fan_out(self, base_ref: str, branches: Iterable[str]) -> None:
         """Create many branches at ``base_ref``."""
@@ -110,4 +121,3 @@ class GitVCS:
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")
         self.repo.git.clean("-fd")
-

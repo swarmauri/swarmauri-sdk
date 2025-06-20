@@ -39,7 +39,6 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
     def fake_eval(**kwargs):
         called["ws"] = kwargs["workspace_uri"]
         return {"ok": True}
-
     import peagen.core.doe_core as dc
     monkeypatch.setattr(dc, "evaluate_workspace", fake_eval)
 

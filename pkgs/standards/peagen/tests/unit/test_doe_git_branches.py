@@ -8,7 +8,6 @@ import pytest
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="merge conflicts in git apply")
 def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
     repo_dir = tmp_path / "repo"
     vcs = GitVCS.ensure_repo(repo_dir)

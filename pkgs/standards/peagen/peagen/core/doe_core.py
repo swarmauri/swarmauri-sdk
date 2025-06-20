@@ -107,13 +107,17 @@ def _matrix_v2(factors: List[dict[str, Any]]) -> List[dict[str, str]]:
         lists.append(pairs)
     return [dict(p) for p in itertools.product(*lists)]
 
+
 def _factor_index(factors: List[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     idx = {}
     for fac in factors:
         idx[fac["name"]] = {lv["id"]: lv for lv in fac.get("levels", [])}
     return idx
 
-def _apply_factor_patches(base: bytes, idx: dict[str, dict[str, Any]], point: dict[str, str], root: Path) -> bytes:
+
+def _apply_factor_patches(
+    base: bytes, idx: dict[str, dict[str, Any]], point: dict[str, str], root: Path
+) -> bytes:
     result = base
     for name, lvl_id in point.items():
         level = idx.get(name, {}).get(lvl_id)
@@ -145,7 +149,10 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
             target = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(patched)
-            vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"factor {fac['name']}={lvl['id']}")
+            vcs.commit(
+                [str(target.relative_to(vcs.repo.working_tree_dir))],
+                f"factor {fac['name']}={lvl['id']}",
+            )
             branches.append(branch)
     vcs.switch("HEAD")
     return branches
@@ -163,10 +170,11 @@ def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
         parents = [pea_ref("factor", k, v) for k, v in point.items()]
         if parents:
             vcs.repo.git.merge("--no-ff", "--no-edit", *parents)
-        vcs.repo.git.commit("-m", f"run {label}")
+        vcs.repo.git.commit("-m", f"run {label}", "--allow-empty")
         branches.append(branch)
     vcs.switch("HEAD")
     return branches
+
 
 def _render_patch_ops(
     patch_ops: List[Dict[str, Any]], ctx: Dict[str, Any]
@@ -203,10 +211,12 @@ def build_design_points(
 ) -> Tuple[List[str], List[str], List[Dict[str, Any]]]:
     """Return (llm_keys, other_keys, design_points list)."""
     llm_codes = {
-        (spec.get("code") if isinstance(spec, dict) else n): n for n, spec in llm_map.items()
+        (spec.get("code") if isinstance(spec, dict) else n): n
+        for n, spec in llm_map.items()
     }
     other_codes = {
-        (spec.get("code") if isinstance(spec, dict) else n): n for n, spec in other_map.items()
+        (spec.get("code") if isinstance(spec, dict) else n): n
+        for n, spec in other_map.items()
     }
 
     design_points = [
@@ -253,7 +263,9 @@ def generate_projects(
 
         # META section
         llm_factors = {llm_codes.get(k, k): point[k] for k in llm_codes}
-        other_factors = {other_codes.get(k, k): point[k] for k in other_codes if k in point}
+        other_factors = {
+            other_codes.get(k, k): point[k] for k in other_codes if k in point
+        }
 
         meta = {
             "design_id": f"{spec_name}-{idx:03d}",
@@ -266,7 +278,9 @@ def generate_projects(
     return projects
 
 
-def _publish_event(notify_uri: str, output_path: Path, count: int, cfg_path: Optional[Path]) -> None:
+def _publish_event(
+    notify_uri: str, output_path: Path, count: int, cfg_path: Optional[Path]
+) -> None:
     nt = urlparse(notify_uri)
     pub_name = nt.scheme or notify_uri
 
@@ -308,9 +322,7 @@ def generate_payload(
     if "version" not in spec_obj:
         raise ValueError("legacy DOE specs are no longer supported")
     if spec_obj.get("version") != "v2":
-        raise ValueError(
-            f"unsupported DOE spec version: {spec_obj.get('version')!r}"
-        )
+        raise ValueError(f"unsupported DOE spec version: {spec_obj.get('version')!r}")
 
     if not skip_validate:
         _validate(spec_obj, DOE_SPEC_V2_SCHEMA, "DOE spec")
@@ -354,13 +366,14 @@ def generate_payload(
         base_path = (spec_path.parent / spec_obj["baseArtifact"]).expanduser()
         base_bytes = base_path.read_bytes()
         for idx2, point in enumerate(design_points):
-            patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_path.parent)
+            patched = _apply_factor_patches(
+                base_bytes, factor_idx, point, spec_path.parent
+            )
             tgt = output_path.parent / f"{base_path.stem}_{idx2:03d}{base_path.suffix}"
             if not dry_run:
                 tgt.write_bytes(patched)
             artifact_outputs.append(str(tgt))
 
-    
     # 2. ------------ write file (unless dry-run) -------------------------
     bytes_written = 0
     outputs: List[str] = []
