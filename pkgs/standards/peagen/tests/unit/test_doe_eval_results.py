@@ -31,7 +31,7 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
     spec_path = tmp_path / "spec.yaml"
     spec_path.write_text(json.dumps(spec))
     template_path = tmp_path / "template.yaml"
-    template_path.write_text("PROJECTS: []\n")
+    template_path.write_text("PROJECTS:\n  - {}\n")
     output = tmp_path / "out.yaml"
 
     called = {}
@@ -40,7 +40,8 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
         called["ws"] = kwargs["workspace_uri"]
         return {"ok": True}
 
-    monkeypatch.setattr("peagen.core.doe_core", "evaluate_workspace", fake_eval)
+    import peagen.core.doe_core as dc
+    monkeypatch.setattr(dc, "evaluate_workspace", fake_eval)
 
     generate_payload(
         spec_path=spec_path,
