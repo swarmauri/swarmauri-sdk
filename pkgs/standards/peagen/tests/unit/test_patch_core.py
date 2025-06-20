@@ -20,6 +20,7 @@ def test_apply_patch_git(tmp_path: Path) -> None:
     base.write_text("hello\n")
     patch = tmp_path / "p.patch"
     patch.write_text("--- a/file.txt\n+++ b/file.txt\n@@ -1 +1 @@\n-hello\n+goodbye\n")
+
     out = apply_patch(base.read_bytes(), patch, "git")
     assert out.decode().strip() == "goodbye"
 

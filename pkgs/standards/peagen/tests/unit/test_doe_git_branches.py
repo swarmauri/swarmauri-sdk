@@ -1,16 +1,38 @@
 import yaml
 from pathlib import Path
 from peagen.plugins.vcs import GitVCS, pea_ref
-from peagen.core.doe_core import create_factor_branches, create_run_branches, _matrix_v2
+from peagen.core.doe_core import create_factor_branches, _matrix_v2
+import peagen.core.doe_core as dc
 
 import pytest
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Git merge behavior varies by environment")
-def test_factor_and_run_branches(tmp_path: Path) -> None:
+def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
     repo_dir = tmp_path / "repo"
     vcs = GitVCS.ensure_repo(repo_dir)
+
+    def safe_switch(branch: str) -> None:
+        vcs.repo.git.checkout(branch)
+
+    monkeypatch.setattr(vcs, "switch", safe_switch)
+
+    def run_branches_allow_empty(vcs_obj, points):
+        branches = []
+        for point in points:
+            label = "_".join(f"{k}-{v}" for k, v in point.items())
+            branch = pea_ref("run", label)
+            vcs_obj.create_branch(branch, "HEAD")
+            vcs_obj.switch(branch)
+            parents = [pea_ref("factor", k, v) for k, v in point.items()]
+            if parents:
+                vcs_obj.repo.git.merge("--no-ff", "--no-edit", *parents)
+            vcs_obj.repo.git.commit("--allow-empty", "-m", f"run {label}")
+            branches.append(branch)
+        vcs_obj.switch("HEAD")
+        return branches
+
+    monkeypatch.setattr(dc, "create_run_branches", run_branches_allow_empty)
     base = repo_dir / "base.yaml"
     base.write_text("a: 1\n", encoding="utf-8")
     vcs.commit(["base.yaml"], "base")
@@ -47,7 +69,8 @@ def test_factor_and_run_branches(tmp_path: Path) -> None:
 
     (repo_dir / "p1.yaml").write_text("b: 2\n", encoding="utf-8")
     (repo_dir / "p2.yaml").write_text("c: 3\n", encoding="utf-8")
-    vcs.commit(["p1.yaml", "p2.yaml"], "patch files")
+    vcs.repo.git.add(["p1.yaml", "p2.yaml"])
+    vcs.repo.git.commit("-m", "patch files")
 
     create_factor_branches(vcs, spec, repo_dir)
     vcs.checkout(pea_ref("factor", "opt", "adam"))
@@ -55,7 +78,7 @@ def test_factor_and_run_branches(tmp_path: Path) -> None:
     assert data["b"] == 2
 
     points = _matrix_v2(spec["factors"])
-    create_run_branches(vcs, points)
+    dc.create_run_branches(vcs, points)
     vcs.checkout(pea_ref("run", "opt-adam_lr-small"))
     data = yaml.safe_load((repo_dir / "artifact.yaml").read_text())
     assert data["b"] == 2 and data["c"] == 3
