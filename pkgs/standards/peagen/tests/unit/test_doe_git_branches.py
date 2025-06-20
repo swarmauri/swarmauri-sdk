@@ -53,7 +53,7 @@ def test_factor_and_run_branches(tmp_path: Path) -> None:
     assert data["b"] == 2
 
     points = _matrix_v2(spec["factors"])
-    create_run_branches(vcs, points)
+    create_run_branches(vcs, points, spec, repo_dir)
     vcs.checkout(pea_ref("run", "opt-adam_lr-small"))
     data = yaml.safe_load((repo_dir / "artifact.yaml").read_text())
     assert data["b"] == 2 and data["c"] == 3

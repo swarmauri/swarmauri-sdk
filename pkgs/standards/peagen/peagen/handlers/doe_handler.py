@@ -50,6 +50,11 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         if spec_obj.get("baseArtifact"):
             create_factor_branches(vcs, spec_obj, Path(args["spec"]).expanduser().parent)
             points = _matrix_v2(spec_obj.get("factors", []))
-            create_run_branches(vcs, points)
+            create_run_branches(
+                vcs,
+                points,
+                spec=spec_obj,
+                spec_dir=Path(args["spec"]).expanduser().parent,
+            )
 
     return result

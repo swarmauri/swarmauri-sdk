@@ -3,6 +3,7 @@ import json
 import pytest
 
 from peagen.core.doe_core import generate_payload
+import peagen.core.doe_core as doe_core
 
 
 @pytest.mark.unit
@@ -40,7 +41,7 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
         called["ws"] = kwargs["workspace_uri"]
         return {"ok": True}
 
-    monkeypatch.setattr("peagen.core.doe_core", "evaluate_workspace", fake_eval)
+    monkeypatch.setattr(doe_core, "evaluate_workspace", fake_eval)
 
     generate_payload(
         spec_path=spec_path,
