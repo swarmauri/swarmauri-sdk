@@ -87,6 +87,27 @@ def _format_ts(ts: float | str | None) -> str:
         return str(ts)
 
 
+def _calc_duration(
+    start: float | str | None, finish: float | str | None
+) -> int | None:
+    """Return elapsed seconds between ``start`` and ``finish`` if possible."""
+
+    if start is None or finish is None:
+        return None
+    try:
+        if isinstance(start, str):
+            start_ts = datetime.fromisoformat(start.replace("Z", "+00:00")).timestamp()
+        else:
+            start_ts = float(start)
+        if isinstance(finish, str):
+            finish_ts = datetime.fromisoformat(finish.replace("Z", "+00:00")).timestamp()
+        else:
+            finish_ts = float(finish)
+        return int(finish_ts - start_ts)
+    except Exception:
+        return None
+
+
 def _truncate_id(task_id: str, length: int = 4) -> str:
     """Return a shortened representation of *task_id*.
 
@@ -198,6 +219,7 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
+        ("space", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
@@ -226,7 +248,7 @@ class QueueDashboardApp(App):
         "Labels": "label",
         "Started": "started_at",
         "Finished": "finished_at",
-        "Duration": "duration",
+        "Duration (s)": "duration",
         "Error": "error",
     }
 
@@ -248,6 +270,7 @@ class QueueDashboardApp(App):
         self.filter_action: str | None = None
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
+        self._seen_parents: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
         self._filter_debounce_timer = None
         self._current_file: str | None = None
@@ -379,6 +402,14 @@ class QueueDashboardApp(App):
             combined_tasks_dict[task.get("id")] = task
         all_tasks = list(combined_tasks_dict.values())
 
+        for task in all_tasks:
+            result_data = task.get("result") or {}
+            if result_data.get("children"):
+                tid_str = str(task.get("id"))
+                if tid_str not in self._seen_parents:
+                    self._seen_parents.add(tid_str)
+                    self.collapsed.add(tid_str)
+
         current_filter_criteria = {
             "id": self.filter_id,
             "pool": self.filter_pool,
@@ -411,6 +442,12 @@ class QueueDashboardApp(App):
             ]
         if criteria.get("label"):
             tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
+
+        for t in tasks:
+            if t.get("duration") is None:
+                t["duration"] = _calc_duration(
+                    t.get("started_at"), t.get("finished_at")
+                )
 
         sort_key = criteria.get("sort_key")
         sort_reverse = criteria.get("sort_reverse", False)
@@ -517,6 +554,7 @@ class QueueDashboardApp(App):
                 result_data = t_data.get("result") or {}
                 children_ids = result_data.get("children", [])
                 if children_ids:
+                    # Display '-' when expanded and '+' when collapsed
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
                 self.tasks_table.add_row(
@@ -639,7 +677,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
         )
         self.tasks_table.cursor_type = "cell"
 
@@ -652,7 +690,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
             "Error",
         )
         self.err_table.cursor_type = "cell"
