@@ -427,6 +427,14 @@ class QueueDashboardApp(App):
                     return (
                         task_item.get("started_at") or task_item.get("finished_at") or 0
                     )
+                if sort_key == "status":
+                    from peagen.models.schemas import Status
+                    status_value = task_item.get("status")
+                    try:
+                        status_index = list(Status).index(Status(status_value)) if status_value else float('inf')
+                        return status_index
+                    except (ValueError, TypeError):
+                        return float('inf')
                 return task_item.get(sort_key)
 
             tasks_with_val = [t for t in tasks if _key_func(t) is not None]
