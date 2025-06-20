@@ -9,7 +9,6 @@ from peagen.core.doe_core import (
     generate_payload,
     create_factor_branches,
     create_run_branches,
-    _matrix_v2,
 )
 from peagen.models import Task
 from peagen._utils.config_loader import resolve_cfg
@@ -48,13 +47,8 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
         spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
         if spec_obj.get("baseArtifact"):
-            create_factor_branches(vcs, spec_obj, Path(args["spec"]).expanduser().parent)
-            points = _matrix_v2(spec_obj.get("factors", []))
-            create_run_branches(
-                vcs,
-                points,
-                spec=spec_obj,
-                spec_dir=Path(args["spec"]).expanduser().parent,
-            )
+            spec_dir = Path(args["spec"]).expanduser().parent
+            create_factor_branches(vcs, spec_obj, spec_dir)
+            create_run_branches(vcs, spec_obj, spec_dir)
 
     return result

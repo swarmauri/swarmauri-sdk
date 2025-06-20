@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import textwrap
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional, List, Tuple
+import random
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import PluginManager, resolve_plugin_spec
@@ -27,16 +28,34 @@ def mutate_workspace(
     gens: int = 1,
     profile_mod: str | None = None,
     cfg_path: Optional[Path] = None,
+    mutations: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Optional[str]]:
     """Run a minimal evolutionary loop on ``target_file`` inside ``workspace_uri``."""
 
-    cfg = load_peagen_toml(cfg_path) if cfg_path else load_peagen_toml(Path(workspace_uri) / ".peagen.toml")
+    cfg = (
+        load_peagen_toml(cfg_path)
+        if cfg_path
+        else load_peagen_toml(Path(workspace_uri) / ".peagen.toml")
+    )
     pm = PluginManager(cfg)
-    mutator = pm.get("mutators")
+    if mutations:
+        mutators: List[Tuple[float, Any]] = []
+        for spec in mutations:
+            prob = float(spec.get("probability", 1))
+            kind = spec.get("kind")
+            params = {k: v for k, v in spec.items() if k not in {"kind", "probability"}}
+            MutCls = resolve_plugin_spec("mutators", kind)
+            mutators.append((prob, MutCls(**params)))
+    else:
+        mutators = [(1.0, pm.get("mutators"))]
     pool = pm.get("evaluator_pools")
-    evaluator_ref = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+    evaluator_ref = (
+        "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+    )
     eval_cls = resolve_plugin_spec("evaluators", evaluator_ref)
-    evaluator = eval_cls(import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod)
+    evaluator = eval_cls(
+        import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod
+    )
     pool.add_evaluator(evaluator, name="performance")
 
     path = Path(workspace_uri) / target_file
@@ -46,10 +65,12 @@ def mutate_workspace(
     best_src = parent_src
     best_score = float("inf")
 
+    weights, muts = zip(*mutators)
     for _ in range(gens):
         prompt = textwrap.dedent(PROMPT.format(parent=best_src))
+        chosen = random.choices(muts, weights=weights, k=1)[0]
         try:
-            child_src = mutator.mutate(prompt)
+            child_src = chosen.mutate(prompt)
         except Exception as e:
             logging.warning("mutate error: %s", e)
             child_src = best_src

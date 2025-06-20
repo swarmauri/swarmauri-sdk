@@ -139,11 +139,15 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, "HEAD")
+            vcs.create_branch(branch, base_ref)
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
                 art_bytes = (spec_dir / lvl["artifactRef"]).read_bytes()
+            else:
+                current_art = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
+                if current_art.exists():
+                    art_bytes = current_art.read_bytes()
             patch_path = (spec_dir / lvl["patchRef"]).expanduser()
             kind = lvl.get("patchKind", "json-patch")
             patched = apply_patch(art_bytes, patch_path, kind)
@@ -162,13 +166,17 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     return branches
 
 
-def create_run_branches(
-    vcs,
-    design_points: list[dict[str, str]],
-    spec: dict[str, Any] | None = None,
-    spec_dir: Path | None = None,
-) -> list[str]:
-    """Create run branches by merging factor level branches."""
+def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
+    """Create run branches by applying factor patches for each design point."""
+
+    factors = spec.get("factors", [])
+    factor_idx = _factor_index(factors)
+    base_path = (spec_dir / spec["baseArtifact"]).expanduser()
+    base_bytes = base_path.read_bytes()
+    design_points = _matrix_v2(factors)
+
+    # assume a consistent output path across factor levels
+    output_path = factors[0]["levels"][0]["output_path"] if factors else "artifact.yaml"
 
     start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
     base_bytes = None
@@ -189,17 +197,11 @@ def create_run_branches(
         branch = pea_ref("run", label)
         vcs.create_branch(branch, "HEAD")
         vcs.switch(branch)
-        parents = [pea_ref("factor", k, v) for k, v in point.items()]
-        if parents:
-            vcs.repo.git.merge("--no-ff", "--no-edit", *parents)
-        if base_bytes is not None and factor_idx is not None and out_path:
-            patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_dir or Path.cwd())
-            target = Path(vcs.repo.working_tree_dir) / out_path
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(patched)
-            vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"run {label}")
-        else:
-            vcs.repo.git.commit("--allow-empty", "-m", f"run {label}")
+        patched = _apply_factor_patches(base_bytes, factor_idx, point, spec_dir)
+        tgt = Path(vcs.repo.working_tree_dir) / output_path
+        tgt.parent.mkdir(parents=True, exist_ok=True)
+        tgt.write_bytes(patched)
+        vcs.commit([str(tgt.relative_to(vcs.repo.working_tree_dir))], f"run {label}")
         branches.append(branch)
     if start_branch:
         vcs.switch(start_branch)
