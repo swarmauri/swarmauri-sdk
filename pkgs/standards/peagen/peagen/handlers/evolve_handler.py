@@ -41,9 +41,8 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             Task(
                 id=str(uuid.uuid4()),
                 pool=pool,
-                action="mutate",
                 status=Status.waiting,
-                payload={"args": job},
+                payload={"action": "mutate", "args": job},
             )
         )
 
