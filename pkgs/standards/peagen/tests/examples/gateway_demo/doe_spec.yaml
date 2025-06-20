@@ -1,0 +1,19 @@
+version: v2
+meta:
+  name: locking-demo
+factors:
+  - name: suffix
+    levels:
+      - id: "001"
+        patchRef: patches/suffix_001.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+      - id: "002"
+        patchRef: patches/suffix_002.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+factorSets:
+  - name: grid
+    cartesianProduct:
+      suffix: ["001", "002"]
+    uriTemplate: "{suffix}"
