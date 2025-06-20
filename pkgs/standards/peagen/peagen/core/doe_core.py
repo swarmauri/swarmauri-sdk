@@ -140,7 +140,7 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, base_ref)
+            vcs.create_branch(branch, start_branch or "HEAD")
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
@@ -179,7 +179,9 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
     # assume a consistent output path across factor levels
     output_path = factors[0]["levels"][0]["output_path"] if factors else "artifact.yaml"
 
-    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    start_branch = (
+        vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    )
     base_bytes = None
     factor_idx = None
     if spec and spec_dir and spec.get("baseArtifact"):
