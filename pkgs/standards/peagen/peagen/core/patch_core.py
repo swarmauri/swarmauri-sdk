@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+import os
 from tempfile import TemporaryDirectory
 from typing import Any
 
@@ -58,16 +59,20 @@ def _apply_yaml_overlay(doc: Any, patch: Any) -> Any:
 # Git patch application
 # ---------------------------------------------------------------------------
 
-def _apply_git_patch(base: bytes, patch_path: Path) -> bytes:
+def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = None, user_email: str | None = None) -> bytes:
+    """Apply a Git patch using a scratch repository."""
+    user_name = user_name or os.getenv("GIT_AUTHOR_NAME", "nobody")
+    user_email = user_email or os.getenv("GIT_AUTHOR_EMAIL", "nobody@example.com")
+
     with TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
-        tgt = tmp / "artifact"
+        tgt = tmp / "base_input"
         tgt.write_bytes(base)
 
         subprocess.run(["git", "init"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "config", "user.email", "nobody@example.com"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "config", "user.name", "nobody"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "add", "artifact"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "config", "user.email", user_email], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "config", "user.name", user_name], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "add", "base_input"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "commit", "-m", "base"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["git", "apply", str(patch_path)], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return tgt.read_bytes()

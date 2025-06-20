@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import itertools
+import warnings
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -138,7 +139,7 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
             patch_path = (spec_dir / lvl["patchRef"]).expanduser()
             kind = lvl.get("patchKind", "json-patch")
             patched = apply_patch(art_bytes, patch_path, kind)
-            target = Path(vcs.repo.working_tree_dir) / lvl["targetRef"]
+            target = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(patched)
             vcs.commit([str(target.relative_to(vcs.repo.working_tree_dir))], f"factor {fac['name']}={lvl['id']}")
@@ -167,6 +168,11 @@ def create_run_branches(vcs, design_points: list[dict[str, str]]) -> list[str]:
 def _render_patch_ops(
     patch_ops: List[Dict[str, Any]], ctx: Dict[str, Any]
 ) -> List[Dict[str, Any]]:
+    warnings.warn(
+        "_render_patch_ops is deprecated and will be removed in a future release",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     rendered: List[Dict[str, Any]] = []
     for pt in patch_ops:
         op = pt.copy()

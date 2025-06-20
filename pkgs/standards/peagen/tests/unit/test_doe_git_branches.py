@@ -25,7 +25,7 @@ def test_factor_and_run_branches(tmp_path: Path) -> None:
                     {
                         "id": "adam",
                         "patchRef": "p1.yaml",
-                        "targetRef": "artifact.yaml",
+                        "output_path": "artifact.yaml",
                         "patchKind": "json-merge",
                     }
                 ],
@@ -36,7 +36,7 @@ def test_factor_and_run_branches(tmp_path: Path) -> None:
                     {
                         "id": "small",
                         "patchRef": "p2.yaml",
-                        "targetRef": "artifact.yaml",
+                        "output_path": "artifact.yaml",
                         "patchKind": "json-merge",
                     }
                 ],

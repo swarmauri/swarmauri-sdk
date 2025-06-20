@@ -68,12 +68,12 @@
       "description": "A single concrete level within a factor.",
 
       "type": "object",
-      "required": ["id", "patchRef", "targetRef"],
+      "required": ["id", "patchRef", "output_path"],
       "additionalProperties": false,
 
       "properties": {
         "id":          { "type": "string" },
-        "targetRef":   { "type": "string", "format": "uri-reference" },
+        "output_path": { "type": "string", "format": "uri-reference" },
         "patchRef":    { "type": "string", "format": "uri-reference" },
         "artifactRef": { "type": "string", "format": "uri-reference" },
         "patchKind": {
