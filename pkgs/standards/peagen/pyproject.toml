@@ -179,4 +179,5 @@ llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 "peagen" = [
   "tests/examples/locking_demo/*",
   "tests/examples/peagen_tomls/*",
+  "tests/examples/2x2Grid/*",
 ]
