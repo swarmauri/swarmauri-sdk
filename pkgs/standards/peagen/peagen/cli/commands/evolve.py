@@ -51,7 +51,21 @@ def submit(
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
 ):
-    args = {"evolve_spec": str(spec)}
+    def _git_root(path: Path) -> Path:
+        for p in [path] + list(path.parents):
+            if (p / ".git").exists():
+                return p
+        return path
+
+    root = _git_root(Path.cwd())
+
+    def _canonical(p: Path) -> str:
+        try:
+            return str(p.resolve().relative_to(root))
+        except ValueError:
+            return str(p.resolve())
+
+    args = {"evolve_spec": _canonical(spec)}
     task = _build_task(args)
     rpc_req = {
         "jsonrpc": "2.0",

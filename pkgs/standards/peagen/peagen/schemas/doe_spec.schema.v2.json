@@ -56,7 +56,7 @@
       "description": "Common structure that carries a name plus an optional lock flag.",
       "type":        "object",
       "required":    ["name"],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "name": { "type": "string" },
         "lock": { "type": "boolean", "default": false }
