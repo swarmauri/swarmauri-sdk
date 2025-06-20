@@ -82,11 +82,31 @@ class GitVCS:
             self.repo.git.branch(b, base_ref)
 
     # ------------------------------------------------------------------ fetch/checkout
-    def fetch(self, ref: str, *, remote: str = "origin", checkout: bool = True) -> None:
-        """Fetch ``ref`` from *remote`` and optionally check it out."""
+    def fetch(
+        self, ref: str, *, remote: str = "origin", checkout: bool = True
+    ) -> tuple[str | None, bool]:
+        """Fetch ``ref`` from *remote`` and optionally check it out.
+
+        Returns a tuple of ``(commit, updated)`` where ``commit`` is the new
+        HEAD SHA and ``updated`` indicates if the commit changed.
+        """
+        old_sha = None
+        try:
+            old_sha = self.repo.head.commit.hexsha
+        except Exception:  # pragma: no cover - HEAD may not exist
+            pass
+
         self.repo.git.fetch(remote, ref)
         if checkout:
             self.repo.git.checkout("FETCH_HEAD")
+
+        new_sha = None
+        try:
+            new_sha = self.repo.head.commit.hexsha
+        except Exception:  # pragma: no cover - should not happen after fetch
+            pass
+
+        return new_sha, new_sha != old_sha
 
     def push(self, ref: str, *, remote: str = "origin") -> None:
         """Push ``ref`` to *remote*."""

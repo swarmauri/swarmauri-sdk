@@ -43,10 +43,12 @@ def run(
     out: Optional[Path] = typer.Option(
         None, "--out", help="Write JSON results to this path"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Run the mutate workflow locally."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,
@@ -73,10 +75,12 @@ def submit(
     entry_fn: str = typer.Option(..., help="Benchmark function"),
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
     gens: int = typer.Option(1, help="Number of generations"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Submit a mutate task to the gateway."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,

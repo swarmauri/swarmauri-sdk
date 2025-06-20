@@ -1,0 +1,3 @@
+- op: add
+  path: /b
+  value: 2

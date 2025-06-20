@@ -31,6 +31,19 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+        spec_path = (tmp_dir / args["evolve_spec"]).resolve()
+    else:
+        spec_path = Path(args["evolve_spec"]).expanduser()
+
     cfg = resolve_cfg()
     pm = PluginManager(cfg)
     try:
@@ -69,5 +82,9 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs.commit([rel_spec], f"evolve {spec_path.stem}")
         branches = [pea_ref("run", cid) for cid in child_ids]
         vcs.fan_out("HEAD", branches)
+    result = {"children": child_ids, "jobs": len(jobs)}
+    if tmp_dir:
+        import shutil
 
-    return {"children": child_ids, "jobs": len(jobs)}
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+    return result
