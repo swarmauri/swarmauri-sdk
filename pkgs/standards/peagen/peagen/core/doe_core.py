@@ -136,6 +136,7 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     base_bytes = base_path.read_bytes()
     branches: list[str] = []
     start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    base_ref = start_branch or "HEAD"
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
@@ -181,7 +182,6 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
     start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
     base_bytes = None
     factor_idx = None
-    out_path = None
     if spec and spec_dir and spec.get("baseArtifact"):
         base_path = (spec_dir / spec["baseArtifact"]).expanduser()
         base_bytes = base_path.read_bytes()
@@ -189,7 +189,7 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
         # assume consistent output_path across levels
         for fac in spec.get("factors", []):
             if fac.get("levels"):
-                out_path = fac["levels"][0].get("output_path")
+                output_path = fac["levels"][0].get("output_path", output_path)
                 break
     branches: list[str] = []
     for point in design_points:

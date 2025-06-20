@@ -1,0 +1,3 @@
+- op: replace
+  path: /PROJECTS/0/NAME
+  value: ExampleParserProject-002
