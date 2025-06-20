@@ -58,13 +58,41 @@ def fetch_single(
     repo: str | None = None,
     ref: str = "HEAD",
 ) -> dict:
-    """Materialise ``workspace_uri`` or ``repo``+``ref`` into ``dest_root``."""
+    """Materialise ``workspace_uri`` or ``repo``+``ref`` into ``dest_root``.
+
+    Returns a dictionary containing the workspace path, the fetched commit SHA
+    when applicable, and whether the repository was updated during the fetch.
+    """
     if repo:
         workspace_uri = f"git+{repo}@{ref}"
     if workspace_uri is None:
         raise ValueError("workspace_uri or repo required")
+
+    old_sha = None
+    if (dest_root / ".git").exists():
+        try:
+            old_sha = GitVCS.open(dest_root).repo.head.commit.hexsha
+        except Exception:  # pragma: no cover - repo may be empty
+            pass
+
     _materialise_workspace(workspace_uri, dest_root)
-    return {"workspace": str(dest_root)}
+
+    new_sha = None
+    updated = True
+    if (dest_root / ".git").exists():
+        try:
+            vcs = GitVCS.open(dest_root)
+            new_sha, updated = vcs.repo.head.commit.hexsha, True
+            if old_sha is not None:
+                updated = old_sha != new_sha
+        except Exception:  # pragma: no cover - repo may be missing HEAD
+            pass
+
+    return {
+        "workspace": str(dest_root),
+        "commit": new_sha,
+        "updated": updated,
+    }
 
 
 def fetch_many(
