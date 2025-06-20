@@ -32,7 +32,7 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
     spec_path = tmp_path / "spec.yaml"
     spec_path.write_text(json.dumps(spec))
     template_path = tmp_path / "template.yaml"
-    template_path.write_text("PROJECTS: []\n")
+    template_path.write_text("PROJECTS:\n  - {}\n")
     output = tmp_path / "out.yaml"
 
     called = {}
