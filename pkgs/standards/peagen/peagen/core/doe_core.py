@@ -135,11 +135,13 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     base_path = (spec_dir / spec["baseArtifact"]).expanduser()
     base_bytes = base_path.read_bytes()
     branches: list[str] = []
-    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    start_branch = (
+        vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    )
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, base_ref)
+            vcs.create_branch(branch, start_branch or "HEAD")
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
@@ -178,19 +180,15 @@ def create_run_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[str]:
     # assume a consistent output path across factor levels
     output_path = factors[0]["levels"][0]["output_path"] if factors else "artifact.yaml"
 
-    start_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    start_branch = (
+        vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
+    )
     base_bytes = None
     factor_idx = None
-    out_path = None
     if spec and spec_dir and spec.get("baseArtifact"):
         base_path = (spec_dir / spec["baseArtifact"]).expanduser()
         base_bytes = base_path.read_bytes()
         factor_idx = _factor_index(spec.get("factors", []))
-        # assume consistent output_path across levels
-        for fac in spec.get("factors", []):
-            if fac.get("levels"):
-                out_path = fac["levels"][0].get("output_path")
-                break
     branches: list[str] = []
     for point in design_points:
         label = "_".join(f"{k}-{v}" for k, v in point.items())

@@ -4,9 +4,7 @@ from peagen.plugins.vcs import GitVCS, pea_ref
 from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
-    _matrix_v2,
 )
-import peagen.core.doe_core as dc
 
 
 import pytest
@@ -81,8 +79,7 @@ def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
     data = yaml.safe_load((repo_dir / "artifact.yaml").read_text())
     assert data["b"] == 2
 
-    points = _matrix_v2(spec["factors"])
-    create_run_branches(vcs, points, spec, repo_dir)  # noqa: F821
+    create_run_branches(vcs, spec, repo_dir)
     vcs.checkout(pea_ref("run", "opt-adam_lr-small"))
     data = yaml.safe_load((repo_dir / "artifact.yaml").read_text())
     assert data["b"] == 2 and data["c"] == 3
