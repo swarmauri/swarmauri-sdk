@@ -25,6 +25,7 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         gens=int(args.get("gens", 1)),
         profile_mod=args.get("profile_mod"),
         cfg_path=Path(args["config"]) if args.get("config") else None,
+        mutations=args.get("mutations"),
     )
 
     cfg = resolve_cfg()
@@ -42,4 +43,3 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs.create_branch(pea_ref("run", winner_path.stem), checkout=False)
 
     return result
-

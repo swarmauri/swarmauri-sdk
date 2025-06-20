@@ -163,6 +163,12 @@ in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBack
 redis = "peagen.plugins.queues.redis_queue:RedisQueue"
 in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
 
+[project.entry-points."peagen.plugins.mutators"]
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
+llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen" = [
