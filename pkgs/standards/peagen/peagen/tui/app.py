@@ -219,6 +219,7 @@ class QueueDashboardApp(App):
         ("5", "switch('templates')", "Templates"),
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
+        ("space", "toggle_children", "Collapse"),
         ("ctrl+c", "copy_id", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
@@ -269,6 +270,7 @@ class QueueDashboardApp(App):
         self.filter_action: str | None = None
         self.filter_label: str | None = None
         self.collapsed: set[str] = set()
+        self._seen_parents: set[str] = set()
         self._reconnect_screen: ReconnectScreen | None = None
         self._filter_debounce_timer = None
         self._current_file: str | None = None
@@ -399,6 +401,14 @@ class QueueDashboardApp(App):
         for task in all_tasks_from_client:
             combined_tasks_dict[task.get("id")] = task
         all_tasks = list(combined_tasks_dict.values())
+
+        for task in all_tasks:
+            result_data = task.get("result") or {}
+            if result_data.get("children"):
+                tid_str = str(task.get("id"))
+                if tid_str not in self._seen_parents:
+                    self._seen_parents.add(tid_str)
+                    self.collapsed.add(tid_str)
 
         current_filter_criteria = {
             "id": self.filter_id,
@@ -544,6 +554,7 @@ class QueueDashboardApp(App):
                 result_data = t_data.get("result") or {}
                 children_ids = result_data.get("children", [])
                 if children_ids:
+                    # Display '-' when expanded and '+' when collapsed
                     prefix = "- " if task_id not in self.collapsed else "+ "
 
                 self.tasks_table.add_row(
