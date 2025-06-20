@@ -29,7 +29,10 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
         url, _, ref = url_ref.partition("@")
         ref = ref or "HEAD"
         vcs = GitVCS.ensure_repo(dest, remote_url=url)
-        vcs.checkout(ref)
+        try:
+            vcs.fetch(ref, checkout=True)
+        except Exception:
+            vcs.checkout(ref)
         return
 
     if "://" in uri:
@@ -49,18 +52,26 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
 
 # ───────────────────────────── public API ─────────────────────────────────
 def fetch_single(
-    workspace_uri: str,
+    workspace_uri: str | None = None,
     *,
     dest_root: Path,
+    repo: str | None = None,
+    ref: str = "HEAD",
 ) -> dict:
-    """Materialise ``workspace_uri`` into ``dest_root``."""
+    """Materialise ``workspace_uri`` or ``repo``+``ref`` into ``dest_root``."""
+    if repo:
+        workspace_uri = f"git+{repo}@{ref}"
+    if workspace_uri is None:
+        raise ValueError("workspace_uri or repo required")
     _materialise_workspace(workspace_uri, dest_root)
     return {"workspace": str(dest_root)}
 
 
 def fetch_many(
-    workspace_uris: List[str],
+    workspace_uris: List[str] | None = None,
     *,
+    repo: str | None = None,
+    ref: str = "HEAD",
     out_dir: Optional[Path] = None,
     install_template_sets_flag: bool = True,  # ignored, kept for API compat
     no_source: bool = False,  # ignored
@@ -73,9 +84,10 @@ def fetch_many(
     )
     workspace.mkdir(parents=True, exist_ok=True)
 
-    results = [
-        fetch_single(uri, dest_root=workspace)
-        for uri in workspace_uris
-    ]
+    workspace_uris = workspace_uris or []
+    if repo:
+        workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
+
+    results = [fetch_single(uri, dest_root=workspace) for uri in workspace_uris]
 
     return {"workspace": str(workspace), "fetched": results}

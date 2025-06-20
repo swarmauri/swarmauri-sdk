@@ -16,6 +16,16 @@ from peagen.plugins.vcs import pea_ref
 async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+        args["workspace_uri"] = str(tmp_dir)
 
     result = mutate_workspace(
         workspace_uri=args["workspace_uri"],
@@ -41,5 +51,8 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         rel = os.path.relpath(winner_path, repo_root)
         vcs.commit([rel], f"mutate {winner_path.name}")
         vcs.create_branch(pea_ref("run", winner_path.stem), checkout=False)
+    if tmp_dir:
+        import shutil
 
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     return result

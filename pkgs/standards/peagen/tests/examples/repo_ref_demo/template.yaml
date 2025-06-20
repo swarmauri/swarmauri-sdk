@@ -1,0 +1,8 @@
+schemaVersion: "1.0.0"
+PROJECTS:
+  - NAME: Demo
+    ROOT: .
+    PACKAGES:
+      - NAME: demo_pkg
+        MODULES:
+          - NAME: DemoMod

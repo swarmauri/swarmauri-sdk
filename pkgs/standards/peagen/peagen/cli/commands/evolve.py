@@ -32,8 +32,12 @@ def run(
     spec: Path = typer.Argument(..., exists=True),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out", help="Write results to file"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     args = {"evolve_spec": str(spec)}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     result = asyncio.run(evolve_handler(task))
     if json_out:
@@ -50,6 +54,8 @@ def submit(
     spec: Path = typer.Argument(..., exists=True),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     def _git_root(path: Path) -> Path:
         for p in [path] + list(path.parents):
@@ -66,6 +72,8 @@ def submit(
             return str(p.resolve())
 
     args = {"evolve_spec": _canonical(spec)}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     rpc_req = {
         "jsonrpc": "2.0",

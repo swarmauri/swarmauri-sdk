@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from swarmauri_standard.loggers.Logger import Logger
 from typing import Any, Dict, List
+from pathlib import Path
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
@@ -39,6 +40,18 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     cfg_override = payload.get("cfg_override", {})
     # Mandatory flag
     projects_payload = args["projects_payload"]
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+        import os
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+        prev_cwd = Path.cwd()
+        os.chdir(tmp_dir)
 
     # ------------------------------------------------------------------ #
     # 1) Merge .peagen.toml with CLI-style overrides
@@ -96,4 +109,11 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     # 3) Shape unified response
     # ------------------------------------------------------------------ #
-    return {"processed": result_map}
+    result = {"processed": result_map}
+    if repo and tmp_dir:
+        import shutil
+        import os
+
+        os.chdir(prev_cwd)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+    return result

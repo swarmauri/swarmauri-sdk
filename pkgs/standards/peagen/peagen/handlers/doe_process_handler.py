@@ -20,6 +20,27 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     """Expand the DOE spec and spawn a process task for each project."""
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str)
+            cand = tmp_dir / path
+            return cand if cand.exists() else path
+    else:
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str).expanduser()
+            if path.exists():
+                return path
+            alt = Path(__file__).resolve().parents[2] / path_str
+            return alt if alt.exists() else path
 
     def _resolve_existing(path_str: str) -> Path:
         path = Path(path_str).expanduser()
@@ -95,4 +116,9 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         )
 
     child_ids = await fan_out(task_or_dict, children, result=result, final_status=Status.waiting)
-    return {"children": child_ids, **result}
+    final = {"children": child_ids, **result}
+    if tmp_dir:
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+    return final

@@ -99,6 +99,8 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         "--output-base",
         help="Root dir for materialised artifacts (default ./out).",
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Execute the processing pipeline synchronously on this machine."""
     cfg_path: Optional[Path] = ctx.obj.get("config_path") if ctx.obj else None
@@ -113,6 +115,8 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         agent_env,
         output_base,
     )
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     task.payload["cfg_override"] = cfg_override
 
@@ -145,6 +149,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     output_base: Optional[Path] = typer.Option(
         None, "--output-base", help="Root dir for materialised artifacts"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
@@ -171,6 +177,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         agent_env,
         output_base,
     )
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
 
     # ─────────────────────── cfg override  ──────────────────────────────

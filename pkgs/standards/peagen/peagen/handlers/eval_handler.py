@@ -21,6 +21,10 @@ from peagen.models import Task  # for typing only
 async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    if repo:
+        args["workspace_uri"] = f"git+{repo}@{ref}"
 
     report = evaluate_workspace(
         workspace_uri=args["workspace_uri"],
