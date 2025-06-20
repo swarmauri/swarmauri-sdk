@@ -1,7 +1,11 @@
 import yaml
 from pathlib import Path
 from peagen.plugins.vcs import GitVCS, pea_ref
-from peagen.core.doe_core import create_factor_branches, _matrix_v2
+from peagen.core.doe_core import (
+    create_factor_branches,
+    create_run_branches,
+    _matrix_v2,
+)
 import peagen.core.doe_core as dc
 
 import pytest
