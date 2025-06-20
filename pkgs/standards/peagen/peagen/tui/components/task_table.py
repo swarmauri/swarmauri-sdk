@@ -62,3 +62,8 @@ class TaskTable(DataTable):
             key_value = getattr(row_key, "value", row_key)
             if key_value is not None:
                 await self._open_cb(str(key_value))
+
+    def key_space(self) -> None:
+        """Toggle the selected parent row when spacebar is pressed."""
+        if hasattr(self.app, "action_toggle_children"):
+            self.app.action_toggle_children()
