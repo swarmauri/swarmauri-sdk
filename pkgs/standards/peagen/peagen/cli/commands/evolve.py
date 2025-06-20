@@ -12,6 +12,7 @@ import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.models import Status, Task
+from peagen.core.validate_core import validate_evolve_spec
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -35,6 +36,12 @@ def run(
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
+    validation = validate_evolve_spec(spec)
+    if not validation.get("ok", False):
+        for err in validation.get("errors", []):
+            typer.echo(f"   • {err}", err=True)
+        raise typer.Exit(1)
+
     args = {"evolve_spec": str(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
@@ -57,6 +64,12 @@ def submit(
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
+    validation = validate_evolve_spec(spec)
+    if not validation.get("ok", False):
+        for err in validation.get("errors", []):
+            typer.echo(f"   • {err}", err=True)
+        raise typer.Exit(1)
+
     def _git_root(path: Path) -> Path:
         for p in [path] + list(path.parents):
             if (p / ".git").exists():

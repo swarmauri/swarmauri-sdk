@@ -1,3 +1,6 @@
+version: "2.0.0"
+meta:
+  name: peagen-local-demo
 JOBS:
   - workspace_uri: test_workspace
     target_file: main.py

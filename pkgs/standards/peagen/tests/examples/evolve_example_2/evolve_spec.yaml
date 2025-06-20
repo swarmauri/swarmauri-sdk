@@ -1,3 +1,6 @@
+version: "2.0.0"
+meta:
+  name: evolve-example-2
 JOBS:
   - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/evolve_example_2/workspace
     target_file: main.py

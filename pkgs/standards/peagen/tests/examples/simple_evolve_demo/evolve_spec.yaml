@@ -1,3 +1,13 @@
+version: "2.0.0"
+meta:
+  name: simple-evolve-demo
+factors:
+  - name: suffix
+    levels:
+      - id: "001"
+        patchRef: patches/suffix_001.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
 JOBS:
   - workspace_uri: workspace
     target_file: main.py
