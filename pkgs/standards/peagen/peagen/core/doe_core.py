@@ -135,14 +135,20 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
     base_path = (spec_dir / spec["baseArtifact"]).expanduser()
     base_bytes = base_path.read_bytes()
     branches: list[str] = []
+    base_ref = "HEAD"
+    current_branch = vcs.repo.active_branch.name if not vcs.repo.head.is_detached else None
     for fac in spec.get("factors", []):
         for lvl in fac.get("levels", []):
             branch = pea_ref("factor", fac["name"], lvl["id"])
-            vcs.create_branch(branch, "HEAD")
+            vcs.create_branch(branch, base_ref)
             vcs.switch(branch)
             art_bytes = base_bytes
             if lvl.get("artifactRef"):
                 art_bytes = (spec_dir / lvl["artifactRef"]).read_bytes()
+            else:
+                current_art = Path(vcs.repo.working_tree_dir) / lvl["output_path"]
+                if current_art.exists():
+                    art_bytes = current_art.read_bytes()
             patch_path = (spec_dir / lvl["patchRef"]).expanduser()
             kind = lvl.get("patchKind", "json-patch")
             patched = apply_patch(art_bytes, patch_path, kind)
@@ -154,7 +160,11 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
                 f"factor {fac['name']}={lvl['id']}",
             )
             branches.append(branch)
-    vcs.switch("HEAD")
+            vcs.switch(base_ref)
+    if current_branch:
+        vcs.checkout(current_branch)
+    else:
+        vcs.switch("HEAD")
     return branches
 
 
