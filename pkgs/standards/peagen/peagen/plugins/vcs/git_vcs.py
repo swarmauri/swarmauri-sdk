@@ -92,6 +92,11 @@ class GitVCS:
         self.repo.git.commit("-m", message)
         return self.repo.head.commit.hexsha
 
+    def merge_ours(self, ref: str, message: str) -> str:
+        """Merge ``ref`` using the ``ours`` strategy and commit."""
+        self.repo.git.merge("--no-ff", "-s", "ours", ref, "-m", message)
+        return self.repo.head.commit.hexsha
+
     def tag(self, name: str) -> None:
         self.repo.create_tag(name)
 
