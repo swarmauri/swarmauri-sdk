@@ -87,6 +87,27 @@ def _format_ts(ts: float | str | None) -> str:
         return str(ts)
 
 
+def _calc_duration(
+    start: float | str | None, finish: float | str | None
+) -> int | None:
+    """Return elapsed seconds between ``start`` and ``finish`` if possible."""
+
+    if start is None or finish is None:
+        return None
+    try:
+        if isinstance(start, str):
+            start_ts = datetime.fromisoformat(start.replace("Z", "+00:00")).timestamp()
+        else:
+            start_ts = float(start)
+        if isinstance(finish, str):
+            finish_ts = datetime.fromisoformat(finish.replace("Z", "+00:00")).timestamp()
+        else:
+            finish_ts = float(finish)
+        return int(finish_ts - start_ts)
+    except Exception:
+        return None
+
+
 def _truncate_id(task_id: str, length: int = 4) -> str:
     """Return a shortened representation of *task_id*.
 
@@ -226,7 +247,7 @@ class QueueDashboardApp(App):
         "Labels": "label",
         "Started": "started_at",
         "Finished": "finished_at",
-        "Duration": "duration",
+        "Duration (s)": "duration",
         "Error": "error",
     }
 
@@ -411,6 +432,12 @@ class QueueDashboardApp(App):
             ]
         if criteria.get("label"):
             tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
+
+        for t in tasks:
+            if t.get("duration") is None:
+                t["duration"] = _calc_duration(
+                    t.get("started_at"), t.get("finished_at")
+                )
 
         sort_key = criteria.get("sort_key")
         sort_reverse = criteria.get("sort_reverse", False)
@@ -639,7 +666,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
         )
         self.tasks_table.cursor_type = "cell"
 
@@ -652,7 +679,7 @@ class QueueDashboardApp(App):
             "Labels",
             "Started",
             "Finished",
-            "Duration",
+            "Duration (s)",
             "Error",
         )
         self.err_table.cursor_type = "cell"
