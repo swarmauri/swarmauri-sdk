@@ -107,6 +107,20 @@ def _matrix_v2(factors: List[dict[str, Any]]) -> List[dict[str, str]]:
         lists.append(pairs)
     return [dict(p) for p in itertools.product(*lists)]
 
+
+def _matrix_factor_sets(factor_sets: List[dict[str, Any]]) -> List[dict[str, str]]:
+    """Return design point dicts for all factor sets."""
+    points: List[dict[str, str]] = []
+    for fs in factor_sets:
+        cp = fs.get("cartesianProduct", {})
+        if not cp:
+            continue
+        lists = []
+        for name, levels in cp.items():
+            lists.append([(name, lv) for lv in levels])
+        points.extend(dict(p) for p in itertools.product(*lists))
+    return points
+
 def _factor_index(factors: List[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     idx = {}
     for fac in factors:
@@ -316,13 +330,47 @@ def generate_payload(
         _validate(spec_obj, DOE_SPEC_V2_SCHEMA, "DOE spec")
 
     factors = spec_obj.get("factors", [])
+    factor_sets = spec_obj.get("factorSets", [])
+
     factor_idx = _factor_index(factors)
-    design_points = _matrix_v2(factors)
-    llm_keys: List[str] = []
-    other_keys = [f["name"] for f in factors]
+
+    fs_names = {
+        name
+        for fs in factor_sets
+        for name in fs.get("cartesianProduct", {}).keys()
+    }
+
+    base_factors = [f for f in factors if f["name"] not in fs_names]
+    base_points = _matrix_v2(base_factors)
+    fs_points = _matrix_factor_sets(factor_sets)
+    if fs_points:
+        design_points = [{**bp, **sp} for bp in base_points for sp in fs_points]
+    else:
+        design_points = base_points
 
     llm_codes: Dict[str, str] = {}
-    other_codes = {name: name for name in other_keys}
+    other_codes: Dict[str, str] = {}
+
+    def _is_llm(name: str) -> bool:
+        return name in _LLM_FALLBACK_KEYS
+
+    for fac in factors:
+        code = fac.get("code", fac["name"])
+        if _is_llm(fac["name"]):
+            llm_codes[code] = fac["name"]
+        else:
+            other_codes[code] = fac["name"]
+
+    for fs in factor_sets:
+        for name in fs.get("cartesianProduct", {}):
+            code = name
+            if _is_llm(name):
+                llm_codes.setdefault(code, name)
+            else:
+                other_codes.setdefault(code, name)
+
+    llm_keys = list(llm_codes.keys())
+    other_keys = list(other_codes.keys())
 
     projects = generate_projects(
         template_obj=template_obj,
