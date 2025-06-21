@@ -173,6 +173,37 @@ class GitVCS:
         os.unlink(tmp_name)
         return self.repo.rev_parse(ref)
 
+    def record_key_audit(
+        self, ciphertext: bytes, user_fpr: str, gateway_fp: str
+    ) -> str:
+        """Record a key audit commit for ``ciphertext``.
+
+        Parameters
+        ----------
+        ciphertext:
+            Encrypted secret bytes used to derive the audit ref.
+        user_fpr:
+            Fingerprint of the submitting user's key.
+        gateway_fp:
+            Gateway public key fingerprint.
+
+        Returns
+        -------
+        str
+            The new commit SHA.
+        """
+        from peagen.secrets import SecretDriverBase
+        from .constants import pea_ref
+
+        sha = SecretDriverBase.audit_hash(ciphertext)
+        data = {
+            "user_fpr": user_fpr,
+            "gateway_fp": gateway_fp,
+            "created_at": int(time.time()),
+        }
+        ref = pea_ref("key_audit", sha)
+        return self.fast_import_json_ref(ref, data)
+
     # ------------------------------------------------------------------ clean/reset
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")
