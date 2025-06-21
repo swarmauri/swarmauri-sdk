@@ -146,7 +146,7 @@ def _global_remote_ctx(  # noqa: D401
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────
 
-app.add_typer(login_app, name="login")
+app.add_typer(login_app)
 app.add_typer(keys_app, name="keys")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
