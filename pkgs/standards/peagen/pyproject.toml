@@ -35,6 +35,8 @@ dependencies = [
     "jinja2>=3.1.6", # should come with j2prompttemplate, but is it required anywhere else on its own?
     "inflect", # should come with j2prompttemplate, but is it required anywhere else on its own?
     "pgpy>=0.6.0",
+    "paramiko>=3.4",
+    "pygit2>=1.13",
 
     "typer",   # for cli
     "colorama",# for cli

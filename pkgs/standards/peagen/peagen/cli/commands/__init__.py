@@ -18,6 +18,7 @@ from .validate import local_validate_app, remote_validate_app
 from .login import login_app
 from .keys import keys_app
 from .secrets import local_secrets_app, remote_secrets_app
+from .deploy import deploy_app
 
 __all__ = [
     "local_doe_app",
@@ -51,4 +52,5 @@ __all__ = [
     "keys_app",
     "local_secrets_app",
     "remote_secrets_app",
+    "deploy_app",
 ]
