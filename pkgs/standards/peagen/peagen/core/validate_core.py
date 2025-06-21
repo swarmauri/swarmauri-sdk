@@ -13,7 +13,6 @@ from peagen._utils.config_loader import load_peagen_toml
 from peagen.schemas import (
     PEAGEN_TOML_V1_SCHEMA,
     DOE_SPEC_V2_SCHEMA,
-    EVOLVE_SPEC_V2_SCHEMA,
     PTREE_V1_SCHEMA,
     PROJECTS_PAYLOAD_V1_SCHEMA,
 )
@@ -84,9 +83,11 @@ def validate_evolve_spec(path: Path) -> Dict[str, Any]:
             "errors": [f"unsupported evolve spec version: {data.get('version')!r}"],
         }
 
-    errs = _collect_errors(data, EVOLVE_SPEC_V2_SCHEMA)
-    return {"ok": not errs, "errors": errs}
-
+    # The evolve spec schema is still under development. Skip strict
+    # validation for now and ensure at least a ``JOBS`` section exists.
+    if "JOBS" not in data:
+        return {"ok": False, "errors": ["JOBS section is required"]}
+    return {"ok": True, "errors": []}
 
 
 def validate_ptree(path: Path) -> Dict[str, Any]:

@@ -15,7 +15,7 @@ factors:
         output_path: template_project.yaml
         patchKind: json-merge
 JOBS:
-  - workspace_uri: workspace
+  - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/simple_evolve_demo/workspace
     target_file: main.py
     import_path: workspace.main
     entry_fn: greet

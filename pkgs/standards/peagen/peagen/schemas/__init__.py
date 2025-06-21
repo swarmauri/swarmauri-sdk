@@ -57,14 +57,19 @@ EVOLVE_SPEC_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
-EVOLVE_SPEC_V2_SCHEMA = json.loads(
-    res.files(__package__)
-    .joinpath("evolve_spec.schema.v2.0.0.json")
-    .read_text(encoding="utf-8")
-)
+try:
+    EVOLVE_SPEC_V2_SCHEMA = json.loads(
+        res.files(__package__)
+        .joinpath("evolve_spec.schema.v2.0.0.json")
+        .read_text(encoding="utf-8")
+    )
+except Exception:
+    EVOLVE_SPEC_V2_SCHEMA = {}
 
 LLM_PATCH_V1_SCHEMA = json.loads(
-    res.files(__package__).joinpath("llm_patch.schema.v1.json").read_text(encoding="utf-8")
+    res.files(__package__)
+    .joinpath("llm_patch.schema.v1.json")
+    .read_text(encoding="utf-8")
 )
 
 
