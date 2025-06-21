@@ -29,7 +29,8 @@ def login(
         "method": "Keys.upload",
         "params": {"public_key": pubkey},
     }
-
+    try:
+        res = httpx.post(gateway_url, json=payload, timeout=10.0)
     except httpx.RequestError as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
