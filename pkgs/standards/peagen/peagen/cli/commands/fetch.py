@@ -39,7 +39,6 @@ def _build_task(args: dict) -> Task:
 
 def _collect_args(
     workspaces: List[str],
-    out_dir: Optional[Path],
     no_source: bool,
     install_template_sets_flag: bool,
     repo: Optional[str] = None,
@@ -50,7 +49,7 @@ def _collect_args(
 
     return {
         "workspaces": workspaces,
-        "out_dir": str(out_dir.expanduser()) if out_dir else None,
+        "out_dir": str(Path.cwd()),
         "no_source": no_source,
         "install_template_sets": install_template_sets_flag,
     }
@@ -61,9 +60,6 @@ def _collect_args(
 def run(
     ctx: typer.Context,
     workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
-    out_dir: Optional[Path] = typer.Option(
-        None, "--out", "-o", help="Destination folder (temp dir if omitted)"
-    ),
     no_source: bool = typer.Option(
         False, "--no-source/--with-source", help="Skip cloning source packages"
     ),
@@ -76,7 +72,7 @@ def run(
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Synchronously build the workspace on this machine."""
-    args = _collect_args(workspaces or [], out_dir, no_source, install_template_sets_flag, repo, ref)
+    args = _collect_args(workspaces or [], no_source, install_template_sets_flag, repo, ref)
     task = _build_task(args)
 
     result = asyncio.run(fetch_handler(task))
@@ -88,9 +84,6 @@ def run(
 def submit(
     ctx: typer.Context,
     workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
-    out_dir: Optional[Path] = typer.Option(
-        None, "--out", "-o", help="Destination folder on the worker"
-    ),
     no_source: bool = typer.Option(
         False, "--no-source/--with-source", help="Skip cloning source packages"
     ),
@@ -103,7 +96,7 @@ def submit(
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
-    args = _collect_args(workspaces or [], out_dir, no_source, install_template_sets_flag, repo, ref)
+    args = _collect_args(workspaces or [], no_source, install_template_sets_flag, repo, ref)
     task = _build_task(args)
 
     rpc_req = {

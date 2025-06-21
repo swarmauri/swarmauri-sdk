@@ -30,6 +30,7 @@ from .commands import (
     login_app,
     keys_app,
     local_secrets_app,
+    show_app,
     remote_doe_app,
     remote_eval_app,
     remote_fetch_app,
@@ -171,6 +172,7 @@ local_app.add_typer(local_analysis_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
 local_app.add_typer(local_secrets_app, name="secrets")
+local_app.add_typer(show_app, name="git")
 
 
 remote_app.add_typer(remote_doe_app, name="doe")
