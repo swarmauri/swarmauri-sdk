@@ -38,4 +38,20 @@ peagen remote secrets add OPENAI_API_KEY sk-... --gateway-url http://localhost:8
 peagen remote --gateway-url http://localhost:8000/rpc process projects.yaml --watch
 ```
 
+## 4. Push commits using a deploy key
+
+Store your private deploy key as an encrypted secret on the gateway:
+
+```bash
+peagen remote secrets add DEPLOY_KEY "$(cat ~/.ssh/id_rsa)" --gateway-url http://localhost:8000/rpc
+```
+
+Configure your worker with the secret name so pushes use the key:
+
+```bash
+export DEPLOY_KEY_SECRET=DEPLOY_KEY
+```
+
+Workers will automatically fetch the deploy key secret when pushing.
+
 See [call_flows/peagen_secure_secrets_arch.mmd](call_flows/peagen_secure_secrets_arch.mmd) for the encryption architecture.

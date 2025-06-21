@@ -6,8 +6,13 @@ import os
 import json
 import tempfile
 import time
+import io
+import httpx
+import paramiko
+import pygit2
 
 from git import Repo
+from peagen.secrets import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
 
@@ -111,9 +116,59 @@ class GitVCS:
 
         return new_sha, new_sha != old_sha
 
-    def push(self, ref: str, *, remote: str = "origin") -> None:
-        """Push ``ref`` to *remote*."""
+    def push(
+        self,
+        ref: str,
+        *,
+        remote: str = "origin",
+        gateway_url: str | None = None,
+    ) -> None:
+        """Push ``ref`` to *remote*.
+
+        If the ``DEPLOY_KEY_SECRET`` environment variable is set, the
+        deploy key will be fetched from ``gateway_url`` and used for
+        authentication.
+        """
+        secret_name = os.getenv("DEPLOY_KEY_SECRET")
+        if secret_name:
+            gateway = gateway_url or os.getenv(
+                "DQ_GATEWAY", "http://localhost:8000/rpc"
+            )
+            self.push_with_secret(ref, secret_name, remote=remote, gateway_url=gateway)
+            return
+
         self.repo.git.push(remote, ref)
+
+    def push_with_secret(
+        self,
+        ref: str,
+        secret_name: str,
+        *,
+        remote: str = "origin",
+        gateway_url: str = "http://localhost:8000/rpc",
+    ) -> None:
+        """Push ``ref`` using an encrypted deploy key secret."""
+        envelope = {
+            "jsonrpc": "2.0",
+            "method": "Secrets.get",
+            "params": {"name": secret_name},
+        }
+        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        res.raise_for_status()
+        cipher = res.json()["result"]["secret"].encode()
+
+        drv = AutoGpgDriver()
+        key_text = drv.decrypt(cipher).decode()
+
+        pkey = paramiko.RSAKey.from_private_key(io.StringIO(key_text))
+        pubkey = f"{pkey.get_name()} {pkey.get_base64()}"
+
+        repo = pygit2.Repository(str(self.repo.working_tree_dir))
+        remote_obj = repo.remotes[remote]
+        callbacks = pygit2.RemoteCallbacks(
+            credentials=pygit2.KeypairFromMemory("git", pubkey, key_text, "")
+        )
+        remote_obj.push([ref], callbacks=callbacks)
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""
@@ -203,7 +258,7 @@ class GitVCS:
         }
         ref = pea_ref("key_audit", sha)
         return self.fast_import_json_ref(ref, data)
-      
+
     def blob_oid(self, path: str, *, ref: str = "HEAD") -> str:
         """Return the object ID for ``path`` at ``ref``."""
         return self.repo.git.rev_parse(f"{ref}:{path}")
