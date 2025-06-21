@@ -201,6 +201,35 @@ async def _publish_task(task: Task) -> None:
     await _publish_event("task.update", data)
 
 
+async def _finalize_parent_tasks(child_id: str) -> None:
+    """Mark parent tasks as completed once all children finish."""
+    keys = await queue.keys("task:*")
+    for key in keys:
+        data = await queue.hget(key, "blob")
+        if not data:
+            continue
+        parent = Task.model_validate_json(data)
+        children = parent.result.get("children") if parent.result else []
+        if child_id not in children:
+            continue
+        all_done = True
+        for cid in children:
+            ct = await _load_task(cid)
+            if not ct or ct.status not in {
+                Status.success,
+                Status.failed,
+                Status.cancelled,
+            }:
+                all_done = False
+                break
+        if all_done and parent.status != Status.success:
+            parent.status = Status.success
+            parent.finished_at = time.time()
+            await _save_task(parent)
+            await _persist(parent)
+            await _publish_task(parent)
+
+
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
@@ -299,9 +328,7 @@ async def task_cancel(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "cancel", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -311,9 +338,7 @@ async def task_pause(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "pause", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -323,9 +348,7 @@ async def task_resume(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "resume", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -335,9 +358,7 @@ async def task_retry(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "retry", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -452,10 +473,12 @@ async def worker_list(pool: str | None = None) -> list[dict]:
             continue
         if pool and w.get("pool") != pool:
             continue
-        workers.append({
-            "id": key.split(":", 1)[1],
-            **{k: v for k, v in w.items()},
-        })
+        workers.append(
+            {
+                "id": key.split(":", 1)[1],
+                **{k: v for k, v in w.items()},
+            }
+        )
     return workers
 
 
@@ -481,6 +504,8 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _save_task(t)
     await _persist(t)
     await _publish_task(t)
+    if status in {"success", "failed", "cancelled"}:
+        await _finalize_parent_tasks(taskId)
 
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
@@ -559,7 +584,7 @@ async def health() -> dict:
     """
     return {"status": "ok"}
 
-\
+
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():

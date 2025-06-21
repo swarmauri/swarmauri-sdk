@@ -35,7 +35,9 @@ def tmp_template_set(tmp_path: Path) -> Path:
 
     # Create a file-level Jinja template at tmpl_dir/file1.txt.j2
     file1 = tmpl_dir / "file1.txt.j2"
-    file1.write_text("Generated for {{ PROJ.NAME }}: {{ PACKAGE_NAME }}.{{ MODULE_NAME }}")
+    file1.write_text(
+        "Generated for {{ PROJ.NAME }}: {{ PACKAGE_NAME }}.{{ MODULE_NAME }}"
+    )
 
     return tmpl_dir
 
@@ -62,12 +64,21 @@ def tmp_project_payload(tmp_path: Path, tmp_template_set: Path) -> Path:
                         "MODULES": [
                             {
                                 "NAME": "mod1",
-                                "EXTRAS": {"PURPOSE": "test", "DESCRIPTION": "desc", "REQUIREMENTS": [], "MODEL_NAME": "Mod1", "HAS_CHILDREN": False, "CHILD_NAME": None, "FIELD_DEFINITIONS": "", "DEPENDENCIES": []}
+                                "EXTRAS": {
+                                    "PURPOSE": "test",
+                                    "DESCRIPTION": "desc",
+                                    "REQUIREMENTS": [],
+                                    "MODEL_NAME": "Mod1",
+                                    "HAS_CHILDREN": False,
+                                    "CHILD_NAME": None,
+                                    "FIELD_DEFINITIONS": "",
+                                    "DEPENDENCIES": [],
+                                },
                             }
-                        ]
+                        ],
                     }
                 ],
-                "SOURCE_PACKAGES": []
+                "SOURCE_PACKAGES": [],
             }
         ]
     }
@@ -79,7 +90,9 @@ def tmp_project_payload(tmp_path: Path, tmp_template_set: Path) -> Path:
     return payload_file
 
 
-def test_render_package_ptree(tmp_path: Path, tmp_template_set: Path, tmp_project_payload: Path):
+def test_render_package_ptree(
+    tmp_path: Path, tmp_template_set: Path, tmp_project_payload: Path
+):
     """
     Verify that _render_package_ptree produces correct file-record list from ptree.yaml.j2.
     """
@@ -98,7 +111,7 @@ def test_render_package_ptree(tmp_path: Path, tmp_template_set: Path, tmp_projec
         pkg=pkg,
         global_search_paths=global_search_paths,
         workspace_root=workspace_root,
-        logger=None
+        logger=None,
     )
 
     # Expect exactly one record for module "mod1"
@@ -112,7 +125,9 @@ def test_render_package_ptree(tmp_path: Path, tmp_template_set: Path, tmp_projec
     assert isinstance(rec["PTREE_SEARCH_PATHS"], list)
 
 
-def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Path, tmp_project_payload: Path, monkeypatch):
+def test_process_single_project_integration(
+    tmp_path: Path, tmp_template_set: Path, tmp_project_payload: Path, monkeypatch
+):
     """
     End-to-end integration: process_single_project should:
       - Render ptree.yaml.j2,
@@ -139,10 +154,10 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
         "source_packages": [],
         "storage_adapter": DummyAdapter(),
         "peagen_version": "test",
-        "agent_env": {}
+        "agent_env": {},
     }
 
-    sorted_records, next_idx = process_single_project(
+    sorted_records, next_idx, commit_sha = process_single_project(
         project=project,
         cfg=cfg,
         start_idx=0,
@@ -161,4 +176,3 @@ def test_process_single_project_integration(tmp_path: Path, tmp_template_set: Pa
     # The content should match the template ("Generated for test_project: pkgA.mod1")
     content = out_file.read_text()
     assert "Generated for test_project: pkgA.mod1" in content
-

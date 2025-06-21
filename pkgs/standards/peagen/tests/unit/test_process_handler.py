@@ -32,7 +32,7 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
 
     def fake_single(project, cfg, start_idx, start_file, transitive):
         calls["single"] = project
-        return ["done"], 0
+        return ["done"], 0, "sha"
 
     def fake_all(payload, cfg, transitive):
         calls["all"] = payload

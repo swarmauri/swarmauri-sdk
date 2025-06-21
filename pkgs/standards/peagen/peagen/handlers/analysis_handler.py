@@ -35,7 +35,12 @@ async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any
         if result.get("results_file"):
             repo_root = Path(vcs.repo.working_tree_dir)
             rel = Path(result["results_file"]).resolve().relative_to(repo_root)
-            vcs.commit([str(rel)], f"analysis {spec_name}")
+            commit_sha = vcs.commit([str(rel)], f"analysis {spec_name}")
+            result["commit"] = commit_sha
         vcs.switch("HEAD")
+        try:
+            vcs.push(analysis_branch)
+        except Exception:  # pragma: no cover - push may fail
+            pass
         result["analysis_branch"] = analysis_branch
     return result

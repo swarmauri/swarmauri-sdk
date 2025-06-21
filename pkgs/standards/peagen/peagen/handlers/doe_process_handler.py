@@ -1,5 +1,6 @@
 # peagen/handlers/doe_process_handler.py
 """Handler for DOE workflow that spawns process tasks."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -35,6 +36,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             cand = tmp_dir / path
             return cand if cand.exists() else path
     else:
+
         def _resolve_existing(path_str: str) -> Path:
             path = Path(path_str).expanduser()
             if path.exists():
@@ -68,11 +70,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     try:
         storage_adapter = pm.get("storage_adapters")
     except Exception:
-        file_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("file", {})
-        )
+        file_cfg = cfg.get("storage", {}).get("adapters", {}).get("file", {})
         storage_adapter = FileStorageAdapter(**file_cfg) if file_cfg else None
 
     output_paths = result.get("outputs", [])
@@ -83,7 +81,11 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         doc = yaml.safe_load(text)
         proj = (doc.get("PROJECTS") or [None])[0]
         payload: str | bytes = text
-        if storage_adapter and not result.get("dry_run") and not isinstance(storage_adapter, FileStorageAdapter):
+        if (
+            storage_adapter
+            and not result.get("dry_run")
+            and not isinstance(storage_adapter, FileStorageAdapter)
+        ):
             key = f"{Path(p).name}"
             try:
                 with open(p, "rb") as fh:
@@ -115,8 +117,14 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             )
         )
 
-    child_ids = await fan_out(task_or_dict, children, result=result, final_status=Status.waiting)
-    final = {"children": child_ids, **result}
+    fan_res = await fan_out(
+        task_or_dict, children, result=result, final_status=Status.waiting
+    )
+    final = {
+        "children": fan_res["children"],
+        "_final_status": fan_res["_final_status"],
+        **result,
+    }
     if tmp_dir:
         import shutil
 

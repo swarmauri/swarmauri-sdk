@@ -64,11 +64,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         cfg["storage_adapter"] = pm.get("storage_adapters")
     except Exception:  # pragma: no cover - optional
         # Fall back to FileStorageAdapter if configured
-        file_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("file", {})
-        )
+        file_cfg = cfg.get("storage", {}).get("adapters", {}).get("file", {})
         try:
             cfg["storage_adapter"] = FileStorageAdapter(**file_cfg)
         except Exception:
@@ -91,7 +87,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         project = next((p for p in projects if p.get("NAME") == project_name), None)
         if project is None:  # defensive
             raise ValueError(f"Project '{project_name}' not found in payload!")
-        processed, _ = process_single_project(
+        processed, _, commit_sha = process_single_project(
             project=project,
             cfg=cfg,
             start_idx=args.get("start_idx", 0),
@@ -99,17 +95,14 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             transitive=args.get("transitive", False),
         )
         result_map: Dict[str, List[Dict[str, Any]]] = {project_name: processed}
+        result = {"processed": result_map, "commit": commit_sha}
     else:
         result_map = process_all_projects(
             projects_payload,
             cfg=cfg,
             transitive=args.get("transitive", False),
         )
-
-    # ------------------------------------------------------------------ #
-    # 3) Shape unified response
-    # ------------------------------------------------------------------ #
-    result = {"processed": result_map}
+        result = {"processed": result_map}
     if repo and tmp_dir:
         import shutil
         import os

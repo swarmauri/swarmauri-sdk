@@ -60,7 +60,13 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     def _resolve_path(p: str) -> str:
         if p.startswith("git+") or "://" in p or p.startswith("/"):
             return p
-        return str((spec_dir / p).resolve())
+        resolved = (spec_dir / p).resolve()
+        if repo and tmp_dir:
+            try:
+                return str(resolved.relative_to(tmp_dir))
+            except ValueError:  # pragma: no cover - outside repo
+                return str(resolved)
+        return str(resolved)
 
     children: List[Task] = []
     for job in jobs:
@@ -93,20 +99,27 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             )
         )
 
-    child_ids = await fan_out(
+    fan_res = await fan_out(
         task_or_dict,
         children,
         result={"evolve_spec": args["evolve_spec"]},
         final_status=Status.waiting,
     )
+    child_ids = fan_res["children"]
 
     if vcs and spec_path:
         repo_root = Path(vcs.repo.working_tree_dir)
         rel_spec = os.path.relpath(spec_path, repo_root)
-        vcs.commit([rel_spec], f"evolve {spec_path.stem}")
+        commit_sha = vcs.commit([rel_spec], f"evolve {spec_path.stem}")
         branches = [pea_ref("run", cid) for cid in child_ids]
         vcs.fan_out("HEAD", branches)
-    result = {"children": child_ids, "jobs": len(jobs)}
+        for b in branches:
+            try:
+                vcs.push(b)
+            except Exception:  # pragma: no cover - push may fail
+                pass
+        fan_res["commit"] = commit_sha
+    result = {"children": child_ids, "jobs": len(jobs), **fan_res}
     if tmp_dir:
         import shutil
 

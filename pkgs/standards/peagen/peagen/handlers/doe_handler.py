@@ -41,9 +41,16 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
     if vcs and not result.get("dry_run"):
         repo_root = Path(vcs.repo.working_tree_dir)
-        rel_paths: List[str] = [os.path.relpath(p, repo_root) for p in result.get("outputs", [])]
+        rel_paths: List[str] = [
+            os.path.relpath(p, repo_root) for p in result.get("outputs", [])
+        ]
         if rel_paths:
-            vcs.commit(rel_paths, f"doe {Path(args['spec']).stem}")
+            commit_sha = vcs.commit(rel_paths, f"doe {Path(args['spec']).stem}")
+            result["commit"] = commit_sha
+            try:
+                vcs.push(vcs.repo.active_branch.name)
+            except Exception:  # pragma: no cover - push may fail
+                pass
 
         spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
         if spec_obj.get("baseArtifact"):
