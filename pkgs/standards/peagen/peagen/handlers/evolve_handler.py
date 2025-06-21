@@ -21,9 +21,15 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     path = Path(path_or_text).expanduser()
     if path.exists():
         return path, yaml.safe_load(path.read_text())
-    alt = Path(__file__).resolve().parents[2] / path_or_text
-    if alt.exists():
-        return alt, yaml.safe_load(alt.read_text())
+    alt_candidates = [
+        Path(__file__).resolve().parents[2] / path_or_text,
+        Path(__file__).resolve().parents[3] / path_or_text,
+        Path(__file__).resolve().parents[4] / path_or_text,
+        Path(__file__).resolve().parents[5] / path_or_text,
+    ]
+    for alt in alt_candidates:
+        if alt.exists():
+            return alt, yaml.safe_load(alt.read_text())
     return None, yaml.safe_load(path_or_text)
 
 
@@ -79,7 +85,11 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
         ws = job.get("workspace_uri")
         if ws:
-            job["workspace_uri"] = _resolve_path(ws)
+            job_repo = job.get("repo") or repo
+            if job_repo:
+                job["workspace_uri"] = ws
+            else:
+                job["workspace_uri"] = _resolve_path(ws)
 
         cfg = job.get("config")
         if cfg:

@@ -15,9 +15,7 @@ factors:
         output_path: template_project.yaml
         patchKind: json-merge
 JOBS:
-  - repo: https://github.com/swarmauri/swarmauri-sdk.git
-    ref: HEAD
-    workspace_uri: workspace
+  - workspace_uri: workspace
     target_file: main.py
     import_path: workspace.main
     entry_fn: greet
