@@ -14,7 +14,7 @@ from peagen.secrets import AutoGpgDriver
 login_app = typer.Typer(name="login", help="Authenticate and upload your public key.")
 
 
-@login_app.callback()
+@login_app.command("login")
 def login(
     ctx: typer.Context,
     passphrase: Optional[str] = typer.Option(None, "--passphrase", hide_input=True),
