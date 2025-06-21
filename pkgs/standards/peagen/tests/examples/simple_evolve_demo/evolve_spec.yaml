@@ -15,6 +15,11 @@ factors:
         output_path: template_project.yaml
         patchKind: json-merge
 JOBS:
+  - repo: https://github.com/swarmauri/swarmauri-sdk.git
+    ref: HEAD
+    workspace_uri: .
+    target_file: pkgs/standards/peagen/tests/examples/simple_evolve_demo/workspace/main.py
+    import_path: pkgs.standards.peagen.tests.examples.simple_evolve_demo.workspace.main
   - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/simple_evolve_demo/workspace
     target_file: main.py
     import_path: workspace.main
