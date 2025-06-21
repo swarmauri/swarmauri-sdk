@@ -36,8 +36,12 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    payload = {"public_key": pubkey}
-    httpx.post(f"{gateway_url}/keys", json=payload, timeout=10.0)
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Keys.upload",
+        "params": {"public_key": pubkey},
+    }
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo("Uploaded public key")
 
 
@@ -48,7 +52,12 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    httpx.delete(f"{gateway_url}/keys/{fingerprint}", timeout=10.0)
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Keys.delete",
+        "params": {"fingerprint": fingerprint},
+    }
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -58,5 +67,6 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    res = httpx.get(f"{gateway_url}/keys", timeout=10.0)
-    typer.echo(json.dumps(res.json(), indent=2))
+    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
+    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    typer.echo(json.dumps(res.json().get("result", {}), indent=2))

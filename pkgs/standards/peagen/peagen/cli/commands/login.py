@@ -24,5 +24,10 @@ def login(
     """Ensure keys exist and upload the public key."""
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    httpx.post(f"{gateway_url}/keys", json={"public_key": pubkey}, timeout=10.0)
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "Keys.upload",
+        "params": {"public_key": pubkey},
+    }
+    httpx.post(gateway_url, json=payload, timeout=10.0)
     typer.echo("Logged in and uploaded public key")

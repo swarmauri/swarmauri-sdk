@@ -70,8 +70,12 @@ def remote_add(
     """Upload an encrypted secret to the gateway."""
     drv = AutoGpgDriver()
     cipher = drv.encrypt(value.encode(), []).decode()
-    payload = {"name": name, "secret": cipher}
-    httpx.post(f"{gateway_url}/secrets", json=payload, timeout=10.0)
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Secrets.add",
+        "params": {"name": name, "secret": cipher},
+    }
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Uploaded secret {name}")
 
 
@@ -83,8 +87,13 @@ def remote_get(
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
     drv = AutoGpgDriver()
-    res = httpx.get(f"{gateway_url}/secrets/{name}", timeout=10.0)
-    cipher = res.json()["secret"].encode()
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Secrets.get",
+        "params": {"name": name},
+    }
+    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    cipher = res.json()["result"]["secret"].encode()
     typer.echo(drv.decrypt(cipher).decode())
 
 
@@ -95,5 +104,10 @@ def remote_remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Delete a secret on the gateway."""
-    httpx.delete(f"{gateway_url}/secrets/{name}", timeout=10.0)
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Secrets.delete",
+        "params": {"name": name},
+    }
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Removed secret {name}")
