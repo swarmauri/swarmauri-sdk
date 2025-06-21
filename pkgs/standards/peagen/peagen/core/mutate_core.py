@@ -29,6 +29,9 @@ def mutate_workspace(
     profile_mod: str | None = None,
     cfg_path: Optional[Path] = None,
     mutations: Optional[List[Dict[str, Any]]] = None,
+    evaluator_ref: str = (
+        "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+    ),
 ) -> Dict[str, Optional[str]]:
     """Run a minimal evolutionary loop on ``target_file`` inside ``workspace_uri``."""
 
@@ -49,9 +52,6 @@ def mutate_workspace(
     else:
         mutators = [(1.0, pm.get("mutators"))]
     pool = pm.get("evaluator_pools")
-    evaluator_ref = (
-        "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
-    )
     eval_cls = resolve_plugin_spec("evaluators", evaluator_ref)
     evaluator = eval_cls(
         import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod
@@ -64,6 +64,7 @@ def mutate_workspace(
 
     best_src = parent_src
     best_score = float("inf")
+    best_meta: Dict[str, Any] | None = None
 
     weights, muts = zip(*mutators)
     for _ in range(gens):
@@ -76,14 +77,16 @@ def mutate_workspace(
             child_src = best_src
         program.content[target_file] = child_src
         try:
-            score, _ = evaluator.evaluate(program)
+            score, meta = evaluator.evaluate(program)
         except Exception as e:
             logging.warning("evaluation error: %s", e)
             score = float("inf")
+            meta = {}
         if score < best_score:
             best_score = score
             best_src = child_src
+            best_meta = meta
 
     out_path = Path(workspace_uri) / "winner.py"
     out_path.write_text(best_src, encoding="utf-8")
-    return {"winner": str(out_path), "score": str(best_score)}
+    return {"winner": str(out_path), "score": str(best_score), "meta": best_meta}
