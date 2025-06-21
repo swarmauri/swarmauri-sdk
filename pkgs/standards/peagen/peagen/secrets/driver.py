@@ -27,6 +27,16 @@ class SecretDriverBase(ABC):
         """Decrypt ``ciphertext`` and verify signature."""
 
     @staticmethod
+    @abstractmethod
+    def decrypt_and_verify(
+        ciphertext: bytes,
+        priv_key: str | Path,
+        user_pub: str | Path,
+        passphrase: str | None = None,
+    ) -> bytes:
+        """Decrypt ``ciphertext`` with ``priv_key`` and verify ``user_pub``."""
+
+    @staticmethod
     def audit_hash(ciphertext: bytes) -> str:
         """Return SHA-256 hash of ``ciphertext``."""
         return hashlib.sha256(ciphertext).hexdigest()
@@ -108,4 +118,38 @@ class AutoGpgDriver(SecretDriverBase):
                 raise ValueError
         except Exception:
             pass
+        return decrypted.message.encode()
+
+    # ------------------------------------------------------------------
+    @staticmethod
+    def decrypt_and_verify(
+        ciphertext: bytes,
+        priv_key: str | Path,
+        user_pub: str | Path,
+        passphrase: str | None = None,
+    ) -> bytes:
+        """Decrypt ``ciphertext`` with ``priv_key`` and verify ``user_pub``."""
+        priv = pgpy.PGPKey()
+        p = Path(priv_key)
+        if isinstance(priv_key, Path) or p.exists():
+            priv.parse(p.read_text())
+        else:
+            priv.parse(str(priv_key))
+
+        if passphrase:
+            priv.unlock(passphrase)
+
+        pub = pgpy.PGPKey()
+        up = Path(user_pub)
+        if isinstance(user_pub, Path) or up.exists():
+            pub.parse(up.read_text())
+        else:
+            pub.parse(str(user_pub))
+
+        message = pgpy.PGPMessage.from_blob(ciphertext)
+        decrypted = priv.decrypt(message)
+        if not decrypted:
+            raise ValueError("decryption failed")
+        if not pub.verify(decrypted):
+            raise ValueError("signature verification failed")
         return decrypted.message.encode()

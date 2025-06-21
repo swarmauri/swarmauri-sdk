@@ -17,3 +17,15 @@ def test_sign_multi_recipient(tmp_path):
     # drv2 should decrypt
     out = drv2.decrypt(cipher)
     assert out == b"secret"
+
+
+def test_decrypt_and_verify(tmp_path):
+    sender = AutoGpgDriver(key_dir=tmp_path / "sender")
+    recipient = AutoGpgDriver(key_dir=tmp_path / "recipient")
+    cipher = sender.encrypt(b"ping", [str(recipient.pub_path)])
+    out = AutoGpgDriver.decrypt_and_verify(
+        cipher,
+        priv_key=str(recipient.priv_path),
+        user_pub=str(sender.pub_path),
+    )
+    assert out == b"ping"
