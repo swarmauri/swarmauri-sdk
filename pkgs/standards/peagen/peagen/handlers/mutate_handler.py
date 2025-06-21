@@ -54,8 +54,15 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
         rel = os.path.relpath(winner_path, repo_root)
-        vcs.commit([rel], f"mutate {winner_path.name}")
-        vcs.create_branch(pea_ref("run", winner_path.stem), checkout=False)
+        commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
+        branch = pea_ref("run", winner_path.stem)
+        vcs.create_branch(branch, checkout=False)
+        try:
+            vcs.push(branch)
+        except Exception:  # pragma: no cover - push may fail
+            pass
+        result["commit"] = commit_sha
+        result["branch"] = branch
     if tmp_dir:
         import shutil
 
