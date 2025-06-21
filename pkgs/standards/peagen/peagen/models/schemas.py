@@ -5,8 +5,6 @@ from pydantic import BaseModel, Field
 import uuid
 
 
-
-
 class Role(str, Enum):
     admin = "admin"
     user = "user"
@@ -28,6 +26,14 @@ class Status(str, Enum):
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
+
+    TERMINAL_STATES = frozenset({"success", "failed", "cancelled", "rejected"})
+
+    @classmethod
+    def is_terminal(cls, state: str | "Status") -> bool:
+        """Return True if *state* represents completion."""
+        value = state.value if isinstance(state, Status) else state
+        return value in cls.TERMINAL_STATES
 
 
 class Task(BaseModel):

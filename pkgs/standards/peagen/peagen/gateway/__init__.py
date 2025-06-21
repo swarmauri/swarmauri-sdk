@@ -220,11 +220,7 @@ async def _finalize_parent_tasks(child_id: str) -> None:
         all_done = True
         for cid in children:
             ct = await _load_task(cid)
-            if not ct or ct.status not in {
-                Status.success,
-                Status.failed,
-                Status.cancelled,
-            }:
+            if not ct or not Status.is_terminal(ct.status):
                 all_done = False
                 break
         if all_done and parent.status != Status.success:
@@ -556,7 +552,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     now = time.time()
     if status == "running" and t.started_at is None:
         t.started_at = now
-    elif status in {"success", "failed", "cancelled"}:
+    elif Status.is_terminal(status):
         if t.started_at is None:
             t.started_at = now
         t.finished_at = now
@@ -565,7 +561,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _save_task(t)
     await _persist(t)
     await _publish_task(t)
-    if status in {"success", "failed", "cancelled"}:
+    if Status.is_terminal(status):
         await _finalize_parent_tasks(taskId)
 
     log.info("task %s completed: %s", taskId, status)

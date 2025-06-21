@@ -11,6 +11,8 @@ import uuid
 import httpx
 import typer
 
+from peagen.models import Status
+
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
 
@@ -39,7 +41,7 @@ def get(  # noqa: D401
         reply = _rpc_call()
         typer.echo(json.dumps(reply, indent=2))
 
-        if not watch or reply["status"] in {"success", "failed"}:
+        if not watch or Status.is_terminal(reply["status"]):
             break
         time.sleep(interval)
 

@@ -134,9 +134,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     project_name: Optional[str] = typer.Option(
         None, help="Process only a single project by its NAME"
     ),
-    start_idx: int = typer.Option(
-        0, help="Index offset for rendered filenames"
-    ),
+    start_idx: int = typer.Option(0, help="Index offset for rendered filenames"),
     start_file: Optional[str] = typer.Option(
         None, help="Skip files until this RENDERED_FILE_NAME is reached"
     ),
@@ -164,7 +162,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     else:
         if path.suffix in {".yml", ".yaml"}:
             raise typer.BadParameter(f"File not found: {projects_payload}")
-        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_") ) / "projects_payload.yaml"
+        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_")) / "projects_payload.yaml"
         tmp.write_text(projects_payload, encoding="utf-8")
         payload_pointer = str(tmp)
 
@@ -213,6 +211,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
+
         def _rpc_call() -> dict:
             req = {
                 "jsonrpc": "2.0",
@@ -226,6 +225,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         while True:
             task_reply = _rpc_call()
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"success", "failed"}:
+            if Status.is_terminal(task_reply["status"]):
                 break
             time.sleep(interval)
