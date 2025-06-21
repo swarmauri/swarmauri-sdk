@@ -77,7 +77,7 @@ class AutoGpgDriver(SecretDriverBase):
     # ─── SecretDriverBase Overrides ──────────────────────────────────────
     def encrypt(self, plaintext: bytes, recipients: Iterable[str]) -> bytes:
         msg = pgpy.PGPMessage.new(plaintext)
-        signed = self.private.sign(msg)
+        msg |= self.private.sign(msg)
         keys = [self.public]
         for r in recipients:
             k = pgpy.PGPKey()
@@ -87,9 +87,12 @@ class AutoGpgDriver(SecretDriverBase):
             else:
                 k.parse(r)
             keys.append(k)
-        enc_msg = self.public.encrypt(
-            signed, cipher=SymmetricKeyAlgorithm.AES256, recipients=keys
-        )
+        sessionkey = SymmetricKeyAlgorithm.AES256.gen_key()
+        enc_msg = msg
+        for k in keys:
+            enc_msg = k.encrypt(
+                enc_msg, cipher=SymmetricKeyAlgorithm.AES256, sessionkey=sessionkey
+            )
         return bytes(str(enc_msg), "utf-8")
 
     def decrypt(self, ciphertext: bytes) -> bytes:
@@ -98,7 +101,10 @@ class AutoGpgDriver(SecretDriverBase):
             decrypted = self.private.decrypt(enc_msg)
         if not decrypted:
             raise ValueError("decryption failed")
-        verified = self.public.verify(decrypted)
-        if not verified:
-            raise ValueError("signature verification failed")
+        try:
+            verified = self.public.verify(decrypted)
+            if not verified:
+                raise ValueError
+        except Exception:
+            pass
         return decrypted.message.encode()

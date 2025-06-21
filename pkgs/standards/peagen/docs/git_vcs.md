@@ -18,8 +18,8 @@ vcs.tag(run_ref)
 ```
 
 Git references follow the ``refs/pea/<kind>`` convention. Constants are
-exported for common prefixes such as :data:`RUN_REF` and
-:data:`PROMOTED_REF`.
+exported for common prefixes such as :data:`RUN_REF`, :data:`PROMOTED_REF`,
+and :data:`KEY_AUDIT_REF`.
 
 When fetching a workspace, a ``workspace_uri`` beginning with
 ``git+`` will be cloned to the destination directory. Both branches and

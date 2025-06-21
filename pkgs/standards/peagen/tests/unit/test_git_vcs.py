@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import json
+
 from peagen.plugins.vcs import GitVCS, pea_ref
 
 
@@ -44,3 +46,12 @@ def test_gitvcs_merge_ours(tmp_path: Path):
     assert commit.message.strip() == "ours merge"
     assert not (repo_dir / "child.txt").exists()
 
+
+def test_fast_import_json_ref(tmp_path: Path):
+    repo_dir = tmp_path / "audit"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    ref = pea_ref("key_audit", "abc")
+    payload = {"user_fpr": "A", "gateway_fp": "B"}
+    sha = vcs.fast_import_json_ref(ref, payload)
+    stored = vcs.repo.git.show(f"{sha}:audit.json")
+    assert json.loads(stored) == payload
