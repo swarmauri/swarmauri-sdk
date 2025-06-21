@@ -175,6 +175,7 @@ llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
 [project.entry-points."peagen.evaluators"]
+pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
 benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
 simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
 
