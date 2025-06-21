@@ -15,17 +15,32 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
+def _repo_root() -> Path:
+    """Return the closest parent directory containing a .git folder."""
+    for p in [Path.cwd()] + list(Path.cwd().parents):
+        if (p / ".git").exists():
+            return p
+    return Path.cwd()
+
+
 
 def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     """Return a tuple of (Path | None, parsed YAML)."""
     path = Path(path_or_text).expanduser()
     if path.exists():
         return path, yaml.safe_load(path.read_text())
+    cwd_alt = Path.cwd() / path_or_text
+    if cwd_alt.exists():
+        return cwd_alt, yaml.safe_load(cwd_alt.read_text())
+    for parent in Path.cwd().parents:
+        alt = parent / path_or_text
+        if alt.exists():
+            return alt, yaml.safe_load(alt.read_text())
     alt = Path(__file__).resolve().parents[2] / path_or_text
     if alt.exists():
         return alt, yaml.safe_load(alt.read_text())
     return None, yaml.safe_load(path_or_text)
-
+    
 
 async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
@@ -40,7 +55,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
         tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
         fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
-        spec_path = (tmp_dir / args["evolve_spec"]).resolve()
+        spec_path = (_repo_root() / args["evolve_spec"]).resolve()
     else:
         spec_path = Path(args["evolve_spec"]).expanduser()
 
@@ -51,7 +66,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     except Exception:  # pragma: no cover - optional
         vcs = None
 
-    spec_path, doc = _load_spec(args["evolve_spec"])
+    spec_path, doc = _load_spec(str(spec_path))
     jobs: List[Dict[str, Any]] = doc.get("JOBS", [])
     mutations = doc.get("operators", {}).get("mutation")
 
