@@ -37,7 +37,6 @@ from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
-import pgpy
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -637,38 +636,38 @@ async def scheduler():
 async def upload_key(public_key: str = Body(..., embed=True)) -> dict:
     key = pgpy.PGPKey()
     key.parse(public_key)
-    TRUSTED_USERS[key.fingerprint] = public_key
+    TRUSTED_KEYS[key.fingerprint] = public_key
     return {"fingerprint": key.fingerprint}
 
 
 @app.get("/keys", tags=["keys"])
 async def list_keys() -> dict:
-    return {"keys": list(TRUSTED_USERS.keys())}
+    return {"keys": list(TRUSTED_KEYS.keys())}
 
 
 @app.delete("/keys/{fingerprint}", tags=["keys"])
 async def delete_key(fingerprint: str) -> dict:
-    TRUSTED_USERS.pop(fingerprint, None)
+    TRUSTED_KEYS.pop(fingerprint, None)
     return {"removed": fingerprint}
 
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
 @app.post("/secrets", tags=["secrets"])
 async def add_secret(name: str = Body(...), secret: str = Body(...)) -> dict:
-    SECRET_STORE[name] = secret
+    SECRETS[name] = secret
     return {"stored": name}
 
 
 @app.get("/secrets/{name}", tags=["secrets"])
 async def get_secret(name: str) -> dict:
-    if name not in SECRET_STORE:
+    if name not in SECRETS:
         return {"error": "not found"}
-    return {"secret": SECRET_STORE[name]}
+    return {"secret": SECRETS[name]}
 
 
 @app.delete("/secrets/{name}", tags=["secrets"])
 async def delete_secret(name: str) -> dict:
-    SECRET_STORE.pop(name, None)
+    SECRETS.pop(name, None)
     return {"removed": name}
 
 
