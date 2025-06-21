@@ -2,6 +2,7 @@
 """
 CLI wrapper for Design-of-Experiments expansion.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -21,6 +22,7 @@ from peagen.models import Status, Task
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
+
 
 def _make_task(args: dict, action: str = "doe") -> Task:
     return Task(
@@ -228,7 +230,9 @@ def run_process(  # noqa: PLR0913
     task = _make_task(args, action="doe_process")
     result = asyncio.run(doe_process_handler(task))
 
-    typer.echo(json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2))
+    typer.echo(
+        json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
+    )
 
 
 # ───────────────────────────── remote process ────────────────────────────
@@ -273,6 +277,7 @@ def submit_process(  # noqa: PLR0913
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Enqueue DOE processing on a remote worker."""
+
     def _git_root(path: Path) -> Path:
         for p in [path] + list(path.parents):
             if (p / ".git").exists():
@@ -321,6 +326,7 @@ def submit_process(  # noqa: PLR0913
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
     if watch:
+
         def _rpc_call(tid: str) -> dict:
             req = {
                 "jsonrpc": "2.0",
@@ -334,7 +340,7 @@ def submit_process(  # noqa: PLR0913
         while True:
             task_reply = _rpc_call(task.id)
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"success", "failed"}:
+            if Status.is_terminal(task_reply["status"]):
                 break
             time.sleep(interval)
 
@@ -343,7 +349,7 @@ def submit_process(  # noqa: PLR0913
             while True:
                 child_reply = _rpc_call(cid)
                 typer.echo(json.dumps(child_reply, indent=2))
-                if child_reply["status"] in {"success", "failed"}:
+                if Status.is_terminal(child_reply["status"]):
                     break
                 time.sleep(interval)
             if child_reply["status"] != "success":
