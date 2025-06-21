@@ -142,6 +142,10 @@ class GitVCS:
             self.repo.delete_head(dest_branch, force=True)
         self.repo.create_head(dest_branch, sha)
 
+    def blob_oid(self, path: str, *, ref: str = "HEAD") -> str:
+        """Return the object ID for ``path`` at ``ref``."""
+        return self.repo.git.rev_parse(f"{ref}:{path}")
+
     # ------------------------------------------------------------------ clean/reset
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")

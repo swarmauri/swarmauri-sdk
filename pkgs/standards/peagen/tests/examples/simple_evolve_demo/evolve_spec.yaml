@@ -16,9 +16,9 @@ factors:
         patchKind: json-merge
 JOBS:
   - workspace_uri: workspace
-    target_file: main.py
-    import_path: workspace.main
-    entry_fn: greet
+    target_file: sort_alg.py
+    import_path: workspace.sort_alg
+    entry_fn: bad_sort
     config: cfg/remote.toml
 operators:
   selection:

@@ -1,6 +1,9 @@
 # Simple Evolve Demo
 
 This example provides a minimal workspace and evolve specification for testing the `peagen evolve` command.
+The workspace now includes a deliberately inefficient `bad_sort` function so
+that mutations can attempt to improve its performance.
+Winning mutants are committed to the repository when a VCS is configured. The task result includes the commit SHA and a `winner_oid` with the blob object ID for the mutated file.
 
 ## Local execution
 
