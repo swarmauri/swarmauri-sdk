@@ -69,6 +69,7 @@ dependencies = [
     "minio", # this storage adapter needs to be pushed to its own standalone
     "GitPython",
     "s3fs",
+    "pytest-monitor>=1.6.6",
 ]
 
 
@@ -177,6 +178,12 @@ llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
 [project.entry-points."peagen.evaluators"]
 psutil_io = "peagen.evaluators.psutil_io:PsutilIOEvaluator"
+perf_regression = "peagen.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
+monitor = "peagen.evaluators.pytest_monitor:PytestMonitorEvaluator"
+memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
+pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
+benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
+simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
