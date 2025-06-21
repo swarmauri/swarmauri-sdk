@@ -19,7 +19,7 @@ JOBS:
     target_file: sort_alg.py
     import_path: sort_alg
     entry_fn: bad_sort
-    config: cfg/remote.toml
+    config: cfg/local.toml
 operators:
   selection:
     kind: default_selector
