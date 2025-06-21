@@ -146,6 +146,19 @@ class GitVCS:
         """Return the object ID for ``path`` at ``ref``."""
         return self.repo.git.rev_parse(f"{ref}:{path}")
 
+    # ------------------------------------------------------------------ oid helpers
+    def object_type(self, oid: str) -> str:
+        """Return the git object type for ``oid``."""
+        return self.repo.git.cat_file("-t", oid).strip()
+
+    def object_size(self, oid: str) -> int:
+        """Return the size of ``oid`` in bytes."""
+        return int(self.repo.git.cat_file("-s", oid).strip())
+
+    def object_pretty(self, oid: str) -> str:
+        """Return the pretty-printed content for ``oid``."""
+        return self.repo.git.cat_file("-p", oid)
+
     # ------------------------------------------------------------------ clean/reset
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")
