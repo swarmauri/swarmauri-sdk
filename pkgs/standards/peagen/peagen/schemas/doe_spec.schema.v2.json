@@ -78,7 +78,7 @@
         "artifactRef": { "type": "string", "format": "uri-reference" },
         "patchKind": {
           "type": "string",
-          "enum": ["git", "json-patch", "json-merge", "yaml-overlay"]
+          "enum": ["git", "json-patch", "json-merge", "yaml-overlay", "apply_patch"]
         },
         "replicates": {
           "type": "integer",

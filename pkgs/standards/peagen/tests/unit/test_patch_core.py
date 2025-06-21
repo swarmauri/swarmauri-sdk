@@ -26,6 +26,29 @@ def test_apply_patch_git(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_apply_patch_cli(tmp_path: Path) -> None:
+    base = tmp_path / "file.txt"
+    base.write_text("hello\n")
+    patch = tmp_path / "p.patch"
+    patch.write_text(
+        "\n".join(
+            [
+                "*** Begin Patch",
+                "*** Update File: file.txt",
+                "@@",
+                "-hello",
+                "+goodbye",
+                "*** End Patch",
+            ]
+        )
+        + "\n"
+    )
+
+    out = apply_patch(base.read_bytes(), patch, "apply_patch")
+    assert out.decode().strip() == "goodbye"
+
+
+@pytest.mark.unit
 def test_apply_patch_unknown(tmp_path: Path) -> None:
     base = tmp_path / "f.txt"
     patch = tmp_path / "p.patch"
