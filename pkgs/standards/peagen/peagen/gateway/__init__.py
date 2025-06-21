@@ -636,38 +636,38 @@ async def scheduler():
 async def upload_key(public_key: str = Body(..., embed=True)) -> dict:
     key = pgpy.PGPKey()
     key.parse(public_key)
-    TRUSTED_KEYS[key.fingerprint] = public_key
+    TRUSTED_USERS[key.fingerprint] = public_key
     return {"fingerprint": key.fingerprint}
 
 
 @app.get("/keys", tags=["keys"])
 async def list_keys() -> dict:
-    return {"keys": list(TRUSTED_KEYS.keys())}
+    return {"keys": list(TRUSTED_USERS.keys())}
 
 
 @app.delete("/keys/{fingerprint}", tags=["keys"])
 async def delete_key(fingerprint: str) -> dict:
-    TRUSTED_KEYS.pop(fingerprint, None)
+    TRUSTED_USERS.pop(fingerprint, None)
     return {"removed": fingerprint}
 
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
 @app.post("/secrets", tags=["secrets"])
 async def add_secret(name: str = Body(...), secret: str = Body(...)) -> dict:
-    SECRETS[name] = secret
+    SECRET_STORE[name] = secret
     return {"stored": name}
 
 
 @app.get("/secrets/{name}", tags=["secrets"])
 async def get_secret(name: str) -> dict:
-    if name not in SECRETS:
+    if name not in SECRET_STORE:
         return {"error": "not found"}
-    return {"secret": SECRETS[name]}
+    return {"secret": SECRET_STORE[name]}
 
 
 @app.delete("/secrets/{name}", tags=["secrets"])
 async def delete_secret(name: str) -> dict:
-    SECRETS.pop(name, None)
+    SECRET_STORE.pop(name, None)
     return {"removed": name}
 
 
