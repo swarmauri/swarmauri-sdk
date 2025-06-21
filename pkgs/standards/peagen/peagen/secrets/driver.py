@@ -77,7 +77,8 @@ class AutoGpgDriver(SecretDriverBase):
     # ─── SecretDriverBase Overrides ──────────────────────────────────────
     def encrypt(self, plaintext: bytes, recipients: Iterable[str]) -> bytes:
         msg = pgpy.PGPMessage.new(plaintext)
-        msg |= self.private.sign(msg)
+        sig = self.private.sign(msg)
+        msg |= sig
         keys = [self.public]
         for r in recipients:
             k = pgpy.PGPKey()
