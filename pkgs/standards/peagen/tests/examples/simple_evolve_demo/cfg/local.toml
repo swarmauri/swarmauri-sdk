@@ -16,3 +16,12 @@ secure = false
 default_backend = "local_fs"
 [result_backends.adapters.local_fs]
 root_dir = "./task_runs"
+
+[evaluation]
+pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+max_workers = 1
+async = false
+strict = true
+
+[evaluation.evaluators]
+performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
