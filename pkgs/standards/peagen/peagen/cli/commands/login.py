@@ -11,7 +11,7 @@ import typer
 from peagen.secrets import AutoGpgDriver
 
 
-login_app = typer.Typer(name="login", help="Authenticate and upload your public key.")
+login_app = typer.Typer(help="Authenticate and upload your public key.")
 
 
 @login_app.command("login")
