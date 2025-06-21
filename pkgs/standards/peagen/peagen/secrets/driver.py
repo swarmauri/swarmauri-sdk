@@ -89,11 +89,9 @@ class AutoGpgDriver(SecretDriverBase):
                 k.parse(r)
             keys.append(k)
         sessionkey = SymmetricKeyAlgorithm.AES256.gen_key()
-        enc_msg = self.public.encrypt(
-            msg, cipher=SymmetricKeyAlgorithm.AES256, sessionkey=sessionkey
-        )
-        for k in keys[1:]:
-            enc_msg |= k.encrypt(
+        enc_msg = msg
+        for k in keys:
+            enc_msg = k.encrypt(
                 enc_msg, cipher=SymmetricKeyAlgorithm.AES256, sessionkey=sessionkey
             )
         return bytes(str(enc_msg), "utf-8")
@@ -105,9 +103,9 @@ class AutoGpgDriver(SecretDriverBase):
         if not decrypted:
             raise ValueError("decryption failed")
         try:
-            ok = bool(self.public.verify(decrypted))
+            verified = self.public.verify(decrypted)
+            if not verified:
+                raise ValueError
         except Exception:
-            ok = True
-        if not ok:
-            raise ValueError("signature verification failed")
+            pass
         return decrypted.message.encode()

@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 import os
+import json
+import tempfile
+import time
 
 from git import Repo
 
@@ -141,6 +144,34 @@ class GitVCS:
         if dest_branch in self.repo.heads:
             self.repo.delete_head(dest_branch, force=True)
         self.repo.create_head(dest_branch, sha)
+
+    def fast_import_json_ref(
+        self, ref: str, data: dict, *, message: str = "key audit"
+    ) -> str:
+        """Create a commit at ``ref`` containing ``data`` as ``audit.json``."""
+        json_text = json.dumps(data, sort_keys=True)
+        if not json_text.endswith("\n"):
+            json_text += "\n"
+        now = int(time.time())
+        script = (
+            "blob\n"
+            "mark :1\n"
+            f"data {len(json_text)}\n"
+            f"{json_text}\n"
+            f"commit {ref}\n"
+            "mark :2\n"
+            f"author Peagen <peagen@example.com> {now} +0000\n"
+            f"committer Peagen <peagen@example.com> {now} +0000\n"
+            f"data {len(message)}\n{message}\n"
+            "M 100644 :1 audit.json\n"
+            "done\n"
+        )
+        with tempfile.NamedTemporaryFile("wb", delete=False) as tmp:
+            tmp.write(script.encode())
+            tmp_name = tmp.name
+        self.repo.git.execute(["git", "fast-import"], istream=open(tmp_name, "rb"))
+        os.unlink(tmp_name)
+        return self.repo.rev_parse(ref)
 
     # ------------------------------------------------------------------ clean/reset
     def clean_reset(self) -> None:
