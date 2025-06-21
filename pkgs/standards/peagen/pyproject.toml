@@ -176,7 +176,7 @@ llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
 [project.entry-points."peagen.evaluators"]
-
+perf_regression = "peagen.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
 monitor = "peagen.evaluators.pytest_monitor:PytestMonitorEvaluator"
 memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
 pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"

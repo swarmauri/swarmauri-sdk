@@ -1,7 +1,10 @@
 
+
 """Peagen evaluators."""
 
 from .base import Evaluator
+from .pytest_perf_regression import PytestPerfRegressionEvaluator
+
 from .pytest_monitor import PytestMonitorEvaluator
 from .pytest_memray_evaluator import PytestMemrayEvaluator
 from .pytest_profiling import PytestProfilingEvaluator
@@ -11,4 +14,4 @@ from .simple_time import SimpleTimeEvaluator
 
 
 __all__ = ["Evaluator", "PytestBenchmarkEvaluator", "SimpleTimeEvaluator", "PytestProfilingEvaluator", 
-           "PytestMonitorEvaluator", "PytestMemrayEvaluator"]
+           "PytestMonitorEvaluator", "PytestMemrayEvaluator", "PytestPerfRegressionEvaluator"]
