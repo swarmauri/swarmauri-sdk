@@ -40,9 +40,9 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
         tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
         fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
-        spec_path = (tmp_dir / args["evolve_spec"]).resolve()
+        spec_path, doc = _load_spec(str((tmp_dir / args["evolve_spec"]).resolve()))
     else:
-        spec_path = Path(args["evolve_spec"]).expanduser()
+        spec_path, doc = _load_spec(args["evolve_spec"])
 
     cfg = resolve_cfg()
     pm = PluginManager(cfg)
@@ -51,15 +51,39 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     except Exception:  # pragma: no cover - optional
         vcs = None
 
-    spec_path, doc = _load_spec(args["evolve_spec"])
+    spec_dir = spec_path.parent if spec_path else Path.cwd()
     jobs: List[Dict[str, Any]] = doc.get("JOBS", [])
     mutations = doc.get("operators", {}).get("mutation")
 
     pool = task_or_dict.get("pool", "default")
+
+    def _resolve_path(p: str) -> str:
+        if p.startswith("git+") or "://" in p or p.startswith("/"):
+            return p
+        return str((spec_dir / p).resolve())
+
     children: List[Task] = []
     for job in jobs:
         if mutations is not None:
             job.setdefault("mutations", mutations)
+
+        if repo:
+            job.setdefault("repo", repo)
+            job.setdefault("ref", ref)
+
+        ws = job.get("workspace_uri")
+        if ws:
+            job["workspace_uri"] = _resolve_path(ws)
+
+        cfg = job.get("config")
+        if cfg:
+            job["config"] = _resolve_path(cfg)
+
+        for mut in job.get("mutations", []):
+            uri = mut.get("uri")
+            if uri:
+                mut["uri"] = _resolve_path(uri)
+
         children.append(
             Task(
                 id=str(uuid.uuid4()),

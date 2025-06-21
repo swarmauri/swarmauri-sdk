@@ -25,7 +25,12 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
         tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
         fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
-        args["workspace_uri"] = str(tmp_dir)
+        ws = args.get("workspace_uri", ".")
+        ws_path = Path(ws)
+        if not ws_path.is_absolute() and "://" not in ws and not ws.startswith("git+"):
+            args["workspace_uri"] = str((tmp_dir / ws).resolve())
+        else:
+            args["workspace_uri"] = str(tmp_dir)
 
     result = mutate_workspace(
         workspace_uri=args["workspace_uri"],

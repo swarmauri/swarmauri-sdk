@@ -15,11 +15,13 @@ factors:
         output_path: template_project.yaml
         patchKind: json-merge
 JOBS:
-  - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/simple_evolve_demo/workspace
+  - repo: https://github.com/swarmauri/swarmauri-sdk.git
+    ref: HEAD
+    workspace_uri: workspace
     target_file: main.py
     import_path: workspace.main
     entry_fn: greet
-    config: pkgs/standards/peagen/tests/examples/simple_evolve_demo/cfg/remote.toml
+    config: cfg/remote.toml
 operators:
   selection:
     kind: default_selector

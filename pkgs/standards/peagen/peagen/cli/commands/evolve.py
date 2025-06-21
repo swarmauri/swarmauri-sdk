@@ -1,4 +1,5 @@
 """CLI for the evolve workflow."""
+
 from __future__ import annotations
 
 import asyncio
@@ -41,7 +42,22 @@ def run(
         for err in result["errors"]:
             typer.secho(err, fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
-    args = {"evolve_spec": str(spec)}
+
+    def _git_root(path: Path) -> Path:
+        for p in [path] + list(path.parents):
+            if (p / ".git").exists():
+                return p
+        return path
+
+    root = _git_root(Path.cwd())
+
+    def _canonical(p: Path) -> str:
+        try:
+            return str(p.resolve().relative_to(root))
+        except ValueError:
+            return str(p.resolve())
+
+    args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
@@ -59,7 +75,9 @@ def submit(
     ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
+    interval: float = typer.Option(
+        2.0, "--interval", "-i", help="Seconds between polls"
+    ),
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
@@ -68,6 +86,7 @@ def submit(
         for err in result["errors"]:
             typer.secho(err, fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
+
     def _git_root(path: Path) -> Path:
         for p in [path] + list(path.parents):
             if (p / ".git").exists():
@@ -104,6 +123,7 @@ def submit(
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
+
         def _rpc_call() -> dict:
             req = {
                 "jsonrpc": "2.0",
