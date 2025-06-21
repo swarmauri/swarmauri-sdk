@@ -12,7 +12,7 @@ Run the spec locally using the `local` subcommand:
 ```bash
 DQ_GATEWAY=http://127.0.0.1:8000/rpc \
 uv run --package peagen --directory pkgs/standards/peagen \
-  peagen local -q evolve tests/examples/simple_evolve_demo/evolve_spec.yaml
+  peagen local -q evolve tests/examples/simple_evolve_demo/evolve_spec_local.yaml
 ```
 
 This writes the result JSON next to the spec file.
@@ -24,7 +24,7 @@ Start a gateway and worker and then submit the job remotely:
 ```bash
 uv run --package peagen --directory pkgs/standards/peagen \
   peagen remote -q --gateway-url http://127.0.0.1:8000/rpc \
-  evolve tests/examples/simple_evolve_demo/evolve_spec.yaml
+  evolve tests/examples/simple_evolve_demo/evolve_remote_spec.yaml
 ```
 
 You can fetch the task result with:

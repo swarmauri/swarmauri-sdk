@@ -9,7 +9,7 @@ SPEC_PATH = (
     / "tests"
     / "examples"
     / "simple_evolve_demo"
-    / "evolve_spec.yaml"
+    / "evolve_remote_spec.yaml"
 )
 
 
