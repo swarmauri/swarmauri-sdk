@@ -41,6 +41,10 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         profile_mod=args.get("profile_mod"),
         cfg_path=Path(args["config"]) if args.get("config") else None,
         mutations=args.get("mutations"),
+        evaluator_ref=args.get(
+            "evaluator_ref",
+            "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
+        ),
     )
 
     cfg = resolve_cfg()

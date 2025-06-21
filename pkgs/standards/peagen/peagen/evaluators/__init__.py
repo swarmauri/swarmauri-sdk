@@ -1,4 +1,3 @@
-
 """Peagen evaluators."""
 
 from .base import Evaluator
@@ -13,5 +12,13 @@ from .benchmark import PytestBenchmarkEvaluator
 from .simple_time import SimpleTimeEvaluator
 
 
-__all__ = ["Evaluator", "PytestBenchmarkEvaluator", "SimpleTimeEvaluator", "PytestProfilingEvaluator", 
-           "PytestMonitorEvaluator", "PytestMemrayEvaluator", "PytestPerfRegressionEvaluator", "PsutilIOEvaluator"]]
+__all__ = [
+    "Evaluator",
+    "PytestBenchmarkEvaluator",
+    "SimpleTimeEvaluator",
+    "PytestProfilingEvaluator",
+    "PytestMonitorEvaluator",
+    "PytestMemrayEvaluator",
+    "PytestPerfRegressionEvaluator",
+    "PsutilIOEvaluator",
+]
