@@ -377,6 +377,9 @@ For the event schema and routing key conventions, see [docs/eda_protocol.md](doc
 peagen process projects.yaml --notify redis://localhost:6379/0/custom.events
 ```
 
+For a walkthrough of encrypted secrets and key management, see
+[docs/secure_secrets_tutorial.md](docs/secure_secrets_tutorial.md).
+
 ### Parallel Processing & Artifact Storage Options
 
 Peagen can accelerate generation by spawning multiple workers. Set `--workers <N>`

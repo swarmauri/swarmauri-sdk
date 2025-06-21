@@ -27,6 +27,9 @@ from .commands import (
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
+    login_app,
+    keys_app,
+    local_secrets_app,
     show_app,
     remote_doe_app,
     remote_eval_app,
@@ -38,6 +41,7 @@ from .commands import (
     remote_task_app,
     remote_template_sets_app,
     remote_validate_app,
+    remote_secrets_app,
     local_analysis_app,
     remote_analysis_app,
     dashboard_app,
@@ -143,6 +147,8 @@ def _global_remote_ctx(  # noqa: D401
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────
 
+app.add_typer(login_app)
+app.add_typer(keys_app, name="keys")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 app.add_typer(dashboard_app)
@@ -165,6 +171,7 @@ local_app.add_typer(local_sort_app)
 local_app.add_typer(local_analysis_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
+local_app.add_typer(local_secrets_app, name="secrets")
 local_app.add_typer(show_app, name="git")
 
 
@@ -179,6 +186,7 @@ remote_app.add_typer(remote_task_app, name="task")
 remote_app.add_typer(remote_analysis_app, name="analysis")
 remote_app.add_typer(remote_template_sets_app, name="template-set")
 remote_app.add_typer(remote_validate_app)
+remote_app.add_typer(remote_secrets_app, name="secrets")
 
 if __name__ == "__main__":
     app()

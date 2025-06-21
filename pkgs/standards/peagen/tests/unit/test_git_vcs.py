@@ -1,6 +1,9 @@
 from pathlib import Path
 
+import json
+
 from peagen.plugins.vcs import GitVCS, pea_ref
+from peagen.secrets import SecretDriverBase
 
 
 def test_gitvcs_promote(tmp_path: Path):
@@ -44,3 +47,25 @@ def test_gitvcs_merge_ours(tmp_path: Path):
     assert commit.message.strip() == "ours merge"
     assert not (repo_dir / "child.txt").exists()
 
+
+def test_fast_import_json_ref(tmp_path: Path):
+    repo_dir = tmp_path / "audit"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    ref = pea_ref("key_audit", "abc")
+    payload = {"user_fpr": "A", "gateway_fp": "B"}
+    sha = vcs.fast_import_json_ref(ref, payload)
+    stored = vcs.repo.git.show(f"{sha}:audit.json")
+    assert json.loads(stored) == payload
+
+
+def test_record_key_audit(tmp_path: Path):
+    repo_dir = tmp_path / "ka"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    secret = b"topsecret"
+    sha = vcs.record_key_audit(secret, "UFPR", "GFPR")
+    stored = vcs.repo.git.show(f"{sha}:audit.json")
+    data = json.loads(stored)
+    assert data["user_fpr"] == "UFPR"
+    assert data["gateway_fp"] == "GFPR"
+    ref = pea_ref("key_audit", SecretDriverBase.audit_hash(secret))
+    assert vcs.repo.rev_parse(ref) == sha

@@ -8,6 +8,7 @@ from .constants import (
     ANALYSIS_REF,
     EVO_REF,
     PROMOTED_REF,
+    KEY_AUDIT_REF,
     pea_ref,
 )
 
@@ -19,5 +20,6 @@ __all__ = [
     "ANALYSIS_REF",
     "EVO_REF",
     "PROMOTED_REF",
+    "KEY_AUDIT_REF",
     "pea_ref",
 ]

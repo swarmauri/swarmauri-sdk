@@ -20,7 +20,8 @@ import time
 from json.decoder import JSONDecodeError
 from typing import Optional
 
-from fastapi import FastAPI, Request, Response
+import pgpy
+from fastapi import Body, FastAPI, Request, Response
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCError
@@ -74,6 +75,10 @@ try:
     result_backend = pm.get("result_backends")
 except KeyError:
     result_backend = None
+
+# ─────────────────────────── Key/Secret store ───────────────────
+TRUSTED_USERS: dict[str, str] = {}
+SECRET_STORE: dict[str, str] = {}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -260,6 +265,57 @@ async def rpc_endpoint(request: Request):
         log.warning(f"{method} '{resp['error']}'")
     log.debug("RPC out -> %s", resp)
     return resp
+
+
+# ─────────────────────────── Key/Secret RPC ─────────────────────
+
+
+@rpc.method("Keys.upload")
+async def keys_upload(public_key: str) -> dict:
+    """Store a trusted public key."""
+    key = pgpy.PGPKey()
+    key.parse(public_key)
+    TRUSTED_USERS[key.fingerprint] = public_key
+    log.info("key uploaded: %s", key.fingerprint)
+    return {"fingerprint": key.fingerprint}
+
+
+@rpc.method("Keys.fetch")
+async def keys_fetch() -> dict:
+    """Return all trusted keys indexed by fingerprint."""
+    return TRUSTED_USERS
+
+
+@rpc.method("Keys.delete")
+async def keys_delete(fingerprint: str) -> dict:
+    """Remove a public key by its fingerprint."""
+    TRUSTED_USERS.pop(fingerprint, None)
+    log.info("key removed: %s", fingerprint)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.add")
+async def secrets_add(name: str, secret: str) -> dict:
+    """Store an encrypted secret."""
+    SECRET_STORE[name] = secret
+    log.info("secret stored: %s", name)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.get")
+async def secrets_get(name: str) -> dict:
+    """Retrieve an encrypted secret."""
+    if name not in SECRET_STORE:
+        raise RPCError(code=-32000, message="secret not found")
+    return {"secret": SECRET_STORE[name]}
+
+
+@rpc.method("Secrets.delete")
+async def secrets_delete(name: str) -> dict:
+    """Remove a secret by name."""
+    SECRET_STORE.pop(name, None)
+    log.info("secret removed: %s", name)
+    return {"ok": True}
 
 
 # ─────────────────────────── Pool RPCs ──────────────────────────
@@ -573,6 +629,46 @@ async def scheduler():
                 log.warning("dispatch failed (%s) for %s; re-queueing", exc, task.id)
                 await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
+
+
+# ────────────────────────── Key Management ──────────────────────────
+@app.post("/keys", tags=["keys"])
+async def upload_key(public_key: str = Body(..., embed=True)) -> dict:
+    key = pgpy.PGPKey()
+    key.parse(public_key)
+    TRUSTED_USERS[key.fingerprint] = public_key
+    return {"fingerprint": key.fingerprint}
+
+
+@app.get("/keys", tags=["keys"])
+async def list_keys() -> dict:
+    return {"keys": list(TRUSTED_USERS.keys())}
+
+
+@app.delete("/keys/{fingerprint}", tags=["keys"])
+async def delete_key(fingerprint: str) -> dict:
+    TRUSTED_USERS.pop(fingerprint, None)
+    return {"removed": fingerprint}
+
+
+# ────────────────────────── Secret Endpoints ─────────────────────────
+@app.post("/secrets", tags=["secrets"])
+async def add_secret(name: str = Body(...), secret: str = Body(...)) -> dict:
+    SECRET_STORE[name] = secret
+    return {"stored": name}
+
+
+@app.get("/secrets/{name}", tags=["secrets"])
+async def get_secret(name: str) -> dict:
+    if name not in SECRET_STORE:
+        return {"error": "not found"}
+    return {"secret": SECRET_STORE[name]}
+
+
+@app.delete("/secrets/{name}", tags=["secrets"])
+async def delete_secret(name: str) -> dict:
+    SECRET_STORE.pop(name, None)
+    return {"removed": name}
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
