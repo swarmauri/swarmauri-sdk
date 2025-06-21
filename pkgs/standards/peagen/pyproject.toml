@@ -55,7 +55,7 @@ dependencies = [
     "sqlalchemy>=2.0",
     "alembic",
     "asyncpg>=0.30.0", # need to push out to a standalone with extra
-    "psycopg2-binary", # need to push out to a standalone with extra
+    "psycopg2-binary>=2.9", # need to push out to a standalone with extra
     "aiosqlite>=0.19.0", # needed for the SQLite fallback result backend
     
     # brokers (publishers/consumer dependencies)
@@ -116,6 +116,7 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
     "textual>=3.3.0",
+    "pytest-postgresql",
 ]
 
 [project.entry-points."peagen.template_sets"]
@@ -167,6 +168,9 @@ in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
 result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackendSelector"
 bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
 input = "peagen.plugins.selectors.input_selector:InputSelector"
+
+[project.entry-points."peagen.selectors"]
+postgres = "peagen.selectors.postgres_selector:PostgresSelector"
 
 [project.entry-points."peagen.plugins.mutators"]
 default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
