@@ -24,10 +24,12 @@ def login(
     """Ensure keys exist and upload the public key."""
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    try:
-        res = httpx.post(
-            f"{gateway_url}/keys", json={"public_key": pubkey}, timeout=10.0
-        )
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "Keys.upload",
+        "params": {"public_key": pubkey},
+    }
+
     except httpx.RequestError as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)

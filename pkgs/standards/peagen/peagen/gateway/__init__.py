@@ -37,6 +37,7 @@ from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
+import pgpy
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -76,9 +77,9 @@ try:
 except KeyError:
     result_backend = None
 
-# ──────────────── Simple key & secret stores ────────────────
-TRUSTED_USERS: dict[str, str] = {}
-SECRET_STORE: dict[str, str] = {}
+# ─────────────────────────── Key/Secret store ───────────────────
+TRUSTED_KEYS: dict[str, str] = {}
+SECRETS: dict[str, str] = {}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -265,6 +266,57 @@ async def rpc_endpoint(request: Request):
         log.warning(f"{method} '{resp['error']}'")
     log.debug("RPC out -> %s", resp)
     return resp
+
+
+# ─────────────────────────── Key/Secret RPC ─────────────────────
+
+
+@rpc.method("Keys.upload")
+async def keys_upload(public_key: str) -> dict:
+    """Store a trusted public key."""
+    key = pgpy.PGPKey()
+    key.parse(public_key)
+    TRUSTED_KEYS[key.fingerprint] = public_key
+    log.info("key uploaded: %s", key.fingerprint)
+    return {"fingerprint": key.fingerprint}
+
+
+@rpc.method("Keys.fetch")
+async def keys_fetch() -> dict:
+    """Return all trusted keys indexed by fingerprint."""
+    return TRUSTED_KEYS
+
+
+@rpc.method("Keys.delete")
+async def keys_delete(fingerprint: str) -> dict:
+    """Remove a public key by its fingerprint."""
+    TRUSTED_KEYS.pop(fingerprint, None)
+    log.info("key removed: %s", fingerprint)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.add")
+async def secrets_add(name: str, secret: str) -> dict:
+    """Store an encrypted secret."""
+    SECRETS[name] = secret
+    log.info("secret stored: %s", name)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.get")
+async def secrets_get(name: str) -> dict:
+    """Retrieve an encrypted secret."""
+    if name not in SECRETS:
+        raise RPCError(code=-32000, message="secret not found")
+    return {"secret": SECRETS[name]}
+
+
+@rpc.method("Secrets.delete")
+async def secrets_delete(name: str) -> dict:
+    """Remove a secret by name."""
+    SECRETS.pop(name, None)
+    log.info("secret removed: %s", name)
+    return {"ok": True}
 
 
 # ─────────────────────────── Pool RPCs ──────────────────────────
