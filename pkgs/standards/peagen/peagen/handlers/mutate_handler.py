@@ -48,13 +48,22 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     try:
         vcs = pm.get("vcs")
     except Exception:  # pragma: no cover - optional
-        vcs = None
+        if tmp_dir and (tmp_dir / ".git").exists():
+            from peagen.plugins.vcs import GitVCS
+
+            vcs = GitVCS.open(tmp_dir)
+        else:
+            vcs = None
 
     if vcs and result.get("winner"):
         repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
         rel = os.path.relpath(winner_path, repo_root)
-        commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
+        if winner_path.exists():
+            commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
+            result["winner_oid"] = vcs.blob_oid(rel)
+        else:
+            commit_sha = None
         branch = pea_ref("run", winner_path.stem)
         vcs.create_branch(branch, checkout=False)
         try:
