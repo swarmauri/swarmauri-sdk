@@ -34,6 +34,7 @@ dependencies = [
 
     "jinja2>=3.1.6", # should come with j2prompttemplate, but is it required anywhere else on its own?
     "inflect", # should come with j2prompttemplate, but is it required anywhere else on its own?
+    "psutil>=6.0",  # required for IO evaluator
 
     "typer",   # for cli
     "colorama",# for cli
@@ -176,6 +177,7 @@ llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
 [project.entry-points."peagen.evaluators"]
+psutil_io = "peagen.evaluators.psutil_io:PsutilIOEvaluator"
 perf_regression = "peagen.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
 monitor = "peagen.evaluators.pytest_monitor:PytestMonitorEvaluator"
 memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
