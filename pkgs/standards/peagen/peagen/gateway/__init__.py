@@ -399,6 +399,11 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     await _save_task(task)
     await _persist(task)
     await _publish_task(task)
+    if "result" in changes and isinstance(changes["result"], dict):
+        children = changes["result"].get("children")
+        if children:
+            for cid in children:
+                await _finalize_parent_tasks(cid)
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
     return task.model_dump()
 
