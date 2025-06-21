@@ -8,11 +8,13 @@ population:
     baseArtifacts:
       - workspace
 JOBS:
-  - workspace_uri: /workspace/swarmauri-sdk/pkgs/standards/peagen/tests/examples/evolve_example_2/workspace
+  - repo: https://github.com/swarmauri/swarmauri-sdk.git
+    ref: HEAD
+    workspace_uri: workspace
     target_file: main.py
     import_path: workspace.main
     entry_fn: add
-    config: pkgs/standards/peagen/tests/examples/evolve_example_2/cfg/remote.toml
+    config: cfg/remote.toml
 operators:
   selection:
     kind: default_selector
