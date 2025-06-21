@@ -11,13 +11,20 @@ import typer
 from peagen.secrets import AutoGpgDriver
 
 
-login_app = typer.Typer(name="login", help="Authenticate and upload your public key.")
+login_app = typer.Typer(
+    name="login",
+    help="Authenticate and upload your public key.",
+)
 
 
-@login_app.callback()
+@login_app.command("login")
 def login(
     ctx: typer.Context,
-    passphrase: Optional[str] = typer.Option(None, "--passphrase", hide_input=True),
+    passphrase: Optional[str] = typer.Option(
+        None,
+        "--passphrase",
+        hide_input=True,
+    ),
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
@@ -29,11 +36,15 @@ def login(
         "method": "Keys.upload",
         "params": {"public_key": pubkey},
     }
-
+    try:
+        res = httpx.post(gateway_url, json=payload, timeout=10.0)
     except httpx.RequestError as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
     if res.status_code >= 400:
-        typer.echo(f"Failed to upload key: {res.status_code} {res.text}", err=True)
+        typer.echo(
+            f"Failed to upload key: {res.status_code} {res.text}",
+            err=True,
+        )
         raise typer.Exit(1)
     typer.echo("Logged in and uploaded public key")
