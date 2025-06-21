@@ -27,7 +27,9 @@ from .commands import (
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
-  
+    login_app,
+    keys_app,
+    local_secrets_app,
     remote_doe_app,
     remote_eval_app,
     remote_fetch_app,
@@ -38,18 +40,15 @@ from .commands import (
     remote_task_app,
     remote_template_sets_app,
     remote_validate_app,
+    remote_secrets_app,
     local_analysis_app,
     remote_analysis_app,
     dashboard_app,
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
-local_app = typer.Typer(
-    help="Commands executed locally on this machine."
-)
-remote_app = typer.Typer(
-    help="Commands that submit tasks to a JSON-RPC gateway."
-)
+local_app = typer.Typer(help="Commands executed locally on this machine.")
+remote_app = typer.Typer(help="Commands that submit tasks to a JSON-RPC gateway.")
 
 
 # ───────────────────── LOCAL GLOBAL CALLBACK ───────────────────────────────
@@ -147,17 +146,23 @@ def _global_remote_ctx(  # noqa: D401
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────
 
+app.add_typer(login_app, name="login")
+app.add_typer(keys_app, name="keys")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 app.add_typer(dashboard_app)
 
 
 local_app.add_typer(local_doe_app, name="doe")
-local_app.add_typer(local_eval_app,)
+local_app.add_typer(
+    local_eval_app,
+)
 local_app.add_typer(local_extras_app, name="extras-schemas")
-local_app.add_typer(local_fetch_app,)
+local_app.add_typer(
+    local_fetch_app,
+)
 local_app.add_typer(local_db_app, name="db")
-local_app.add_typer(local_init_app,          name="init")
+local_app.add_typer(local_init_app, name="init")
 local_app.add_typer(local_process_app)
 local_app.add_typer(local_mutate_app)
 local_app.add_typer(local_evolve_app)
@@ -165,6 +170,7 @@ local_app.add_typer(local_sort_app)
 local_app.add_typer(local_analysis_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
+local_app.add_typer(local_secrets_app, name="secrets")
 
 
 remote_app.add_typer(remote_doe_app, name="doe")
@@ -178,6 +184,7 @@ remote_app.add_typer(remote_task_app, name="task")
 remote_app.add_typer(remote_analysis_app, name="analysis")
 remote_app.add_typer(remote_template_sets_app, name="template-set")
 remote_app.add_typer(remote_validate_app)
+remote_app.add_typer(remote_secrets_app, name="secrets")
 
 if __name__ == "__main__":
     app()

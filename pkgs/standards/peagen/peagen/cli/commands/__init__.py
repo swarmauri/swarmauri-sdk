@@ -15,6 +15,9 @@ from .analysis import local_analysis_app, remote_analysis_app
 from .templates import local_template_sets_app, remote_template_sets_app
 from .tui import dashboard_app
 from .validate import local_validate_app, remote_validate_app
+from .login import login_app
+from .keys import keys_app
+from .secrets import local_secrets_app, remote_secrets_app
 
 __all__ = [
     "local_doe_app",
@@ -44,4 +47,8 @@ __all__ = [
     "local_validate_app",
     "remote_validate_app",
     "dashboard_app",
+    "login_app",
+    "keys_app",
+    "local_secrets_app",
+    "remote_secrets_app",
 ]
