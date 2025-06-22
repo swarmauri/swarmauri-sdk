@@ -78,7 +78,9 @@ except KeyError:
 
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
-SECRET_STORE: dict[str, str] = {}
+SECRET_STORE: dict[
+    str, dict[str, object]
+] = {}  # namespaced id -> {"version": int, "secret": str}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -309,26 +311,37 @@ async def keys_delete(fingerprint: str) -> dict:
 
 
 @rpc.method("Secrets.add")
-async def secrets_add(name: str, secret: str) -> dict:
-    """Store an encrypted secret."""
-    SECRET_STORE[name] = secret
-    log.info("secret stored: %s", name)
-    return {"ok": True}
+async def secrets_add(id: str, secret: str, version: int | None = None) -> dict:
+    """Store an encrypted secret with optimistic locking."""
+    current = SECRET_STORE.get(id)
+    current_version = current["version"] if current else 0
+    if version is not None and version != current_version:
+        raise RPCError(code=-32001, message="version mismatch")
+    next_version = current_version + 1
+    SECRET_STORE[id] = {"version": next_version, "secret": secret}
+    log.info("secret stored: %s v%s", id, next_version)
+    return {"version": next_version}
 
 
 @rpc.method("Secrets.get")
-async def secrets_get(name: str) -> dict:
+async def secrets_get(id: str) -> dict:
     """Retrieve an encrypted secret."""
-    if name not in SECRET_STORE:
+    entry = SECRET_STORE.get(id)
+    if not entry:
         raise RPCError(code=-32000, message="secret not found")
-    return {"secret": SECRET_STORE[name]}
+    return {"secret": entry["secret"], "version": entry["version"]}
 
 
 @rpc.method("Secrets.delete")
-async def secrets_delete(name: str) -> dict:
-    """Remove a secret by name."""
-    SECRET_STORE.pop(name, None)
-    log.info("secret removed: %s", name)
+async def secrets_delete(id: str, version: int | None = None) -> dict:
+    """Remove a secret by id with optional version check."""
+    entry = SECRET_STORE.get(id)
+    if not entry:
+        return {"ok": True}
+    if version is not None and version != entry["version"]:
+        raise RPCError(code=-32001, message="version mismatch")
+    SECRET_STORE.pop(id, None)
+    log.info("secret removed: %s", id)
     return {"ok": True}
 
 
@@ -672,22 +685,35 @@ async def delete_key(fingerprint: str) -> dict:
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
 @app.post("/secrets", tags=["secrets"])
-async def add_secret(name: str = Body(...), secret: str = Body(...)) -> dict:
-    SECRET_STORE[name] = secret
-    return {"stored": name}
+async def add_secret(
+    id: str = Body(...), secret: str = Body(...), version: int | None = Body(None)
+) -> dict:
+    current = SECRET_STORE.get(id)
+    current_version = current["version"] if current else 0
+    if version is not None and version != current_version:
+        return {"error": "version mismatch"}
+    next_version = current_version + 1
+    SECRET_STORE[id] = {"version": next_version, "secret": secret}
+    return {"stored": id, "version": next_version}
 
 
-@app.get("/secrets/{name}", tags=["secrets"])
-async def get_secret(name: str) -> dict:
-    if name not in SECRET_STORE:
+@app.get("/secrets/{id}", tags=["secrets"])
+async def get_secret(id: str) -> dict:
+    entry = SECRET_STORE.get(id)
+    if not entry:
         return {"error": "not found"}
-    return {"secret": SECRET_STORE[name]}
+    return {"secret": entry["secret"], "version": entry["version"]}
 
 
-@app.delete("/secrets/{name}", tags=["secrets"])
-async def delete_secret(name: str) -> dict:
-    SECRET_STORE.pop(name, None)
-    return {"removed": name}
+@app.delete("/secrets/{id}", tags=["secrets"])
+async def delete_secret(id: str, version: int | None = Body(None)) -> dict:
+    entry = SECRET_STORE.get(id)
+    if not entry:
+        return {"removed": id}
+    if version is not None and version != entry["version"]:
+        return {"error": "version mismatch"}
+    SECRET_STORE.pop(id, None)
+    return {"removed": id}
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────

@@ -63,8 +63,9 @@ def remove(name: str) -> None:
 @remote_secrets_app.command("add")
 def remote_add(
     ctx: typer.Context,
-    name: str,
+    secret_id: str,
     value: str,
+    version: int = typer.Option(0, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
@@ -73,16 +74,16 @@ def remote_add(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
-        "params": {"name": name, "secret": cipher},
+        "params": {"id": secret_id, "secret": cipher, "version": version},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
-    typer.echo(f"Uploaded secret {name}")
+    typer.echo(f"Uploaded secret {secret_id}")
 
 
 @remote_secrets_app.command("get")
 def remote_get(
     ctx: typer.Context,
-    name: str,
+    secret_id: str,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
@@ -90,7 +91,7 @@ def remote_get(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.get",
-        "params": {"name": name},
+        "params": {"id": secret_id},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     cipher = res.json()["result"]["secret"].encode()
@@ -100,14 +101,15 @@ def remote_get(
 @remote_secrets_app.command("remove")
 def remote_remove(
     ctx: typer.Context,
-    name: str,
+    secret_id: str,
+    version: int = typer.Option(None, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Delete a secret on the gateway."""
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"name": name},
+        "params": {"id": secret_id, "version": version},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
-    typer.echo(f"Removed secret {name}")
+    typer.echo(f"Removed secret {secret_id}")
