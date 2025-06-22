@@ -46,7 +46,7 @@ class TaskRun(Base):
     labels: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     in_degree: Mapped[int] = mapped_column(psql.INTEGER, nullable=False, default=0)
     config_toml: Mapped[str | None] = mapped_column(String, nullable=True)
-    artifact_uri: Mapped[str | None] = mapped_column(String, nullable=True)
+    oids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     commit_hexsha: Mapped[str | None] = mapped_column(String, nullable=True)
     started_at: Mapped[dt.datetime] = mapped_column(
         TIMESTAMP(timezone=True), default=dt.datetime.utcnow
@@ -88,8 +88,8 @@ class TaskRun(Base):
             labels=task.labels,
             in_degree=task.in_degree,
             config_toml=task.config_toml,
-            artifact_uri=(
-                task.result.get("artifact_uri")
+            oids=(
+                task.result.get("oids")
                 if task.result and isinstance(task.result, dict)
                 else None
             ),
@@ -126,7 +126,7 @@ class TaskRun(Base):
             "labels": self.labels,
             "in_degree": self.in_degree,
             "config_toml": self.config_toml,
-            "artifact_uri": self.artifact_uri,
+            "oids": self.oids,
             "commit_hexsha": self.commit_hexsha,
             "started_at": self.started_at,
             "finished_at": self.finished_at,

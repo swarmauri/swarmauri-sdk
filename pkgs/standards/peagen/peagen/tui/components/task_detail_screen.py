@@ -42,12 +42,18 @@ class TaskDetailScreen(ModalScreen[None]):
         """Recursively populate the tree with task data."""
         if isinstance(data, dict):
             for key, value in data.items():
-                if isinstance(value, (dict, list)):
+                if key == "oids" and isinstance(value, list):
                     child = node.add(str(key), expand=True)
-                    # recurse into dict or list
+                    for oid in value:
+                        child.add_leaf(f"[link=oid:{oid}]{oid}[/link]")
+                elif isinstance(value, (dict, list)):
+                    child = node.add(str(key), expand=True)
                     self._populate_tree(child, value)
                 else:
-                    node.add_leaf(f"{key}: {value}")
+                    if key == "oid":
+                        node.add_leaf(f"{key}: [link=oid:{value}]{value}[/link]")
+                    else:
+                        node.add_leaf(f"{key}: {value}")
         elif isinstance(data, list):
             # handle empty list
             if not data:

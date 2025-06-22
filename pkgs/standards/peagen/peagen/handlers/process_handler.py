@@ -87,7 +87,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         project = next((p for p in projects if p.get("NAME") == project_name), None)
         if project is None:  # defensive
             raise ValueError(f"Project '{project_name}' not found in payload!")
-        processed, _, commit_sha = process_single_project(
+        processed, _, commit_sha, oids = process_single_project(
             project=project,
             cfg=cfg,
             start_idx=args.get("start_idx", 0),
@@ -95,7 +95,7 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             transitive=args.get("transitive", False),
         )
         result_map: Dict[str, List[Dict[str, Any]]] = {project_name: processed}
-        result = {"processed": result_map, "commit": commit_sha}
+        result = {"processed": result_map, "commit": commit_sha, "oids": oids}
     else:
         result_map = process_all_projects(
             projects_payload,

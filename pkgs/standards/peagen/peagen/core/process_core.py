@@ -453,17 +453,23 @@ def process_single_project(
 
     # ─── STEP 6: Commit results ───────────────────────────────────────────
     commit_sha = None
+    oids: List[str] = []
     if vcs and commit_paths:
         repo_root = Path(vcs.repo.working_tree_dir)
         rels = [os.path.relpath(p, repo_root) for p in commit_paths]
         commit_sha = vcs.commit(rels, f"process {project_name}")
+        for rel in rels:
+            try:
+                oids.append(vcs.blob_oid(rel, ref=commit_sha))
+            except Exception:
+                pass
         try:
             vcs.push(vcs.repo.active_branch.name)
         except Exception:  # pragma: no cover - push may fail
             pass
     if logger:
         logger.info(f"========== Completed project '{project_name}' ==========\n")
-    return sorted_records, next_idx, commit_sha
+    return sorted_records, next_idx, commit_sha, oids
 
 
 def process_all_projects(
@@ -483,7 +489,7 @@ def process_all_projects(
 
     for proj in projects:
         name = proj.get("NAME", f"project_{next_idx}")
-        recs, next_idx, _ = process_single_project(
+        recs, next_idx, _, _ = process_single_project(
             proj,
             cfg,
             start_idx=next_idx,

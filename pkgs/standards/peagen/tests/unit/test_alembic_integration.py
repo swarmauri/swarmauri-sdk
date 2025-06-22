@@ -54,3 +54,4 @@ def test_alembic_upgrade_and_current(tmp_path):
         cur = conn.execute("PRAGMA table_info(task_runs)")
         cols = {row[1] for row in cur.fetchall()}
         assert "commit_hexsha" in cols
+        assert "oids" in cols
