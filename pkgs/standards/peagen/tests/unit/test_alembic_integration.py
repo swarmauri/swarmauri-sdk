@@ -11,7 +11,6 @@ def test_alembic_upgrade_and_current(tmp_path):
     alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
     repo_root = Path(__file__).resolve().parents[5]
 
-
     env = os.environ.copy()
     env.setdefault("REDIS_URL", "redis://localhost:6379/0")
     env.pop("PG_HOST", None)
@@ -52,3 +51,6 @@ def test_alembic_upgrade_and_current(tmp_path):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='task_runs'"
         )
         assert cur.fetchone() is not None
+        cur = conn.execute("PRAGMA table_info(task_runs)")
+        cols = {row[1] for row in cur.fetchall()}
+        assert "commit_hexsha" in cols

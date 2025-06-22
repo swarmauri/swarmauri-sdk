@@ -3,6 +3,7 @@ import pytest
 from peagen.models import Task, TaskRun
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_task_model_roundtrip():
@@ -27,13 +28,22 @@ async def test_task_model_roundtrip():
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_taskrun_from_task():
-    t = Task(pool="p", payload={}, deps=["a"], edge_pred="e", labels=["l"], in_degree=1, config_toml="c")
+    t = Task(
+        pool="p",
+        payload={},
+        deps=["a"],
+        edge_pred="e",
+        labels=["l"],
+        in_degree=1,
+        config_toml="c",
+    )
     tr = TaskRun.from_task(t)
     assert tr.deps == ["a"]
     assert tr.edge_pred == "e"
     assert tr.labels == ["l"]
     assert tr.in_degree == 1
     assert tr.config_toml == "c"
+    assert tr.commit_hexsha is None
 
 
 @pytest.mark.unit
@@ -61,10 +71,12 @@ async def test_task_submit_roundtrip(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+
     importlib.reload(gw)
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
+
     async def noop(*_args, **_kwargs):
         return None
 
