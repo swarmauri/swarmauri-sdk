@@ -25,7 +25,7 @@ EXPOSE 8000
 
 ENV \
     PG_HOST="" \
-    PG_PORT="" \
+    PG_PORT="5432" \
     PG_DB="" \
     PG_USER="" \
     PG_PASS="" \
