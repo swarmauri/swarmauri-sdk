@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, ClassVar, FrozenSet
 from pydantic import BaseModel, Field
 import uuid
 
@@ -27,7 +27,9 @@ class Status(str, Enum):
     failed = "failed"
     cancelled = "cancelled"
 
-    TERMINAL_STATES = frozenset({"success", "failed", "cancelled", "rejected"})
+    TERMINAL_STATES: ClassVar[FrozenSet[str]] = frozenset(
+        {"success", "failed", "cancelled", "rejected"}
+    )
 
     @classmethod
     def is_terminal(cls, state: str | "Status") -> bool:
