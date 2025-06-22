@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # ───────── Postgres results-backend ─────────
     pg_host: Optional[str] = Field(default=os.environ.get("PG_HOST"))
-    pg_port: int = Field(default=int(os.environ.get("PG_PORT", "5342")))
+    pg_port: int = Field(default=int(os.environ.get("PG_PORT", "5432")))
     pg_db: Optional[str] = Field(default=os.environ.get("PG_DB"))
     pg_user: Optional[str] = Field(default=os.environ.get("PG_USER"))
     pg_pass: Optional[str] = Field(default=os.environ.get("PG_PASS"))
@@ -50,5 +50,6 @@ class Settings(BaseSettings):
     class Config:
         # No env_file needed since we already called load_dotenv().
         pass
+
 
 settings = Settings()
