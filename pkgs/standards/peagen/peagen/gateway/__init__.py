@@ -143,7 +143,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
 
     if isinstance(payload, list):
         for item in payload:
-            if item.get("jsonrpc") != "2.0":
+            if item.get("jsonrpc") and item.get("jsonrpc") != "2.0":
                 return await _reject(
                     ip,
                     item.get("id"),
@@ -151,11 +151,11 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
                     code=-32600,
                     message="Invalid Request",
                 )
-            if not _supports(item.get("method")):
+            if item.get("method") is None or not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
 
-    if payload.get("jsonrpc") != "2.0":
+    if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
         return await _reject(
             ip,
             payload.get("id"),
@@ -163,7 +163,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
             code=-32600,
             message="Invalid Request",
         )
-    if not _supports(payload.get("method")):
+    if payload.get("method") is None or not _supports(payload.get("method")):
         return await _reject(ip, payload.get("id"), payload.get("method"))
     return None
 
@@ -530,7 +530,7 @@ async def task_submit(
             except Exception:  # noqa: BLE001
                 raw = []
         handlers.update(raw)
-    if action is None or action not in handlers:
+    if action is not None and action not in handlers:
         raise RPCError(
             code=-32601, message="Method not found", data={"method": str(action)}
         )
