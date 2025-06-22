@@ -31,6 +31,13 @@ async def test_redis_queue_basic_ops():
     item = await q.brpop(["list2"], 0.5)
     assert item == ("list2", "b")
 
+    await q.rpush("src", "1")
+    moved = await q.brpoplpush("src", "dst", 0.5)
+    assert moved == "1"
+    assert await q.lrange("dst", 0, -1) == ["1"]
+    await q.lrem("dst", 0, "1")
+    assert await q.lrange("dst", 0, -1) == []
+
     await q.hset("hash", {"foo": "bar"})
     assert await q.hget("hash", "foo") == "bar"
     await q.expire("hash", 1)
