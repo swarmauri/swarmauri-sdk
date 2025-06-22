@@ -40,6 +40,7 @@ from peagen.gateway.db_helpers import (
     delete_secret,
 )
 import peagen.defaults as defaults
+from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -791,6 +792,10 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
+    result = migrate_core.alembic_upgrade()
+    if not result.get("ok", False):
+        log.error("migration failed: %s", result.get("error"))
+        raise RuntimeError(result.get("error"))
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
         await ensure_status_enum(engine)
