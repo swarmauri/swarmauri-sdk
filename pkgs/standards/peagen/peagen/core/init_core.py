@@ -193,3 +193,54 @@ def init_ci(
     kind = "ci-github" if github else "ci-gitlab"
     _render_scaffold(src_root / kind, path, {}, force)
     return {"created": str(path), "next": "commit the CI file"}
+
+
+def init_repo(
+    *, repo: str, pat: str, description: str = "", deploy_key: Path | None = None
+) -> Dict[str, Any]:
+    """Create a GitHub repository and register a deploy key."""
+    from github import Github
+    import subprocess
+    import tempfile
+
+    tenant, name = repo.split("/", 1)
+    gh = Github(pat)
+
+    try:
+        owner = gh.get_organization(tenant)
+    except Exception:
+        owner = gh.get_user(tenant)
+
+    try:
+        repo_obj = owner.create_repo(name, private=True, description=description)
+    except Exception:
+        repo_obj = gh.get_repo(repo)
+
+    if deploy_key is None:
+        tmp = Path(tempfile.mkdtemp())
+        deploy_key = tmp / f"{name}_deploy"
+        subprocess.run(
+            [
+                "ssh-keygen",
+                "-q",
+                "-t",
+                "ed25519",
+                "-N",
+                "",
+                "-C",
+                f"{name}-worker",
+                "-f",
+                str(deploy_key),
+            ],
+            check=True,
+        )
+
+    pub_key = deploy_key.with_suffix(".pub")
+    with pub_key.open() as fh:
+        repo_obj.create_key(title="peagen-worker", key=fh.read(), read_only=False)
+
+    return {
+        "created": repo,
+        "deploy_key": str(deploy_key),
+        "next": "configure DEPLOY_KEY_SECRET",
+    }
