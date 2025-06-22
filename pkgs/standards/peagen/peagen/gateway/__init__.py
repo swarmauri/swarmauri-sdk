@@ -460,6 +460,7 @@ async def secrets_add(
     secret: str,
     tenant_id: str = "default",
     owner_fpr: str = "unknown",
+    version: int | None = None,
 ) -> dict:
     """Store an encrypted secret."""
     async with Session() as session:
@@ -480,7 +481,11 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
 
 
 @rpc.method("Secrets.delete")
-async def secrets_delete(name: str, tenant_id: str = "default") -> dict:
+async def secrets_delete(
+    name: str,
+    tenant_id: str = "default",
+    version: int | None = None,
+) -> dict:
     """Remove a secret by name."""
     async with Session() as session:
         await delete_secret(session, tenant_id, name)
