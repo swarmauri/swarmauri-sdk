@@ -8,6 +8,7 @@ from typing import Optional
 
 import httpx
 import typer
+from peagen.plugins.secret_drivers import AutoGpgDriver  # noqa: F401
 
 from peagen import resolve_plugin_spec
 from peagen._utils.config_loader import resolve_cfg
@@ -26,7 +27,11 @@ def create(
     """Generate a new key pair."""
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     Driver(key_dir=key_dir, passphrase=passphrase)
     typer.echo(f"Created key pair in {key_dir}")
 
@@ -40,7 +45,11 @@ def upload(
     """Upload the public key to the gateway."""
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     drv = Driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     envelope = {
