@@ -7,7 +7,6 @@ import uuid
 
 import httpx
 
-from peagen import defaults
 
 from pathlib import Path
 
@@ -27,8 +26,7 @@ DEFAULT_GATEWAY = (
     "http://localhost:8000/rpc"  # replace with peagen.defaults to make consistency
 )
 
-#DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"] 
-
+# DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"]
 
 
 local_db_app = typer.Typer(help="Database utilities.")
@@ -74,6 +72,10 @@ def upgrade() -> None:
         },
     )
     result = asyncio.run(migrate_handler(task))
+    if stdout := result.get("stdout"):
+        typer.echo(stdout)
+    if stderr := result.get("stderr"):
+        typer.echo(stderr, err=True)
     if not result.get("ok", False):
         typer.echo(f"[ERROR] {result.get('error')}")
         raise typer.Exit(1)
@@ -104,6 +106,10 @@ def revision(
         },
     )
     result = asyncio.run(migrate_handler(task))
+    if stdout := result.get("stdout"):
+        typer.echo(stdout)
+    if stderr := result.get("stderr"):
+        typer.echo(stderr, err=True)
     if not result.get("ok", False):
         typer.echo(f"[ERROR] {result.get('error')}")
         raise typer.Exit(1)
@@ -121,6 +127,10 @@ def downgrade() -> None:
         },
     )
     result = asyncio.run(migrate_handler(task))
+    if stdout := result.get("stdout"):
+        typer.echo(stdout)
+    if stderr := result.get("stderr"):
+        typer.echo(stderr, err=True)
     if not result.get("ok", False):
         typer.echo(f"[ERROR] {result.get('error')}")
         raise typer.Exit(1)
