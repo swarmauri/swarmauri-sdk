@@ -54,3 +54,42 @@ def test_alembic_revision_invokes_subprocess(monkeypatch, tmp_path: Path):
         "-m",
         "msg",
     ]
+
+
+@pytest.mark.unit
+def test_alembic_upgrade_stream(monkeypatch, tmp_path: Path):
+    calls = {}
+
+    class FakeStream:
+        def __init__(self, lines):
+            self._lines = iter(lines)
+
+        def readline(self):
+            try:
+                return next(self._lines)
+            except StopIteration:
+                return ""
+
+        def close(self):
+            pass
+
+    class FakeProc:
+        def __init__(self):
+            self.stdout = FakeStream(["out\n", ""])
+            self.stderr = FakeStream(["err\n", ""])
+            self.returncode = 0
+
+        def wait(self):
+            return 0
+
+    def fake_popen(cmd, stdout, stderr, text, bufsize):
+        calls["cmd"] = cmd
+        return FakeProc()
+
+    monkeypatch.setattr(migrate_core.subprocess, "Popen", fake_popen)
+
+    cfg = tmp_path / "al.ini"
+    result = migrate_core.alembic_upgrade(cfg, stream=True)
+
+    assert result == {"ok": True, "stdout": "out\n", "stderr": "err\n"}
+    assert calls["cmd"] == ["alembic", "-c", str(cfg), "upgrade", "head"]
