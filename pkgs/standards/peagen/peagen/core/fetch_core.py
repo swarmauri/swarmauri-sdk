@@ -19,6 +19,7 @@ from typing import List, Optional
 
 from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
 from peagen.plugins.vcs import GitVCS
+from peagen.errors import WorkspaceNotFoundError
 
 
 # ─────────────────────────── low-level helpers ────────────────────────────
@@ -43,7 +44,7 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
 
     path = Path(uri)
     if not path.exists():
-        raise FileNotFoundError(uri)
+        raise WorkspaceNotFoundError(uri)
     if path.is_dir():
         shutil.copytree(path, dest, dirs_exist_ok=True)
     else:
