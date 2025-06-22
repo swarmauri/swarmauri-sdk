@@ -4,7 +4,7 @@ from .doe import local_doe_app, remote_doe_app
 from .eval import local_eval_app, remote_eval_app
 from .extras import local_extras_app, remote_extras_app
 from .fetch import local_fetch_app, remote_fetch_app
-from .db import local_db_app
+from .db import local_db_app, remote_db_app
 from .init import local_init_app, remote_init_app
 from .process import local_process_app, remote_process_app
 from .mutate import local_mutate_app, remote_mutate_app
@@ -34,6 +34,7 @@ __all__ = [
     "local_fetch_app",
     "remote_fetch_app",
     "local_db_app",
+    "remote_db_app",
     "local_init_app",
     "remote_init_app",
     "local_process_app",

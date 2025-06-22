@@ -240,6 +240,12 @@ this step on startup, but the command is available for manual upgrades.
 peagen db upgrade
 ```
 
+Run migrations on a gateway instance:
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc db upgrade
+```
+
 ---
 
 ## Examples & Walkthroughs
