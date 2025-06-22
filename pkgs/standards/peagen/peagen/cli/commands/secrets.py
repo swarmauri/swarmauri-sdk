@@ -108,7 +108,7 @@ def remote_add(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
-        "params": {"id": secret_id, "secret": cipher, "version": version},
+        "params": {"name": secret_id, "secret": cipher, "version": version},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
@@ -134,7 +134,7 @@ def remote_get(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.get",
-        "params": {"id": secret_id},
+        "params": {"name": secret_id},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
@@ -161,7 +161,7 @@ def remote_remove(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"id": secret_id, "version": version},
+        "params": {"name": secret_id, "version": version},
     }
 
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
