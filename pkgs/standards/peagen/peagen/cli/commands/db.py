@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 import uuid
 
 import httpx
 
+from peagen import defaults
+
+from pathlib import Path
+
 import typer
 
-# Lazy import resolves alembic.ini in both source and installed locations
 from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
 
@@ -24,6 +26,9 @@ ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 DEFAULT_GATEWAY = (
     "http://localhost:8000/rpc"  # replace with peagen.defaults to make consistency
 )
+
+#DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"] 
+
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
