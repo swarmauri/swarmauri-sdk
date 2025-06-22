@@ -83,6 +83,46 @@ class InMemoryQueue:
                 except asyncio.TimeoutError:
                     return None
 
+    async def brpoplpush(self, src: str, dst: str, timeout: float) -> str | None:
+        end_time = self._loop.time() + timeout
+        while True:
+            await self._cleanup()
+            lst = self.lists.get(src)
+            if lst:
+                value = lst.pop()
+                self.lists[dst].insert(0, value)
+                return value
+            remaining = end_time - self._loop.time()
+            if remaining <= 0:
+                return None
+            async with self._cond:
+                try:
+                    await asyncio.wait_for(self._cond.wait(), remaining)
+                except asyncio.TimeoutError:
+                    return None
+
+    async def lrem(self, key: str, count: int, value: str) -> None:
+        if count == 0:
+            self.lists[key] = [v for v in self.lists.get(key, []) if v != value]
+        elif count > 0:
+            new_list = []
+            removed = 0
+            for v in self.lists.get(key, []):
+                if v == value and removed < count:
+                    removed += 1
+                    continue
+                new_list.append(v)
+            self.lists[key] = new_list
+        else:
+            new_list = []
+            removed = 0
+            for v in reversed(self.lists.get(key, [])):
+                if v == value and removed < abs(count):
+                    removed += 1
+                    continue
+                new_list.insert(0, v)
+            self.lists[key] = new_list
+
     # -------------------- hash ops -------------------
     async def hset(self, key: str, mapping: dict[str, Any]) -> None:
         self.hashes[key].update(mapping)

@@ -29,6 +29,7 @@ CONFIG = {
     # Default Redis topics/queues used by the gateway & workers
     "control_queue": "control",  # worker ↔ gateway control messages
     "ready_queue": "queue",  # prefix for per-pool ready queues
+    "processing_queue": "processing",  # prefix for in-flight task queues
     "pubsub": "task:update",  # channel for task event broadcasts
     "task_key": "task:{}",  # Redis hash per task
     # Sensible local defaults so `peagen local` works without a config file

@@ -59,6 +59,7 @@ app.include_router(ws_router)  # 1-liner, no prefix
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
 READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
+PROCESSING_QUEUE = cfg.get("processing_queue", defaults.CONFIG["processing_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
@@ -580,6 +581,8 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _persist(t)
     await _publish_task(t)
     if Status.is_terminal(status):
+        await queue.lrem(f"{PROCESSING_QUEUE}:{t.pool}", 0, t.model_dump_json())
+        await _publish_queue_length(t.pool)
         await _finalize_parent_tasks(taskId)
 
     log.info("task %s completed: %s", taskId, status)
@@ -600,13 +603,22 @@ async def scheduler():
             # build key list once per tick → ["queue:demo", "queue:beta", ...]
             keys = [f"{READY_QUEUE}:{p}" for p in pools]
 
-            # BLPOP across *all* pools, 0.5-sec timeout
-            res = await queue.blpop(keys, 0.5)
-            if res is None:
-                # no work ready this half-second
+            # Reliable pop across pools
+            task_data = None
+            queue_key = ""
+            processing_key = ""
+            for key in keys:
+                pkey = key.replace(READY_QUEUE, PROCESSING_QUEUE, 1)
+                item = await queue.brpoplpush(key, pkey, 0.5)
+                if item:
+                    queue_key = key
+                    processing_key = pkey
+                    task_data = item
+                    break
+            if task_data is None:
                 continue
 
-            queue_key, task_raw = res  # guaranteed 2-tuple here
+            task_raw = task_data
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             await _publish_queue_length(pool)
             task = Task.model_validate_json(task_raw)
@@ -615,6 +627,7 @@ async def scheduler():
             worker_list = await _live_workers_by_pool(pool)
             if not worker_list:
                 log.info("no active worker for %s, re-queue %s", pool, task.id)
+                await queue.lrem(processing_key, 0, task_raw)
                 await queue.rpush(queue_key, task_raw)  # push back
                 await _publish_queue_length(pool)
                 await asyncio.sleep(5)
@@ -645,7 +658,12 @@ async def scheduler():
                 )
 
             except Exception as exc:
-                log.warning("dispatch failed (%s) for %s; re-queueing", exc, task.id)
+                log.warning(
+                    "dispatch failed (%s) for %s; re-queueing",
+                    exc,
+                    task.id,
+                )
+                await queue.lrem(processing_key, 0, task_raw)
                 await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
 
