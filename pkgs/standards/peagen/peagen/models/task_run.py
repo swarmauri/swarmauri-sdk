@@ -1,11 +1,11 @@
 import datetime as dt
 import uuid
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, List
 
-from sqlalchemy import JSON, TIMESTAMP, String
+from sqlalchemy import JSON, TIMESTAMP, String, Column, ForeignKey
 from sqlalchemy.dialects import postgresql as psql
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from peagen.models.schemas import Status
 
 
@@ -68,7 +68,7 @@ class TaskRun(Base):
         super().__init__(**kwargs)
 
     @property
-    def deps(self) -> List[str]:
+    def deps(self) -> List[str]:  # noqa: F811 - overrides the mapped column
         if getattr(self, "_raw_deps", None):
             return self._raw_deps
         return [str(d.id) for d in self._deps_rel]
