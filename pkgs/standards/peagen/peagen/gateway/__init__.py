@@ -243,9 +243,7 @@ async def _reload_state() -> None:
             .all()
         )
     for row in rows:
-        print('_reload_state:', row)
         if Status.is_terminal(row.status):
-            print('_reload_state:', 'status is terminal, we go.')
             continue
         task = Task(
             id=str(row.id),
@@ -266,6 +264,7 @@ async def _reload_state() -> None:
         await queue.sadd("pools", task.pool)
         await queue.rpush(f"{READY_QUEUE}:{task.pool}", task.model_dump_json())
         await _publish_queue_length(task.pool)
+        print('_reload_state:', 'exiting')
 
 
 async def _publish_task(task: Task) -> None:
