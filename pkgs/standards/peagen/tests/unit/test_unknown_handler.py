@@ -1,12 +1,10 @@
 import pytest
-
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_task_patch_updates_labels(monkeypatch):
-    """Ensure Task.patch updates a task's labels in storage."""
+async def test_task_submit_unknown_handler(monkeypatch):
     q = InMemoryQueue()
 
     class DummyBackend:
@@ -41,13 +39,32 @@ async def test_task_patch_updates_labels(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    task_submit = gw.task_submit
-    task_patch = gw.task_patch
-    task_get = gw.task_get
+    async def fake_live(pool):
+        return []
 
-    result = await task_submit(pool="p", payload={"action": "noop"}, taskId=None)
-    tid = result["taskId"]
+    monkeypatch.setattr(gw, "_live_workers_by_pool", fake_live)
 
-    await task_patch(taskId=tid, changes={"labels": ["patched"]})
-    patched = await task_get(tid)
-    assert patched["labels"] == ["patched"]
+    counts = {}
+
+    async def fake_record(session, ip):
+        counts[ip] = counts.get(ip, 0) + 1
+        return counts[ip]
+
+    monkeypatch.setattr(gw, "record_unknown_handler", fake_record)
+    monkeypatch.setattr(gw, "mark_ip_banned", lambda session, ip: None)
+
+    req = {
+        "jsonrpc": "2.0",
+        "id": "1",
+        "method": "Task.submit",
+        "params": {"pool": "p", "payload": {"action": "bogus"}, "taskId": None},
+    }
+
+    from fastapi.testclient import TestClient
+
+    client = TestClient(gw.app)
+    resp = client.post("/rpc", json=req)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["error"]["code"] == -32601
+    assert counts

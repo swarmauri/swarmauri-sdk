@@ -316,11 +316,69 @@ async def rpc_endpoint(request: Request):
     else:
         payload = _ensure_id(raw)
 
+    async def _supports(pool: str, action: str) -> bool:
+        workers = await _live_workers_by_pool(pool)
+        for w in workers:
+            handlers = w.get("handlers") or w.get("advertises")
+            if not handlers:
+                continue
+            if isinstance(handlers, str):
+                try:
+                    handlers = json.loads(handlers)
+                except Exception:
+                    handlers = []
+            if action in handlers:
+                return True
+        return False
+
+    async def _reject(item: dict, action: str | None) -> dict:
+        async with Session() as session:
+            count = await record_unknown_handler(session, ip)
+        if count >= BAN_THRESHOLD:
+            BANNED_IPS.add(ip)
+            async with Session() as session:
+                await mark_ip_banned(session, ip)
+            log.warning("banned ip %s", ip)
+        return {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32601,
+                "message": "Method not found",
+                "data": {"method": action},
+            },
+            "id": item.get("id"),
+        }
+
+    async def _prevalidate(item: dict) -> dict | None:
+        if item.get("method") != "Task.submit":
+            return None
+        params = item.get("params") or {}
+        pool = params.get("pool", "default")
+        action = (params.get("payload") or {}).get("action")
+        if not action:
+            return await _reject(item, action)
+        if not await _supports(pool, action):
+            return await _reject(item, action)
+        return None
+
     log.debug("RPC in  <- %s", payload)
-    resp = await rpc.dispatch(payload)
+    log.debug("RPC in  <- %s", payload)
+
+    async def _dispatch(item: dict) -> dict:
+        pre = await _prevalidate(item)
+        if pre is not None:
+            return pre
+        return await rpc.dispatch(item)
+
+    if isinstance(payload, list):
+        resp = [await _dispatch(item) for item in payload]
+    else:
+        resp = await _dispatch(payload)
 
     async def _check_unknown(r: dict, method: str) -> None:
-        if r.get("error", {}).get("code") == -32601:
+        if r.get("error", {}).get("code") == -32601 and "data" not in r.get(
+            "error", {}
+        ):
             r["error"]["data"] = {"method": method}
             async with Session() as session:
                 count = await record_unknown_handler(session, ip)
@@ -583,8 +641,27 @@ async def pool_list(poolName: str):
 
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
-async def worker_register(workerId: str, pool: str, url: str, advertises: dict):
-    await _upsert_worker(workerId, {"pool": pool, "url": url, "advertises": advertises})
+async def worker_register(
+    workerId: str, pool: str, url: str, advertises: dict | None = None
+):
+    handlers: list[str] = []
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            wk = url.rsplit("/", 1)[0] + "/well-known"
+            res = await client.get(wk)
+            if res.status_code == 200:
+                handlers = res.json().get("handlers") or []
+    except Exception as exc:  # noqa: BLE001
+        log.warning("failed fetching /well-known from %s: %s", url, exc)
+    await _upsert_worker(
+        workerId,
+        {
+            "pool": pool,
+            "url": url,
+            "handlers": handlers,
+            "advertises": advertises or {},
+        },
+    )
     log.info("worker %s registered (%s)", workerId, pool)
     return {"ok": True}
 

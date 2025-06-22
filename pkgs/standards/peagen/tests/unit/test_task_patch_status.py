@@ -29,6 +29,7 @@ async def test_task_patch_updates_status(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+
     importlib.reload(gw)
 
     monkeypatch.setattr(gw, "queue", q)
@@ -44,7 +45,7 @@ async def test_task_patch_updates_status(monkeypatch):
     task_patch = gw.task_patch
     task_get = gw.task_get
 
-    result = await task_submit(pool="p", payload={}, taskId=None)
+    result = await task_submit(pool="p", payload={"action": "noop"}, taskId=None)
     tid = result["taskId"]
 
     await task_patch(taskId=tid, changes={"status": "success"})

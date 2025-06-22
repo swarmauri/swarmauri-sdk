@@ -2,6 +2,7 @@ import pytest
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_task_submit_id_collision(monkeypatch):
@@ -27,10 +28,12 @@ async def test_task_submit_id_collision(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+
     importlib.reload(gw)
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
+
     async def noop(*_args, **_kwargs):
         return None
 
@@ -39,8 +42,7 @@ async def test_task_submit_id_collision(monkeypatch):
 
     task_submit = gw.task_submit
 
-    r1 = await task_submit(pool="p", payload={}, taskId="dup")
-    r2 = await task_submit(pool="p", payload={}, taskId="dup")
+    r1 = await task_submit(pool="p", payload={"action": "noop"}, taskId="dup")
+    r2 = await task_submit(pool="p", payload={"action": "noop"}, taskId="dup")
     assert r1["taskId"] == "dup"
     assert r2["taskId"] != "dup"
-

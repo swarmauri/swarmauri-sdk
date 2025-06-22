@@ -45,9 +45,11 @@ async def test_task_patch_triggers_finalize(monkeypatch):
     task_get = gw.task_get
     work_finished = gw.work_finished
 
-    parent_id = (await task_submit(pool="p", payload={}, taskId=None))["taskId"]
+    parent_id = (await task_submit(pool="p", payload={"action": "noop"}, taskId=None))[
+        "taskId"
+    ]
     child_id = str(uuid.uuid4())
-    await task_submit(pool="p", payload={}, taskId=child_id)
+    await task_submit(pool="p", payload={"action": "noop"}, taskId=child_id)
     await work_finished(taskId=child_id, status="success", result=None)
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
@@ -98,9 +100,11 @@ async def test_task_patch_triggers_finalize_rejected(monkeypatch):
     task_get = gw.task_get
     work_finished = gw.work_finished
 
-    parent_id = (await task_submit(pool="p", payload={}, taskId=None))["taskId"]
+    parent_id = (await task_submit(pool="p", payload={"action": "noop"}, taskId=None))[
+        "taskId"
+    ]
     child_id = str(uuid.uuid4())
-    await task_submit(pool="p", payload={}, taskId=child_id)
+    await task_submit(pool="p", payload={"action": "noop"}, taskId=child_id)
     await work_finished(taskId=child_id, status="rejected", result=None)
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
