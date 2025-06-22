@@ -12,14 +12,13 @@ from peagen.models.schemas import (
 )
   from peagen.models.core_models import (
     Tenant,
-    User as DbUser,
+    User,
     PublicKey,
     Secret,
-    Task as DbTask,
+    Task,
     Artifact,
     DeployKey,
 )
-from peagen.models.schemas import Role, Status, Task, Pool, User
 
 __all__ = [
     "Role",
@@ -33,7 +32,7 @@ __all__ = [
     "DbUser",
     "PublicKey",
     "Secret",
-    "DbTask",
+    "Task",
     "Artifact",
     "DeployKey",
 ]
