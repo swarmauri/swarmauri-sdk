@@ -17,7 +17,7 @@ ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 def alembic_upgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
     """Apply migrations up to HEAD using *cfg*."""
     try:
-        subprocess.run(
+        result = subprocess.run(
             [
                 "alembic",
                 "-c",
@@ -26,16 +26,23 @@ def alembic_upgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
                 "head",
             ],
             check=True,
+            capture_output=True,
+            text=True,
         )
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+        return {
+            "ok": False,
+            "error": str(exc),
+            "stdout": exc.stdout,
+            "stderr": exc.stderr,
+        }
+    return {"ok": True, "stdout": result.stdout, "stderr": result.stderr}
 
 
 def alembic_downgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
     """Downgrade the database by one revision using *cfg*."""
     try:
-        subprocess.run(
+        result = subprocess.run(
             [
                 "alembic",
                 "-c",
@@ -44,16 +51,23 @@ def alembic_downgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
                 "-1",
             ],
             check=True,
+            capture_output=True,
+            text=True,
         )
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+        return {
+            "ok": False,
+            "error": str(exc),
+            "stdout": exc.stdout,
+            "stderr": exc.stderr,
+        }
+    return {"ok": True, "stdout": result.stdout, "stderr": result.stderr}
 
 
 def alembic_revision(message: str, cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
     """Create a new revision with *message* using *cfg*."""
     try:
-        subprocess.run(
+        result = subprocess.run(
             [
                 "alembic",
                 "-c",
@@ -64,7 +78,14 @@ def alembic_revision(message: str, cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
                 message,
             ],
             check=True,
+            capture_output=True,
+            text=True,
         )
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+        return {
+            "ok": False,
+            "error": str(exc),
+            "stdout": exc.stdout,
+            "stderr": exc.stderr,
+        }
+    return {"ok": True, "stdout": result.stdout, "stderr": result.stderr}
