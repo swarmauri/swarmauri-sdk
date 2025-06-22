@@ -35,6 +35,7 @@ from .commands import (
     remote_eval_app,
     remote_fetch_app,
     remote_process_app,
+    remote_db_app,
     remote_mutate_app,
     remote_evolve_app,
     remote_sort_app,
@@ -178,6 +179,7 @@ local_app.add_typer(show_app, name="git")
 remote_app.add_typer(remote_doe_app, name="doe")
 remote_app.add_typer(remote_eval_app)
 remote_app.add_typer(remote_fetch_app)
+remote_app.add_typer(remote_db_app, name="db")
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_mutate_app)
 remote_app.add_typer(remote_evolve_app)
