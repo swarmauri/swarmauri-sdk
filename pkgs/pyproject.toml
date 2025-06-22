@@ -44,6 +44,7 @@ members = [
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_httploaded",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
     "standards/swarmauri_evaluator_abstractmethods",
@@ -248,6 +249,7 @@ swarmauri_tool_searchword = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
+swarmauri_tool_httploaded = { workspace = true }
 swarmauri_tool_githubloader = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
