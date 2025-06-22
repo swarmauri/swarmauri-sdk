@@ -435,6 +435,21 @@ async def task_submit(
 ):
     await queue.sadd("pools", pool)  # track pool even if not created
 
+    action = (payload or {}).get("action")
+    handlers: set[str] = set()
+    for w in await _live_workers_by_pool(pool):
+        raw = w.get("handlers", [])
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                raw = []
+        handlers.update(raw)
+    if action is None or action not in handlers:
+        raise RPCError(
+            code=-32601, message="Method not found", data={"method": str(action)}
+        )
+
     if taskId and await _load_task(taskId):
         new_id = str(uuid.uuid4())
         log.warning("task id collision: %s → %s", taskId, new_id)
@@ -584,8 +599,21 @@ async def pool_list(poolName: str):
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
 async def worker_register(workerId: str, pool: str, url: str, advertises: dict):
-    await _upsert_worker(workerId, {"pool": pool, "url": url, "advertises": advertises})
-    log.info("worker %s registered (%s)", workerId, pool)
+    handlers: list[str] = []
+    well_known_url = url.replace("/rpc", "/well-known")
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(well_known_url)
+            if resp.status_code == 200:
+                handlers = resp.json().get("handlers", [])
+    except Exception as exc:  # noqa: BLE001
+        log.warning("/well-known fetch failed for %s: %s", workerId, exc)
+
+    await _upsert_worker(
+        workerId,
+        {"pool": pool, "url": url, "advertises": advertises, "handlers": handlers},
+    )
+    log.info("worker %s registered (%s) handlers=%s", workerId, pool, handlers)
     return {"ok": True}
 
 
