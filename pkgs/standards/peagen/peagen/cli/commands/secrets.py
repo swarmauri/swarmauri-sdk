@@ -68,6 +68,7 @@ def remote_add(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
+    gateway_url = gateway_url.rstrip("/") + "/rpc"
     drv = AutoGpgDriver()
     cipher = drv.encrypt(value.encode(), []).decode()
     envelope = {
@@ -75,7 +76,10 @@ def remote_add(
         "method": "Secrets.add",
         "params": {"name": name, "secret": cipher},
     }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    if res.status_code >= 400:
+        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+        raise typer.Exit(1)
     typer.echo(f"Uploaded secret {name}")
 
 
@@ -86,6 +90,7 @@ def remote_get(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
+    gateway_url = gateway_url.rstrip("/") + "/rpc"
     drv = AutoGpgDriver()
     envelope = {
         "jsonrpc": "2.0",
@@ -93,6 +98,9 @@ def remote_get(
         "params": {"name": name},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    if res.status_code >= 400:
+        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+        raise typer.Exit(1)
     cipher = res.json()["result"]["secret"].encode()
     typer.echo(drv.decrypt(cipher).decode())
 
@@ -104,10 +112,14 @@ def remote_remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Delete a secret on the gateway."""
+    gateway_url = gateway_url.rstrip("/") + "/rpc"
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
         "params": {"name": name},
     }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    if res.status_code >= 400:
+        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+        raise typer.Exit(1)
     typer.echo(f"Removed secret {name}")

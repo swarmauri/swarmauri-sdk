@@ -138,7 +138,7 @@ def _global_remote_ctx(  # noqa: D401
     ctx.ensure_object(dict)
     ctx.obj.update(
         verbosity=verbose,
-        gateway_url=gateway_url,
+        gateway_url=gateway_url.rstrip("/") + "/rpc",
         task_override_inline=override,
         task_override_file=override_file,
         quiet=quiet,
