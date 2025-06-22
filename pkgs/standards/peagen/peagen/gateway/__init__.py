@@ -39,7 +39,6 @@ from peagen.gateway.db_helpers import (
     fetch_secret,
     delete_secret,
 )
-from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 from peagen.core.task_core import get_task_result
 from sqlalchemy import select
@@ -794,9 +793,6 @@ async def health() -> dict:
 async def _on_start():
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
-        result = alembic_upgrade()
-        if not result.get("ok", True):
-            log.warning("alembic upgrade failed: %s", result.get("error"))
         await ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
