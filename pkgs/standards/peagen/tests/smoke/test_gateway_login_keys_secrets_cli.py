@@ -8,8 +8,18 @@ GATEWAY = "https://gw.peagen.com/rpc"
 
 @pytest.mark.i9n
 def test_login_and_fetch_keys(tmp_path):
+    key_dir = tmp_path / "keys"
     subprocess.run(
-        ["peagen", "login", "--gateway-url", GATEWAY],
+        [
+            "peagen",
+            "login",
+            "--gateway-url",
+            GATEWAY,
+            "--key-dir",
+            str(key_dir),
+            "--passphrase",
+            "testpass",
+        ],
         check=True,
         timeout=60,
     )
