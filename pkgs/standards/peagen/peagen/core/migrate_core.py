@@ -6,9 +6,12 @@ from typing import Any, Dict
 
 
 # ``alembic.ini`` sits alongside the ``migrations`` directory in the package
-# root. ``parents[2]`` reliably resolves to that location for both source and
-# installed packages.
-ALEMBIC_CFG = Path(__file__).resolve().parents[2] / "alembic.ini"
+# root. When running from source this lives two levels up from this file, while
+# an installed wheel places it one level up. Check both locations for
+# robustness.
+_src_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
+_pkg_cfg = Path(__file__).resolve().parents[1] / "alembic.ini"
+ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
 
 def alembic_upgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
