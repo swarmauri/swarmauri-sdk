@@ -29,6 +29,7 @@ from .commands import (
     local_validate_app,
     login_app,
     keys_app,
+    remote_keys_app,
     local_secrets_app,
     show_app,
     remote_doe_app,
@@ -137,9 +138,12 @@ def _global_remote_ctx(  # noqa: D401
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)
+    url = gateway_url.rstrip("/")
+    if not url.endswith("/rpc"):
+        url += "/rpc"
     ctx.obj.update(
         verbosity=verbose,
-        gateway_url=gateway_url.rstrip("/") + "/rpc",
+        gateway_url=url,
         task_override_inline=override,
         task_override_file=override_file,
         quiet=quiet,
@@ -188,6 +192,7 @@ remote_app.add_typer(remote_task_app, name="task")
 remote_app.add_typer(remote_analysis_app, name="analysis")
 remote_app.add_typer(remote_template_sets_app, name="template-set")
 remote_app.add_typer(remote_validate_app)
+remote_app.add_typer(remote_keys_app, name="keys")
 remote_app.add_typer(remote_secrets_app, name="secrets")
 
 if __name__ == "__main__":

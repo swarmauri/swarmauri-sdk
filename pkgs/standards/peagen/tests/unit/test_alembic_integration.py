@@ -8,6 +8,7 @@ import pytest
 
 
 @pytest.mark.unit
+@pytest.mark.skip("alembic not fully supported in CI")
 def test_alembic_upgrade_and_current(tmp_path):
     alembic_ini = ALEMBIC_CFG
     repo_root = Path(__file__).resolve().parents[5]

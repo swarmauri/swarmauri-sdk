@@ -1,4 +1,5 @@
 import json
+import types
 import pytest
 import typer
 
@@ -107,14 +108,14 @@ def test_remote_add_posts(monkeypatch):
 
     monkeypatch.setattr(secrets_cli.httpx, "post", fake_post)
     monkeypatch.setattr(secrets_cli, "_pool_worker_pubs", lambda pool, url: ["P"])
+    ctx = types.SimpleNamespace(obj={"gateway_url": "http://gw"})
     secrets_cli.remote_add(
-        None,
+        ctx,
         "ID",
         "v",
         version=1,
         recipient=[],
         pool="p",
-        gateway_url="http://gw",
     )
     assert posted["json"]["params"]["secret"].startswith("enc:")
     assert posted["json"]["params"]["id"] == "ID"
@@ -132,10 +133,10 @@ def test_remote_get(monkeypatch):
     monkeypatch.setattr(secrets_cli.httpx, "post", fake_post)
     out = []
     monkeypatch.setattr(typer, "echo", lambda msg: out.append(msg))
+    ctx = types.SimpleNamespace(obj={"gateway_url": "http://gw"})
     secrets_cli.remote_get(
-        None,
+        ctx,
         "ID",
-        gateway_url="http://gw",
     )
     assert out == ["value"]
 
@@ -152,11 +153,11 @@ def test_remote_remove(monkeypatch):
         return Res()
 
     monkeypatch.setattr(secrets_cli.httpx, "post", fake_post)
+    ctx = types.SimpleNamespace(obj={"gateway_url": "http://gw"})
     secrets_cli.remote_remove(
-        None,
+        ctx,
         "ID",
         version=2,
-        gateway_url="http://gw",
     )
     assert posted["json"] == {
         "jsonrpc": "2.0",
