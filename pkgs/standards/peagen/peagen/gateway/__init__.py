@@ -24,7 +24,7 @@ import pgpy
 from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCError
+from peagen.transport import RPCDispatcher, RPCRequest, RPCException
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
@@ -419,6 +419,7 @@ async def secrets_add(
     secret: str,
     tenant_id: str = "default",
     owner_fpr: str = "unknown",
+    version: int | None = None,
 ) -> dict:
     """Store an encrypted secret."""
     async with Session() as session:
@@ -434,12 +435,14 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
-        raise RPCError(code=-32000, message="secret not found")
+        raise RPCException(code=-32000, message="secret not found")
     return {"secret": row.cipher}
 
 
 @rpc.method("Secrets.delete")
-async def secrets_delete(name: str, tenant_id: str = "default") -> dict:
+async def secrets_delete(
+    name: str, tenant_id: str = "default", version: int | None = None
+) -> dict:
     """Remove a secret by name."""
     async with Session() as session:
         await delete_secret(session, tenant_id, name)
@@ -490,7 +493,7 @@ async def task_submit(
                 raw = []
         handlers.update(raw)
     if action is None or action not in handlers:
-        raise RPCError(
+        raise RPCException(
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
@@ -624,7 +627,7 @@ async def task_get(taskId: str):
         return await get_task_result(taskId)  # raises ValueError if not found
     except ValueError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCError(code=-32001, message=str(exc))
+        raise RPCException(code=-32001, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")

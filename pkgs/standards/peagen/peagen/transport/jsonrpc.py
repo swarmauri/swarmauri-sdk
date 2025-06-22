@@ -6,6 +6,18 @@ from typing import Callable, Dict
 from .schemas import RPCError
 
 
+class RPCException(Exception):
+    """Exception wrapper for :class:`RPCError`."""
+
+    def __init__(self, code: int, message: str, data=None) -> None:  # noqa: D401 - simple init
+        super().__init__(message)
+        self.error = RPCError(code=code, message=message, data=data)
+
+    def model_dump(self) -> dict:
+        """Return the underlying :class:`RPCError` payload."""
+        return self.error.model_dump()
+
+
 class RPCDispatcher:
     """Ultra-light JSON-RPC 2.0 dispatcher (no batching, no notifications)."""
 
@@ -34,11 +46,16 @@ class RPCDispatcher:
 
         try:
             params = req.get("params") or {}
+            sig = inspect.signature(fn)
+            if not any(
+                p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+            ):
+                params = {k: v for k, v in params.items() if k in sig.parameters}
             result = fn(**params)
             if inspect.isawaitable(result):
                 result = await result
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
-        except RPCError as exc:
+        except RPCException as exc:
             return {
                 "jsonrpc": "2.0",
                 "error": exc.model_dump(),
