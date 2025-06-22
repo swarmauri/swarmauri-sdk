@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 from peagen.models import Status, TaskRun, TaskRunDep
 from peagen.models.secret import Secret
+from peagen.models.abuse import AbuseRecord
 
 log = Logger(name="upsert")
 
@@ -120,3 +121,39 @@ async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> Non
     await session.execute(
         sa.delete(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
     )
+
+
+async def record_unknown_handler(session: AsyncSession, ip: str) -> int:
+    """Increment and return the unknown handler count for *ip*."""
+
+    stmt = (
+        pg_insert(AbuseRecord)
+        .values(ip=ip, count=1, first_seen=dt.datetime.utcnow())
+        .on_conflict_do_update(
+            index_elements=["ip"],
+            set_={"count": AbuseRecord.__table__.c.count + 1},
+        )
+        .returning(AbuseRecord.__table__.c.count)
+    )
+    result = await session.execute(stmt)
+    (count,) = result.one()
+    await session.commit()
+    return count
+
+
+async def fetch_banned_ips(session: AsyncSession) -> list[str]:
+    """Return all IP addresses currently marked as banned."""
+
+    result = await session.execute(
+        sa.select(AbuseRecord.ip).where(AbuseRecord.banned.is_(True))
+    )
+    return [row[0] for row in result]
+
+
+async def mark_ip_banned(session: AsyncSession, ip: str) -> None:
+    """Set the banned flag for *ip*."""
+
+    await session.execute(
+        sa.update(AbuseRecord).where(AbuseRecord.ip == ip).values(banned=True)
+    )
+    await session.commit()
