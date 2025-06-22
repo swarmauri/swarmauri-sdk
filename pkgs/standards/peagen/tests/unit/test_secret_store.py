@@ -20,5 +20,5 @@ async def test_secret_roundtrip(tmp_path, monkeypatch):
     res = await gw.secrets_get(name="foo")
     assert res["secret"] == "bar"
     await gw.secrets_delete(name="foo")
-    with pytest.raises(TypeError):
+    with pytest.raises(gw.RPCException):
         await gw.secrets_get(name="foo")
