@@ -14,29 +14,30 @@ Base = declarative_base()
 # POSTGRES ENUM  (single source of truth for every table + migration)
 # ────────────────────────────────────────────────────────────────────────
 status_enum = psql.ENUM(
-    *(s.value for s in Status),            # "waiting", "running", ...
+    *(s.value for s in Status),  # "waiting", "running", ...
     name="status",
-    create_type=False,                     # ← **critical**: never emit CREATE TYPE
+    create_type=False,  # ← **critical**: never emit CREATE TYPE
 )
 
 
 class TaskRun(Base):
     __tablename__ = "task_runs"
 
-    id           = Column(UUID(as_uuid=True), primary_key=True)
-    pool         = Column(String)
-    task_type    = Column(String)
-    status       = Column(status_enum, nullable=False, default=Status.waiting.value)
-    payload      = Column(JSON)
-    result       = Column(JSON, nullable=True)
-    deps         = Column(JSON, nullable=False, default=list)
-    edge_pred    = Column(String, nullable=True)
-    labels       = Column(JSON, nullable=False, default=list)
-    in_degree    = Column(psql.INTEGER, nullable=False, default=0)
-    config_toml  = Column(String, nullable=True)
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    pool = Column(String)
+    task_type = Column(String)
+    status = Column(status_enum, nullable=False, default=Status.waiting.value)
+    payload = Column(JSON)
+    result = Column(JSON, nullable=True)
+    deps = Column(JSON, nullable=False, default=list)
+    edge_pred = Column(String, nullable=True)
+    labels = Column(JSON, nullable=False, default=list)
+    in_degree = Column(psql.INTEGER, nullable=False, default=0)
+    config_toml = Column(String, nullable=True)
     artifact_uri = Column(String, nullable=True)
-    started_at   = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
-    finished_at  = Column(TIMESTAMP(timezone=True), nullable=True)
+    commit_hexsha = Column(String, nullable=True)
+    started_at = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
+    finished_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     # ──────────────────────────────────────────────────────────────
     @classmethod
@@ -56,6 +57,11 @@ class TaskRun(Base):
             config_toml=task.config_toml,
             artifact_uri=(
                 task.result.get("artifact_uri")
+                if task.result and isinstance(task.result, dict)
+                else None
+            ),
+            commit_hexsha=(
+                task.result.get("commit")
                 if task.result and isinstance(task.result, dict)
                 else None
             ),
@@ -98,6 +104,7 @@ class TaskRun(Base):
             "in_degree": self.in_degree,
             "config_toml": self.config_toml,
             "artifact_uri": self.artifact_uri,
+            "commit_hexsha": self.commit_hexsha,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "duration": (
