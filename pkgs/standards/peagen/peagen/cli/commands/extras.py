@@ -56,14 +56,12 @@ def run_extras(
 
 @remote_extras_app.command("extras")
 def submit_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
-    ),
-    gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ) -> None:
     """Submit EXTRAS schema generation as a background task."""
@@ -72,6 +70,7 @@ def submit_extras(
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
     task = _build_task(args)
+    gateway_url = ctx.obj.get("gateway_url")
 
     envelope = {
         "jsonrpc": "2.0",

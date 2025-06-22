@@ -152,9 +152,6 @@ def remote_init_project(
     add_filter_config: bool = typer.Option(
         False, "--add-filter-config", help="Also record filter in .peagen.toml"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a project scaffold task via JSON-RPC."""
     args = {
@@ -168,6 +165,7 @@ def remote_init_project(
         "git_remote": git_remote,
         "filter_uri": filter_uri,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     _submit_task(args, gateway_url, "init project")
 
 
@@ -218,9 +216,6 @@ def remote_init_template_set(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a template-set scaffold task via JSON-RPC."""
     args = {
@@ -231,6 +226,7 @@ def remote_init_template_set(
         "use_uv": use_uv,
         "force": force,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     _submit_task(args, gateway_url, "init template-set")
 
 
@@ -273,9 +269,6 @@ def remote_init_doe_spec(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a DOE-spec scaffold task via JSON-RPC."""
     args = {
@@ -285,6 +278,7 @@ def remote_init_doe_spec(
         "org": org,
         "force": force,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     _submit_task(args, gateway_url, "init doe-spec")
 
 
@@ -328,9 +322,6 @@ def remote_init_ci(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a CI pipeline scaffold task via JSON-RPC."""
     args = {
@@ -339,18 +330,17 @@ def remote_init_ci(
         "github": github,
         "force": force,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     _submit_task(args, gateway_url, "init ci")
 
 
 @remote_init_app.command("repo")
 def remote_init_repo(
+    ctx: typer.Context,
     repo: str = typer.Argument(..., help="tenant/repo"),
     pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
     description: str = typer.Option("", help="Repository description"),
     deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ) -> None:
     """Create a GitHub repository via JSON-RPC."""
     args = {
@@ -360,4 +350,5 @@ def remote_init_repo(
         "description": description,
         "deploy_key": str(deploy_key) if deploy_key else None,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     _submit_task(args, gateway_url, "init repo")

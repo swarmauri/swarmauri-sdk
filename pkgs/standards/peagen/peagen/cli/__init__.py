@@ -10,6 +10,8 @@ from pathlib import Path
 
 import typer
 
+import peagen.defaults as defaults
+
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
 from ._banner import _print_banner
 
@@ -116,7 +118,9 @@ def __global_local_ctx(  # noqa: D401
 def _global_remote_ctx(  # noqa: D401
     ctx: typer.Context,
     gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
+        defaults.CONFIG["gateway_url"],
+        "--gateway-url",
+        help="JSON-RPC gateway endpoint",
     ),
     override: str = typer.Option(
         None, "--override", help="JSON string to merge into cfg on the worker."

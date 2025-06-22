@@ -9,6 +9,8 @@ from typing import Optional
 import httpx
 import typer
 
+import peagen.defaults as defaults
+
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
@@ -31,7 +33,7 @@ def create(
 def upload(
     ctx: typer.Context,
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    gateway_url: str = typer.Option(defaults.CONFIG["gateway_url"], "--gateway-url"),
 ) -> None:
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
@@ -49,7 +51,7 @@ def upload(
 def remove(
     ctx: typer.Context,
     fingerprint: str,
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    gateway_url: str = typer.Option(defaults.CONFIG["gateway_url"], "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
     envelope = {
@@ -64,7 +66,7 @@ def remove(
 @keys_app.command("fetch-server")
 def fetch_server(
     ctx: typer.Context,
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    gateway_url: str = typer.Option(defaults.CONFIG["gateway_url"], "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
     envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}

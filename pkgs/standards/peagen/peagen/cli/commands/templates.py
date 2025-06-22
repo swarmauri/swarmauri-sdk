@@ -8,11 +8,13 @@ from typing import Any, Dict, Optional
 import httpx
 import typer
 
+import peagen.defaults as defaults
+
 from peagen.handlers.templates_handler import templates_handler
 from peagen.models import Task
 
 # ──────────────────────────────────────
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"]
 
 local_template_sets_app = typer.Typer(
     help="Manage Peagen template-sets locally.",
@@ -64,12 +66,11 @@ def run_list():
 
 @remote_template_sets_app.command("list", help="Submit a list task via gateway.")
 def submit_list(
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
+    ctx: typer.Context,
 ):
     """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list"}
+    gateway_url = ctx.obj.get("gateway_url")
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted list → taskId={task_id}")
@@ -106,13 +107,12 @@ def run_show(
 
 @remote_template_sets_app.command("show", help="Submit a show task via gateway.")
 def submit_show(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name}
+    gateway_url = ctx.obj.get("gateway_url")
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted show → taskId={task_id}")
@@ -184,6 +184,7 @@ def run_add(
 
 @remote_template_sets_app.command("add", help="Submit an add task via gateway.")
 def submit_add(
+    ctx: typer.Context,
     source: str = typer.Argument(..., metavar="PKG|WHEEL|DIR"),
     from_bundle: Optional[str] = typer.Option(
         None, "--from-bundle", help="Install from bundled archive"
@@ -194,9 +195,6 @@ def submit_add(
     force: bool = typer.Option(
         False, "--force", help="Re-install even if already present"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a template-set installation job via JSON-RPC."""
     args = {
@@ -206,6 +204,7 @@ def submit_add(
         "editable": editable,
         "force": force,
     }
+    gateway_url = ctx.obj.get("gateway_url")
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted add → taskId={task_id}")
@@ -244,11 +243,9 @@ def run_remove(
 
 @remote_template_sets_app.command("remove", help="Submit a remove task via gateway.")
 def submit_remove(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a template-set removal job via JSON-RPC."""
     if not yes:
@@ -257,6 +254,7 @@ def submit_remove(
             raise typer.Exit()
 
     args = {"operation": "remove", "name": name}
+    gateway_url = ctx.obj.get("gateway_url")
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted remove → taskId={task_id}")

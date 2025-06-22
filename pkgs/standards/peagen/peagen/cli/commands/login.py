@@ -8,6 +8,8 @@ from typing import Optional
 import httpx
 import typer
 
+import peagen.defaults as defaults
+
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
@@ -23,7 +25,7 @@ def login(
         hide_input=True,
     ),
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    gateway_url: str = typer.Option(defaults.CONFIG["gateway_url"], "--gateway-url"),
 ) -> None:
     """Ensure keys exist and upload the public key."""
     gateway_url = gateway_url.rstrip("/")

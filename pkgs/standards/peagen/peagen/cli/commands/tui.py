@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import typer
 
+import peagen.defaults as defaults
+
 from peagen.tui.app import QueueDashboardApp
 
-DEFAULT_GATEWAY = "http://localhost:8000"
+DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"].rsplit("/", 1)[0]
 
 
 dashboard_app = typer.Typer(help="Launch the Textual dashboard to monitor tasks.")
