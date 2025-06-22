@@ -1,13 +1,8 @@
 from __future__ import annotations
+
 from peagen.models.task_run import Base, TaskRun, TaskRunDep
 from peagen.models.secret import Secret
-from peagen.models.schemas import (
-    Role,
-    Status,
-    Task,
-    Pool,
-    User,
-)
+from peagen.models.schemas import Pool, Role, Status, Task, User
 
 __all__ = [
     "Role",
@@ -17,6 +12,6 @@ __all__ = [
     "User",
     "Base",
     "TaskRun",
-    "TaskRunDep",
     "Secret",
+    "TaskRunDep",
 ]

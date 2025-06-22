@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy import inspect
 
 revision = "b4b95933c789"
-down_revision = "a6cc5b24ad5c"
+down_revision = "0001"
 
 
 def upgrade() -> None:

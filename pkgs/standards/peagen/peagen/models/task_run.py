@@ -1,22 +1,25 @@
 import datetime as dt
+import uuid
 from typing import Any, Dict, Iterable, Optional, List
 
-from sqlalchemy import Column, String, JSON, TIMESTAMP, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON, TIMESTAMP, String, Column, ForeignKey
 from sqlalchemy.dialects import postgresql as psql
-from sqlalchemy.orm import declarative_base, relationship
-
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from peagen.models.schemas import Status
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 # ────────────────────────────────────────────────────────────────────────
 # POSTGRES ENUM  (single source of truth for every table + migration)
 # ────────────────────────────────────────────────────────────────────────
 status_enum = psql.ENUM(
-    *(s.value for s in Status),  # "waiting", "running", ...
+    *(s.value for s in Status),
     name="status",
-    create_type=False,  # ← **critical**: never emit CREATE TYPE
+    create_type=False,
 )
 
 
@@ -30,20 +33,27 @@ class TaskRunDep(Base):
 class TaskRun(Base):
     __tablename__ = "task_runs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    pool = Column(String)
-    task_type = Column(String)
-    status = Column(status_enum, nullable=False, default=Status.waiting.value)
-    payload = Column(JSON)
-    result = Column(JSON, nullable=True)
-    edge_pred = Column(String, nullable=True)
-    labels = Column(JSON, nullable=False, default=list)
-    in_degree = Column(psql.INTEGER, nullable=False, default=0)
-    config_toml = Column(String, nullable=True)
-    artifact_uri = Column(String, nullable=True)
-    commit_hexsha = Column(String, nullable=True)
-    started_at = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
-    finished_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    pool: Mapped[str | None] = mapped_column(String)
+    task_type: Mapped[str | None] = mapped_column(String)
+    status: Mapped[str] = mapped_column(
+        status_enum, nullable=False, default=Status.waiting.value
+    )
+    payload: Mapped[dict | None] = mapped_column(JSON)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    deps: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    edge_pred: Mapped[str | None] = mapped_column(String, nullable=True)
+    labels: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    in_degree: Mapped[int] = mapped_column(psql.INTEGER, nullable=False, default=0)
+    config_toml: Mapped[str | None] = mapped_column(String, nullable=True)
+    artifact_uri: Mapped[str | None] = mapped_column(String, nullable=True)
+    commit_hexsha: Mapped[str | None] = mapped_column(String, nullable=True)
+    started_at: Mapped[dt.datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=dt.datetime.utcnow
+    )
+    finished_at: Mapped[dt.datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
 
     _deps_rel = relationship(
         "TaskRun",
@@ -58,7 +68,7 @@ class TaskRun(Base):
         super().__init__(**kwargs)
 
     @property
-    def deps(self) -> List[str]:
+    def deps(self) -> List[str]:  # noqa: F811 - overrides the mapped column
         if getattr(self, "_raw_deps", None):
             return self._raw_deps
         return [str(d.id) for d in self._deps_rel]
@@ -102,19 +112,7 @@ class TaskRun(Base):
 
     # ──────────────────────────────────────────────────────────────
     def to_dict(self, *, exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
-        """
-        Convert this SQLAlchemy row into a plain dict.
-
-        Parameters
-        ----------
-        exclude : Iterable[str], optional
-            Column names to omit (e.g., {"id"} when doing an ON CONFLICT UPDATE).
-
-        Returns
-        -------
-        dict
-            Serializable mapping of column names → values.
-        """
+        """Convert this SQLAlchemy row into a plain dict."""
         exclude = set(exclude or ())
         data = {
             "id": self.id,

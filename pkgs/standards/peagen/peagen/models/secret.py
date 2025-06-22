@@ -9,6 +9,7 @@ from .task_run import Base
 
 class Secret(Base):
     __tablename__ = "secrets"
+    __table_args__ = {"extend_existing": True}
 
     tenant_id = Column(String, primary_key=True)
     owner_fpr = Column(String, nullable=False)
