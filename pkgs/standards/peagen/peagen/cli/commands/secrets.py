@@ -8,6 +8,7 @@ from typing import List
 
 import httpx
 import typer
+from peagen.plugins.secret_drivers import AutoGpgDriver  # noqa: F401
 
 from peagen import resolve_plugin_spec
 from peagen._utils.config_loader import resolve_cfg
@@ -56,7 +57,11 @@ def add(name: str, value: str, recipients: List[Path] = typer.Option([])) -> Non
     """Encrypt and store a secret locally."""
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     drv = Driver()
     pubkeys = [p.read_text() for p in recipients]
     cipher = drv.encrypt(value.encode(), pubkeys).decode()
@@ -71,7 +76,11 @@ def get(name: str) -> None:
     """Decrypt and print a secret."""
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     drv = Driver()
     val = _load().get(name)
     if not val:
@@ -105,7 +114,11 @@ def remote_add(
         gateway_url += "/rpc"
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     drv = Driver()
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
@@ -137,7 +150,11 @@ def remote_get(
         gateway_url += "/rpc"
     cfg = resolve_cfg()
     plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
-    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver = (
+        AutoGpgDriver
+        if plugin_name == "autogpg"
+        else resolve_plugin_spec("secrets", plugin_name)
+    )
     drv = Driver()
     envelope = {
         "jsonrpc": "2.0",
