@@ -2,13 +2,14 @@ import os
 import sqlite3
 import subprocess
 from pathlib import Path
+from peagen.core.migrate_core import ALEMBIC_CFG
 
 import pytest
 
 
 @pytest.mark.unit
 def test_alembic_upgrade_and_current(tmp_path):
-    alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
+    alembic_ini = ALEMBIC_CFG
     repo_root = Path(__file__).resolve().parents[5]
 
     env = os.environ.copy()
