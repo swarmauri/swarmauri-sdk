@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 import uuid
 
 import httpx
+
+from peagen import defaults
 
 import typer
 
@@ -15,14 +16,9 @@ from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
 from peagen.core.migrate_core import ALEMBIC_CFG
 
-# ``alembic.ini`` lives in the package root next to ``migrations``.
-# When running from source the module sits one directory deeper than
-# an installed wheel. Check both possible locations for robustness.
-_src_cfg = Path(__file__).resolve().parents[3] / "alembic.ini"
-_pkg_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
-ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc" # replace with peagen.defaults to make consistency
+# The ``ALEMBIC_CFG`` constant resolves to the ``alembic.ini`` file in both
+# source and installed locations.
+DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"]
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
