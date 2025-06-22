@@ -144,8 +144,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
 
     if isinstance(payload, list):
         for item in payload:
-            version = item.get("jsonrpc")
-            if version is not None and version != "2.0":
+            if item.get("jsonrpc") and item.get("jsonrpc") != "2.0":
                 return await _reject(
                     ip,
                     item.get("id"),
@@ -153,12 +152,12 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
                     code=-32600,
                     message="Invalid Request",
                 )
-            if not _supports(item.get("method")):
+            if item.get("method") is None or not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
 
-    version = payload.get("jsonrpc")
-    if version is not None and version != "2.0":
+
+    if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
         return await _reject(
             ip,
             payload.get("id"),
@@ -166,7 +165,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
             code=-32600,
             message="Invalid Request",
         )
-    if not _supports(payload.get("method")):
+    if payload.get("method") is None or not _supports(payload.get("method")):
         return await _reject(ip, payload.get("id"), payload.get("method"))
     return None
 
@@ -538,6 +537,7 @@ async def task_submit(
         handlers.update(raw)
     if action is not None and action not in handlers:
         raise RPCException(
+
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
