@@ -29,6 +29,7 @@ async def test_task_patch_updates_status(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+
     importlib.reload(gw)
 
     monkeypatch.setattr(gw, "queue", q)

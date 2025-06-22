@@ -10,6 +10,7 @@ from peagen.handlers.sort_handler import sort_handler
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.handlers.evolve_handler import evolve_handler
 
+
 # ----------------------------------------------------------------------------
 # Subclass WorkerBase (optional) so you can override or extend methods if needed.
 # If you don’t need to override anything, you can also just instantiate WorkerBase

@@ -14,6 +14,7 @@ def resolve_plugin_spec(group: str, ref: str):
     pm = PluginManager({})
     return pm._resolve_spec(group, ref)
 
+
 __all__ = [
     "registry",
     "discover_and_register_plugins",

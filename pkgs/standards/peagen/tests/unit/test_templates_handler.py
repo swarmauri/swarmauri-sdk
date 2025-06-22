@@ -10,7 +10,11 @@ from peagen.handlers import templates_handler as handler
     [
         ("list", "list_template_sets", {}),
         ("show", "show_template_set", {"name": "n"}),
-        ("add", "add_template_set", {"source": "src", "from_bundle": None, "editable": False, "force": False}),
+        (
+            "add",
+            "add_template_set",
+            {"source": "src", "from_bundle": None, "editable": False, "force": False},
+        ),
         ("remove", "remove_template_set", {"name": "n"}),
     ],
 )
@@ -24,7 +28,9 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
-    result = await handler.templates_handler({"payload": {"args": {"operation": op, **args}}})
+    result = await handler.templates_handler(
+        {"payload": {"args": {"operation": op, **args}}}
+    )
 
     assert result == {"op": op}
     assert called

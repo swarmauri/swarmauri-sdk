@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 import peagen.plugins  # ensures registry is populated  # noqa: F401
-from peagen.plugins import registry 
+from peagen.plugins import registry
 
 
 def get_plugin_template_paths() -> List[Path]:
@@ -76,6 +76,7 @@ def build_global_template_search_paths(
 
     # 2) Built-in Peagen templates
     import peagen.template_sets  # noqa: F401
+
     for entry in peagen.template_sets.__path__:
         search_paths.append(Path(entry).resolve())
 
@@ -195,7 +196,7 @@ def build_file_template_search_paths(
 
     file_paths: List[Path] = [
         record_template_dir.resolve(),  # (C1) record-specific templates
-        workspace_root.resolve(),       # (C2) workspace so generated files can be included
-        *[p.resolve() for p in fallback]  # (C3) base_dir, source_package_dest
+        workspace_root.resolve(),  # (C2) workspace so generated files can be included
+        *[p.resolve() for p in fallback],  # (C3) base_dir, source_package_dest
     ]
     return file_paths

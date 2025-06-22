@@ -22,6 +22,7 @@ def test_default_collapsed(monkeypatch):
     app.tasks_table = DummyTable("p1")
 
     import asyncio
+
     asyncio.run(app.async_process_and_update_data())
 
     assert "p1" in app.collapsed

@@ -26,8 +26,6 @@ def tmp_dirs(tmp_path: Path):
     (workspace_root / "pkgA").mkdir()
     (workspace_root / "pkgB").mkdir()
 
-
-
     # template_base_dir override
     template_base_dir = tmp_path / "base_templates"
     template_base_dir.mkdir()

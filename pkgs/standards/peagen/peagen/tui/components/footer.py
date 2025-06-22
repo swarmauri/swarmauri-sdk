@@ -19,12 +19,9 @@ class DashboardFooter(Footer):
     def update_metrics(self) -> None:
         self.clock = datetime.now().strftime("%H:%M:%S")
         if psutil:
-            self.metrics = (
-                f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
-            )
+            self.metrics = f"CPU: {psutil.cpu_percent()}% | MEM: {psutil.virtual_memory().percent}%"
         else:  # pragma: no cover - missing psutil
             self.metrics = "CPU: n/a | MEM: n/a"
 
     def render(self) -> str:
         return f"{self.clock} | {self.metrics} | {self.hint}"
-

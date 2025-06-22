@@ -8,7 +8,9 @@ from .result_backend_selector import ResultBackendSelector
 class BootstrapSelector(ResultBackendSelector):
     """Gen0 candidates come from a bootstrap list."""
 
-    def __init__(self, backend: Any, bootstrap: List[Dict[str, Any]], num_candidates: int = 1) -> None:
+    def __init__(
+        self, backend: Any, bootstrap: List[Dict[str, Any]], num_candidates: int = 1
+    ) -> None:
         super().__init__(backend, num_candidates)
         self.bootstrap = bootstrap
         self._used_bootstrap = False

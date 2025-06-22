@@ -6,6 +6,7 @@ from itertools import product
 from peagen._utils.config_loader import resolve_cfg
 import peagen.defaults as defaults
 
+
 def generate_test_parameters():
     """
     Generate all combinations of:
@@ -18,22 +19,41 @@ def generate_test_parameters():
       inline > file > config_path > host > builtin
     """
     params = [
-        (mode, has_host, config_path, ov_inline, ov_file,
-         "override_inline" if ov_inline else
-         "override_file" if ov_file else
-         "config_path"   if config_path else
-         "host"          if has_host   else
-         "builtin")
-        for mode, has_host, config_path, ov_inline, ov_file
-        in product((0, 1), repeat=5)
+        (
+            mode,
+            has_host,
+            config_path,
+            ov_inline,
+            ov_file,
+            "override_inline"
+            if ov_inline
+            else "override_file"
+            if ov_file
+            else "config_path"
+            if config_path
+            else "host"
+            if has_host
+            else "builtin",
+        )
+        for mode, has_host, config_path, ov_inline, ov_file in product((0, 1), repeat=5)
     ]
     return params
 
+
 @pytest.mark.parametrize(
     "mode, has_host, config_path, ov_inline, ov_file, expected_source",
-    generate_test_parameters()
+    generate_test_parameters(),
 )
-def test_config_precedence(tmp_path, monkeypatch, mode, has_host, config_path, ov_inline, ov_file, expected_source):
+def test_config_precedence(
+    tmp_path,
+    monkeypatch,
+    mode,
+    has_host,
+    config_path,
+    ov_inline,
+    ov_file,
+    expected_source,
+):
     """
     Parameterized test to cover all combinations of:
       - mode: 0 (local) or 1 (remote)
@@ -81,12 +101,16 @@ def test_config_precedence(tmp_path, monkeypatch, mode, has_host, config_path, o
             return toml.loads((cwd / ".peagen.toml").read_text(encoding="utf-8"))
         return {}
 
-    monkeypatch.setattr("peagen._utils.config_loader.load_peagen_toml", fake_load_peagen_toml)
+    monkeypatch.setattr(
+        "peagen._utils.config_loader.load_peagen_toml", fake_load_peagen_toml
+    )
 
     # 8. Build the final override dict by merging file-override then inline-override
     final_override = {}
     if ov_file:
-        final_override.update(toml.loads((cwd / "override_file.toml").read_text(encoding="utf-8")))
+        final_override.update(
+            toml.loads((cwd / "override_file.toml").read_text(encoding="utf-8"))
+        )
     if ov_inline:
         final_override.update(inline_dict)
 

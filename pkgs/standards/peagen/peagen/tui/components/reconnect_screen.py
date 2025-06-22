@@ -39,10 +39,11 @@ class ReconnectScreen(ModalScreen[None]):
             self.dismiss()
             self.on_retry()
 
-    async def on_button_pressed(self, event: Button.Pressed) -> None:  # pragma: no cover - ui code
+    async def on_button_pressed(
+        self, event: Button.Pressed
+    ) -> None:  # pragma: no cover - ui code
         if event.button.id == "retry":
             self.dismiss()
             self.on_retry()
         elif event.button.id == "close":
             self.app.exit()
-

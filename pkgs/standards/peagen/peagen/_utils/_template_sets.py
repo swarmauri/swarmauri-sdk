@@ -13,7 +13,8 @@ from typing import Any, Dict, List
 
 from peagen.plugin_manager import resolve_plugin_spec
 from jinja2 import FileSystemLoader
-from peagen.plugins import registry 
+from peagen.plugins import registry
+
 
 def _build_pip_cmd(editable: bool = False) -> List[str]:
     """Return a pip install command, preferring uv if available."""
@@ -78,6 +79,7 @@ def install_template_sets(specs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     shutil.rmtree(tmp_root, ignore_errors=True)
     return installed
 
+
 # --------------------------------------------------------------------------- #
 # Helper – locate a template-set folder on the current Jinja search-path      #
 # --------------------------------------------------------------------------- #
@@ -127,11 +129,11 @@ def _locate_template_set(template_set: str, loader: FileSystemLoader) -> Path:
             target_mod = import_module(target.__module__)
 
         # Prefer module.__path__[0] (packages) then module.__file__.
-        if hasattr(target_mod, "__path__"):        # namespace / pkg
+        if hasattr(target_mod, "__path__"):  # namespace / pkg
             dir_path = Path(next(iter(target_mod.__path__))).resolve()
             if dir_path.is_dir():
                 return dir_path
-        if hasattr(target_mod, "__file__"):        # single-file module
+        if hasattr(target_mod, "__file__"):  # single-file module
             dir_path = Path(target_mod.__file__).parent.resolve()
             if dir_path.is_dir():
                 return dir_path

@@ -39,8 +39,8 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
         pg_insert(TaskRun)
         .values(**data)
         .on_conflict_do_update(
-            index_elements=["id"],
-            set_=_coerce(row.to_dict(exclude={"id", "deps"})),
+            index_elements=["id", "tenant_id"],
+            set_=_coerce(row.to_dict(exclude={"id", "tenant_id", "deps"})),
         )
     )
     result = await session.execute(stmt)

@@ -555,7 +555,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
 
 
 @rpc.method("Task.get")
-async def task_get(taskId: str):
+async def task_get(taskId: str, tenantId: str = "default"):
     # hot cache
     if t := await _load_task(taskId):
         data = t.model_dump()
@@ -565,7 +565,7 @@ async def task_get(taskId: str):
 
     # authoritative fallback (Postgres)
     try:
-        return await get_task_result(taskId)  # raises ValueError if not found
+        return await get_task_result(taskId, tenantId)  # raises ValueError if not found
     except ValueError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
         raise RPCError(code=-32001, message=str(exc))

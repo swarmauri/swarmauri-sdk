@@ -142,20 +142,10 @@ class MinioFilter:
         prefix = rest[0] if rest else ""
 
         cfg = load_peagen_toml()
-        minio_cfg = (
-            cfg.get("storage", {})
-            .get("filters", {})
-            .get("minio", {})
-        )
+        minio_cfg = cfg.get("storage", {}).get("filters", {}).get("minio", {})
 
-        access_key = (
-            minio_cfg.get("access_key")
-            or os.getenv("MINIO_ACCESS_KEY", "")
-        )
-        secret_key = (
-            minio_cfg.get("secret_key")
-            or os.getenv("MINIO_SECRET_KEY", "")
-        )
+        access_key = minio_cfg.get("access_key") or os.getenv("MINIO_ACCESS_KEY", "")
+        secret_key = minio_cfg.get("secret_key") or os.getenv("MINIO_SECRET_KEY", "")
 
         return cls(
             endpoint=endpoint,
@@ -170,6 +160,7 @@ class MinioFilter:
     def clean(self, data: bytes) -> str:
         """Store *data* under its SHA256 and return the OID."""
         import hashlib
+
         oid = "sha256:" + hashlib.sha256(data).hexdigest()
         try:
             self.download(oid)

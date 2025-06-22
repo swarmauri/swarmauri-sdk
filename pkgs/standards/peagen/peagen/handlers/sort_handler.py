@@ -29,11 +29,11 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     """
     Async handler registered under JSON-RPC method ``Task.sort`` (or similar).
 
-    • Delegates to sort_core.  
+    • Delegates to sort_core.
     • Returns whatever the core returns (sorted list or error dict).
     """
-    payload      = task.get("payload", {})
-    args         = payload.get("args", {})
+    payload = task.get("payload", {})
+    args = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
 
     # ------------------------------------------------------------------ #
@@ -46,12 +46,12 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     params: Dict[str, Any] = {
         "projects_payload": args["projects_payload"],
-        "project_name":     args.get("project_name"),
-        "start_idx":        args.get("start_idx", 0),
-        "start_file":       args.get("start_file"),
-        "transitive":       args.get("transitive", False),
+        "project_name": args.get("project_name"),
+        "start_idx": args.get("start_idx", 0),
+        "start_file": args.get("start_file"),
+        "transitive": args.get("transitive", False),
         "show_dependencies": args.get("show_dependencies", False),
-        "cfg": cfg,                 # ← merged config handed down to the core
+        "cfg": cfg,  # ← merged config handed down to the core
     }
 
     # ------------------------------------------------------------------ #

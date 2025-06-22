@@ -12,6 +12,7 @@ from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBacke
 def dummy_task_run(tmp_path):
     return TaskRun(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         pool="p",
         task_type="t",
         status=Status.success,

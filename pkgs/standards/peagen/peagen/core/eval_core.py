@@ -21,6 +21,7 @@ from peagen.plugin_manager import resolve_plugin_spec
 from peagen.plugins.evaluator_pools.default import DefaultEvaluatorPool
 from swarmauri_standard.programs.Program import Program
 
+
 # ───────────────────────── helper: pool resolution ──────────────────────────
 def _build_pool(pool_ref: Optional[str], eval_cfg: Dict[str, Any]):
     """
@@ -84,7 +85,9 @@ def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
 
 
 # ─────────────── helper: workspace program discovery ───────────────────────
-def _collect_programs(workspace_uri: str, pattern: str) -> Tuple[List[Path], List[Program]]:
+def _collect_programs(
+    workspace_uri: str, pattern: str
+) -> Tuple[List[Path], List[Program]]:
     """
     Return (program_paths, Program instances) for *workspace_uri*.
     Remote URIs are fetched into a temp dir via program.fetch helpers.

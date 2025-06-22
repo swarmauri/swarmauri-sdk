@@ -19,6 +19,7 @@ def make_filter_for_uri(uri: str):
         raise TypeError(f"{cls.__name__} lacks required from_uri()")
     return cls.from_uri(uri)
 
+
 __all__ = [
     "MinioFilter",
     "GithubReleaseFilter",

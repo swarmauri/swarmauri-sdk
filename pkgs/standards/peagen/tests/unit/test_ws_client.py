@@ -12,13 +12,22 @@ from peagen.tui.ws_client import TaskStreamClient
 async def test_ws_client_updates_tasks(tmp_path):
     async def handler(websocket):
         await websocket.send(
-            json.dumps({"type": "task.update", "data": {"id": "42", "status": "running", "done": 0, "total": 1}})
+            json.dumps(
+                {
+                    "type": "task.update",
+                    "data": {"id": "42", "status": "running", "done": 0, "total": 1},
+                }
+            )
         )
         await websocket.send(
-            json.dumps({"type": "worker.update", "data": {"id": "w1", "pool": "default"}})
+            json.dumps(
+                {"type": "worker.update", "data": {"id": "w1", "pool": "default"}}
+            )
         )
         await websocket.send(
-            json.dumps({"type": "queue.update", "data": {"pool": "default", "length": 1}})
+            json.dumps(
+                {"type": "queue.update", "data": {"pool": "default", "length": 1}}
+            )
         )
         await asyncio.sleep(0.05)
 

@@ -14,6 +14,7 @@ async def test_localfs_backend_writes_file(tmp_path):
     backend = LocalFsResultBackend(root_dir=tmp_path)
     tr = TaskRun(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         pool="p",
         task_type="t",
         status=Status.success,
@@ -57,6 +58,7 @@ async def test_postgres_backend_invokes_helpers(monkeypatch):
     backend = PostgresResultBackend(dsn="postgres://x")
     tr = TaskRun(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         pool="p",
         task_type="t",
         status=Status.success,
@@ -75,6 +77,7 @@ async def test_in_memory_backend_stores_in_dict():
     backend = InMemoryResultBackend()
     tr = TaskRun(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         pool="p",
         task_type="t",
         status=Status.success,

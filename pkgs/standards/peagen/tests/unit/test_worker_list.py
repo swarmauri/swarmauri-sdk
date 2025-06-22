@@ -28,6 +28,7 @@ async def test_worker_list(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+
     importlib.reload(gw)
 
     monkeypatch.setattr(gw, "queue", q)

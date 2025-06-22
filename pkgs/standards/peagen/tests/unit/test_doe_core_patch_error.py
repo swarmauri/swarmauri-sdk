@@ -2,6 +2,8 @@ import pytest
 from pathlib import Path
 
 from peagen.core.doe_core import generate_payload
+
+
 @pytest.mark.unit
 def test_generate_payload_missing_patch(tmp_path: Path):
     root = Path(__file__).resolve().parents[2]
@@ -16,5 +18,3 @@ def test_generate_payload_missing_patch(tmp_path: Path):
             dry_run=True,
             skip_validate=True,
         )
-
-

@@ -16,16 +16,17 @@ colorama.init(autoreset=True)
 logger = Logger(name=__name__)
 logger.set_level(logging.INFO)
 
+
 def _render_copy_template(
     file_record: Dict[str, Any],
     context: Dict[str, Any],
     j2_instance: Any,
 ) -> str:
     """
-    Render a COPY‐style template.  
-    - file_record["FILE_NAME"] should be a path to the template.  
-    - context is a dict of values for Jinja.  
-    - j2_instance must provide set_template(path) and fill(context).  
+    Render a COPY‐style template.
+    - file_record["FILE_NAME"] should be a path to the template.
+    - context is a dict of values for Jinja.
+    - j2_instance must provide set_template(path) and fill(context).
     """
     try:
         template_path = file_record.get("FILE_NAME", "")
@@ -60,11 +61,11 @@ def _render_generate_template(
     cfg: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
-    Render a GENERATE‐style template.  
-    - agent_prompt_template is a path to the Jinja template for the prompt.  
-    - context is a dict of values for Jinja.  
-    - j2_instance must provide set_template(path) and fill(context).  
-    - agent_env is passed through to call_external_agent.  
+    Render a GENERATE‐style template.
+    - agent_prompt_template is a path to the Jinja template for the prompt.
+    - context is a dict of values for Jinja.
+    - j2_instance must provide set_template(path) and fill(context).
+    - agent_env is passed through to call_external_agent.
     """
     try:
         template_path = Path(agent_prompt_template)
@@ -74,6 +75,7 @@ def _render_generate_template(
 
         rendered_prompt = j2_instance.fill(context)
         import inspect
+
         sig = inspect.signature(call_external_agent)
         if len(sig.parameters) >= 4:
             resp = call_external_agent(rendered_prompt, agent_env, cfg, logger)

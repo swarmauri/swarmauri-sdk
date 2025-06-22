@@ -16,11 +16,13 @@ def aggregate_evaluations(run_dirs: List[Path]) -> List[Dict[str, Any]]:
         data = json.loads(report_path.read_text())
         scores = [r.get("score", 0.0) for r in data.get("results", [])]
         avg_score = statistics.mean(scores) if scores else float("inf")
-        summaries.append({
-            "run_dir": str(rd),
-            "avg_score": avg_score,
-            "detail": data,
-        })
+        summaries.append(
+            {
+                "run_dir": str(rd),
+                "avg_score": avg_score,
+                "detail": data,
+            }
+        )
     return summaries
 
 

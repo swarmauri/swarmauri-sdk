@@ -33,7 +33,7 @@ async def templates_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             from_bundle=args.get("from_bundle"),
             editable=args.get("editable", False),
             force=args.get("force", False),
-    )
+        )
     if op == "remove":
         return remove_template_set(
             args["name"],

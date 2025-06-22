@@ -39,6 +39,7 @@ def test_sync_dir_uploads(tmp_path):
     class Dummy:
         def __init__(self):
             self.keys = []
+
         def upload(self, key, fh):
             self.keys.append(key)
 
