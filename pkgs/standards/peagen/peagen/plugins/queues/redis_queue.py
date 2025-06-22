@@ -8,7 +8,11 @@ class RedisQueue:
     """Wrapper providing Redis-like async queue operations."""
 
     def __init__(self, uri: str, **_: object) -> None:
-        self.client = Redis.from_url(uri, decode_responses=True)
+        self.client = Redis.from_url(
+            uri,
+            decode_responses=True,
+            socket_connect_timeout=5.0,
+        )
 
     def get_client(self) -> "RedisQueue":
         return self
