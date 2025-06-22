@@ -484,7 +484,9 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
 
 @rpc.method("Secrets.delete")
 async def secrets_delete(
-    name: str, tenant_id: str = "default", version: int | None = None
+    name: str,
+    tenant_id: str = "default",
+    version: int | None = None,
 ) -> dict:
     """Remove a secret by name."""
     async with Session() as session:
