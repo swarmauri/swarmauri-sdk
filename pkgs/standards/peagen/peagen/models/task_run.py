@@ -6,7 +6,6 @@ from sqlalchemy import JSON, TIMESTAMP, String
 from sqlalchemy.dialects import postgresql as psql
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
 from peagen.models.schemas import Status
 
 
@@ -22,6 +21,13 @@ status_enum = psql.ENUM(
     name="status",
     create_type=False,
 )
+
+
+class TaskRunDep(Base):
+    __tablename__ = "task_run_deps"
+
+    task_id = Column(UUID(as_uuid=True), ForeignKey("task_runs.id"), primary_key=True)
+    dep_id = Column(UUID(as_uuid=True), ForeignKey("task_runs.id"), primary_key=True)
 
 
 class TaskRun(Base):
@@ -49,18 +55,35 @@ class TaskRun(Base):
         TIMESTAMP(timezone=True), nullable=True
     )
 
+    _deps_rel = relationship(
+        "TaskRun",
+        secondary="task_run_deps",
+        primaryjoin=id == TaskRunDep.task_id,
+        secondaryjoin=id == TaskRunDep.dep_id,
+        lazy="selectin",
+    )
+
+    def __init__(self, **kwargs) -> None:
+        self._raw_deps: List[str] = kwargs.pop("deps", [])
+        super().__init__(**kwargs)
+
+    @property
+    def deps(self) -> List[str]:
+        if getattr(self, "_raw_deps", None):
+            return self._raw_deps
+        return [str(d.id) for d in self._deps_rel]
+
     # ──────────────────────────────────────────────────────────────
     @classmethod
     def from_task(cls, task) -> "TaskRun":
         """Factory: build a TaskRun row from an in-memory Task object."""
-        return cls(
+        tr = cls(
             id=task.id,
             pool=task.pool,
             task_type=task.payload.get("kind", "unknown"),
             status=task.status,
             payload=task.payload,
             result=task.result,
-            deps=task.deps,
             edge_pred=task.edge_pred,
             labels=task.labels,
             in_degree=task.in_degree,
@@ -84,6 +107,8 @@ class TaskRun(Base):
             if task.status in {Status.success, Status.failed, Status.cancelled}
             else None,
         )
+        tr._raw_deps = list(task.deps)
+        return tr
 
     # ──────────────────────────────────────────────────────────────
     def to_dict(self, *, exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
