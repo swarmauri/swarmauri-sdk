@@ -14,7 +14,7 @@ def upgrade() -> None:
     if bind.dialect.name == "postgresql":
         bind.execute(sa.text("ALTER TYPE status ADD VALUE IF NOT EXISTS 'waiting'"))
     bind.execute(
-        sa.text("UPDATE task_runs SET status='waiting' WHERE status='pending'")
+        sa.text("UPDATE task_runs SET status='waiting' WHERE status::text='pending'")
     )
 
 
@@ -23,5 +23,5 @@ def downgrade() -> None:
 
     bind = op.get_bind()
     bind.execute(
-        sa.text("UPDATE task_runs SET status='pending' WHERE status='waiting'")
+        sa.text("UPDATE task_runs SET status='pending' WHERE status::text='waiting'")
     )
