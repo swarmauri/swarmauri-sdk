@@ -12,7 +12,7 @@ import paramiko
 import pygit2
 
 from git import Repo
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
 
@@ -247,7 +247,7 @@ class GitVCS:
         str
             The new commit SHA.
         """
-        from peagen.secrets import SecretDriverBase
+        from peagen.plugins.secret_drivers import SecretDriverBase
         from .constants import pea_ref
 
         sha = SecretDriverBase.audit_hash(ciphertext)

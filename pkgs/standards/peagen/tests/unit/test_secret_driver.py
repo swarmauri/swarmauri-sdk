@@ -1,5 +1,5 @@
 from __future__ import annotations
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
 def test_keygen_and_encrypt_decrypt(tmp_path):

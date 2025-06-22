@@ -9,7 +9,7 @@ from typing import List
 import httpx
 import typer
 
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
