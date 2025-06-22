@@ -228,6 +228,8 @@ async def _flush_state() -> None:
 
 async def _reload_state() -> None:
     """Load non-terminal tasks from Postgres back into Redis queues."""
+
+    print('entering _reload_state')
     if engine.url.get_backend_name() == "sqlite":
         return
     async with Session() as session:
@@ -241,7 +243,9 @@ async def _reload_state() -> None:
             .all()
         )
     for row in rows:
+        print('_reload_state:', row)
         if Status.is_terminal(row.status):
+            print('_reload_state:', 'status is terminal, we go.')
             continue
         task = Task(
             id=str(row.id),
@@ -257,6 +261,7 @@ async def _reload_state() -> None:
             started_at=row.started_at.timestamp() if row.started_at else None,
             finished_at=row.finished_at.timestamp() if row.finished_at else None,
         )
+        print('_reload_state:', 'saving...')
         await _save_task(task)
         await queue.sadd("pools", task.pool)
         await queue.rpush(f"{READY_QUEUE}:{task.pool}", task.model_dump_json())
@@ -297,6 +302,7 @@ async def _finalize_parent_tasks(child_id: str) -> None:
 
 async def _backlog_scanner(interval: float = 5.0) -> None:
     """Periodically run `_finalize_parent_tasks` to clear any backlog."""
+    print('_backlog_scanner started')
     log.info("backlog scanner started")
     while True:
         keys = await queue.keys("task:*")
