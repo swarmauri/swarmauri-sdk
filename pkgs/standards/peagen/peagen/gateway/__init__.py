@@ -190,6 +190,22 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
     return workers
 
 
+def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
+    """Return the first worker that advertises *action*."""
+    if action is None:
+        return None
+    for w in workers:
+        raw = w.get("handlers", [])
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                raw = []
+        if action in raw:
+            return w
+    return None
+
+
 # ───────── task helpers (hash + ttl) ────────────────────────────
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
@@ -642,22 +658,36 @@ async def pool_list(poolName: str):
 
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
-async def worker_register(workerId: str, pool: str, url: str, advertises: dict):
-    handlers: list[str] = []
-    well_known_url = url.replace("/rpc", "/well-known")
-    try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            resp = await client.get(well_known_url)
-            if resp.status_code == 200:
-                handlers = resp.json().get("handlers", [])
-    except Exception as exc:  # noqa: BLE001
-        log.warning("/well-known fetch failed for %s: %s", workerId, exc)
+async def worker_register(
+    workerId: str,
+    pool: str,
+    url: str,
+    advertises: dict,
+    handlers: list[str] | None = None,
+):
+    """Register a worker and persist its advertised handlers."""
+
+    handler_list: list[str] = handlers or []
+    if not handler_list:
+        well_known_url = url.replace("/rpc", "/well-known")
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(well_known_url)
+                if resp.status_code == 200:
+                    handler_list = resp.json().get("handlers", [])
+        except Exception as exc:  # noqa: BLE001
+            log.warning("/well-known fetch failed for %s: %s", workerId, exc)
 
     await _upsert_worker(
         workerId,
-        {"pool": pool, "url": url, "advertises": advertises, "handlers": handlers},
+        {
+            "pool": pool,
+            "url": url,
+            "advertises": advertises,
+            "handlers": handler_list,
+        },
     )
-    log.info("worker %s registered (%s) handlers=%s", workerId, pool, handlers)
+    log.info("worker %s registered (%s) handlers=%s", workerId, pool, handler_list)
     return {"ok": True}
 
 
@@ -756,16 +786,21 @@ async def scheduler():
             await _publish_queue_length(pool)
             task = Task.model_validate_json(task_raw)
 
-            # pick first live worker for that pool
+            # pick a worker that supports the task's action
             worker_list = await _live_workers_by_pool(pool)
-            if not worker_list:
-                log.info("no active worker for %s, re-queue %s", pool, task.id)
-                await queue.rpush(queue_key, task_raw)  # push back
+            action = task.payload.get("action")
+            target = _pick_worker(worker_list, action)
+            if not target:
+                log.info(
+                    "no worker for %s:%s, re-queue %s",
+                    pool,
+                    action,
+                    task.id,
+                )
+                await queue.rpush(queue_key, task_raw)
                 await _publish_queue_length(pool)
                 await asyncio.sleep(5)
                 continue
-
-            target = worker_list[0]
             rpc_req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),

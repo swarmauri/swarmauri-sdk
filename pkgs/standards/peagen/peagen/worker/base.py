@@ -294,6 +294,7 @@ class WorkerBase:
                 "pool": self.POOL,
                 "url": self.url_self,
                 "advertises": {"cpu": True},
+                "handlers": self.supported_handlers(),
             },
         )
         self.log.info(
