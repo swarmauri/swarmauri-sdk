@@ -17,6 +17,28 @@ remote_secrets_app = typer.Typer(help="Manage secrets via gateway.")
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
+def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
+    """Return public keys advertised by workers in ``pool``."""
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Worker.list",
+        "params": {"pool": pool},
+    }
+    try:
+        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        res.raise_for_status()
+    except Exception:
+        return []
+    workers = res.json().get("result", [])
+    keys = []
+    for w in workers:
+        advert = w.get("advertises") or {}
+        key = advert.get("public_key") or advert.get("pubkey")
+        if key:
+            keys.append(key)
+    return keys
+
+
 def _load() -> dict:
     if STORE_FILE.exists():
         return json.loads(STORE_FILE.read_text())
@@ -66,11 +88,16 @@ def remote_add(
     secret_id: str,
     value: str,
     version: int = typer.Option(0, "--version"),
+    recipient: List[Path] = typer.Option([], "--recipient"),
+    pool: str = typer.Option("default", "--pool"),
+
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
     drv = AutoGpgDriver()
-    cipher = drv.encrypt(value.encode(), []).decode()
+    pubs = [p.read_text() for p in recipient]
+    pubs.extend(_pool_worker_pubs(pool, gateway_url))
+    cipher = drv.encrypt(value.encode(), pubs).decode()
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
