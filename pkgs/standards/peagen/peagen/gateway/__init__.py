@@ -104,6 +104,47 @@ KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
 
 
+def _supports(method: str | None) -> bool:
+    """Return ``True`` if *method* is registered."""
+
+    return method in rpc._methods
+
+
+async def _reject(ip: str, req_id: str | None, method: str | None) -> dict:
+    """Return an error response and track abuse."""
+
+    async with Session() as session:
+        count = await record_unknown_handler(session, ip)
+    if count >= BAN_THRESHOLD:
+        BANNED_IPS.add(ip)
+        async with Session() as session:
+            await mark_ip_banned(session, ip)
+        log.warning("banned ip %s", ip)
+    return {
+        "jsonrpc": "2.0",
+        "error": {
+            "code": -32601,
+            "message": "Method not found",
+            "data": {"method": str(method)},
+        },
+        "id": req_id,
+    }
+
+
+async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
+    """Validate incoming JSON-RPC payload."""
+
+    if isinstance(payload, list):
+        for item in payload:
+            if not _supports(item.get("method")):
+                return await _reject(ip, item.get("id"), item.get("method"))
+        return None
+
+    if not _supports(payload.get("method")):
+        return await _reject(ip, payload.get("id"), payload.get("method"))
+    return None
+
+
 async def _upsert_worker(workerId: str, data: dict) -> None:
     """
     Persist worker metadata in Redis hash `worker:<id>`.
@@ -317,6 +358,9 @@ async def rpc_endpoint(request: Request):
         payload = _ensure_id(raw)
 
     log.debug("RPC in  <- %s", payload)
+    pre = await _prevalidate(payload, ip)
+    if pre is not None:
+        return pre
     resp = await rpc.dispatch(payload)
 
     async def _check_unknown(r: dict, method: str) -> None:
