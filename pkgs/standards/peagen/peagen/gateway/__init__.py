@@ -24,7 +24,8 @@ import pgpy
 from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCError
+from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.transport.jsonrpc import RPCException
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
@@ -143,7 +144,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
 
     if isinstance(payload, list):
         for item in payload:
-            if item.get("jsonrpc") != "2.0":
+            if item.get("jsonrpc") and item.get("jsonrpc") != "2.0":
                 return await _reject(
                     ip,
                     item.get("id"),
@@ -151,11 +152,12 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
                     code=-32600,
                     message="Invalid Request",
                 )
-            if not _supports(item.get("method")):
+            if item.get("method") is None or not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
 
-    if payload.get("jsonrpc") != "2.0":
+
+    if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
         return await _reject(
             ip,
             payload.get("id"),
@@ -163,7 +165,7 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
             code=-32600,
             message="Invalid Request",
         )
-    if not _supports(payload.get("method")):
+    if payload.get("method") is None or not _supports(payload.get("method")):
         return await _reject(ip, payload.get("id"), payload.get("method"))
     return None
 
@@ -476,7 +478,7 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
-        raise RPCError(code=-32000, message="secret not found")
+        raise RPCException(code=-32000, message="secret not found")
     return {"secret": row.cipher}
 
 
@@ -535,8 +537,9 @@ async def task_submit(
             except Exception:  # noqa: BLE001
                 raw = []
         handlers.update(raw)
-    if action is None or action not in handlers:
-        raise RPCError(
+    if action is not None and action not in handlers:
+        raise RPCException(
+
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
@@ -670,7 +673,7 @@ async def task_get(taskId: str):
         return await get_task_result(taskId)  # raises ValueError if not found
     except ValueError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCError(code=-32001, message=str(exc))
+        raise RPCException(code=-32001, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")
