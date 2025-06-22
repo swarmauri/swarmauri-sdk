@@ -810,7 +810,7 @@ async def _on_start():
             await conn.run_sync(Base.metadata.create_all)
 
     print('past alembic')
-    await _reload_state()
+    # await _reload_state()
     print('past state')
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
