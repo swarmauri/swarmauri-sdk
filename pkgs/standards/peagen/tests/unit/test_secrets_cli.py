@@ -59,6 +59,22 @@ def test_pool_worker_pubs_handles_error(monkeypatch):
     assert keys == []
 
 
+def test_pool_worker_pubs_parses_json(monkeypatch):
+    def fake_post(url, json=None, timeout=None):
+        class Res:
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"result": [{"advertises": '{"public_key": "Z"}'}]}
+
+        return Res()
+
+    monkeypatch.setattr(secrets_cli.httpx, "post", fake_post)
+    keys = secrets_cli._pool_worker_pubs("p", "http://gw")
+    assert keys == ["Z"]
+
+
 def test_local_add_stores_secret(monkeypatch, tmp_path):
     store = tmp_path / "store.json"
     monkeypatch.setattr(secrets_cli, "STORE_FILE", store)
