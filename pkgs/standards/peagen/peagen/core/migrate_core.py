@@ -14,57 +14,61 @@ _pkg_cfg = Path(__file__).resolve().parents[1] / "alembic.ini"
 ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
 
-def alembic_upgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
-    """Apply migrations up to HEAD using *cfg*."""
+def _run_alembic(cmd: list[str]) -> Dict[str, Any]:
+    """Run an alembic command and capture its output."""
     try:
-        subprocess.run(
-            [
-                "alembic",
-                "-c",
-                str(cfg),
-                "upgrade",
-                "head",
-            ],
+        result = subprocess.run(
+            cmd,
             check=True,
+            capture_output=True,
+            text=True,
         )
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+        return {
+            "ok": False,
+            "stdout": exc.stdout,
+            "stderr": exc.stderr,
+            "error": str(exc),
+        }
+    return {"ok": True, "stdout": result.stdout, "stderr": result.stderr}
+
+
+def alembic_upgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
+    """Apply migrations up to HEAD using *cfg*."""
+    return _run_alembic(
+        [
+            "alembic",
+            "-c",
+            str(cfg),
+            "upgrade",
+            "head",
+        ]
+    )
 
 
 def alembic_downgrade(cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
     """Downgrade the database by one revision using *cfg*."""
-    try:
-        subprocess.run(
-            [
-                "alembic",
-                "-c",
-                str(cfg),
-                "downgrade",
-                "-1",
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+    return _run_alembic(
+        [
+            "alembic",
+            "-c",
+            str(cfg),
+            "downgrade",
+            "-1",
+        ]
+    )
 
 
 def alembic_revision(message: str, cfg: Path = ALEMBIC_CFG) -> Dict[str, Any]:
     """Create a new revision with *message* using *cfg*."""
-    try:
-        subprocess.run(
-            [
-                "alembic",
-                "-c",
-                str(cfg),
-                "revision",
-                "--autogenerate",
-                "-m",
-                message,
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)}
-    return {"ok": True}
+    return _run_alembic(
+        [
+            "alembic",
+            "-c",
+            str(cfg),
+            "revision",
+            "--autogenerate",
+            "-m",
+            message,
+        ]
+    )
