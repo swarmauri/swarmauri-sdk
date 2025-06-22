@@ -6,7 +6,9 @@ from typing import Dict, Any
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from peagen.models import Status, TaskRun
+import sqlalchemy as sa
+from peagen.models import Status, TaskRun, TaskRunDep
+from peagen.models.secret import Secret
 
 log = Logger(name="upsert")
 
@@ -32,16 +34,20 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
-    data = _coerce(row.to_dict())
+    data = _coerce(row.to_dict(exclude={"deps"}))
     stmt = (
         pg_insert(TaskRun)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
-            set_=_coerce(row.to_dict(exclude={"id"})),
+            set_=_coerce(row.to_dict(exclude={"id", "deps"})),
         )
     )
     result = await session.execute(stmt)
+    await session.execute(sa.delete(TaskRunDep).where(TaskRunDep.task_id == row.id))
+    values = [{"task_id": row.id, "dep_id": uuid.UUID(d)} for d in row.deps]
+    if values:
+        await session.execute(sa.insert(TaskRunDep), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
@@ -57,9 +63,7 @@ async def ensure_status_enum(engine) -> None:
         )
         if not exists.scalar():
             enum_values = ", ".join(f"'{v}'" for v in values)
-            await conn.execute(
-                text(f"CREATE TYPE status AS ENUM ({enum_values})")
-            )
+            await conn.execute(text(f"CREATE TYPE status AS ENUM ({enum_values})"))
         else:
             res = await conn.execute(
                 text(
@@ -72,3 +76,47 @@ async def ensure_status_enum(engine) -> None:
                     await conn.execute(
                         text(f"ALTER TYPE status ADD VALUE IF NOT EXISTS '{val}'")
                     )
+
+
+async def upsert_secret(
+    session: AsyncSession,
+    tenant_id: str,
+    owner_fpr: str,
+    name: str,
+    cipher: str,
+) -> None:
+    data = {
+        "tenant_id": tenant_id,
+        "owner_fpr": owner_fpr,
+        "name": name,
+        "cipher": cipher,
+        "created_at": dt.datetime.utcnow(),
+    }
+    stmt = (
+        pg_insert(Secret)
+        .values(**data)
+        .on_conflict_do_update(
+            index_elements=["tenant_id", "name"],
+            set_={
+                "cipher": cipher,
+                "owner_fpr": owner_fpr,
+                "created_at": data["created_at"],
+            },
+        )
+    )
+    await session.execute(stmt)
+
+
+async def fetch_secret(
+    session: AsyncSession, tenant_id: str, name: str
+) -> Secret | None:
+    result = await session.execute(
+        sa.select(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+    )
+    return result.scalar_one_or_none()
+
+
+async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> None:
+    await session.execute(
+        sa.delete(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+    )
