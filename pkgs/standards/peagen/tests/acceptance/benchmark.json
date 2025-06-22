@@ -1,0 +1,5 @@
+{
+  "login_p95_ms": 5.0,
+  "secret_create_p95_ms": 5.0,
+  "task_dispatch_throughput_req_s": 3000.0
+}
