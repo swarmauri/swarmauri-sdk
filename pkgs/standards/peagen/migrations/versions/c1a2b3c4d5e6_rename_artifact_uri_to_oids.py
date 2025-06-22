@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy import inspect
 
 revision = "c1a2b3c4d5e6"
-down_revision = "a6cc5b24ad5c"
+down_revision = "c3f9a1d1855a"
 
 
 def upgrade():
