@@ -67,6 +67,7 @@ members = [
     "standards/swarmauri_middleware_logging",
     "standards/swarmauri_middleware_ratelimit",
     "standards/swarmauri_middleware_securityheaders",
+    "standards/swarmauri_middleware_httpsig",
     "standards/swarmauri_middleware_session",
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_prompt_j2prompttemplate",
@@ -136,6 +137,7 @@ members = [
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven"
 
@@ -177,6 +179,7 @@ swarmauri_middleware_llamaguard = { workspace = true }
 swarmauri_middleware_logging = { workspace = true }
 swarmauri_middleware_ratelimit = { workspace = true }
 swarmauri_middleware_sercurityheaders = { workspace = true }
+swarmauri_middleware_httpsig = { workspace = true }
 swarmauri_middleware_session = { workspace = true }
 swarmauri_middleware_time = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
@@ -247,6 +250,7 @@ swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
 swarmauri_tool_httploaded = { workspace = true }
+swarmauri_tool_githubloader = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
 

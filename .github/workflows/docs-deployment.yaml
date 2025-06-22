@@ -10,18 +10,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
-    env:
-      VM_NAME: 111-cloud-device
+    runs-on: docs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Display VM Info
-        run: |
-          echo "Running on VM: $VM_NAME"
           
       - name: Deploy documentation
         working-directory: docs
@@ -32,5 +26,3 @@ jobs:
           
           # Build and start the new container
           docker-compose up -d
-          
-          echo "Documentation deployment completed on $VM_NAME"
