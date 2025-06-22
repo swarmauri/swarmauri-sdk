@@ -1,23 +1,28 @@
+import importlib
+
 import pytest
-from peagen.gateway import secrets_add, secrets_get, secrets_delete, SECRET_STORE
+
+from peagen.models import Base
+from peagen.gateway.db import engine
+import peagen.gateway as gw
 
 
 @pytest.mark.asyncio
-async def test_secret_versioning():
-    SECRET_STORE.clear()
+async def test_secret_roundtrip(tmp_path, monkeypatch):
+    """Validate storing, retrieving and deleting secrets."""
+    monkeypatch.chdir(tmp_path)
+    importlib.reload(gw)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    res = await secrets_add("ns/test", "a", version=0)
-    assert res == {"version": 1}
+    await gw.secrets_add(name="ns/test", secret="a")
+    val = await gw.secrets_get(name="ns/test")
+    assert val == {"secret": "a"}
 
-    val = await secrets_get("ns/test")
-    assert val == {"secret": "a", "version": 1}
+    await gw.secrets_add(name="ns/test", secret="b")
+    val = await gw.secrets_get(name="ns/test")
+    assert val == {"secret": "b"}
 
+    await gw.secrets_delete(name="ns/test")
     with pytest.raises(TypeError):
-        await secrets_add("ns/test", "b", version=0)
-
-    res = await secrets_add("ns/test", "b", version=1)
-    assert res == {"version": 2}
-
-    await secrets_delete("ns/test", version=2)
-    with pytest.raises(TypeError):
-        await secrets_get("ns/test")
+        await gw.secrets_get(name="ns/test")

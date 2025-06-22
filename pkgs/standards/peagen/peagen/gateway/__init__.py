@@ -29,10 +29,15 @@ from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.db import engine
+from peagen.gateway.db import engine, Session
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import ensure_status_enum
+from peagen.gateway.db_helpers import (
+    ensure_status_enum,
+    upsert_secret,
+    fetch_secret,
+    delete_secret,
+)
 from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 
@@ -78,9 +83,6 @@ except KeyError:
 
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
-SECRET_STORE: dict[
-    str, dict[str, object]
-] = {}  # namespaced id -> {"version": int, "secret": str}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -311,37 +313,39 @@ async def keys_delete(fingerprint: str) -> dict:
 
 
 @rpc.method("Secrets.add")
-async def secrets_add(id: str, secret: str, version: int | None = None) -> dict:
-    """Store an encrypted secret with optimistic locking."""
-    current = SECRET_STORE.get(id)
-    current_version = current["version"] if current else 0
-    if version is not None and version != current_version:
-        raise RPCError(code=-32001, message="version mismatch")
-    next_version = current_version + 1
-    SECRET_STORE[id] = {"version": next_version, "secret": secret}
-    log.info("secret stored: %s v%s", id, next_version)
-    return {"version": next_version}
+
+async def secrets_add(
+    name: str,
+    secret: str,
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
+) -> dict:
+    """Store an encrypted secret."""
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
+    log.info("secret stored: %s", name)
+    return {"ok": True}
 
 
 @rpc.method("Secrets.get")
-async def secrets_get(id: str) -> dict:
+async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     """Retrieve an encrypted secret."""
-    entry = SECRET_STORE.get(id)
-    if not entry:
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
         raise RPCError(code=-32000, message="secret not found")
-    return {"secret": entry["secret"], "version": entry["version"]}
+    return {"secret": row.cipher}
 
 
 @rpc.method("Secrets.delete")
-async def secrets_delete(id: str, version: int | None = None) -> dict:
-    """Remove a secret by id with optional version check."""
-    entry = SECRET_STORE.get(id)
-    if not entry:
-        return {"ok": True}
-    if version is not None and version != entry["version"]:
-        raise RPCError(code=-32001, message="version mismatch")
-    SECRET_STORE.pop(id, None)
-    log.info("secret removed: %s", id)
+async def secrets_delete(name: str, tenant_id: str = "default") -> dict:
+    """Remove a secret by name."""
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
+    log.info("secret removed: %s", name)
+
     return {"ok": True}
 
 
@@ -686,34 +690,32 @@ async def delete_key(fingerprint: str) -> dict:
 # ────────────────────────── Secret Endpoints ─────────────────────────
 @app.post("/secrets", tags=["secrets"])
 async def add_secret(
-    id: str = Body(...), secret: str = Body(...), version: int | None = Body(None)
+    name: str = Body(...),
+    secret: str = Body(...),
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
 ) -> dict:
-    current = SECRET_STORE.get(id)
-    current_version = current["version"] if current else 0
-    if version is not None and version != current_version:
-        return {"error": "version mismatch"}
-    next_version = current_version + 1
-    SECRET_STORE[id] = {"version": next_version, "secret": secret}
-    return {"stored": id, "version": next_version}
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
+    return {"stored": name}
 
 
-@app.get("/secrets/{id}", tags=["secrets"])
-async def get_secret(id: str) -> dict:
-    entry = SECRET_STORE.get(id)
-    if not entry:
+@app.get("/secrets/{name}", tags=["secrets"])
+async def get_secret(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
         return {"error": "not found"}
-    return {"secret": entry["secret"], "version": entry["version"]}
+    return {"secret": row.cipher}
 
 
-@app.delete("/secrets/{id}", tags=["secrets"])
-async def delete_secret(id: str, version: int | None = Body(None)) -> dict:
-    entry = SECRET_STORE.get(id)
-    if not entry:
-        return {"removed": id}
-    if version is not None and version != entry["version"]:
-        return {"error": "version mismatch"}
-    SECRET_STORE.pop(id, None)
-    return {"removed": id}
+@app.delete("/secrets/{name}", tags=["secrets"])
+async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
+    return {"removed": name}
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
