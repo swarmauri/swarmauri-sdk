@@ -21,7 +21,7 @@ from json.decoder import JSONDecodeError
 from typing import Optional
 
 import pgpy
-from fastapi import Body, FastAPI, Request, Response
+from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCError
@@ -55,6 +55,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
+READY = False
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
@@ -691,13 +692,15 @@ async def delete_secret(name: str) -> dict:
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
-@app.get("/health", tags=["health"])
+@app.get("/healthz", tags=["health"])
 async def health() -> dict:
     """
-    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Simple readiness probe. Returns 200 OK once startup tasks complete.
     Docker’s healthcheck will curl this endpoint.
     """
-    return {"status": "ok"}
+    if READY:
+        return {"status": "ok"}
+    raise HTTPException(status_code=503, detail="starting")
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
@@ -715,3 +718,5 @@ async def _on_start():
             await conn.run_sync(Base.metadata.create_all)
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
+    global READY
+    READY = True
