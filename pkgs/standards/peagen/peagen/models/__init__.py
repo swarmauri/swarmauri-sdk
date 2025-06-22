@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from peagen.models.task_run import Base, TaskRun, TaskRunDep
+from peagen.models.schemas import Role, Status, Task, Pool, User
+from peagen.models.secret import Secret
 
 from peagen.models.schemas import (
     Role,
@@ -26,13 +28,6 @@ __all__ = [
     "User",
     "Base",
     "TaskRun",
-    "Tenant",
-    "DbUser",
-    "PublicKey",
     "Secret",
-    "Task",
-    "Artifact",
-    "DeployKey",
     "TaskRunDep",
-
 ]

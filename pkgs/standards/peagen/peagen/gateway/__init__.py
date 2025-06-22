@@ -29,7 +29,8 @@ from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.db import engine, Session
+from importlib import reload
+from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway.db_helpers import (
@@ -40,10 +41,13 @@ from peagen.gateway.db_helpers import (
 )
 from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
-
 from peagen.core.task_core import get_task_result
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
+_db = reload(_db)
+engine = _db.engine
+Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
