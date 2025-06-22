@@ -43,6 +43,7 @@ import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -226,7 +227,15 @@ async def _reload_state() -> None:
     if engine.url.get_backend_name() == "sqlite":
         return
     async with Session() as session:
-        rows = (await session.execute(select(TaskRun))).scalars().all()
+        rows = (
+            (
+                await session.execute(
+                    select(TaskRun).options(selectinload(TaskRun._deps_rel))
+                )
+            )
+            .scalars()
+            .all()
+        )
     for row in rows:
         if Status.is_terminal(row.status):
             continue
@@ -360,7 +369,6 @@ async def keys_delete(fingerprint: str) -> dict:
 
 
 @rpc.method("Secrets.add")
-
 async def secrets_add(
     name: str,
     secret: str,

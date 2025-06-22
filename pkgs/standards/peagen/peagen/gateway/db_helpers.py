@@ -7,7 +7,7 @@ from typing import Dict, Any
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
-from peagen.models import Status, TaskRun
+from peagen.models import Status, TaskRun, TaskRunDep
 from peagen.models.secret import Secret
 
 log = Logger(name="upsert")
@@ -34,16 +34,20 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
-    data = _coerce(row.to_dict())
+    data = _coerce(row.to_dict(exclude={"deps"}))
     stmt = (
         pg_insert(TaskRun)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
-            set_=_coerce(row.to_dict(exclude={"id"})),
+            set_=_coerce(row.to_dict(exclude={"id", "deps"})),
         )
     )
     result = await session.execute(stmt)
+    await session.execute(sa.delete(TaskRunDep).where(TaskRunDep.task_id == row.id))
+    values = [{"task_id": row.id, "dep_id": uuid.UUID(d)} for d in row.deps]
+    if values:
+        await session.execute(sa.insert(TaskRunDep), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 

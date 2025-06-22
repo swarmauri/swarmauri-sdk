@@ -1,5 +1,5 @@
 from __future__ import annotations
-from peagen.models.task_run import Base, TaskRun
+from peagen.models.task_run import Base, TaskRun, TaskRunDep
 from peagen.models.secret import Secret
 from peagen.models.schemas import (
     Role,
@@ -9,4 +9,14 @@ from peagen.models.schemas import (
     User,
 )
 
-__all__ = ["Role", "Status", "Task", "Pool", "User", "Base", "TaskRun", "Secret"]
+__all__ = [
+    "Role",
+    "Status",
+    "Task",
+    "Pool",
+    "User",
+    "Base",
+    "TaskRun",
+    "TaskRunDep",
+    "Secret",
+]

@@ -1,10 +1,10 @@
 import datetime as dt
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, List
 
-from sqlalchemy import Column, String, JSON, TIMESTAMP
+from sqlalchemy import Column, String, JSON, TIMESTAMP, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects import postgresql as psql
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 from peagen.models.schemas import Status
 
@@ -20,6 +20,13 @@ status_enum = psql.ENUM(
 )
 
 
+class TaskRunDep(Base):
+    __tablename__ = "task_run_deps"
+
+    task_id = Column(UUID(as_uuid=True), ForeignKey("task_runs.id"), primary_key=True)
+    dep_id = Column(UUID(as_uuid=True), ForeignKey("task_runs.id"), primary_key=True)
+
+
 class TaskRun(Base):
     __tablename__ = "task_runs"
 
@@ -29,7 +36,6 @@ class TaskRun(Base):
     status = Column(status_enum, nullable=False, default=Status.waiting.value)
     payload = Column(JSON)
     result = Column(JSON, nullable=True)
-    deps = Column(JSON, nullable=False, default=list)
     edge_pred = Column(String, nullable=True)
     labels = Column(JSON, nullable=False, default=list)
     in_degree = Column(psql.INTEGER, nullable=False, default=0)
@@ -39,18 +45,35 @@ class TaskRun(Base):
     started_at = Column(TIMESTAMP(timezone=True), default=dt.datetime.utcnow)
     finished_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
+    _deps_rel = relationship(
+        "TaskRun",
+        secondary="task_run_deps",
+        primaryjoin=id == TaskRunDep.task_id,
+        secondaryjoin=id == TaskRunDep.dep_id,
+        lazy="selectin",
+    )
+
+    def __init__(self, **kwargs) -> None:
+        self._raw_deps: List[str] = kwargs.pop("deps", [])
+        super().__init__(**kwargs)
+
+    @property
+    def deps(self) -> List[str]:
+        if getattr(self, "_raw_deps", None):
+            return self._raw_deps
+        return [str(d.id) for d in self._deps_rel]
+
     # ──────────────────────────────────────────────────────────────
     @classmethod
     def from_task(cls, task) -> "TaskRun":
         """Factory: build a TaskRun row from an in-memory Task object."""
-        return cls(
+        tr = cls(
             id=task.id,
             pool=task.pool,
             task_type=task.payload.get("kind", "unknown"),
             status=task.status,
             payload=task.payload,
             result=task.result,
-            deps=task.deps,
             edge_pred=task.edge_pred,
             labels=task.labels,
             in_degree=task.in_degree,
@@ -74,6 +97,8 @@ class TaskRun(Base):
             if task.status in {Status.success, Status.failed, Status.cancelled}
             else None,
         )
+        tr._raw_deps = list(task.deps)
+        return tr
 
     # ──────────────────────────────────────────────────────────────
     def to_dict(self, *, exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
