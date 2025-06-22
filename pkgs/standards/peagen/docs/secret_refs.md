@@ -7,7 +7,7 @@ hardcoding them in your configuration files. Any LLM definition may specify a
 When Peagen encounters a `secretRef` it resolves the value using the configured
 secret provider. The default provider `EnvSecret` reads from environment
 variables. You can register custom providers under the
-`peagen.plugins.secrets` entry point group.
+`peagen.plugins.secrets_drivers` entry point group.
 
 ```yaml
 kind: llm-config

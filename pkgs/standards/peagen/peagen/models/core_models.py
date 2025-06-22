@@ -66,21 +66,6 @@ class PublicKey(Base, _TenantBase):
     )
 
 
-class Secret(Base, _TenantBase):
-    __tablename__ = "secrets"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
-    value: Mapped[str] = mapped_column(Text, nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_secrets_tenant_name"),
-        {"extend_existing": True},
-    )
-
-
 class Task(Base, _TenantBase):
     __tablename__ = "tasks"
 

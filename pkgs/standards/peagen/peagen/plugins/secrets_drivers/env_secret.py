@@ -1,5 +1,6 @@
 import os
 
+
 class EnvSecret:
     """Simple secret provider that reads values from environment variables."""
 
