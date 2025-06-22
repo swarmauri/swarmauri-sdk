@@ -27,7 +27,7 @@ ENV \
     PG_HOST="" \
     PG_PORT="" \
     PG_DB="" \
-    PB_USER="" \
+    PG_USER="" \
     PG_PASS="" \
     REDIS_HOST="" \
     REDIS_PASSWORD="" \
