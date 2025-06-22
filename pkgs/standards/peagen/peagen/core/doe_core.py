@@ -157,7 +157,12 @@ def create_factor_branches(vcs, spec: dict[str, Any], spec_dir: Path) -> list[st
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(patched)
             rel_art = str(target.relative_to(vcs.repo.working_tree_dir))
-            rel_patch = str(patch_path.relative_to(vcs.repo.working_tree_dir)) if patch_path.is_file() and patch_path.is_relative_to(vcs.repo.working_tree_dir) else None
+            rel_patch = (
+                str(patch_path.relative_to(vcs.repo.working_tree_dir))
+                if patch_path.is_file()
+                and patch_path.is_relative_to(vcs.repo.working_tree_dir)
+                else None
+            )
             paths = [p for p in [rel_art, rel_patch] if p]
             vcs.commit(paths, f"factor {fac['name']}={lvl['id']}")
             branches.append(branch)

@@ -14,6 +14,7 @@ async def test_task_get_handler(monkeypatch):
     # loading the real module (which has heavy deps and circular imports).
     import sys
     import types
+
     stub = types.ModuleType("peagen.core.task_core")
     stub.get_task_result = fake_get_task_result
     monkeypatch.setitem(sys.modules, "peagen.core.task_core", stub)

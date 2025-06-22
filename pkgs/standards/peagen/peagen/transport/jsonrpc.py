@@ -15,6 +15,7 @@ class RPCDispatcher:
         def decorator(fn: Callable):
             self._methods[name or fn.__name__] = fn
             return fn
+
         return decorator
 
     async def dispatch(self, req: dict | list) -> dict | list:

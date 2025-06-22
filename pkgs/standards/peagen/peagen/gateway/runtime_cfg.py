@@ -51,4 +51,5 @@ class Settings(BaseSettings):
         # No env_file needed since we already called load_dotenv().
         pass
 
+
 settings = Settings()

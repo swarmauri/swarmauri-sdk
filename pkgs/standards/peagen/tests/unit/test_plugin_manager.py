@@ -88,5 +88,3 @@ def test_ep_paths_use_plugins_namespace():
             assert ep_group == "peagen.template_sets"
         else:
             assert ep_group.startswith("peagen.plugins."), ep_group
-
-

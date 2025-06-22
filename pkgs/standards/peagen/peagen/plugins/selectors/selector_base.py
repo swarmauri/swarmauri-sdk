@@ -24,7 +24,9 @@ class SelectorBase:
             return successes[0]
         return None
 
-    async def get_running_candidates(self, tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def get_running_candidates(
+        self, tasks: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         running = [t for t in tasks if t.get("status") == Status.running.value]
         running.sort(key=lambda d: str(d.get("started_at") or ""))
         return running[: self.num_candidates]

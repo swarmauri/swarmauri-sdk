@@ -87,9 +87,7 @@ def _format_ts(ts: float | str | None) -> str:
         return str(ts)
 
 
-def _calc_duration(
-    start: float | str | None, finish: float | str | None
-) -> int | None:
+def _calc_duration(start: float | str | None, finish: float | str | None) -> int | None:
     """Return elapsed seconds between ``start`` and ``finish`` if possible."""
 
     if start is None or finish is None:
@@ -100,7 +98,9 @@ def _calc_duration(
         else:
             start_ts = float(start)
         if isinstance(finish, str):
-            finish_ts = datetime.fromisoformat(finish.replace("Z", "+00:00")).timestamp()
+            finish_ts = datetime.fromisoformat(
+                finish.replace("Z", "+00:00")
+            ).timestamp()
         else:
             finish_ts = float(finish)
         return int(finish_ts - start_ts)
@@ -466,12 +466,17 @@ class QueueDashboardApp(App):
                     )
                 if sort_key == "status":
                     from peagen.models.schemas import Status
+
                     status_value = task_item.get("status")
                     try:
-                        status_index = list(Status).index(Status(status_value)) if status_value else float('inf')
+                        status_index = (
+                            list(Status).index(Status(status_value))
+                            if status_value
+                            else float("inf")
+                        )
                         return status_index
                     except (ValueError, TypeError):
-                        return float('inf')
+                        return float("inf")
                 return task_item.get(sort_key)
 
             tasks_with_val = [t for t in tasks if _key_func(t) is not None]
