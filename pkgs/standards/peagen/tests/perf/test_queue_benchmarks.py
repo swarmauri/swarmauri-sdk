@@ -16,7 +16,7 @@ def test_in_memory_queue_rpush_blpop(benchmark):
         await q.rpush("list", "x")
         await q.blpop(["list"], 0.0)
 
-    benchmark(lambda: asyncio.run(runner()))
+    benchmark(lambda: loop.run_until_complete(runner()))
     loop.close()
     asyncio.set_event_loop(None)
 
@@ -30,7 +30,7 @@ def test_redis_queue_rpush_blpop(benchmark):
     asyncio.set_event_loop(loop)
     q = RedisQueue(uri=redis_url)
     try:
-        asyncio.run(q.client.ping())
+        loop.run_until_complete(q.client.ping())
     except Exception:
         pytest.skip("Redis server not available")
 
@@ -38,7 +38,7 @@ def test_redis_queue_rpush_blpop(benchmark):
         await q.rpush("list", "x")
         await q.blpop(["list"], 0.0)
 
-    benchmark(lambda: asyncio.run(runner()))
-    asyncio.run(q.client.close())
+    benchmark(lambda: loop.run_until_complete(runner()))
+    loop.run_until_complete(q.client.close())
     loop.close()
     asyncio.set_event_loop(None)
