@@ -38,6 +38,9 @@ from peagen.gateway.db_helpers import (
     upsert_secret,
     fetch_secret,
     delete_secret,
+    record_unknown_handler,
+    fetch_banned_ips,
+    mark_ip_banned,
 )
 import peagen.defaults as defaults
 from peagen.core import migrate_core
@@ -98,7 +101,6 @@ TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 # ─────────────────────────── IP tracking ─────────────────────────
 BAN_THRESHOLD = 10
 KNOWN_IPS: set[str] = set()
-UNKNOWN_HANDLER_COUNT: dict[str, int] = {}
 BANNED_IPS: set[str] = set()
 
 
@@ -315,22 +317,25 @@ async def rpc_endpoint(request: Request):
     log.debug("RPC in  <- %s", payload)
     resp = await rpc.dispatch(payload)
 
-    def _check_unknown(r: dict) -> None:
+    async def _check_unknown(r: dict, method: str) -> None:
         if r.get("error", {}).get("code") == -32601:
-            count = UNKNOWN_HANDLER_COUNT.get(ip, 0) + 1
-            UNKNOWN_HANDLER_COUNT[ip] = count
+            r["error"]["data"] = {"method": method}
+            async with Session() as session:
+                count = await record_unknown_handler(session, ip)
             if count >= BAN_THRESHOLD:
                 BANNED_IPS.add(ip)
+                async with Session() as session:
+                    await mark_ip_banned(session, ip)
                 log.warning("banned ip %s", ip)
 
     if isinstance(resp, dict) and "error" in resp:
         method = payload.get("method") if isinstance(payload, dict) else "batch"
         log.warning(f"{method} '{resp['error']}'")
-        _check_unknown(resp)
+        await _check_unknown(resp, method)
     elif isinstance(resp, list):
         for r in resp:
             if isinstance(r, dict) and "error" in r:
-                _check_unknown(r)
+                await _check_unknown(r, "batch")
     log.debug("RPC out -> %s", resp)
     return resp
 
@@ -796,6 +801,10 @@ async def _on_start():
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
         log.info("SQLite metadata initialized")
+
+    async with Session() as session:
+        banned = await fetch_banned_ips(session)
+    BANNED_IPS.update(banned)
 
     log.info("database migrations complete")
     asyncio.create_task(scheduler())
