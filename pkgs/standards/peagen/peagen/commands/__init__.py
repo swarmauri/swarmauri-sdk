@@ -10,6 +10,7 @@ from peagen.commands.program import program_app
 from peagen.commands.validate import validate_app
 from peagen.commands.extras import extras_app
 from peagen.commands.eval import eval_app
+from peagen.commands.db import db_app
 
 __all__ = [
     "init_app",
@@ -22,4 +23,5 @@ __all__ = [
     "validate_app",
     "extras_app",
     "eval_app",
+    "db_app",
 ]

@@ -30,6 +30,8 @@ dependencies = [
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
     "pika",
+    "alembic",
+    "sqlalchemy>=2.0",
 ]
 
 
@@ -98,3 +100,5 @@ rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
+"peagen" = ["alembic.ini"]
+"peagen.migrations" = ["*.py", "versions/*.py"]

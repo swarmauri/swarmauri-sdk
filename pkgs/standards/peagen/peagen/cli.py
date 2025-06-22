@@ -15,6 +15,7 @@ from peagen.commands import (
     validate_app,
     extras_app,
     eval_app,
+    db_app,
 )
 
 _print_banner()
@@ -31,6 +32,7 @@ app.add_typer(template_sets_app, name="template-set")
 app.add_typer(extras_app, name="extras-schemas")
 app.add_typer(validate_app, name="validate")
 app.add_typer(eval_app, name="eval")
+app.add_typer(db_app, name="db")
 
 if __name__ == "__main__":
     app()
