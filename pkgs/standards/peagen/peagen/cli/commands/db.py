@@ -9,12 +9,12 @@ import httpx
 
 from peagen import defaults
 
+from pathlib import Path
+
 import typer
 
-# Lazy import resolves alembic.ini in both source and installed locations
 from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
-from peagen.core.migrate_core import ALEMBIC_CFG
 
 # The ``ALEMBIC_CFG`` constant resolves to the ``alembic.ini`` file in both
 # source and installed locations.
