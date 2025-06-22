@@ -231,6 +231,24 @@ async def _finalize_parent_tasks(child_id: str) -> None:
             await _publish_task(parent)
 
 
+async def _backlog_scanner(interval: float = 5.0) -> None:
+    """Periodically run `_finalize_parent_tasks` to clear any backlog."""
+    log.info("backlog scanner started")
+    while True:
+        keys = await queue.keys("task:*")
+        for key in keys:
+            data = await queue.hget(key, "blob")
+            if not data:
+                continue
+            t = Task.model_validate_json(data)
+            children = []
+            if t.result and isinstance(t.result, dict):
+                children = t.result.get("children") or []
+            for cid in children:
+                await _finalize_parent_tasks(cid)
+        await asyncio.sleep(interval)
+
+
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
@@ -696,3 +714,4 @@ async def _on_start():
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
     asyncio.create_task(scheduler())
+    asyncio.create_task(_backlog_scanner())
