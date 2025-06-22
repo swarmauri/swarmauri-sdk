@@ -34,7 +34,9 @@ def local_init_filter(
     name: str = "default",
     config: Path = Path(".peagen.toml"),
     repo: Path = Path("."),
-    add_config: bool = typer.Option(False, "--add-config", help="Write filter settings to config"),
+    add_config: bool = typer.Option(
+        False, "--add-config", help="Write filter settings to config"
+    ),
 ) -> None:
     """Configure *repo* with a git filter.
 
@@ -47,6 +49,28 @@ def local_init_filter(
         typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'} in {config}")
     else:
         typer.echo(f"Configured filter '{name}' -> {uri or 's3://peagen'}")
+
+
+@local_init_app.command("repo")
+def local_init_repo(
+    repo: str = typer.Argument(..., help="tenant/repo"),
+    pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
+    description: str = typer.Option("", help="Repository description"),
+    deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
+) -> None:
+    """Create a GitHub repository and register a deploy key."""
+    self = Logger(name="init_repo")
+    self.logger.info("Entering local init_repo command")
+    args: Dict[str, Any] = {
+        "kind": "repo",
+        "repo": repo,
+        "pat": pat,
+        "description": description,
+        "deploy_key": str(deploy_key) if deploy_key else None,
+    }
+    result = _call_handler(args)
+    _summary(Path("."), result["next"])
+    self.logger.info("Exiting local init_repo command")
 
 
 # ── init project ─────────────────────────────────────────────────────────────
@@ -69,9 +93,7 @@ def local_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
-    git_remote: str = typer.Option(
-        None, "--git-remote", help="Initial Git remote URL"
-    ),
+    git_remote: str = typer.Option(None, "--git-remote", help="Initial Git remote URL"),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
     ),
@@ -123,9 +145,7 @@ def remote_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
-    git_remote: str = typer.Option(
-        None, "--git-remote", help="Initial Git remote URL"
-    ),
+    git_remote: str = typer.Option(None, "--git-remote", help="Initial Git remote URL"),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
     ),
@@ -158,12 +178,8 @@ def local_init_template_set(
     path: Path = typer.Argument(
         ".", dir_okay=True, file_okay=False, help="Location for the new package"
     ),
-    name: Optional[str] = typer.Option(
-        None, "--name", help="Template-set identifier"
-    ),
-    org: Optional[str] = typer.Option(
-        None, "--org", help="Organisation or namespace"
-    ),
+    name: Optional[str] = typer.Option(None, "--name", help="Template-set identifier"),
+    org: Optional[str] = typer.Option(None, "--org", help="Organisation or namespace"),
     use_uv: bool = typer.Option(
         True, "--uv/--no-uv", help="Use uv for installing dependencies"
     ),
@@ -194,12 +210,8 @@ def remote_init_template_set(
     path: Path = typer.Argument(
         ".", dir_okay=True, file_okay=False, help="Location for the new package"
     ),
-    name: Optional[str] = typer.Option(
-        None, "--name", help="Template-set identifier"
-    ),
-    org: Optional[str] = typer.Option(
-        None, "--org", help="Organisation or namespace"
-    ),
+    name: Optional[str] = typer.Option(None, "--name", help="Template-set identifier"),
+    org: Optional[str] = typer.Option(None, "--org", help="Organisation or namespace"),
     use_uv: bool = typer.Option(
         True, "--uv/--no-uv", help="Use uv for installing dependencies"
     ),
@@ -229,12 +241,8 @@ def local_init_doe_spec(
     path: Path = typer.Argument(
         ".", dir_okay=True, file_okay=False, help="Directory for the spec"
     ),
-    name: Optional[str] = typer.Option(
-        None, "--name", help="DOE spec identifier"
-    ),
-    org: Optional[str] = typer.Option(
-        None, "--org", help="Organisation or namespace"
-    ),
+    name: Optional[str] = typer.Option(None, "--name", help="DOE spec identifier"),
+    org: Optional[str] = typer.Option(None, "--org", help="Organisation or namespace"),
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
@@ -260,12 +268,8 @@ def remote_init_doe_spec(
     path: Path = typer.Argument(
         ".", dir_okay=True, file_okay=False, help="Directory for the spec"
     ),
-    name: Optional[str] = typer.Option(
-        None, "--name", help="DOE spec identifier"
-    ),
-    org: Optional[str] = typer.Option(
-        None, "--org", help="Organisation or namespace"
-    ),
+    name: Optional[str] = typer.Option(None, "--name", help="DOE spec identifier"),
+    org: Optional[str] = typer.Option(None, "--org", help="Organisation or namespace"),
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
@@ -336,3 +340,24 @@ def remote_init_ci(
         "force": force,
     }
     _submit_task(args, gateway_url, "init ci")
+
+
+@remote_init_app.command("repo")
+def remote_init_repo(
+    repo: str = typer.Argument(..., help="tenant/repo"),
+    pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
+    description: str = typer.Option("", help="Repository description"),
+    deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
+    gateway_url: str = typer.Option(
+        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
+    ),
+) -> None:
+    """Create a GitHub repository via JSON-RPC."""
+    args = {
+        "kind": "repo",
+        "repo": repo,
+        "pat": pat,
+        "description": description,
+        "deploy_key": str(deploy_key) if deploy_key else None,
+    }
+    _submit_task(args, gateway_url, "init repo")
