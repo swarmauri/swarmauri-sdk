@@ -29,7 +29,8 @@ peagen local secrets add OPENAI_API_KEY sk-... \
 To keep the secret on the gateway, run:
 
 ```bash
-peagen remote secrets add OPENAI_API_KEY sk-... --gateway-url http://localhost:8000/rpc
+peagen remote secrets add OPENAI_API_KEY sk-... \
+  --recipient worker_pub.asc --gateway-url http://localhost:8000/rpc
 ```
 
 ## 3. Submit a run
@@ -43,7 +44,8 @@ peagen remote --gateway-url http://localhost:8000/rpc process projects.yaml --wa
 Store your private deploy key as an encrypted secret on the gateway:
 
 ```bash
-peagen remote secrets add DEPLOY_KEY "$(cat ~/.ssh/id_rsa)" --gateway-url http://localhost:8000/rpc
+peagen remote secrets add DEPLOY_KEY "$(cat ~/.ssh/id_rsa)" \
+  --recipient worker_pub.asc --gateway-url http://localhost:8000/rpc
 ```
 
 Configure your worker with the secret name so pushes use the key:

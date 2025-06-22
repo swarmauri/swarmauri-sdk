@@ -21,7 +21,7 @@ from json.decoder import JSONDecodeError
 from typing import Optional
 
 import pgpy
-from fastapi import Body, FastAPI, Request, Response
+from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCError
@@ -29,14 +29,20 @@ from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.db import engine
+from peagen.gateway.db import engine, Session
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import ensure_status_enum
+from peagen.gateway.db_helpers import (
+    ensure_status_enum,
+    upsert_secret,
+    fetch_secret,
+    delete_secret,
+)
 from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 
 from peagen.core.task_core import get_task_result
+from sqlalchemy import select
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -55,6 +61,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
+READY = False
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
@@ -78,7 +85,6 @@ except KeyError:
 
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
-SECRET_STORE: dict[str, str] = {}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -199,6 +205,51 @@ async def _publish_event(event_type: str, data: dict) -> None:
     await queue.publish(PUBSUB_TOPIC, json.dumps(event))
 
 
+async def _flush_state() -> None:
+    """Persist all tasks from Redis to Postgres and close the queue client."""
+    if not queue:
+        return
+    keys = await queue.keys("task:*")
+    for key in keys:
+        data = await queue.hget(key, "blob")
+        if not data:
+            continue
+        task = Task.model_validate_json(data)
+        if result_backend:
+            await result_backend.store(TaskRun.from_task(task))
+    if hasattr(queue, "client"):
+        await queue.client.aclose()
+
+
+async def _reload_state() -> None:
+    """Load non-terminal tasks from Postgres back into Redis queues."""
+    if engine.url.get_backend_name() == "sqlite":
+        return
+    async with Session() as session:
+        rows = (await session.execute(select(TaskRun))).scalars().all()
+    for row in rows:
+        if Status.is_terminal(row.status):
+            continue
+        task = Task(
+            id=str(row.id),
+            pool=row.pool,
+            payload=row.payload,
+            status=Status(row.status),
+            result=row.result,
+            deps=row.deps,
+            edge_pred=row.edge_pred,
+            labels=row.labels,
+            in_degree=row.in_degree,
+            config_toml=row.config_toml,
+            started_at=row.started_at.timestamp() if row.started_at else None,
+            finished_at=row.finished_at.timestamp() if row.finished_at else None,
+        )
+        await _save_task(task)
+        await queue.sadd("pools", task.pool)
+        await queue.rpush(f"{READY_QUEUE}:{task.pool}", task.model_dump_json())
+        await _publish_queue_length(task.pool)
+
+
 async def _publish_task(task: Task) -> None:
     data = task.model_dump()
     if task.duration is not None:
@@ -309,26 +360,39 @@ async def keys_delete(fingerprint: str) -> dict:
 
 
 @rpc.method("Secrets.add")
-async def secrets_add(name: str, secret: str) -> dict:
+
+async def secrets_add(
+    name: str,
+    secret: str,
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
+) -> dict:
     """Store an encrypted secret."""
-    SECRET_STORE[name] = secret
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
     log.info("secret stored: %s", name)
     return {"ok": True}
 
 
 @rpc.method("Secrets.get")
-async def secrets_get(name: str) -> dict:
+async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     """Retrieve an encrypted secret."""
-    if name not in SECRET_STORE:
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
         raise RPCError(code=-32000, message="secret not found")
-    return {"secret": SECRET_STORE[name]}
+    return {"secret": row.cipher}
 
 
 @rpc.method("Secrets.delete")
-async def secrets_delete(name: str) -> dict:
+async def secrets_delete(name: str, tenant_id: str = "default") -> dict:
     """Remove a secret by name."""
-    SECRET_STORE.pop(name, None)
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
     log.info("secret removed: %s", name)
+
     return {"ok": True}
 
 
@@ -672,32 +736,45 @@ async def delete_key(fingerprint: str) -> dict:
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
 @app.post("/secrets", tags=["secrets"])
-async def add_secret(name: str = Body(...), secret: str = Body(...)) -> dict:
-    SECRET_STORE[name] = secret
+async def add_secret(
+    name: str = Body(...),
+    secret: str = Body(...),
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
+) -> dict:
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
     return {"stored": name}
 
 
 @app.get("/secrets/{name}", tags=["secrets"])
-async def get_secret(name: str) -> dict:
-    if name not in SECRET_STORE:
+async def get_secret(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
         return {"error": "not found"}
-    return {"secret": SECRET_STORE[name]}
+    return {"secret": row.cipher}
 
 
 @app.delete("/secrets/{name}", tags=["secrets"])
-async def delete_secret(name: str) -> dict:
-    SECRET_STORE.pop(name, None)
+async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
     return {"removed": name}
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
-@app.get("/health", tags=["health"])
+@app.get("/healthz", tags=["health"])
 async def health() -> dict:
     """
-    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Simple readiness probe. Returns 200 OK once startup tasks complete.
     Docker’s healthcheck will curl this endpoint.
     """
-    return {"status": "ok"}
+    if READY:
+        return {"status": "ok"}
+    raise HTTPException(status_code=503, detail="starting")
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
@@ -713,5 +790,14 @@ async def _on_start():
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
+    await _reload_state()
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
+    global READY
+    READY = True
+
+
+@app.on_event("shutdown")
+async def _on_shutdown() -> None:
+    await _flush_state()
+    await engine.dispose()

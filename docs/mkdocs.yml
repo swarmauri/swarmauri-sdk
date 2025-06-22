@@ -121,6 +121,7 @@ nav:
   - guide/index.md
   - Installation: guide/installation.md
   - Usage: guide/usage.md
+  - Gateway systemd: guide/gateway-systemd.md
   - Courses:
     - guide/index.md
     - Entry: guide/course/1.md

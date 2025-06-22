@@ -11,7 +11,7 @@ import uuid
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import httpx
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
@@ -42,7 +42,7 @@ class WorkerBase:
     A reusable base worker that:
       • Exposes /rpc as a JSON-RPC 2.0 endpoint
       • Implements Work.start, Work.cancel
-      • Has a healthcheck (/health)
+      • Has a healthcheck (/healthz)
       • Sends Worker.register + Worker.heartbeat on startup
       • Sends Work.finished via _notify(...)
       • Allows registering custom handlers via register_handler(name, coro)
@@ -98,6 +98,7 @@ class WorkerBase:
         self.app = FastAPI(title="Peagen Worker")
         self.rpc = RPCDispatcher()
         self._client: Optional[httpx.AsyncClient] = None
+        self.ready = False
 
         # ─── Handlers registry: name (str) → async function(task: Dict)→Dict ─
         self._handler_registry: Dict[
@@ -154,9 +155,11 @@ class WorkerBase:
             return resp
 
         # ─── HEALTHCHECK ───────────────────────────────────────────
-        @self.app.get("/health", tags=["health"])
+        @self.app.get("/healthz", tags=["health"])
         async def health() -> Dict[str, str]:
-            return {"status": "ok"}
+            if self.ready:
+                return {"status": "ok"}
+            raise HTTPException(status_code=503, detail="starting")
 
         # ─── WELL‐KNOWN: return registered handler names ─────────────
         @self.app.get("/well-known")
@@ -316,6 +319,7 @@ class WorkerBase:
                     self.log.warning("heartbeat failed: %s", exc)
 
         asyncio.create_task(_heartbeat_loop())
+        self.ready = True
 
     async def _on_shutdown(self) -> None:
         """
