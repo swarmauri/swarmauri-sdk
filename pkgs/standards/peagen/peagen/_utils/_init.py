@@ -31,7 +31,11 @@ def _submit_task(args: Dict[str, Any], gateway_url: str, tag: str) -> None:
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {"pool": task.pool, "payload": task.payload},
+        "params": {
+            "pool": task.pool,
+            "payload": task.payload,
+            "taskId": task.id,
+        },
     }
 
     try:
@@ -43,7 +47,7 @@ def _submit_task(args: Dict[str, Any], gateway_url: str, tag: str) -> None:
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted {tag} → taskId={data['id']}")
+        typer.echo(f"Submitted {tag} → taskId={data['result']['taskId']}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

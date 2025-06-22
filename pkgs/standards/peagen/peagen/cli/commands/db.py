@@ -13,7 +13,6 @@ import typer
 # Lazy import resolves alembic.ini in both source and installed locations
 from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
-from peagen.core.migrate_core import ALEMBIC_CFG
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
 # When running from source the module sits one directory deeper than
@@ -22,7 +21,9 @@ _src_cfg = Path(__file__).resolve().parents[3] / "alembic.ini"
 _pkg_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
 ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc" # replace with peagen.defaults to make consistency
+DEFAULT_GATEWAY = (
+    "http://localhost:8000/rpc"  # replace with peagen.defaults to make consistency
+)
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
@@ -41,14 +42,18 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {"pool": task.pool, "payload": task.payload},
+        "params": {
+            "pool": task.pool,
+            "payload": task.payload,
+            "taskId": task.id,
+        },
     }
     resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
     resp.raise_for_status()
     data = resp.json()
     if data.get("error"):
         raise RuntimeError(data["error"])
-    return str(data.get("id", task.id))
+    return str(data.get("result", {}).get("taskId", task.id))
 
 
 @local_db_app.command("upgrade")
