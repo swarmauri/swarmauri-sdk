@@ -313,6 +313,7 @@ async def keys_delete(fingerprint: str) -> dict:
 
 
 @rpc.method("Secrets.add")
+
 async def secrets_add(
     name: str,
     secret: str,
@@ -344,6 +345,7 @@ async def secrets_delete(name: str, tenant_id: str = "default") -> dict:
         await delete_secret(session, tenant_id, name)
         await session.commit()
     log.info("secret removed: %s", name)
+
     return {"ok": True}
 
 
