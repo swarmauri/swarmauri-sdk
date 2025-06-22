@@ -110,7 +110,14 @@ def _supports(method: str | None) -> bool:
     return method in rpc._methods
 
 
-async def _reject(ip: str, req_id: str | None, method: str | None) -> dict:
+async def _reject(
+    ip: str,
+    req_id: str | None,
+    method: str | None,
+    *,
+    code: int = -32601,
+    message: str = "Method not found",
+) -> dict:
     """Return an error response and track abuse."""
 
     async with Session() as session:
@@ -123,8 +130,8 @@ async def _reject(ip: str, req_id: str | None, method: str | None) -> dict:
     return {
         "jsonrpc": "2.0",
         "error": {
-            "code": -32601,
-            "message": "Method not found",
+            "code": code,
+            "message": message,
             "data": {"method": str(method)},
         },
         "id": req_id,
@@ -136,10 +143,26 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
 
     if isinstance(payload, list):
         for item in payload:
+            if item.get("jsonrpc") != "2.0":
+                return await _reject(
+                    ip,
+                    item.get("id"),
+                    item.get("method"),
+                    code=-32600,
+                    message="Invalid Request",
+                )
             if not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
 
+    if payload.get("jsonrpc") != "2.0":
+        return await _reject(
+            ip,
+            payload.get("id"),
+            payload.get("method"),
+            code=-32600,
+            message="Invalid Request",
+        )
     if not _supports(payload.get("method")):
         return await _reject(ip, payload.get("id"), payload.get("method"))
     return None
@@ -364,8 +387,10 @@ async def rpc_endpoint(request: Request):
     resp = await rpc.dispatch(payload)
 
     async def _check_unknown(r: dict, method: str) -> None:
-        if r.get("error", {}).get("code") == -32601:
-            r["error"]["data"] = {"method": method}
+        code = r.get("error", {}).get("code")
+        if code in (-32601, -32600):
+            if code == -32601:
+                r["error"]["data"] = {"method": method}
             async with Session() as session:
                 count = await record_unknown_handler(session, ip)
             if count >= BAN_THRESHOLD:
