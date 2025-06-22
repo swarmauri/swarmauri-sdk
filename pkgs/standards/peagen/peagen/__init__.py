@@ -16,7 +16,7 @@ except PackageNotFoundError:
 from .plugin_manager import PluginManager, resolve_plugin_spec
 from .errors import PatchTargetMissingError
 from .core.patch_core import apply_patch
-from .secrets import AutoGpgDriver, SecretDriverBase
+from .plugins.secret_drivers import AutoGpgDriver, SecretDriverBase
 
 __all__ = [
     "__package_name__",

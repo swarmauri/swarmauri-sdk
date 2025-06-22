@@ -7,7 +7,7 @@ from typing import Optional
 
 import httpx
 
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 

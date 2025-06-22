@@ -9,7 +9,7 @@ from typing import Optional
 import httpx
 import typer
 
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")

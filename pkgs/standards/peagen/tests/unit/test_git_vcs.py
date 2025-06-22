@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 from peagen.plugins.vcs import GitVCS, pea_ref
-from peagen.secrets import SecretDriverBase
+from peagen.plugins.secret_drivers import SecretDriverBase
 
 
 def test_gitvcs_promote(tmp_path: Path):

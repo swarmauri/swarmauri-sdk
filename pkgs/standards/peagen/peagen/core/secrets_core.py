@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import httpx
 
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"

@@ -8,7 +8,7 @@ from typing import Optional
 import httpx
 import typer
 
-from peagen.secrets import AutoGpgDriver
+from peagen.plugins.secret_drivers import AutoGpgDriver
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
