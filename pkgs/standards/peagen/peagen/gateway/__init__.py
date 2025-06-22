@@ -70,6 +70,14 @@ app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
 READY = False
 
+
+@app.middleware("http")
+async def _log_ip(request: Request, call_next):
+    """Log the originating IP for every HTTP request."""
+    log.info("%s %s from %s", request.method, request.url.path, request.client.host)
+    return await call_next(request)
+
+
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
 READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
