@@ -30,6 +30,7 @@ DEFAULT_GATEWAY = (
 #DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"] 
 
 
+
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
 
@@ -47,14 +48,18 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {"pool": task.pool, "payload": task.payload},
+        "params": {
+            "pool": task.pool,
+            "payload": task.payload,
+            "taskId": task.id,
+        },
     }
     resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
     resp.raise_for_status()
     data = resp.json()
     if data.get("error"):
         raise RuntimeError(data["error"])
-    return str(data.get("id", task.id))
+    return str(data.get("result", {}).get("taskId", task.id))
 
 
 @local_db_app.command("upgrade")
