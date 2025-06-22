@@ -4,14 +4,10 @@ from typing import Any, Dict, Optional, Union, Literal
 from pydantic import BaseModel, Field
 
 
-class RPCError(Exception, BaseModel):
+class RPCError(BaseModel):
     code: int = Field(..., example=-32601)
     message: str = Field(..., example="Method not found")
     data: Optional[Any] = Field(None, example={"detail": "extra info"})
-
-    def __init__(self, **data):
-        BaseModel.__init__(self, **data)
-        Exception.__init__(self, self.message)
 
 
 class RPCRequest(BaseModel):
