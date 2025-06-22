@@ -77,6 +77,7 @@ class Secret(Base, _TenantBase):
 
     __table_args__ = (
         UniqueConstraint("tenant_id", "name", name="uq_secrets_tenant_name"),
+        {"extend_existing": True},
     )
 
 
