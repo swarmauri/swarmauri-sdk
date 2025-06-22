@@ -11,7 +11,8 @@ def upgrade() -> None:
     """Add ``waiting`` to the enum and migrate rows."""
 
     bind = op.get_bind()
-    bind.execute(sa.text("ALTER TYPE status ADD VALUE IF NOT EXISTS 'waiting'"))
+    if bind.dialect.name == "postgresql":
+        bind.execute(sa.text("ALTER TYPE status ADD VALUE IF NOT EXISTS 'waiting'"))
     bind.execute(
         sa.text("UPDATE task_runs SET status='waiting' WHERE status='pending'")
     )
