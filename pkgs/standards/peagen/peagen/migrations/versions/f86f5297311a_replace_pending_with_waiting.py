@@ -8,13 +8,18 @@ depends_on = None
 
 
 def upgrade() -> None:
+    """Add ``waiting`` to the enum and migrate rows."""
+
     bind = op.get_bind()
+    bind.execute(sa.text("ALTER TYPE status ADD VALUE IF NOT EXISTS 'waiting'"))
     bind.execute(
         sa.text("UPDATE task_runs SET status='waiting' WHERE status='pending'")
     )
 
 
 def downgrade() -> None:
+    """Revert row updates; keep enum values intact."""
+
     bind = op.get_bind()
     bind.execute(
         sa.text("UPDATE task_runs SET status='pending' WHERE status='waiting'")
