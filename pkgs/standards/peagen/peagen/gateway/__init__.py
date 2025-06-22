@@ -42,8 +42,6 @@ from peagen.gateway.db_helpers import (
 import peagen.defaults as defaults
 from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 _db = reload(_db)
 engine = _db.engine
@@ -226,47 +224,6 @@ async def _flush_state() -> None:
         await queue.client.aclose()
 
 
-async def _reload_state() -> None:
-    """Load non-terminal tasks from Postgres back into Redis queues."""
-
-    print('entering _reload_state')
-    if engine.url.get_backend_name() == "sqlite":
-        return
-    async with Session() as session:
-        rows = (
-            (
-                await session.execute(
-                    select(TaskRun).options(selectinload(TaskRun._deps_rel))
-                )
-            )
-            .scalars()
-            .all()
-        )
-    for row in rows:
-        if Status.is_terminal(row.status):
-            continue
-        task = Task(
-            id=str(row.id),
-            pool=row.pool,
-            payload=row.payload,
-            status=Status(row.status),
-            result=row.result,
-            deps=row.deps,
-            edge_pred=row.edge_pred,
-            labels=row.labels,
-            in_degree=row.in_degree,
-            config_toml=row.config_toml,
-            started_at=row.started_at.timestamp() if row.started_at else None,
-            finished_at=row.finished_at.timestamp() if row.finished_at else None,
-        )
-        print('_reload_state:', 'saving...')
-        await _save_task(task)
-        await queue.sadd("pools", task.pool)
-        await queue.rpush(f"{READY_QUEUE}:{task.pool}", task.model_dump_json())
-        await _publish_queue_length(task.pool)
-        print('_reload_state:', 'exiting')
-
-
 async def _publish_task(task: Task) -> None:
     data = task.model_dump()
     if task.duration is not None:
@@ -301,7 +258,6 @@ async def _finalize_parent_tasks(child_id: str) -> None:
 
 async def _backlog_scanner(interval: float = 5.0) -> None:
     """Periodically run `_finalize_parent_tasks` to clear any backlog."""
-    print('_backlog_scanner started')
     log.info("backlog scanner started")
     while True:
         keys = await queue.keys("task:*")
@@ -797,10 +753,12 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
+    log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
         log.error("migration failed: %s", result.get("error"))
         raise RuntimeError(result.get("error"))
+    log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
         await ensure_status_enum(engine)
@@ -808,18 +766,21 @@ async def _on_start():
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
+        log.info("SQLite metadata initialized")
 
-    print('past alembic')
-    # await _reload_state()
-    print('past state')
+    log.info("database migrations complete")
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
-    print('asyncio good')
+    log.info("scheduler and backlog scanner started")
     global READY
     READY = True
+    log.info("gateway startup complete")
 
 
 @app.on_event("shutdown")
 async def _on_shutdown() -> None:
+    log.info("gateway shutdown initiated")
     await _flush_state()
+    log.info("state flushed to persistent storage")
     await engine.dispose()
+    log.info("database connections closed")
