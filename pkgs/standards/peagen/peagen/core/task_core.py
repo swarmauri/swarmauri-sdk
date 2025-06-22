@@ -19,7 +19,7 @@ async def get_task_result(task_id: str) -> Dict:
 
         {"status": "running|finished|failed",
          "result":        {... or None},
-         "artifact_uri":  "... or None",
+         "oids":         [... or None],
          "started_at":    "2025-06-04T12:34:56Z" | None,
          "finished_at":   "... | None"}
     """
@@ -31,7 +31,7 @@ async def get_task_result(task_id: str) -> Dict:
         return {
             "status": tr.status,
             "result": tr.result,
-            "artifact_uri": tr.artifact_uri,
+            "oids": tr.oids,
             "commit_hexsha": tr.commit_hexsha,
             "started_at": tr.started_at.isoformat() if tr.started_at else None,
             "finished_at": tr.finished_at.isoformat() if tr.finished_at else None,

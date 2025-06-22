@@ -157,7 +157,7 @@ def test_process_single_project_integration(
         "agent_env": {},
     }
 
-    sorted_records, next_idx, commit_sha = process_single_project(
+    sorted_records, next_idx, commit_sha, oids = process_single_project(
         project=project,
         cfg=cfg,
         start_idx=0,
@@ -168,6 +168,7 @@ def test_process_single_project_integration(
     # Expect one record
     assert len(sorted_records) == 1
     rec = sorted_records[0]
+    assert isinstance(oids, list)
 
     # Check that the file was written
     out_file = Path.cwd() / project["NAME"] / rec["RENDERED_FILE_NAME"]
