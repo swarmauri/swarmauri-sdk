@@ -380,6 +380,13 @@ async def rpc_endpoint(request: Request):
         raw = await request.json()
     except JSONDecodeError:
         log.warning("parse error from %s", request.client.host)
+        async with Session() as session:
+            count = await record_unknown_handler(session, ip)
+        if count >= BAN_THRESHOLD:
+            BANNED_IPS.add(ip)
+            async with Session() as session:
+                await mark_ip_banned(session, ip)
+            log.warning("banned ip %s", ip)
         return Response(
             content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
             status_code=400,
