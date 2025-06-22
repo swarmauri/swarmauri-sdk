@@ -95,6 +95,12 @@ WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
+# ─────────────────────────── IP tracking ─────────────────────────
+BAN_THRESHOLD = 10
+KNOWN_IPS: set[str] = set()
+UNKNOWN_HANDLER_COUNT: dict[str, int] = {}
+BANNED_IPS: set[str] = set()
+
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
     """
@@ -277,6 +283,15 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
+    ip = request.client.host
+    KNOWN_IPS.add(ip)
+    if ip in BANNED_IPS:
+        log.warning("blocked request from banned ip %s", ip)
+        return Response(
+            content='{"jsonrpc":"2.0","error":{"code":-32098,"message":"Banned"},"id":null}',
+            status_code=403,
+            media_type="application/json",
+        )
     try:
         raw = await request.json()
     except JSONDecodeError:
@@ -299,9 +314,23 @@ async def rpc_endpoint(request: Request):
 
     log.debug("RPC in  <- %s", payload)
     resp = await rpc.dispatch(payload)
+
+    def _check_unknown(r: dict) -> None:
+        if r.get("error", {}).get("code") == -32601:
+            count = UNKNOWN_HANDLER_COUNT.get(ip, 0) + 1
+            UNKNOWN_HANDLER_COUNT[ip] = count
+            if count >= BAN_THRESHOLD:
+                BANNED_IPS.add(ip)
+                log.warning("banned ip %s", ip)
+
     if isinstance(resp, dict) and "error" in resp:
         method = payload.get("method") if isinstance(payload, dict) else "batch"
         log.warning(f"{method} '{resp['error']}'")
+        _check_unknown(resp)
+    elif isinstance(resp, list):
+        for r in resp:
+            if isinstance(r, dict) and "error" in r:
+                _check_unknown(r)
     log.debug("RPC out -> %s", resp)
     return resp
 
