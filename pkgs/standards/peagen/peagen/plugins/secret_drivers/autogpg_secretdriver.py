@@ -65,11 +65,14 @@ class AutoGpgDriver(SecretDriverBase):
         keys = [self.public]
         for r in recipients:
             k = pgpy.PGPKey()
-            p = Path(r)
-            if p.exists():
-                k.parse(p.read_text())
-            else:
-                k.parse(r)
+            try:
+                p = Path(r)
+                if p.exists():
+                    k.parse(p.read_text())
+                else:
+                    raise OSError
+            except OSError:
+                k.parse(str(r))
             keys.append(k)
         sessionkey = SymmetricKeyAlgorithm.AES256.gen_key()
         enc_msg = msg

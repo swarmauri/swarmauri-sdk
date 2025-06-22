@@ -117,7 +117,7 @@ def test_remote_add_posts(monkeypatch):
         gateway_url="http://gw",
     )
     assert posted["json"]["params"]["secret"].startswith("enc:")
-    assert posted["json"]["params"]["id"] == "ID"
+    assert posted["json"]["params"]["name"] == "ID"
     assert posted["json"]["params"]["version"] == 1
 
 
@@ -161,5 +161,5 @@ def test_remote_remove(monkeypatch):
     assert posted["json"] == {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"id": "ID", "version": 2},
+        "params": {"name": "ID", "version": 2},
     }

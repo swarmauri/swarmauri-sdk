@@ -33,14 +33,12 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     keys = []
     for w in workers:
         advert = w.get("advertises") or {}
-        if isinstance(advert, str):
+        if isinstance(advert, str):  # gateway may return JSON string
             try:
                 advert = json.loads(advert)
-            except Exception:
+            except Exception:  # pragma: no cover - invalid JSON
                 advert = {}
-        key = None
-        if isinstance(advert, dict):
-            key = advert.get("public_key") or advert.get("pubkey")
+        key = advert.get("public_key") or advert.get("pubkey")
         if key:
             keys.append(key)
     return keys
