@@ -4,8 +4,21 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from peagen.gateway.db import engine
+from sqlalchemy.ext.asyncio import create_async_engine
+from peagen.gateway.runtime_cfg import settings
 from peagen.models import Base
+
+if settings.pg_host and settings.pg_db and settings.pg_user:
+    dsn = settings.apg_dsn
+else:
+    dsn = "sqlite+aiosqlite:///./gateway.db"
+
+engine = create_async_engine(
+    dsn,
+    pool_size=10,
+    max_overflow=20,
+    echo=False,
+)
 
 config = context.config
 if config.config_file_name is not None:
