@@ -10,9 +10,11 @@ import typer
 from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
 
-# ``alembic.ini`` lives in the package root next to ``migrations``. Using
-# ``parents[2]`` works whether running from source or an installed wheel.
-ALEMBIC_CFG = Path(__file__).resolve().parents[2] / "alembic.ini"
+# ``alembic.ini`` lives in ``pkgs/standards/peagen`` next to ``migrations``.
+# ``db.py`` sits under ``peagen/cli/commands``. Climbing three directories
+# resolves to the package root whether running from source or an installed
+# wheel.
+ALEMBIC_CFG = Path(__file__).resolve().parents[3] / "alembic.ini"
 
 local_db_app = typer.Typer(help="Database utilities.")
 
