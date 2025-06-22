@@ -137,8 +137,8 @@ class GithubReleaseStorageAdapter:
             name = asset.name
             if name.startswith(full.rstrip("/")):
                 key = name
-                if self._prefix and key.startswith(self._prefix.rstrip('/') + '/'):
-                    key = key[len(self._prefix.rstrip('/')) + 1 :]
+                if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
+                    key = key[len(self._prefix.rstrip("/")) + 1 :]
                 yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
@@ -162,11 +162,7 @@ class GithubReleaseStorageAdapter:
         prefix = rest[0] if rest else ""
 
         cfg = load_peagen_toml()
-        gh_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("gh_release", {})
-        )
+        gh_cfg = cfg.get("storage", {}).get("adapters", {}).get("gh_release", {})
 
         token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 
@@ -177,5 +173,6 @@ class GithubReleaseStorageAdapter:
             tag=tag,
             prefix=prefix,
         )
+
 
 __all__ = ["GithubReleaseStorageAdapter"]

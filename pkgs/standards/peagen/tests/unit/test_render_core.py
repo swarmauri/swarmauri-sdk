@@ -36,4 +36,3 @@ def test_render_generate_template_renders_jinja(tmp_path, monkeypatch):
 
     assert result == "response"
     assert captured["prompt"] == "Hello World"
-

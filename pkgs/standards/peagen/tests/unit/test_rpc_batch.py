@@ -1,6 +1,7 @@
 import pytest
 from peagen.transport import RPCDispatcher
 
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_rpc_batch_dispatch():
@@ -16,4 +17,3 @@ async def test_rpc_batch_dispatch():
     ]
     resp = await rpc.dispatch(req)
     assert [r["result"] for r in resp] == ["a", "b"]
-

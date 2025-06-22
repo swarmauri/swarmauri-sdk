@@ -28,6 +28,7 @@ _ENV_PATTERN = re.compile(r'"?\${([^}]+)}"?')
 
 def _expand_env_in_text(text: str) -> str:
     """Replace ${VAR} placeholders in raw text before TOML parsing."""
+
     def repl(match: re.Match[str]) -> str:
         var = match.group(1)
         placeholder = match.group(0)
@@ -51,7 +52,6 @@ def _expand_env_vars(obj: Any) -> Any:
         if match:
             return os.environ.get(match.group(1), obj)
     return obj
-
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -80,14 +80,16 @@ def load_peagen_toml(
 
 
 # ─────────────────────────────── .peagen override ────────────────────────────
-def _effective_cfg(cfg_path: Optional[Path], *, required: bool = True) -> Dict[str, Any]:
+def _effective_cfg(
+    cfg_path: Optional[Path], *, required: bool = True
+) -> Dict[str, Any]:
     """
     Load the TOML file *only if* the caller supplied an explicit
-    `--config/-c` path.  
-    • If the path is a directory, look for `.peagen.toml` inside it.  
+    `--config/-c` path.
+    • If the path is a directory, look for `.peagen.toml` inside it.
     • If no path is given, we return an **empty dict** (no implicit fallback).
     """
-    if cfg_path is None:                       # ← no config provided
+    if cfg_path is None:  # ← no config provided
         return {}
 
     p = Path(cfg_path)
@@ -96,7 +98,7 @@ def _effective_cfg(cfg_path: Optional[Path], *, required: bool = True) -> Dict[s
             raise FileNotFoundError(f"{p!s} is required on this host")
         return {}
 
-    if cfg_path.is_dir():                      # allow “-c ./some/dir”
+    if cfg_path.is_dir():  # allow “-c ./some/dir”
         cfg_path = cfg_path / ".peagen.toml"
 
     # require_file=True so we fail fast on a bad path
@@ -106,15 +108,16 @@ def _effective_cfg(cfg_path: Optional[Path], *, required: bool = True) -> Dict[s
 # ────────────────────────────────────────────────────────────────────────────
 # 3. Public merge helper – replaces the old _resolve_cfg
 # ────────────────────────────────────────────────────────────────────────────
-def resolve_cfg(*, toml_text: dict | str | None = None,
-                toml_path: str = ".peagen.toml") -> dict:
+def resolve_cfg(
+    *, toml_text: dict | str | None = None, toml_path: str = ".peagen.toml"
+) -> dict:
     """
     FINAL MERGE ORDER  ➜  built-ins  <  host file  <  task override
     """
-    cfg = deepcopy(builtins.CONFIG)                              # ① built-ins
+    cfg = deepcopy(builtins.CONFIG)  # ① built-ins
 
     cfg = _merge(cfg, load_peagen_toml(toml_path))  # ② merge host cfg
-    if toml_text:                                                   # ③ per-task
+    if toml_text:  # ③ per-task
         override = toml.loads(toml_text) if isinstance(toml_text, str) else toml_text
         cfg = _merge(cfg, override)
     return cfg
@@ -125,7 +128,7 @@ def _merge(a: dict, b: dict) -> dict:
     out = deepcopy(a)
     for k, v in b.items():
         if k in out and isinstance(out[k], dict) and isinstance(v, dict):
-            out[k] = _merge(out[k], v)           # nested dict → recurse
+            out[k] = _merge(out[k], v)  # nested dict → recurse
         else:
-            out[k] = deepcopy(v)                 # overwrite / add
+            out[k] = deepcopy(v)  # overwrite / add
     return out

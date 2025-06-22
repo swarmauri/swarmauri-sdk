@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import importlib.metadata as im
@@ -45,6 +44,7 @@ def discover_template_sets() -> Dict[str, List[Path]]:
 # List
 # ---------------------------------------------------------------------------
 
+
 def list_template_sets() -> Dict[str, Any]:
     """Return information about all discovered template sets."""
     discovered = discover_template_sets()
@@ -58,6 +58,7 @@ def list_template_sets() -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Show
 # ---------------------------------------------------------------------------
+
 
 def show_template_set(name: str) -> Dict[str, Any]:
     """Return detailed info for one template set."""
@@ -74,6 +75,7 @@ def show_template_set(name: str) -> Dict[str, Any]:
         for fp in base.rglob("*"):
             if fp.is_file():
                 yield str(fp.relative_to(base))
+
     info["files"] = list(_iter_files(primary))
     return info
 
@@ -81,6 +83,7 @@ def show_template_set(name: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Add
 # ---------------------------------------------------------------------------
+
 
 def add_template_set(
     source: str,
@@ -136,6 +139,7 @@ def add_template_set(
 # ---------------------------------------------------------------------------
 # Remove
 # ---------------------------------------------------------------------------
+
 
 def remove_template_set(
     name: str,

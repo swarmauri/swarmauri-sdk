@@ -29,4 +29,3 @@ class WorkersView(DataTable):
                 str(info.get("url", "")),
                 ts_str,
             )
-

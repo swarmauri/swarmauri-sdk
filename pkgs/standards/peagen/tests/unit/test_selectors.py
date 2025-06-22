@@ -15,9 +15,33 @@ from peagen.models.task_run import TaskRun, Status
 async def test_result_backend_selector_picks_leader_and_running_candidates():
     backend = InMemoryResultBackend()
     tenant = uuid.uuid4()
-    tr1 = TaskRun(id=uuid.uuid4(), tenant_id=tenant, pool="p", task_type="t", status=Status.running, payload={}, result=None)
-    tr2 = TaskRun(id=uuid.uuid4(), tenant_id=tenant, pool="p", task_type="t", status=Status.success, payload={}, result={"score": 1})
-    tr3 = TaskRun(id=uuid.uuid4(), tenant_id=tenant, pool="p", task_type="t", status=Status.running, payload={}, result=None)
+    tr1 = TaskRun(
+        id=uuid.uuid4(),
+        tenant_id=tenant,
+        pool="p",
+        task_type="t",
+        status=Status.running,
+        payload={},
+        result=None,
+    )
+    tr2 = TaskRun(
+        id=uuid.uuid4(),
+        tenant_id=tenant,
+        pool="p",
+        task_type="t",
+        status=Status.success,
+        payload={},
+        result={"score": 1},
+    )
+    tr3 = TaskRun(
+        id=uuid.uuid4(),
+        tenant_id=tenant,
+        pool="p",
+        task_type="t",
+        status=Status.running,
+        payload={},
+        result=None,
+    )
     await backend.store(tr1)
     await backend.store(tr2)
     await backend.store(tr3)
@@ -34,7 +58,15 @@ async def test_result_backend_selector_picks_leader_and_running_candidates():
 @pytest.mark.asyncio
 async def test_bootstrap_selector_switches_after_first_call():
     backend = InMemoryResultBackend()
-    tr = TaskRun(id=uuid.uuid4(), tenant_id=uuid.uuid4(), pool="p", task_type="t", status=Status.running, payload={}, result=None)
+    tr = TaskRun(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        pool="p",
+        task_type="t",
+        status=Status.running,
+        payload={},
+        result=None,
+    )
     await backend.store(tr)
     selector = BootstrapSelector(backend, bootstrap=[{"id": "boot"}], num_candidates=1)
 
@@ -49,7 +81,15 @@ async def test_bootstrap_selector_switches_after_first_call():
 @pytest.mark.asyncio
 async def test_input_selector_uses_initial_candidate_once():
     backend = InMemoryResultBackend()
-    tr = TaskRun(id=uuid.uuid4(), tenant_id=uuid.uuid4(), pool="p", task_type="t", status=Status.running, payload={}, result=None)
+    tr = TaskRun(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        pool="p",
+        task_type="t",
+        status=Status.running,
+        payload={},
+        result=None,
+    )
     await backend.store(tr)
 
     selector = InputSelector(backend, {"id": "user"}, num_candidates=1)

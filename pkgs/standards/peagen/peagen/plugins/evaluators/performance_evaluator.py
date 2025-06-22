@@ -22,7 +22,13 @@ class PerformanceEvaluator(EvaluatorBase):
 
     type: Literal["PerformanceEvaluator"] = "PerformanceEvaluator"
 
-    def __init__(self, import_path: str, entry_fn: str, profile_mod: str | None = None, **data: Any) -> None:
+    def __init__(
+        self,
+        import_path: str,
+        entry_fn: str,
+        profile_mod: str | None = None,
+        **data: Any,
+    ) -> None:
         super().__init__(**data)
         self.import_path = import_path
         self.entry_fn = entry_fn
@@ -59,7 +65,9 @@ class PerformanceEvaluator(EvaluatorBase):
         return ms, peak
 
     # ------------------------------------------------------------------
-    def _compute_score(self, program: Program, **kwargs: Any) -> Tuple[float, Dict[str, Any]]:
+    def _compute_score(
+        self, program: Program, **kwargs: Any
+    ) -> Tuple[float, Dict[str, Any]]:
         tmp_dir = tempfile.mkdtemp()
         try:
             for rel, text in program.get_source_files().items():
@@ -77,4 +85,3 @@ class PerformanceEvaluator(EvaluatorBase):
         finally:
             sys.path.pop(0)
             shutil.rmtree(tmp_dir, ignore_errors=True)
-

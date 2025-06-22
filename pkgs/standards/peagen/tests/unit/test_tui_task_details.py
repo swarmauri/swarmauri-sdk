@@ -24,6 +24,7 @@ class DummyTable:
     def get_row_at(self, row):
         class Row:
             key = self.key
+
         return Row()
 
     def get_cell_at(self, row, col):
@@ -126,6 +127,6 @@ def test_on_select_changed_updates_filters(select_id, attr, value):
 
     event = DummyChanged(select_id, value)
     import asyncio
+
     asyncio.run(app.on_select_changed(event))
     assert getattr(app, attr) == value
-
