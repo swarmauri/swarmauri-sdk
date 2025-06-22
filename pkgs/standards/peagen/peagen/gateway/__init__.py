@@ -803,9 +803,13 @@ async def _on_start():
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
+
+    print('past alembic')
     await _reload_state()
+    print('past state')
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
+    print('asyncio good')
     global READY
     READY = True
 
