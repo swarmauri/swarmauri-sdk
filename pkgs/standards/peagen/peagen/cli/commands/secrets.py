@@ -65,11 +65,13 @@ def remote_add(
     ctx: typer.Context,
     name: str,
     value: str,
+    recipients: List[Path] = typer.Option([], "--recipients"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
     drv = AutoGpgDriver()
-    cipher = drv.encrypt(value.encode(), []).decode()
+    pubkeys = [p.read_text() for p in recipients]
+    cipher = drv.encrypt(value.encode(), pubkeys).decode()
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
