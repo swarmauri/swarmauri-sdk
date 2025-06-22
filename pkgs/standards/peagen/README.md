@@ -233,8 +233,8 @@ and evaluator-pool variations.
 
 ### `peagen db upgrade`
 
-Apply Alembic migrations to the latest version. The gateway automatically runs
-this step on startup, but the command is available for manual upgrades.
+Apply Alembic migrations to the latest version. Run this command before
+starting the gateway to ensure the database schema is current.
 
 ```bash
 peagen db upgrade
