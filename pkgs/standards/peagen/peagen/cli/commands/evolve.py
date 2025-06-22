@@ -139,6 +139,6 @@ def submit(
         while True:
             task_reply = _rpc_call()
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"finished", "failed"}:
+            if Status.is_terminal(task_reply["status"]):
                 break
             time.sleep(interval)
