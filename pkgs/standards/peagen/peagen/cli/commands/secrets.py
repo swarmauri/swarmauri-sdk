@@ -90,11 +90,12 @@ def remote_add(
     version: int = typer.Option(0, "--version"),
     recipient: List[Path] = typer.Option([], "--recipient"),
     pool: str = typer.Option("default", "--pool"),
-
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
-    gateway_url = gateway_url.rstrip("/") + "/rpc"
+    gateway_url = gateway_url.rstrip("/")
+    if not gateway_url.endswith("/rpc"):
+        gateway_url += "/rpc"
     drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
@@ -105,11 +106,13 @@ def remote_add(
         "params": {"id": secret_id, "secret": cipher, "version": version},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    if res.status_code >= 400:
-        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+    if getattr(res, "status_code", 200) >= 400:
+        typer.echo(
+            f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
+            err=True,
+        )
         raise typer.Exit(1)
-    typer.echo(f"Uploaded secret {name}")
-
+    typer.echo(f"Uploaded secret {secret_id}")
 
 
 @remote_secrets_app.command("get")
@@ -119,7 +122,9 @@ def remote_get(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
-    gateway_url = gateway_url.rstrip("/") + "/rpc"
+    gateway_url = gateway_url.rstrip("/")
+    if not gateway_url.endswith("/rpc"):
+        gateway_url += "/rpc"
     drv = AutoGpgDriver()
     envelope = {
         "jsonrpc": "2.0",
@@ -127,8 +132,11 @@ def remote_get(
         "params": {"id": secret_id},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    if res.status_code >= 400:
-        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+    if getattr(res, "status_code", 200) >= 400:
+        typer.echo(
+            f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
+            err=True,
+        )
         raise typer.Exit(1)
     cipher = res.json()["result"]["secret"].encode()
     typer.echo(drv.decrypt(cipher).decode())
@@ -142,7 +150,9 @@ def remote_remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Delete a secret on the gateway."""
-    gateway_url = gateway_url.rstrip("/") + "/rpc"
+    gateway_url = gateway_url.rstrip("/")
+    if not gateway_url.endswith("/rpc"):
+        gateway_url += "/rpc"
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
@@ -150,8 +160,10 @@ def remote_remove(
     }
 
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    if res.status_code >= 400:
-        typer.echo(f"Error {res.status_code}: {res.text}", err=True)
+    if getattr(res, "status_code", 200) >= 400:
+        typer.echo(
+            f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
+            err=True,
+        )
         raise typer.Exit(1)
-    typer.echo(f"Removed secret {name}")
-
+    typer.echo(f"Removed secret {secret_id}")

@@ -26,7 +26,9 @@ def login(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Ensure keys exist and upload the public key."""
-    gateway_url = gateway_url.rstrip("/") + "/rpc"
+    gateway_url = gateway_url.rstrip("/")
+    if not gateway_url.endswith("/rpc"):
+        gateway_url += "/rpc"
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     payload = {
