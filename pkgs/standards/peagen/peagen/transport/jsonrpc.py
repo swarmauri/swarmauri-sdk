@@ -3,6 +3,8 @@ from __future__ import annotations
 import inspect
 from typing import Callable, Dict
 
+from .schemas import RPCError
+
 
 class RPCDispatcher:
     """Ultra-light JSON-RPC 2.0 dispatcher (no batching, no notifications)."""
@@ -15,6 +17,7 @@ class RPCDispatcher:
         def decorator(fn: Callable):
             self._methods[name or fn.__name__] = fn
             return fn
+
         return decorator
 
     async def dispatch(self, req: dict | list) -> dict | list:
@@ -35,6 +38,12 @@ class RPCDispatcher:
             if inspect.isawaitable(result):
                 result = await result
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
+        except RPCError as exc:
+            return {
+                "jsonrpc": "2.0",
+                "error": exc.model_dump(),
+                "id": req["id"],
+            }
         except Exception as exc:  # noqa: BLE001
             return self._error(-32000, str(exc), req["id"])
 
