@@ -4,7 +4,7 @@ peagen.gateway
 JSON-RPC gateway with verbose, structured logging.
 
 Drop this file in place of the old gateway.py
-and restart `scripts.dev_gateway`.
+and restart `scripts.dev_gateway`. 
 """
 
 from __future__ import annotations
