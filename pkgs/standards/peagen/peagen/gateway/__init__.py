@@ -247,7 +247,9 @@ async def _finalize_parent_tasks(child_id: str) -> None:
         if not data:
             continue
         parent = Task.model_validate_json(data)
-        children = parent.result.get("children") if parent.result else []
+        children = []
+        if parent.result and isinstance(parent.result, dict):
+            children = parent.result.get("children") or []
         if child_id not in children:
             continue
         all_done = True
