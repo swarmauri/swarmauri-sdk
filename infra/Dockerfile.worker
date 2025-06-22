@@ -27,4 +27,4 @@ ENV \
     DQ_GATEWAY=""\
     PORT="8001"
 
-CMD ["sh", "-c", "alembic -c pkgs/standards/peagen/alembic.ini upgrade head && python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8001, log_level=\"info\")'"]
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8001, log_level=\"info\")'"]
