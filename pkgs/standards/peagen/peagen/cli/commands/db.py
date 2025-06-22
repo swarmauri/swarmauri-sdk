@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import asyncio
 
+from pathlib import Path
+
 import typer
 
-# Lazy import resolves alembic.ini in both source and installed locations
 from peagen.handlers.migrate_handler import migrate_handler
 from peagen.models import Task
-from peagen.core.migrate_core import ALEMBIC_CFG
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
 # When running from source the module sits one directory deeper than
