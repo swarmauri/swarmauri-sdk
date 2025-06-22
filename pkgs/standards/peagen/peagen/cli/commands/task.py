@@ -20,6 +20,7 @@ remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 def get(  # noqa: D401
     ctx: typer.Context,
     task_id: str = typer.Argument(..., help="UUID of the task to query"),
+    tenant_id: str = typer.Option("default", "--tenant-id", help="Tenant scope"),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
@@ -32,7 +33,7 @@ def get(  # noqa: D401
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Task.get",
-            "params": {"taskId": task_id},
+            "params": {"taskId": task_id, "tenantId": tenant_id},
         }
         res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
         return res["result"]

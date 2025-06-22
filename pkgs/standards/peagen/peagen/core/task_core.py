@@ -11,9 +11,10 @@ from typing import Dict
 
 from peagen.gateway.db import Session
 from peagen.models import TaskRun
+from sqlalchemy import select
 
 
-async def get_task_result(task_id: str) -> Dict:
+async def get_task_result(task_id: str, tenant_id: str = "default") -> Dict:
     """
     Return a JSON-serialisable dict:
 
@@ -24,7 +25,10 @@ async def get_task_result(task_id: str) -> Dict:
          "finished_at":   "... | None"}
     """
     async with Session() as s:
-        tr: TaskRun | None = await s.get(TaskRun, task_id)
+        result = await s.execute(
+            select(TaskRun).where(TaskRun.id == task_id, TaskRun.tenant_id == tenant_id)
+        )
+        tr: TaskRun | None = result.scalar_one_or_none()
         if tr is None:
             raise ValueError(f"Task '{task_id}' not found")
 

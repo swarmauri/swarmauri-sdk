@@ -18,5 +18,7 @@ async def task_get_handler(payload: Dict[str, Any]) -> Dict[str, Any]:
         {"taskId": "uuid-str"}
     """
     task_id = payload["taskId"]
+    tenant_id = payload.get("tenantId", "default")
     from peagen.core.task_core import get_task_result
-    return await get_task_result(task_id)
+
+    return await get_task_result(task_id, tenant_id)

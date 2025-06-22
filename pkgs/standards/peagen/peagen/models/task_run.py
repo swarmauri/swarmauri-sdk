@@ -34,6 +34,12 @@ class TaskRun(Base):
     __tablename__ = "task_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("tenants.id"), primary_key=True
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("projects.id"), nullable=True
+    )
     pool: Mapped[str | None] = mapped_column(String)
     task_type: Mapped[str | None] = mapped_column(String)
     status: Mapped[str] = mapped_column(
@@ -79,6 +85,8 @@ class TaskRun(Base):
         """Factory: build a TaskRun row from an in-memory Task object."""
         tr = cls(
             id=task.id,
+            tenant_id=getattr(task, "tenant_id", uuid.UUID(int=0)),
+            project_id=getattr(task, "project_id", None),
             pool=task.pool,
             task_type=task.payload.get("kind", "unknown"),
             status=task.status,
@@ -116,6 +124,8 @@ class TaskRun(Base):
         exclude = set(exclude or ())
         data = {
             "id": self.id,
+            "tenant_id": self.tenant_id,
+            "project_id": self.project_id,
             "pool": self.pool,
             "task_type": self.task_type,
             "status": self.status,
