@@ -1,13 +1,27 @@
 import json
+import os
 import subprocess
 
+import httpx
 import pytest
 
-GATEWAY = "https://gw.peagen.com/rpc"
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+
+
+def _gateway_available(url: str) -> bool:
+    """Return ``True`` if the gateway URL responds successfully."""
+    try:
+        response = httpx.get(url, timeout=5)
+    except Exception:
+        return False
+    return response.status_code < 500
 
 
 @pytest.mark.i9n
 def test_login_and_fetch_keys(tmp_path):
+    if not _gateway_available(GATEWAY):
+        pytest.skip("gateway not reachable")
+
     subprocess.run(
         ["peagen", "login", "--gateway-url", GATEWAY],
         check=True,
@@ -27,6 +41,9 @@ def test_login_and_fetch_keys(tmp_path):
 
 @pytest.mark.i9n
 def test_secret_roundtrip(tmp_path):
+    if not _gateway_available(GATEWAY):
+        pytest.skip("gateway not reachable")
+
     subprocess.run(
         [
             "peagen",
