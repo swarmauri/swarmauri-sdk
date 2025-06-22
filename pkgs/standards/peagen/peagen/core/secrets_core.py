@@ -8,7 +8,8 @@ from typing import List, Optional
 
 import httpx
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
@@ -50,7 +51,10 @@ def add_local_secret(
     name: str, value: str, recipients: List[Path] | None = None
 ) -> None:
     """Encrypt and store a secret locally."""
-    drv = AutoGpgDriver()
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver()
     pubkeys = [p.read_text() for p in recipients or []]
     cipher = drv.encrypt(value.encode(), pubkeys).decode()
     data = _load()
@@ -60,7 +64,10 @@ def add_local_secret(
 
 def get_local_secret(name: str) -> str:
     """Decrypt and return a locally stored secret."""
-    drv = AutoGpgDriver()
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver()
     val = _load().get(name)
     if val is None:
         raise KeyError("Unknown secret")
@@ -84,7 +91,10 @@ def add_remote_secret(
     pool: str = "default",
 ) -> dict:
     """Upload an encrypted secret to the gateway."""
-    drv = AutoGpgDriver()
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver()
     pubs = [p.read_text() for p in recipients or []]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
@@ -100,7 +110,10 @@ def add_remote_secret(
 
 def get_remote_secret(secret_id: str, gateway_url: str = DEFAULT_GATEWAY) -> str:
     """Retrieve and decrypt a secret from the gateway."""
-    drv = AutoGpgDriver()
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver()
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.get",

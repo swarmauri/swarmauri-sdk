@@ -12,7 +12,8 @@ import paramiko
 import pygit2
 
 from git import Repo
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 from .constants import PEAGEN_REFS_PREFIX
 
@@ -157,7 +158,10 @@ class GitVCS:
         res.raise_for_status()
         cipher = res.json()["result"]["secret"].encode()
 
-        drv = AutoGpgDriver()
+        cfg = resolve_cfg()
+        plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+        Driver = resolve_plugin_spec("secrets", plugin_name)
+        drv = Driver()
         key_text = drv.decrypt(cipher).decode()
 
         pkey = paramiko.RSAKey.from_private_key(io.StringIO(key_text))

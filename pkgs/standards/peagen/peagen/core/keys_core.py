@@ -7,7 +7,8 @@ from typing import Optional
 
 import httpx
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -24,7 +25,10 @@ def create_keypair(
     Returns:
         dict: Paths of the generated key files.
     """
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver(key_dir=key_dir, passphrase=passphrase)
     return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
 
 
@@ -33,7 +37,10 @@ def upload_public_key(
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> dict:
     """Upload the local public key to the gateway."""
-    drv = AutoGpgDriver(key_dir=key_dir)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     envelope = {
         "jsonrpc": "2.0",

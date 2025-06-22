@@ -8,7 +8,8 @@ from typing import Optional
 import httpx
 import typer
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -29,7 +30,10 @@ def login(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     payload = {
         "jsonrpc": "2.0",

@@ -173,6 +173,10 @@ result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackend
 bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
 input = "peagen.plugins.selectors.input_selector:InputSelector"
 
+[project.entry-points."peagen.plugins.secret_drivers"]
+autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
+env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
+
 [project.entry-points."peagen.plugins.mutators"]
 default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
 echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"

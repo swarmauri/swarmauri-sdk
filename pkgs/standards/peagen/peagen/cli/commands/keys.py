@@ -9,7 +9,8 @@ from typing import Optional
 import httpx
 import typer
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -23,7 +24,10 @@ def create(
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """Generate a new key pair."""
-    AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    Driver(key_dir=key_dir, passphrase=passphrase)
     typer.echo(f"Created key pair in {key_dir}")
 
 
@@ -34,7 +38,10 @@ def upload(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload the public key to the gateway."""
-    drv = AutoGpgDriver(key_dir=key_dir)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     envelope = {
         "jsonrpc": "2.0",

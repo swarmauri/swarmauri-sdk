@@ -44,5 +44,11 @@ CONFIG = {
         "default_filter": "file",
         "filters": {"file": {"output_dir": "./peagen_artifacts"}},
     },
-    "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
+    "secrets": {
+        "default_secret": "autogpg",
+        "adapters": {
+            "autogpg": {},
+            "env": {"prefix": ""},
+        },
+    },
 }

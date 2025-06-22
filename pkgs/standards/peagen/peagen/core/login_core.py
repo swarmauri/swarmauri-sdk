@@ -7,7 +7,8 @@ from typing import Optional
 
 import httpx
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen import resolve_plugin_spec
+from peagen._utils.config_loader import resolve_cfg
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -27,7 +28,10 @@ def login(
     Returns:
         dict: JSON response from the gateway.
     """
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    cfg = resolve_cfg()
+    plugin_name = cfg.get("secrets", {}).get("default_secret", "autogpg")
+    Driver = resolve_plugin_spec("secrets", plugin_name)
+    drv = Driver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     payload = {
         "jsonrpc": "2.0",
