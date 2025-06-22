@@ -21,7 +21,7 @@ from json.decoder import JSONDecodeError
 from typing import Optional
 
 import pgpy
-from fastapi import Body, FastAPI, Request, Response
+from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCError
@@ -42,6 +42,8 @@ from peagen.gateway.db_helpers import (
 from peagen.core.migrate_core import alembic_upgrade
 import peagen.defaults as defaults
 from peagen.core.task_core import get_task_result
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 _db = reload(_db)
 engine = _db.engine
@@ -64,6 +66,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
+READY = False
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
@@ -205,6 +208,59 @@ async def _publish_event(event_type: str, data: dict) -> None:
         "data": data,
     }
     await queue.publish(PUBSUB_TOPIC, json.dumps(event))
+
+
+async def _flush_state() -> None:
+    """Persist all tasks from Redis to Postgres and close the queue client."""
+    if not queue:
+        return
+    keys = await queue.keys("task:*")
+    for key in keys:
+        data = await queue.hget(key, "blob")
+        if not data:
+            continue
+        task = Task.model_validate_json(data)
+        if result_backend:
+            await result_backend.store(TaskRun.from_task(task))
+    if hasattr(queue, "client"):
+        await queue.client.aclose()
+
+
+async def _reload_state() -> None:
+    """Load non-terminal tasks from Postgres back into Redis queues."""
+    if engine.url.get_backend_name() == "sqlite":
+        return
+    async with Session() as session:
+        rows = (
+            (
+                await session.execute(
+                    select(TaskRun).options(selectinload(TaskRun._deps_rel))
+                )
+            )
+            .scalars()
+            .all()
+        )
+    for row in rows:
+        if Status.is_terminal(row.status):
+            continue
+        task = Task(
+            id=str(row.id),
+            pool=row.pool,
+            payload=row.payload,
+            status=Status(row.status),
+            result=row.result,
+            deps=row.deps,
+            edge_pred=row.edge_pred,
+            labels=row.labels,
+            in_degree=row.in_degree,
+            config_toml=row.config_toml,
+            started_at=row.started_at.timestamp() if row.started_at else None,
+            finished_at=row.finished_at.timestamp() if row.finished_at else None,
+        )
+        await _save_task(task)
+        await queue.sadd("pools", task.pool)
+        await queue.rpush(f"{READY_QUEUE}:{task.pool}", task.model_dump_json())
+        await _publish_queue_length(task.pool)
 
 
 async def _publish_task(task: Task) -> None:
@@ -722,13 +778,15 @@ async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
-@app.get("/health", tags=["health"])
+@app.get("/healthz", tags=["health"])
 async def health() -> dict:
     """
-    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Simple readiness probe. Returns 200 OK once startup tasks complete.
     Docker’s healthcheck will curl this endpoint.
     """
-    return {"status": "ok"}
+    if READY:
+        return {"status": "ok"}
+    raise HTTPException(status_code=503, detail="starting")
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
@@ -744,5 +802,14 @@ async def _on_start():
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
+    await _reload_state()
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
+    global READY
+    READY = True
+
+
+@app.on_event("shutdown")
+async def _on_shutdown() -> None:
+    await _flush_state()
+    await engine.dispose()

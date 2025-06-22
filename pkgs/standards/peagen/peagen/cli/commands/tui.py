@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import typer
 
 from peagen.tui.app import QueueDashboardApp
@@ -16,8 +17,10 @@ def run_dashboard(
         DEFAULT_GATEWAY,
         "--gateway-url",
         help="Base URL of the Peagen gateway",
-    )
+    ),
 ) -> None:
     """Start the dashboard pointed at ``gateway_url``."""
-    QueueDashboardApp(gateway_url=gateway_url).run()
-
+    try:
+        QueueDashboardApp(gateway_url=gateway_url).run()
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        raise typer.Exit(1)
