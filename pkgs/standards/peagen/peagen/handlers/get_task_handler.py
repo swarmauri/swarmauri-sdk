@@ -19,4 +19,5 @@ async def task_get_handler(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     task_id = payload["taskId"]
     from peagen.core.task_core import get_task_result
+
     return await get_task_result(task_id)

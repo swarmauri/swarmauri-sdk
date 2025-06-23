@@ -8,7 +8,10 @@ from swarmauri_standard.loggers.Logger import Logger
 
 logger = Logger(name=__name__)
 
-def _build_jinja_env(cfg: dict, *, workspace_root: str | Path | None = None) -> Environment:
+
+def _build_jinja_env(
+    cfg: dict, *, workspace_root: str | Path | None = None
+) -> Environment:
     """Return a Jinja2 Environment whose loader.searchpath reproduces the
     rules in the original Peagen._setup_env().
     """
@@ -47,7 +50,9 @@ def _build_jinja_env(cfg: dict, *, workspace_root: str | Path | None = None) -> 
             seen.add(p)
 
     if not search_paths:
-        raise RuntimeError("No valid template directories found — check plugin installation and .peagen.toml")
+        raise RuntimeError(
+            "No valid template directories found — check plugin installation and .peagen.toml"
+        )
 
     return Environment(
         loader=FileSystemLoader(search_paths),

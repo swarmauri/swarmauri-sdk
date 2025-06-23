@@ -137,9 +137,12 @@ def _global_remote_ctx(  # noqa: D401
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)
+    gw_url = gateway_url.rstrip("/")
+    if not gw_url.endswith("/rpc"):
+        gw_url += "/rpc"
     ctx.obj.update(
         verbosity=verbose,
-        gateway_url=gateway_url.rstrip("/") + "/rpc",
+        gateway_url=gw_url,
         task_override_inline=override,
         task_override_file=override_file,
         quiet=quiet,

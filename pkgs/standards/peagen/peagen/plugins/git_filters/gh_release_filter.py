@@ -18,7 +18,6 @@ from github import Github, UnknownObjectException
 class GithubReleaseFilter:
     """Git filter that uses GitHub Releases to store and retrieve assets."""
 
-
     def __init__(
         self,
         token: SecretStr,
@@ -86,7 +85,6 @@ class GithubReleaseFilter:
         data.seek(0)
         content = data.read()
 
-
         for asset in self._release.get_assets():
             if asset.name == key:
                 asset.delete_asset()
@@ -102,7 +100,6 @@ class GithubReleaseFilter:
     def download(self, key: str) -> BinaryIO:
         """Return the bytes of asset ``key`` as a BytesIO object."""
         key = self._full_key(key)
-
 
         for asset in self._release.get_assets():
             if asset.name == key:
@@ -134,8 +131,8 @@ class GithubReleaseFilter:
             name = asset.name
             if name.startswith(full.rstrip("/")):
                 key = name
-                if self._prefix and key.startswith(self._prefix.rstrip('/') + '/'):
-                    key = key[len(self._prefix.rstrip('/')) + 1 :]
+                if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
+                    key = key[len(self._prefix.rstrip("/")) + 1 :]
                 yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
@@ -159,11 +156,7 @@ class GithubReleaseFilter:
         prefix = rest[0] if rest else ""
 
         cfg = load_peagen_toml()
-        gh_cfg = (
-            cfg.get("storage", {})
-            .get("filters", {})
-            .get("gh_release", {})
-        )
+        gh_cfg = cfg.get("storage", {}).get("filters", {}).get("gh_release", {})
 
         token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 
@@ -191,5 +184,5 @@ class GithubReleaseFilter:
         with self.download(oid) as fh:
             return fh.read()
 
-__all__ = ["GithubReleaseFilter"]
 
+__all__ = ["GithubReleaseFilter"]

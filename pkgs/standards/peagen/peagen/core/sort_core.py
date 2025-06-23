@@ -27,7 +27,6 @@ from peagen._utils._jinja import _build_jinja_env
 from peagen._utils._template_sets import _locate_template_set
 
 
-
 # --------------------------------------------------------------------------- #
 # 1) Public façade – single-project                                           #
 # --------------------------------------------------------------------------- #

@@ -17,11 +17,7 @@ def test_create_context_builds_nested_structures():
         "PACKAGE_NAME": "pkg1",
         "MODULE_NAME": "modA",
     }
-    project_attrs = {
-        "PACKAGES": [
-            {"NAME": "pkg1", "MODULES": [{"NAME": "modA"}]}
-        ]
-    }
+    project_attrs = {"PACKAGES": [{"NAME": "pkg1", "MODULES": [{"NAME": "modA"}]}]}
     logger = DummyLogger()
     ctx = _create_context(file_record, project_attrs, logger)
     assert ctx["PROJ"] == project_attrs

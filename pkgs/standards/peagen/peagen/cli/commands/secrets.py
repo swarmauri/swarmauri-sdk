@@ -95,9 +95,9 @@ def remote_add(
     version: int = typer.Option(0, "--version"),
     recipient: List[Path] = typer.Option([], "--recipient"),
     pool: str = typer.Option("default", "--pool"),
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
+    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
@@ -120,7 +120,7 @@ def remote_add(
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
             err=True,
-        )
+        
         raise typer.Exit(1)
     typer.echo(f"Uploaded secret {secret_id}")
 
@@ -133,6 +133,7 @@ def remote_get(
     pool: str = typer.Option("default", "--pool"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
+    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
@@ -162,6 +163,7 @@ def remote_remove(
     pool: str = typer.Option("default", "--pool"),
 ) -> None:
     """Delete a secret on the gateway."""
+    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"

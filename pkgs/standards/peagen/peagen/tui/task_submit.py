@@ -25,4 +25,3 @@ def submit_task(gateway_url: str, task: Task) -> dict:
     resp = httpx.post(gateway_url, json=req, timeout=30.0)
     resp.raise_for_status()
     return resp.json()
-

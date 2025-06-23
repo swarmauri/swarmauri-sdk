@@ -29,6 +29,7 @@ logger.set_level(logging.INFO)
 
 load_dotenv()
 
+
 def call_external_agent(
     prompt: str,
     agent_env: Dict[str, str],
@@ -92,8 +93,7 @@ def call_external_agent(
         )
 
     max_tokens = int(
-        agent_env.get("max_tokens")
-        or llm_section.get("default_max_tokens", 8192)
+        agent_env.get("max_tokens") or llm_section.get("default_max_tokens", 8192)
     )
 
     model_name = agent_env.get("model_name") or llm_section.get("default_model_name")

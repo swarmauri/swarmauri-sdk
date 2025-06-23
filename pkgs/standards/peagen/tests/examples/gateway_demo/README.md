@@ -5,7 +5,7 @@ This example demonstrates a minimal setup for running the Peagen gateway and wor
 1. Start the gateway:
 
    ```bash
-   uvicorn peagen.gateway:app --host 0.0.0.0 --port 8000
+   uvicorn peagen.gateway:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips="*"
    ```
 
 2. Launch a worker connected to the gateway:

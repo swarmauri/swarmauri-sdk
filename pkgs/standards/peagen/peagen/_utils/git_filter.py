@@ -7,7 +7,6 @@ import tomllib
 from git import Repo
 
 
-
 def _dump_simple_toml(data: dict) -> str:
     lines = []
     if "storage" in data:
@@ -15,13 +14,13 @@ def _dump_simple_toml(data: dict) -> str:
         lines.append("[storage]")
         for k, v in storage.items():
             if not isinstance(v, dict):
-                lines.append(f"{k} = \"{v}\"")
+                lines.append(f'{k} = "{v}"')
         lines.append("")
         filters = storage.get("filters", {})
         for name, cfg in filters.items():
             lines.append(f"[storage.filters.{name}]")
             for ck, cv in cfg.items():
-                lines.append(f"{ck} = \"{cv}\"")
+                lines.append(f'{ck} = "{cv}"')
             lines.append("")
     return "\n".join(lines)
 
@@ -29,7 +28,9 @@ def _dump_simple_toml(data: dict) -> str:
 DEFAULT_FILTER_URI = "s3://peagen"
 
 
-def add_filter(uri: str | None = None, name: str = "default", config: Path = Path(".peagen.toml")) -> None:
+def add_filter(
+    uri: str | None = None, name: str = "default", config: Path = Path(".peagen.toml")
+) -> None:
     """Add a git filter entry to ``config``.
 
     If *uri* is omitted, ``s3://peagen`` is used with :class:`S3FSFilter`.
@@ -128,4 +129,3 @@ def init_git_filter(
         """
     )
     attr_file.write_text(attr_content, encoding="utf-8")
-

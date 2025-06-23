@@ -182,6 +182,15 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
     • Any value that isn't bytes/str/int/float is json-encoded.
     • last_seen is stored as Unix epoch seconds.
     """
+    key = WORKER_KEY.format(workerId)
+    existing = await queue.hgetall(key)
+    for field in ("advertises", "handlers"):
+        if field not in data and field in existing:
+            try:
+                data[field] = json.loads(existing[field])
+            except Exception:  # noqa: BLE001
+                data[field] = existing[field]
+
     coerced = {}
     for k, v in data.items():
         if isinstance(v, (bytes, str, int, float)):
@@ -190,7 +199,6 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
             coerced[k] = json.dumps(v)  # serialize nested dicts, lists, etc.
 
     coerced["last_seen"] = int(time.time())  # heartbeat timestamp
-    key = WORKER_KEY.format(workerId)  # e.g.  worker:7917b3bd
     await queue.hset(key, mapping=coerced)
     await queue.expire(key, WORKER_TTL)  # <<—— TTL refresh
     # ensure the worker's pool is tracked so WebSocket clients
