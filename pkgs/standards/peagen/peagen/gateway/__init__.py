@@ -869,6 +869,15 @@ async def scheduler():
             # pick a worker that supports the task's action
             worker_list = await _live_workers_by_pool(pool)
             action = task.payload.get("action")
+            if not action:
+                sched_log.warning("task %s missing action; marking failed", task.id)
+                task.status = Status.failed
+                task.finished_at = time.time()
+                await _save_task(task)
+                await _persist(task)
+                await _publish_task(task)
+                continue
+
             target = _pick_worker(worker_list, action)
             if not target:
                 sched_log.info(
