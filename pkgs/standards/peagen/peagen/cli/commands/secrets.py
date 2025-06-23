@@ -108,7 +108,12 @@ def remote_add(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
-        "params": {"name": secret_id, "secret": cipher, "version": version},
+        "params": {
+            "name": secret_id,
+            "secret": cipher,
+            "version": version,
+            "tenant_id": pool,
+        },
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
@@ -125,6 +130,7 @@ def remote_get(
     ctx: typer.Context,
     secret_id: str,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    pool: str = typer.Option("default", "--pool"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
     gateway_url = gateway_url.rstrip("/")
@@ -134,7 +140,7 @@ def remote_get(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.get",
-        "params": {"name": secret_id},
+        "params": {"name": secret_id, "tenant_id": pool},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
@@ -153,6 +159,7 @@ def remote_remove(
     secret_id: str,
     version: int = typer.Option(None, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    pool: str = typer.Option("default", "--pool"),
 ) -> None:
     """Delete a secret on the gateway."""
     gateway_url = gateway_url.rstrip("/")
@@ -161,7 +168,7 @@ def remote_remove(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"name": secret_id, "version": version},
+        "params": {"name": secret_id, "version": version, "tenant_id": pool},
     }
 
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)

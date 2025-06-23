@@ -42,6 +42,7 @@ async def secrets_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
         secret = secrets_core.get_remote_secret(
             args["secret_id"],
             gateway_url=args.get("gateway_url", secrets_core.DEFAULT_GATEWAY),
+            pool=args.get("pool", "default"),
         )
         return {"secret": secret}
 
@@ -50,6 +51,7 @@ async def secrets_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
             args["secret_id"],
             gateway_url=args.get("gateway_url", secrets_core.DEFAULT_GATEWAY),
             version=args.get("version"),
+            pool=args.get("pool", "default"),
         )
 
     raise ValueError(f"Unknown action '{action}'")
