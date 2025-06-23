@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
+import warnings
 
+from cryptography.utils import CryptographyDeprecationWarning
 import pgpy
 from pgpy.constants import (
     CompressionAlgorithm,
@@ -11,8 +13,11 @@ from pgpy.constants import (
     PubKeyAlgorithm,
     SymmetricKeyAlgorithm,
 )
-
 from .base import SecretDriverBase
+
+warnings.filterwarnings(
+    "ignore", category=CryptographyDeprecationWarning, module="pgpy.constants"
+)
 
 
 class AutoGpgDriver(SecretDriverBase):
