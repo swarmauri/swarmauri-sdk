@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, WebSocket
+from starlette.websockets import WebSocketDisconnect
 from redis.asyncio import Redis
 from peagen.gateway.runtime_cfg import settings
 from peagen.defaults import CONFIG as defaults
@@ -49,6 +50,9 @@ async def ws_tasks(ws: WebSocket):
     try:
         async for msg in pubsub.listen():
             if msg["type"] == "message":
-                await ws.send_text(msg["data"])
+                try:
+                    await ws.send_text(msg["data"])
+                except WebSocketDisconnect:
+                    break
     finally:
         await pubsub.unsubscribe(defaults["pubsub"])
