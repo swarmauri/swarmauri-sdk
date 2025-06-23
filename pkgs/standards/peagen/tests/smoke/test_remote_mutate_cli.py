@@ -36,6 +36,8 @@ def test_remote_mutate_submit(tmp_path: str) -> None:
         [
             "peagen",
             "remote",
+            "--gateway-url",
+            GATEWAY,
             "mutate",
             workspace,
             "--target-file",
@@ -46,8 +48,6 @@ def test_remote_mutate_submit(tmp_path: str) -> None:
             "main",
             "--repo",
             repo,
-            "--gateway-url",
-            GATEWAY,
         ],
         capture_output=True,
         text=True,
