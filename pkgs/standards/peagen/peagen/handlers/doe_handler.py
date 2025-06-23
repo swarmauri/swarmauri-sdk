@@ -47,10 +47,7 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         if rel_paths:
             commit_sha = vcs.commit(rel_paths, f"doe {Path(args['spec']).stem}")
             result["commit"] = commit_sha
-            try:
-                vcs.push(vcs.repo.active_branch.name)
-            except Exception:  # pragma: no cover - push may fail
-                pass
+            vcs.push(vcs.repo.active_branch.name)
 
         spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
         if spec_obj.get("baseArtifact"):

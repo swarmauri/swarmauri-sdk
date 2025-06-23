@@ -463,10 +463,7 @@ def process_single_project(
                 oids.append(vcs.blob_oid(rel, ref=commit_sha))
             except Exception:
                 pass
-        try:
-            vcs.push(vcs.repo.active_branch.name)
-        except Exception:  # pragma: no cover - push may fail
-            pass
+        vcs.push(vcs.repo.active_branch.name)
     if logger:
         logger.info(f"========== Completed project '{project_name}' ==========\n")
     return sorted_records, next_idx, commit_sha, oids
