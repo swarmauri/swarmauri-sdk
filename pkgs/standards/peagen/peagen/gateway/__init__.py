@@ -371,10 +371,33 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
         await asyncio.sleep(interval)
 
 
+# ────────────────────── client IP extraction ─────────────────────
+
+
+def _get_client_ip(request: Request) -> str:
+    """Return the client's real IP address.
+
+    The function checks standard forwarding headers first and falls back to
+    ``request.client.host`` when none are present.
+
+    Args:
+        request: Incoming FastAPI request.
+
+    Returns:
+        str: The detected client IP address.
+    """
+
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    real_ip = request.headers.get("x-real-ip")
+    return real_ip if real_ip else request.client.host
+
+
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
-    ip = request.client.host
+    ip = _get_client_ip(request)
     KNOWN_IPS.add(ip)
     if ip in BANNED_IPS:
         log.warning("blocked request from banned ip %s", ip)
