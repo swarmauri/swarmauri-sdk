@@ -56,7 +56,13 @@ TASK_KEY = defaults.CONFIG["task_key"]
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 log = Logger(
-    name="uvicorn",
+    name="gw",
+    default_level=getattr(logging, LOG_LEVEL, logging.INFO),
+)
+
+# dedicated logger for the scheduler loop
+sched_log = Logger(
+    name="scheduler",
     default_level=getattr(logging, LOG_LEVEL, logging.INFO),
 )
 
@@ -155,7 +161,6 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
             if item.get("method") is None or not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
-
 
     if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
         return await _reject(
@@ -539,7 +544,6 @@ async def task_submit(
         handlers.update(raw)
     if action is not None and action not in handlers:
         raise RPCException(
-
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
@@ -796,7 +800,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
 
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler():
-    log.info("scheduler started")
+    sched_log.info("scheduler started")
     async with httpx.AsyncClient(timeout=10, http2=True) as client:
         while True:
             # iterate over pools with queued work
@@ -824,7 +828,7 @@ async def scheduler():
             action = task.payload.get("action")
             target = _pick_worker(worker_list, action)
             if not target:
-                log.info(
+                sched_log.info(
                     "no worker for %s:%s, re-queue %s",
                     pool,
                     action,
@@ -850,7 +854,7 @@ async def scheduler():
                 await _save_task(task)
                 await _persist(task)
                 await _publish_task(task)
-                log.info(
+                sched_log.info(
                     "dispatch %s → %s (HTTP %d)",
                     task.id,
                     target["url"],
@@ -858,7 +862,9 @@ async def scheduler():
                 )
 
             except Exception as exc:
-                log.warning("dispatch failed (%s) for %s; re-queueing", exc, task.id)
+                sched_log.warning(
+                    "dispatch failed (%s) for %s; re-queueing", exc, task.id
+                )
                 await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
 
