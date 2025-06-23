@@ -19,6 +19,7 @@ from textual.widget import NoMatches
 from textual.widgets import (
     DataTable,
     Header,
+    Input,
     Label,  # Added Label
     Select,
     TabbedContent,
@@ -387,6 +388,19 @@ class QueueDashboardApp(App):
         elif event.control.id == "filter_label":
             if self.filter_label != value:
                 self.filter_label = value
+                filter_changed = True
+
+        if filter_changed:
+            self.trigger_data_processing()
+
+    async def on_input_changed(self, event: Input.Changed) -> None:
+        event.stop()
+        value = event.value.strip() if event.value else None
+        filter_changed = False
+
+        if event.input.id == "filter_id":
+            if self.filter_id != value:
+                self.filter_id = value
                 filter_changed = True
 
         if filter_changed:
