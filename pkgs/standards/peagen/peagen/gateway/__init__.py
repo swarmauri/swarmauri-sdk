@@ -217,7 +217,7 @@ async def _publish_queue_length(pool: str) -> None:
 async def _live_workers_by_pool(pool: str) -> list[dict]:
     keys = await queue.keys("worker:*")
     workers = []
-    now = int(asyncio.get_event_loop().time())
+    now = int(time.time())
     for k in keys:
         w = await queue.hgetall(k)
         if not w:  # TTL expired or never registered
@@ -805,7 +805,7 @@ async def worker_list(pool: str | None = None) -> list[dict]:
 
     keys = await queue.keys("worker:*")
     workers = []
-    now = int(asyncio.get_event_loop().time())
+    now = int(time.time())
     for key in keys:
         w = await queue.hgetall(key)
         if not w:
