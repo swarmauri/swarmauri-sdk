@@ -724,8 +724,12 @@ async def task_get(taskId: str):
 
 
 @rpc.method("Pool.listTasks")
-async def pool_list(poolName: str):
-    ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", 0, -1)
+async def pool_list(poolName: str, limit: int | None = None, offset: int = 0):
+    """Return tasks queued for *poolName* with optional pagination."""
+
+    start = max(offset, 0)
+    end = -1 if limit is None else start + limit - 1
+    ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", start, end)
     tasks = []
     for r in ids:
         t = Task.model_validate_json(r)
