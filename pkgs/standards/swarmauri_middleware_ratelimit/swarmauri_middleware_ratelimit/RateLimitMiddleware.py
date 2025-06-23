@@ -112,6 +112,20 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
                 raise ValueError(f"Token not found in header {self.token_header}")
             return token
         else:
-            # Get client IP, handling proxy cases
-            client_ip = request.client.host
-            return client_ip
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                return forwarded.split(",")[0].strip()
+
+            forwarded_header = request.headers.get("Forwarded")
+            if forwarded_header:
+                for part in forwarded_header.split(";"):
+                    part = part.strip()
+                    if part.lower().startswith("for="):
+                        ip = part.split("=", 1)[1].strip().strip('"')
+                        return ip.split(",")[0]
+
+            real_ip = request.headers.get("X-Real-IP")
+            if real_ip:
+                return real_ip.strip()
+
+            return request.client.host

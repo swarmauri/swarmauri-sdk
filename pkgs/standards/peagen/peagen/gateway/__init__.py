@@ -105,6 +105,28 @@ KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
 
 
+def _get_client_ip(request: Request) -> str:
+    """Resolve the client's IP address considering proxy headers."""
+
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    forwarded_header = request.headers.get("Forwarded")
+    if forwarded_header:
+        for part in forwarded_header.split(";"):
+            part = part.strip()
+            if part.lower().startswith("for="):
+                ip = part.split("=", 1)[1].strip().strip('"')
+                return ip.split(",")[0]
+
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
+    return request.client.host
+
+
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
 
@@ -155,7 +177,6 @@ async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
             if item.get("method") is None or not _supports(item.get("method")):
                 return await _reject(ip, item.get("id"), item.get("method"))
         return None
-
 
     if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
         return await _reject(
@@ -369,7 +390,7 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
-    ip = request.client.host
+    ip = _get_client_ip(request)
     KNOWN_IPS.add(ip)
     if ip in BANNED_IPS:
         log.warning("blocked request from banned ip %s", ip)
@@ -381,7 +402,7 @@ async def rpc_endpoint(request: Request):
     try:
         raw = await request.json()
     except JSONDecodeError:
-        log.warning("parse error from %s", request.client.host)
+        log.warning("parse error from %s", ip)
         return Response(
             content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
             status_code=400,
@@ -539,7 +560,6 @@ async def task_submit(
         handlers.update(raw)
     if action is not None and action not in handlers:
         raise RPCException(
-
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
