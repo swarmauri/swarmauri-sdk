@@ -11,7 +11,7 @@ from textual.widgets import Footer
 class DashboardFooter(Footer):
     clock: reactive[str] = reactive("")
     metrics: reactive[str] = reactive("")
-    hint: str = "Tab: switch | S: sort | C: collapse | Esc: clear"
+    hint: str = "Tab: switch | S: sort | C: collapse | Esc: clear | N/P: page"
 
     def on_mount(self) -> None:
         self.set_interval(1.0, self.update_metrics)
