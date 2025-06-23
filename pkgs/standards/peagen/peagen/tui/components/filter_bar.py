@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from textual.widgets import Select
+from textual.widgets import Input, Select
 
 from peagen.models.schemas import Status
 
@@ -51,12 +51,17 @@ class FilterBar(Horizontal):
                 id=definition["filter_id"],
                 compact=True,
             )
+            select_widget.styles.width = 20
             setattr(self, definition["name"], select_widget)
             self._select_widget_configs[select_widget] = {
                 "allow_blank": definition["allow_blank"]
             }
 
+        self.id_input = Input(placeholder="task id", id="filter_id", compact=True)
+        self.id_input.styles.width = 20
+
     def compose(self) -> ComposeResult:
+        yield self.id_input
         yield self.pool_select
         yield self.status_select
         yield self.action_select
@@ -120,3 +125,4 @@ class FilterBar(Horizontal):
         ):
             if self._get_select_allow_blank(select_widget):
                 select_widget.value = Select.BLANK
+        self.id_input.value = ""

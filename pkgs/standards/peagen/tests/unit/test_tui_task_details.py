@@ -113,9 +113,13 @@ def test_on_select_changed_updates_filters(select_id, attr, value):
         def __init__(self, sid):
             self.id = sid
 
+    class DummyInput:
+        def __init__(self, sid):
+            self.id = sid
+
     class DummyChanged:
-        def __init__(self, sid, val):
-            self.select = DummySelect(sid)
+        def __init__(self, control, val):
+            self._control = control
             self.value = val
 
         def stop(self):
@@ -123,10 +127,19 @@ def test_on_select_changed_updates_filters(select_id, attr, value):
 
         @property
         def control(self):
-            return self.select
+            return self._control
 
-    event = DummyChanged(select_id, value)
+        @property
+        def input(self):
+            return self._control
+
+    control_cls = DummyInput if select_id == "filter_id" else DummySelect
+    control = control_cls(select_id)
+    event = DummyChanged(control, value)
     import asyncio
 
-    asyncio.run(app.on_select_changed(event))
+    if select_id == "filter_id":
+        asyncio.run(app.on_input_changed(event))
+    else:
+        asyncio.run(app.on_select_changed(event))
     assert getattr(app, attr) == value
