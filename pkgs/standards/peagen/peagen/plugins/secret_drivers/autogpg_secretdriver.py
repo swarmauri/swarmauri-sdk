@@ -59,7 +59,7 @@ class AutoGpgDriver(SecretDriverBase):
 
     # ─── SecretDriverBase Overrides ──────────────────────────────────────
     def encrypt(self, plaintext: bytes, recipients: Iterable[str]) -> bytes:
-        msg = pgpy.PGPMessage.new(plaintext)
+        msg = pgpy.PGPMessage.new(plaintext, compression=CompressionAlgorithm.ZLIB)
         sig = self.private.sign(msg)
         msg |= sig
         keys = [self.public]
@@ -78,7 +78,10 @@ class AutoGpgDriver(SecretDriverBase):
         enc_msg = msg
         for k in keys:
             enc_msg = k.encrypt(
-                enc_msg, cipher=SymmetricKeyAlgorithm.AES256, sessionkey=sessionkey
+                enc_msg,
+                cipher=SymmetricKeyAlgorithm.AES256,
+                compression=CompressionAlgorithm.ZLIB,
+                sessionkey=sessionkey,
             )
         return bytes(str(enc_msg), "utf-8")
 
