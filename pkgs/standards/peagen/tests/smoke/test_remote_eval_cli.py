@@ -16,7 +16,7 @@ def _gateway_available(url: str) -> bool:
         response = httpx.get(url, timeout=5)
     except Exception:
         return False
-    return response.status_code < 500
+    return response.status_code == 200
 
 
 def _prepare_workspace(src: Path, tmp: Path) -> Path:
@@ -32,6 +32,7 @@ def test_remote_eval_submits_task(tmp_path: Path) -> None:
 
     src = (
         Path(__file__).resolve().parents[2]
+        / "tests"
         / "examples"
         / "peagen_local_demo"
         / "test_workspace"
@@ -64,6 +65,7 @@ def test_remote_eval_returns_json(tmp_path: Path) -> None:
 
     src = (
         Path(__file__).resolve().parents[2]
+        / "tests"
         / "examples"
         / "peagen_local_demo"
         / "test_workspace"

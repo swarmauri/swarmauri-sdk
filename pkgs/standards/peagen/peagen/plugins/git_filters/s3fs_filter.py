@@ -107,11 +107,7 @@ class S3FSFilter:
         prefix = p.path.lstrip("/")
 
         cfg = load_peagen_toml()
-        s3_cfg = (
-            cfg.get("storage", {})
-            .get("filters", {})
-            .get("s3fs", {})
-        )
+        s3_cfg = cfg.get("storage", {}).get("filters", {}).get("s3fs", {})
 
         key = s3_cfg.get("key") or os.getenv("AWS_ACCESS_KEY_ID", "")
         secret = s3_cfg.get("secret") or os.getenv("AWS_SECRET_ACCESS_KEY", "")
@@ -130,6 +126,7 @@ class S3FSFilter:
     # ---------------------------------------------------------------- oid helpers
     def clean(self, data: bytes) -> str:
         import hashlib
+
         oid = "sha256:" + hashlib.sha256(data).hexdigest()
         try:
             self.download(oid)
@@ -140,4 +137,6 @@ class S3FSFilter:
     def smudge(self, oid: str) -> bytes:
         with self.download(oid) as fh:
             return fh.read()
+
+
 __all__ = ["S3FSFilter"]

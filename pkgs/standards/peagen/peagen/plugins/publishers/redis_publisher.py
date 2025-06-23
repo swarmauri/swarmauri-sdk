@@ -22,7 +22,9 @@ class RedisPublisher:
         password: Optional[str] = None,
         username: Optional[str] = None,
     ) -> None:
-        individual_opts = any(v is not None for v in (host, port, db, password, username))
+        individual_opts = any(
+            v is not None for v in (host, port, db, password, username)
+        )
         if uri and individual_opts:
             raise ValueError(
                 "Cannot specify both `uri` and individual host/port/db/password/username."

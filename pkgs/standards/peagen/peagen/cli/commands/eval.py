@@ -23,8 +23,13 @@ from peagen.handlers.eval_handler import eval_handler
 from peagen.models import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-local_eval_app = typer.Typer(help="Evaluate workspace programs against an EvaluatorPool.")
-remote_eval_app = typer.Typer(help="Evaluate workspace programs against an EvaluatorPool.")
+local_eval_app = typer.Typer(
+    help="Evaluate workspace programs against an EvaluatorPool."
+)
+remote_eval_app = typer.Typer(
+    help="Evaluate workspace programs against an EvaluatorPool."
+)
+
 
 # ───────────────────────── helpers ─────────────────────────────────────────
 def _build_task(args: dict) -> Task:
@@ -84,12 +89,8 @@ def run(  # noqa: PLR0913 – CLI needs many options
 @remote_eval_app.command("eval")
 def submit(  # noqa: PLR0913
     ctx: typer.Context,
-    workspace_uri: str = typer.Argument(
-        ..., help="Workspace path or URI"
-    ),
-    program_glob: str = typer.Argument(
-        "**/*.*", help="Glob pattern for program files"
-    ),
+    workspace_uri: str = typer.Argument(..., help="Workspace path or URI"),
+    program_glob: str = typer.Argument("**/*.*", help="Glob pattern for program files"),
     pool: Optional[str] = typer.Option(
         None, "--pool", "-p", help="EvaluatorPool reference"
     ),

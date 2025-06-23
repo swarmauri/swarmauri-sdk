@@ -35,4 +35,3 @@ def test_generate_payload_rejects_bad_version(tmp_path: Path):
             dry_run=True,
             skip_validate=True,
         )
-

@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 
 import httpx
 import pytest
@@ -13,7 +14,7 @@ def _gateway_available(url: str) -> bool:
         response = httpx.get(url, timeout=5)
     except Exception:
         return False
-    return response.status_code < 500
+    return response.status_code == 200
 
 
 @pytest.mark.i9n
@@ -22,7 +23,13 @@ def test_remote_mutate_submit(tmp_path: str) -> None:
         pytest.skip("gateway not reachable")
 
     repo = "https://github.com/swarmauri/swarmauri-sdk.git"
-    workspace = "pkgs/standards/peagen/tests/examples/peagen_local_demo/test_workspace"
+    workspace = str(
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "examples"
+        / "peagen_local_demo"
+        / "test_workspace"
+    )
 
     result = subprocess.run(
         [

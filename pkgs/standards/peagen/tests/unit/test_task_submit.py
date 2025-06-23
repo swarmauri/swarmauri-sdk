@@ -33,4 +33,3 @@ def test_submit_task_sends_request(monkeypatch):
     reply = submit_task("http://gw/rpc", task)
     assert captured["json"]["params"]["taskId"] == task.id
     assert reply == {"ok": True}
-

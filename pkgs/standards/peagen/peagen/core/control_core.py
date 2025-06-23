@@ -34,5 +34,6 @@ def retry(tasks: Iterable[Task]) -> int:
         t.status = Status.queued
     return len(selected)
 
+
 # retry_from behaves like retry for now
 retry_from = retry

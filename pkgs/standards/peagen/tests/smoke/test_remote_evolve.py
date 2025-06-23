@@ -9,7 +9,8 @@ import pytest
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 SPEC_PATH = (
-    Path(__file__).resolve().parents[1]
+    Path(__file__).resolve().parents[2]
+    / "tests"
     / "examples"
     / "simple_evolve_demo"
     / "evolve_remote_spec.yaml"
@@ -22,7 +23,7 @@ def _gateway_available(url: str) -> bool:
         resp = httpx.get(url, timeout=5)
     except Exception:
         return False
-    return resp.status_code < 500
+    return resp.status_code == 200
 
 
 @pytest.mark.i9n
