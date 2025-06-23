@@ -14,7 +14,7 @@ This document summarises which Peagen tasks interact with Git and why.
 
 ## process
 - Commits rendered or copied files for each project when a VCS plugin is configured.
-- Pushes the active branch to the origin remote if possible.
+- Pushes the active branch to the origin remote; failures raise an exception.
 - Result payload includes the commit SHA.
 
 ## analysis and DOE

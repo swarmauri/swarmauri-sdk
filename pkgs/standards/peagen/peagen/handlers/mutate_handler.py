@@ -70,10 +70,7 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             commit_sha = None
         branch = pea_ref("run", winner_path.stem)
         vcs.create_branch(branch, checkout=False)
-        try:
-            vcs.push(branch)
-        except Exception:  # pragma: no cover - push may fail
-            pass
+        vcs.push(branch)
         result["commit"] = commit_sha
         result["branch"] = branch
     if tmp_dir:

@@ -124,10 +124,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         branches = [pea_ref("run", cid) for cid in child_ids]
         vcs.fan_out("HEAD", branches)
         for b in branches:
-            try:
-                vcs.push(b)
-            except Exception:  # pragma: no cover - push may fail
-                pass
+            vcs.push(b)
         fan_res["commit"] = commit_sha
     result = {"children": child_ids, "jobs": len(jobs), **fan_res}
     if tmp_dir:
