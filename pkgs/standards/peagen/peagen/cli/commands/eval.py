@@ -36,9 +36,8 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="eval",
         status=Status.waiting,
-        payload={"args": args},
+        payload={"action": "eval", "args": args},
     )
 
 

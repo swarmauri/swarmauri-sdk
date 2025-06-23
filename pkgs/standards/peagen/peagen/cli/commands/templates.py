@@ -26,13 +26,21 @@ remote_template_sets_app = typer.Typer(
 
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    task = Task(id=str(uuid.uuid4()), pool="default", payload={"args": args})
+    task = Task(
+        id=str(uuid.uuid4()),
+        pool="default",
+        payload={"action": "templates", "args": args},
+    )
     return asyncio.run(templates_handler(task))
 
 
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     """Submit a templates task via JSON-RPC."""
-    task = Task(id=str(uuid.uuid4()), pool="default", payload={"args": args})
+    task = Task(
+        id=str(uuid.uuid4()),
+        pool="default",
+        payload={"action": "templates", "args": args},
+    )
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
