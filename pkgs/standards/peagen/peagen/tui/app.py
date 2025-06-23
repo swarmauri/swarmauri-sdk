@@ -562,6 +562,8 @@ class QueueDashboardApp(App):
         if hasattr(self, "tasks_table"):
             current_cursor_row = self.tasks_table.cursor_row
             current_cursor_column = self.tasks_table.cursor_column
+            current_scroll_x = self.tasks_table.scroll_x
+            current_scroll_y = self.tasks_table.scroll_y
             self.tasks_table.clear()
             seen_task_ids: set[str] = set()
 
@@ -627,9 +629,18 @@ class QueueDashboardApp(App):
             elif self.tasks_table.row_count > 0:
                 self.tasks_table.cursor_coordinate = Coordinate(0, 0)
 
+            self.tasks_table.scroll_x = min(
+                current_scroll_x, self.tasks_table.max_scroll_x
+            )
+            self.tasks_table.scroll_y = min(
+                current_scroll_y, self.tasks_table.max_scroll_y
+            )
+
         if hasattr(self, "err_table"):
             current_err_cursor_row = self.err_table.cursor_row
             current_err_cursor_column = self.err_table.cursor_column
+            err_scroll_x = self.err_table.scroll_x
+            err_scroll_y = self.err_table.scroll_y
             self.err_table.clear()
             if metrics_data.get("fail_len", 0) > 0:
                 for t_data in (
@@ -663,6 +674,9 @@ class QueueDashboardApp(App):
                 )
             elif self.err_table.row_count > 0:
                 self.err_table.cursor_coordinate = Coordinate(0, 0)
+
+            self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
+            self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
