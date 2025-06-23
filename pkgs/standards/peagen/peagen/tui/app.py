@@ -136,9 +136,11 @@ class RemoteBackend:
         self.workers: Dict[str, dict] = {}
         self.last_error: str | None = None
 
-    async def refresh(self) -> bool:
+    async def refresh(self, limit: int | None = None, offset: int = 0) -> bool:
         try:
-            await asyncio.gather(self.fetch_tasks(), self.fetch_workers())
+            await asyncio.gather(
+                self.fetch_tasks(limit=limit, offset=offset), self.fetch_workers()
+            )
         except Exception as exc:
             self.last_error = str(exc)
             return False
@@ -146,12 +148,17 @@ class RemoteBackend:
             self.last_error = None
             return True
 
-    async def fetch_tasks(self) -> None:
+    async def fetch_tasks(self, limit: int | None = None, offset: int = 0) -> None:
+        params: dict[str, int | str] = {"poolName": "default"}
+        if limit is not None:
+            params["limit"] = int(limit)
+        if offset:
+            params["offset"] = int(offset)
         payload = {
             "jsonrpc": "2.0",
             "id": "1",
             "method": "Pool.listTasks",
-            "params": {"poolName": "default"},
+            "params": params,
         }
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
@@ -225,6 +232,8 @@ class QueueDashboardApp(App):
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
         ("escape", "clear_filters", "Clear Filters"),
+        ("n", "next_page", "Next Page"),
+        ("p", "prev_page", "Prev Page"),
         ("q", "quit", "Quit"),
     ]
 
@@ -277,6 +286,8 @@ class QueueDashboardApp(App):
         self._current_file: str | None = None
         self._remote_info: tuple | None = None
         self.ws_connected = False  # Track WebSocket connection status
+        self.limit = 50
+        self.offset = 0
 
     async def on_mount(self):
         # Register for connection status changes
@@ -299,7 +310,7 @@ class QueueDashboardApp(App):
             await self._show_reconnect(f"WebSocket disconnected: {error_msg}")
         elif is_connected and self._reconnect_screen:
             # Only dismiss if the backend is also connected
-            ok = await self.backend.refresh()
+            ok = await self.backend.refresh(limit=self.limit, offset=self.offset)
             if ok:
                 await self._dismiss_reconnect()
                 self.toast("Connection re-established", duration=2.0)
@@ -309,7 +320,7 @@ class QueueDashboardApp(App):
         if self._reconnect_screen:
             return
 
-        ok = await self.backend.refresh()
+        ok = await self.backend.refresh(limit=self.limit, offset=self.offset)
 
         # Handle backend API connection issues
         if not ok and not self._reconnect_screen:
@@ -328,7 +339,7 @@ class QueueDashboardApp(App):
         )
 
         # Try to refresh backend data
-        ok = await self.backend.refresh()
+        ok = await self.backend.refresh(limit=self.limit, offset=self.offset)
 
         # Only dismiss if both backend and websocket are connected
         if ok and self.ws_connected:
@@ -409,11 +420,13 @@ class QueueDashboardApp(App):
     async def async_process_and_update_data(self) -> None:
         all_tasks_from_client = list(self.client.tasks.values())
         all_tasks_from_backend = list(self.backend.tasks)
+        allowed_ids = {str(t.get("id")) for t in all_tasks_from_backend}
         combined_tasks_dict: Dict[str, Any] = {
             task.get("id"): task for task in all_tasks_from_backend
         }
         for task in all_tasks_from_client:
-            combined_tasks_dict[task.get("id")] = task
+            if str(task.get("id")) in allowed_ids:
+                combined_tasks_dict[task.get("id")] = task
         all_tasks = list(combined_tasks_dict.values())
 
         for task in all_tasks:
@@ -748,7 +761,8 @@ class QueueDashboardApp(App):
                 yield TabPane("Templates", self.templates_tree, id="templates")
 
         yield self.file_tabs
-        yield DashboardFooter()
+        self.footer = DashboardFooter()
+        yield self.footer
         self.call_later(self.tasks_table.focus)
 
     def action_switch(self, tab_id: str) -> None:
@@ -946,6 +960,25 @@ class QueueDashboardApp(App):
             widget.insert_text_at_cursor(text_to_paste)
         elif hasattr(widget, "insert"):
             widget.insert(text_to_paste)
+
+    def action_next_page(self) -> None:
+        self.offset += self.limit
+        self.run_worker(
+            self.backend.refresh(limit=self.limit, offset=self.offset),
+            exclusive=True,
+            group="data_refresh_worker",
+        )
+        self.trigger_data_processing(debounce=False)
+
+    def action_prev_page(self) -> None:
+        if self.offset >= self.limit:
+            self.offset -= self.limit
+            self.run_worker(
+                self.backend.refresh(limit=self.limit, offset=self.offset),
+                exclusive=True,
+                group="data_refresh_worker",
+            )
+            self.trigger_data_processing(debounce=False)
 
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
