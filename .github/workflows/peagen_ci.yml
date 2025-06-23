@@ -40,8 +40,7 @@ jobs:
       run: |
         # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull   # optional
         sudo docker system prune -f
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build gateway worker
 
     # Collect logs only when *any* previous step failed (deploy or later)
     - name: Get container logs on failure
