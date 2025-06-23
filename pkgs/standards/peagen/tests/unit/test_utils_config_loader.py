@@ -1,5 +1,10 @@
 import pytest
-from peagen._utils.config_loader import _expand_env_in_text, _expand_env_vars, _merge, load_peagen_toml
+from peagen._utils.config_loader import (
+    _expand_env_in_text,
+    _expand_env_vars,
+    _merge,
+    load_peagen_toml,
+)
 
 
 @pytest.mark.unit

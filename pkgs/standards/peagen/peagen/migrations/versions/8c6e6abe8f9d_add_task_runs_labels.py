@@ -7,6 +7,7 @@ down_revision = "d4f0f0ff11aa"
 branch_labels = None
 depends_on = None
 
+
 def upgrade() -> None:
     bind = op.get_bind()
     inspector = inspect(bind)
@@ -17,12 +18,13 @@ def upgrade() -> None:
             "task_runs",
             sa.Column(
                 "labels",
-                sa.JSON(),                     # or sa.JSONB() if you prefer
+                sa.JSON(),  # or sa.JSONB() if you prefer
                 nullable=False,
-                server_default=sa.text("'[]'") # postgres needs explicit json literal
+                server_default=sa.text("'[]'"),  # postgres needs explicit json literal
             ),
         )
         op.alter_column("task_runs", "labels", server_default=None)
+
 
 def downgrade() -> None:
     bind = op.get_bind()

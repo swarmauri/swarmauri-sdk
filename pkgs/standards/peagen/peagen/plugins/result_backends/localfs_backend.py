@@ -5,6 +5,7 @@ from pathlib import Path
 from peagen.models import TaskRun
 from .base import ResultBackendBase
 
+
 class LocalFsResultBackend(ResultBackendBase):
     """Persist TaskRun rows as JSON files in a local directory."""
 

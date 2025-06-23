@@ -14,7 +14,7 @@ def _gateway_available(url: str) -> bool:
         response = httpx.get(url, timeout=5)
     except Exception:
         return False
-    return response.status_code < 500
+    return response.status_code == 200
 
 
 @pytest.mark.i9n
@@ -22,10 +22,9 @@ def test_remote_doe_gen(tmp_path: Path) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
 
-    spec = Path("pkgs/standards/peagen/tests/examples/locking_demo/doe_spec.yaml")
-    template = Path(
-        "pkgs/standards/peagen/tests/examples/locking_demo/template_project.yaml"
-    )
+    base = Path(__file__).resolve().parents[2] / "tests" / "examples" / "locking_demo"
+    spec = base / "doe_spec.yaml"
+    template = base / "template_project.yaml"
     output = tmp_path / "payloads.yaml"
 
     subprocess.run(
@@ -53,10 +52,9 @@ def test_remote_doe_process(tmp_path: Path) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
 
-    spec = Path("pkgs/standards/peagen/tests/examples/locking_demo/doe_spec.yaml")
-    template = Path(
-        "pkgs/standards/peagen/tests/examples/locking_demo/template_project.yaml"
-    )
+    base = Path(__file__).resolve().parents[2] / "tests" / "examples" / "locking_demo"
+    spec = base / "doe_spec.yaml"
+    template = base / "template_project.yaml"
     output = tmp_path / "payloads.yaml"
 
     subprocess.run(

@@ -13,4 +13,3 @@ class DefaultMutator:
 
     def mutate(self, prompt: str) -> str:
         return call_external_agent(prompt, self.agent_env)
-

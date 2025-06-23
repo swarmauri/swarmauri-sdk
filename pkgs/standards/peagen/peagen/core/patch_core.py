@@ -23,6 +23,7 @@ from peagen.errors import PatchTargetMissingError
 # JSON patch helpers
 # ---------------------------------------------------------------------------
 
+
 def _apply_json_patch(doc: Any, ops: list[dict[str, Any]]) -> Any:
     """Return ``doc`` after applying RFC6902 operations."""
     try:
@@ -34,6 +35,7 @@ def _apply_json_patch(doc: Any, ops: list[dict[str, Any]]) -> Any:
 # ---------------------------------------------------------------------------
 # JSON merge (RFC 7386)
 # ---------------------------------------------------------------------------
+
 
 def _apply_json_merge(doc: Any, patch: Any) -> Any:
     if not isinstance(patch, dict) or not isinstance(doc, dict):
@@ -59,7 +61,14 @@ def _apply_yaml_overlay(doc: Any, patch: Any) -> Any:
 # Git patch application
 # ---------------------------------------------------------------------------
 
-def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = None, user_email: str | None = None) -> bytes:
+
+def _apply_git_patch(
+    base: bytes,
+    patch_path: Path,
+    *,
+    user_name: str | None = None,
+    user_email: str | None = None,
+) -> bytes:
     """Apply a Git patch using a scratch repository."""
     user_name = user_name or os.getenv("GIT_AUTHOR_NAME", "nobody")
     user_email = user_email or os.getenv("GIT_AUTHOR_EMAIL", "nobody@example.com")
@@ -69,11 +78,41 @@ def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = N
         tgt = tmp / "file.txt"
         tgt.write_bytes(base)
 
-        subprocess.run(["git", "init"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "config", "user.email", user_email], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "config", "user.name", user_name], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "add", "file.txt"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "commit", "-m", "base"], cwd=tmp, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["git", "init"],
+            cwd=tmp,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", user_email],
+            cwd=tmp,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", user_name],
+            cwd=tmp,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "add", "file.txt"],
+            cwd=tmp,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "base"],
+            cwd=tmp,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         try:
             subprocess.run(
                 ["git", "apply", str(patch_path)],
@@ -111,6 +150,7 @@ def _apply_git_patch(base: bytes, patch_path: Path, *, user_name: str | None = N
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def apply_patch(base: bytes, patch_path: Path, kind: str) -> bytes:
     """Apply *patch_path* of type *kind* to ``base`` and return new bytes."""
