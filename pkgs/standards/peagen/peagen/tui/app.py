@@ -996,22 +996,26 @@ class QueueDashboardApp(App):
 
     def action_next_page(self) -> None:
         self.offset += self.limit
-        self.run_worker(
-            self.backend.refresh(limit=self.limit, offset=self.offset),
-            exclusive=True,
-            group="data_refresh_worker",
-        )
+        coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            self.run_worker(coro, exclusive=True, group="data_refresh_worker")
         self.trigger_data_processing(debounce=False)
         self.update_page_info()
 
     def action_prev_page(self) -> None:
         if self.offset >= self.limit:
             self.offset -= self.limit
-            self.run_worker(
-                self.backend.refresh(limit=self.limit, offset=self.offset),
-                exclusive=True,
-                group="data_refresh_worker",
-            )
+            coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                asyncio.run(coro)
+            else:
+                self.run_worker(coro, exclusive=True, group="data_refresh_worker")
             self.trigger_data_processing(debounce=False)
 
     def set_page(self, page: int) -> None:

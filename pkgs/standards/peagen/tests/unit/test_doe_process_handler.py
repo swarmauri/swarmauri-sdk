@@ -74,3 +74,79 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     assert sent[0]["params"]["payload"]["args"]["projects_payload"].startswith(
         "PROJECTS:"
     )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_doe_process_handler_dry_run(monkeypatch, tmp_path):
+    sent = []
+
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, json):
+            sent.append(json)
+
+            class R:
+                def raise_for_status(self):
+                    pass
+
+            return R()
+
+    import peagen.handlers.fanout as fanout
+
+    monkeypatch.setattr(fanout, "httpx", type("X", (), {"AsyncClient": DummyClient}))
+
+    class DummyPM:
+        def __init__(self, cfg):
+            pass
+
+        def get(self, name):
+            return DummyAdapter()
+
+    class DummyAdapter:
+        root_uri = "file://dummy/"
+
+        def upload(self, key, fh):
+            return f"{self.root_uri}{key}"
+
+    monkeypatch.setattr(handler, "PluginManager", DummyPM)
+    monkeypatch.setattr(handler, "FileStorageAdapter", DummyAdapter)
+    monkeypatch.setattr(handler, "resolve_cfg", lambda toml_path=".peagen.toml": {})
+
+    def fake_generate_payload(**kwargs):
+        p1 = tmp_path / "out_0.yaml"
+        return {
+            "outputs": [str(p1)],
+            "artifact_outputs": [],
+            "evaluations": [],
+            "count": 1,
+            "bytes": 0,
+            "llm_keys": [],
+            "other_keys": [],
+            "dry_run": True,
+        }
+
+    monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
+
+    task = {
+        "id": "T0",
+        "pool": "default",
+        "payload": {
+            "args": {
+                "spec": "s",
+                "template": "t",
+                "output": str(tmp_path / "out.yaml"),
+                "dry_run": True,
+            }
+        },
+    }
+    result = await handler.doe_process_handler(task)
+
+    assert sent == []
+    assert result["children"] == []
+    assert result["_final_status"] == "success"
