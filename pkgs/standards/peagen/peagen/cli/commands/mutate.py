@@ -111,8 +111,9 @@ def submit(
         },
     }
 
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req, headers=headers)
         resp.raise_for_status()
         reply = resp.json()
 

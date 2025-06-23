@@ -41,7 +41,11 @@ def upload(
         "method": "Keys.upload",
         "params": {"public_key": pubkey},
     }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    headers = ctx.obj.get("headers") or None
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    httpx.post(gateway_url, **kwargs)
     typer.echo("Uploaded public key")
 
 
@@ -57,7 +61,11 @@ def remove(
         "method": "Keys.delete",
         "params": {"fingerprint": fingerprint},
     }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    headers = ctx.obj.get("headers") or None
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    httpx.post(gateway_url, **kwargs)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -68,5 +76,9 @@ def fetch_server(
 ) -> None:
     """Fetch trusted public keys from the gateway."""
     envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    headers = ctx.obj.get("headers") or None
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    res = httpx.post(gateway_url, **kwargs)
     typer.echo(json.dumps(res.json().get("result", {}), indent=2))

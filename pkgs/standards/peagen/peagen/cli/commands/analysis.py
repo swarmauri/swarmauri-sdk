@@ -37,7 +37,9 @@ def run(
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
     task = _build_task(args)
     result = asyncio.run(analysis_handler(task))
-    typer.echo(json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2))
+    typer.echo(
+        json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
+    )
 
 
 @remote_analysis_app.command("analysis")
@@ -54,8 +56,11 @@ def submit(
         "method": "Task.submit",
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req, headers=headers
+        ).json()
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",

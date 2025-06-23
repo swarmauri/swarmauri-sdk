@@ -158,8 +158,11 @@ def submit_gen(  # noqa: PLR0913
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req, headers=headers
+        ).json()
 
     if "error" in reply:
         typer.secho(
@@ -313,8 +316,11 @@ def submit_process(  # noqa: PLR0913
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req, headers=headers
+        ).json()
 
     if "error" in reply:
         typer.secho(
@@ -334,7 +340,9 @@ def submit_process(  # noqa: PLR0913
                 "method": "Task.get",
                 "params": {"taskId": tid},
             }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            res = httpx.post(
+                ctx.obj.get("gateway_url"), json=req, timeout=30.0, headers=headers
+            ).json()
             return res["result"]
 
         while True:

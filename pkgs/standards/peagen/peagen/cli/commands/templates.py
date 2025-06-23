@@ -30,7 +30,9 @@ def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     return asyncio.run(templates_handler(task))
 
 
-def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
+def _submit_task(
+    args: Dict[str, Any], gateway_url: str, headers: dict | None = None
+) -> str:
     """Submit a templates task via JSON-RPC."""
     task = Task(id=str(uuid.uuid4()), pool="default", payload={"args": args})
     envelope = {
@@ -42,7 +44,10 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
             "taskId": task.id,
         },
     }
-    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    resp = httpx.post(gateway_url, **kwargs)
     resp.raise_for_status()
     data = resp.json()
     if data.get("error"):
@@ -68,6 +73,7 @@ def run_list():
 
 @remote_template_sets_app.command("list", help="Submit a list task via gateway.")
 def submit_list(
+    ctx: typer.Context,
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -75,7 +81,7 @@ def submit_list(
     """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list"}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task_id = _submit_task(args, gateway_url, headers=ctx.obj.get("headers"))
         typer.echo(f"Submitted list → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -110,6 +116,7 @@ def run_show(
 
 @remote_template_sets_app.command("show", help="Submit a show task via gateway.")
 def submit_show(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
@@ -118,7 +125,7 @@ def submit_show(
     """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task_id = _submit_task(args, gateway_url, headers=ctx.obj.get("headers"))
         typer.echo(f"Submitted show → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -188,6 +195,7 @@ def run_add(
 
 @remote_template_sets_app.command("add", help="Submit an add task via gateway.")
 def submit_add(
+    ctx: typer.Context,
     source: str = typer.Argument(..., metavar="PKG|WHEEL|DIR"),
     from_bundle: Optional[str] = typer.Option(
         None, "--from-bundle", help="Install from bundled archive"
@@ -210,8 +218,9 @@ def submit_add(
         "editable": editable,
         "force": force,
     }
+    headers = ctx.obj.get("headers") or None
     try:
-        task_id = _submit_task(args, gateway_url)
+        task_id = _submit_task(args, gateway_url, headers=headers)
         typer.echo(f"Submitted add → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -248,6 +257,7 @@ def run_remove(
 
 @remote_template_sets_app.command("remove", help="Submit a remove task via gateway.")
 def submit_remove(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
     gateway_url: str = typer.Option(
@@ -261,8 +271,9 @@ def submit_remove(
             raise typer.Exit()
 
     args = {"operation": "remove", "name": name}
+    headers = ctx.obj.get("headers") or None
     try:
-        task_id = _submit_task(args, gateway_url)
+        task_id = _submit_task(args, gateway_url, headers=headers)
         typer.echo(f"Submitted remove → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")

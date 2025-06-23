@@ -26,6 +26,7 @@ DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 remote_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
+
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
     """Construct a Task with the fetch action embedded in the payload."""
@@ -72,7 +73,9 @@ def run(
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Synchronously build the workspace on this machine."""
-    args = _collect_args(workspaces or [], no_source, install_template_sets_flag, repo, ref)
+    args = _collect_args(
+        workspaces or [], no_source, install_template_sets_flag, repo, ref
+    )
     task = _build_task(args)
 
     result = asyncio.run(fetch_handler(task))
@@ -96,7 +99,9 @@ def submit(
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
-    args = _collect_args(workspaces or [], no_source, install_template_sets_flag, repo, ref)
+    args = _collect_args(
+        workspaces or [], no_source, install_template_sets_flag, repo, ref
+    )
     task = _build_task(args)
 
     rpc_req = {
@@ -106,8 +111,9 @@ def submit(
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req, headers=headers)
         resp.raise_for_status()
         reply = resp.json()
 

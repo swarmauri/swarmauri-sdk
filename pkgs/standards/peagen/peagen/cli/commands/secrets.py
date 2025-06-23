@@ -17,7 +17,9 @@ remote_secrets_app = typer.Typer(help="Manage secrets via gateway.")
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
-def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
+def _pool_worker_pubs(
+    pool: str, gateway_url: str, headers: dict | None = None
+) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
     envelope = {
         "jsonrpc": "2.0",
@@ -25,7 +27,7 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
         "params": {"pool": pool},
     }
     try:
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        res = httpx.post(gateway_url, json=envelope, timeout=10.0, headers=headers)
         res.raise_for_status()
     except Exception:
         return []
@@ -103,14 +105,18 @@ def remote_add(
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipient]
-    pubs.extend(_pool_worker_pubs(pool, gateway_url))
+    headers = ctx.obj.get("headers") or None
+    pubs.extend(_pool_worker_pubs(pool, gateway_url, headers=headers))
     cipher = drv.encrypt(value.encode(), pubs).decode()
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
         "params": {"name": secret_id, "secret": cipher, "version": version},
     }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    res = httpx.post(gateway_url, **kwargs)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
@@ -136,7 +142,11 @@ def remote_get(
         "method": "Secrets.get",
         "params": {"name": secret_id},
     }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    headers = ctx.obj.get("headers") or None
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    res = httpx.post(gateway_url, **kwargs)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
@@ -164,7 +174,11 @@ def remote_remove(
         "params": {"name": secret_id, "version": version},
     }
 
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    headers = ctx.obj.get("headers") or None
+    kwargs = {"json": envelope, "timeout": 10.0}
+    if headers:
+        kwargs["headers"] = headers
+    res = httpx.post(gateway_url, **kwargs)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",

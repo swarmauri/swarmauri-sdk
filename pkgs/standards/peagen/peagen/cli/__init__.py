@@ -130,6 +130,11 @@ def _global_remote_ctx(  # noqa: D401
         resolve_path=True,
         help="Path to a *second* .peagen.toml that is sent to the worker.",
     ),
+    client_ip: str = typer.Option(
+        None,
+        "--client-ip",
+        help="Forward this IP via X-Real-IP to the gateway",
+    ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
@@ -140,12 +145,14 @@ def _global_remote_ctx(  # noqa: D401
     gw_url = gateway_url.rstrip("/")
     if not gw_url.endswith("/rpc"):
         gw_url += "/rpc"
+    headers = {"X-Real-IP": client_ip} if client_ip else {}
     ctx.obj.update(
         verbosity=verbose,
         gateway_url=gw_url,
         task_override_inline=override,
         task_override_file=override_file,
         quiet=quiet,
+        headers=headers,
     )
 
 

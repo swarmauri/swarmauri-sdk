@@ -14,6 +14,7 @@ remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC."
 
 # ────────────────────────────── local validate ────────────────────────────────────
 
+
 @local_validate_app.command("validate")
 def run_validate(
     ctx: typer.Context,
@@ -99,7 +100,10 @@ def submit_validate(
     try:
         import httpx
 
-        resp = httpx.post(ctx.obj.get("gateway_url"), json=envelope, timeout=10.0)
+        headers = ctx.obj.get("headers") or None
+        resp = httpx.post(
+            ctx.obj.get("gateway_url"), json=envelope, timeout=10.0, headers=headers
+        )
         resp.raise_for_status()
         data = resp.json()
         if data.get("error"):

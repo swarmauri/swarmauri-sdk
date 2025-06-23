@@ -127,18 +127,17 @@ def submit_sort(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload
-        },
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
     # 3) POST to gateway
     try:
         import httpx
 
-        resp = httpx.post(ctx.obj.get("gateway_url"), json=envelope, timeout=10.0)
+        headers = ctx.obj.get("headers") or None
+        resp = httpx.post(
+            ctx.obj.get("gateway_url"), json=envelope, timeout=10.0, headers=headers
+        )
         resp.raise_for_status()
         data = resp.json()
         if data.get("error"):

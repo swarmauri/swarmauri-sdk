@@ -33,7 +33,9 @@ local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
 
 
-def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
+def _submit_task(
+    op: str, gateway_url: str, message: str | None = None, headers: dict | None = None
+) -> str:
     """Submit a migration *op* via JSON-RPC and return the task id."""
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
@@ -52,7 +54,7 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
             "taskId": task.id,
         },
     }
-    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    resp = httpx.post(gateway_url, json=envelope, timeout=10.0, headers=headers)
     resp.raise_for_status()
     data = resp.json()
     if data.get("error"):
@@ -138,13 +140,18 @@ def downgrade() -> None:
 
 @remote_db_app.command("upgrade")
 def remote_upgrade(
+    ctx: typer.Context,
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ) -> None:
     """Submit an upgrade task via JSON-RPC."""
     try:
-        task_id = _submit_task("upgrade", gateway_url)
+        task_id = _submit_task(
+            "upgrade",
+            gateway_url,
+            headers=ctx.obj.get("headers"),
+        )
         typer.echo(f"Submitted upgrade → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -153,6 +160,7 @@ def remote_upgrade(
 
 @remote_db_app.command("revision")
 def remote_revision(
+    ctx: typer.Context,
     message: str = typer.Option(
         "init", "--message", "-m", help="Message for the new revision"
     ),
@@ -162,7 +170,12 @@ def remote_revision(
 ) -> None:
     """Submit a revision task via JSON-RPC."""
     try:
-        task_id = _submit_task("revision", gateway_url, message)
+        task_id = _submit_task(
+            "revision",
+            gateway_url,
+            message,
+            headers=ctx.obj.get("headers"),
+        )
         typer.echo(f"Submitted revision → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -171,13 +184,18 @@ def remote_revision(
 
 @remote_db_app.command("downgrade")
 def remote_downgrade(
+    ctx: typer.Context,
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ) -> None:
     """Submit a downgrade task via JSON-RPC."""
     try:
-        task_id = _submit_task("downgrade", gateway_url)
+        task_id = _submit_task(
+            "downgrade",
+            gateway_url,
+            headers=ctx.obj.get("headers"),
+        )
         typer.echo(f"Submitted downgrade → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")

@@ -34,7 +34,10 @@ def get(  # noqa: D401
             "method": "Task.get",
             "params": {"taskId": task_id},
         }
-        res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+        headers = ctx.obj.get("headers") or None
+        res = httpx.post(
+            ctx.obj.get("gateway_url"), json=req, timeout=30.0, headers=headers
+        ).json()
         return res["result"]
 
     while True:
@@ -61,7 +64,10 @@ def patch_task(
         "method": "Task.patch",
         "params": {"taskId": task_id, "changes": payload},
     }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    headers = ctx.obj.get("headers") or None
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req, timeout=30.0, headers=headers
+    ).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
 
@@ -72,7 +78,10 @@ def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
         "method": method,
         "params": {"selector": selector},
     }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    headers = ctx.obj.get("headers") or None
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req, timeout=30.0, headers=headers
+    ).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
 

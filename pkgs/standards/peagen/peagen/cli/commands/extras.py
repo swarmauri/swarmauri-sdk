@@ -56,6 +56,7 @@ def run_extras(
 
 @remote_extras_app.command("extras")
 def submit_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
@@ -85,7 +86,11 @@ def submit_extras(
     try:
         import httpx
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        headers = ctx.obj.get("headers") or None
+        kwargs = {"json": envelope, "timeout": 10.0}
+        if headers:
+            kwargs["headers"] = headers
+        resp = httpx.post(gateway_url, **kwargs)
         resp.raise_for_status()
         data = resp.json()
         if data.get("error"):

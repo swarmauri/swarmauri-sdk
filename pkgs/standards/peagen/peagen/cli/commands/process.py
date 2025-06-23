@@ -194,8 +194,9 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         "method": "Task.submit",
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
+    headers = ctx.obj.get("headers") or None
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req, headers=headers)
         resp.raise_for_status()
         reply = resp.json()
 
@@ -219,7 +220,9 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
                 "method": "Task.get",
                 "params": {"taskId": task.id},
             }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            res = httpx.post(
+                ctx.obj.get("gateway_url"), json=req, timeout=30.0, headers=headers
+            ).json()
             return res["result"]
 
         while True:
