@@ -120,7 +120,7 @@ def remote_add(
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
             err=True,
-        
+        )
         raise typer.Exit(1)
     typer.echo(f"Uploaded secret {secret_id}")
 
