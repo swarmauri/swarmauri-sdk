@@ -291,7 +291,7 @@ async def _select_tasks(selector: str) -> list[Task]:
 
 async def _persist(task: Task) -> None:
     try:
-        log.info(f"Writing {task}")
+        log.info("persisting %s", task.id)
         await result_backend.store(TaskRun.from_task(task))
     except Exception as e:
         log.warning(f"_persist error '{e}'")
