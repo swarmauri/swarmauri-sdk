@@ -58,6 +58,14 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         evaluate_runs=args.get("evaluate_runs", False),
     )
 
+    # Short-circuit if this was a dry-run to avoid reading or uploading files
+    if result.get("dry_run"):
+        if tmp_dir:
+            import shutil
+
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+        return result
+
     cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
     pm = PluginManager(cfg)
     try:
