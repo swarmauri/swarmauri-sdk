@@ -58,7 +58,7 @@ class FilterBar(Horizontal):
             }
 
         self.id_input = Input(placeholder="task id", id="filter_id", compact=True)
-        self.id_input.styles.width = 20
+        self.id_input.styles.width = 40
 
     def compose(self) -> ComposeResult:
         yield self.id_input
