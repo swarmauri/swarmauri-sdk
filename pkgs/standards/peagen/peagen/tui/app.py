@@ -269,9 +269,14 @@ class QueueDashboardApp(App):
 
     def __init__(self, gateway_url: str = "http://localhost:8000") -> None:
         super().__init__()
-        ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
+
+        cleaned = gateway_url.rstrip("/")
+        if cleaned.endswith("/rpc"):
+            cleaned = cleaned.rsplit("/", 1)[0]
+
+        ws_url = cleaned.replace("http", "ws", 1).rstrip("/") + "/ws/tasks"
         self.client = TaskStreamClient(ws_url)
-        self.backend = RemoteBackend(gateway_url)
+        self.backend = RemoteBackend(cleaned)
         self.sort_key = "time"
         self.sort_reverse = False
         self.filter_id: str | None = None

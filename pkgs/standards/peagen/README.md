@@ -435,8 +435,9 @@ pea.process_all_projects()
 
 ### Textual TUI
 
-Run `peagen tui` to launch an experimental dashboard that
-subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
+Run `peagen tui` to launch an experimental dashboard that connects to the
+gateway's WebSocket stream. Pass the gateway's **base URL** (without the `/rpc`
+suffix) via `--gateway-url`. The dashboard subscribes to `/ws/tasks` and emits
 `task.update`, `worker.update` and `queue.update` events. Use the tab keys to
 switch between task lists, logs and opened files. The footer shows system
 metrics and current time. Remote artifact paths are downloaded via their git
