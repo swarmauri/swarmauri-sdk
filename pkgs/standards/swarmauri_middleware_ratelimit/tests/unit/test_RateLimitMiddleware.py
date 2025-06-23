@@ -60,11 +60,31 @@ class TestRateLimitMiddleware:
         assert identifier == expected_identifier
 
     @pytest.mark.asyncio
+    async def test_get_client_identifier_forwarded(self, middleware):
+        """Test IP extraction from forwarded headers."""
+        request = type(
+            "Request",
+            (),
+            {
+                "headers": {"X-Forwarded-For": "1.2.3.4, 10.0.0.1"},
+                "client": type("Client", (), {"host": "172.17.0.1"}),
+            },
+        )()
+
+        identifier = await middleware._get_client_identifier(request)
+        assert identifier == "1.2.3.4"
+
+    @pytest.mark.asyncio
     async def test_dispatch_not_exceeded(self, middleware):  # Make async
         """Test that request is processed normally when rate limit is not exceeded."""
         # Mock request object
         request = type(
-            "Request", (), {"client": type("Client", (), {"host": "192.168.1.1"})}
+            "Request",
+            (),
+            {
+                "client": type("Client", (), {"host": "192.168.1.1"}),
+                "headers": {},
+            },
         )()
 
         # Mock call_next
@@ -83,7 +103,12 @@ class TestRateLimitMiddleware:
         """Test that 429 response is returned when rate limit is exceeded."""
         # Mock request object
         request = type(
-            "Request", (), {"client": type("Client", (), {"host": "192.168.1.1"})}
+            "Request",
+            (),
+            {
+                "client": type("Client", (), {"host": "192.168.1.1"}),
+                "headers": {},
+            },
         )()
 
         # Mock call_next

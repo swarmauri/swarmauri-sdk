@@ -112,6 +112,28 @@ BANNED_IPS: set[str] = set()
 SECRET_NOT_FOUND_CODE = -32004
 
 
+def _get_client_ip(request: Request) -> str:
+    """Resolve the client's IP address considering proxy headers."""
+
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    forwarded_header = request.headers.get("Forwarded")
+    if forwarded_header:
+        for part in forwarded_header.split(";"):
+            part = part.strip()
+            if part.lower().startswith("for="):
+                ip = part.split("=", 1)[1].strip().strip('"')
+                return ip.split(",")[0]
+
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
+    return request.client.host
+
+
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
 
@@ -418,7 +440,7 @@ async def rpc_endpoint(request: Request):
     try:
         raw = await request.json()
     except JSONDecodeError:
-        log.warning("parse error from %s", request.client.host)
+        log.warning("parse error from %s", ip)
         return Response(
             content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
             status_code=400,
