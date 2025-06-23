@@ -127,7 +127,11 @@ def test_remote_add_posts(monkeypatch):
 
 
 def test_remote_get(monkeypatch):
+    posted = {}
+
     def fake_post(url, json=None, timeout=None):
+        posted["json"] = json
+
         class Res:
             def json(self):
                 return {"result": {"secret": "enc:value"}}
@@ -141,8 +145,15 @@ def test_remote_get(monkeypatch):
     secrets_cli.remote_get(
         ctx,
         "ID",
+        gateway_url="http://gw.peagen.com",
+        pool="default",
     )
     assert out == ["value"]
+    assert posted["json"] == {
+        "jsonrpc": "2.0",
+        "method": "Secrets.get",
+        "params": {"name": "ID", "tenant_id": "default"},
+    }
 
 
 def test_remote_remove(monkeypatch):
@@ -162,9 +173,11 @@ def test_remote_remove(monkeypatch):
         ctx,
         "ID",
         version=2,
+        gateway_url="http://gw.peagen.com",
+        pool="default",
     )
     assert posted["json"] == {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"name": "ID", "version": 2},
+        "params": {"name": "ID", "version": 2, "tenant_id": "default"},
     }

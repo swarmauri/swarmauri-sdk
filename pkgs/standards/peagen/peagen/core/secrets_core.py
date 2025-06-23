@@ -91,20 +91,30 @@ def add_remote_secret(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.add",
-        "params": {"id": secret_id, "secret": cipher, "version": version},
+        "params": {
+            "name": secret_id,
+            "secret": cipher,
+            "version": version,
+            "tenant_id": pool,
+        },
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
 
 
-def get_remote_secret(secret_id: str, gateway_url: str = DEFAULT_GATEWAY) -> str:
+def get_remote_secret(
+    secret_id: str,
+    gateway_url: str = DEFAULT_GATEWAY,
+    *,
+    pool: str = "default",
+) -> str:
     """Retrieve and decrypt a secret from the gateway."""
     drv = AutoGpgDriver()
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.get",
-        "params": {"id": secret_id},
+        "params": {"name": secret_id, "tenant_id": pool},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
@@ -116,12 +126,14 @@ def remove_remote_secret(
     secret_id: str,
     gateway_url: str = DEFAULT_GATEWAY,
     version: Optional[int] = None,
+    *,
+    pool: str = "default",
 ) -> dict:
     """Delete a secret stored on the gateway."""
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",
-        "params": {"id": secret_id, "version": version},
+        "params": {"name": secret_id, "version": version, "tenant_id": pool},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()

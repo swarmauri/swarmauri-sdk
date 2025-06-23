@@ -109,6 +109,7 @@ TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 BAN_THRESHOLD = 10
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
+SECRET_NOT_FOUND_CODE = -32004
 
 
 def _supports(method: str | None) -> bool:
@@ -453,16 +454,27 @@ async def rpc_endpoint(request: Request):
                     await mark_ip_banned(session, ip)
                 log.warning("banned ip %s", ip)
 
+    status = 200
+
+    def _not_found(r: dict) -> bool:
+        return r.get("error", {}).get("code") == SECRET_NOT_FOUND_CODE
+
     if isinstance(resp, dict) and "error" in resp:
         method = payload.get("method") if isinstance(payload, dict) else "batch"
         log.warning(f"{method} '{resp['error']}'")
         await _check_unknown(resp, method)
+        if _not_found(resp):
+            status = 404
     elif isinstance(resp, list):
         for r in resp:
             if isinstance(r, dict) and "error" in r:
                 await _check_unknown(r, "batch")
+                if _not_found(r):
+                    status = 404
     log.debug("RPC out -> %s", resp)
-    return resp
+    return Response(
+        content=json.dumps(resp), status_code=status, media_type="application/json"
+    )
 
 
 # ─────────────────────────── Key/Secret RPC ─────────────────────
@@ -514,7 +526,7 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
-        raise RPCException(code=-32000, message="secret not found")
+        raise RPCException(code=SECRET_NOT_FOUND_CODE, message="secret not found")
     return {"secret": row.cipher}
 
 
