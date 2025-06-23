@@ -11,9 +11,10 @@ BASE_URL = GATEWAY.removesuffix("/rpc")
 
 
 def _gateway_available(url: str) -> bool:
-    """Return ``True`` if the gateway URL responds successfully."""
+    """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
+    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
     try:
-        resp = httpx.get(url, timeout=5)
+        resp = httpx.post(url, json=envelope, timeout=5)
     except Exception:
         return False
     return resp.status_code < 500
