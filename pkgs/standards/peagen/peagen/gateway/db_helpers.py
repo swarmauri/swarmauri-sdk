@@ -35,13 +35,16 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
-    data = _coerce(row.to_dict(exclude={"deps"}))
+    # ``duration`` is computed from ``started_at``/``finished_at`` and is not a
+    # real column on the ``task_runs`` table.  Exclude it so ``pg_insert`` does
+    # not error with "Unconsumed column names".
+    data = _coerce(row.to_dict(exclude={"deps", "duration"}))
     stmt = (
         pg_insert(TaskRun)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
-            set_=_coerce(row.to_dict(exclude={"id", "deps"})),
+            set_=_coerce(row.to_dict(exclude={"id", "deps", "duration"})),
         )
     )
     result = await session.execute(stmt)
