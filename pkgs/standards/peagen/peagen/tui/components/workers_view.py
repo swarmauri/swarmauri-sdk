@@ -13,7 +13,14 @@ class WorkersView(DataTable):
         """Refresh the table contents."""
 
         if not self.columns:
-            self.add_columns("Worker", "Pool", "URL", "Last Seen")
+            self.add_columns(
+                "Worker",
+                "Pool",
+                "URL",
+                "Last Seen",
+                "Advertises",
+                "Handlers",
+            )
 
         self.clear()
         for wid, info in workers.items():
@@ -28,5 +35,8 @@ class WorkersView(DataTable):
                 str(info.get("pool", "")),
                 str(info.get("url", "")),
                 ts_str,
+                str(info.get("advertises", "")),
+                ",".join(info.get("handlers", []))
+                if isinstance(info.get("handlers"), list)
+                else str(info.get("handlers", "")),
             )
-
