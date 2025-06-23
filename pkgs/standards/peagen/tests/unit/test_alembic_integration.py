@@ -2,15 +2,15 @@ import os
 import sqlite3
 import subprocess
 from pathlib import Path
+from peagen.core.migrate_core import ALEMBIC_CFG
 
 import pytest
 
 
 @pytest.mark.unit
 def test_alembic_upgrade_and_current(tmp_path):
-    alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
+    alembic_ini = ALEMBIC_CFG
     repo_root = Path(__file__).resolve().parents[5]
-
 
     env = os.environ.copy()
     env.setdefault("REDIS_URL", "redis://localhost:6379/0")
@@ -52,3 +52,7 @@ def test_alembic_upgrade_and_current(tmp_path):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='task_runs'"
         )
         assert cur.fetchone() is not None
+        cur = conn.execute("PRAGMA table_info(task_runs)")
+        cols = {row[1] for row in cur.fetchall()}
+        assert "commit_hexsha" in cols
+        assert "oids" in cols

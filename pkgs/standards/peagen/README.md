@@ -233,11 +233,17 @@ and evaluator-pool variations.
 
 ### `peagen db upgrade`
 
-Apply Alembic migrations to the latest version. The gateway automatically runs
-this step on startup, but the command is available for manual upgrades.
+Apply Alembic migrations to the latest version. Run this command before
+starting the gateway to ensure the database schema is current.
 
 ```bash
 peagen db upgrade
+```
+
+Run migrations on a gateway instance:
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc db upgrade
 ```
 
 ---
@@ -377,6 +383,9 @@ For the event schema and routing key conventions, see [docs/eda_protocol.md](doc
 peagen process projects.yaml --notify redis://localhost:6379/0/custom.events
 ```
 
+For a walkthrough of encrypted secrets and key management, see
+[docs/secure_secrets_tutorial.md](docs/secure_secrets_tutorial.md).
+
 ### Parallel Processing & Artifact Storage Options
 
 Peagen can accelerate generation by spawning multiple workers. Set `--workers <N>`
@@ -432,3 +441,6 @@ subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
 switch between task lists, logs and opened files. The footer shows system
 metrics and current time. Remote artifact paths are downloaded via their git
 filter and re-uploaded when saving.
+
+## Results Backends
+Peagen supports pluggable results backends. Built-in options include `local_fs`, `postgres`, and `in_memory`.

@@ -127,11 +127,7 @@ def submit_sort(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload
-        },
+        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
     # 3) POST to gateway

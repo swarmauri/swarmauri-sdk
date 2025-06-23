@@ -29,4 +29,3 @@ class TemplatesView(Tree):
                 self._build_tree(child, sub)
             else:
                 node.add_leaf(child.name, data=child)
-

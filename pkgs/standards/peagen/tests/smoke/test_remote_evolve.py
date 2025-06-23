@@ -1,0 +1,48 @@
+import json
+import os
+import subprocess
+from pathlib import Path
+
+import httpx
+import pytest
+
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+
+SPEC_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "tests"
+    / "examples"
+    / "simple_evolve_demo"
+    / "evolve_remote_spec.yaml"
+)
+
+
+def _gateway_available(url: str) -> bool:
+    """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
+    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
+    try:
+        resp = httpx.post(url, json=envelope, timeout=5)
+    except Exception:
+        return False
+    return resp.status_code == 200
+
+
+@pytest.mark.i9n
+def test_remote_evolve(tmp_path: Path) -> None:
+    if not _gateway_available(GATEWAY):
+        pytest.skip("gateway not reachable")
+
+    cmd = [
+        "peagen",
+        "remote",
+        "-q",
+        "--gateway-url",
+        GATEWAY,
+        "evolve",
+        str(SPEC_PATH),
+        "--watch",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=60)
+    last_line = result.stdout.strip().splitlines()[-1]
+    data = json.loads(last_line)
+    assert data["status"] == "success"

@@ -18,31 +18,51 @@ import json
 import httpx
 import time
 from json.decoder import JSONDecodeError
-from typing import Optional
 
-from fastapi import FastAPI, Request, Response
+
+import pgpy
+from fastapi import Body, FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCError
+from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.transport.jsonrpc import RPCException
 from peagen.models import Task, Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.db import engine
+from importlib import reload
+from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import ensure_status_enum
-from peagen.core.migrate_core import alembic_upgrade
+from peagen.gateway.db_helpers import (
+    ensure_status_enum,
+    upsert_secret,
+    fetch_secret,
+    delete_secret,
+    record_unknown_handler,
+    fetch_banned_ips,
+    mark_ip_banned,
+)
 import peagen.defaults as defaults
-
+from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
+
+_db = reload(_db)
+engine = _db.engine
+Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 log = Logger(
-    name="uvicorn",
+    name="gw",
+    default_level=getattr(logging, LOG_LEVEL, logging.INFO),
+)
+
+# dedicated logger for the scheduler loop
+sched_log = Logger(
+    name="scheduler",
     default_level=getattr(logging, LOG_LEVEL, logging.INFO),
 )
 
@@ -54,6 +74,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
+READY = False
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
@@ -75,11 +96,84 @@ try:
 except KeyError:
     result_backend = None
 
+# ─────────────────────────── Key/Secret store ───────────────────
+TRUSTED_USERS: dict[str, str] = {}
+
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
 WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
+
+# ─────────────────────────── IP tracking ─────────────────────────
+BAN_THRESHOLD = 10
+KNOWN_IPS: set[str] = set()
+BANNED_IPS: set[str] = set()
+SECRET_NOT_FOUND_CODE = -32004
+
+
+def _supports(method: str | None) -> bool:
+    """Return ``True`` if *method* is registered."""
+
+    return method in rpc._methods
+
+
+async def _reject(
+    ip: str,
+    req_id: str | None,
+    method: str | None,
+    *,
+    code: int = -32601,
+    message: str = "Method not found",
+) -> dict:
+    """Return an error response and track abuse."""
+
+    async with Session() as session:
+        count = await record_unknown_handler(session, ip)
+    if count >= BAN_THRESHOLD:
+        BANNED_IPS.add(ip)
+        async with Session() as session:
+            await mark_ip_banned(session, ip)
+        log.warning("banned ip %s", ip)
+    return {
+        "jsonrpc": "2.0",
+        "error": {
+            "code": code,
+            "message": message,
+            "data": {"method": str(method)},
+        },
+        "id": req_id,
+    }
+
+
+async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
+    """Validate incoming JSON-RPC payload."""
+
+    if isinstance(payload, list):
+        for item in payload:
+            if item.get("jsonrpc") and item.get("jsonrpc") != "2.0":
+                return await _reject(
+                    ip,
+                    item.get("id"),
+                    item.get("method"),
+                    code=-32600,
+                    message="Invalid Request",
+                )
+            if item.get("method") is None or not _supports(item.get("method")):
+                return await _reject(ip, item.get("id"), item.get("method"))
+        return None
+
+    if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
+        return await _reject(
+            ip,
+            payload.get("id"),
+            payload.get("method"),
+            code=-32600,
+            message="Invalid Request",
+        )
+    if payload.get("method") is None or not _supports(payload.get("method")):
+        return await _reject(ip, payload.get("id"), payload.get("method"))
+    return None
 
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
@@ -88,6 +182,15 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
     • Any value that isn't bytes/str/int/float is json-encoded.
     • last_seen is stored as Unix epoch seconds.
     """
+    key = WORKER_KEY.format(workerId)
+    existing = await queue.hgetall(key)
+    for field in ("advertises", "handlers"):
+        if field not in data and field in existing:
+            try:
+                data[field] = json.loads(existing[field])
+            except Exception:  # noqa: BLE001
+                data[field] = existing[field]
+
     coerced = {}
     for k, v in data.items():
         if isinstance(v, (bytes, str, int, float)):
@@ -96,7 +199,6 @@ async def _upsert_worker(workerId: str, data: dict) -> None:
             coerced[k] = json.dumps(v)  # serialize nested dicts, lists, etc.
 
     coerced["last_seen"] = int(time.time())  # heartbeat timestamp
-    key = WORKER_KEY.format(workerId)  # e.g.  worker:7917b3bd
     await queue.hset(key, mapping=coerced)
     await queue.expire(key, WORKER_TTL)  # <<—— TTL refresh
     # ensure the worker's pool is tracked so WebSocket clients
@@ -125,6 +227,22 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
         if w["pool"] == pool:
             workers.append(w)
     return workers
+
+
+def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
+    """Return the first worker that advertises *action*."""
+    if action is None:
+        return None
+    for w in workers:
+        raw = w.get("handlers", [])
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                raw = []
+        if action in raw:
+            return w
+    return None
 
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
@@ -174,7 +292,7 @@ async def _select_tasks(selector: str) -> list[Task]:
 
 async def _persist(task: Task) -> None:
     try:
-        log.info(f"Writing {task}")
+        log.info("persisting task %s", task.id)
         await result_backend.store(TaskRun.from_task(task))
     except Exception as e:
         log.warning(f"_persist error '{e}'")
@@ -194,6 +312,22 @@ async def _publish_event(event_type: str, data: dict) -> None:
     await queue.publish(PUBSUB_TOPIC, json.dumps(event))
 
 
+async def _flush_state() -> None:
+    """Persist all tasks from Redis to Postgres and close the queue client."""
+    if not queue:
+        return
+    keys = await queue.keys("task:*")
+    for key in keys:
+        data = await queue.hget(key, "blob")
+        if not data:
+            continue
+        task = Task.model_validate_json(data)
+        if result_backend:
+            await result_backend.store(TaskRun.from_task(task))
+    if hasattr(queue, "client"):
+        await queue.client.aclose()
+
+
 async def _publish_task(task: Task) -> None:
     data = task.model_dump()
     if task.duration is not None:
@@ -201,9 +335,86 @@ async def _publish_task(task: Task) -> None:
     await _publish_event("task.update", data)
 
 
+async def _finalize_parent_tasks(child_id: str) -> None:
+    """Mark parent tasks as completed once all children finish."""
+    keys = await queue.keys("task:*")
+    for key in keys:
+        data = await queue.hget(key, "blob")
+        if not data:
+            continue
+        parent = Task.model_validate_json(data)
+        children = []
+        if parent.result and isinstance(parent.result, dict):
+            children = parent.result.get("children") or []
+        if child_id not in children:
+            continue
+        all_done = True
+        for cid in children:
+            ct = await _load_task(cid)
+            if not ct or not Status.is_terminal(ct.status):
+                all_done = False
+                break
+        if all_done and parent.status != Status.success:
+            parent.status = Status.success
+            parent.finished_at = time.time()
+            await _save_task(parent)
+            await _persist(parent)
+            await _publish_task(parent)
+
+
+async def _backlog_scanner(interval: float = 5.0) -> None:
+    """Periodically run `_finalize_parent_tasks` to clear any backlog."""
+    log.info("backlog scanner started")
+    while True:
+        keys = await queue.keys("task:*")
+        for key in keys:
+            data = await queue.hget(key, "blob")
+            if not data:
+                continue
+            t = Task.model_validate_json(data)
+            children = []
+            if t.result and isinstance(t.result, dict):
+                children = t.result.get("children") or []
+            for cid in children:
+                await _finalize_parent_tasks(cid)
+        await asyncio.sleep(interval)
+
+
+# ────────────────────── client IP extraction ─────────────────────
+
+
+def _get_client_ip(request: Request) -> str:
+    """Return the client's real IP address.
+
+    The function checks standard forwarding headers first and falls back to
+    ``request.client.host`` when none are present.
+
+    Args:
+        request: Incoming FastAPI request.
+
+    Returns:
+        str: The detected client IP address.
+    """
+
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    real_ip = request.headers.get("x-real-ip")
+    return real_ip if real_ip else request.client.host
+
+
 # ─────────────────────────── RPC endpoint ───────────────────────
 @app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
 async def rpc_endpoint(request: Request):
+    ip = _get_client_ip(request)
+    KNOWN_IPS.add(ip)
+    if ip in BANNED_IPS:
+        log.warning("blocked request from banned ip %s", ip)
+        return Response(
+            content='{"jsonrpc":"2.0","error":{"code":-32098,"message":"Banned"},"id":null}',
+            status_code=403,
+            media_type="application/json",
+        )
     try:
         raw = await request.json()
     except JSONDecodeError:
@@ -225,12 +436,113 @@ async def rpc_endpoint(request: Request):
         payload = _ensure_id(raw)
 
     log.debug("RPC in  <- %s", payload)
+    pre = await _prevalidate(payload, ip)
+    if pre is not None:
+        return pre
     resp = await rpc.dispatch(payload)
+
+    async def _check_unknown(r: dict, method: str) -> None:
+        code = r.get("error", {}).get("code")
+        if code in (-32601, -32600):
+            if code == -32601:
+                r["error"]["data"] = {"method": method}
+            async with Session() as session:
+                count = await record_unknown_handler(session, ip)
+            if count >= BAN_THRESHOLD:
+                BANNED_IPS.add(ip)
+                async with Session() as session:
+                    await mark_ip_banned(session, ip)
+                log.warning("banned ip %s", ip)
+
+    status = 200
+
+    def _not_found(r: dict) -> bool:
+        return r.get("error", {}).get("code") == SECRET_NOT_FOUND_CODE
+
     if isinstance(resp, dict) and "error" in resp:
         method = payload.get("method") if isinstance(payload, dict) else "batch"
         log.warning(f"{method} '{resp['error']}'")
+        await _check_unknown(resp, method)
+        if _not_found(resp):
+            status = 404
+    elif isinstance(resp, list):
+        for r in resp:
+            if isinstance(r, dict) and "error" in r:
+                await _check_unknown(r, "batch")
+                if _not_found(r):
+                    status = 404
     log.debug("RPC out -> %s", resp)
-    return resp
+    return Response(
+        content=json.dumps(resp), status_code=status, media_type="application/json"
+    )
+
+
+# ─────────────────────────── Key/Secret RPC ─────────────────────
+
+
+@rpc.method("Keys.upload")
+async def keys_upload(public_key: str) -> dict:
+    """Store a trusted public key."""
+    key = pgpy.PGPKey()
+    key.parse(public_key)
+    TRUSTED_USERS[key.fingerprint] = public_key
+    log.info("key uploaded: %s", key.fingerprint)
+    return {"fingerprint": key.fingerprint}
+
+
+@rpc.method("Keys.fetch")
+async def keys_fetch() -> dict:
+    """Return all trusted keys indexed by fingerprint."""
+    return TRUSTED_USERS
+
+
+@rpc.method("Keys.delete")
+async def keys_delete(fingerprint: str) -> dict:
+    """Remove a public key by its fingerprint."""
+    TRUSTED_USERS.pop(fingerprint, None)
+    log.info("key removed: %s", fingerprint)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.add")
+async def secrets_add(
+    name: str,
+    secret: str,
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
+    version: int | None = None,
+) -> dict:
+    """Store an encrypted secret."""
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
+    log.info("secret stored: %s", name)
+    return {"ok": True}
+
+
+@rpc.method("Secrets.get")
+async def secrets_get(name: str, tenant_id: str = "default") -> dict:
+    """Retrieve an encrypted secret."""
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
+        raise RPCException(code=SECRET_NOT_FOUND_CODE, message="secret not found")
+    return {"secret": row.cipher}
+
+
+@rpc.method("Secrets.delete")
+async def secrets_delete(
+    name: str,
+    tenant_id: str = "default",
+    version: int | None = None,
+) -> dict:
+    """Remove a secret by name."""
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
+    log.info("secret removed: %s", name)
+
+    return {"ok": True}
 
 
 # ─────────────────────────── Pool RPCs ──────────────────────────
@@ -254,7 +566,7 @@ async def pool_join(name: str):
 async def task_submit(
     pool: str,
     payload: dict,
-    taskId: Optional[str],
+    taskId: str | None = None,
     deps: list[str] | None = None,
     edge_pred: str | None = None,
     labels: list[str] | None = None,
@@ -262,6 +574,21 @@ async def task_submit(
     config_toml: str | None = None,
 ):
     await queue.sadd("pools", pool)  # track pool even if not created
+
+    action = (payload or {}).get("action")
+    handlers: set[str] = set()
+    for w in await _live_workers_by_pool(pool):
+        raw = w.get("handlers", [])
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                raw = []
+        handlers.update(raw)
+    if action is not None and action not in handlers:
+        raise RPCException(
+            code=-32601, message="Method not found", data={"method": str(action)}
+        )
 
     if taskId and await _load_task(taskId):
         new_id = str(uuid.uuid4())
@@ -299,9 +626,7 @@ async def task_cancel(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "cancel", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -311,9 +636,7 @@ async def task_pause(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "pause", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -323,9 +646,7 @@ async def task_resume(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "resume", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -335,9 +656,7 @@ async def task_retry(selector: str):
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
-    count = await control_handler.apply(
-        "retry", queue, targets, READY_QUEUE, TASK_TTL
-    )
+    count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
     return {"count": count}
 
@@ -378,6 +697,11 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     await _save_task(task)
     await _persist(task)
     await _publish_task(task)
+    if "result" in changes and isinstance(changes["result"], dict):
+        children = changes["result"].get("children")
+        if children:
+            for cid in children:
+                await _finalize_parent_tasks(cid)
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
     return task.model_dump()
 
@@ -396,7 +720,7 @@ async def task_get(taskId: str):
         return await get_task_result(taskId)  # raises ValueError if not found
     except ValueError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCError(code=-32001, message=str(exc))
+        raise RPCException(code=-32001, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")
@@ -414,9 +738,36 @@ async def pool_list(poolName: str):
 
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
-async def worker_register(workerId: str, pool: str, url: str, advertises: dict):
-    await _upsert_worker(workerId, {"pool": pool, "url": url, "advertises": advertises})
-    log.info("worker %s registered (%s)", workerId, pool)
+async def worker_register(
+    workerId: str,
+    pool: str,
+    url: str,
+    advertises: dict,
+    handlers: list[str] | None = None,
+):
+    """Register a worker and persist its advertised handlers."""
+
+    handler_list: list[str] = handlers or []
+    if not handler_list:
+        well_known_url = url.replace("/rpc", "/well-known")
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(well_known_url)
+                if resp.status_code == 200:
+                    handler_list = resp.json().get("handlers", [])
+        except Exception as exc:  # noqa: BLE001
+            log.warning("/well-known fetch failed for %s: %s", workerId, exc)
+
+    await _upsert_worker(
+        workerId,
+        {
+            "pool": pool,
+            "url": url,
+            "advertises": advertises,
+            "handlers": handler_list,
+        },
+    )
+    log.info("worker %s registered (%s) handlers=%s", workerId, pool, handler_list)
     return {"ok": True}
 
 
@@ -452,10 +803,12 @@ async def worker_list(pool: str | None = None) -> list[dict]:
             continue
         if pool and w.get("pool") != pool:
             continue
-        workers.append({
-            "id": key.split(":", 1)[1],
-            **{k: v for k, v in w.items()},
-        })
+        workers.append(
+            {
+                "id": key.split(":", 1)[1],
+                **{k: v for k, v in w.items()},
+            }
+        )
     return workers
 
 
@@ -472,7 +825,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     now = time.time()
     if status == "running" and t.started_at is None:
         t.started_at = now
-    elif status in {"success", "failed", "cancelled"}:
+    elif Status.is_terminal(status):
         if t.started_at is None:
             t.started_at = now
         t.finished_at = now
@@ -481,6 +834,8 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     await _save_task(t)
     await _persist(t)
     await _publish_task(t)
+    if Status.is_terminal(status):
+        await _finalize_parent_tasks(taskId)
 
     log.info("task %s completed: %s", taskId, status)
     return {"ok": True}
@@ -488,7 +843,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
 
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler():
-    log.info("scheduler started")
+    sched_log.info("scheduler started")
     async with httpx.AsyncClient(timeout=10, http2=True) as client:
         while True:
             # iterate over pools with queued work
@@ -511,16 +866,30 @@ async def scheduler():
             await _publish_queue_length(pool)
             task = Task.model_validate_json(task_raw)
 
-            # pick first live worker for that pool
+            # pick a worker that supports the task's action
             worker_list = await _live_workers_by_pool(pool)
-            if not worker_list:
-                log.info("no active worker for %s, re-queue %s", pool, task.id)
-                await queue.rpush(queue_key, task_raw)  # push back
+            action = task.payload.get("action")
+            if not action:
+                sched_log.warning("task %s missing action; marking failed", task.id)
+                task.status = Status.failed
+                task.finished_at = time.time()
+                await _save_task(task)
+                await _persist(task)
+                await _publish_task(task)
+                continue
+
+            target = _pick_worker(worker_list, action)
+            if not target:
+                sched_log.info(
+                    "no worker for %s:%s, re-queue %s",
+                    pool,
+                    action,
+                    task.id,
+                )
+                await queue.rpush(queue_key, task_raw)
                 await _publish_queue_length(pool)
                 await asyncio.sleep(5)
                 continue
-
-            target = worker_list[0]
             rpc_req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
@@ -537,7 +906,7 @@ async def scheduler():
                 await _save_task(task)
                 await _persist(task)
                 await _publish_task(task)
-                log.info(
+                sched_log.info(
                     "dispatch %s → %s (HTTP %d)",
                     task.id,
                     target["url"],
@@ -545,32 +914,111 @@ async def scheduler():
                 )
 
             except Exception as exc:
-                log.warning("dispatch failed (%s) for %s; re-queueing", exc, task.id)
+                sched_log.warning(
+                    "dispatch failed (%s) for %s; re-queueing", exc, task.id
+                )
                 await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
 
 
+# ────────────────────────── Key Management ──────────────────────────
+@app.post("/keys", tags=["keys"])
+async def upload_key(public_key: str = Body(..., embed=True)) -> dict:
+    key = pgpy.PGPKey()
+    key.parse(public_key)
+    TRUSTED_USERS[key.fingerprint] = public_key
+    return {"fingerprint": key.fingerprint}
+
+
+@app.get("/keys", tags=["keys"])
+async def list_keys() -> dict:
+    return {"keys": list(TRUSTED_USERS.keys())}
+
+
+@app.delete("/keys/{fingerprint}", tags=["keys"])
+async def delete_key(fingerprint: str) -> dict:
+    TRUSTED_USERS.pop(fingerprint, None)
+    return {"removed": fingerprint}
+
+
+# ────────────────────────── Secret Endpoints ─────────────────────────
+@app.post("/secrets", tags=["secrets"])
+async def add_secret(
+    name: str = Body(...),
+    secret: str = Body(...),
+    tenant_id: str = "default",
+    owner_fpr: str = "unknown",
+) -> dict:
+    async with Session() as session:
+        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await session.commit()
+    return {"stored": name}
+
+
+@app.get("/secrets/{name}", tags=["secrets"])
+async def get_secret(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        row = await fetch_secret(session, tenant_id, name)
+    if not row:
+        return {"error": "not found"}
+    return {"secret": row.cipher}
+
+
+@app.delete("/secrets/{name}", tags=["secrets"])
+async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
+    async with Session() as session:
+        await delete_secret(session, tenant_id, name)
+        await session.commit()
+    return {"removed": name}
+
+
 # ─────────────────────────────── Healthcheck ───────────────────────────────
-@app.get("/health", tags=["health"])
+@app.get("/healthz", tags=["health"])
 async def health() -> dict:
     """
-    Simple readiness probe. Returns 200 OK as long as the app is running.
+    Simple readiness probe. Returns 200 OK once startup tasks complete.
     Docker’s healthcheck will curl this endpoint.
     """
-    return {"status": "ok"}
+    if READY:
+        return {"status": "ok"}
+    raise HTTPException(status_code=503, detail="starting")
 
-\
+
 # ───────────────────────────────    Startup  ───────────────────────────────
 @app.on_event("startup")
 async def _on_start():
+    log.info("gateway startup initiated")
+    result = migrate_core.alembic_upgrade()
+    if not result.get("ok", False):
+        log.error("migration failed: %s", result.get("error"))
+        raise RuntimeError(result.get("error"))
+    log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
-        result = alembic_upgrade()
-        if not result.get("ok", True):
-            log.warning("alembic upgrade failed: %s", result.get("error"))
         await ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
+        log.info("SQLite metadata initialized")
+
+    async with Session() as session:
+        banned = await fetch_banned_ips(session)
+    BANNED_IPS.update(banned)
+
+    log.info("database migrations complete")
     asyncio.create_task(scheduler())
+    asyncio.create_task(_backlog_scanner())
+    log.info("scheduler and backlog scanner started")
+    global READY
+    READY = True
+    log.info("gateway startup complete")
+
+
+@app.on_event("shutdown")
+async def _on_shutdown() -> None:
+    log.info("gateway shutdown initiated")
+    await _flush_state()
+    log.info("state flushed to persistent storage")
+    await engine.dispose()
+    log.info("database connections closed")

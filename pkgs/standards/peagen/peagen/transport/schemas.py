@@ -4,10 +4,21 @@ from typing import Any, Dict, Optional, Union, Literal
 from pydantic import BaseModel, Field
 
 
-class RPCError(BaseModel):
+class RPCErrorData(BaseModel):
     code: int = Field(..., example=-32601)
     message: str = Field(..., example="Method not found")
     data: Optional[Any] = Field(None, example={"detail": "extra info"})
+
+
+class RPCError(Exception):
+    """Exception carrying JSON-RPC error details."""
+
+    def __init__(self, *, code: int, message: str, data: Any | None = None) -> None:
+        self.error = RPCErrorData(code=code, message=message, data=data)
+        super().__init__(message)
+
+    def model_dump(self) -> Dict[str, Any]:
+        return self.error.model_dump()
 
 
 class RPCRequest(BaseModel):
@@ -26,4 +37,4 @@ class RPCResponse(BaseModel):
     id: Union[int, str, None] = Field(..., example=1)
     # exactly one of result / error is present
     result: Optional[Any] = Field(None, example={"taskId": "01HX..."})
-    error: Optional[RPCError] = None
+    error: Optional[RPCErrorData] = None

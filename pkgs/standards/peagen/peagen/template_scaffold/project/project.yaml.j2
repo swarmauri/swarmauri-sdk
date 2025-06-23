@@ -6,5 +6,7 @@ PROJECTS:
     PKGS:
       - NAME: {{ PROJECT_ROOT }}
         TEMPLATE_SET: {{ template_set }}
-        PROVIDER: {{ provider or "openai" }}
+        {% if provider %}
+        PROVIDER: {{ provider }}
+        {% endif %}
         SOURCE_DIR: src/{{ PROJECT_ROOT }}

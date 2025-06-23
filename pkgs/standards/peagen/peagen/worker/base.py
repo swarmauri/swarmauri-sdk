@@ -11,10 +11,13 @@ import uuid
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import httpx
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
+from peagen._utils.config_loader import resolve_cfg
+from peagen.plugins import PluginManager
+
 
 # ──────────────────────────── utils  ────────────────────────────
 def get_local_ip() -> str:
@@ -39,7 +42,7 @@ class WorkerBase:
     A reusable base worker that:
       • Exposes /rpc as a JSON-RPC 2.0 endpoint
       • Implements Work.start, Work.cancel
-      • Has a healthcheck (/health)
+      • Has a healthcheck (/healthz)
       • Sends Worker.register + Worker.heartbeat on startup
       • Sends Work.finished via _notify(...)
       • Allows registering custom handlers via register_handler(name, coro)
@@ -69,7 +72,9 @@ class WorkerBase:
         """
         # ─── CONFIGURE from ENV or parameters ────────────────────────
         self.POOL = pool or os.getenv("DQ_POOL", "default")
-        self.DQ_GATEWAY = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+        self.DQ_GATEWAY = gateway or os.getenv(
+            "DQ_GATEWAY", "http://localhost:8000/rpc"
+        )
         self.WORKER_ID = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
         self.PORT = port or int(os.getenv("PORT", "8001"))
         env_host = host or os.getenv("DQ_HOST", "")
@@ -93,15 +98,20 @@ class WorkerBase:
         self.app = FastAPI(title="Peagen Worker")
         self.rpc = RPCDispatcher()
         self._client: Optional[httpx.AsyncClient] = None
+        self.ready = False
 
         # ─── Handlers registry: name (str) → async function(task: Dict)→Dict ─
-        self._handler_registry: Dict[str, Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]] = {}
+        self._handler_registry: Dict[
+            str, Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]
+        ] = {}
 
         # ─── REGISTER built‐in RPC methods ──────────────────────────
         # 1) Work.start  →  on_work_start (async)
         @self.rpc.method("Work.start")
         async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
-            self.log.info("Work.start received    task=%s pool=%s", task.get("id"), self.POOL)
+            self.log.info(
+                "Work.start received    task=%s pool=%s", task.get("id"), self.POOL
+            )
             # Launch the real work in the background
             asyncio.create_task(self._run_task(task))
             return {"accepted": True}
@@ -133,7 +143,11 @@ class WorkerBase:
                 resp = await self.rpc.dispatch(payload)
             except JSONDecodeError as e:
                 # Malformed JSON-RPC
-                return {"jsonrpc": "2.0", "error": {"code": -32700, "message": str(e)}, "id": body.id}
+                return {
+                    "jsonrpc": "2.0",
+                    "error": {"code": -32700, "message": str(e)},
+                    "id": body.id,
+                }
             if resp.get("error"):
                 self.log.warning("%s error → %s", body.method, resp["error"])
             else:
@@ -141,9 +155,11 @@ class WorkerBase:
             return resp
 
         # ─── HEALTHCHECK ───────────────────────────────────────────
-        @self.app.get("/health", tags=["health"])
+        @self.app.get("/healthz", tags=["health"])
         async def health() -> Dict[str, str]:
-            return {"status": "ok"}
+            if self.ready:
+                return {"status": "ok"}
+            raise HTTPException(status_code=503, detail="starting")
 
         # ─── WELL‐KNOWN: return registered handler names ─────────────
         @self.app.get("/well-known")
@@ -181,7 +197,7 @@ class WorkerBase:
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
     async def _run_task(self, task: Dict[str, Any]) -> None:
         """
-        Called when Work.start arrives (in on_work_start).  
+        Called when Work.start arrives (in on_work_start).
         Will:
           1) Look at payload["action"]
           2) If not registered, immediately _notify failed
@@ -194,7 +210,9 @@ class WorkerBase:
         action = payload.get("action")
 
         if action not in self._handler_registry:
-            await self._notify("failed", task_id, {"error": f"Unsupported handler '{action}'"})
+            await self._notify(
+                "failed", task_id, {"error": f"Unsupported handler '{action}'"}
+            )
             return
 
         handler = self._handler_registry[action]
@@ -203,12 +221,26 @@ class WorkerBase:
 
         try:
             result: Dict[str, Any] = await handler(task)
-            await self._notify("success", task_id, result)
+            try:
+                cfg = resolve_cfg()
+                pm = PluginManager(cfg)
+                vcs = pm.get("vcs")
+                try:
+                    branch = vcs.repo.active_branch.name
+                except Exception:
+                    branch = "HEAD"
+                vcs.push(branch)
+            except Exception:  # pragma: no cover - push best effort
+                pass
+            status = result.pop("_final_status", "success")
+            await self._notify(status, task_id, result)
         except Exception as exc:
             await self._notify("failed", task_id, {"error": str(exc)})
 
     # ────────────────────────── Internal: send Work.finished ───────────────────────
-    async def _notify(self, state: str, task_id: str, result: Dict[str, Any] | None = None) -> None:
+    async def _notify(
+        self, state: str, task_id: str, result: Dict[str, Any] | None = None
+    ) -> None:
         """
         Send a Work.finished (or status update) back to the gateway.
         state ∈ {"running", "success", "failed"}.
@@ -236,7 +268,12 @@ class WorkerBase:
         """
         if self._client is None:
             raise RuntimeError("HTTP client not initialized")
-        body = {"jsonrpc": "2.0", "id": str(uuid.uuid4()), "method": method, "params": params}
+        body = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": method,
+            "params": params,
+        }
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
             self.log.debug("sent %s → %s", method, params)
@@ -257,9 +294,12 @@ class WorkerBase:
                 "pool": self.POOL,
                 "url": self.url_self,
                 "advertises": {"cpu": True},
+                "handlers": self.supported_handlers(),
             },
         )
-        self.log.info("registered  id=%s pool=%s url=%s", self.WORKER_ID, self.POOL, self.url_self)
+        self.log.info(
+            "registered  id=%s pool=%s url=%s", self.WORKER_ID, self.POOL, self.url_self
+        )
 
         # ───── Heartbeat loop ─────────────────────────────────────
         async def _heartbeat_loop() -> None:
@@ -280,6 +320,7 @@ class WorkerBase:
                     self.log.warning("heartbeat failed: %s", exc)
 
         asyncio.create_task(_heartbeat_loop())
+        self.ready = True
 
     async def _on_shutdown(self) -> None:
         """

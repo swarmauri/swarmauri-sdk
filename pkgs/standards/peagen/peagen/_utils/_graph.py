@@ -113,7 +113,9 @@ def _topological_sort(payload: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     # Check if all nodes were sorted (detect cycles or references to missing dependencies).
     if len(sorted_names) != len(in_degree):
-        raise Exception("Cyclic or missing dependencies detected among file entries.")
+        leftovers = [n for n, deg in in_degree.items() if deg > 0]
+        hint = ", ".join(sorted(leftovers))
+        raise ValueError(f"Cyclic dependencies detected among file entries: {hint}")
 
     # Map sorted file names back to their payload records.
     entry_map = {e["RENDERED_FILE_NAME"]: e for e in payload}

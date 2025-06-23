@@ -99,6 +99,8 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         "--output-base",
         help="Root dir for materialised artifacts (default ./out).",
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Execute the processing pipeline synchronously on this machine."""
     cfg_path: Optional[Path] = ctx.obj.get("config_path") if ctx.obj else None
@@ -113,6 +115,8 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         agent_env,
         output_base,
     )
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     task.payload["cfg_override"] = cfg_override
 
@@ -130,9 +134,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     project_name: Optional[str] = typer.Option(
         None, help="Process only a single project by its NAME"
     ),
-    start_idx: int = typer.Option(
-        0, help="Index offset for rendered filenames"
-    ),
+    start_idx: int = typer.Option(0, help="Index offset for rendered filenames"),
     start_file: Optional[str] = typer.Option(
         None, help="Skip files until this RENDERED_FILE_NAME is reached"
     ),
@@ -145,6 +147,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     output_base: Optional[Path] = typer.Option(
         None, "--output-base", help="Root dir for materialised artifacts"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
@@ -158,7 +162,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     else:
         if path.suffix in {".yml", ".yaml"}:
             raise typer.BadParameter(f"File not found: {projects_payload}")
-        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_") ) / "projects_payload.yaml"
+        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_")) / "projects_payload.yaml"
         tmp.write_text(projects_payload, encoding="utf-8")
         payload_pointer = str(tmp)
 
@@ -171,6 +175,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         agent_env,
         output_base,
     )
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
 
     # ─────────────────────── cfg override  ──────────────────────────────
@@ -205,6 +211,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
+
         def _rpc_call() -> dict:
             req = {
                 "jsonrpc": "2.0",
@@ -218,6 +225,6 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         while True:
             task_reply = _rpc_call()
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"success", "failed"}:
+            if Status.is_terminal(task_reply["status"]):
                 break
             time.sleep(interval)

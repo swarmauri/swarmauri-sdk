@@ -27,27 +27,30 @@ from .commands import (
     local_sort_app,
     local_template_sets_app,
     local_validate_app,
-  
+    login_app,
+    keys_app,
+    local_secrets_app,
+    show_app,
     remote_doe_app,
     remote_eval_app,
     remote_fetch_app,
     remote_process_app,
+    remote_db_app,
     remote_mutate_app,
     remote_evolve_app,
     remote_sort_app,
     remote_task_app,
     remote_template_sets_app,
     remote_validate_app,
+    remote_secrets_app,
+    local_analysis_app,
+    remote_analysis_app,
     dashboard_app,
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
-local_app = typer.Typer(
-    help="Commands executed locally on this machine."
-)
-remote_app = typer.Typer(
-    help="Commands that submit tasks to a JSON-RPC gateway."
-)
+local_app = typer.Typer(help="Commands executed locally on this machine.")
+remote_app = typer.Typer(help="Commands that submit tasks to a JSON-RPC gateway.")
 
 
 # ───────────────────── LOCAL GLOBAL CALLBACK ───────────────────────────────
@@ -134,9 +137,12 @@ def _global_remote_ctx(  # noqa: D401
     if not quiet:
         _print_banner()
     ctx.ensure_object(dict)
+    gw_url = gateway_url.rstrip("/")
+    if not gw_url.endswith("/rpc"):
+        gw_url += "/rpc"
     ctx.obj.update(
         verbosity=verbose,
-        gateway_url=gateway_url,
+        gateway_url=gw_url,
         task_override_inline=override,
         task_override_file=override_file,
         quiet=quiet,
@@ -145,35 +151,47 @@ def _global_remote_ctx(  # noqa: D401
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────
 
+app.add_typer(login_app)
+app.add_typer(keys_app, name="keys")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 app.add_typer(dashboard_app)
 
 
 local_app.add_typer(local_doe_app, name="doe")
-local_app.add_typer(local_eval_app,)
+local_app.add_typer(
+    local_eval_app,
+)
 local_app.add_typer(local_extras_app, name="extras-schemas")
-local_app.add_typer(local_fetch_app,)
+local_app.add_typer(
+    local_fetch_app,
+)
 local_app.add_typer(local_db_app, name="db")
-local_app.add_typer(local_init_app,          name="init")
+local_app.add_typer(local_init_app, name="init")
 local_app.add_typer(local_process_app)
 local_app.add_typer(local_mutate_app)
 local_app.add_typer(local_evolve_app)
 local_app.add_typer(local_sort_app)
+local_app.add_typer(local_analysis_app)
 local_app.add_typer(local_template_sets_app, name="template-set")
 local_app.add_typer(local_validate_app)
+local_app.add_typer(local_secrets_app, name="secrets")
+local_app.add_typer(show_app, name="git")
 
 
 remote_app.add_typer(remote_doe_app, name="doe")
 remote_app.add_typer(remote_eval_app)
 remote_app.add_typer(remote_fetch_app)
+remote_app.add_typer(remote_db_app, name="db")
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_mutate_app)
 remote_app.add_typer(remote_evolve_app)
 remote_app.add_typer(remote_sort_app)
 remote_app.add_typer(remote_task_app, name="task")
+remote_app.add_typer(remote_analysis_app, name="analysis")
 remote_app.add_typer(remote_template_sets_app, name="template-set")
 remote_app.add_typer(remote_validate_app)
+remote_app.add_typer(remote_secrets_app, name="secrets")
 
 if __name__ == "__main__":
     app()

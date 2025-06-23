@@ -34,6 +34,8 @@ dependencies = [
 
     "jinja2>=3.1.6", # should come with j2prompttemplate, but is it required anywhere else on its own?
     "inflect", # should come with j2prompttemplate, but is it required anywhere else on its own?
+    "pgpy>=0.6.0",
+    "psutil>=6.0",  # required for IO evaluator
 
     "typer",   # for cli
     "colorama",# for cli
@@ -67,7 +69,10 @@ dependencies = [
     "PyGithub", # this storage adapter needs to be pushed to its own standalone
     "minio", # this storage adapter needs to be pushed to its own standalone
     "GitPython",
+    "paramiko",
+    "pygit2",
     "s3fs",
+    "pytest-monitor>=1.6.6",
 ]
 
 
@@ -157,14 +162,38 @@ rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
 [project.entry-points."peagen.plugins.result_backends"]
 local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"
 postgres = "peagen.plugins.result_backends.postgres_backend:PostgresResultBackend"
+in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBackend"
 
 [project.entry-points."peagen.plugins.queues"]
 redis = "peagen.plugins.queues.redis_queue:RedisQueue"
 in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
+
+[project.entry-points."peagen.plugins.selectors"]
+result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackendSelector"
+bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
+input = "peagen.plugins.selectors.input_selector:InputSelector"
+
+[project.entry-points."peagen.plugins.mutators"]
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
+llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
+
+[project.entry-points."peagen.evaluators"]
+psutil_io = "peagen.evaluators.psutil_io:PsutilIOEvaluator"
+perf_regression = "peagen.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
+monitor = "peagen.evaluators.pytest_monitor:PytestMonitorEvaluator"
+memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
+pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
+benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
+simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen" = [
   "tests/examples/locking_demo/*",
   "tests/examples/peagen_tomls/*",
+  "tests/examples/2x2Grid/*",
+  "alembic.ini",
+  "migrations/**",
 ]

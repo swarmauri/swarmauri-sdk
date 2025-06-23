@@ -18,12 +18,12 @@ vcs.tag(run_ref)
 ```
 
 Git references follow the ``refs/pea/<kind>`` convention. Constants are
-exported for common prefixes such as :data:`RUN_REF` and
-:data:`PROMOTED_REF`.
+exported for common prefixes such as :data:`RUN_REF`, :data:`PROMOTED_REF`,
+and :data:`KEY_AUDIT_REF`.
 
-When fetching a workspace, a ``workspace_uri`` beginning with
-``git+`` will be cloned to the destination directory. Both branches and
-SHA identifiers are supported via ``git+<url>@<ref>``.
+When fetching content from Git, a ``git+`` URL will be cloned to the
+destination directory. Both branches and commit SHAs are supported via
+``git+<url>@<ref>``.
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
 to write ``clean`` and ``smudge`` helpers. Pass ``--add-config`` to also store
@@ -47,14 +47,20 @@ following snippet::
         cw.set_value(s, "smudge", smudge_cmd)
         cw.set_value(s, "required", "true")
     (REPO_DIR / ".gitattributes").write_text(
-        "workspace/** filter=minio-oid diff=minio-oid\n"
-        "workspace/artifacts/** -filter -diff\n"
+        "peagen/** filter=minio-oid diff=minio-oid\n"
+        "artifacts/** -filter -diff\n"
     )
 
 The ``init project`` command accepts ``--git-remote`` to set an origin
 URL during repository creation and ``--filter-uri`` to initialise a
 filter. Use ``--add-filter-config`` to also write the URI to the
 generated ``.peagen.toml``.
+
+``peagen init repo`` can create a GitHub repository for you. Pass the
+target as ``tenant/repo`` (where ``tenant`` is a user or organisation)
+and supply a personal access token. The command also generates an
+Ed25519 deploy key and registers it with the new repo so tasks can push
+results via SSH.
 
 Peagen tasks use the VCS when available. DOE expansions and Evolve jobs
 create branches for each spawned run, allowing easy inspection of

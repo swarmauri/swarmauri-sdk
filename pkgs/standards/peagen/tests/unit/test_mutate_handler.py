@@ -10,7 +10,7 @@ async def test_mutate_handler_invokes_core(monkeypatch):
 
     def fake_mutate_workspace(**kwargs):
         captured.update(kwargs)
-        return {"winner": "w.py", "score": "1"}
+        return {"winner": "w.py", "score": "1", "meta": {"ok": True}}
 
     monkeypatch.setattr(handler, "mutate_workspace", fake_mutate_workspace)
 
@@ -22,13 +22,17 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "gens": 3,
         "profile_mod": None,
         "config": None,
+        "mutations": [{"kind": "echo_mutator", "probability": 1}],
+        "evaluator_ref": "ev",
     }
 
     result = await handler.mutate_handler({"payload": {"args": args}})
 
-    assert result == {"winner": "w.py", "score": "1"}
+    assert result == {"winner": "w.py", "score": "1", "meta": {"ok": True}}
     assert captured["workspace_uri"] == "ws"
     assert captured["target_file"] == "t.py"
     assert captured["import_path"] == "mod"
     assert captured["entry_fn"] == "f"
     assert captured["gens"] == 3
+    assert captured["mutations"] == [{"kind": "echo_mutator", "probability": 1}]
+    assert captured["evaluator_ref"] == "ev"

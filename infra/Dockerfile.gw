@@ -5,7 +5,7 @@ FROM python:3.12-slim
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential git && \
     pip install --no-cache-dir uv && \
-    apt-get purge -y build-essential git && \
+    apt-get purge -y build-essential && \
     apt-get autoremove -y && \
     apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
@@ -25,13 +25,13 @@ EXPOSE 8000
 
 ENV \
     PG_HOST="" \
-    PG_PORT="" \
+    PG_PORT="5432" \
     PG_DB="" \
-    PB_USER="" \
+    PG_USER="" \
     PG_PASS="" \
     REDIS_HOST="" \
     REDIS_PASSWORD="" \
     MINIO_USER="" \
     MINIO_ROOT_PASSWORD=""
     
-CMD ["sh", "-c", "alembic -c pkgs/standards/peagen/alembic.ini upgrade head && python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]

@@ -1,4 +1,5 @@
 """CLI for the evolve workflow."""
+
 from __future__ import annotations
 
 import asyncio
@@ -12,6 +13,7 @@ import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.models import Status, Task
+from peagen.core.validate_core import validate_evolve_spec
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -32,8 +34,32 @@ def run(
     spec: Path = typer.Argument(..., exists=True),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out", help="Write results to file"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
-    args = {"evolve_spec": str(spec)}
+    result = validate_evolve_spec(spec)
+    if not result["ok"]:
+        for err in result["errors"]:
+            typer.secho(err, fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    def _git_root(path: Path) -> Path:
+        for p in [path] + list(path.parents):
+            if (p / ".git").exists():
+                return p
+        return path
+
+    root = _git_root(Path.cwd())
+
+    def _canonical(p: Path) -> str:
+        try:
+            return str(p.resolve().relative_to(root))
+        except ValueError:
+            return str(p.resolve())
+
+    args = {"evolve_spec": _canonical(spec)}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     result = asyncio.run(evolve_handler(task))
     if json_out:
@@ -49,9 +75,35 @@ def submit(
     ctx: typer.Context,
     spec: Path = typer.Argument(..., exists=True),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
+    interval: float = typer.Option(
+        2.0, "--interval", "-i", help="Seconds between polls"
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
-    args = {"evolve_spec": str(spec)}
+    result = validate_evolve_spec(spec)
+    if not result["ok"]:
+        for err in result["errors"]:
+            typer.secho(err, fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    def _git_root(path: Path) -> Path:
+        for p in [path] + list(path.parents):
+            if (p / ".git").exists():
+                return p
+        return path
+
+    root = _git_root(Path.cwd())
+
+    def _canonical(p: Path) -> str:
+        try:
+            return str(p.resolve().relative_to(root))
+        except ValueError:
+            return str(p.resolve())
+
+    args = {"evolve_spec": _canonical(spec)}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     rpc_req = {
         "jsonrpc": "2.0",
@@ -71,6 +123,7 @@ def submit(
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
+
         def _rpc_call() -> dict:
             req = {
                 "jsonrpc": "2.0",
@@ -86,6 +139,6 @@ def submit(
         while True:
             task_reply = _rpc_call()
             typer.echo(json.dumps(task_reply, indent=2))
-            if task_reply["status"] in {"finished", "failed"}:
+            if Status.is_terminal(task_reply["status"]):
                 break
             time.sleep(interval)

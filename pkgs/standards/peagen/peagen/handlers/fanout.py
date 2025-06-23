@@ -15,7 +15,7 @@ async def fan_out(
     *,
     result: Dict[str, Any] | None = None,
     final_status: Status = Status.waiting,
-) -> List[str]:
+) -> Dict[str, Any]:
     """Submit *children* and update *parent* with their IDs."""
     gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
     parent_id = parent.get("id") if isinstance(parent, dict) else parent.id
@@ -39,7 +39,10 @@ async def fan_out(
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Task.patch",
-            "params": {"taskId": parent_id, "changes": {"result": {"children": child_ids}}},
+            "params": {
+                "taskId": parent_id,
+                "changes": {"result": {"children": child_ids}},
+            },
         }
         await client.post(gateway, json=patch)
 
@@ -47,8 +50,12 @@ async def fan_out(
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "Work.finished",
-            "params": {"taskId": parent_id, "status": final_status.value, "result": result},
+            "params": {
+                "taskId": parent_id,
+                "status": final_status.value,
+                "result": result,
+            },
         }
         await client.post(gateway, json=finish)
 
-    return child_ids
+    return {"children": child_ids, "_final_status": final_status.value}

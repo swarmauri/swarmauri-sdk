@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from peagen.models import TaskRun
+from .base import ResultBackendBase
 
-class LocalFsResultBackend:
+
+class LocalFsResultBackend(ResultBackendBase):
     """Persist TaskRun rows as JSON files in a local directory."""
 
     def __init__(self, root_dir: str = "./task_runs", **_: object) -> None:

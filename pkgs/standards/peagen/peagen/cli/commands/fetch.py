@@ -26,26 +26,31 @@ DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 remote_fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
+
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict) -> Task:
+    """Construct a Task with the fetch action embedded in the payload."""
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="fetch",
         status=Status.waiting,
-        payload={"args": args},
+        payload={"action": "fetch", "args": args},
     )
 
 
 def _collect_args(
     workspaces: List[str],
-    out_dir: Optional[Path],
     no_source: bool,
     install_template_sets_flag: bool,
+    repo: Optional[str] = None,
+    ref: str = "HEAD",
 ) -> dict:
+    if repo:
+        workspaces = [f"git+{repo}@{ref}"]
+
     return {
         "workspaces": workspaces,
-        "out_dir": str(out_dir.expanduser()) if out_dir else None,
+        "out_dir": str(Path.cwd()),
         "no_source": no_source,
         "install_template_sets": install_template_sets_flag,
     }
@@ -55,10 +60,7 @@ def _collect_args(
 @local_fetch_app.command("fetch")
 def run(
     ctx: typer.Context,
-    workspaces: List[str] = typer.Argument(..., help="Workspace URI(s)"),
-    out_dir: Optional[Path] = typer.Option(
-        None, "--out", "-o", help="Destination folder (temp dir if omitted)"
-    ),
+    workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
     no_source: bool = typer.Option(
         False, "--no-source/--with-source", help="Skip cloning source packages"
     ),
@@ -67,9 +69,13 @@ def run(
         "--install-template-sets/--no-install-template-sets",
         help="Install template sets referenced by the workspace descriptor",
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Synchronously build the workspace on this machine."""
-    args = _collect_args(workspaces, out_dir, no_source, install_template_sets_flag)
+    args = _collect_args(
+        workspaces or [], no_source, install_template_sets_flag, repo, ref
+    )
     task = _build_task(args)
 
     result = asyncio.run(fetch_handler(task))
@@ -80,12 +86,7 @@ def run(
 @remote_fetch_app.command("fetch")
 def submit(
     ctx: typer.Context,
-    workspaces: List[str] = typer.Argument(
-        ..., help="Workspace URI(s)"
-    ),
-    out_dir: Optional[Path] = typer.Option(
-        None, "--out", "-o", help="Destination folder on the worker"
-    ),
+    workspaces: Optional[List[str]] = typer.Argument(None, help="Workspace URI(s)"),
     no_source: bool = typer.Option(
         False, "--no-source/--with-source", help="Skip cloning source packages"
     ),
@@ -93,10 +94,14 @@ def submit(
         True,
         "--install-template-sets/--no-install-template-sets",
         help="Install template sets referenced by the workspace descriptor",
-    )
+    ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue the fetch task on a worker farm and return immediately."""
-    args = _collect_args(workspaces, out_dir, no_source, install_template_sets_flag)
+    args = _collect_args(
+        workspaces or [], no_source, install_template_sets_flag, repo, ref
+    )
     task = _build_task(args)
 
     rpc_req = {

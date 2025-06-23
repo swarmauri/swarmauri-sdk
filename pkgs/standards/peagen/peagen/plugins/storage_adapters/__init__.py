@@ -27,6 +27,7 @@ def make_adapter_for_uri(uri: str):
         raise TypeError(f"{adapter_cls.__name__} lacks required from_uri()")
     return adapter_cls.from_uri(uri)
 
+
 __all__ = [
     "FileStorageAdapter",
     "MinioStorageAdapter",

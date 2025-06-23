@@ -43,6 +43,7 @@ def load_projects_payload(
             elif "://" in projects_payload:
                 from urllib.parse import urlparse, urlunparse
                 from peagen.plugins import discover_and_register_plugins
+
                 discover_and_register_plugins()
                 from peagen.plugins.storage_adapters import make_adapter_for_uri
 
@@ -199,7 +200,9 @@ def _render_package_ptree(
         rec["PTREE_SEARCH_PATHS"] = [str(p) for p in ptree_paths]
 
     if log:
-        log.info(f" - Found {len(pkg_file_records)} file-record(s) for package '{pkg_name}'")
+        log.info(
+            f" - Found {len(pkg_file_records)} file-record(s) for package '{pkg_name}'"
+        )
 
     return pkg_file_records
 
@@ -303,7 +306,7 @@ def process_single_project(
     start_idx: int = 0,
     start_file: Optional[str] = None,
     transitive: bool = False,
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> Tuple[List[Dict[str, Any]], int, str | None]:
     """
     1) Build a global Jinja search path that includes built-ins, plugins, and workspace.
     2) For each package in project["PACKAGES"]:
@@ -313,13 +316,15 @@ def process_single_project(
        a) Write each file (COPY or GENERATE) under the default output (<cwd>/<project_name>/…).
        b) Upload to storage if a storage_adapter is in cfg (optional).
        c) Commit generated files to Git if ``cfg['vcs']`` is present.
-    Returns (sorted_records, next_idx).
+    Returns (sorted_records, next_idx, commit_hexsha).
     """
     logger = cfg.get("logger") or globals().get("logger")
     project_name = project.get("NAME", "<no-project-name>")
 
     if logger:
-        logger.info(f"========== Starting process for project '{project_name}' ==========")
+        logger.info(
+            f"========== Starting process for project '{project_name}' =========="
+        )
 
     # ─── STEP 1: Build global search paths ─────────────────────────────────
     base_dir = Path(os.getcwd())
@@ -371,7 +376,7 @@ def process_single_project(
             logger.warning(
                 f"No files to process for project '{project_name}'. Exiting."
             )
-        return sorted_records, next_idx
+        return sorted_records, next_idx, None
 
     # ─── STEP 4: Prepare commit tracking (workspace already exists) ──────────
     commit_paths: List[Path] = []
@@ -447,13 +452,24 @@ def process_single_project(
                 )
 
     # ─── STEP 6: Commit results ───────────────────────────────────────────
+    commit_sha = None
+    oids: List[str] = []
     if vcs and commit_paths:
         repo_root = Path(vcs.repo.working_tree_dir)
         rels = [os.path.relpath(p, repo_root) for p in commit_paths]
-        vcs.commit(rels, f"process {project_name}")
+        commit_sha = vcs.commit(rels, f"process {project_name}")
+        for rel in rels:
+            try:
+                oids.append(vcs.blob_oid(rel, ref=commit_sha))
+            except Exception:
+                pass
+        try:
+            vcs.push(vcs.repo.active_branch.name)
+        except Exception:  # pragma: no cover - push may fail
+            pass
     if logger:
         logger.info(f"========== Completed project '{project_name}' ==========\n")
-    return sorted_records, next_idx
+    return sorted_records, next_idx, commit_sha, oids
 
 
 def process_all_projects(
@@ -473,7 +489,7 @@ def process_all_projects(
 
     for proj in projects:
         name = proj.get("NAME", f"project_{next_idx}")
-        recs, next_idx = process_single_project(
+        recs, next_idx, _, _ = process_single_project(
             proj,
             cfg,
             start_idx=next_idx,

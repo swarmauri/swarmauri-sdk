@@ -23,7 +23,7 @@
         Redis Task Queues      PostgreSQL Results DB
         ─────────────────      ─────────────────────
         queue:<pool>  (LIST)   task_runs (audit)  ◄── persist status
-        task:update   (PubSub)                     (artifact_uri, metrics…)
+        task:update   (PubSub)                     (oids, metrics…)
 
                         ▲
                         │
@@ -42,7 +42,7 @@
 │───────────────────────────────────────────────────────────────────│
 │  FastAPI + JSON-RPC  (/rpc)                                      │
 │  • Work.start  → execute payload                                 │
-│  • Work.finished → status + artifact_uri                         │
+│  • Work.finished → status + oids                                 │
 │  • BLPOP or ZPOP work pull (optional future)                     │
 │  • Heartbeats every 5 s  ────────────────────────────────────────┐│
 └───────────────────────────────────────────────────────────────────┘│

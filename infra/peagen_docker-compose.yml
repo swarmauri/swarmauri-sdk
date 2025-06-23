@@ -65,9 +65,9 @@ services:
       POSTGRES_USER:      ${POSTGRES_USER}
       POSTGRES_PASSWORD:  ${POSTGRES_PASSWORD}
       POSTGRES_DB:        ${POSTGRES_DB}
-      PGPORT:             5342
+      PGPORT:             5432
     ports: 
-      - 5342
+      - 5432
     volumes:
       - "${DATA_ROOT}/postgres:/var/lib/postgresql/data"
     healthcheck:
@@ -109,7 +109,7 @@ services:
       - "6379:6379"
     environment:
       DB_POSTGRES_HOST:     postgres
-      DB_POSTGRES_PORT:     5342
+      DB_POSTGRES_PORT:     5432
       DB_POSTGRES_USER:     ${POSTGRES_USER}
       DB_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DB_POSTGRES_NAME:     ${POSTGRES_DB}
@@ -140,16 +140,16 @@ services:
       - 8000
     environment:
       PG_HOST:              postgres
-      PG_PORT:              5342
+      PG_PORT:              5432
       PG_DB:                ${POSTGRES_DB}
       PG_USER:              ${POSTGRES_USER}
       PG_PASS:              ${POSTGRES_PASSWORD}
-      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5342/${POSTGRES_DB}
+      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_HOST:           redis
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -177,6 +177,11 @@ services:
       MINIO_BUCKET:             "test"
       MINIO_ACCESS_KEY:         ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY:         ${MINIO_SECRET_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     networks: [app_net]
 

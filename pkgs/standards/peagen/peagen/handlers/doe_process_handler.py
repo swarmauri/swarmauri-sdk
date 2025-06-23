@@ -1,5 +1,6 @@
 # peagen/handlers/doe_process_handler.py
 """Handler for DOE workflow that spawns process tasks."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -20,13 +21,28 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     """Expand the DOE spec and spawn a process task for each project."""
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
 
-    def _resolve_existing(path_str: str) -> Path:
-        path = Path(path_str).expanduser()
-        if path.exists():
-            return path
-        alt = Path(__file__).resolve().parents[2] / path_str
-        return alt if alt.exists() else path
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str)
+            cand = tmp_dir / path
+            return cand if cand.exists() else path
+    else:
+
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str).expanduser()
+            if path.exists():
+                return path
+            alt = Path(__file__).resolve().parents[2] / path_str
+            return alt if alt.exists() else path
 
     cfg_path = _resolve_existing(args["config"]) if args.get("config") else None
 
@@ -39,6 +55,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         dry_run=args.get("dry_run", False),
         force=args.get("force", False),
         skip_validate=args.get("skip_validate", False),
+        evaluate_runs=args.get("evaluate_runs", False),
     )
 
     cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
@@ -46,11 +63,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     try:
         storage_adapter = pm.get("storage_adapters")
     except Exception:
-        file_cfg = (
-            cfg.get("storage", {})
-            .get("adapters", {})
-            .get("file", {})
-        )
+        file_cfg = cfg.get("storage", {}).get("adapters", {}).get("file", {})
         storage_adapter = FileStorageAdapter(**file_cfg) if file_cfg else None
 
     output_paths = result.get("outputs", [])
@@ -61,7 +74,11 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         doc = yaml.safe_load(text)
         proj = (doc.get("PROJECTS") or [None])[0]
         payload: str | bytes = text
-        if storage_adapter and not result.get("dry_run") and not isinstance(storage_adapter, FileStorageAdapter):
+        if (
+            storage_adapter
+            and not result.get("dry_run")
+            and not isinstance(storage_adapter, FileStorageAdapter)
+        ):
             key = f"{Path(p).name}"
             try:
                 with open(p, "rb") as fh:
@@ -93,5 +110,16 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             )
         )
 
-    child_ids = await fan_out(task_or_dict, children, result=result, final_status=Status.waiting)
-    return {"children": child_ids, **result}
+    fan_res = await fan_out(
+        task_or_dict, children, result=result, final_status=Status.waiting
+    )
+    final = {
+        "children": fan_res["children"],
+        "_final_status": fan_res["_final_status"],
+        **result,
+    }
+    if tmp_dir:
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+    return final

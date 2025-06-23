@@ -63,4 +63,12 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             force=args.get("force", False),
         )
 
+    if kind == "repo":
+        return init_core.init_repo(
+            repo=args.get("repo"),
+            pat=args.get("pat"),
+            description=args.get("description", ""),
+            deploy_key=Path(args["deploy_key"]) if args.get("deploy_key") else None,
+        )
+
     raise ValueError(f"Unknown init kind '{kind}'")

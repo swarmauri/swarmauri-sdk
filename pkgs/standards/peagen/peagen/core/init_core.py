@@ -15,12 +15,14 @@ from typing import Any, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 
-from peagen.plugins import registry
+from peagen.plugins import registry, discover_and_register_plugins
+from peagen.core.doe_core import _sha256
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _ensure_empty_or_force(dst: Path, force: bool) -> None:
     """Create *dst* if empty or *force* is True."""
@@ -29,7 +31,9 @@ def _ensure_empty_or_force(dst: Path, force: bool) -> None:
     dst.mkdir(parents=True, exist_ok=True)
 
 
-def _render_scaffold(src_root: Path, dst: Path, context: Dict[str, Any], force: bool) -> None:
+def _render_scaffold(
+    src_root: Path, dst: Path, context: Dict[str, Any], force: bool
+) -> None:
     """Render a scaffold tree from *src_root* into *dst* using *context*."""
     if not src_root.exists():
         raise FileNotFoundError(f"Scaffold folder '{src_root}' missing.")
@@ -66,6 +70,7 @@ def _render_scaffold(src_root: Path, dst: Path, context: Dict[str, Any], force: 
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def init_project(
     *,
     path: Path,
@@ -97,11 +102,13 @@ def init_project(
     _render_scaffold(src_root, path, context, force)
 
     from peagen.plugins.vcs import GitVCS
+
     vcs = GitVCS.ensure_repo(path, remote_url=git_remote)
     vcs.commit(["."], "initial commit")
 
     if filter_uri:
         from peagen._utils.git_filter import add_filter, init_git_filter
+
         init_git_filter(vcs.repo, filter_uri)
         if add_filter_config:
             add_filter(filter_uri, config=path / ".peagen.toml")
@@ -141,6 +148,7 @@ def init_doe_spec(
     force: bool = False,
 ) -> Dict[str, Any]:
     """Create a DOE-spec stub."""
+    discover_and_register_plugins()
     tmpl_mod = registry["template_sets"].get("init-doe-spec")
     if tmpl_mod is None:
         raise ValueError("Template-set 'init-doe-spec' not found.")
@@ -153,7 +161,21 @@ def init_doe_spec(
     }
 
     _render_scaffold(src_root, path, context, force)
-    return {"created": str(path), "next": "peagen experiment --spec ... --template project.yaml"}
+
+    spec_file = path / "doe_spec.yml"
+    checksum = _sha256(spec_file)
+    meta_file = path / "spec.yaml"
+    if meta_file.exists():
+        import yaml
+
+        meta = yaml.safe_load(meta_file.read_text(encoding="utf-8"))
+        meta["checksum"] = checksum
+        meta_file.write_text(yaml.safe_dump(meta, sort_keys=False), encoding="utf-8")
+
+    return {
+        "created": str(path),
+        "next": "peagen experiment --spec ... --template project.yaml",
+    }
 
 
 def init_ci(
@@ -171,3 +193,54 @@ def init_ci(
     kind = "ci-github" if github else "ci-gitlab"
     _render_scaffold(src_root / kind, path, {}, force)
     return {"created": str(path), "next": "commit the CI file"}
+
+
+def init_repo(
+    *, repo: str, pat: str, description: str = "", deploy_key: Path | None = None
+) -> Dict[str, Any]:
+    """Create a GitHub repository and register a deploy key."""
+    from github import Github
+    import subprocess
+    import tempfile
+
+    tenant, name = repo.split("/", 1)
+    gh = Github(pat)
+
+    try:
+        owner = gh.get_organization(tenant)
+    except Exception:
+        owner = gh.get_user(tenant)
+
+    try:
+        repo_obj = owner.create_repo(name, private=True, description=description)
+    except Exception:
+        repo_obj = gh.get_repo(repo)
+
+    if deploy_key is None:
+        tmp = Path(tempfile.mkdtemp())
+        deploy_key = tmp / f"{name}_deploy"
+        subprocess.run(
+            [
+                "ssh-keygen",
+                "-q",
+                "-t",
+                "ed25519",
+                "-N",
+                "",
+                "-C",
+                f"{name}-worker",
+                "-f",
+                str(deploy_key),
+            ],
+            check=True,
+        )
+
+    pub_key = deploy_key.with_suffix(".pub")
+    with pub_key.open() as fh:
+        repo_obj.create_key(title="peagen-worker", key=fh.read(), read_only=False)
+
+    return {
+        "created": repo,
+        "deploy_key": str(deploy_key),
+        "next": "configure DEPLOY_KEY_SECRET",
+    }

@@ -15,6 +15,12 @@ default_max_tokens  = 4096
 [llm.groq]
 API_KEY   = "${GROQ_API_KEY}"
 
+[secrets]
+default_secret = "env"
+
+[secrets.adapters.env]
+prefix = ""
+
 # ─────────────────────────── Source Packages ───────────────────────────
 [[source_packages]]
 name            = "swarmauri_sdk"

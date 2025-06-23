@@ -13,6 +13,10 @@ async def test_redis_queue_basic_ops():
         pytest.skip("REDIS_URL not set")
 
     q = RedisQueue(uri=redis_url)
+    try:
+        await q.client.ping()
+    except Exception:
+        pytest.skip("Redis server not available")
     await q.client.flushdb()
 
     await q.sadd("set", "a")

@@ -1,0 +1,8 @@
+kind: llm-patch
+id: openai-gpt4o-0.7-3000
+provider: openai
+params:
+  name: gpt-4o
+  temperature: 0.7
+  max_tokens: 3000
+secretRef: env:OPENAI_API_KEY

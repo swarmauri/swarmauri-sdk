@@ -36,6 +36,11 @@ def run(
     import_path: str = typer.Option(..., help="Module import path"),
     entry_fn: str = typer.Option(..., help="Benchmark function"),
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
+    fitness: str = typer.Option(
+        "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
+        "--fitness",
+        help="Evaluator plugin reference",
+    ),
     gens: int = typer.Option(1, help="Number of generations"),
     json_out: bool = typer.Option(
         False, "--json", help="Print results to stdout instead of a file"
@@ -43,15 +48,18 @@ def run(
     out: Optional[Path] = typer.Option(
         None, "--out", help="Write JSON results to this path"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Run the mutate workflow locally."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,
         "profile_mod": profile_mod,
         "gens": gens,
+        "evaluator_ref": fitness,
     }
     task = _build_task(args)
     result = asyncio.run(mutate_handler(task))
@@ -72,16 +80,24 @@ def submit(
     import_path: str = typer.Option(..., help="Module import path"),
     entry_fn: str = typer.Option(..., help="Benchmark function"),
     profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
+    fitness: str = typer.Option(
+        "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
+        "--fitness",
+        help="Evaluator plugin reference",
+    ),
     gens: int = typer.Option(1, help="Number of generations"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Submit a mutate task to the gateway."""
     args = {
-        "workspace_uri": workspace_uri,
+        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,
         "profile_mod": profile_mod,
         "gens": gens,
+        "evaluator_ref": fitness,
     }
     task = _build_task(args)
 
@@ -111,4 +127,3 @@ def submit(
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
-

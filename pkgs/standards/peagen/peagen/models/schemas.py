@@ -1,10 +1,8 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, FrozenSet
 from pydantic import BaseModel, Field
 import uuid
-
-
 
 
 class Role(str, Enum):
@@ -28,6 +26,15 @@ class Status(str, Enum):
     success = "success"
     failed = "failed"
     cancelled = "cancelled"
+
+    @classmethod
+    def is_terminal(cls, state: str | "Status") -> bool:
+        """Return True if *state* represents completion."""
+        terminal_states: FrozenSet[str] = frozenset(
+            {"success", "failed", "cancelled", "rejected"}
+        )
+        value = state.value if isinstance(state, Status) else state
+        return value in terminal_states
 
 
 class Task(BaseModel):

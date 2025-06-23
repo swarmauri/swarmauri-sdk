@@ -1,8 +1,6 @@
 """Textual user interface helpers for Peagen."""
 
-from .app import QueueDashboardApp
-from .ws_client import TaskStreamClient
-from .fileops import download_remote, upload_remote
+from typing import TYPE_CHECKING
 
 __all__ = [
     "QueueDashboardApp",
@@ -10,3 +8,28 @@ __all__ = [
     "download_remote",
     "upload_remote",
 ]
+
+if TYPE_CHECKING:  # pragma: no cover - used only for type checkers
+    from .app import QueueDashboardApp
+    from .ws_client import TaskStreamClient
+    from .fileops import download_remote, upload_remote
+
+
+def __getattr__(name: str):
+    if name == "QueueDashboardApp":
+        from .app import QueueDashboardApp as _QueueDashboardApp
+
+        return _QueueDashboardApp
+    if name == "TaskStreamClient":
+        from .ws_client import TaskStreamClient as _TaskStreamClient
+
+        return _TaskStreamClient
+    if name == "download_remote":
+        from .fileops import download_remote as _download_remote
+
+        return _download_remote
+    if name == "upload_remote":
+        from .fileops import upload_remote as _upload_remote
+
+        return _upload_remote
+    raise AttributeError(name)

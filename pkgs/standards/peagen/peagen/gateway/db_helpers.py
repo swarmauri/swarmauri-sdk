@@ -6,7 +6,10 @@ from typing import Dict, Any
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from peagen.models import Status, TaskRun
+import sqlalchemy as sa
+from peagen.models import Status, TaskRun, TaskRunDep
+from peagen.models.secret import Secret
+from peagen.models.abuse import AbuseRecord
 
 log = Logger(name="upsert")
 
@@ -32,16 +35,20 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
-    data = _coerce(row.to_dict())
+    data = _coerce(row.to_dict(exclude={"deps", "duration"}))
     stmt = (
         pg_insert(TaskRun)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
-            set_=_coerce(row.to_dict(exclude={"id"})),
+            set_=_coerce(row.to_dict(exclude={"id", "deps", "duration"})),
         )
     )
     result = await session.execute(stmt)
+    await session.execute(sa.delete(TaskRunDep).where(TaskRunDep.task_id == row.id))
+    values = [{"task_id": row.id, "dep_id": uuid.UUID(d)} for d in row.deps]
+    if values:
+        await session.execute(sa.insert(TaskRunDep), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
@@ -57,9 +64,7 @@ async def ensure_status_enum(engine) -> None:
         )
         if not exists.scalar():
             enum_values = ", ".join(f"'{v}'" for v in values)
-            await conn.execute(
-                text(f"CREATE TYPE status AS ENUM ({enum_values})")
-            )
+            await conn.execute(text(f"CREATE TYPE status AS ENUM ({enum_values})"))
         else:
             res = await conn.execute(
                 text(
@@ -72,3 +77,83 @@ async def ensure_status_enum(engine) -> None:
                     await conn.execute(
                         text(f"ALTER TYPE status ADD VALUE IF NOT EXISTS '{val}'")
                     )
+
+
+async def upsert_secret(
+    session: AsyncSession,
+    tenant_id: str,
+    owner_fpr: str,
+    name: str,
+    cipher: str,
+) -> None:
+    data = {
+        "tenant_id": tenant_id,
+        "owner_fpr": owner_fpr,
+        "name": name,
+        "cipher": cipher,
+        "created_at": dt.datetime.utcnow(),
+    }
+    stmt = (
+        pg_insert(Secret)
+        .values(**data)
+        .on_conflict_do_update(
+            index_elements=["tenant_id", "name"],
+            set_={
+                "cipher": cipher,
+                "owner_fpr": owner_fpr,
+                "created_at": data["created_at"],
+            },
+        )
+    )
+    await session.execute(stmt)
+
+
+async def fetch_secret(
+    session: AsyncSession, tenant_id: str, name: str
+) -> Secret | None:
+    result = await session.execute(
+        sa.select(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+    )
+    return result.scalar_one_or_none()
+
+
+async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> None:
+    await session.execute(
+        sa.delete(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+    )
+
+
+async def record_unknown_handler(session: AsyncSession, ip: str) -> int:
+    """Increment and return the unknown handler count for *ip*."""
+
+    stmt = (
+        pg_insert(AbuseRecord)
+        .values(ip=ip, count=1, first_seen=dt.datetime.utcnow())
+        .on_conflict_do_update(
+            index_elements=["ip"],
+            set_={"count": AbuseRecord.__table__.c.count + 1},
+        )
+        .returning(AbuseRecord.__table__.c.count)
+    )
+    result = await session.execute(stmt)
+    (count,) = result.one()
+    await session.commit()
+    return count
+
+
+async def fetch_banned_ips(session: AsyncSession) -> list[str]:
+    """Return all IP addresses currently marked as banned."""
+
+    result = await session.execute(
+        sa.select(AbuseRecord.ip).where(AbuseRecord.banned.is_(True))
+    )
+    return [row[0] for row in result]
+
+
+async def mark_ip_banned(session: AsyncSession, ip: str) -> None:
+    """Set the banned flag for *ip*."""
+
+    await session.execute(
+        sa.update(AbuseRecord).where(AbuseRecord.ip == ip).values(banned=True)
+    )
+    await session.commit()

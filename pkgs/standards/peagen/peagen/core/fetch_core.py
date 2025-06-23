@@ -19,6 +19,7 @@ from typing import List, Optional
 
 from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
 from peagen.plugins.vcs import GitVCS
+from peagen.errors import WorkspaceNotFoundError
 
 
 # ─────────────────────────── low-level helpers ────────────────────────────
@@ -29,7 +30,10 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
         url, _, ref = url_ref.partition("@")
         ref = ref or "HEAD"
         vcs = GitVCS.ensure_repo(dest, remote_url=url)
-        vcs.checkout(ref)
+        try:
+            vcs.fetch(ref, checkout=True)
+        except Exception:
+            vcs.checkout(ref)
         return
 
     if "://" in uri:
@@ -40,7 +44,7 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
 
     path = Path(uri)
     if not path.exists():
-        raise FileNotFoundError(uri)
+        raise WorkspaceNotFoundError(uri)
     if path.is_dir():
         shutil.copytree(path, dest, dirs_exist_ok=True)
     else:
@@ -49,18 +53,54 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
 
 # ───────────────────────────── public API ─────────────────────────────────
 def fetch_single(
-    workspace_uri: str,
+    workspace_uri: str | None = None,
     *,
     dest_root: Path,
+    repo: str | None = None,
+    ref: str = "HEAD",
 ) -> dict:
-    """Materialise ``workspace_uri`` into ``dest_root``."""
+    """Materialise ``workspace_uri`` or ``repo``+``ref`` into ``dest_root``.
+
+    Returns a dictionary containing the workspace path, the fetched commit SHA
+    when applicable, and whether the repository was updated during the fetch.
+    """
+    if repo:
+        workspace_uri = f"git+{repo}@{ref}"
+    if workspace_uri is None:
+        raise ValueError("workspace_uri or repo required")
+
+    old_sha = None
+    if (dest_root / ".git").exists():
+        try:
+            old_sha = GitVCS.open(dest_root).repo.head.commit.hexsha
+        except Exception:  # pragma: no cover - repo may be empty
+            pass
+
     _materialise_workspace(workspace_uri, dest_root)
-    return {"workspace": str(dest_root)}
+
+    new_sha = None
+    updated = True
+    if (dest_root / ".git").exists():
+        try:
+            vcs = GitVCS.open(dest_root)
+            new_sha, updated = vcs.repo.head.commit.hexsha, True
+            if old_sha is not None:
+                updated = old_sha != new_sha
+        except Exception:  # pragma: no cover - repo may be missing HEAD
+            pass
+
+    return {
+        "workspace": str(dest_root),
+        "commit": new_sha,
+        "updated": updated,
+    }
 
 
 def fetch_many(
-    workspace_uris: List[str],
+    workspace_uris: List[str] | None = None,
     *,
+    repo: str | None = None,
+    ref: str = "HEAD",
     out_dir: Optional[Path] = None,
     install_template_sets_flag: bool = True,  # ignored, kept for API compat
     no_source: bool = False,  # ignored
@@ -73,9 +113,10 @@ def fetch_many(
     )
     workspace.mkdir(parents=True, exist_ok=True)
 
-    results = [
-        fetch_single(uri, dest_root=workspace)
-        for uri in workspace_uris
-    ]
+    workspace_uris = workspace_uris or []
+    if repo:
+        workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
+
+    results = [fetch_single(uri, dest_root=workspace) for uri in workspace_uris]
 
     return {"workspace": str(workspace), "fetched": results}

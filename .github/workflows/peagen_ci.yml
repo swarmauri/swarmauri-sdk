@@ -41,21 +41,7 @@ jobs:
         # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull   # optional
         sudo docker system prune -f
         sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build
-
-    # Run Alembic only when deploy succeeded
-    - name: Run Alembic migrations
-      if: success()          # <- deploy must have succeeded
-      run: |
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml exec gateway peagen db upgrade | tee migration.log
-
-    - name: Upload migration logs
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: migration-logs
-        path: migration.log
-
+        sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build 
     # Collect logs only when *any* previous step failed (deploy or later)
     - name: Get container logs on failure
       if: failure()          # <- overrides the implicit success() check

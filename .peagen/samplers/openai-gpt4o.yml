@@ -1,0 +1,8 @@
+kind: llm-config
+id: openai-gpt4o
+provider: openai
+params:
+  name: gpt-4o
+  temperature: 0.7
+  max_tokens: 3000
+secretRef: env:OPENAI_API_KEY

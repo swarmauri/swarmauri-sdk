@@ -21,7 +21,7 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     Parameters (in task.payload.args)
     ---------------------------------
     workspaces: List[str]  – one or more workspace URIs
-    out_dir:   str | None  – destination workspace folder
+    out_dir:   str        – destination workspace folder
     no_source: bool        – ignored
     install_template_sets: bool – ignored
     """
@@ -29,10 +29,14 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
     uris: List[str] = args.get("workspaces", [])
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
 
     summary = fetch_many(
         workspace_uris=uris,
-        out_dir=Path(args["out_dir"]).expanduser() if args.get("out_dir") else None,
+        repo=repo,
+        ref=ref,
+        out_dir=Path(args["out_dir"]).expanduser(),
         install_template_sets_flag=args.get("install_template_sets", True),
         no_source=args.get("no_source", False),
     )
