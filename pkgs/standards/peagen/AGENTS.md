@@ -50,7 +50,7 @@ dsn = "${PG_DSN}"
 3. Start the gateway with Uvicorn:
 
 ```bash
-uvicorn peagen.gateway:app --host 0.0.0.0 --port 8000
+uvicorn peagen.gateway:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips="*"
 ```
 
 The gateway exposes a JSON‑RPC endpoint at `/rpc` and a WebSocket at `/ws/tasks`.
@@ -62,7 +62,7 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY . .
 RUN pip install peagen
-CMD ["uvicorn", "peagen.gateway:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "peagen.gateway:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
 ```
 
 ## Running a Worker
