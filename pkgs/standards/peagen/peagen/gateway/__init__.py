@@ -18,7 +18,7 @@ import json
 import httpx
 import time
 from json.decoder import JSONDecodeError
-from typing import Optional
+
 
 import pgpy
 from fastapi import Body, FastAPI, Request, Response, HTTPException
@@ -566,7 +566,7 @@ async def pool_join(name: str):
 async def task_submit(
     pool: str,
     payload: dict,
-    taskId: Optional[str],
+    taskId: str | None = None,
     deps: list[str] | None = None,
     edge_pred: str | None = None,
     labels: list[str] | None = None,
