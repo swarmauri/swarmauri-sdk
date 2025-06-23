@@ -44,11 +44,11 @@ def test_remote_eval_submits_task(tmp_path: Path) -> None:
         [
             "peagen",
             "remote",
+            "--gateway-url",
+            GATEWAY,
             "eval",
             str(workspace),
             "*.py",
-            "--gateway-url",
-            GATEWAY,
         ],
         capture_output=True,
         text=True,
@@ -77,11 +77,11 @@ def test_remote_eval_returns_json(tmp_path: Path) -> None:
         [
             "peagen",
             "remote",
+            "--gateway-url",
+            GATEWAY,
             "eval",
             str(workspace),
             "*.py",
-            "--gateway-url",
-            GATEWAY,
         ],
         capture_output=True,
         text=True,
@@ -89,8 +89,9 @@ def test_remote_eval_returns_json(tmp_path: Path) -> None:
         timeout=60,
     )
 
-    json_lines = [line for line in result.stdout.splitlines() if line.startswith("{")]
-    if not json_lines:
+    out = result.stdout
+    if "{" not in out:
         pytest.skip("gateway didn't return result JSON")
-    data = json.loads("\n".join(json_lines))
+    json_block = out[out.index("{") : out.rindex("}") + 1]
+    data = json.loads(json_block)
     assert isinstance(data, dict)

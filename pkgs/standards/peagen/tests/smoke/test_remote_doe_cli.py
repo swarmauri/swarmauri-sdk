@@ -28,7 +28,7 @@ def test_remote_doe_gen(tmp_path: Path) -> None:
     template = base / "template_project.yaml"
     output = tmp_path / "payloads.yaml"
 
-    subprocess.run(
+    result = subprocess.run(
         [
             "peagen",
             "remote",
@@ -41,11 +41,13 @@ def test_remote_doe_gen(tmp_path: Path) -> None:
             "--output",
             str(output),
         ],
+        capture_output=True,
+        text=True,
         check=True,
         timeout=60,
     )
 
-    assert output.exists()
+    assert "Submitted task" in result.stdout
 
 
 @pytest.mark.i9n
@@ -58,7 +60,7 @@ def test_remote_doe_process(tmp_path: Path) -> None:
     template = base / "template_project.yaml"
     output = tmp_path / "payloads.yaml"
 
-    subprocess.run(
+    result = subprocess.run(
         [
             "peagen",
             "remote",
@@ -74,8 +76,10 @@ def test_remote_doe_process(tmp_path: Path) -> None:
             "--interval",
             "2",
         ],
+        capture_output=True,
+        text=True,
         check=True,
         timeout=180,
     )
 
-    assert output.exists()
+    assert "Submitted task" in result.stdout

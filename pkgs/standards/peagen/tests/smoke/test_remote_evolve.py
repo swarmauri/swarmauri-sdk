@@ -43,6 +43,11 @@ def test_remote_evolve(tmp_path: Path) -> None:
         "--watch",
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=60)
-    last_line = result.stdout.strip().splitlines()[-1]
-    data = json.loads(last_line)
+    out = result.stdout
+    lines = out.splitlines()
+    for idx in range(len(lines) - 1, -1, -1):
+        if lines[idx].startswith("{"):
+            json_block = "\n".join(lines[idx:])
+            break
+    data = json.loads(json_block)
     assert data["status"] == "success"
