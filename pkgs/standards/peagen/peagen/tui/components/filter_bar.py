@@ -111,10 +111,14 @@ class FilterBar(Horizontal):
             str(lbl) for t in tasks for lbl in t.get("labels", []) if lbl is not None
         }
 
-        self._set_options(self.pool_select, pools)
-        self._set_options(self.status_select, statuses)
-        self._set_options(self.action_select, actions)
-        self._set_options(self.label_select, labels)
+        if not self.pool_select.expanded:
+            self._set_options(self.pool_select, pools)
+        if not self.status_select.expanded:
+            self._set_options(self.status_select, statuses)
+        if not self.action_select.expanded:
+            self._set_options(self.action_select, actions)
+        if not self.label_select.expanded:
+            self._set_options(self.label_select, labels)
 
     def clear(self) -> None:
         for select_widget in (
