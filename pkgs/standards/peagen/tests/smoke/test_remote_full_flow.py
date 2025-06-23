@@ -14,8 +14,10 @@ EVOLVE_SPEC = BASE / "simple_evolve_demo" / "evolve_remote_spec.yaml"
 
 
 def _gateway_available(url: str) -> bool:
+    """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
+    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
     try:
-        response = httpx.get(url, timeout=5)
+        response = httpx.post(url, json=envelope, timeout=5)
     except Exception:
         return False
     return response.status_code == 200
