@@ -12,6 +12,9 @@ async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
     (repo_dir / "t.py").write_text("x = 1", encoding="utf-8")
     vcs.commit(["t.py"], "init")
 
+    # Prevent push errors for the local repo without a remote
+    monkeypatch.setattr(GitVCS, "push", lambda self, branch: None)
+
     captured = {}
 
     def fake_mutate_workspace(**kwargs):
