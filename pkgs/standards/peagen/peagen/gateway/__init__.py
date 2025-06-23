@@ -708,6 +708,10 @@ async def task_patch(taskId: str, changes: dict) -> dict:
 
 @rpc.method("Task.get")
 async def task_get(taskId: str):
+    try:
+        uuid.UUID(taskId)
+    except ValueError:
+        raise RPCException(code=-32602, message="Invalid task id")
     # hot cache
     if t := await _load_task(taskId):
         data = t.model_dump()
