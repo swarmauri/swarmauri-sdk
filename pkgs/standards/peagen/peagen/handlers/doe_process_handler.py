@@ -44,13 +44,6 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             alt = Path(__file__).resolve().parents[2] / path_str
             return alt if alt.exists() else path
 
-    def _resolve_existing(path_str: str) -> Path:
-        path = Path(path_str).expanduser()
-        if path.exists():
-            return path
-        alt = Path(__file__).resolve().parents[2] / path_str
-        return alt if alt.exists() else path
-
     cfg_path = _resolve_existing(args["config"]) if args.get("config") else None
 
     result = generate_payload(
