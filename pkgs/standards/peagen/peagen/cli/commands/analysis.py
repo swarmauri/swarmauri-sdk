@@ -21,9 +21,8 @@ def _build_task(args: dict) -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool="default",
-        action="analysis",
         status=Status.waiting,
-        payload={"args": args},
+        payload={"action": "analysis", "args": args},
     )
 
 
