@@ -98,3 +98,34 @@ def test_fetch_server_prints_response(monkeypatch, capsys):
     out = capsys.readouterr().out
 
     assert json.loads(out) == {"k": "v"}
+
+
+@pytest.mark.unit
+def test_list_keys(monkeypatch, capsys):
+    monkeypatch.setattr(keys_mod.keys_core, "list_local_keys", lambda p: {"f": "p"})
+    keys_mod.list_keys(key_root=Path("x"))
+    out = capsys.readouterr().out
+    assert json.loads(out) == {"f": "p"}
+
+
+@pytest.mark.unit
+def test_show_key(monkeypatch, capsys):
+    def fake_export(fpr, *, key_root, fmt):
+        assert key_root == Path("x")
+        assert fmt == "openssh"
+        return "ssh"
+
+    monkeypatch.setattr(keys_mod.keys_core, "export_public_key", fake_export)
+    keys_mod.show("abc", fmt="openssh", key_root=Path("x"))
+    out = capsys.readouterr().out
+    assert out.strip() == "ssh"
+
+
+@pytest.mark.unit
+def test_add_key(monkeypatch, capsys):
+    monkeypatch.setattr(
+        keys_mod.keys_core, "add_key", lambda *a, **k: {"fingerprint": "f", "path": "p"}
+    )
+    keys_mod.add(Path("pub"), key_root=Path("x"), name="n")
+    out = capsys.readouterr().out
+    assert json.loads(out) == {"fingerprint": "f", "path": "p"}

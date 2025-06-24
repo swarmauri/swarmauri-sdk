@@ -3,13 +3,30 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import httpx
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen._utils.config_loader import load_peagen_toml
+from peagen.plugins import PluginManager
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+
+
+def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> Any:
+    """Instantiate the configured secrets driver."""
+    cfg = load_peagen_toml()
+    pm = PluginManager(cfg)
+    drv = pm.get("secrets")
+    if key_dir is not None and hasattr(drv, "key_dir"):
+        drv.key_dir = Path(key_dir)
+        drv.priv_path = drv.key_dir / "private.asc"
+        drv.pub_path = drv.key_dir / "public.asc"
+    if passphrase is not None and hasattr(drv, "passphrase"):
+        drv.passphrase = passphrase
+    if hasattr(drv, "_ensure_keys"):
+        drv._ensure_keys()
+    return drv
 
 
 def create_keypair(
@@ -24,7 +41,7 @@ def create_keypair(
     Returns:
         dict: Paths of the generated key files.
     """
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    drv = _get_driver(key_dir=key_dir, passphrase=passphrase)
     return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
 
 
@@ -33,7 +50,7 @@ def upload_public_key(
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> dict:
     """Upload the local public key to the gateway."""
-    drv = AutoGpgDriver(key_dir=key_dir)
+    drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     envelope = {
         "jsonrpc": "2.0",
@@ -63,3 +80,35 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json().get("result", {})
+
+
+def list_local_keys(key_root: Path | None = None) -> Dict[str, str]:
+    """Return a mapping of key fingerprints to public key paths."""
+
+    drv = _get_driver(key_dir=key_root)
+    return drv.list_keys()
+
+
+def export_public_key(
+    fingerprint: str,
+    *,
+    key_root: Path | None = None,
+    fmt: str = "armor",
+) -> str:
+    """Return ``fingerprint`` key in the requested ``fmt``."""
+
+    drv = _get_driver(key_dir=key_root)
+    return drv.export_public_key(fingerprint, fmt=fmt)
+
+
+def add_key(
+    public_key: Path,
+    *,
+    private_key: Path | None = None,
+    key_root: Path | None = None,
+    name: str | None = None,
+) -> dict:
+    """Store ``public_key`` (and optional ``private_key``) under ``key_root``."""
+
+    drv = _get_driver(key_dir=key_root)
+    return drv.add_key(public_key, private_key=private_key, name=name)

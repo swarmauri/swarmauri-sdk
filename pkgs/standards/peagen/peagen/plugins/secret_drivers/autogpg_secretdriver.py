@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
+import subprocess
+import tempfile
 import warnings
 
 from cryptography.utils import CryptographyDeprecationWarning
@@ -137,3 +139,80 @@ class AutoGpgDriver(SecretDriverBase):
         if not pub.verify(decrypted):
             raise ValueError("signature verification failed")
         return decrypted.message.encode()
+
+    # ─── Convenience helpers used by keys_core ──────────────────────────
+
+    def create_keypair(self) -> dict:
+        """Ensure keys exist and return their paths."""
+        self._ensure_keys()
+        return {"private": str(self.priv_path), "public": str(self.pub_path)}
+
+    def list_keys(self) -> dict[str, str]:
+        """List fingerprints for public keys under ``key_dir``."""
+        keys: dict[str, str] = {}
+
+        def _add(pub: Path) -> None:
+            if not pub.exists():
+                return
+            key = pgpy.PGPKey()
+            key.parse(pub.read_text())
+            keys[key.fingerprint] = str(pub)
+
+        if (self.key_dir / "public.asc").exists():
+            _add(self.key_dir / "public.asc")
+        else:
+            for sub in self.key_dir.iterdir():
+                if not sub.is_dir():
+                    continue
+                _add(sub / "public.asc")
+
+        return keys
+
+    def export_public_key(self, fingerprint: str, fmt: str = "armor") -> str:
+        """Return ``fingerprint`` key in ``fmt`` format."""
+        keys = self.list_keys()
+        pub_path_str = keys.get(fingerprint)
+        if not pub_path_str:
+            raise ValueError(f"unknown key: {fingerprint}")
+
+        pub_path = Path(pub_path_str)
+        if fmt == "openssh":
+            with tempfile.TemporaryDirectory() as gpg_home:
+                subprocess.run(
+                    ["gpg", "--homedir", gpg_home, "--import", str(pub_path)],
+                    check=True,
+                    capture_output=True,
+                )
+                out = subprocess.run(
+                    ["gpg", "--homedir", gpg_home, "--export-ssh-key", fingerprint],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+            return out
+        return pub_path.read_text()
+
+    def add_key(
+        self,
+        public_key: Path,
+        *,
+        private_key: Path | None = None,
+        name: str | None = None,
+    ) -> dict:
+        """Store ``public_key`` (and optional ``private_key``) under ``key_dir``."""
+        text = Path(public_key).read_text()
+        key = pgpy.PGPKey()
+        key.parse(text)
+        fingerprint = key.fingerprint
+
+        if (self.key_dir / "public.asc").exists() and not name:
+            dest = self.key_dir
+        else:
+            dest = self.key_dir / (name or fingerprint)
+            dest.mkdir(parents=True, exist_ok=True)
+
+        (dest / "public.asc").write_text(text)
+        if private_key is not None:
+            (dest / "private.asc").write_text(Path(private_key).read_text())
+
+        return {"fingerprint": fingerprint, "path": str(dest)}
