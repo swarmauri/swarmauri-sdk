@@ -14,7 +14,12 @@ import pygit2
 from git import Repo
 from git.exc import GitCommandError
 
-from peagen.errors import GitOperationError, GitRemoteMissingError
+from peagen.errors import (
+    GitRemoteMissingError,
+    GitCloneError,
+    GitFetchError,
+    GitPushError,
+)
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
@@ -30,7 +35,10 @@ class GitVCS:
         if (p / ".git").exists():
             self.repo = Repo(p)
         elif remote_url:
-            self.repo = Repo.clone_from(remote_url, p)
+            try:
+                self.repo = Repo.clone_from(remote_url, p)
+            except GitCommandError as exc:
+                raise GitCloneError(remote_url) from exc
         else:
             self.repo = Repo.init(p)
 
@@ -112,7 +120,7 @@ class GitVCS:
         try:
             self.repo.git.fetch(remote, ref)
         except GitCommandError as exc:
-            raise GitOperationError(str(exc)) from exc
+            raise GitFetchError(ref, remote) from exc
         if checkout:
             self.repo.git.checkout("FETCH_HEAD")
 
@@ -152,7 +160,7 @@ class GitVCS:
         try:
             self.repo.git.push(remote, ref)
         except GitCommandError as exc:
-            raise GitOperationError(str(exc)) from exc
+            raise GitPushError(ref, remote) from exc
 
     def push_with_secret(
         self,
@@ -186,7 +194,7 @@ class GitVCS:
         try:
             remote_obj.push([ref], callbacks=callbacks)
         except pygit2.GitError as exc:
-            raise GitOperationError(str(exc)) from exc
+            raise GitPushError(ref, remote) from exc
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""
