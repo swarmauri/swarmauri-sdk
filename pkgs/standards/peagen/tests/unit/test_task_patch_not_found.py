@@ -6,7 +6,7 @@ from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_task_patch_missing(monkeypatch):
-    """Verify ValueError raised when patching a nonexistent task."""
+    """Verify TaskNotFoundError raised when patching a nonexistent task."""
     q = InMemoryQueue()
 
     class DummyBackend:
@@ -43,5 +43,7 @@ async def test_task_patch_missing(monkeypatch):
 
     task_patch = gw.task_patch
 
-    with pytest.raises(ValueError):
+    from peagen.errors import TaskNotFoundError
+
+    with pytest.raises(TaskNotFoundError):
         await task_patch(taskId="missing", changes={"status": "success"})

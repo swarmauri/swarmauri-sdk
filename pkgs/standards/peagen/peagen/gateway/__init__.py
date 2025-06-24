@@ -732,10 +732,10 @@ async def task_get(taskId: str):
 
     # authoritative fallback (Postgres)
     try:
-        return await get_task_result(taskId)  # raises ValueError if not found
-    except ValueError as exc:
+        return await get_task_result(taskId)  # raises TaskNotFoundError if missing
+    except TaskNotFoundError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCException(code=-32001, message=str(exc))
+        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")

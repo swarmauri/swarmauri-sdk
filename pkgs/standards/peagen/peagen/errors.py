@@ -116,13 +116,18 @@ class InvalidPluginSpecError(ValueError):
 
 
 class TaskNotFoundError(RuntimeError):
-    """Raised when a requested task ID does not exist."""
+    """Raised when a task id does not exist in the gateway."""
 
     def __init__(self, task_id: str) -> None:
-        super().__init__(f"Task '{task_id}' not found")
+        super().__init__(task_id)
         self.task_id = task_id
 
-
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return (
+            f"Task '{self.task_id}' could not be found. "
+            "It may have expired or was never created."
+        )
+      
 class DispatchHTTPError(RuntimeError):
     """Raised when a worker responds with a non-200 HTTP status."""
 
