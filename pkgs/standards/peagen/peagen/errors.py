@@ -105,6 +105,13 @@ class MissingActionError(SchedulerError):
         super().__init__("Task payload missing 'action' key")
 
 
+class MissingRepoError(SchedulerError):
+    """Raised when a task payload lacks the required 'repo' key."""
+
+    def __init__(self) -> None:
+        super().__init__("Task payload missing 'repo' key")
+
+
 class NoWorkerAvailableError(SchedulerError):
     """Raised when no worker supports the requested action in the pool."""
 
