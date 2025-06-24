@@ -48,6 +48,7 @@ class GenericLLM:
         "deepseek": "DeepSeekModel",
         "ai21studio": "AI21StudioModel",
         "hyperbolic": "HyperbolicModel",
+        "dummy": "DummyModel",
         "cerebras": "CerebrasModel",
     }
 
@@ -119,8 +120,8 @@ class GenericLLM:
             env_var = f"{provider.upper()}_API_KEY"
             api_key = os.environ.get(env_var)
 
-        # 4️⃣ Error if no API key found
-        if api_key is None:
+        # 4️⃣ Error if no API key found (skip check for the dummy provider)
+        if provider != "dummy" and api_key is None:
             raise ValueError(
                 f"No API key provided for {provider}. "
                 f"Please provide it via --api-key, .peagen.toml [llm.{provider}].API_KEY, or set the {env_var} environment variable."
