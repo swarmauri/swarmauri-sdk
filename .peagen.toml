@@ -86,3 +86,7 @@ strict = true
 
 [evaluation.evaluators]
 performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+
+[vcs]
+provider = "git"
+default_vcs = "git"
