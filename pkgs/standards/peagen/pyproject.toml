@@ -93,6 +93,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "smoke: Smoke tests for remote peagen functionality",
 ]
 timeout = 300
 log_cli = true
