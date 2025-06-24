@@ -383,6 +383,9 @@ def generate_payload(
         spec_name=spec_path.stem,
     )
 
+    # ensure the output directory exists before generating files
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
     bundles: List[Tuple[Path, Dict[str, Any]]] = []
     for idx, proj_payload in enumerate(projects):
         out_path = output_path.parent / (
