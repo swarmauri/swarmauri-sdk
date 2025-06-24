@@ -26,7 +26,6 @@ def test_pagination_actions(monkeypatch):
     app.action_jump_page(99)
     assert app.offset == 20
 
-
 @pytest.mark.unit
 def test_perform_filtering_limit_offset():
     app = QueueDashboardApp()
@@ -48,3 +47,4 @@ def test_perform_filtering_limit_offset():
     )
     ids = [t["id"] for t in result["tasks_to_display"]]
     assert ids == list(range(20, 30))
+
