@@ -7,6 +7,7 @@ import json
 import uuid
 from pathlib import Path
 from typing import Optional
+import subprocess
 
 import httpx
 import typer
@@ -58,6 +59,17 @@ def run(
             return str(p.resolve())
 
     args = {"evolve_spec": _canonical(spec)}
+    if not repo:
+        try:
+            repo = subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"],
+                text=True,
+            ).strip()
+            ref = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], text=True
+            ).strip()
+        except Exception:  # pragma: no cover - git not available
+            repo = None
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
