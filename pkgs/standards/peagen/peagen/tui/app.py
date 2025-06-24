@@ -7,6 +7,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
+import math
 from urllib.parse import urlparse
 
 import httpx
@@ -234,6 +235,8 @@ class QueueDashboardApp(App):
         ("escape", "clear_filters", "Clear Filters"),
         ("n", "next_page", "Next Page"),
         ("p", "prev_page", "Prev Page"),
+        ("l", "cycle_limit", "Limit"),
+        ("j", "jump_page", "Jump Page"),
         ("q", "quit", "Quit"),
     ]
 
@@ -249,6 +252,8 @@ class QueueDashboardApp(App):
         "finished_at",
         "error",
     ]
+
+    LIMIT_OPTIONS = [10, 20, 50, 100]
 
     COLUMN_LABEL_TO_SORT_KEY = {
         "ID": "id",
@@ -690,6 +695,11 @@ class QueueDashboardApp(App):
             self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
             self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
 
+        if hasattr(self, "footer"):
+            current_page = self.offset // self.limit + 1
+            total_pages = max(1, math.ceil(self.queue_len / self.limit))
+            self.footer.set_page_info(current_page, total_pages)
+
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
             event.prevent_default()
@@ -982,6 +992,45 @@ class QueueDashboardApp(App):
             else:
                 self.run_worker(coro, exclusive=True, group="data_refresh_worker")
             self.trigger_data_processing(debounce=False)
+
+    def action_cycle_limit(self) -> None:
+        """Cycle through preset page size options."""
+        try:
+            idx = self.LIMIT_OPTIONS.index(self.limit)
+        except ValueError:
+            idx = 0
+        self.limit = self.LIMIT_OPTIONS[(idx + 1) % len(self.LIMIT_OPTIONS)]
+        self.offset = 0
+        coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            self.run_worker(coro, exclusive=True, group="data_refresh_worker")
+        self.trigger_data_processing(debounce=False)
+
+    def action_jump_page(self, page: int | None = None) -> None:
+        """Jump directly to *page* if provided or prompt the user."""
+        if page is None:
+            try:
+                page = int(input("Page number: "))
+            except Exception:
+                return
+        if page <= 0:
+            page = 1
+        max_page = max(1, math.ceil(self.queue_len / self.limit))
+        if page > max_page:
+            page = max_page
+        self.offset = (page - 1) * self.limit
+        coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            self.run_worker(coro, exclusive=True, group="data_refresh_worker")
+        self.trigger_data_processing(debounce=False)
 
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
