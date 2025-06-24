@@ -209,6 +209,13 @@ class WorkerBase:
         task_id = task.get("id")
         payload = task.get("payload", {})
         action = payload.get("action")
+        args = payload.get("args", {})
+
+        if "repo" not in args:
+            from peagen.errors import MissingRepoError
+
+            await self._notify("failed", task_id, {"error": str(MissingRepoError())})
+            return
 
         if action not in self._handler_registry:
             await self._notify(

@@ -3,6 +3,7 @@
 import os
 import yaml
 from pathlib import Path
+from os import PathLike
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from swarmauri_standard.loggers.Logger import Logger
@@ -32,7 +33,7 @@ logger = Logger(name=__name__)
 
 
 def load_projects_payload(
-    projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
+    projects_payload: Union[str, PathLike[str], List[Dict[str, Any]], Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """Return the list of projects from a payload value.
 
@@ -44,6 +45,8 @@ def load_projects_payload(
         doc = projects_payload
     else:
         try:
+            if isinstance(projects_payload, PathLike):
+                projects_payload = os.fspath(projects_payload)
             maybe_path = Path(projects_payload)
             if maybe_path.is_file():
                 yaml_text = maybe_path.read_text(encoding="utf-8")
@@ -77,16 +80,16 @@ def load_projects_payload(
             str(projects_payload) if isinstance(projects_payload, str) else None,
         )
 
-    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
-    if errors:
-        raise ProjectsPayloadValidationError(
-            errors, str(projects_payload) if isinstance(projects_payload, str) else None
-        )
-
     projects = doc.get("PROJECTS")
     if not isinstance(projects, list):
         raise MissingProjectsListError(
             str(projects_payload) if isinstance(projects_payload, str) else None
+        )
+
+    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
+    if errors:
+        raise ProjectsPayloadValidationError(
+            errors, str(projects_payload) if isinstance(projects_payload, str) else None
         )
     return projects
 

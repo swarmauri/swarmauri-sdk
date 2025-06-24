@@ -43,6 +43,42 @@ class TemplateFileNotFoundError(FileNotFoundError):
         return f"Template file not found: {self.template_path}"
 
 
+class TemplateSetInstallError(RuntimeError):
+    """Raise when installing a template set distribution fails."""
+
+    def __init__(self, name: str, reason: str) -> None:
+        super().__init__(f"Failed to install template-set '{name}': {reason}")
+        self.name = name
+        self.reason = reason
+
+
+class TemplateSetUninstallError(RuntimeError):
+    """Raise when uninstalling a template set distribution fails."""
+
+    def __init__(self, names: Iterable[str], reason: str) -> None:
+        joined = ", ".join(names)
+        super().__init__(f"Failed to uninstall template-set(s) [{joined}]: {reason}")
+        self.names = list(names)
+        self.reason = reason
+
+
+class TemplateSearchPathError(RuntimeError):
+    """Raise when no valid template directories can be found."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "No valid template directories found — check plugin installation and .peagen.toml",
+        )
+
+
+class DependencySortError(RuntimeError):
+    """Raise when dependency sorting of file records fails."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Dependency sort failed: {reason}")
+        self.reason = reason
+
+
 class GitOperationError(RuntimeError):
     """Raised when a git command fails."""
 
@@ -103,6 +139,13 @@ class MissingActionError(SchedulerError):
 
     def __init__(self) -> None:
         super().__init__("Task payload missing 'action' key")
+
+
+class MissingRepoError(SchedulerError):
+    """Raised when a task payload lacks the required 'repo' key."""
+
+    def __init__(self) -> None:
+        super().__init__("Task payload missing 'repo' key")
 
 
 class NoWorkerAvailableError(SchedulerError):

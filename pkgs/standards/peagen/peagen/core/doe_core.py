@@ -289,7 +289,11 @@ def generate_projects(
     projects: List[Dict[str, Any]] = []
     base_list = template_obj.get("PROJECTS", [])
     base_proj = deepcopy(base_list[0]) if base_list else {}
-    other_keys = {k: deepcopy(v) for k, v in template_obj.items() if k != "PROJECTS"}
+    other_keys = {
+        k: deepcopy(v)
+        for k, v in template_obj.items()
+        if k not in {"PROJECTS", "schemaVersion", "SOURCE"}
+    }
     for idx, point in enumerate(design_points):
         ctx = {
             **point,
@@ -368,6 +372,7 @@ def generate_payload(
     # 1. ------------ load + validate -------------------------------------
     spec_obj = _load_yaml(spec_path, kind="spec")
     template_obj = _load_yaml(template_path, kind="template")
+    schema_version = template_obj.get("schemaVersion", "1.0.0")
 
     if "version" not in spec_obj:
         raise ValueError("legacy DOE specs are no longer supported")
@@ -404,8 +409,11 @@ def generate_payload(
             f"{output_path.stem}_{idx:03d}{output_path.suffix}"
         )
 
+        proj_payload.pop("schemaVersion", None)
+
         bundle = {
-            **proj_payload,
+            "schemaVersion": schema_version,
+            "PROJECTS": [proj_payload],
             "SOURCE": {
                 "spec": str(spec_path),
                 "template": str(template_path),

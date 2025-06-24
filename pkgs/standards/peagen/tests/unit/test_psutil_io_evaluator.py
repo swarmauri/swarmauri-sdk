@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from peagen.evaluators.psutil_io import PsutilIOEvaluator
+from peagen.plugins.evaluators.psutil_io import PsutilIOEvaluator
 
 
 @pytest.mark.unit

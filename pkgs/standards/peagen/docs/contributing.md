@@ -26,7 +26,7 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
 ## Evaluation Pools
 
 - Evaluation pools manage collections of `EvaluatorBase` instances.
-- Add your pool to the **`peagen.evaluator_pools`** entry point group so `peagen eval` can discover it.
+- Add your pool to the **`peagen.plugins.evaluator_pools`** entry point group so `peagen eval` can discover it.
 
 ## Peagen Improvement Proposals (PEA-IPs)
 

@@ -2,7 +2,9 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from peagen.evaluators.pytest_perf_regression import PytestPerfRegressionEvaluator
+from peagen.plugins.evaluators.pytest_perf_regression import (
+    PytestPerfRegressionEvaluator,
+)
 
 
 def test_perf_regression_reads_speedup(tmp_path: Path):
