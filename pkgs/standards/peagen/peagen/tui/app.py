@@ -453,11 +453,21 @@ class QueueDashboardApp(App):
             "collapsed": self.collapsed.copy(),
         }
         processed_data = self._perform_filtering_and_sorting(
-            all_tasks, current_filter_criteria
+            all_tasks,
+            current_filter_criteria,
+            limit=self.limit,
+            offset=self.offset,
         )
         self.call_later(self._update_ui_with_processed_data, processed_data, all_tasks)
 
-    def _perform_filtering_and_sorting(self, tasks_input: list, criteria: dict) -> dict:
+    def _perform_filtering_and_sorting(
+        self,
+        tasks_input: list,
+        criteria: dict,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> dict:
         tasks = list(tasks_input)
 
         if criteria.get("id"):
@@ -552,8 +562,14 @@ class QueueDashboardApp(App):
         )
         calculated_metrics["worker_len"] = len(current_workers)
 
+        page_tasks = tasks
+        if limit is not None:
+            start = max(0, offset)
+            end = start + limit
+            page_tasks = tasks[start:end]
+
         return {
-            "tasks_to_display": tasks,
+            "tasks_to_display": page_tasks,
             "workers_data": current_workers,
             "metrics_data": calculated_metrics,
             "collapsed_state": criteria["collapsed"],
@@ -1060,6 +1076,7 @@ class QueueDashboardApp(App):
         limit = await self.push_screen_wait(NumberInputScreen(prompt, self.limit))
         if limit is not None:
             self.action_set_limit(limit)
+
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
             path_str = event.value.split("=", 1)[1].split("]", 1)[0]
