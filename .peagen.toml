@@ -85,10 +85,7 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-default_evaluator = "performance"
-
-[evaluation.evaluators.performance]
-# parameters for the built-in performance evaluator can go here
+simple_time = "simple_time"
 
 
 [vcs]

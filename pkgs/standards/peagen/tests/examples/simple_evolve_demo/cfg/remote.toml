@@ -31,8 +31,4 @@ provider_params = { path = "." }
 default_vcs = "git"
 
 [evaluation.evaluators]
-default_evaluator = "simple_time"
-
-[evaluation.evaluators.performance]
-import_path = "sort_alg"
-entry_fn = "bad_sort"
+simple_time = "simple_time"

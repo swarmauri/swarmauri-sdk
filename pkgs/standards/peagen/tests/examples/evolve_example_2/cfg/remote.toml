@@ -26,6 +26,4 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-default_evaluator = "simple_time"
-
-[evaluation.evaluators.performance]
+simple_time = "simple_time"

@@ -196,6 +196,9 @@ memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
 pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
 benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
 simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
+pytest = "peagen.plugins.evaluators.pytest_evaluator:PytestEvaluator"
+ruff = "peagen.plugins.evaluators.ruff_evaluator:RuffEvaluator"
+performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
 
 [project.entry-points."peagen.evaluator_pools"]
 default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"

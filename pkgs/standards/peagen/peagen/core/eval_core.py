@@ -45,8 +45,6 @@ def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
     Support both string and dict forms from .peagen.toml.
     """
     for name, spec in evaluators_cfg.items():
-        if name == "default_evaluator":
-            continue
         # ------------------------------------------------------------------ #
         # 1) Instantiate or locate evaluator
         # ------------------------------------------------------------------ #

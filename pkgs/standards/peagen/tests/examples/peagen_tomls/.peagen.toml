@@ -72,12 +72,7 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-default_evaluator = "ColemanLiauIndexEvaluator"
-
-[evaluation.evaluators.AutomatedReadabilityIndexEvaluator]
-
-[evaluation.evaluators.ColemanLiauIndexEvaluator]
-target_grade_level = 12
+simple_time = "simple_time"
 
 [vcs]
 provider = "git"

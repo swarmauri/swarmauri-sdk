@@ -139,7 +139,6 @@ class PluginManager:
         "evaluators": {
             "section": "evaluation",
             "items": "evaluators",
-            "default": "default_evaluator",
         },
         "evaluator_pools": {
             "section": "evaluation",
