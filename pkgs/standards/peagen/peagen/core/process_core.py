@@ -20,6 +20,9 @@ from peagen._utils._search_template_sets import (
     build_ptree_template_search_paths,
     build_file_template_search_paths,
 )
+from peagen.core.validate_core import _collect_errors
+from peagen.schemas import PROJECTS_PAYLOAD_V1_SCHEMA
+from peagen.errors import ProjectsPayloadValidationError
 
 logger = Logger(name=__name__)
 
@@ -61,6 +64,12 @@ def load_projects_payload(
         except (OSError, TypeError, ValueError):
             yaml_text = projects_payload
         doc = yaml.safe_load(yaml_text)
+
+    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
+    if errors:
+        raise ProjectsPayloadValidationError(
+            errors, str(projects_payload) if isinstance(projects_payload, str) else None
+        )
 
     projects = doc.get("PROJECTS") if isinstance(doc, dict) else doc
     if not isinstance(projects, list):
