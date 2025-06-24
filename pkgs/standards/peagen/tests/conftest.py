@@ -6,6 +6,14 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "infra: infrastructure tests requiring external services",
     )
+    config.addinivalue_line(
+        "markers",
+        "sequence_success: command sequence success tests",
+    )
+    config.addinivalue_line(
+        "markers",
+        "sequence_failure: command sequence failure tests",
+    )
 
 
 def pytest_collection_modifyitems(
