@@ -6,6 +6,7 @@ from peagen.core.process_core import load_projects_payload
 from peagen.errors import (
     ProjectsPayloadValidationError,
     ProjectsPayloadFormatError,
+    MissingProjectsListError,
 )
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 
@@ -53,6 +54,6 @@ def test_load_projects_payload_missing_projects_list(tmp_path):
     bad = tmp_path / "missing.yaml"
     bad.write_text("schemaVersion: '1.0.0'\nPROJECTS: {}\n")
 
-    # Schema validation now fails before the missing list check
-    with pytest.raises(ProjectsPayloadValidationError):
+    # Missing list should trigger MissingProjectsListError
+    with pytest.raises(MissingProjectsListError):
         load_projects_payload(str(bad))
