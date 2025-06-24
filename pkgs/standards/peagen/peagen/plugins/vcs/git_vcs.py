@@ -12,6 +12,9 @@ import paramiko
 import pygit2
 
 from git import Repo
+from git.exc import GitCommandError
+
+from peagen.errors import GitOperationError
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
@@ -106,7 +109,10 @@ class GitVCS:
         except Exception:  # pragma: no cover - HEAD may not exist
             pass
 
-        self.repo.git.fetch(remote, ref)
+        try:
+            self.repo.git.fetch(remote, ref)
+        except GitCommandError as exc:
+            raise GitOperationError(str(exc)) from exc
         if checkout:
             self.repo.git.checkout("FETCH_HEAD")
 
@@ -139,7 +145,10 @@ class GitVCS:
             self.push_with_secret(ref, secret_name, remote=remote, gateway_url=gateway)
             return
 
-        self.repo.git.push(remote, ref)
+        try:
+            self.repo.git.push(remote, ref)
+        except GitCommandError as exc:
+            raise GitOperationError(str(exc)) from exc
 
     def push_with_secret(
         self,
@@ -170,7 +179,10 @@ class GitVCS:
         callbacks = pygit2.RemoteCallbacks(
             credentials=pygit2.KeypairFromMemory("git", pubkey, key_text, "")
         )
-        remote_obj.push([ref], callbacks=callbacks)
+        try:
+            remote_obj.push([ref], callbacks=callbacks)
+        except pygit2.GitError as exc:
+            raise GitOperationError(str(exc)) from exc
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""

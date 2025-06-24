@@ -17,3 +17,9 @@ class WorkspaceNotFoundError(FileNotFoundError):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Workspace '{self.workspace}' does not exist or is not accessible"
+
+
+class GitOperationError(RuntimeError):
+    """Raised when a git command fails."""
+
+    pass
