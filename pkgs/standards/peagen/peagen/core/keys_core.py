@@ -17,7 +17,12 @@ def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> A
     """Instantiate the configured secrets driver."""
     cfg = load_peagen_toml()
     pm = PluginManager(cfg)
-    drv = pm.get("secrets")
+    try:
+        drv = pm.get("secrets_drivers")
+    except KeyError:
+        from peagen.plugins.secret_drivers import AutoGpgDriver
+
+        drv = AutoGpgDriver()
     if key_dir is not None and hasattr(drv, "key_dir"):
         drv.key_dir = Path(key_dir)
         drv.priv_path = drv.key_dir / "private.asc"
