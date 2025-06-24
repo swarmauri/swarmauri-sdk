@@ -26,7 +26,7 @@ GROUPS = {
     "git_filters": ("peagen.plugins.git_filters", object),
     "vcs": ("peagen.plugins.vcs", object),
     "selectors": ("peagen.plugins.selectors", object),
-    "secrets": ("peagen.plugins.secret_drivers", object),
+    "secrets_drivers": ("peagen.plugins.secret_drivers", object),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
 }
@@ -175,7 +175,7 @@ class PluginManager:
             "items": "plugins",
             "default": "default_selector",
         },
-        "secrets": {
+        "secrets_drivers": {
             "section": "secrets",
             "items": "adapters",
             "default": "default_secret",
