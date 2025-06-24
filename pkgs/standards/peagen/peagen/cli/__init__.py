@@ -18,7 +18,7 @@ from .commands import (
     local_doe_app,
     local_eval_app,
     local_extras_app,
-    local_fetch_app,
+    fetch_app,
     local_db_app,
     local_init_app,
     local_process_app,
@@ -33,7 +33,6 @@ from .commands import (
     show_app,
     remote_doe_app,
     remote_eval_app,
-    remote_fetch_app,
     remote_process_app,
     remote_db_app,
     remote_mutate_app,
@@ -153,6 +152,7 @@ def _global_remote_ctx(  # noqa: D401
 
 app.add_typer(login_app)
 app.add_typer(keys_app, name="keys")
+app.add_typer(fetch_app, name="fetch")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 app.add_typer(dashboard_app)
@@ -163,9 +163,6 @@ local_app.add_typer(
     local_eval_app,
 )
 local_app.add_typer(local_extras_app, name="extras-schemas")
-local_app.add_typer(
-    local_fetch_app,
-)
 local_app.add_typer(local_db_app, name="db")
 local_app.add_typer(local_init_app, name="init")
 local_app.add_typer(local_process_app)
@@ -181,7 +178,6 @@ local_app.add_typer(show_app, name="git")
 
 remote_app.add_typer(remote_doe_app, name="doe")
 remote_app.add_typer(remote_eval_app)
-remote_app.add_typer(remote_fetch_app)
 remote_app.add_typer(remote_db_app, name="db")
 remote_app.add_typer(remote_process_app)
 remote_app.add_typer(remote_mutate_app)
