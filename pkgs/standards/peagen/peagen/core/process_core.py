@@ -77,16 +77,16 @@ def load_projects_payload(
             str(projects_payload) if isinstance(projects_payload, str) else None,
         )
 
-    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
-    if errors:
-        raise ProjectsPayloadValidationError(
-            errors, str(projects_payload) if isinstance(projects_payload, str) else None
-        )
-
     projects = doc.get("PROJECTS")
     if not isinstance(projects, list):
         raise MissingProjectsListError(
             str(projects_payload) if isinstance(projects_payload, str) else None
+        )
+
+    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
+    if errors:
+        raise ProjectsPayloadValidationError(
+            errors, str(projects_payload) if isinstance(projects_payload, str) else None
         )
     return projects
 

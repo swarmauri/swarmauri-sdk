@@ -50,9 +50,9 @@ def _build_jinja_env(
             seen.add(p)
 
     if not search_paths:
-        raise RuntimeError(
-            "No valid template directories found — check plugin installation and .peagen.toml"
-        )
+        from peagen.errors import TemplateSearchPathError
+
+        raise TemplateSearchPathError()
 
     return Environment(
         loader=FileSystemLoader(search_paths),
