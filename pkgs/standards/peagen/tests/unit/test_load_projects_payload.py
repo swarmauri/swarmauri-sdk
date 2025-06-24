@@ -54,6 +54,6 @@ def test_load_projects_payload_missing_projects_list(tmp_path):
     bad = tmp_path / "missing.yaml"
     bad.write_text("schemaVersion: '1.0.0'\nPROJECTS: {}\n")
 
-    # Top-level PROJECTS key must be a list
+    # Missing list should trigger MissingProjectsListError
     with pytest.raises(MissingProjectsListError):
         load_projects_payload(str(bad))

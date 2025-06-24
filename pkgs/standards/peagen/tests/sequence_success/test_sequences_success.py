@@ -13,31 +13,29 @@ def _load_command_batches(path: Path, tmpdir: Path) -> list[list[list[str]]]:
     data = yaml.safe_load(path.read_text()) or {}
     batches: list[list[list[str]]] = []
 
-    if "command_sets" in data:
-        for entry in data["command_sets"]:
-            batch = entry.get("batch", entry)
-            cmds = [
-                [part.replace("{tmpdir}", str(tmpdir)) for part in cmd]
-                for cmd in batch.get("commands", [])
-            ]
-            if cmds:
-                batches.append(cmds)
+    def _expand(cmds: list[list[str]]) -> list[list[str]]:
+        return [[part.replace("{tmpdir}", str(tmpdir)) for part in cmd] for cmd in cmds]
 
-    elif "batches" in data:
-        for batch in data["batches"]:
-            cmds = [
-                [part.replace("{tmpdir}", str(tmpdir)) for part in cmd] for cmd in batch
-            ]
+    def _handle_container(container: dict) -> None:
+        if "command_sets" in container:
+            for entry in container["command_sets"]:
+                batch = entry.get("batch", entry)
+                cmds = batch.get("commands", [])
+                if cmds:
+                    batches.append(_expand(cmds))
+        elif "commands" in container:
+            cmds = container.get("commands", [])
             if cmds:
-                batches.append(cmds)
+                batches.append(_expand(cmds))
 
-    elif "commands" in data:
-        cmds = [
-            [part.replace("{tmpdir}", str(tmpdir)) for part in cmd]
-            for cmd in data["commands"]
-        ]
-        if cmds:
-            batches.append(cmds)
+    if "batches" in data:
+        for entry in data["batches"]:
+            if isinstance(entry, dict):
+                _handle_container(entry)
+            elif isinstance(entry, list):
+                batches.append(_expand(entry))
+    else:
+        _handle_container(data)
 
     return batches
 

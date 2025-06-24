@@ -44,19 +44,7 @@ class GitVCS:
             self.repo = Repo.init(p)
 
         if remote_url:
-            if "origin" in self.repo.remotes:
-                self.repo.remotes.origin.set_url(remote_url)
-            else:
-                self.repo.create_remote("origin", remote_url)
-
-            with self.repo.config_writer() as cw:
-                sect = 'remote "origin"'
-                cw.set_value(
-                    sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
-                )
-                cw.set_value(
-                    sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
-                )
+            self.configure_remote(remote_url)
 
         # ensure we have a commit identity to avoid git errors
         with self.repo.config_reader() as cr, self.repo.config_writer() as cw:
@@ -154,10 +142,7 @@ class GitVCS:
             self.push_with_secret(ref, secret_name, remote=remote, gateway_url=gateway)
             return
 
-        if remote not in [r.name for r in self.repo.remotes]:
-            raise GitRemoteMissingError(
-                f"Remote '{remote}' is not configured; changes cannot be pushed"
-            )
+        self.require_remote(remote)
         try:
             self.repo.git.push(remote, ref)
         except GitCommandError as exc:
@@ -196,6 +181,32 @@ class GitVCS:
             remote_obj.push([ref], callbacks=callbacks)
         except pygit2.GitError as exc:
             raise GitPushError(ref, remote) from exc
+
+    # ------------------------------------------------------------------ remote helpers
+    def has_remote(self, name: str = "origin") -> bool:
+        """Return ``True`` if ``name`` is a configured remote."""
+        return name in [r.name for r in self.repo.remotes]
+
+    def configure_remote(self, url: str, *, name: str = "origin") -> None:
+        """Add or update a remote called ``name`` with ``url``."""
+        if name in self.repo.remotes:
+            self.repo.remotes[name].set_url(url)
+        else:
+            self.repo.create_remote(name, url)
+
+        with self.repo.config_writer() as cw:
+            sect = f'remote "{name}"'
+            cw.set_value(
+                sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
+            )
+            cw.set_value(sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
+
+    def require_remote(self, name: str = "origin") -> None:
+        """Raise :class:`GitRemoteMissingError` if ``name`` is not configured."""
+        if not self.has_remote(name):
+            raise GitRemoteMissingError(
+                f"Remote '{name}' is not configured; changes cannot be pushed"
+            )
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""
