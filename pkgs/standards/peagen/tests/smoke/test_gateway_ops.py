@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.smoke
+
 gateway = "https://gw.peagen.com/rpc"
 
 
