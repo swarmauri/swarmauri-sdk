@@ -52,5 +52,20 @@ def test_eval_submit_returns_error_when_no_handler() -> None:
     resp = httpx.post(GATEWAY, json=envelope, timeout=5)
     assert resp.status_code == 200
     data = resp.json()
-    assert "error" in data
-    assert data["error"]["code"] == -32601
+    tid = data.get("result", {}).get("taskId")
+    assert tid
+
+    resp = httpx.post(
+        GATEWAY,
+        json={
+            "jsonrpc": "2.0",
+            "method": "Task.get",
+            "params": {"taskId": tid},
+            "id": 1,
+        },
+        timeout=10,
+    )
+    assert resp.status_code == 200
+    task = resp.json()["result"]
+    assert task["status"] == "failed"
+    assert "error" in task["result"]
