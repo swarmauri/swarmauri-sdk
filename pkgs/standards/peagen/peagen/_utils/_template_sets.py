@@ -59,7 +59,9 @@ def install_template_sets(specs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             else:
                 raise ValueError(f"unknown template-set type: {typ}")
         except Exception as exc:
-            raise RuntimeError(f"failed to install template-set {name}: {exc}") from exc
+            from peagen.errors import TemplateSetInstallError
+
+            raise TemplateSetInstallError(name, str(exc)) from exc
         # try to resolve installed version
         version = "unknown"
         try:

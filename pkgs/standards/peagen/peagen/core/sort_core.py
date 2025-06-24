@@ -272,7 +272,9 @@ def sort_file_records(
         else:
             sorted_records = _topological_sort(file_records)
     except Exception as exc:  # noqa: BLE001
-        raise RuntimeError(f"Dependency sort failed: {exc}") from exc
+        from peagen.errors import DependencySortError
+
+        raise DependencySortError(str(exc)) from exc
 
     # -- apply positional skipping ------------------------------------------
     if start_file and not transitive:

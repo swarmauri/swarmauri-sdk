@@ -129,7 +129,11 @@ def add_template_set(
             stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as exc:
-        raise RuntimeError(exc.stdout or "installation failed") from exc
+        from peagen.errors import TemplateSetInstallError
+
+        raise TemplateSetInstallError(
+            source, exc.stdout or "installation failed"
+        ) from exc
 
     sets_after = set(discover_template_sets().keys())
     new_sets = sorted(sets_after - sets_before)
@@ -176,7 +180,11 @@ def remove_template_set(
             stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as exc:
-        raise RuntimeError(exc.stdout or "uninstall failed") from exc
+        from peagen.errors import TemplateSetUninstallError
+
+        raise TemplateSetUninstallError(
+            dists, exc.stdout or "uninstall failed"
+        ) from exc
 
     remaining = discover_template_sets()
     return {"removed": name not in remaining, "dists": dists}
