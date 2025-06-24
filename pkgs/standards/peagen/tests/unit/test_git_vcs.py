@@ -2,7 +2,10 @@ from pathlib import Path
 
 import json
 
+import pytest
+
 from peagen.plugins.vcs import GitVCS, pea_ref
+from peagen.errors import GitRemoteMissingError
 from peagen.plugins.secret_drivers import SecretDriverBase
 
 
@@ -69,3 +72,12 @@ def test_record_key_audit(tmp_path: Path):
     assert data["gateway_fp"] == "GFPR"
     ref = pea_ref("key_audit", SecretDriverBase.audit_hash(secret))
     assert vcs.repo.rev_parse(ref) == sha
+
+
+def test_push_no_remote(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "noremote"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    (repo_dir / "file.txt").write_text("x")
+    vcs.commit(["file.txt"], "init")
+    with pytest.raises(GitRemoteMissingError):
+        vcs.push("HEAD")

@@ -23,3 +23,9 @@ class GitOperationError(RuntimeError):
     """Raised when a git command fails."""
 
     pass
+
+
+class GitRemoteMissingError(RuntimeError):
+    """Raised when an expected git remote is not configured."""
+
+    pass
