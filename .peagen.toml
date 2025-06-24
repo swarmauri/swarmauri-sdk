@@ -65,8 +65,8 @@ default_queue = "redis"
 uri = "${REDIS_URL}"
 
 # ─────────────────────────────── Mutators ───────────────────────────────
-[mutators]
-default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+[mutation.mutators]
+default_mutator = "DefaultMutator"
 
 
 # ───────────────────────────── Result Backends ─────────────────────────
@@ -85,7 +85,10 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+default_evaluator = "performance"
+
+[evaluation.evaluators.performance]
+# parameters for the built-in performance evaluator can go here
 
 [vcs]
 provider = "git"

@@ -26,4 +26,6 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+default_evaluator = "performance"
+
+[evaluation.evaluators.performance]

@@ -29,4 +29,8 @@ provider_params = { path = "." }
 default_vcs = "git"
 
 [evaluation.evaluators]
-performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+default_evaluator = "performance"
+
+[evaluation.evaluators.performance]
+import_path = "sort_alg"
+entry_fn = "bad_sort"

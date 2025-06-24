@@ -19,11 +19,13 @@ max_workers = 1
 async = false
 strict = true
 
-[mutators]
-default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+[mutation.mutators]
+default_mutator = "DefaultMutator"
 
 [evaluation.evaluators]
-performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"
+default_evaluator = "performance"
+
+[evaluation.evaluators.performance]
 
 [llm]
 default_provider = "groq"

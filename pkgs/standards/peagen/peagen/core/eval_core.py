@@ -45,23 +45,30 @@ def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
     Support both string and dict forms from .peagen.toml.
     """
     for name, spec in evaluators_cfg.items():
+        if name == "default_evaluator":
+            continue
         # ------------------------------------------------------------------ #
         # 1) Instantiate or locate evaluator
         # ------------------------------------------------------------------ #
         if isinstance(spec, str):
-            mod, cls = spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1)
-            EvalCls = getattr(import_module(mod), cls)
+            if "." in spec or ":" in spec:
+                mod, cls = spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1)
+                EvalCls = getattr(import_module(mod), cls)
+            else:
+                EvalCls = resolve_plugin_spec("evaluators", spec)
             evaluator = EvalCls()
-        elif isinstance(spec, dict) and "cls" in spec:
-            mod, cls = (
-                spec["cls"].split(":", 1)
-                if ":" in spec["cls"]
-                else spec["cls"].rsplit(".", 1)
-            )
-            EvalCls = getattr(import_module(mod), cls)
+        elif isinstance(spec, dict):
+            if "cls" in spec:
+                mod, cls = (
+                    spec["cls"].split(":", 1)
+                    if ":" in spec["cls"]
+                    else spec["cls"].rsplit(".", 1)
+                )
+                EvalCls = getattr(import_module(mod), cls)
+            else:
+                EvalCls = resolve_plugin_spec("evaluators", name)
 
             args = dict(spec.get("args", {}))
-            # pass any extra top-level keys as kwargs too
             args.update({k: v for k, v in spec.items() if k not in {"cls", "args"}})
             evaluator = EvalCls(**args)
         else:
