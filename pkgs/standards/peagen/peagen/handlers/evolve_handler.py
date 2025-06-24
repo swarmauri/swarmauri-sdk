@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List
-import os
 
 import yaml
 
@@ -119,13 +118,18 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
     if vcs and spec_path:
         repo_root = Path(vcs.repo.working_tree_dir)
-        rel_spec = os.path.relpath(spec_path, repo_root)
-        commit_sha = vcs.commit([rel_spec], f"evolve {spec_path.stem}")
-        branches = [pea_ref("run", cid) for cid in child_ids]
-        vcs.fan_out("HEAD", branches)
-        for b in branches:
-            vcs.push(b)
-        fan_res["commit"] = commit_sha
+        try:
+            rel_spec = spec_path.resolve().relative_to(repo_root)
+        except ValueError:
+            rel_spec = None
+
+        if rel_spec is not None:
+            commit_sha = vcs.commit([str(rel_spec)], f"evolve {spec_path.stem}")
+            branches = [pea_ref("run", cid) for cid in child_ids]
+            vcs.fan_out("HEAD", branches)
+            for b in branches:
+                vcs.push(b)
+            fan_res["commit"] = commit_sha
     result = {"children": child_ids, "jobs": len(jobs), **fan_res}
     if tmp_dir:
         import shutil
