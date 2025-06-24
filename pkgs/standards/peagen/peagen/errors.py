@@ -85,11 +85,13 @@ class GitPushError(GitOperationError):
 class GitCommitError(GitOperationError):
     """Raised when committing changes to the repository fails."""
 
-    def __init__(self, paths: Iterable[str]) -> None:
+    def __init__(self, paths: Iterable[str], reason: str | None = None) -> None:
         joined = ", ".join(paths)
-        super().__init__(
-            f"Failed to commit files [{joined}]. Ensure they exist inside the repository."
-        )
+        base = f"Failed to commit files [{joined}]. Ensure they exist inside the repository."
+        msg = f"{base} Details: {reason}" if reason else base
+        super().__init__(msg)
+        self.paths = list(paths)
+        self.reason = reason
 
 
 class SchedulerError(RuntimeError):
