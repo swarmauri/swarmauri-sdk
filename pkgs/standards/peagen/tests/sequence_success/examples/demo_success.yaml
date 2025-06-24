@@ -1,2 +1,12 @@
-commands:
-  - ["init", "project", "{tmpdir}/project1"]
+command_sets:
+  - batch:
+      name: "project setup"
+      desc: "initialize a project"
+      commands:
+        - ["init", "project", "{tmpdir}/project1"]
+  - batch:
+      name: "remote sort"
+      desc: "run sort remotely and fetch the result"
+      commands:
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "sort", "tests/examples/projects_payloads/template_two_project.yaml"]
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "task", "get", "{task_id}"]
