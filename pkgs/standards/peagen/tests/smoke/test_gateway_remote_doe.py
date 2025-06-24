@@ -16,7 +16,7 @@ def _gateway_available(url: str) -> bool:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:
         return False
-    return response.status_code < 500
+    return response.status_code == 200
 
 
 @pytest.mark.i9n
