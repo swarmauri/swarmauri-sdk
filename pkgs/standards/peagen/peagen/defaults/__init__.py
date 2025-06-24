@@ -26,8 +26,9 @@ CONFIG = {
         "default_filter": "file",
         "filters": {"file": {"output_dir": "./peagen_artifacts"}},
     },
-    "mutators": {
-        "default_mutator": "peagen.plugins.mutators.default_mutator:DefaultMutator",
+
+    "mutation": {
+        "mutators": {"default_mutator": "DefaultMutator"},
     },
     "vcs": {"default_vcs": "git"},
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},

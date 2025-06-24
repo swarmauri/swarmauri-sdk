@@ -1,0 +1,3 @@
+commands:
+  - ["init", "project", "{tmpdir}/badproj"]
+  - ["init", "ci", "{tmpdir}/badproj"]

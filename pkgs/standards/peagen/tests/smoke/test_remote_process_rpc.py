@@ -4,8 +4,9 @@ from pathlib import Path
 
 import httpx
 import pytest
-
 from peagen.tui.task_submit import build_task, submit_task
+
+pytestmark = pytest.mark.smoke
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 PROJECTS_FILE = (

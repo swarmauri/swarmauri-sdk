@@ -6,6 +6,8 @@ from pathlib import Path
 import httpx
 import pytest
 
+pytestmark = pytest.mark.smoke
+
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 BASE = Path(__file__).resolve().parents[2] / "tests" / "examples"
 DOE_SPEC = BASE / "gateway_demo" / "doe_spec.yaml"
@@ -67,7 +69,6 @@ def test_remote_full_flow(tmp_path: Path) -> None:
             "process",
             str(DOE_SPEC),
             str(DOE_TEMPLATE),
-            "--dry-run",
         ],
         check=True,
         timeout=60,

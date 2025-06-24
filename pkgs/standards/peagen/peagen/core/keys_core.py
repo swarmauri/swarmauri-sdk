@@ -29,7 +29,6 @@ def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> A
         from peagen.plugins.secret_drivers import AutoGpgDriver
 
         drv = AutoGpgDriver()
-
     if key_dir is not None and hasattr(drv, "key_dir"):
         drv.key_dir = Path(key_dir)
         drv.priv_path = drv.key_dir / "private.asc"

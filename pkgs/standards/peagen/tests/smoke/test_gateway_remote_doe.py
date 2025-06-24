@@ -6,6 +6,8 @@ from pathlib import Path
 import httpx
 import pytest
 
+pytestmark = pytest.mark.smoke
+
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 
@@ -103,7 +105,6 @@ def test_remote_doe_process(tmp_path: Path) -> None:
             "process",
             str(spec),
             str(template),
-            "--dry-run",
         ],
         check=True,
         timeout=60,
