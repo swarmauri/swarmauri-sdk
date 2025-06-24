@@ -18,7 +18,6 @@ import typer
 from peagen.handlers.fetch_handler import fetch_handler
 from peagen.models import Status, Task
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 

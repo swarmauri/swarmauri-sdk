@@ -62,43 +62,19 @@ def test_run_invokes_fetch_handler(monkeypatch):
 
 
 @pytest.mark.unit
-def test_submit_posts_request(monkeypatch):
+def test_fetch_repo_ref_argument(monkeypatch):
     captured = {}
 
-    class DummyResp:
-        def raise_for_status(self):
-            pass
+    async def fake_fetch(task):
+        captured["payload"] = task.payload
+        return {"done": True}
 
-        def json(self):
-            return {"result": {"done": True}}
+    monkeypatch.setattr(fetch, "fetch_handler", fake_fetch)
+    monkeypatch.setattr(Path, "cwd", lambda: Path("/tmp/w"))
+    outputs = []
+    monkeypatch.setattr(typer, "echo", lambda msg: outputs.append(msg))
 
-    class DummyClient:
-        def __init__(self, timeout=None):
-            pass
+    fetch.run(None, [], False, True, repo="repo", ref="main")
 
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc, tb):
-            pass
-
-        def post(self, url, json):
-            captured["url"] = url
-            captured["json"] = json
-            return DummyResp()
-
-    monkeypatch.setattr(fetch.httpx, "Client", DummyClient)
-    secho_out = []
-    monkeypatch.setattr(
-        typer, "secho", lambda msg, fg=None, err=False: secho_out.append(msg)
-    )
-    monkeypatch.setattr(typer, "echo", lambda msg: secho_out.append(msg))
-
-    class DummyCtx:
-        obj = {"gateway_url": "http://gw"}
-
-    fetch.submit(DummyCtx(), ["w"], False, True)
-
-    assert captured["url"] == "http://gw"
-    assert captured["json"]["method"] == "Task.submit"
-    assert any("Submitted task" in m for m in secho_out)
+    assert captured["payload"]["args"]["workspaces"] == ["git+repo@main"]
+    assert json.loads(outputs[0]) == {"done": True}
