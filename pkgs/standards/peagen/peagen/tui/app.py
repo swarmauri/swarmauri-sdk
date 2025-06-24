@@ -587,6 +587,9 @@ class QueueDashboardApp(App):
         self.fail_len = metrics_data.get("fail_len", 0)
         self.worker_len = metrics_data.get("worker_len", 0)
 
+        current_page = self.offset // self.limit + 1
+        total_pages = max(1, math.ceil(self.queue_len / self.limit))
+
         if hasattr(self, "workers_view"):
             self.workers_view.update_workers(workers_data)
 
