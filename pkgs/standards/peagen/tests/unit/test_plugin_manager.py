@@ -1,4 +1,3 @@
-import sys
 from importlib import reload
 
 import pytest
@@ -12,21 +11,19 @@ from .dummy_plugins import DummyQueue, DummyBackend
 
 
 @pytest.mark.unit
-def test_plugin_manager_instantiates_defaults(tmp_path):
-    module_path = "tests.unit.dummy_plugins"
-    sys.modules[module_path] = sys.modules[
-        __name__.rsplit(".", 1)[0] + ".dummy_plugins"
-    ]
-
+def test_plugin_manager_instantiates_defaults(tmp_path, monkeypatch):
     cfg = {
-        "queues": {"default_queue": f"{module_path}:DummyQueue"},
-        "result_backends": {
-            "default_backend": f"{module_path}:DummyBackend",
-            "adapters": {},
-        },
+        "queues": {"default_queue": "dummy_queue"},
+        "result_backends": {"default_backend": "dummy_backend", "adapters": {}},
     }
 
+    _reset_plugins(monkeypatch)
+    monkeypatch.setattr(plugins, "entry_points", lambda group: [])
+
     pm = PluginManager(cfg)
+    plugins.registry["queues"]["dummy_queue"] = DummyQueue
+    plugins.registry["result_backends"]["dummy_backend"] = DummyBackend
+
     queue = pm.get("queues")
     backend = pm.get("result_backends")
     assert isinstance(queue, DummyQueue)

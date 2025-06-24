@@ -1,7 +1,6 @@
 # peagen/plugins.py
 """Plugin registry for the Peagen microkernel."""
 
-from importlib import import_module
 from importlib.metadata import entry_points
 from collections import defaultdict
 from types import ModuleType
@@ -198,20 +197,9 @@ class PluginManager:
     # ────────────────────────────── helpers ─────────────────────────────
     def _resolve_spec(self, group: str, ref: str) -> Any:
         obj = registry.get(group, {}).get(ref)
-        if obj is not None:
-            return obj
-        if group == "llms" and "." not in ref:
-            class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
-            module = import_module(f"swarmauri.llms.{class_name}")
-            return getattr(module, class_name)
-        if ":" not in ref and "." not in ref:
+        if obj is None:
             raise InvalidPluginSpecError(ref)
-        try:
-            mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
-        except ValueError as exc:  # pragma: no cover - validation just above
-            raise InvalidPluginSpecError(ref) from exc
-        module = import_module(mod)
-        return getattr(module, cls)
+        return obj
 
     def _instantiate(self, cls_or_obj: Any, params: Dict[str, Any]) -> Any:
         return cls_or_obj(**params) if isinstance(cls_or_obj, type) else cls_or_obj
