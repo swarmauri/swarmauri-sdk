@@ -108,7 +108,7 @@ WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # ─────────────────────────── IP tracking ─────────────────────────
-BAN_THRESHOLD = 10
+
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
 
