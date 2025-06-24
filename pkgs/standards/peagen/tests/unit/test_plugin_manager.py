@@ -5,6 +5,8 @@ import pytest
 
 import peagen.plugins as plugins
 from peagen.plugins import PluginManager
+from peagen.errors import InvalidPluginSpecError
+from peagen.plugin_manager import resolve_plugin_spec
 
 from .dummy_plugins import DummyQueue, DummyBackend
 
@@ -88,3 +90,9 @@ def test_ep_paths_use_plugins_namespace():
             assert ep_group == "peagen.template_sets"
         else:
             assert ep_group.startswith("peagen.plugins."), ep_group
+
+
+@pytest.mark.unit
+def test_resolve_plugin_spec_invalid():
+    with pytest.raises(InvalidPluginSpecError):
+        resolve_plugin_spec("evaluators", "invalid")
