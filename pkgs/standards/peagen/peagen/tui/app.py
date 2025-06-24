@@ -1060,7 +1060,6 @@ class QueueDashboardApp(App):
         limit = await self.push_screen_wait(NumberInputScreen(prompt, self.limit))
         if limit is not None:
             self.action_set_limit(limit)
-
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
             path_str = event.value.split("=", 1)[1].split("]", 1)[0]
