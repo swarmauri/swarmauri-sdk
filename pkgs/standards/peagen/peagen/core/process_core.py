@@ -306,7 +306,7 @@ def process_single_project(
     start_idx: int = 0,
     start_file: Optional[str] = None,
     transitive: bool = False,
-) -> Tuple[List[Dict[str, Any]], int, str | None]:
+) -> Tuple[List[Dict[str, Any]], int, str | None, List[str]]:
     """
     1) Build a global Jinja search path that includes built-ins, plugins, and workspace.
     2) For each package in project["PACKAGES"]:
@@ -316,7 +316,8 @@ def process_single_project(
        a) Write each file (COPY or GENERATE) under the default output (<cwd>/<project_name>/…).
        b) Upload to storage if a storage_adapter is in cfg (optional).
        c) Commit generated files to Git if ``cfg['vcs']`` is present.
-    Returns (sorted_records, next_idx, commit_hexsha).
+    Returns ``(sorted_records, next_idx, commit_hexsha, oids)`` where ``oids`` is
+    the list of object IDs committed to the VCS (may be empty).
     """
     logger = cfg.get("logger") or globals().get("logger")
     project_name = project.get("NAME", "<no-project-name>")
@@ -376,7 +377,7 @@ def process_single_project(
             logger.warning(
                 f"No files to process for project '{project_name}'. Exiting."
             )
-        return sorted_records, next_idx, None
+        return sorted_records, next_idx, None, []
 
     # ─── STEP 4: Prepare commit tracking (workspace already exists) ──────────
     commit_paths: List[Path] = []
