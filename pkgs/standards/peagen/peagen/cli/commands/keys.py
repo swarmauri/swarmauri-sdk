@@ -10,6 +10,7 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.core import keys_core
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -70,3 +71,43 @@ def fetch_server(
     envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(json.dumps(res.json().get("result", {}), indent=2))
+
+
+@keys_app.command("list")
+def list_keys(
+    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+) -> None:
+    """List fingerprints of locally stored keys."""
+
+    data = keys_core.list_local_keys(key_root)
+    typer.echo(json.dumps(data, indent=2))
+
+
+@keys_app.command("show")
+def show(
+    fingerprint: str,
+    fmt: str = typer.Option("armor", "--format"),
+    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+) -> None:
+    """Output a public key in the requested format."""
+
+    out = keys_core.export_public_key(fingerprint, key_root=key_root, fmt=fmt)
+    typer.echo(out)
+
+
+@keys_app.command("add")
+def add(
+    public_key: Path,
+    private_key: Optional[Path] = typer.Option(None, "--private"),
+    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+    name: Optional[str] = typer.Option(None, "--name"),
+) -> None:
+    """Add an existing key pair to the key store."""
+
+    info = keys_core.add_key(
+        public_key,
+        private_key=private_key,
+        key_root=key_root,
+        name=name,
+    )
+    typer.echo(json.dumps(info))
