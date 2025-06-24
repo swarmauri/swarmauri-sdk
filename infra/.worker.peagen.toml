@@ -72,3 +72,8 @@ cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
 cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
 target_grade_level = 12
 
+# --- VCS ------------------------------------------------------------
+[vcs]
+provider = "git"
+default_vcs = "git"
+
