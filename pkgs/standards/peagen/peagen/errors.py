@@ -3,6 +3,8 @@
 Exception classes used by the Peagen package.
 """
 
+from typing import Iterable
+
 
 class PatchTargetMissingError(ValueError):
     """Patch operation refers to a non-existent path in the template."""
@@ -80,6 +82,16 @@ class GitPushError(GitOperationError):
         )
 
 
+class GitCommitError(GitOperationError):
+    """Raised when committing changes to the repository fails."""
+
+    def __init__(self, paths: Iterable[str]) -> None:
+        joined = ", ".join(paths)
+        super().__init__(
+            f"Failed to commit files [{joined}]. Ensure they exist inside the repository."
+        )
+
+
 class SchedulerError(RuntimeError):
     """Base class for errors raised during task scheduling."""
 
@@ -113,12 +125,14 @@ class InvalidPluginSpecError(ValueError):
             f"Invalid plugin specification '{self.spec}'. Expected an entry-point name."
         )
 
+
 class PATNotAllowedError(RuntimeError):
     """Raised when a PAT token is passed to a forbidden command."""
 
     def __init__(self) -> None:
         super().__init__("PAT tokens are not allowed for this command")
-        
+
+
 class ProjectsPayloadValidationError(ValueError):
     """Raised when a projects_payload does not conform to the schema."""
 
@@ -133,6 +147,7 @@ class ProjectsPayloadValidationError(ValueError):
         loc = f" in {self.path}" if self.path else ""
         return f"Invalid projects_payload{loc}: {details}"
 
+
 class TaskNotFoundError(RuntimeError):
     """Raised when a task id does not exist in the gateway."""
 
@@ -145,7 +160,8 @@ class TaskNotFoundError(RuntimeError):
             f"Task '{self.task_id}' could not be found. "
             "It may have expired or was never created."
         )
-      
+
+
 class DispatchHTTPError(RuntimeError):
     """Raised when a worker responds with a non-200 HTTP status."""
 
