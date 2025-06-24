@@ -48,3 +48,23 @@ def test_perform_filtering_limit_offset():
     ids = [t["id"] for t in result["tasks_to_display"]]
     assert ids == list(range(20, 30))
 
+
+@pytest.mark.unit
+def test_header_page_info():
+    app = QueueDashboardApp()
+    data = {
+        "tasks_to_display": [],
+        "workers_data": [],
+        "metrics_data": {
+            "queue_len": 50,
+            "done_len": 0,
+            "fail_len": 0,
+            "worker_len": 0,
+        },
+        "collapsed_state": set(),
+    }
+    app.limit = 10
+    app.offset = 20
+    app._update_ui_with_processed_data(data, [])
+    assert app.sub_title == "Page 3 of 5"
+

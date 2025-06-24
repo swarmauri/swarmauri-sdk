@@ -716,6 +716,8 @@ class QueueDashboardApp(App):
             current_page = self.offset // self.limit + 1
             total_pages = max(1, math.ceil(self.queue_len / self.limit))
             self.footer.set_page_info(current_page, total_pages)
+            self.sub_title = f"Page {current_page} of {total_pages}"
+
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
