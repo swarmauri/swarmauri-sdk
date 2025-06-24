@@ -440,13 +440,12 @@ class QueueDashboardApp(App):
     async def async_process_and_update_data(self) -> None:
         all_tasks_from_client = list(self.client.tasks.values())
         all_tasks_from_backend = list(self.backend.tasks)
-        allowed_ids = {str(t.get("id")) for t in all_tasks_from_backend}
-        combined_tasks_dict: Dict[str, Any] = {
-            task.get("id"): task for task in all_tasks_from_backend
-        }
-        for task in all_tasks_from_client:
-            if str(task.get("id")) in allowed_ids:
-                combined_tasks_dict[task.get("id")] = task
+
+        combined_tasks_dict: Dict[str, Any] = {}
+        for task in all_tasks_from_backend + all_tasks_from_client:
+            tid = task.get("id")
+            if tid is not None:
+                combined_tasks_dict[tid] = task
         all_tasks = list(combined_tasks_dict.values())
 
         for task in all_tasks:
