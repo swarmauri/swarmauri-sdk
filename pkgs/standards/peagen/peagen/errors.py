@@ -79,6 +79,7 @@ class GitPushError(GitOperationError):
             f"Failed to push '{ref}' to remote '{remote}'. Check remote configuration and permissions."
         )
 
+
 class SchedulerError(RuntimeError):
     """Base class for errors raised during task scheduling."""
 
@@ -99,6 +100,7 @@ class NoWorkerAvailableError(SchedulerError):
         self.pool = pool
         self.action = action
 
+
 class InvalidPluginSpecError(ValueError):
     """Raised when a plugin reference cannot be parsed."""
 
@@ -111,3 +113,18 @@ class InvalidPluginSpecError(ValueError):
             f"Invalid plugin specification '{self.spec}'. "
             "Expected 'module.Class' or 'module:Class'."
         )
+
+
+class ProjectsPayloadValidationError(ValueError):
+    """Raised when a projects_payload does not conform to the schema."""
+
+    def __init__(self, errors: list[str], path: str | None = None) -> None:
+        self.errors = errors
+        self.path = path
+        label = f" at '{path}'" if path else ""
+        super().__init__(f"Invalid projects_payload{label}")
+
+    def __str__(self) -> str:  # pragma: no cover - simple
+        details = "; ".join(self.errors)
+        loc = f" in {self.path}" if self.path else ""
+        return f"Invalid projects_payload{loc}: {details}"
