@@ -44,5 +44,6 @@ CONFIG = {
         "default_filter": "file",
         "filters": {"file": {"output_dir": "./peagen_artifacts"}},
     },
+    "vcs": {"default_vcs": "git"},
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
 }
