@@ -3,17 +3,30 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional
-
-import subprocess
-import tempfile
+from typing import Any, Dict, Optional
 
 import httpx
-import pgpy
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen._utils.config_loader import load_peagen_toml
+from peagen.plugins import PluginManager
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+
+
+def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> Any:
+    """Instantiate the configured secrets driver."""
+    cfg = load_peagen_toml()
+    pm = PluginManager(cfg)
+    drv = pm.get("secrets")
+    if key_dir is not None and hasattr(drv, "key_dir"):
+        drv.key_dir = Path(key_dir)
+        drv.priv_path = drv.key_dir / "private.asc"
+        drv.pub_path = drv.key_dir / "public.asc"
+    if passphrase is not None and hasattr(drv, "passphrase"):
+        drv.passphrase = passphrase
+    if hasattr(drv, "_ensure_keys"):
+        drv._ensure_keys()
+    return drv
 
 
 def create_keypair(
@@ -28,7 +41,7 @@ def create_keypair(
     Returns:
         dict: Paths of the generated key files.
     """
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    drv = _get_driver(key_dir=key_dir, passphrase=passphrase)
     return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
 
 
@@ -37,7 +50,7 @@ def upload_public_key(
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> dict:
     """Upload the local public key to the gateway."""
-    drv = AutoGpgDriver(key_dir=key_dir)
+    drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     envelope = {
         "jsonrpc": "2.0",
@@ -72,25 +85,8 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
 def list_local_keys(key_root: Path | None = None) -> Dict[str, str]:
     """Return a mapping of key fingerprints to public key paths."""
 
-    root = Path(key_root or Path.home() / ".peagen" / "keys")
-    keys: Dict[str, str] = {}
-
-    def _add(pub: Path) -> None:
-        if not pub.exists():
-            return
-        key = pgpy.PGPKey()
-        key.parse(pub.read_text())
-        keys[key.fingerprint] = str(pub)
-
-    if (root / "public.asc").exists():
-        _add(root / "public.asc")
-    else:
-        for sub in root.iterdir():
-            if not sub.is_dir():
-                continue
-            _add(sub / "public.asc")
-
-    return keys
+    drv = _get_driver(key_dir=key_root)
+    return drv.list_keys()
 
 
 def export_public_key(
@@ -101,40 +97,8 @@ def export_public_key(
 ) -> str:
     """Return ``fingerprint`` key in the requested ``fmt``."""
 
-    keys = list_local_keys(key_root)
-    pub_path_str = keys.get(fingerprint)
-    if not pub_path_str:
-        raise ValueError(f"unknown key: {fingerprint}")
-
-    pub_path = Path(pub_path_str)
-    if fmt == "openssh":
-        with tempfile.TemporaryDirectory() as gpg_home:
-            subprocess.run(
-                [
-                    "gpg",
-                    "--homedir",
-                    gpg_home,
-                    "--import",
-                    str(pub_path),
-                ],
-                check=True,
-                capture_output=True,
-            )
-            out = subprocess.run(
-                [
-                    "gpg",
-                    "--homedir",
-                    gpg_home,
-                    "--export-ssh-key",
-                    fingerprint,
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout.strip()
-        return out
-
-    return pub_path.read_text()
+    drv = _get_driver(key_dir=key_root)
+    return drv.export_public_key(fingerprint, fmt=fmt)
 
 
 def add_key(
@@ -146,20 +110,5 @@ def add_key(
 ) -> dict:
     """Store ``public_key`` (and optional ``private_key``) under ``key_root``."""
 
-    text = Path(public_key).read_text()
-    key = pgpy.PGPKey()
-    key.parse(text)
-    fingerprint = key.fingerprint
-
-    dest_root = Path(key_root or Path.home() / ".peagen" / "keys")
-    if (dest_root / "public.asc").exists() and not name:
-        dest = dest_root
-    else:
-        dest = dest_root / (name or fingerprint)
-        dest.mkdir(parents=True, exist_ok=True)
-
-    (dest / "public.asc").write_text(text)
-    if private_key is not None:
-        (dest / "private.asc").write_text(Path(private_key).read_text())
-
-    return {"fingerprint": fingerprint, "path": str(dest)}
+    drv = _get_driver(key_dir=key_root)
+    return drv.add_key(public_key, private_key=private_key, name=name)
