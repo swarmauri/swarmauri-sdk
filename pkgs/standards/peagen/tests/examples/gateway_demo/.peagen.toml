@@ -13,4 +13,5 @@ root_dir = "./task_runs"
 
 [vcs]
 provider = "git"
+provider_params = { path = "." }
 default_vcs = "git"
