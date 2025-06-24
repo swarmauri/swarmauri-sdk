@@ -58,7 +58,7 @@ def run(
 ) -> None:
     """Run the mutate workflow locally."""
     args = {
-        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
+        "workspace_uri": workspace_uri,
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,
@@ -67,6 +67,9 @@ def run(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
+
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     result = asyncio.run(mutate_handler(task))
 
@@ -102,7 +105,7 @@ def submit(
 ) -> None:
     """Submit a mutate task to the gateway."""
     args = {
-        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
+        "workspace_uri": workspace_uri,
         "target_file": target_file,
         "import_path": import_path,
         "entry_fn": entry_fn,
@@ -111,6 +114,9 @@ def submit(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
+
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
 
     rpc_req = {
