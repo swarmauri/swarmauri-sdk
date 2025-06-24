@@ -23,7 +23,7 @@ strict = true
 default_mutator = "default_mutator"
 
 [evaluation.evaluators]
-simple_time = "simple_time"
+default_evaluator = "simple_time"
 
 [llm]
 default_provider = "groq"
