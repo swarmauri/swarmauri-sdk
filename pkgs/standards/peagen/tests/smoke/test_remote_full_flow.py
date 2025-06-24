@@ -69,7 +69,6 @@ def test_remote_full_flow(tmp_path: Path) -> None:
             "process",
             str(DOE_SPEC),
             str(DOE_TEMPLATE),
-            "--dry-run",
         ],
         check=True,
         timeout=60,

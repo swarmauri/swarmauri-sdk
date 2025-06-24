@@ -10,6 +10,14 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "smoke: comprehensive smoke tests against live services",
     )
+    config.addinivalue_line(
+        "markers",
+        "sequence_success: command sequence success tests",
+    )
+    config.addinivalue_line(
+        "markers",
+        "sequence_failure: command sequence failure tests",
+    )
 
 
 def pytest_collection_modifyitems(

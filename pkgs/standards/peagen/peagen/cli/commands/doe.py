@@ -121,9 +121,6 @@ def submit_gen(  # noqa: PLR0913
     notify: Optional[str] = typer.Option(
         None, "--notify", help="Webhook URL for completion notification"
     ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Simulate the run without writing files"
-    ),
     force: bool = typer.Option(
         False, "--force", help="Overwrite output even if it exists"
     ),
@@ -142,8 +139,6 @@ def submit_gen(  # noqa: PLR0913
         "template": str(template),
         "output": str(output),
         "config": str(config) if config else None,
-        "notify": notify,
-        "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
         "evaluate_runs": evaluate_runs,
@@ -257,9 +252,6 @@ def submit_process(  # noqa: PLR0913
     notify: Optional[str] = typer.Option(
         None, "--notify", help="Webhook URL for completion notification"
     ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Simulate the run without writing files"
-    ),
     force: bool = typer.Option(
         False, "--force", help="Overwrite output even if it exists"
     ),
@@ -298,7 +290,6 @@ def submit_process(  # noqa: PLR0913
         "output": str(output),
         "config": str(config) if config else None,
         "notify": notify,
-        "dry_run": dry_run,
         "force": force,
         "skip_validate": skip_validate,
         "evaluate_runs": evaluate_runs,
