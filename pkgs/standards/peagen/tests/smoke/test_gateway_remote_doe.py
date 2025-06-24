@@ -103,7 +103,6 @@ def test_remote_doe_process(tmp_path: Path) -> None:
             "process",
             str(spec),
             str(template),
-            "--dry-run",
         ],
         check=True,
         timeout=60,
