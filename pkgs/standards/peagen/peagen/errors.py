@@ -110,10 +110,8 @@ class InvalidPluginSpecError(ValueError):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return (
-            f"Invalid plugin specification '{self.spec}'. "
-            "Expected 'module.Class' or 'module:Class'."
+            f"Invalid plugin specification '{self.spec}'. Expected an entry-point name."
         )
-
 
 class PATNotAllowedError(RuntimeError):
     """Raised when a PAT token is passed to a forbidden command."""
