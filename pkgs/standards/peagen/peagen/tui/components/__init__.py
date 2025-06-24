@@ -10,6 +10,7 @@ from .reconnect_screen import ReconnectScreen
 from .task_detail_screen import TaskDetailScreen
 from .task_table import TaskTable
 from .filter_bar import FilterBar
+from .number_input_screen import NumberInputScreen
 
 __all__ = [
     "DashboardFooter",
@@ -22,4 +23,5 @@ __all__ = [
     "TaskDetailScreen",
     "TaskTable",
     "FilterBar",
+    "NumberInputScreen",
 ]
