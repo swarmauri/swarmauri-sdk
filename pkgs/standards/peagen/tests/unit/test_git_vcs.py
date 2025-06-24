@@ -5,7 +5,11 @@ import json
 import pytest
 
 from peagen.plugins.vcs import GitVCS, pea_ref
-from peagen.errors import GitRemoteMissingError
+from peagen.errors import (
+    GitRemoteMissingError,
+    GitCloneError,
+    GitFetchError,
+)
 from peagen.plugins.secret_drivers import SecretDriverBase
 
 
@@ -81,3 +85,21 @@ def test_push_no_remote(tmp_path: Path) -> None:
     vcs.commit(["file.txt"], "init")
     with pytest.raises(GitRemoteMissingError):
         vcs.push("HEAD")
+
+
+def test_clone_error(tmp_path: Path) -> None:
+    bad_remote = tmp_path / "no_repo"
+    with pytest.raises(GitCloneError):
+        GitVCS.ensure_repo(tmp_path / "clone", remote_url=str(bad_remote))
+
+
+def test_fetch_error(tmp_path: Path) -> None:
+    repo_src = tmp_path / "src"
+    vcs_src = GitVCS.ensure_repo(repo_src)
+    (repo_src / "file.txt").write_text("x")
+    vcs_src.commit(["file.txt"], "init")
+
+    repo_clone = tmp_path / "clone"
+    vcs_clone = GitVCS.ensure_repo(repo_clone, remote_url=str(repo_src))
+    with pytest.raises(GitFetchError):
+        vcs_clone.fetch("refs/heads/missing")
