@@ -14,7 +14,7 @@ import pygit2
 from git import Repo
 from git.exc import GitCommandError
 
-from peagen.errors import GitOperationError
+from peagen.errors import GitOperationError, GitRemoteMissingError
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
@@ -145,6 +145,10 @@ class GitVCS:
             self.push_with_secret(ref, secret_name, remote=remote, gateway_url=gateway)
             return
 
+        if remote not in [r.name for r in self.repo.remotes]:
+            raise GitRemoteMissingError(
+                f"Remote '{remote}' is not configured; changes cannot be pushed"
+            )
         try:
             self.repo.git.push(remote, ref)
         except GitCommandError as exc:
