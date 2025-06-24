@@ -6,6 +6,8 @@ from pathlib import Path
 import httpx
 import pytest
 
+pytestmark = pytest.mark.smoke
+
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 
