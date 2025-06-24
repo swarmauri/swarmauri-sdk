@@ -19,8 +19,8 @@ max_workers = 1
 async = false
 strict = true
 
-[mutation.mutators]
-default_mutator = "DefaultMutator"
+[mutation]
+default_mutator = "default_mutator"
 
 [evaluation.evaluators]
 default_evaluator = "performance"

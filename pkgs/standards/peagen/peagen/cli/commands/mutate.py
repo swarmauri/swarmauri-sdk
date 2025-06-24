@@ -41,6 +41,11 @@ def run(
         "--fitness",
         help="Evaluator plugin reference",
     ),
+    mutator: str = typer.Option(
+        "default_mutator",
+        "--mutator",
+        help="Mutator plugin name",
+    ),
     gens: int = typer.Option(1, help="Number of generations"),
     json_out: bool = typer.Option(
         False, "--json", help="Print results to stdout instead of a file"
@@ -60,6 +65,7 @@ def run(
         "profile_mod": profile_mod,
         "gens": gens,
         "evaluator_ref": fitness,
+        "mutations": [{"kind": mutator}],
     }
     task = _build_task(args)
     result = asyncio.run(mutate_handler(task))
@@ -85,6 +91,11 @@ def submit(
         "--fitness",
         help="Evaluator plugin reference",
     ),
+    mutator: str = typer.Option(
+        "default_mutator",
+        "--mutator",
+        help="Mutator plugin name",
+    ),
     gens: int = typer.Option(1, help="Number of generations"),
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
@@ -98,6 +109,7 @@ def submit(
         "profile_mod": profile_mod,
         "gens": gens,
         "evaluator_ref": fitness,
+        "mutations": [{"kind": mutator}],
     }
     task = _build_task(args)
 
