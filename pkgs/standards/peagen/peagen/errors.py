@@ -79,6 +79,7 @@ class GitPushError(GitOperationError):
             f"Failed to push '{ref}' to remote '{remote}'. Check remote configuration and permissions."
         )
 
+
 class SchedulerError(RuntimeError):
     """Base class for errors raised during task scheduling."""
 
@@ -99,6 +100,7 @@ class NoWorkerAvailableError(SchedulerError):
         self.pool = pool
         self.action = action
 
+
 class InvalidPluginSpecError(ValueError):
     """Raised when a plugin reference cannot be parsed."""
 
@@ -111,3 +113,10 @@ class InvalidPluginSpecError(ValueError):
             f"Invalid plugin specification '{self.spec}'. "
             "Expected 'module.Class' or 'module:Class'."
         )
+
+
+class PATNotAllowedError(RuntimeError):
+    """Raised when a PAT token is passed to a forbidden command."""
+
+    def __init__(self) -> None:
+        super().__init__("PAT tokens are not allowed for this command")

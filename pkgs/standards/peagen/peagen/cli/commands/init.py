@@ -14,10 +14,9 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen._utils._init import _call_handler, _submit_task, _summary
+from peagen.errors import PATNotAllowedError
 from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 # ── Typer root ───────────────────────────────────────────────────────────────
 local_init_app = typer.Typer(
@@ -152,9 +151,6 @@ def remote_init_project(
     add_filter_config: bool = typer.Option(
         False, "--add-filter-config", help="Also record filter in .peagen.toml"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a project scaffold task via JSON-RPC."""
     args = {
@@ -168,7 +164,11 @@ def remote_init_project(
         "git_remote": git_remote,
         "filter_uri": filter_uri,
     }
-    _submit_task(args, gateway_url, "init project")
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init project")
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
 
 
 # ── init template-set ────────────────────────────────────────────────────────
@@ -218,9 +218,6 @@ def remote_init_template_set(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a template-set scaffold task via JSON-RPC."""
     args = {
@@ -231,7 +228,11 @@ def remote_init_template_set(
         "use_uv": use_uv,
         "force": force,
     }
-    _submit_task(args, gateway_url, "init template-set")
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init template-set")
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
 
 
 # ── init doe-spec ────────────────────────────────────────────────────────────
@@ -273,9 +274,6 @@ def remote_init_doe_spec(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a DOE-spec scaffold task via JSON-RPC."""
     args = {
@@ -285,7 +283,11 @@ def remote_init_doe_spec(
         "org": org,
         "force": force,
     }
-    _submit_task(args, gateway_url, "init doe-spec")
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init doe-spec")
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
 
 
 # ── init ci ─────────────────────────────────────────────────────────────────
@@ -328,9 +330,6 @@ def remote_init_ci(
     force: bool = typer.Option(
         False, "--force", help="Overwrite destination if not empty"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ):
     """Submit a CI pipeline scaffold task via JSON-RPC."""
     args = {
@@ -339,18 +338,20 @@ def remote_init_ci(
         "github": github,
         "force": force,
     }
-    _submit_task(args, gateway_url, "init ci")
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init ci")
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
 
 
 @remote_init_app.command("repo")
 def remote_init_repo(
+    ctx: typer.Context,
     repo: str = typer.Argument(..., help="tenant/repo"),
     pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
     description: str = typer.Option("", help="Repository description"),
     deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ) -> None:
     """Create a GitHub repository via JSON-RPC."""
     args = {
@@ -360,4 +361,8 @@ def remote_init_repo(
         "description": description,
         "deploy_key": str(deploy_key) if deploy_key else None,
     }
-    _submit_task(args, gateway_url, "init repo")
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init repo", allow_pat=True)
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
