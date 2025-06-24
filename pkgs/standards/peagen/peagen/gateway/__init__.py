@@ -895,15 +895,17 @@ async def scheduler():
 
             target = _pick_worker(worker_list, action)
             if not target:
-                sched_log.info(
-                    "no worker for %s:%s, re-queue %s",
+                sched_log.warning(
+                    "no worker for %s:%s, failing %s",
                     pool,
                     action,
                     task.id,
                 )
-                await queue.rpush(queue_key, task_raw)
-                await _publish_queue_length(pool)
-                await asyncio.sleep(5)
+                task.status = Status.failed
+                task.finished_at = time.time()
+                await _save_task(task)
+                await _persist(task)
+                await _publish_task(task)
                 continue
             rpc_req = {
                 "jsonrpc": "2.0",
