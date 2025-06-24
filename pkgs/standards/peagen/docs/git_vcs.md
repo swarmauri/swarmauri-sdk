@@ -56,6 +56,14 @@ URL during repository creation and ``--filter-uri`` to initialise a
 filter. Use ``--add-filter-config`` to also write the URI to the
 generated ``.peagen.toml``.
 
+Existing projects can specify a remote in the configuration file:
+
+```toml
+[vcs]
+provider = "git"
+provider_params = { path = ".", remote_url = "git@github.com:tenant/repo.git" }
+```
+
 ``peagen init repo`` can create a GitHub repository for you. Pass the
 target as ``tenant/repo`` (where ``tenant`` is a user or organisation)
 and supply a personal access token. The command also generates an

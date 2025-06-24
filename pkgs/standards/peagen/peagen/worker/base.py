@@ -17,7 +17,7 @@ from json.decoder import JSONDecodeError
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.errors import HTTPClientNotInitializedError
+from peagen.errors import HTTPClientNotInitializedError, GitRemoteMissingError
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -221,6 +221,15 @@ class WorkerBase:
         await self._notify("running", task_id)
 
         try:
+            try:
+                cfg = resolve_cfg()
+                pm = PluginManager(cfg)
+                vcs = pm.get("vcs")
+                vcs.require_remote()
+            except GitRemoteMissingError as exc:
+                await self._notify("failed", task_id, {"error": str(exc)})
+                return
+
             result: Dict[str, Any] = await handler(task)
             try:
                 cfg = resolve_cfg()

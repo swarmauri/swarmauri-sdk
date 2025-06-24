@@ -67,6 +67,12 @@ class GitVCS:
                     "user", "email", os.getenv("GIT_AUTHOR_EMAIL", "peagen@example.com")
                 )
 
+    # ------------------------------------------------------------------ helpers
+    def require_remote(self, name: str = "origin") -> None:
+        """Ensure ``name`` exists in the repo's remotes."""
+        if name not in [r.name for r in self.repo.remotes]:
+            raise GitRemoteMissingError(f"Remote '{name}' is not configured")
+
     # ------------------------------------------------------------------ init/use
     @classmethod
     def open(cls, path: str | Path, remote_url: str | None = None) -> "GitVCS":

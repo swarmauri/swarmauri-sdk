@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from peagen.errors import GitRemoteMissingError
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
@@ -146,6 +147,14 @@ def submit_gen(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
     else:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin()
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
         args["spec_text"] = spec.read_text(encoding="utf-8")
         args["template_text"] = template.read_text(encoding="utf-8")
     task = _make_task(args, action="doe")
@@ -300,6 +309,14 @@ def submit_process(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
     else:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin()
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
         args["spec_text"] = spec.read_text(encoding="utf-8")
         args["template_text"] = template.read_text(encoding="utf-8")
     task = _make_task(args, action="doe_process")

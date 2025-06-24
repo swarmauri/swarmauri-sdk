@@ -18,6 +18,7 @@ from typing import Optional
 
 import httpx
 import typer
+from peagen.errors import GitRemoteMissingError
 
 from peagen.handlers.eval_handler import eval_handler
 from peagen.models import Status, Task
@@ -114,6 +115,15 @@ def submit(  # noqa: PLR0913
         "strict": strict,
         "skip_failed": skip_failed,
     }
+    if not repo:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin(workspace_uri)
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
     task = _build_task(args)
 
     rpc_req = {

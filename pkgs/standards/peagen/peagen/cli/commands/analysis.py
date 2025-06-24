@@ -8,6 +8,7 @@ from typing import List
 
 import httpx
 import typer
+from peagen.errors import GitRemoteMissingError
 
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.models import Status, Task
@@ -47,6 +48,14 @@ def submit(
     run_dirs: List[Path] = typer.Argument(..., exists=True, dir_okay=True),
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
 ) -> None:
+    try:
+        from peagen._utils.git_utils import require_origin
+
+        require_origin(run_dirs[0])
+    except GitRemoteMissingError as exc:
+        typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
     task = _build_task(args)
     rpc_req = {

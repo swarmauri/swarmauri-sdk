@@ -21,6 +21,7 @@ from typing import Any, Dict, Optional
 import httpx
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
+from peagen.errors import GitRemoteMissingError
 from peagen.handlers.process_handler import process_handler
 from peagen.models import Status, Task  # noqa: F401 – only for type hints
 
@@ -177,6 +178,14 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     )
     if repo:
         args.update({"repo": repo, "ref": ref})
+    else:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin()
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
     task = _build_task(args)
 
     # ─────────────────────── cfg override  ──────────────────────────────

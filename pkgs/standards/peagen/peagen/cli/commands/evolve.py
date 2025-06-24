@@ -10,6 +10,7 @@ from typing import Optional
 
 import httpx
 import typer
+from peagen.errors import GitRemoteMissingError
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.models import Status, Task
@@ -60,6 +61,14 @@ def run(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
+    else:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin()
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
     task = _build_task(args)
     result = asyncio.run(evolve_handler(task))
     if json_out:

@@ -715,8 +715,8 @@ class QueueDashboardApp(App):
         # NOTE: a footer widget is always present in this app; keep this check
         # to avoid future changes that assume otherwise.
         if hasattr(self, "footer"):
-            self.footer.set_page_info(current_page, total_pages)
-            self.sub_title = f"Page {current_page} of {total_pages}"
+            self.footer.set_page_info(current_page, total_pages)  # noqa: F821
+            self.sub_title = f"Page {current_page} of {total_pages}"  # noqa: F821
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):

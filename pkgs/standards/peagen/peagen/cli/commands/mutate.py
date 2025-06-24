@@ -11,6 +11,7 @@ from typing import Optional
 import httpx
 
 import typer
+from peagen.errors import GitRemoteMissingError
 
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.models import Task
@@ -111,6 +112,15 @@ def submit(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
+    if not repo:
+        try:
+            from peagen._utils.git_utils import require_origin
+
+            require_origin(workspace_uri)
+        except GitRemoteMissingError as exc:
+            typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
     task = _build_task(args)
 
     rpc_req = {

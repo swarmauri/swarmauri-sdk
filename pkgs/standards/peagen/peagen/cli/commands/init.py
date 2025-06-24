@@ -69,6 +69,24 @@ def local_init_repo(
     }
     result = _call_handler(args)
     _summary(Path("."), result["next"])
+    try:
+        from git import Repo
+        from peagen.plugins.vcs.constants import PEAGEN_REFS_PREFIX
+
+        r = Repo(Path("."))
+        url = f"git@github.com:{repo}.git"
+        if "origin" in r.remotes:
+            r.remotes.origin.set_url(url)
+        else:
+            r.create_remote("origin", url)
+        with r.config_writer() as cw:
+            sect = 'remote "origin"'
+            cw.set_value(
+                sect, "fetch", f"+{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*"
+            )
+            cw.set_value(sect, "push", f"{PEAGEN_REFS_PREFIX}/*:{PEAGEN_REFS_PREFIX}/*")
+    except Exception:
+        pass
     self.logger.info("Exiting local init_repo command")
 
 
