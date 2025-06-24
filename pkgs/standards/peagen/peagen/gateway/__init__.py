@@ -21,7 +21,7 @@ from json.decoder import JSONDecodeError
 
 
 import pgpy
-from fastapi import Body, FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
@@ -108,6 +108,7 @@ WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # ─────────────────────────── IP tracking ─────────────────────────
+BAN_THRESHOLD = 10
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
 
@@ -945,30 +946,26 @@ async def scheduler():
 
 
 # ────────────────────────── Key Management ──────────────────────────
-@app.post("/keys", tags=["keys"])
-async def upload_key(public_key: str = Body(..., embed=True)) -> dict:
+async def upload_key(public_key: str) -> dict:
     key = pgpy.PGPKey()
     key.parse(public_key)
     TRUSTED_USERS[key.fingerprint] = public_key
     return {"fingerprint": key.fingerprint}
 
 
-@app.get("/keys", tags=["keys"])
 async def list_keys() -> dict:
     return {"keys": list(TRUSTED_USERS.keys())}
 
 
-@app.delete("/keys/{fingerprint}", tags=["keys"])
 async def delete_key(fingerprint: str) -> dict:
     TRUSTED_USERS.pop(fingerprint, None)
     return {"removed": fingerprint}
 
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
-@app.post("/secrets", tags=["secrets"])
 async def add_secret(
-    name: str = Body(...),
-    secret: str = Body(...),
+    name: str,
+    secret: str,
     tenant_id: str = "default",
     owner_fpr: str = "unknown",
 ) -> dict:
@@ -978,7 +975,6 @@ async def add_secret(
     return {"stored": name}
 
 
-@app.get("/secrets/{name}", tags=["secrets"])
 async def get_secret(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
@@ -987,7 +983,6 @@ async def get_secret(name: str, tenant_id: str = "default") -> dict:
     return {"secret": row.cipher}
 
 
-@app.delete("/secrets/{name}", tags=["secrets"])
 async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         await delete_secret(session, tenant_id, name)
