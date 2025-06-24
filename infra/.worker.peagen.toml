@@ -5,6 +5,9 @@ schemaVersion = "1.0.3"
 org          = "swarmauri"
 workers      = 4
 
+[vcs]
+provider = "github"
+
 # ─────────────────────────── LLM  ───────────────────────────────────────
 [llm]
 default_provider    = "groq"

@@ -5,6 +5,9 @@ org          = "test"
 template_set = "default"
 workers      = 4
 
+[vcs]
+provider = "github"
+
 # ─────────────────────────── LLM  ───────────────────────────────────────
 [llm]
 default_provider    = "groq"

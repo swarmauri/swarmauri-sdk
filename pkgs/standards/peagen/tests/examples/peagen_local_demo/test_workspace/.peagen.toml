@@ -1,4 +1,6 @@
 schemaVersion = "1.0.3"
+[vcs]
+provider = "github"
 [queues]
 default_queue = "in_memory"
 [queues.adapters.in_memory]

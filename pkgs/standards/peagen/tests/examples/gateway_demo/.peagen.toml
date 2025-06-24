@@ -1,3 +1,6 @@
+[vcs]
+provider = "github"
+
 [queues]
 default_queue = "in_memory"
 

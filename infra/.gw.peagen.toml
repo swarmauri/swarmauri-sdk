@@ -5,6 +5,9 @@ schemaVersion = "1.0.3"
 org          = "swarmauri"
 workers      = 4
 
+[vcs]
+provider = "github"
+
 # ────────────────────────── Storage Adapters ───────────────────────────
 # gateway doesn't write to storage
 # this should be delete in the future to ensure we can set no storage_adapter.
