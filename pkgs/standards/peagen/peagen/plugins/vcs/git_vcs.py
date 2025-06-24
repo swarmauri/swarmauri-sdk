@@ -11,7 +11,7 @@ import httpx
 import paramiko
 import pygit2
 
-from git import Repo
+from git import Repo, exc as git_exc
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
@@ -179,7 +179,15 @@ class GitVCS:
     # ------------------------------------------------------------------ commit/merge/tag
     def commit(self, paths: Iterable[str], message: str) -> str:
         self.repo.git.add(*paths)
-        self.repo.git.commit("-m", message)
+        try:
+            self.repo.git.commit("-m", message)
+        except (
+            git_exc.GitCommandError
+        ) as exc:  # pragma: no cover - git may have nothing to commit
+            if "nothing to commit" in exc.stderr:
+                self.repo.git.commit("--allow-empty", "-m", message)
+            else:
+                raise
         return self.repo.head.commit.hexsha
 
     def fan_in(self, refs: Iterable[str], message: str) -> str:
