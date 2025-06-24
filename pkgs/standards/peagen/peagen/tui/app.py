@@ -712,12 +712,11 @@ class QueueDashboardApp(App):
             self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
             self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
 
+        current_page = self.offset // self.limit + 1
+        total_pages = max(1, math.ceil(self.queue_len / self.limit))
         if hasattr(self, "footer"):
-            current_page = self.offset // self.limit + 1
-            total_pages = max(1, math.ceil(self.queue_len / self.limit))
             self.footer.set_page_info(current_page, total_pages)
-            self.sub_title = f"Page {current_page} of {total_pages}"
-
+        self.sub_title = f"Page {current_page} of {total_pages}"
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):

@@ -207,7 +207,12 @@ class GitVCS:
             self.repo.git.add(*paths)
             self.repo.git.commit("-m", message)
         except GitCommandError as exc:
-            raise GitCommitError(list(paths)) from exc
+            reason = (
+                exc.stderr.strip()
+                if hasattr(exc, "stderr") and exc.stderr
+                else str(exc)
+            )
+            raise GitCommitError(list(paths), reason) from exc
         return self.repo.head.commit.hexsha
 
     def fan_in(self, refs: Iterable[str], message: str) -> str:
