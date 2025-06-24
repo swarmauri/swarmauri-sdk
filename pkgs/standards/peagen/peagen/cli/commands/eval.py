@@ -14,10 +14,11 @@ import asyncio
 import json
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import httpx
 import typer
+from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
 from peagen.models import Status, Task
@@ -115,6 +116,16 @@ def submit(  # noqa: PLR0913
         "skip_failed": skip_failed,
     }
     task = _build_task(args)
+
+    # ─────────────────────── cfg override  ──────────────────────────────
+    inline = ctx.obj.get("task_override_inline")
+    file_ = ctx.obj.get("task_override_file")
+    cfg_override: Dict[str, Any] = {}
+    if inline:
+        cfg_override = json.loads(inline)
+    if file_:
+        cfg_override.update(load_peagen_toml(Path(file_), required=True))
+    task.payload["cfg_override"] = cfg_override
 
     rpc_req = {
         "jsonrpc": "2.0",
