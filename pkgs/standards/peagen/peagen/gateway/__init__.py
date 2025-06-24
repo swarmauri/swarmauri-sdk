@@ -748,13 +748,6 @@ async def pool_list(poolName: str, limit: int | None = None, offset: int = 0):
     return tasks
 
 
-@rpc.method("Pool.taskCount")
-async def pool_task_count(poolName: str) -> int:
-    """Return the number of queued tasks for *poolName*."""
-
-    return await queue.llen(f"{READY_QUEUE}:{poolName}")
-
-
 # ─────────────────────────── Worker RPCs ────────────────────────
 @rpc.method("Worker.register")
 async def worker_register(

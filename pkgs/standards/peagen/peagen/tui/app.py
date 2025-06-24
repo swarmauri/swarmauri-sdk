@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any, Dict, List
 from urllib.parse import urlparse
 
-import math
 import httpx
 from textual import events
 from textual.app import App, ComposeResult
@@ -33,7 +32,6 @@ from peagen.tui.components import (
     FileTree,
     FilterBar,
     ReconnectScreen,
-    NumberInputScreen,
     TaskDetailScreen,
     TaskTable,
     TemplatesView,
@@ -137,14 +135,11 @@ class RemoteBackend:
         self.tasks: List[dict] = []
         self.workers: Dict[str, dict] = {}
         self.last_error: str | None = None
-        self.total_tasks: int = 0
 
     async def refresh(self, limit: int | None = None, offset: int = 0) -> bool:
         try:
             await asyncio.gather(
-                self.fetch_tasks(limit=limit, offset=offset),
-                self.fetch_workers(),
-                self.fetch_task_count(),
+                self.fetch_tasks(limit=limit, offset=offset), self.fetch_workers()
             )
         except Exception as exc:
             self.last_error = str(exc)
@@ -197,17 +192,6 @@ class RemoteBackend:
             workers[info["id"]] = info
         self.workers = workers
 
-    async def fetch_task_count(self) -> None:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "3",
-            "method": "Pool.taskCount",
-            "params": {"poolName": "default"},
-        }
-        resp = await self.http.post(self.rpc_url, json=payload)
-        resp.raise_for_status()
-        self.total_tasks = int(resp.json().get("result", 0))
-
 
 class QueueDashboardApp(App):
     CSS = """
@@ -250,8 +234,6 @@ class QueueDashboardApp(App):
         ("escape", "clear_filters", "Clear Filters"),
         ("n", "next_page", "Next Page"),
         ("p", "prev_page", "Prev Page"),
-        ("j", "jump_page", "Jump Page"),
-        ("l", "change_limit", "Set Limit"),
         ("q", "quit", "Quit"),
     ]
 
@@ -285,9 +267,7 @@ class QueueDashboardApp(App):
     fail_len = reactive(0)
     worker_len = reactive(0)
 
-    def __init__(
-        self, gateway_url: str = "http://localhost:8000", limit: int = 50
-    ) -> None:
+    def __init__(self, gateway_url: str = "http://localhost:8000") -> None:
         super().__init__()
         ws_url = gateway_url.replace("http", "ws").rstrip("/") + "/ws/tasks"
         self.client = TaskStreamClient(ws_url)
@@ -306,7 +286,7 @@ class QueueDashboardApp(App):
         self._current_file: str | None = None
         self._remote_info: tuple | None = None
         self.ws_connected = False  # Track WebSocket connection status
-        self.limit = limit
+        self.limit = 50
         self.offset = 0
 
     async def on_mount(self):
@@ -710,8 +690,6 @@ class QueueDashboardApp(App):
             self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
             self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
 
-        self.update_page_info()
-
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
             event.prevent_default()
@@ -733,17 +711,6 @@ class QueueDashboardApp(App):
             self.notify(message, severity=style, timeout=duration)
         else:
             self.log(f"[{style.upper()}] {message}")
-
-    def update_page_info(self) -> None:
-        """Update the footer with current page details."""
-
-        if hasattr(self, "footer"):
-            if self.limit:
-                total_pages = math.ceil(self.backend.total_tasks / self.limit)
-            else:
-                total_pages = 1
-            current_page = self.offset // self.limit + 1 if self.limit else 1
-            self.footer.page_info = f"Page {current_page}/{max(total_pages, 1)}"
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -1003,7 +970,6 @@ class QueueDashboardApp(App):
         else:
             self.run_worker(coro, exclusive=True, group="data_refresh_worker")
         self.trigger_data_processing(debounce=False)
-        self.update_page_info()
 
     def action_prev_page(self) -> None:
         if self.offset >= self.limit:
@@ -1016,41 +982,6 @@ class QueueDashboardApp(App):
             else:
                 self.run_worker(coro, exclusive=True, group="data_refresh_worker")
             self.trigger_data_processing(debounce=False)
-
-    def set_page(self, page: int) -> None:
-        if page < 1:
-            return
-        self.offset = (page - 1) * self.limit
-        self.run_worker(
-            self.backend.refresh(limit=self.limit, offset=self.offset),
-            exclusive=True,
-            group="data_refresh_worker",
-        )
-        self.trigger_data_processing(debounce=False)
-        self.update_page_info()
-
-    async def action_jump_page(self) -> None:
-        page = await self.push_screen(NumberInputScreen("Go to page"))
-        if page:
-            self.set_page(int(page))
-
-    def set_limit(self, new_limit: int) -> None:
-        if new_limit <= 0:
-            return
-        self.limit = new_limit
-        self.offset = 0
-        self.run_worker(
-            self.backend.refresh(limit=self.limit, offset=self.offset),
-            exclusive=True,
-            group="data_refresh_worker",
-        )
-        self.trigger_data_processing(debounce=False)
-        self.update_page_info()
-
-    async def action_change_limit(self) -> None:
-        new_limit = await self.push_screen(NumberInputScreen("Page size"))
-        if new_limit:
-            self.set_limit(int(new_limit))
 
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
