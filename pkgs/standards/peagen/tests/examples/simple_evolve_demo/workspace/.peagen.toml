@@ -14,7 +14,7 @@ default_filter = "file"
 output_dir = "./peagen_artifacts"
 
 [evaluation]
-pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+pool = "default"
 max_workers = 1
 async = false
 strict = true
@@ -23,11 +23,7 @@ strict = true
 default_mutator = "default_mutator"
 
 [evaluation.evaluators]
-default_evaluator = "performance"
-
-[evaluation.evaluators.performance]
-import_path = "sort_alg"
-entry_fn = "bad_sort"
+default_evaluator = "simple_time"
 
 [llm]
 default_provider = "groq"

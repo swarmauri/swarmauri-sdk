@@ -18,7 +18,7 @@ default_backend = "local_fs"
 root_dir = "./task_runs"
 
 [evaluation]
-pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+pool = "default"
 max_workers = 1
 async = false
 strict = true

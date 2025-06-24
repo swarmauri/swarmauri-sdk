@@ -9,6 +9,7 @@ from peagen.errors import (
     GitRemoteMissingError,
     GitCloneError,
     GitFetchError,
+    GitCommitError,
 )
 from peagen.plugins.secret_drivers import SecretDriverBase
 
@@ -103,3 +104,15 @@ def test_fetch_error(tmp_path: Path) -> None:
     vcs_clone = GitVCS.ensure_repo(repo_clone, remote_url=str(repo_src))
     with pytest.raises(GitFetchError):
         vcs_clone.fetch("refs/heads/missing")
+
+
+def test_commit_error_outside_repo(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "repo"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    (repo_dir / "file.txt").write_text("x")
+    vcs.commit(["file.txt"], "init")
+
+    outside = tmp_path / "outside.txt"
+    outside.write_text("oops")
+    with pytest.raises(GitCommitError):
+        vcs.commit([str(outside)], "fail")

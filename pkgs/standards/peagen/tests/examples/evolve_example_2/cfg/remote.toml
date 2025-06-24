@@ -20,12 +20,12 @@ secret_key = "${MINIO_SECRET_KEY}"
 secure = false
 
 [evaluation]
-pool = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+pool = "default"
 max_workers = 1
 async = false
 strict = true
 
 [evaluation.evaluators]
-default_evaluator = "performance"
+default_evaluator = "simple_time"
 
 [evaluation.evaluators.performance]
