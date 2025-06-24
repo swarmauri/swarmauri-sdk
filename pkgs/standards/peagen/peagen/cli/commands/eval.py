@@ -66,6 +66,8 @@ def run(  # noqa: PLR0913 – CLI needs many options
         "strict": strict,
         "skip_failed": skip_failed,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args)
     result = asyncio.run(eval_handler(task))
     report = result["report"]
