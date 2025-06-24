@@ -62,5 +62,5 @@ def test_export_public_key_delegates(monkeypatch, tmp_path):
             return DummyDriver(tmp_path)
 
     monkeypatch.setattr(keys_core, "PluginManager", PM)
-    text = keys_core.export_public_key("FP", key_root=tmp_path)
+    text = keys_core.export_public_key("FP", key_dir=tmp_path)
     assert text == "KEY"

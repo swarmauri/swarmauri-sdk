@@ -75,11 +75,11 @@ def fetch_server(
 
 @keys_app.command("list")
 def list_keys(
-    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+    key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """List fingerprints of locally stored keys."""
 
-    data = keys_core.list_local_keys(key_root)
+    data = keys_core.list_local_keys(key_dir)
     typer.echo(json.dumps(data, indent=2))
 
 
@@ -87,11 +87,11 @@ def list_keys(
 def show(
     fingerprint: str,
     fmt: str = typer.Option("armor", "--format"),
-    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+    key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """Output a public key in the requested format."""
 
-    out = keys_core.export_public_key(fingerprint, key_root=key_root, fmt=fmt)
+    out = keys_core.export_public_key(fingerprint, key_dir=key_dir, fmt=fmt)
     typer.echo(out)
 
 
@@ -99,7 +99,7 @@ def show(
 def add(
     public_key: Path,
     private_key: Optional[Path] = typer.Option(None, "--private"),
-    key_root: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-root"),
+    key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
     name: Optional[str] = typer.Option(None, "--name"),
 ) -> None:
     """Add an existing key pair to the key store."""
@@ -107,7 +107,7 @@ def add(
     info = keys_core.add_key(
         public_key,
         private_key=private_key,
-        key_root=key_root,
+        key_dir=key_dir,
         name=name,
     )
     typer.echo(json.dumps(info))

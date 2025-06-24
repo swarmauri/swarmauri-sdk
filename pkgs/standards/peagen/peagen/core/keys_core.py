@@ -82,22 +82,22 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     return res.json().get("result", {})
 
 
-def list_local_keys(key_root: Path | None = None) -> Dict[str, str]:
+def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:
     """Return a mapping of key fingerprints to public key paths."""
 
-    drv = _get_driver(key_dir=key_root)
+    drv = _get_driver(key_dir=key_dir)
     return drv.list_keys()
 
 
 def export_public_key(
     fingerprint: str,
     *,
-    key_root: Path | None = None,
+    key_dir: Path | None = None,
     fmt: str = "armor",
 ) -> str:
     """Return ``fingerprint`` key in the requested ``fmt``."""
 
-    drv = _get_driver(key_dir=key_root)
+    drv = _get_driver(key_dir=key_dir)
     return drv.export_public_key(fingerprint, fmt=fmt)
 
 
@@ -105,10 +105,10 @@ def add_key(
     public_key: Path,
     *,
     private_key: Path | None = None,
-    key_root: Path | None = None,
+    key_dir: Path | None = None,
     name: str | None = None,
 ) -> dict:
-    """Store ``public_key`` (and optional ``private_key``) under ``key_root``."""
+    """Store ``public_key`` (and optional ``private_key``) under ``key_dir``."""
 
-    drv = _get_driver(key_dir=key_root)
+    drv = _get_driver(key_dir=key_dir)
     return drv.add_key(public_key, private_key=private_key, name=name)
