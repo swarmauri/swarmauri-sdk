@@ -43,6 +43,7 @@ from peagen.gateway.db_helpers import (
     fetch_banned_ips,
     mark_ip_banned,
 )
+from peagen.errors import MissingActionError, NoWorkerAvailableError
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
@@ -856,6 +857,17 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
     return {"ok": True}
 
 
+# ────────────────────────── Helpers ──────────────────────────
+async def _fail_task(task: Task, error: Exception) -> None:
+    """Mark *task* as failed and persist the error message."""
+    task.status = Status.failed
+    task.result = {"error": str(error)}
+    task.finished_at = time.time()
+    await _save_task(task)
+    await _persist(task)
+    await _publish_task(task)
+
+
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler():
     sched_log.info("scheduler started")
@@ -886,11 +898,7 @@ async def scheduler():
             action = task.payload.get("action")
             if not action:
                 sched_log.warning("task %s missing action; marking failed", task.id)
-                task.status = Status.failed
-                task.finished_at = time.time()
-                await _save_task(task)
-                await _persist(task)
-                await _publish_task(task)
+                await _fail_task(task, MissingActionError())
                 continue
 
             target = _pick_worker(worker_list, action)
@@ -901,11 +909,7 @@ async def scheduler():
                     action,
                     task.id,
                 )
-                task.status = Status.failed
-                task.finished_at = time.time()
-                await _save_task(task)
-                await _persist(task)
-                await _publish_task(task)
+                await _fail_task(task, NoWorkerAvailableError(pool, action))
                 continue
             rpc_req = {
                 "jsonrpc": "2.0",
