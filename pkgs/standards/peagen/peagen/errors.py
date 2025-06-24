@@ -29,3 +29,25 @@ class GitRemoteMissingError(RuntimeError):
     """Raised when an expected git remote is not configured."""
 
     pass
+
+
+class SpecFileNotFoundError(FileNotFoundError):
+    """Raised when the DOE spec file is missing."""
+
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
+        self.path = path
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return f"DOE spec file not found: {self.path}"
+
+
+class TemplateFileNotFoundError(FileNotFoundError):
+    """Raised when the project template file is missing."""
+
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
+        self.path = path
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return f"Template file not found: {self.path}"

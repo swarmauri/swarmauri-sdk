@@ -27,7 +27,11 @@ from urllib.parse import urlparse
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugin_manager import resolve_plugin_spec
-from peagen.errors import PatchTargetMissingError
+from peagen.errors import (
+    PatchTargetMissingError,
+    SpecFileNotFoundError,
+    TemplateFileNotFoundError,
+)
 from peagen.schemas import DOE_SPEC_V2_SCHEMA
 from peagen.plugins.vcs import pea_ref
 from peagen._utils._validation import _validate
@@ -52,8 +56,20 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def _load_yaml(uri: str | Path) -> Dict[str, Any]:
-    return yaml.safe_load(Path(uri).expanduser().read_text(encoding="utf-8"))
+def _load_yaml(uri: str | Path, *, kind: str) -> Dict[str, Any]:
+    """Return the parsed YAML from *uri* or raise a descriptive error."""
+
+    path = Path(uri).expanduser()
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:  # pragma: no cover - simple wrapper
+        if kind == "spec":
+            raise SpecFileNotFoundError(str(path)) from exc
+        if kind == "template":
+            raise TemplateFileNotFoundError(str(path)) from exc
+        raise
+
+    return yaml.safe_load(text)
 
 
 def _apply_json_patch(doc: Dict, patch_ops: List[Dict]) -> Dict:
@@ -354,8 +370,8 @@ def generate_payload(
     Returns a JSON-serialisable summary; writes *output_path* unless dry-run.
     """
     # 1. ------------ load + validate -------------------------------------
-    spec_obj = _load_yaml(spec_path)
-    template_obj = _load_yaml(template_path)
+    spec_obj = _load_yaml(spec_path, kind="spec")
+    template_obj = _load_yaml(template_path, kind="template")
 
     if "version" not in spec_obj:
         raise ValueError("legacy DOE specs are no longer supported")
