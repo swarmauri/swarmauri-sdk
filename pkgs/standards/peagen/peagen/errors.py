@@ -127,3 +127,25 @@ class TaskNotFoundError(RuntimeError):
             f"Task '{self.task_id}' could not be found. "
             "It may have expired or was never created."
         )
+      
+class DispatchHTTPError(RuntimeError):
+    """Raised when a worker responds with a non-200 HTTP status."""
+
+    def __init__(self, status_code: int) -> None:
+        super().__init__(f"Worker returned HTTP {status_code}")
+        self.status_code = status_code
+
+
+class MigrationFailureError(RuntimeError):
+    """Raised when database migrations fail during startup."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Database migrations failed: {reason}")
+        self.reason = reason
+
+
+class HTTPClientNotInitializedError(RuntimeError):
+    """Raised when an HTTP client is required but not yet initialized."""
+
+    def __init__(self) -> None:
+        super().__init__("HTTP client not initialized")

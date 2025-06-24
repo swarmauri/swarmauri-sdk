@@ -44,7 +44,9 @@ from peagen.gateway.db_helpers import (
     mark_ip_banned,
 )
 from peagen.errors import (
+    DispatchHTTPError,
     MissingActionError,
+    MigrationFailureError,
     NoWorkerAvailableError,
     TaskNotFoundError,
 )
@@ -925,7 +927,7 @@ async def scheduler():
             try:
                 resp = await client.post(target["url"], json=rpc_req)
                 if resp.status_code != 200:
-                    raise RuntimeError(f"HTTP {resp.status_code}")
+                    raise DispatchHTTPError(resp.status_code)
 
                 task.status = Status.dispatched
                 await _save_task(task)
@@ -1009,8 +1011,9 @@ async def _on_start():
     log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
-        log.error("migration failed: %s", result.get("error"))
-        raise RuntimeError(result.get("error"))
+        error_msg = result.get("error")
+        log.error("migration failed: %s", error_msg)
+        raise MigrationFailureError(str(error_msg))
     log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
