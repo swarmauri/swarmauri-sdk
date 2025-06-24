@@ -104,7 +104,12 @@ push results back to it.
 
    ```bash
    peagen remote --gateway-url https://gw.peagen.com process projects.yaml
-   ```
+  ```
 
    The deploy key handles Git operations while the login step allows the
    gateway to store task results securely.
+
+   !!! note
+       After logging in, the CLI refuses to transmit GitHub PAT tokens to the
+       gateway for any other command. Only `peagen init repo` may send a PAT so
+       all subsequent operations rely exclusively on deploy keys.

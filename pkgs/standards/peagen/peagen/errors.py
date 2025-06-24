@@ -115,6 +115,12 @@ class InvalidPluginSpecError(ValueError):
         )
 
 
+class PATNotAllowedError(RuntimeError):
+    """Raised when a PAT token is passed to a forbidden command."""
+
+    def __init__(self) -> None:
+        super().__init__("PAT tokens are not allowed for this command")
+        
 class ProjectsPayloadValidationError(ValueError):
     """Raised when a projects_payload does not conform to the schema."""
 
