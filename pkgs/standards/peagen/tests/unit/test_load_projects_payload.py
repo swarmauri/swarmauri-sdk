@@ -53,5 +53,6 @@ def test_load_projects_payload_missing_projects_list(tmp_path):
     bad = tmp_path / "missing.yaml"
     bad.write_text("schemaVersion: '1.0.0'\nPROJECTS: {}\n")
 
+    # Schema validation now fails before the missing list check
     with pytest.raises(ProjectsPayloadValidationError):
         load_projects_payload(str(bad))

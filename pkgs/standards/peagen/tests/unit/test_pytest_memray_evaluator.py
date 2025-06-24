@@ -1,5 +1,5 @@
 import pytest
-from peagen.evaluators.pytest_memray_evaluator import PytestMemrayEvaluator
+from peagen.plugins.evaluators.pytest_memray_evaluator import PytestMemrayEvaluator
 from swarmauri_standard.programs.Program import Program
 
 
