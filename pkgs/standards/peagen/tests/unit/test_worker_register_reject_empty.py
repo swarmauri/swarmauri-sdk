@@ -1,3 +1,4 @@
+import importlib
 import pytest
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
@@ -5,7 +6,7 @@ from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_worker_list(monkeypatch):
+async def test_worker_register_rejects_no_handlers(monkeypatch):
     q = InMemoryQueue()
 
     class DummyBackend:
@@ -23,7 +24,6 @@ async def test_worker_list(monkeypatch):
                 return DummyBackend()
             return None
 
-    import importlib
     import peagen.plugins
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
@@ -40,9 +40,14 @@ async def test_worker_list(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    await gw.worker_register(
-        workerId="w1", pool="p", url="http://w1", advertises={}, handlers=["demo"]
-    )
-    workers = await gw.worker_list()
-    assert workers[0]["id"] == "w1"
-    assert workers[0]["pool"] == "p"
+    with pytest.raises(gw.RPCException) as exc:
+        await gw.worker_register(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+            handlers=[],
+        )
+    assert exc.value.code == -32602
+    data = await q.hgetall("worker:w1")
+    assert data == {}
