@@ -19,6 +19,7 @@ from peagen.errors import (
     GitCloneError,
     GitFetchError,
     GitPushError,
+    GitCommitError,
 )
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
@@ -203,13 +204,19 @@ class GitVCS:
     # ------------------------------------------------------------------ commit/merge/tag
     def commit(self, paths: Iterable[str], message: str) -> str:
         self.repo.git.add(*paths)
-        self.repo.git.commit("-m", message)
+        try:
+            self.repo.git.commit("-m", message)
+        except GitCommandError as exc:  # pragma: no cover - commit failures
+            raise GitCommitError(exc.stderr or exc.stdout or str(exc)) from exc
         return self.repo.head.commit.hexsha
 
     def fan_in(self, refs: Iterable[str], message: str) -> str:
         if refs:
             self.repo.git.merge("--no-ff", "--no-edit", *refs)
-        self.repo.git.commit("-m", message)
+        try:
+            self.repo.git.commit("-m", message)
+        except GitCommandError as exc:  # pragma: no cover - commit failures
+            raise GitCommitError(exc.stderr or exc.stdout or str(exc)) from exc
         return self.repo.head.commit.hexsha
 
     def merge_ours(self, ref: str, message: str) -> str:
