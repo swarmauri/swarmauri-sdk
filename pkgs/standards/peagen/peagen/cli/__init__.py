@@ -153,6 +153,7 @@ def _global_remote_ctx(  # noqa: D401
 
 app.add_typer(login_app)
 app.add_typer(keys_app, name="keys")
+app.add_typer(local_init_app, name="init")
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
 app.add_typer(dashboard_app)
@@ -167,7 +168,6 @@ local_app.add_typer(
     local_fetch_app,
 )
 local_app.add_typer(local_db_app, name="db")
-local_app.add_typer(local_init_app, name="init")
 local_app.add_typer(local_process_app)
 local_app.add_typer(local_mutate_app)
 local_app.add_typer(local_evolve_app)

@@ -75,3 +75,36 @@ with r.config_writer() as cw:
     cw.set_value('remote "origin"', 'fetch', '+refs/pea/*:refs/pea/*')
     cw.set_value('remote "origin"', 'push', 'refs/pea/*:refs/pea/*')
 ```
+
+## Using `peagen login` with a GitHub PAT
+
+Follow these steps when your repository lives on GitHub and Peagen tasks should
+push results back to it.
+
+1. **Create the repository and deploy key** – use the ``init repo`` command with
+   a personal access token. The token can be provided via ``--pat`` or the
+   ``GITHUB_PAT`` environment variable.
+
+   ```bash
+   peagen init repo myuser/myrepo --pat $GITHUB_PAT
+   ```
+
+   This calls the GitHub API, creates an Ed25519 key pair and registers the
+   public key as a deploy key so the CLI can push via SSH.
+
+2. **Authenticate with the gateway** – upload the same public key so the gateway
+   can verify your requests.
+
+   ```bash
+   peagen login --gateway-url https://gw.peagen.com
+   ```
+
+   After logging in you can run remote commands that operate on the GitHub
+   repository, for example:
+
+   ```bash
+   peagen remote --gateway-url https://gw.peagen.com process projects.yaml
+   ```
+
+   The deploy key handles Git operations while the login step allows the
+   gateway to store task results securely.
