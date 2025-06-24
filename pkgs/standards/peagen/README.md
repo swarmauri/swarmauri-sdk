@@ -442,5 +442,17 @@ switch between task lists, logs and opened files. The footer shows system
 metrics and current time. Remote artifact paths are downloaded via their git
 filter and re-uploaded when saving.
 
+### Streaming Events with wscat
+
+Use the [`wscat`](https://github.com/websockets/wscat) CLI to inspect the
+gateway's WebSocket events directly from the terminal:
+
+```bash
+npx wscat -c https://gw.peagen.com/ws/tasks
+```
+
+Incoming JSON messages mirror those displayed in the TUI, providing a quick way
+to monitor `task.update`, `worker.update`, and `queue.update` events.
+
 ## Results Backends
 Peagen supports pluggable results backends. Built-in options include `local_fs`, `postgres`, and `in_memory`.
