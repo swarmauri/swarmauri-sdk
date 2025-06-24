@@ -65,7 +65,7 @@ METHODS: list[tuple[str, Callable[[object, str], Awaitable[None]]]] = [
     (
         "Worker.register",
         lambda gw, tid: gw.worker_register(
-            "w1", pool="p", url="http://w1", advertises={}
+            "w1", pool="p", url="http://w1", advertises={}, handlers=["demo"]
         ),
     ),
     (
