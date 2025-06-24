@@ -32,4 +32,5 @@ API_KEY = "${GROQ_API_KEY}"
 
 [vcs]
 provider = "git"
+provider_params = { path = "." }
 default_vcs = "git"

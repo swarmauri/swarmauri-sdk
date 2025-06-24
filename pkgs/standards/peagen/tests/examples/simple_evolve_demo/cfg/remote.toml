@@ -25,5 +25,10 @@ max_workers = 1
 async = false
 strict = true
 
+[vcs]
+provider = "git"
+provider_params = { path = "." }
+default_vcs = "git"
+
 [evaluation.evaluators]
 performance = "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator"

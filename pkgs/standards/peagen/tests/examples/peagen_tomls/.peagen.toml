@@ -80,4 +80,5 @@ target_grade_level = 12
 
 [vcs]
 provider = "git"
+provider_params = { path = "." }
 default_vcs = "git"

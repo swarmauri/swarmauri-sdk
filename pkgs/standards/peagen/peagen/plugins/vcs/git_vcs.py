@@ -20,7 +20,9 @@ from .constants import PEAGEN_REFS_PREFIX
 class GitVCS:
     """Lightweight wrapper around :class:`git.Repo`."""
 
-    def __init__(self, path: str | Path, *, remote_url: str | None = None) -> None:
+    def __init__(
+        self, path: str | Path = ".", *, remote_url: str | None = None
+    ) -> None:
         p = Path(path)
         if (p / ".git").exists():
             self.repo = Repo(p)
