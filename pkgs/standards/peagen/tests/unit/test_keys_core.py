@@ -39,7 +39,7 @@ class DummyPM:
         self.called = False
 
     def get(self, group: str, name: str | None = None):
-        assert group == "secrets"
+        assert group == "secrets_drivers"
         self.called = True
         return DummyDriver(Path(tempfile.mkdtemp()))
 
