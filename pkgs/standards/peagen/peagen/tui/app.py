@@ -7,6 +7,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
+import math
 from urllib.parse import urlparse
 
 import httpx
@@ -33,6 +34,7 @@ from peagen.tui.components import (
     FilterBar,
     ReconnectScreen,
     TaskDetailScreen,
+    NumberInputScreen,
     TaskTable,
     TemplatesView,
     WorkersView,
@@ -234,6 +236,8 @@ class QueueDashboardApp(App):
         ("escape", "clear_filters", "Clear Filters"),
         ("n", "next_page", "Next Page"),
         ("p", "prev_page", "Prev Page"),
+        ("l", "set_limit", "Limit"),
+        ("j", "jump_page", "Jump Page"),
         ("q", "quit", "Quit"),
     ]
 
@@ -249,6 +253,8 @@ class QueueDashboardApp(App):
         "finished_at",
         "error",
     ]
+
+    LIMIT_OPTIONS = [10, 20, 50, 100]
 
     COLUMN_LABEL_TO_SORT_KEY = {
         "ID": "id",
@@ -447,11 +453,21 @@ class QueueDashboardApp(App):
             "collapsed": self.collapsed.copy(),
         }
         processed_data = self._perform_filtering_and_sorting(
-            all_tasks, current_filter_criteria
+            all_tasks,
+            current_filter_criteria,
+            limit=self.limit,
+            offset=self.offset,
         )
         self.call_later(self._update_ui_with_processed_data, processed_data, all_tasks)
 
-    def _perform_filtering_and_sorting(self, tasks_input: list, criteria: dict) -> dict:
+    def _perform_filtering_and_sorting(
+        self,
+        tasks_input: list,
+        criteria: dict,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> dict:
         tasks = list(tasks_input)
 
         if criteria.get("id"):
@@ -546,8 +562,14 @@ class QueueDashboardApp(App):
         )
         calculated_metrics["worker_len"] = len(current_workers)
 
+        page_tasks = tasks
+        if limit is not None:
+            start = max(0, offset)
+            end = start + limit
+            page_tasks = tasks[start:end]
+
         return {
-            "tasks_to_display": tasks,
+            "tasks_to_display": page_tasks,
             "workers_data": current_workers,
             "metrics_data": calculated_metrics,
             "collapsed_state": criteria["collapsed"],
@@ -689,6 +711,13 @@ class QueueDashboardApp(App):
 
             self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
             self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
+
+        if hasattr(self, "footer"):
+            current_page = self.offset // self.limit + 1
+            total_pages = max(1, math.ceil(self.queue_len / self.limit))
+            self.footer.set_page_info(current_page, total_pages)
+            self.sub_title = f"Page {current_page} of {total_pages}"
+
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
@@ -982,6 +1011,73 @@ class QueueDashboardApp(App):
             else:
                 self.run_worker(coro, exclusive=True, group="data_refresh_worker")
             self.trigger_data_processing(debounce=False)
+
+    def action_set_limit(self, limit: int | None = None) -> None:
+        """Set the number of tasks shown per page."""
+
+        if limit is None:
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                asyncio.run(self._prompt_and_set_limit())
+            else:
+                self.run_worker(self._prompt_and_set_limit(), exclusive=True)
+            return
+
+        if limit <= 0:
+            limit = 1
+        self.limit = limit
+        self.offset = 0
+        coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            self.run_worker(coro, exclusive=True, group="data_refresh_worker")
+        self.trigger_data_processing(debounce=False)
+
+    def action_jump_page(self, page: int | None = None) -> None:
+        """Jump directly to *page* if provided or prompt the user."""
+        if page is None:
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                asyncio.run(self._prompt_and_jump())
+            else:
+                self.run_worker(self._prompt_and_jump(), exclusive=True)
+            return
+        self._apply_jump_page(page)
+
+    def _apply_jump_page(self, page: int) -> None:
+        if page <= 0:
+            page = 1
+        max_page = max(1, math.ceil(self.queue_len / self.limit))
+        if page > max_page:
+            page = max_page
+        self.offset = (page - 1) * self.limit
+        coro = self.backend.refresh(limit=self.limit, offset=self.offset)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            self.run_worker(coro, exclusive=True, group="data_refresh_worker")
+        self.trigger_data_processing(debounce=False)
+
+    async def _prompt_and_jump(self) -> None:
+        current_page = self.offset // self.limit + 1
+        total_pages = max(1, math.ceil(self.queue_len / self.limit))
+        prompt = f"Jump to page (1-{total_pages})"
+        page = await self.push_screen_wait(NumberInputScreen(prompt, current_page))
+        if page is not None:
+            self._apply_jump_page(page)
+
+    async def _prompt_and_set_limit(self) -> None:
+        prompt = "Items per page"
+        limit = await self.push_screen_wait(NumberInputScreen(prompt, self.limit))
+        if limit is not None:
+            self.action_set_limit(limit)
 
     async def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
         if isinstance(event.value, str) and event.value.startswith("[link="):
