@@ -26,6 +26,7 @@ def test_pagination_actions(monkeypatch):
     app.action_jump_page(99)
     assert app.offset == 20
 
+
 @pytest.mark.unit
 def test_perform_filtering_limit_offset():
     app = QueueDashboardApp()
@@ -52,6 +53,15 @@ def test_perform_filtering_limit_offset():
 @pytest.mark.unit
 def test_header_page_info():
     app = QueueDashboardApp()
+
+    class DummyFooter:
+        def __init__(self) -> None:
+            self.page_info = None
+
+        def set_page_info(self, current: int, total: int) -> None:
+            self.page_info = (current, total)
+
+    app.footer = DummyFooter()
     data = {
         "tasks_to_display": [],
         "workers_data": [],
@@ -67,4 +77,3 @@ def test_header_page_info():
     app.offset = 20
     app._update_ui_with_processed_data(data, [])
     assert app.sub_title == "Page 3 of 5"
-
