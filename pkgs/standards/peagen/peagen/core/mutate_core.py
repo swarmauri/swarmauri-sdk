@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, List, Tuple
 import random
 
-from peagen._utils.config_loader import load_peagen_toml
+from peagen._utils.config_loader import resolve_cfg
 from peagen.plugin_manager import PluginManager, resolve_plugin_spec
 from swarmauri_standard.programs.Program import Program
 import logging
@@ -35,10 +35,10 @@ def mutate_workspace(
 ) -> Dict[str, Optional[str]]:
     """Run a minimal evolutionary loop on ``target_file`` inside ``workspace_uri``."""
 
-    cfg = (
-        load_peagen_toml(cfg_path)
+    cfg = resolve_cfg(
+        toml_path=str(cfg_path)
         if cfg_path
-        else load_peagen_toml(Path(workspace_uri) / ".peagen.toml")
+        else str(Path(workspace_uri) / ".peagen.toml")
     )
     pm = PluginManager(cfg)
     if mutations:
