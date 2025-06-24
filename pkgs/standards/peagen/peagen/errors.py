@@ -115,6 +115,20 @@ class InvalidPluginSpecError(ValueError):
         )
 
 
+class ProjectsPayloadValidationError(ValueError):
+    """Raised when a projects_payload does not conform to the schema."""
+
+    def __init__(self, errors: list[str], path: str | None = None) -> None:
+        self.errors = errors
+        self.path = path
+        label = f" at '{path}'" if path else ""
+        super().__init__(f"Invalid projects_payload{label}")
+
+    def __str__(self) -> str:  # pragma: no cover - simple
+        details = "; ".join(self.errors)
+        loc = f" in {self.path}" if self.path else ""
+        return f"Invalid projects_payload{loc}: {details}"
+
 class TaskNotFoundError(RuntimeError):
     """Raised when a task id does not exist in the gateway."""
 
