@@ -766,6 +766,9 @@ async def worker_register(
         except Exception as exc:  # noqa: BLE001
             log.warning("/well-known fetch failed for %s: %s", workerId, exc)
 
+    if not handler_list:
+        raise RPCException(code=-32602, message="worker supports no handlers")
+
     await _upsert_worker(
         workerId,
         {
