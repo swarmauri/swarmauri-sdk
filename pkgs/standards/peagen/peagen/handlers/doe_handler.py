@@ -20,7 +20,7 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
 
-    cfg = resolve_cfg(toml_path=args.get("config", ".peagen.toml"))
+    cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")
     pm = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
