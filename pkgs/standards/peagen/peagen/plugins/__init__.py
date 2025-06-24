@@ -7,6 +7,8 @@ from collections import defaultdict
 from types import ModuleType
 from typing import Any, Dict, Optional
 
+from peagen.errors import InvalidPluginSpecError
+
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
 # ---------------------------------------------------------------------------
@@ -202,7 +204,12 @@ class PluginManager:
             class_name = "".join(part.capitalize() for part in ref.split("_")) + "Model"
             module = import_module(f"swarmauri.llms.{class_name}")
             return getattr(module, class_name)
-        mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
+        if ":" not in ref and "." not in ref:
+            raise InvalidPluginSpecError(ref)
+        try:
+            mod, cls = ref.split(":", 1) if ":" in ref else ref.rsplit(".", 1)
+        except ValueError as exc:  # pragma: no cover - validation just above
+            raise InvalidPluginSpecError(ref) from exc
         module = import_module(mod)
         return getattr(module, cls)
 
