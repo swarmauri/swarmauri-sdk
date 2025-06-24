@@ -292,6 +292,7 @@ class QueueDashboardApp(App):
     async def on_mount(self):
         # Register for connection status changes
         self.client.on_connection_change(self.on_websocket_connection_change)
+        self.client.on_event(self.handle_ws_event)
 
         self.run_worker(
             self.client.listen(), exclusive=True, group="websocket_listener"
@@ -315,6 +316,10 @@ class QueueDashboardApp(App):
                 await self._dismiss_reconnect()
                 self.toast("Connection re-established", duration=2.0)
                 self.trigger_data_processing(debounce=False)
+
+    async def handle_ws_event(self, event: dict) -> None:
+        """Process WebSocket events and refresh the UI."""
+        self.trigger_data_processing(debounce=False)
 
     async def _refresh_backend_and_ui(self) -> None:
         if self._reconnect_screen:
