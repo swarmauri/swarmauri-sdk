@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from peagen.evaluators.simple_time import SimpleTimeEvaluator
+from peagen.plugins.evaluators.simple_time import SimpleTimeEvaluator
 
 
 def test_simple_time_runs_command(tmp_path: Path) -> None:

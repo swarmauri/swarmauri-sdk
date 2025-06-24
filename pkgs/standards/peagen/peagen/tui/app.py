@@ -715,6 +715,8 @@ class QueueDashboardApp(App):
         # NOTE: a footer widget is always present in this app; keep this check
         # to avoid future changes that assume otherwise.
         if hasattr(self, "footer"):
+            current_page = self.offset // self.limit + 1
+            total_pages = max(1, math.ceil(self.queue_len / self.limit))
             self.footer.set_page_info(current_page, total_pages)
             self.sub_title = f"Page {current_page} of {total_pages}"
 

@@ -26,7 +26,6 @@ CONFIG = {
         "default_filter": "file",
         "filters": {"file": {"output_dir": "./peagen_artifacts"}},
     },
-
     "mutation": {
         "mutators": {"default_mutator": "DefaultMutator"},
     },

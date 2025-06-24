@@ -188,16 +188,16 @@ llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
 autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
 
-[project.entry-points."peagen.evaluators"]
-psutil_io = "peagen.evaluators.psutil_io:PsutilIOEvaluator"
-perf_regression = "peagen.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
-monitor = "peagen.evaluators.pytest_monitor:PytestMonitorEvaluator"
-memray = "peagen.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
-pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
-benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
-simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
+[project.entry-points."peagen.plugins.evaluators"]
+psutil_io = "peagen.plugins.evaluators.psutil_io:PsutilIOEvaluator"
+perf_regression = "peagen.plugins.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
+monitor = "peagen.plugins.evaluators.pytest_monitor:PytestMonitorEvaluator"
+memray = "peagen.plugins.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
+pytest_profiling = "peagen.plugins.evaluators.pytest_profiling:PytestProfilingEvaluator"
+benchmark = "peagen.plugins.evaluators.benchmark:PytestBenchmarkEvaluator"
+simple_time = "peagen.plugins.evaluators.simple_time:SimpleTimeEvaluator"
 
-[project.entry-points."peagen.evaluator_pools"]
+[project.entry-points."peagen.plugins.evaluator_pools"]
 default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 
 [tool.setuptools.package-data]
