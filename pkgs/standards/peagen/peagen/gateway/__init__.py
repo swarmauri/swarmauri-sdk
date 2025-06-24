@@ -44,6 +44,8 @@ from peagen.gateway.db_helpers import (
     mark_ip_banned,
 )
 import peagen.defaults as defaults
+from peagen.defaults import BAN_THRESHOLD
+from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
 
@@ -106,10 +108,10 @@ WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # ─────────────────────────── IP tracking ─────────────────────────
+
 BAN_THRESHOLD = 10
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
-SECRET_NOT_FOUND_CODE = -32004
 
 
 def _supports(method: str | None) -> bool:
@@ -457,7 +459,7 @@ async def rpc_endpoint(request: Request):
     status = 200
 
     def _not_found(r: dict) -> bool:
-        return r.get("error", {}).get("code") == SECRET_NOT_FOUND_CODE
+        return r.get("error", {}).get("code") == ErrorCode.SECRET_NOT_FOUND
 
     if isinstance(resp, dict) and "error" in resp:
         method = payload.get("method") if isinstance(payload, dict) else "batch"
@@ -526,7 +528,10 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
-        raise RPCException(code=SECRET_NOT_FOUND_CODE, message="secret not found")
+        raise RPCException(
+            code=ErrorCode.SECRET_NOT_FOUND,
+            message="secret not found",
+        )
     return {"secret": row.cipher}
 
 
