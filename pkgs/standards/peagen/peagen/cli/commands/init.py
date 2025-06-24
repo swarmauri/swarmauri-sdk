@@ -16,15 +16,15 @@ import typer
 from peagen._utils._init import _call_handler, _submit_task, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
+from peagen.i18n import get_message
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 # ── Typer root ───────────────────────────────────────────────────────────────
-local_init_app = typer.Typer(
-    help="Bootstrap Peagen artefacts (project, template-set …) locally"
-)
+
+local_init_app = typer.Typer(help=get_message("cli.init.local_help"))
 remote_init_app = typer.Typer(
-    help="Bootstrap Peagen artefacts (project, template-set …) via JSON-RPC",
+    help=get_message("cli.init.remote_help"),
 )
 
 
