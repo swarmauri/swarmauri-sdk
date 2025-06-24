@@ -185,3 +185,23 @@ class HTTPClientNotInitializedError(RuntimeError):
 
     def __init__(self) -> None:
         super().__init__("HTTP client not initialized")
+
+
+class ProjectsPayloadFormatError(ValueError):
+    """Raised when a projects_payload is not a YAML mapping."""
+
+    def __init__(self, found_type: str, path: str | None = None) -> None:
+        self.found_type = found_type
+        self.path = path
+        loc = f" in {path}" if path else ""
+        msg = f"projects_payload{loc} must be a YAML mapping, got {found_type}"
+        super().__init__(msg)
+
+
+class MissingProjectsListError(ValueError):
+    """Raised when the projects_payload lacks a top-level PROJECTS list."""
+
+    def __init__(self, path: str | None = None) -> None:
+        self.path = path
+        loc = f" in {path}" if path else ""
+        super().__init__(f"projects_payload{loc} missing top-level 'PROJECTS' list")
