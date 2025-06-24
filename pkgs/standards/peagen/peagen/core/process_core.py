@@ -22,7 +22,11 @@ from peagen._utils._search_template_sets import (
 )
 from peagen.core.validate_core import _collect_errors
 from peagen.schemas import PROJECTS_PAYLOAD_V1_SCHEMA
-from peagen.errors import ProjectsPayloadValidationError
+from peagen.errors import (
+    ProjectsPayloadValidationError,
+    ProjectsPayloadFormatError,
+    MissingProjectsListError,
+)
 
 logger = Logger(name=__name__)
 
@@ -65,15 +69,25 @@ def load_projects_payload(
             yaml_text = projects_payload
         doc = yaml.safe_load(yaml_text)
 
+    if isinstance(doc, list):
+        return doc
+    if not isinstance(doc, dict):
+        raise ProjectsPayloadFormatError(
+            type(doc).__name__,
+            str(projects_payload) if isinstance(projects_payload, str) else None,
+        )
+
     errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
     if errors:
         raise ProjectsPayloadValidationError(
             errors, str(projects_payload) if isinstance(projects_payload, str) else None
         )
 
-    projects = doc.get("PROJECTS") if isinstance(doc, dict) else doc
+    projects = doc.get("PROJECTS")
     if not isinstance(projects, list):
-        raise ValueError("Payload must contain a top-level 'PROJECTS' list")
+        raise MissingProjectsListError(
+            str(projects_payload) if isinstance(projects_payload, str) else None
+        )
     return projects
 
 
