@@ -79,6 +79,7 @@ class GitPushError(GitOperationError):
             f"Failed to push '{ref}' to remote '{remote}'. Check remote configuration and permissions."
         )
 
+
 class SchedulerError(RuntimeError):
     """Base class for errors raised during task scheduling."""
 
@@ -99,6 +100,7 @@ class NoWorkerAvailableError(SchedulerError):
         self.pool = pool
         self.action = action
 
+
 class InvalidPluginSpecError(ValueError):
     """Raised when a plugin reference cannot be parsed."""
 
@@ -110,4 +112,18 @@ class InvalidPluginSpecError(ValueError):
         return (
             f"Invalid plugin specification '{self.spec}'. "
             "Expected 'module.Class' or 'module:Class'."
+        )
+
+
+class TaskNotFoundError(RuntimeError):
+    """Raised when a task id does not exist in the gateway."""
+
+    def __init__(self, task_id: str) -> None:
+        super().__init__(task_id)
+        self.task_id = task_id
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return (
+            f"Task '{self.task_id}' could not be found. "
+            "It may have expired or was never created."
         )
