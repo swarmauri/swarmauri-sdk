@@ -197,6 +197,9 @@ pytest_profiling = "peagen.evaluators.pytest_profiling:PytestProfilingEvaluator"
 benchmark = "peagen.evaluators.benchmark:PytestBenchmarkEvaluator"
 simple_time = "peagen.evaluators.simple_time:SimpleTimeEvaluator"
 
+[project.entry-points."peagen.evaluator_pools"]
+default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
+
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen" = [
