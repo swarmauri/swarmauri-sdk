@@ -145,6 +145,9 @@ def submit_gen(  # noqa: PLR0913
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
+    else:
+        args["spec_text"] = spec.read_text(encoding="utf-8")
+        args["template_text"] = template.read_text(encoding="utf-8")
     task = _make_task(args, action="doe")
 
     rpc_req = {
@@ -296,6 +299,9 @@ def submit_process(  # noqa: PLR0913
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
+    else:
+        args["spec_text"] = spec.read_text(encoding="utf-8")
+        args["template_text"] = template.read_text(encoding="utf-8")
     task = _make_task(args, action="doe_process")
 
     rpc_req = {
