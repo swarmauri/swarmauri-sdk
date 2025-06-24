@@ -154,6 +154,9 @@ s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
 [project.entry-points."peagen.plugins.vcs"]
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
+[project.entry-points."peagen.vcs"]
+git = "peagen.plugins.vcs.git_vcs:GitVCS"
+
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
 webhook = "peagen.plugins.publishers.webhook_publisher:WebhookPublisher"
