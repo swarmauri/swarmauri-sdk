@@ -145,7 +145,7 @@ def test_remote_get(monkeypatch):
     secrets_cli.remote_get(
         ctx,
         "ID",
-        gateway_url="http://gw.peagen.com",
+        gateway_url="https://gw.peagen.com",
         pool="default",
     )
     assert out == ["value"]
@@ -173,7 +173,7 @@ def test_remote_remove(monkeypatch):
         ctx,
         "ID",
         version=2,
-        gateway_url="http://gw.peagen.com",
+        gateway_url="https://gw.peagen.com",
         pool="default",
     )
     assert posted["json"] == {
