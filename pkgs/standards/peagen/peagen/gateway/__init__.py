@@ -43,7 +43,13 @@ from peagen.gateway.db_helpers import (
     fetch_banned_ips,
     mark_ip_banned,
 )
-from peagen.errors import MissingActionError, NoWorkerAvailableError
+from peagen.errors import (
+    DispatchHTTPError,
+    MissingActionError,
+    MigrationFailureError,
+    NoWorkerAvailableError,
+    TaskNotFoundError,
+)
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
@@ -690,7 +696,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     """Update persisted metadata for an existing task."""
     task = await _load_task(taskId)
     if not task:
-        raise ValueError("task not found")
+        raise TaskNotFoundError(taskId)
 
     for field, value in changes.items():
         if field not in Task.model_fields:
@@ -726,10 +732,10 @@ async def task_get(taskId: str):
 
     # authoritative fallback (Postgres)
     try:
-        return await get_task_result(taskId)  # raises ValueError if not found
-    except ValueError as exc:
+        return await get_task_result(taskId)  # raises TaskNotFoundError if missing
+    except TaskNotFoundError as exc:
         # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCException(code=-32001, message=str(exc))
+        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
 
 
 @rpc.method("Pool.listTasks")
@@ -921,7 +927,7 @@ async def scheduler():
             try:
                 resp = await client.post(target["url"], json=rpc_req)
                 if resp.status_code != 200:
-                    raise RuntimeError(f"HTTP {resp.status_code}")
+                    raise DispatchHTTPError(resp.status_code)
 
                 task.status = Status.dispatched
                 await _save_task(task)
@@ -1005,8 +1011,9 @@ async def _on_start():
     log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
-        log.error("migration failed: %s", result.get("error"))
-        raise RuntimeError(result.get("error"))
+        error_msg = result.get("error")
+        log.error("migration failed: %s", error_msg)
+        raise MigrationFailureError(str(error_msg))
     log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
