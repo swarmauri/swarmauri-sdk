@@ -79,6 +79,7 @@ class GitPushError(GitOperationError):
             f"Failed to push '{ref}' to remote '{remote}'. Check remote configuration and permissions."
         )
 
+
 class SchedulerError(RuntimeError):
     """Base class for errors raised during task scheduling."""
 
@@ -99,6 +100,7 @@ class NoWorkerAvailableError(SchedulerError):
         self.pool = pool
         self.action = action
 
+
 class InvalidPluginSpecError(ValueError):
     """Raised when a plugin reference cannot be parsed."""
 
@@ -111,3 +113,34 @@ class InvalidPluginSpecError(ValueError):
             f"Invalid plugin specification '{self.spec}'. "
             "Expected 'module.Class' or 'module:Class'."
         )
+
+
+class TaskNotFoundError(RuntimeError):
+    """Raised when a requested task ID does not exist."""
+
+    def __init__(self, task_id: str) -> None:
+        super().__init__(f"Task '{task_id}' not found")
+        self.task_id = task_id
+
+
+class DispatchHTTPError(RuntimeError):
+    """Raised when a worker responds with a non-200 HTTP status."""
+
+    def __init__(self, status_code: int) -> None:
+        super().__init__(f"Worker returned HTTP {status_code}")
+        self.status_code = status_code
+
+
+class MigrationFailureError(RuntimeError):
+    """Raised when database migrations fail during startup."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Database migrations failed: {reason}")
+        self.reason = reason
+
+
+class HTTPClientNotInitializedError(RuntimeError):
+    """Raised when an HTTP client is required but not yet initialized."""
+
+    def __init__(self) -> None:
+        super().__init__("HTTP client not initialized")
