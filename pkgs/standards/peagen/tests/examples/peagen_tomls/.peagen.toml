@@ -71,11 +71,12 @@ max_workers = 4
 async = false
 strict = true
 
+[evaluation.evaluators]
+default_evaluator = "ColemanLiauIndexEvaluator"
+
 [evaluation.evaluators.AutomatedReadabilityIndexEvaluator]
-cls = "swarmauri_evaluatorpool_accessibility:AutomatedReadabilityIndexEvaluator"
 
 [evaluation.evaluators.ColemanLiauIndexEvaluator]
-cls = "swarmauri_evaluatorpool_accessibility:ColemanLiauIndexEvaluator"
 target_grade_level = 12
 
 [vcs]

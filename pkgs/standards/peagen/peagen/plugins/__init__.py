@@ -138,7 +138,7 @@ class PluginManager:
         "evaluators": {
             "section": "evaluation",
             "items": "evaluators",
-            "default": None,
+            "default": "default_evaluator",
         },
         "evaluator_pools": {
             "section": "evaluation",
@@ -156,8 +156,8 @@ class PluginManager:
             "default": "default_consumer",
         },
         "mutators": {
-            "section": "mutators",
-            "items": "plugins",
+            "section": "mutation",
+            "items": "mutators",
             "default": "default_mutator",
         },
         "programs": {
