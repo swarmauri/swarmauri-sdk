@@ -85,7 +85,7 @@ async = false
 strict = true
 
 [evaluation.evaluators]
-simple_time = "simple_time"
+default_evaluator = "simple_time"
 
 
 [vcs]
