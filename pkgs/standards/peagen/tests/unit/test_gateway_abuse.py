@@ -46,14 +46,14 @@ async def test_prevalidate_rejects_and_bans(monkeypatch):
     monkeypatch.setattr(gw, "record_unknown_handler", fake_record)
     monkeypatch.setattr(gw, "mark_ip_banned", fake_mark)
 
-    # first nine invalid calls -> not banned
+    # first 249 invalid calls -> not banned
     payload = {"id": "1"}  # missing method
-    for _ in range(9):
+    for _ in range(249):
         resp = await gw._prevalidate(payload, "1.1.1.1")
         assert resp["error"]["code"] == -32601
     assert "1.1.1.1" not in banned
 
-    # tenth call triggers ban
+    # 250th call triggers ban
     resp = await gw._prevalidate(payload, "1.1.1.1")
     assert resp["error"]["code"] == -32601
     assert banned.get("1.1.1.1") is True
@@ -147,7 +147,7 @@ async def test_prevalidate_bad_version(monkeypatch):
     monkeypatch.setattr(gw, "mark_ip_banned", fake_mark)
 
     payload = {"id": "1", "jsonrpc": "1.0", "method": "Foo.Bar"}
-    for _ in range(9):
+    for _ in range(249):
         resp = await gw._prevalidate(payload, "3.3.3.3")
         assert resp["error"]["code"] == -32600
     assert "3.3.3.3" not in banned
