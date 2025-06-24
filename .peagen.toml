@@ -65,8 +65,8 @@ default_queue = "redis"
 uri = "${REDIS_URL}"
 
 # ─────────────────────────────── Mutators ───────────────────────────────
-[mutation.mutators]
-default_mutator = "DefaultMutator"
+[mutation]
+default_mutator = "default_mutator"
 
 
 # ───────────────────────────── Result Backends ─────────────────────────
