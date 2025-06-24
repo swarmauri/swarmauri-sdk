@@ -40,6 +40,9 @@ async def test_prevalidate_rejects_and_bans(monkeypatch):
     import peagen.gateway as gw
 
     importlib.reload(gw)
+    monkeypatch.setattr(gw, "BAN_THRESHOLD", 10)
+    monkeypatch.setattr(gw, "BAN_THRESHOLD", 10)
+    monkeypatch.setattr(gw, "BAN_THRESHOLD", 10)
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
