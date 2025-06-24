@@ -41,3 +41,8 @@ default_backend = "postgres"
 [result_backends.adapters.postgres]
 dsn = "${PG_DSN}"
 
+# --- VCS ------------------------------------------------------------
+[vcs]
+provider = "git"
+default_vcs = "git"
+
