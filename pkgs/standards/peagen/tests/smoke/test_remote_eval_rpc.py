@@ -52,4 +52,5 @@ def test_eval_submit_returns_task_id() -> None:
     resp = httpx.post(GATEWAY, json=envelope, timeout=5)
     assert resp.status_code == 200
     data = resp.json()
+
     assert "result" in data and "taskId" in data["result"]
