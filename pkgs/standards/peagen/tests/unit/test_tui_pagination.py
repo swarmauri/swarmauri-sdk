@@ -26,7 +26,6 @@ def test_pagination_actions(monkeypatch):
     app.action_jump_page(99)
     assert app.offset == 20
 
-
 @pytest.mark.unit
 def test_perform_filtering_limit_offset():
     app = QueueDashboardApp()
@@ -68,3 +67,4 @@ def test_header_page_info():
     app.offset = 20
     app._update_ui_with_processed_data(data, [])
     assert app.sub_title == "Page 3 of 5"
+

@@ -718,6 +718,7 @@ class QueueDashboardApp(App):
             self.footer.set_page_info(current_page, total_pages)
             self.sub_title = f"Page {current_page} of {total_pages}"
 
+
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
             event.prevent_default()
