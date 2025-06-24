@@ -11,12 +11,8 @@ sequenceDiagram
     CLI ->> CLI: For each design point: merge with base template, apply any patches
     CLI ->> YAML: Assemble `project_payloads.yaml` bundle with all PROJECTS
     CLI ->> User: List all design point IDs and factor values
-    alt --dry-run option
-        CLI -->> User: Outputs design matrix table (no file written)
-    else 
-        CLI ->> YAML: Write bundle to output file (or error if exists without --force)
-        CLI -->> User: Prints success and file size
-        opt if --notify specified
-            CLI ->> Publisher: Instantiate publisher and publish "peagen.experiment.done" event
-        end
+    CLI ->> YAML: Write bundle to output file (or error if exists without --force)
+    CLI -->> User: Prints success and file size
+    opt if --notify specified
+        CLI ->> Publisher: Instantiate publisher and publish "peagen.experiment.done" event
     end
