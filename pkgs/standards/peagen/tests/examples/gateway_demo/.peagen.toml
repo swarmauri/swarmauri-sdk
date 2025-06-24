@@ -11,7 +11,3 @@ default_backend = "local_fs"
 [result_backends.adapters.local_fs]
 root_dir = "./task_runs"
 
-[vcs]
-provider = "git"
-provider_params = { path = "." }
-default_vcs = "git"
