@@ -5,7 +5,7 @@ import json
 import pytest
 
 from peagen.plugins.vcs import GitVCS, pea_ref
-from peagen.errors import GitRemoteMissingError
+from peagen.errors import GitFetchError, GitPushError, GitRemoteMissingError
 from peagen.plugins.secret_drivers import SecretDriverBase
 
 
@@ -80,4 +80,25 @@ def test_push_no_remote(tmp_path: Path) -> None:
     (repo_dir / "file.txt").write_text("x")
     vcs.commit(["file.txt"], "init")
     with pytest.raises(GitRemoteMissingError):
+        vcs.push("HEAD")
+
+
+@pytest.mark.unit
+def test_fetch_error(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "fetcherr"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    # configure an invalid remote path
+    vcs.repo.create_remote("origin", str(tmp_path / "missing"))
+    with pytest.raises(GitFetchError):
+        vcs.fetch("HEAD")
+
+
+@pytest.mark.unit
+def test_push_error(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "pusherr"
+    vcs = GitVCS.ensure_repo(repo_dir)
+    (repo_dir / "file.txt").write_text("x")
+    vcs.commit(["file.txt"], "init")
+    vcs.repo.create_remote("origin", str(tmp_path / "missing"))
+    with pytest.raises(GitPushError):
         vcs.push("HEAD")

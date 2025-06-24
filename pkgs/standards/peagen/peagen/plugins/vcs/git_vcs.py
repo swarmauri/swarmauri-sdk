@@ -14,7 +14,11 @@ import pygit2
 from git import Repo
 from git.exc import GitCommandError
 
-from peagen.errors import GitOperationError, GitRemoteMissingError
+from peagen.errors import (
+    GitFetchError,
+    GitPushError,
+    GitRemoteMissingError,
+)
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
 from .constants import PEAGEN_REFS_PREFIX
@@ -112,7 +116,8 @@ class GitVCS:
         try:
             self.repo.git.fetch(remote, ref)
         except GitCommandError as exc:
-            raise GitOperationError(str(exc)) from exc
+            url = self.repo.remotes[remote].url
+            raise GitFetchError(remote, ref, url, str(exc)) from exc
         if checkout:
             self.repo.git.checkout("FETCH_HEAD")
 
@@ -152,7 +157,8 @@ class GitVCS:
         try:
             self.repo.git.push(remote, ref)
         except GitCommandError as exc:
-            raise GitOperationError(str(exc)) from exc
+            url = self.repo.remotes[remote].url
+            raise GitPushError(remote, ref, url, str(exc)) from exc
 
     def push_with_secret(
         self,
@@ -186,7 +192,8 @@ class GitVCS:
         try:
             remote_obj.push([ref], callbacks=callbacks)
         except pygit2.GitError as exc:
-            raise GitOperationError(str(exc)) from exc
+            url = remote_obj.url
+            raise GitPushError(remote, ref, url, str(exc)) from exc
 
     def checkout(self, ref: str) -> None:
         """Check out *ref* (branch or commit)."""

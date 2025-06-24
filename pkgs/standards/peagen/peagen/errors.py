@@ -29,3 +29,29 @@ class GitRemoteMissingError(RuntimeError):
     """Raised when an expected git remote is not configured."""
 
     pass
+
+
+class GitFetchError(GitOperationError):
+    """Raised when fetching from a remote fails."""
+
+    def __init__(self, remote: str, ref: str, url: str, reason: str) -> None:
+        super().__init__(
+            f"Failed to fetch '{ref}' from remote '{remote}' ({url}): {reason}"
+        )
+        self.remote = remote
+        self.ref = ref
+        self.url = url
+        self.reason = reason
+
+
+class GitPushError(GitOperationError):
+    """Raised when pushing to a remote fails."""
+
+    def __init__(self, remote: str, ref: str, url: str, reason: str) -> None:
+        super().__init__(
+            f"Failed to push '{ref}' to remote '{remote}' ({url}): {reason}"
+        )
+        self.remote = remote
+        self.ref = ref
+        self.url = url
+        self.reason = reason
