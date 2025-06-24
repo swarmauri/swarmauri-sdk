@@ -214,7 +214,8 @@ class WorkerBase:
         if "repo" not in args:
             from peagen.errors import MissingRepoError
 
-            raise MissingRepoError()
+            await self._notify("failed", task_id, {"error": str(MissingRepoError())})
+            return
 
         if action not in self._handler_registry:
             await self._notify(

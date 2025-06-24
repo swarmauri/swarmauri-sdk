@@ -55,6 +55,6 @@ def test_load_projects_payload_missing_projects_list(tmp_path):
     bad.write_text("schemaVersion: '1.0.0'\nPROJECTS: {}\n")
 
 
-    # Missing list should trigger a dedicated error
+    # Missing list should trigger MissingProjectsListError
     with pytest.raises(MissingProjectsListError):
         load_projects_payload(str(bad))
