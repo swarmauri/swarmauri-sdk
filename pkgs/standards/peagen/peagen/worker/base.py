@@ -230,9 +230,8 @@ class WorkerBase:
                 except Exception:
                     branch = "HEAD"
                 vcs.push(branch)
-            except Exception:
-                # Surface push failures to the caller so tasks can fail loudly
-                raise
+            except Exception as exc:
+                self.log.warning("VCS push failed: %s", exc)
             status = result.pop("_final_status", "success")
             await self._notify(status, task_id, result)
         except Exception as exc:
