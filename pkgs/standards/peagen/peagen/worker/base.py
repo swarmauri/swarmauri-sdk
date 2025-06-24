@@ -17,6 +17,7 @@ from json.decoder import JSONDecodeError
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
+from peagen.errors import HTTPClientNotInitializedError
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -246,7 +247,7 @@ class WorkerBase:
         state ∈ {"running", "success", "failed"}.
         """
         if self._client is None:
-            raise RuntimeError("HTTP client not initialized")
+            raise HTTPClientNotInitializedError()
 
         payload = {
             "jsonrpc": "2.0",
@@ -267,7 +268,7 @@ class WorkerBase:
           { "jsonrpc":"2.0", "id": uuid, "method": method, "params": params }
         """
         if self._client is None:
-            raise RuntimeError("HTTP client not initialized")
+            raise HTTPClientNotInitializedError()
         body = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),

@@ -21,6 +21,19 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     args: Dict[str, Any] = payload.get("args", {})
 
     cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")
+    tmp_dir = None
+    if "spec_text" in args or "template_text" in args:
+        import tempfile
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_data_"))
+        if "spec_text" in args:
+            spec_file = tmp_dir / "spec.yaml"
+            spec_file.write_text(args["spec_text"], encoding="utf-8")
+            args["spec"] = str(spec_file)
+        if "template_text" in args:
+            tmpl_file = tmp_dir / "template.yaml"
+            tmpl_file.write_text(args["template_text"], encoding="utf-8")
+            args["template"] = str(tmpl_file)
     pm = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
@@ -55,4 +68,8 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             create_factor_branches(vcs, spec_obj, spec_dir)
             create_run_branches(vcs, spec_obj, spec_dir)
 
+    if tmp_dir:
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     return result

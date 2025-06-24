@@ -120,3 +120,52 @@ class PATNotAllowedError(RuntimeError):
 
     def __init__(self) -> None:
         super().__init__("PAT tokens are not allowed for this command")
+        
+class ProjectsPayloadValidationError(ValueError):
+    """Raised when a projects_payload does not conform to the schema."""
+
+    def __init__(self, errors: list[str], path: str | None = None) -> None:
+        self.errors = errors
+        self.path = path
+        label = f" at '{path}'" if path else ""
+        super().__init__(f"Invalid projects_payload{label}")
+
+    def __str__(self) -> str:  # pragma: no cover - simple
+        details = "; ".join(self.errors)
+        loc = f" in {self.path}" if self.path else ""
+        return f"Invalid projects_payload{loc}: {details}"
+
+class TaskNotFoundError(RuntimeError):
+    """Raised when a task id does not exist in the gateway."""
+
+    def __init__(self, task_id: str) -> None:
+        super().__init__(task_id)
+        self.task_id = task_id
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return (
+            f"Task '{self.task_id}' could not be found. "
+            "It may have expired or was never created."
+        )
+      
+class DispatchHTTPError(RuntimeError):
+    """Raised when a worker responds with a non-200 HTTP status."""
+
+    def __init__(self, status_code: int) -> None:
+        super().__init__(f"Worker returned HTTP {status_code}")
+        self.status_code = status_code
+
+
+class MigrationFailureError(RuntimeError):
+    """Raised when database migrations fail during startup."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Database migrations failed: {reason}")
+        self.reason = reason
+
+
+class HTTPClientNotInitializedError(RuntimeError):
+    """Raised when an HTTP client is required but not yet initialized."""
+
+    def __init__(self) -> None:
+        super().__init__("HTTP client not initialized")

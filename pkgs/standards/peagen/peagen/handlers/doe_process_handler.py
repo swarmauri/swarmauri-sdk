@@ -24,6 +24,7 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
     tmp_dir = None
+    data_dir = None
     if repo:
         from peagen.core.fetch_core import fetch_single
         import tempfile
@@ -43,6 +44,19 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
                 return path
             alt = Path(__file__).resolve().parents[2] / path_str
             return alt if alt.exists() else path
+
+    if "spec_text" in args or "template_text" in args:
+        import tempfile
+
+        data_dir = Path(tempfile.mkdtemp(prefix="peagen_data_"))
+        if "spec_text" in args:
+            spec_file = data_dir / "spec.yaml"
+            spec_file.write_text(args["spec_text"], encoding="utf-8")
+            args["spec"] = str(spec_file)
+        if "template_text" in args:
+            tmpl_file = data_dir / "template.yaml"
+            tmpl_file.write_text(args["template_text"], encoding="utf-8")
+            args["template"] = str(tmpl_file)
 
     cfg_path = _resolve_existing(args["config"]) if args.get("config") else None
 
@@ -64,6 +78,10 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             import shutil
 
             shutil.rmtree(tmp_dir, ignore_errors=True)
+        if data_dir:
+            import shutil
+
+            shutil.rmtree(data_dir, ignore_errors=True)
         return final
 
     cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
@@ -130,4 +148,8 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
         import shutil
 
         shutil.rmtree(tmp_dir, ignore_errors=True)
+    if data_dir:
+        import shutil
+
+        shutil.rmtree(data_dir, ignore_errors=True)
     return final

@@ -18,6 +18,7 @@ from .errors import (
     PatchTargetMissingError,
     SpecFileNotFoundError,
     TemplateFileNotFoundError,
+    ProjectsPayloadValidationError,
 )
 from .core.patch_core import apply_patch
 from .plugins.secret_drivers import AutoGpgDriver, SecretDriverBase
@@ -30,6 +31,7 @@ __all__ = [
     "PatchTargetMissingError",
     "SpecFileNotFoundError",
     "TemplateFileNotFoundError",
+    "ProjectsPayloadValidationError",
     "apply_patch",
     "SecretDriverBase",
     "AutoGpgDriver",

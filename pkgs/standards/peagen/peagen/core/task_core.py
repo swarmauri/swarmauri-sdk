@@ -12,6 +12,7 @@ from typing import Dict
 from peagen.gateway.db import Session
 from peagen.models import TaskRun
 from sqlalchemy.exc import DataError
+from peagen.errors import TaskNotFoundError
 
 
 async def get_task_result(task_id: str) -> Dict:
@@ -28,9 +29,9 @@ async def get_task_result(task_id: str) -> Dict:
         try:
             tr: TaskRun | None = await s.get(TaskRun, task_id)
         except DataError:
-            raise ValueError(f"Task '{task_id}' not found") from None
+            raise TaskNotFoundError(task_id) from None
         if tr is None:
-            raise ValueError(f"Task '{task_id}' not found")
+            raise TaskNotFoundError(task_id)
 
         return {
             "status": tr.status,
