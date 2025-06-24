@@ -31,7 +31,7 @@ def test_worker_list_returns_workers() -> None:
 
 
 @pytest.mark.i9n
-def test_eval_submit_returns_error_when_no_handler() -> None:
+def test_eval_submit_returns_task_id() -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
 
@@ -52,5 +52,4 @@ def test_eval_submit_returns_error_when_no_handler() -> None:
     resp = httpx.post(GATEWAY, json=envelope, timeout=5)
     assert resp.status_code == 200
     data = resp.json()
-    assert "error" in data
-    assert data["error"]["code"] == -32601
+    assert "result" in data and "taskId" in data["result"]
