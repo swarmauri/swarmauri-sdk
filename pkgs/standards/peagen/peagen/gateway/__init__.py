@@ -222,6 +222,12 @@ async def _publish_queue_length(pool: str) -> None:
     await _publish_event("queue.update", {"pool": pool, "length": qlen})
 
 
+async def _remove_worker(workerId: str) -> None:
+    """Expire the worker's registry entry immediately."""
+    await queue.expire(WORKER_KEY.format(workerId), 0)
+    await _publish_event("worker.update", {"id": workerId, "removed": True})
+
+
 async def _live_workers_by_pool(pool: str) -> list[dict]:
     keys = await queue.keys("worker:*")
     workers = []
@@ -233,7 +239,8 @@ async def _live_workers_by_pool(pool: str) -> list[dict]:
         if now - int(w["last_seen"]) > WORKER_TTL:
             continue  # stale
         if w["pool"] == pool:
-            workers.append(w)
+            wid = k.split(":", 1)[1]
+            workers.append({"id": wid, **w})
     return workers
 
 
@@ -944,6 +951,8 @@ async def scheduler():
                 sched_log.warning(
                     "dispatch failed (%s) for %s; re-queueing", exc, task.id
                 )
+                if "id" in target:
+                    await _remove_worker(target["id"])
                 await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
 
