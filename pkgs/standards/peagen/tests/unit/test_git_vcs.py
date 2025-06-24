@@ -116,3 +116,21 @@ def test_commit_error_outside_repo(tmp_path: Path) -> None:
     outside.write_text("oops")
     with pytest.raises(GitCommitError):
         vcs.commit([str(outside)], "fail")
+
+
+def test_remote_helpers(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "repo"
+    vcs = GitVCS.ensure_repo(repo_dir)
+
+    assert not vcs.has_remote()
+    with pytest.raises(GitRemoteMissingError):
+        vcs.require_remote()
+
+    vcs.configure_remote("https://example.com/repo.git")
+    assert vcs.has_remote()
+    vcs.require_remote()
+    assert vcs.repo.remotes.origin.url == "https://example.com/repo.git"
+
+    # updating the remote should change the url
+    vcs.configure_remote("https://example.com/new.git")
+    assert vcs.repo.remotes.origin.url == "https://example.com/new.git"
