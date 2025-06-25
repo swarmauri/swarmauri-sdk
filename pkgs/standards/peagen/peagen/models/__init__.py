@@ -31,10 +31,14 @@ from .repo.repository_user_association import RepositoryUserAssociation  # noqa:
 # ----------------------------------------------------------------------
 # Task / execution domain
 # ----------------------------------------------------------------------
-from .task.status import Status  # noqa: F401  
+from .task.status import Status  # noqa: F401
 from .task.task_payload import TaskPayload  # noqa: F401
 from .task.raw_blob import RawBlob  # noqa: F401
 from .task.task_run import TaskRun, TaskRunDep  # noqa: F401
+from .task.task_relation import TaskRelation  # noqa: F401
+from .task.task_run_task_relation_association import (
+    TaskRunTaskRelationAssociation,
+)  # noqa: F401
 from .task.project_task_association import ProjectTaskAssociation  # noqa: F401
 
 # ----------------------------------------------------------------------
@@ -86,8 +90,10 @@ __all__: list[str] = [
     # task
     "TaskPayload",
     "RawBlob",
+    "TaskRelation",
     "Status",
     "TaskRun",
+    "TaskRunTaskRelationAssociation",
     "TaskRunDep",
     "ProjectTaskAssociation",
     # evolution

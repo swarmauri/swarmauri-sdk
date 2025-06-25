@@ -18,7 +18,7 @@ from sqlalchemy import JSON, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..base import BaseModel                               # id, timestamps
+from ..base import BaseModel  # id, timestamps
 from .status import Status
 
 
@@ -61,17 +61,11 @@ class TaskRun(BaseModel):
     )
 
     # ────────────────── Relationships ───────────────────────
-    task_payload: Mapped["TaskPayload"] = relationship(
-        "TaskPayload", lazy="selectin"
-    )
+    task_payload: Mapped["TaskPayload"] = relationship("TaskPayload", lazy="selectin")
 
-    pool: Mapped["Pool | None"] = relationship(
-        "Pool", lazy="selectin"
-    )
+    pool: Mapped["Pool | None"] = relationship("Pool", lazy="selectin")
 
-    worker: Mapped["Worker | None"] = relationship(
-        "Worker", lazy="selectin"
-    )
+    worker: Mapped["Worker | None"] = relationship("Worker", lazy="selectin")
 
     # DAG dependencies
     dependencies: Mapped[list["TaskRun"]] = relationship(
@@ -93,3 +87,23 @@ class TaskRun(BaseModel):
     # ────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TaskRun id={self.id} status={self.status}>"
+
+
+class TaskRunDep(BaseModel):
+    """Association table capturing simple task run dependencies."""
+
+    __tablename__ = "task_run_deps"
+
+    task_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("task_runs.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    dep_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("task_runs.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return f"<TaskRunDep {self.task_id} depends_on {self.dep_id}>"
