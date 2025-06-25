@@ -88,7 +88,8 @@ __all__: list[str] = [
     "RawBlob",
     "Status",
     "TaskRun",
-    "TaskRunDep",
+    "TaskRelation",
+    "TaskRunTaskRelationAssociation",
     "ProjectTaskAssociation",
     # evolution
     "DoeSpec",

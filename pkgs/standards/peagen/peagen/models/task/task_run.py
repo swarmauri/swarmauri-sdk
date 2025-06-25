@@ -73,12 +73,19 @@ class TaskRun(BaseModel):
         "Worker", lazy="selectin"
     )
 
-    # DAG dependencies
-    dependencies: Mapped[list["TaskRun"]] = relationship(
-        "TaskRun",
-        secondary="task_run_dependency_associations",
-        primaryjoin="TaskRun.id==TaskRunDependencyAssociation.child_id",
-        secondaryjoin="TaskRun.id==TaskRunDependencyAssociation.parent_id",
+    # join-rows
+    relation_associations: Mapped[list["TaskRunTaskRelationAssociation"]] = relationship(
+        "TaskRunTaskRelationAssociation",
+        back_populates="task_run",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    # convenience list of TaskRelation objects
+    relations: Mapped[list["TaskRelation"]] = relationship(
+        "TaskRelation",
+        secondary="task_run_task_relation_associations",
+        viewonly=True,
         lazy="selectin",
     )
 
