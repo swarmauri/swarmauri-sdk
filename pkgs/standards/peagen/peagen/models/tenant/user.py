@@ -53,6 +53,13 @@ class User(BaseModel):
         lazy="selectin",
     )
 
+    public_keys: Mapped[list["PublicKey"]] = relationship(
+        "PublicKey",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<User username={self.username!r} email={self.email!r}>"
