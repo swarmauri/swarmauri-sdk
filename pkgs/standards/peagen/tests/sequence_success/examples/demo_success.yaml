@@ -1,4 +1,4 @@
-command_sets:
+batches:
   - batch:
       name: "project setup"
       desc: "initialize a project"
@@ -17,3 +17,12 @@ command_sets:
         - ["login", "--gateway-url", "https://gw.peagen.com"]
         - ["remote", "--gateway-url", "https://gw.peagen.com", "secrets", "add", "test_secret", "secret_value"]
         - ["remote", "--gateway-url", "https://gw.peagen.com", "secrets", "get", "test_secret"]
+  - batch:
+      name: "remote doe and evolve"
+      desc: "process DOE spec then evolve and check status"
+      commands:
+        - ["login", "--gateway-url", "https://gw.peagen.com"]
+        - ["keys", "fetch-server", "--gateway-url", "https://gw.peagen.com"]
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "doe", "process", "tests/examples/gateway_demo/doe_spec.yaml", "tests/examples/gateway_demo/template_project.yaml", "--output", "{tmpdir}/payload.yaml"]
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "evolve", "tests/examples/simple_evolve_demo/evolve_remote_spec.yaml", "--watch"]
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "task", "get", "{task_id}"]
