@@ -7,7 +7,7 @@ Design-of-Experiments (DOE) specification.
 Key Features
 ------------
 • Scoped to a Tenant  (multi-workspace isolation).
-• Optional linkage to a ProjectPayload  (many DOE specs per project).
+• Can produce multiple ProjectPayloads.
 • Stores a semantic version tag (`schema_version`) and the raw spec JSON.
 • Uniqueness: DOE spec `name` must be unique **within** its tenant.
 """
@@ -34,12 +34,6 @@ class DoeSpec(BaseModel):
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
-    )
-
-    project_payload_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("project_payloads.id", ondelete="SET NULL"),
-        nullable=True,
     )
 
     name: Mapped[str] = mapped_column(
@@ -74,9 +68,10 @@ class DoeSpec(BaseModel):
     # ───────────────── Relationships ───────────────────
     tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
 
-    project_payload: Mapped["ProjectPayload | None"] = relationship(
+    project_payloads: Mapped[list["ProjectPayload"]] = relationship(
         "ProjectPayload",
-        back_populates="doe_specs",
+        back_populates="doe_spec",
+        cascade="all, delete-orphan",
         lazy="selectin",
     )
 

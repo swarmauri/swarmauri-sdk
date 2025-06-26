@@ -18,7 +18,7 @@ from sqlalchemy import JSON, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..base import BaseModel                               # id, timestamps
+from ..base import BaseModel  # id, timestamps
 from .status import Status
 
 
@@ -48,6 +48,12 @@ class TaskRun(BaseModel):
         nullable=True,
     )
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     status: Mapped[Status] = mapped_column(
         Enum(Status, name="task_status_enum"),
         nullable=False,
@@ -61,24 +67,22 @@ class TaskRun(BaseModel):
     )
 
     # ────────────────── Relationships ───────────────────────
-    task_payload: Mapped["TaskPayload"] = relationship(
-        "TaskPayload", lazy="selectin"
-    )
+    task_payload: Mapped["TaskPayload"] = relationship("TaskPayload", lazy="selectin")
 
-    pool: Mapped["Pool | None"] = relationship(
-        "Pool", lazy="selectin"
-    )
+    pool: Mapped["Pool | None"] = relationship("Pool", lazy="selectin")
 
-    worker: Mapped["Worker | None"] = relationship(
-        "Worker", lazy="selectin"
-    )
+    worker: Mapped["Worker | None"] = relationship("Worker", lazy="selectin")
+
+    user: Mapped["User | None"] = relationship("User", lazy="selectin")
 
     # join-rows
-    relation_associations: Mapped[list["TaskRunTaskRelationAssociation"]] = relationship(
-        "TaskRunTaskRelationAssociation",
-        back_populates="task_run",
-        cascade="all, delete-orphan",
-        lazy="selectin",
+    relation_associations: Mapped[list["TaskRunTaskRelationAssociation"]] = (
+        relationship(
+            "TaskRunTaskRelationAssociation",
+            back_populates="task_run",
+            cascade="all, delete-orphan",
+            lazy="selectin",
+        )
     )
 
     # convenience list of TaskRelation objects
