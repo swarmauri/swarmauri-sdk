@@ -196,9 +196,15 @@ def init_ci(
 
 
 def init_repo(
-    *, repo: str, pat: str, description: str = "", deploy_key: Path | None = None
+    *,
+    repo: str,
+    pat: str,
+    description: str = "",
+    deploy_key: Path | None = None,
+    path: Path | None = None,
+    remotes: dict[str, str] | None = None,
 ) -> Dict[str, Any]:
-    """Create a GitHub repository and register a deploy key."""
+    """Create a GitHub repository and optionally configure a local repo."""
     from github import Github
     import subprocess
     import tempfile
@@ -239,7 +245,7 @@ def init_repo(
     with pub_key.open() as fh:
         repo_obj.create_key(title="peagen-worker", key=fh.read(), read_only=False)
 
-    return {
+    result = {
         "created": repo,
         "deploy_key": str(deploy_key),
         "next": "configure DEPLOY_KEY_SECRET",

@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import List, Optional
 
 
+import os
+
 from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
 from peagen.core.mirror_core import ensure_repo, open_repo
 from peagen.errors import WorkspaceNotFoundError
@@ -25,6 +27,15 @@ from peagen.errors import WorkspaceNotFoundError
 # ─────────────────────────── low-level helpers ────────────────────────────
 def _materialise_workspace(uri: str, dest: Path) -> None:
     """Copy or clone ``uri`` into ``dest``."""
+    if uri.startswith("gh://"):
+        url = f"https://github.com/{uri[5:]}.git"
+        token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+        if token:
+            url = url.replace("https://", f"https://{token}@")
+        vcs = ensure_repo(dest, remote_url=url)
+        vcs.fetch("HEAD", checkout=True)
+        return
+
     if uri.startswith("git+"):
         url_ref = uri[4:]
         url, _, ref = url_ref.partition("@")
@@ -65,7 +76,12 @@ def fetch_single(
     when applicable, and whether the repository was updated during the fetch.
     """
     if repo:
-        workspace_uri = f"git+{repo}@{ref}"
+        if "://" not in repo:
+            workspace_uri = f"gh://{repo}"
+        else:
+            workspace_uri = f"git+{repo}@{ref}"
+    if workspace_uri and workspace_uri.startswith("gh://") and "@" not in workspace_uri:
+        workspace_uri += f"@{ref}"
     if workspace_uri is None:
         raise ValueError("workspace_uri or repo required")
 
@@ -115,7 +131,10 @@ def fetch_many(
 
     workspace_uris = workspace_uris or []
     if repo:
-        workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
+        if "://" not in repo:
+            workspace_uris = [f"gh://{repo}@{ref}"] + workspace_uris
+        else:
+            workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
 
     results = [fetch_single(uri, dest_root=workspace) for uri in workspace_uris]
 

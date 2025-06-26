@@ -60,10 +60,10 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-def _build_task(args: Dict[str, Any]) -> Task:
+def _build_task(args: Dict[str, Any], pool: str) -> Task:
     """Fabricate a Task model so the CLI uses the same payload shape as workers."""
     return Task(
-        pool="default",
+        pool=pool,
         payload={"action": "process", "args": args},
     )
 
@@ -117,7 +117,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     )
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     task.payload["cfg_override"] = cfg_override
 
     result = asyncio.run(process_handler(task))
@@ -177,7 +177,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     )
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     # ─────────────────────── cfg override  ──────────────────────────────
     inline = ctx.obj.get("task_override_inline")  # JSON string or None

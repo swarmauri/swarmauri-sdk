@@ -8,6 +8,8 @@ from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .error_codes import ErrorCode
 
 LOCK_DIR = "~/.cache/peagen/locks"
+# Default worker pool used when none is specified via environment variables.
+DEFAULT_POOL = "default"
 
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
@@ -51,5 +53,6 @@ __all__ = [
     "PUBSUB_CHANNEL",
     "TASK_KEY",
     "LOCK_DIR",
+    "DEFAULT_POOL",
     "ErrorCode",
 ]

@@ -42,3 +42,22 @@ def test_fetch_single_detects_updates(tmp_path: Path) -> None:
 
     assert result["updated"] is True
     assert result["commit"] != first_commit
+
+
+def test_fetch_single_github_shorthand(monkeypatch, tmp_path: Path) -> None:
+    calls: dict[str, str] = {}
+
+    class DummyVCS:
+        def fetch(self, ref: str, *, checkout: bool = True) -> None:
+            calls["ref"] = ref
+
+    def fake_ensure_repo(path: Path, remote_url: str | None = None, **_kw):
+        calls["url"] = remote_url or ""
+        return DummyVCS()
+
+    monkeypatch.setattr("peagen.core.fetch_core.ensure_repo", fake_ensure_repo)
+
+    fetch_single(repo="owner/repo", ref="main", dest_root=tmp_path)
+
+    assert calls["url"].endswith("owner/repo.git")
+    assert calls["ref"] == "HEAD"

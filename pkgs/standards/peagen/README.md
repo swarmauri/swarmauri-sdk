@@ -261,6 +261,20 @@ Run migrations on a gateway instance:
 peagen remote --gateway-url http://localhost:8000/rpc db upgrade
 ```
 
+### Remote Processing with Multi-Tenancy
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc \
+  --pool acme-lab process projects.yaml
+```
+
+Pass `--pool` to target a specific tenant or workspace when submitting
+tasks to the gateway.
+
+When operating remotely you can also specify a GitHub repository and ref. All
+handlers accept `--repo <owner/repo>` and `--ref <ref>` to clone the repository
+before executing the task.
+
 ---
 
 ## Examples & Walkthroughs

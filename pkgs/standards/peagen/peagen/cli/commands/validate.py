@@ -25,6 +25,8 @@ def run_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Run validation locally (no queue) by constructing a Task model
@@ -36,6 +38,8 @@ def run_validate(
         "kind": kind,
         "path": path,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
         id=task_id,
         pool="default",
@@ -69,6 +73,8 @@ def submit_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Submit this validation as a background task. Returns immediately with a taskId.
@@ -79,6 +85,8 @@ def submit_validate(
         "kind": kind,
         "path": path,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
         id=task_id,
         pool="default",
