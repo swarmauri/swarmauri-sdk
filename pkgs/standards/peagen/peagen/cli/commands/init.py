@@ -9,7 +9,7 @@ provided by entry-point plugins registered under ``peagen.template_sets``.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 import typer
 
@@ -17,6 +17,22 @@ from peagen._utils._init import _call_handler, _submit_task, _summary
 from peagen.errors import PATNotAllowedError
 from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
+
+
+def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
+    """Return a name→url mapping from ``--git-remote`` options."""
+    remotes: Dict[str, str] = {}
+    if not values:
+        return remotes
+    for idx, item in enumerate(values):
+        if "=" in item:
+            name, url = item.split("=", 1)
+        else:
+            name = "origin" if idx == 0 else "upstream" if idx == 1 else f"r{idx}"
+            url = item
+        remotes[name] = url
+    return remotes
+
 
 # ── Typer root ───────────────────────────────────────────────────────────────
 local_init_app = typer.Typer(
@@ -84,6 +100,29 @@ def local_init_repo(
     self.logger.info("Exiting local init_repo command")
 
 
+@local_init_app.command("repo-config")
+def local_init_repo_config(
+    path: Path = Path("."),
+    git_remote: Optional[List[str]] = typer.Option(
+        None,
+        "--git-remote",
+        help="Git remote in name=url format. Use multiple times for several remotes",
+        multiple=True,
+    ),
+) -> None:
+    """Configure Git remotes for an existing repository."""
+    self = Logger(name="init_repo_config")
+    self.logger.info("Entering local init_repo_config command")
+    args: Dict[str, Any] = {
+        "kind": "repo-config",
+        "path": str(path),
+        "remotes": _parse_remotes(git_remote),
+    }
+    result = _call_handler(args)
+    _summary(path, "git remotes configured")
+    self.logger.info("Exiting local init_repo_config command")
+
+
 # ── init project ─────────────────────────────────────────────────────────────
 @local_init_app.command("project")
 def local_init_project(
@@ -104,7 +143,12 @@ def local_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
-    git_remote: str = typer.Option(None, "--git-remote", help="Initial Git remote URL"),
+    git_remote: Optional[List[str]] = typer.Option(
+        None,
+        "--git-remote",
+        help="Git remote in name=url format. Use multiple times for several remotes",
+        multiple=True,
+    ),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
     ),
@@ -125,7 +169,7 @@ def local_init_project(
         "with_doe": with_doe,
         "with_eval_stub": with_eval_stub,
         "force": force,
-        "git_remote": git_remote,
+        "git_remotes": _parse_remotes(git_remote),
         "filter_uri": filter_uri,
         "add_filter_config": add_filter_config,
     }
@@ -156,7 +200,12 @@ def remote_init_project(
         False, "--with-eval-stub", help="Add an evaluation harness"
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
-    git_remote: str = typer.Option(None, "--git-remote", help="Initial Git remote URL"),
+    git_remote: Optional[List[str]] = typer.Option(
+        None,
+        "--git-remote",
+        help="Git remote in name=url format. Use multiple times for several remotes",
+        multiple=True,
+    ),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
     ),
@@ -173,11 +222,35 @@ def remote_init_project(
         "with_doe": with_doe,
         "with_eval_stub": with_eval_stub,
         "force": force,
-        "git_remote": git_remote,
+        "git_remotes": _parse_remotes(git_remote),
         "filter_uri": filter_uri,
     }
     try:
         _submit_task(args, ctx.obj.get("gateway_url"), "init project")
+    except PATNotAllowedError as exc:
+        typer.echo(f"[ERROR] {exc}")
+        raise typer.Exit(1)
+
+
+@remote_init_app.command("repo-config")
+def remote_init_repo_config(
+    ctx: typer.Context,
+    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
+    git_remote: Optional[List[str]] = typer.Option(
+        None,
+        "--git-remote",
+        help="Git remote in name=url format. Use multiple times for several remotes",
+        multiple=True,
+    ),
+) -> None:
+    """Submit a repo configuration task via JSON-RPC."""
+    args = {
+        "kind": "repo-config",
+        "path": str(path),
+        "remotes": _parse_remotes(git_remote),
+    }
+    try:
+        _submit_task(args, ctx.obj.get("gateway_url"), "init repo-config")
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
