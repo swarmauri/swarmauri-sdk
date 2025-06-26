@@ -36,9 +36,13 @@ class Repository(BaseModel):
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
     )
-    name: Mapped[str] = mapped_column(String, nullable=False)           # logical repo name
-    url: Mapped[str] = mapped_column(String, nullable=False)            # canonical remote URL (Gitea / GitHub)
-    description: Mapped[str] = mapped_column(String, nullable=True)     # optional human description
+    name: Mapped[str] = mapped_column(String, nullable=False)  # logical repo name
+    url: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # canonical remote URL (Gitea / GitHub)
+    description: Mapped[str] = mapped_column(
+        String, nullable=True
+    )  # optional human description
     default_branch: Mapped[str] = mapped_column(String, nullable=True)  # e.g. "main"
 
     # Enforce unique repo names *within* each tenant
@@ -58,10 +62,19 @@ class Repository(BaseModel):
         lazy="selectin",
     )
 
+    deploy_key_associations: Mapped[list["RepositoryDeployKeyAssociation"]] = (
+        relationship(
+            "RepositoryDeployKeyAssociation",
+            back_populates="repository",
+            cascade="all, delete-orphan",
+            lazy="selectin",
+        )
+    )
+
     deploy_keys: Mapped[list["DeployKey"]] = relationship(
         "DeployKey",
-        back_populates="repository",
-        cascade="all, delete-orphan",
+        secondary="repository_deploy_key_associations",
+        back_populates="repositories",
         lazy="selectin",
     )
 

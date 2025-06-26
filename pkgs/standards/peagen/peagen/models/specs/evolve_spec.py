@@ -7,7 +7,6 @@ Genetic / evolutionary optimisation specification.
 Highlights
 ----------
 • Scoped to a Tenant (workspace isolation).
-• Optional link to a ProjectPayload (many evolve specs per project).
 • Stores a semver `schema_version` and raw spec JSON.
 • Enforces unique `name` within each tenant.
 """
@@ -34,12 +33,6 @@ class EvolveSpec(BaseModel):
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
-    )
-
-    project_payload_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("project_payloads.id", ondelete="SET NULL"),
-        nullable=True,
     )
 
     name: Mapped[str] = mapped_column(
@@ -73,12 +66,6 @@ class EvolveSpec(BaseModel):
 
     # ───────────────── Relationships ───────────────────
     tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
-
-    project_payload: Mapped["ProjectPayload | None"] = relationship(
-        "ProjectPayload",
-        back_populates="evolve_specs",
-        lazy="selectin",
-    )
 
     # ───────────────────── Magic ───────────────────────
     def __repr__(self) -> str:  # pragma: no cover

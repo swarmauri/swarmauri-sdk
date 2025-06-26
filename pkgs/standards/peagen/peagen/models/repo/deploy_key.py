@@ -2,15 +2,17 @@
 peagen.models.repo.deploy_key
 =============================
 
-Represents an SSH deploy key assigned to a Repository.
+Represents an SSH deploy key owned by a user. Keys may be attached to
+multiple repositories via a join table.
 
 Design Notes
 ------------
-• Each key belongs to exactly **one Repository** (FK ➜ repositories.id).
-• `name` is unique within its repository to avoid collision.
+• Each key belongs to exactly **one User** (FK ➜ users.id).
+• Keys can be attached to many repositories via
+  RepositoryDeployKeyAssociation.
+• `name` is unique per user to avoid collision.
 • `public_key` is stored in cleartext for handshake / fingerprint checks.
-• `private_key` is optional (NULLable) – store only when Peagen needs
-  to act as that key; otherwise rely on external secret stores.
+• Private keys are stored as Secrets – we only reference the Secret ID.
 • `read_only` flag mirrors GitHub/Gitea deploy-key semantics.
 """
 
@@ -25,42 +27,55 @@ from ..base import BaseModel
 
 
 class DeployKey(BaseModel):
-    """
-    SSH deploy key bound to a repository.
-    """
+    """SSH deploy key bound to a user."""
 
     __tablename__ = "deploy_keys"
 
     # ──────────────────────── Columns ────────────────────────
-    repository_id: Mapped[uuid.UUID] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("repositories.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     name: Mapped[str] = mapped_column(
         String, nullable=False, doc="Human-friendly identifier (e.g., 'worker-01-ro')"
     )
     public_key: Mapped[str] = mapped_column(Text, nullable=False)
-    private_key: Mapped[str | None] = mapped_column(
-        Text,
-        nullable=True,
-        doc="Optional – leave NULL if the private part is stored in Vault/SecretsMgr",
+    secret_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("secrets.id", ondelete="CASCADE"),
+        nullable=False,
     )
     read_only: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, doc="RO/RW permission flag"
     )
 
-    # Name must be unique inside each repository
+    # Name must be unique per user
     __table_args__ = (
-        UniqueConstraint("repository_id", "name", name="uq_deploykey_per_repo"),
+        UniqueConstraint("user_id", "name", name="uq_deploykey_per_user"),
     )
 
     # ──────────────────── Relationships ──────────────────────
-    repository: Mapped["Repository"] = relationship(
-        "Repository", back_populates="deploy_keys", lazy="selectin"
+    user: Mapped["User"] = relationship("User", lazy="selectin")
+    secret: Mapped["Secret"] = relationship("Secret", lazy="selectin")
+
+    repository_associations: Mapped[list["RepositoryDeployKeyAssociation"]] = (
+        relationship(
+            "RepositoryDeployKeyAssociation",
+            back_populates="deploy_key",
+            cascade="all, delete-orphan",
+            lazy="selectin",
+        )
+    )
+
+    repositories: Mapped[list["Repository"]] = relationship(
+        "Repository",
+        secondary="repository_deploy_key_associations",
+        back_populates="deploy_keys",
+        lazy="selectin",
     )
 
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         scope = "RO" if self.read_only else "RW"
-        return f"<DeployKey repo={self.repository_id} name={self.name!r} {scope}>"
+        return f"<DeployKey user={self.user_id} name={self.name!r} {scope}>"

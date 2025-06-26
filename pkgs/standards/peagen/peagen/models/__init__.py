@@ -26,12 +26,15 @@ from .tenant.tenant_user_association import TenantUserAssociation  # noqa: F401
 from .repo.repository import Repository  # noqa: F401
 from .repo.git_reference import GitReference  # noqa: F401
 from .repo.deploy_key import DeployKey  # noqa: F401
+from .repo.repository_deploy_key_association import (
+    RepositoryDeployKeyAssociation,
+)  # noqa: F401
 from .repo.repository_user_association import RepositoryUserAssociation  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Task / execution domain
 # ----------------------------------------------------------------------
-from .task.status import Status  # noqa: F401  
+from .task.status import Status  # noqa: F401
 from .task.task_payload import TaskPayload  # noqa: F401
 from .task.raw_blob import RawBlob  # noqa: F401
 from .task.task_run import TaskRun, TaskRunDep  # noqa: F401
@@ -82,6 +85,7 @@ __all__: list[str] = [
     "Repository",
     "GitReference",
     "DeployKey",
+    "RepositoryDeployKeyAssociation",
     "RepositoryUserAssociation",
     # task
     "TaskPayload",

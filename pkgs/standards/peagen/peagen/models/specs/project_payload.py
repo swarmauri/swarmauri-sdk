@@ -10,12 +10,12 @@ Design Principles
 • **Tenant-scoped**: multiple projects per workspace.
 • **Versioned**: carries its own `schema_version` (semver).
 • **Flexible**: stores the raw JSON payload exactly as supplied.
-• **Hub**: provides back-references to DoeSpec and EvolveSpec.
+• **Hub**: links back to the DoeSpec that produced it.
 
 Table-level guarantees
 ----------------------
 • (`tenant_id`, `name`) pair is unique.
-• Deleting the Project cascades to its DOE / Evolve specs.
+• Deleting the Project does not affect DOE or Evolve specs.
 """
 
 from __future__ import annotations
@@ -40,6 +40,12 @@ class ProjectPayload(BaseModel):
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
+    )
+
+    doe_spec_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("doe_specs.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     name: Mapped[str] = mapped_column(
@@ -74,17 +80,9 @@ class ProjectPayload(BaseModel):
     # ───────────────── Relationships ───────────────────
     tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
 
-    doe_specs: Mapped[list["DoeSpec"]] = relationship(
+    doe_spec: Mapped["DoeSpec | None"] = relationship(
         "DoeSpec",
-        back_populates="project_payload",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
-
-    evolve_specs: Mapped[list["EvolveSpec"]] = relationship(
-        "EvolveSpec",
-        back_populates="project_payload",
-        cascade="all, delete-orphan",
+        back_populates="project_payloads",
         lazy="selectin",
     )
 
