@@ -70,6 +70,16 @@ def add_git_deploy_key(mirror_uri: str, pub_key: str) -> None:
     res.raise_for_status()
 
 
+def store_fingerprint(repo_uri: str, pub_fp: str) -> None:
+    """Persist ``pub_fp`` for ``repo_uri`` under the mirror cache."""
+    mirror_root = Path(
+        os.getenv("PEAGEN_GIT_MIRROR_DIR", "~/.cache/peagen/mirrors")
+    ).expanduser()
+    dest = mirror_root / hashlib.sha1(repo_uri.encode()).hexdigest()
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "fingerprint").write_text(pub_fp)
+
+
 def ensure_git_mirror(repo_uri: str) -> Repo:
     """Clone or open a bare mirror for ``repo_uri``."""
     mirror_root = Path(
@@ -146,6 +156,7 @@ __all__ = [
     "open_repo",
     "ensure_repo",
     "add_git_deploy_key",
+    "store_fingerprint",
     "ensure_git_mirror",
     "fetch_git_remote",
     "update_git_remote",
