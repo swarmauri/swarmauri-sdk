@@ -20,6 +20,9 @@ from sqlalchemy import JSON, String, Text, UniqueConstraint, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from ..repo.repository import Repository
+from ..tenant.tenant import Tenant
+
 from ..base import BaseModel
 
 
@@ -72,9 +75,9 @@ class PeagenTomlSpec(BaseModel):
     __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_toml_per_tenant"),)
 
     # ───────────────── Relationships ───────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped[Tenant] = relationship("Tenant", lazy="selectin")
 
-    repository: Mapped["Repository | None"] = relationship(
+    repository: Mapped[Repository | None] = relationship(
         "Repository",
         lazy="selectin",
         back_populates="toml_specs",

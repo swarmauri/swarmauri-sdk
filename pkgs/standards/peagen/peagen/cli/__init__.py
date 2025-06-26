@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from peagen import defaults
+
 import typer
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
@@ -130,7 +132,7 @@ def _global_remote_ctx(  # noqa: D401
         help="Path to a *second* .peagen.toml that is sent to the worker.",
     ),
     pool: str = typer.Option(
-        os.getenv("DQ_POOL", "default"),
+        os.getenv("DQ_POOL", defaults.DEFAULT_POOL),
         "--pool",
         help="Tenant or pool for multi-tenant deployments",
     ),
