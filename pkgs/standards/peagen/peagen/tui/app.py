@@ -26,6 +26,7 @@ from textual.widgets import (
     TabbedContent,
     TabPane,
     TextArea,
+    Tree,
 )
 
 from peagen.tui.components import (
@@ -230,7 +231,7 @@ class QueueDashboardApp(App):
         ("ctrl+s", "save_file", "Save"),
         ("c", "toggle_children", "Collapse"),
         ("space", "toggle_children", "Collapse"),
-        ("ctrl+c", "copy_id", "Copy"),
+        ("ctrl+c", "copy_selection", "Copy"),
         ("ctrl+p", "paste_clipboard", "Paste"),
         ("s", "cycle_sort", "Sort"),
         ("escape", "clear_filters", "Clear Filters"),
@@ -715,13 +716,13 @@ class QueueDashboardApp(App):
             self.err_table.scroll_x = min(err_scroll_x, self.err_table.max_scroll_x)
             self.err_table.scroll_y = min(err_scroll_y, self.err_table.max_scroll_y)
 
-        # NOTE: a footer widget is always present in this app; keep this check
-        # to avoid future changes that assume otherwise.
+        current_page = self.offset // self.limit + 1
+        total_pages = max(1, math.ceil(self.queue_len / self.limit))
         if hasattr(self, "footer"):
             current_page = self.offset // self.limit + 1
             total_pages = max(1, math.ceil(self.queue_len / self.limit))
             self.footer.set_page_info(current_page, total_pages)
-            self.sub_title = f"Page {current_page} of {total_pages}"
+        self.sub_title = f"Page {current_page} of {total_pages}"
 
     async def on_open_url(self, event: events.OpenURL) -> None:
         if event.url.startswith("file://"):
@@ -948,7 +949,9 @@ class QueueDashboardApp(App):
             self.filter_bar.clear()
         self.trigger_data_processing()
 
-    def action_copy_id(self) -> None:
+    def action_copy_selection(self) -> None:
+        """Copy highlighted or focused text to the clipboard."""
+
         widget = self.focused
         text = ""
         if isinstance(widget, DataTable):
@@ -978,8 +981,16 @@ class QueueDashboardApp(App):
                     text = str(value)
         elif isinstance(widget, TextArea):
             text = widget.selected_text or widget.text
+        elif isinstance(widget, Tree):
+            node = getattr(widget, "cursor_node", None)
+            if node is not None:
+                text = str(getattr(node, "label", ""))
         elif hasattr(widget, "selected_text"):
             text = widget.selected_text
+        elif hasattr(widget, "text"):
+            text = widget.text
+        elif hasattr(widget, "value"):
+            text = str(widget.value)
         if text:
             clipboard_copy(text)
 
