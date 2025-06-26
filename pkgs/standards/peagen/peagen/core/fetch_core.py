@@ -18,7 +18,7 @@ from typing import List, Optional
 
 
 from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
-from peagen.plugins.vcs import GitVCS
+from peagen.core.mirror_core import ensure_repo, open_repo
 from peagen.errors import WorkspaceNotFoundError
 
 
@@ -29,7 +29,7 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
         url_ref = uri[4:]
         url, _, ref = url_ref.partition("@")
         ref = ref or "HEAD"
-        vcs = GitVCS.ensure_repo(dest, remote_url=url)
+        vcs = ensure_repo(dest, remote_url=url)
         try:
             vcs.fetch(ref, checkout=True)
         except Exception:
@@ -72,7 +72,7 @@ def fetch_single(
     old_sha = None
     if (dest_root / ".git").exists():
         try:
-            old_sha = GitVCS.open(dest_root).repo.head.commit.hexsha
+            old_sha = open_repo(dest_root).repo.head.commit.hexsha
         except Exception:  # pragma: no cover - repo may be empty
             pass
 
@@ -82,7 +82,7 @@ def fetch_single(
     updated = True
     if (dest_root / ".git").exists():
         try:
-            vcs = GitVCS.open(dest_root)
+            vcs = open_repo(dest_root)
             new_sha, updated = vcs.repo.head.commit.hexsha, True
             if old_sha is not None:
                 updated = old_sha != new_sha

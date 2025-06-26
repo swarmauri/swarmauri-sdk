@@ -11,6 +11,9 @@ This document explains how to launch the Peagen gateway and worker services and 
 * `uvicorn` available on the PATH
 * Docker (optional) for containerized deployments
 
+All plugins must be instantiated through the :class:`PluginManager`. Avoid
+importing modules from ``peagen.plugins`` directly in application code.
+
 Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
 
 For quick local testing you can rely on the in-memory queue and an in-memory results backend:

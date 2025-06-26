@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from peagen.core.validate_core import validate_config
-from peagen.plugins.vcs import GitVCS
+from peagen.core.mirror_core import ensure_repo
 from peagen.core.keys_core import create_keypair, upload_public_key
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -26,7 +26,7 @@ DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 def ensure_mirror(path: Path, url: str) -> Dict[str, Any]:
     """Ensure ``path`` is a Git mirror of ``url``."""
-    vcs = GitVCS.ensure_repo(path, remote_url=url)
+    vcs = ensure_repo(path, remote_url=url)
     return {"mirror": str(path), "remote": url, "exists": vcs.has_remote()}
 
 

@@ -1,12 +1,12 @@
 from pathlib import Path
 
 from peagen.core.fetch_core import fetch_single
-from peagen.plugins.vcs import GitVCS
+from peagen.core.mirror_core import ensure_repo
 
 
 def test_fetch_single_from_repo(tmp_path: Path) -> None:
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "file.txt").write_text("data", encoding="utf-8")
     commit_sha = vcs.commit(["file.txt"], "init")
     vcs.create_branch("refs/pea/testbranch", checkout=True)
@@ -28,7 +28,7 @@ def test_fetch_single_from_repo(tmp_path: Path) -> None:
 
 def test_fetch_single_detects_updates(tmp_path: Path) -> None:
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "file.txt").write_text("a", encoding="utf-8")
     vcs.commit(["file.txt"], "init")
 

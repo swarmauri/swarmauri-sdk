@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from peagen.plugins.vcs import GitVCS, pea_ref
+from peagen.plugins.vcs import pea_ref
+from peagen.core.mirror_core import ensure_repo, open_repo
 from peagen.errors import (
     GitRemoteMissingError,
     GitCloneError,
@@ -16,7 +17,7 @@ from peagen.plugins.secret_drivers import SecretDriverBase
 
 def test_gitvcs_promote(tmp_path: Path):
     repo_dir = tmp_path / "r"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "file.txt").write_text("data")
     vcs.commit(["file.txt"], "init")
     run_ref = pea_ref("run", "a")
@@ -27,7 +28,7 @@ def test_gitvcs_promote(tmp_path: Path):
 
 def test_gitvcs_fan_out(tmp_path: Path):
     repo_dir = tmp_path / "fanout"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "base.txt").write_text("base")
     vcs.commit(["base.txt"], "init")
 
@@ -41,7 +42,7 @@ def test_gitvcs_fan_out(tmp_path: Path):
 
 def test_gitvcs_merge_ours(tmp_path: Path):
     repo_dir = tmp_path / "ours"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "base.txt").write_text("base")
     vcs.commit(["base.txt"], "base")
 
@@ -58,7 +59,7 @@ def test_gitvcs_merge_ours(tmp_path: Path):
 
 def test_fast_import_json_ref(tmp_path: Path):
     repo_dir = tmp_path / "audit"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     ref = pea_ref("key_audit", "abc")
     payload = {"user_fpr": "A", "gateway_fp": "B"}
     sha = vcs.fast_import_json_ref(ref, payload)
@@ -68,7 +69,7 @@ def test_fast_import_json_ref(tmp_path: Path):
 
 def test_record_key_audit(tmp_path: Path):
     repo_dir = tmp_path / "ka"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     secret = b"topsecret"
     sha = vcs.record_key_audit(secret, "UFPR", "GFPR")
     stored = vcs.repo.git.show(f"{sha}:audit.json")
@@ -81,7 +82,7 @@ def test_record_key_audit(tmp_path: Path):
 
 def test_push_no_remote(tmp_path: Path) -> None:
     repo_dir = tmp_path / "noremote"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "file.txt").write_text("x")
     vcs.commit(["file.txt"], "init")
     with pytest.raises(GitRemoteMissingError):
@@ -91,24 +92,24 @@ def test_push_no_remote(tmp_path: Path) -> None:
 def test_clone_error(tmp_path: Path) -> None:
     bad_remote = tmp_path / "no_repo"
     with pytest.raises(GitCloneError):
-        GitVCS.ensure_repo(tmp_path / "clone", remote_url=str(bad_remote))
+        ensure_repo(tmp_path / "clone", remote_url=str(bad_remote))
 
 
 def test_fetch_error(tmp_path: Path) -> None:
     repo_src = tmp_path / "src"
-    vcs_src = GitVCS.ensure_repo(repo_src)
+    vcs_src = ensure_repo(repo_src)
     (repo_src / "file.txt").write_text("x")
     vcs_src.commit(["file.txt"], "init")
 
     repo_clone = tmp_path / "clone"
-    vcs_clone = GitVCS.ensure_repo(repo_clone, remote_url=str(repo_src))
+    vcs_clone = ensure_repo(repo_clone, remote_url=str(repo_src))
     with pytest.raises(GitFetchError):
         vcs_clone.fetch("refs/heads/missing")
 
 
 def test_commit_error_outside_repo(tmp_path: Path) -> None:
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "file.txt").write_text("x")
     vcs.commit(["file.txt"], "init")
 
@@ -120,7 +121,7 @@ def test_commit_error_outside_repo(tmp_path: Path) -> None:
 
 def test_remote_helpers(tmp_path: Path) -> None:
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
 
     assert not vcs.has_remote()
     with pytest.raises(GitRemoteMissingError):
@@ -141,13 +142,13 @@ def test_mirror_push(tmp_path: Path) -> None:
     mirror = tmp_path / "mirror"
     clone = tmp_path / "clone"
 
-    vcs_origin = GitVCS.ensure_repo(origin)
+    vcs_origin = ensure_repo(origin)
     (origin / "base.txt").write_text("base")
     vcs_origin.commit(["base.txt"], "init")
 
-    GitVCS.ensure_repo(mirror)
+    ensure_repo(mirror)
 
-    vcs = GitVCS.ensure_repo(
+    vcs = ensure_repo(
         clone,
         remote_url=str(origin),
         mirror_git_url=str(mirror),

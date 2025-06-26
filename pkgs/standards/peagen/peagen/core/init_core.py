@@ -101,9 +101,9 @@ def init_project(
 
     _render_scaffold(src_root, path, context, force)
 
-    from peagen.plugins.vcs import GitVCS
+    from peagen.core.mirror_core import ensure_repo
 
-    vcs = GitVCS.ensure_repo(path, remote_url=git_remote)
+    vcs = ensure_repo(path, remote_url=git_remote)
     vcs.commit(["."], "initial commit")
 
     if filter_uri:

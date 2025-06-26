@@ -1,6 +1,7 @@
 import yaml
 from pathlib import Path
-from peagen.plugins.vcs import GitVCS, pea_ref
+from peagen.plugins.vcs import pea_ref
+from peagen.core.mirror_core import ensure_repo
 from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
@@ -13,7 +14,7 @@ import pytest
 @pytest.mark.unit
 def test_factor_and_run_branches(tmp_path: Path, monkeypatch) -> None:
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
 
     def safe_switch(branch: str) -> None:
         vcs.repo.git.checkout(branch)

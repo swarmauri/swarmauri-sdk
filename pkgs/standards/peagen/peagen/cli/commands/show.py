@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import typer
 
-from peagen.plugins.vcs.git_vcs import GitVCS
+from peagen.core.mirror_core import open_repo
 
 
 show_app = typer.Typer(help="Inspect git objects.")
@@ -16,7 +16,7 @@ def show(
     repo: Path = typer.Option(".", "--repo", help="Repository path"),
 ) -> None:
     """Print type, size and pretty content for *OID*."""
-    vcs = GitVCS.open(repo)
+    vcs = open_repo(repo)
     info = {
         "type": vcs.object_type(oid),
         "size": vcs.object_size(oid),

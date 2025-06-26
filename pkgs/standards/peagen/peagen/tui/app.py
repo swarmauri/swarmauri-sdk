@@ -1216,9 +1216,9 @@ class QueueDashboardApp(App):
 
     async def open_git_oid(self, oid: str) -> None:
         try:
-            from peagen.plugins.vcs.git_vcs import GitVCS
+            from peagen.core.mirror_core import open_repo
 
-            vcs = GitVCS.open(".")
+            vcs = open_repo(".")
             content = vcs.object_pretty(oid)
         except Exception as exc:
             self.toast(f"Cannot load OID {oid}: {exc}", style="error")
