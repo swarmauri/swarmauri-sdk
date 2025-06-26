@@ -59,6 +59,8 @@ def create_keypair(
 def upload_public_key(
     key_dir: Path | None = None,
     gateway_url: str = DEFAULT_GATEWAY,
+    *,
+    tenant_id: str = "default",
 ) -> dict:
     """Upload the local public key to the gateway."""
     drv = _get_driver(key_dir=key_dir)
@@ -66,28 +68,41 @@ def upload_public_key(
     envelope = {
         "jsonrpc": "2.0",
         "method": "Keys.upload",
-        "params": {"public_key": pubkey},
+        "params": {"public_key": pubkey, "tenant_id": tenant_id},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
 
 
-def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
+def remove_public_key(
+    fingerprint: str,
+    gateway_url: str = DEFAULT_GATEWAY,
+    *,
+    tenant_id: str = "default",
+) -> dict:
     """Remove a stored public key on the gateway."""
     envelope = {
         "jsonrpc": "2.0",
         "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
+        "params": {"fingerprint": fingerprint, "tenant_id": tenant_id},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
 
 
-def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
+def fetch_server_keys(
+    gateway_url: str = DEFAULT_GATEWAY,
+    *,
+    tenant_id: str = "default",
+) -> dict:
     """Fetch trusted keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": "Keys.fetch",
+        "params": {"tenant_id": tenant_id},
+    }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json().get("result", {})

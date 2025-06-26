@@ -120,10 +120,12 @@ def test_remote_add_posts(monkeypatch):
         version=1,
         recipient=[],
         pool="p",
+        repo="org/repo",
     )
     assert posted["json"]["params"]["secret"].startswith("enc:")
     assert posted["json"]["params"]["name"] == "ID"
     assert posted["json"]["params"]["version"] == 1
+    assert posted["json"]["params"]["tenant_id"] == "p"
 
 
 def test_remote_get(monkeypatch):
@@ -147,6 +149,7 @@ def test_remote_get(monkeypatch):
         "ID",
         gateway_url="https://gw.peagen.com",
         pool="default",
+        repo=None,
     )
     assert out == ["value"]
     assert posted["json"] == {
@@ -175,6 +178,7 @@ def test_remote_remove(monkeypatch):
         version=2,
         gateway_url="https://gw.peagen.com",
         pool="default",
+        repo=None,
     )
     assert posted["json"] == {
         "jsonrpc": "2.0",
