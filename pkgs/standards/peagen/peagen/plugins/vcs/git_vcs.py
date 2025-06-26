@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Iterator
 import os
 import json
 import tempfile
 import time
 import io
+import hashlib
+import shutil
+from contextlib import contextmanager
 import httpx
 import paramiko
 import pygit2
@@ -326,3 +329,98 @@ class GitVCS:
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")
         self.repo.git.clean("-fd")
+
+    # ------------------------------------------------------------------ mirrors
+    @staticmethod
+    def ensure_git_mirror(repo_uri: str) -> Repo:
+        """Clone *repo_uri* as a bare mirror if needed and return the :class:`Repo`."""
+        mirrors = Path(tempfile.gettempdir()) / "peagen_mirrors"
+        mirrors.mkdir(parents=True, exist_ok=True)
+        path = mirrors / hashlib.sha1(repo_uri.encode()).hexdigest()
+        if path.exists():
+            return Repo(path)
+        return Repo.clone_from(repo_uri, path, mirror=True)
+
+    @staticmethod
+    def fetch_git_remote(git_repo: Repo) -> None:
+        """Fetch updates from all remotes for ``git_repo``."""
+        try:
+            git_repo.git.fetch("--all", "--prune")
+        except GitCommandError as exc:  # pragma: no cover - passthrough
+            raise GitFetchError("--all", "origin") from exc
+
+    @staticmethod
+    def update_git_remote(git_repo: Repo, ssh_cmd: str | None = None) -> None:
+        """Run ``git remote update`` for ``git_repo`` optionally using ``ssh_cmd``."""
+        env = {"GIT_SSH_COMMAND": ssh_cmd} if ssh_cmd else {}
+        with git_repo.git.custom_environment(**env):
+            git_repo.git.remote("update")
+
+    # ------------------------------------------------------------------ repo locks
+    @staticmethod
+    @contextmanager
+    def repo_lock(repo_uri: str) -> Iterator[None]:
+        """Serialize operations on ``repo_uri`` using a filesystem lock."""
+        locks = Path(tempfile.gettempdir()) / "peagen_repo_locks"
+        locks.mkdir(parents=True, exist_ok=True)
+        lock_path = locks / (hashlib.sha1(repo_uri.encode()).hexdigest() + ".lock")
+        lock_fh = open(lock_path, "w")
+        try:
+            if os.name == "nt":  # pragma: no cover - windows only
+                import msvcrt
+
+                msvcrt.locking(lock_fh.fileno(), msvcrt.LK_LOCK, 1)
+            else:  # pragma: no cover - unix only
+                import fcntl
+
+                fcntl.flock(lock_fh, fcntl.LOCK_EX)
+            yield
+        finally:
+            if os.name == "nt":  # pragma: no cover - windows only
+                import msvcrt
+
+                msvcrt.locking(lock_fh.fileno(), msvcrt.LK_UNLCK, 1)
+            else:  # pragma: no cover - unix only
+                import fcntl
+
+                fcntl.flock(lock_fh, fcntl.LOCK_UN)
+            lock_fh.close()
+
+    # ------------------------------------------------------------------ worktree helpers
+    @staticmethod
+    def add_git_worktree(git_repo: Repo, ref: str) -> Path:
+        """Add a temporary worktree at ``ref`` and return its path."""
+        worktree = Path(tempfile.mkdtemp(prefix="peagen_wt_"))
+        git_repo.git.worktree("add", str(worktree), ref)
+        return worktree
+
+    @staticmethod
+    def cleanup_git_worktree(worktree: Path) -> None:
+        """Remove ``worktree`` and clean it from the repository."""
+        try:
+            Repo(worktree).git.worktree("remove", "--force", str(worktree))
+        except Exception:  # pragma: no cover - best effort cleanup
+            pass
+        shutil.rmtree(worktree, ignore_errors=True)
+
+    # ------------------------------------------------------------------ ssh helpers
+    @staticmethod
+    @contextmanager
+    def ssh_identity(priv_key: str | bytes | Path) -> Iterator[str]:
+        """Yield a ``GIT_SSH_COMMAND`` using ``priv_key``."""
+        key_text = (
+            priv_key.read_text()
+            if isinstance(priv_key, Path)
+            else priv_key.decode()
+            if isinstance(priv_key, bytes)
+            else priv_key
+        )
+        tmp = tempfile.NamedTemporaryFile("w", delete=False)
+        tmp.write(key_text)
+        tmp.close()
+        os.chmod(tmp.name, 0o600)
+        cmd = f"ssh -i {tmp.name} -o StrictHostKeyChecking=no"
+        try:
+            yield cmd
+        finally:
+            os.unlink(tmp.name)
