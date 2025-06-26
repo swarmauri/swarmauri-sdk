@@ -7,6 +7,10 @@ import json
 import tempfile
 import time
 import io
+import hashlib
+import shutil
+import fcntl
+from contextlib import contextmanager
 import httpx
 import paramiko
 import pygit2
@@ -383,3 +387,89 @@ class GitVCS:
     def clean_reset(self) -> None:
         self.repo.git.reset("--hard")
         self.repo.git.clean("-fd")
+
+    # ------------------------------------------------------------------ mirror helpers
+    @staticmethod
+    def add_git_deploy_key(mirror_uri: str, pub_key: str) -> None:
+        """Register ``pub_key`` with the remote ``mirror_uri``."""
+        res = httpx.post(
+            f"{mirror_uri}/deploy_keys",
+            json={"key": pub_key, "read_only": False},
+            timeout=10.0,
+        )
+        res.raise_for_status()
+
+    @staticmethod
+    def ensure_git_mirror(repo_uri: str) -> Repo:
+        """Clone or open a bare mirror for ``repo_uri``."""
+        mirror_root = Path(
+            os.getenv("PEAGEN_GIT_MIRROR_DIR", "~/.cache/peagen/mirrors")
+        ).expanduser()
+        mirror_root.mkdir(parents=True, exist_ok=True)
+        dest = mirror_root / hashlib.sha1(repo_uri.encode()).hexdigest()
+        if dest.exists():
+            return Repo(str(dest))
+        return Repo.clone_from(repo_uri, dest, mirror=True)
+
+    @staticmethod
+    def fetch_git_remote(git_repo: Repo) -> None:
+        """Fetch updates for all remotes."""
+        git_repo.git.fetch("--all")
+
+    @staticmethod
+    def update_git_remote(git_repo: Repo, ssh_cmd: str | None = None) -> None:
+        """Push the mirror back to its origin."""
+        env = os.environ.copy()
+        if ssh_cmd:
+            env["GIT_SSH_COMMAND"] = ssh_cmd
+        git_repo.git.push("--mirror", env=env)
+
+    # ------------------------------------------------------------------ repo locks
+    @staticmethod
+    @contextmanager
+    def repo_lock(repo_uri: str):
+        """Context manager yielding a file lock for ``repo_uri``."""
+        lock_root = Path(
+            os.getenv("PEAGEN_LOCK_DIR", "~/.cache/peagen/locks")
+        ).expanduser()
+        lock_root.mkdir(parents=True, exist_ok=True)
+        lock_path = lock_root / f"{hashlib.sha1(repo_uri.encode()).hexdigest()}.lock"
+        with open(lock_path, "w") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+
+    # ------------------------------------------------------------------ worktree helpers
+    @staticmethod
+    def add_git_worktree(repo: Repo, ref: str) -> Path:
+        """Create a temporary worktree for ``ref`` and return its path."""
+        path = Path(tempfile.mkdtemp())
+        repo.git.worktree("add", str(path), ref)
+        return path
+
+    @staticmethod
+    def cleanup_git_worktree(worktree: Path) -> None:
+        """Remove a worktree directory."""
+        try:
+            Repo(str(worktree)).git.worktree("prune")
+        except Exception:
+            pass
+        shutil.rmtree(worktree, ignore_errors=True)
+
+    # ------------------------------------------------------------------ ssh helpers
+    @staticmethod
+    @contextmanager
+    def ssh_identity(priv_key: str):
+        """Yield an SSH command using ``priv_key``."""
+        tmp = tempfile.NamedTemporaryFile("w", delete=False)
+        tmp.write(priv_key)
+        tmp.flush()
+        os.chmod(tmp.name, 0o600)
+        ssh_cmd = f"ssh -i {tmp.name} -o StrictHostKeyChecking=no"
+        try:
+            yield ssh_cmd
+        finally:
+            tmp.close()
+            os.remove(tmp.name)
