@@ -24,6 +24,8 @@ def run_sort(  # ← now receives the Typer context
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Run sort **locally** (no queue).  We:
@@ -46,6 +48,8 @@ def run_sort(  # ← now receives the Typer context
         "transitive": transitive,
         "show_dependencies": show_dependencies,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
         pool="default",
         payload={
@@ -86,14 +90,21 @@ def submit_sort(
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    pool: str = typer.Option("default", "--pool", help="Target worker pool"),
 ):
     """
     Submit this sort as a background task. Returns immediately with a taskId.
     """
     # 1) Create a Task instance
     # 1a) replace path with YAML text -------------------------------
-    with open(projects_payload, "rt", encoding="utf-8") as fh:
-        yaml_text = fh.read()
+    yaml_text = None
+    if repo:
+        yaml_text = projects_payload
+    else:
+        with open(projects_payload, "rt", encoding="utf-8") as fh:
+            yaml_text = fh.read()
 
     # ─────────────────────── 1b) cfg override  ──────────────────────────
     inline = ctx.obj.get("task_override_inline")  # JSON or None
@@ -109,7 +120,7 @@ def submit_sort(
 
     # ─────────────────────── 2) build Task model ────────────────────────
     args = {
-        "projects_payload": yaml_text,  # ← inline text
+        "projects_payload": yaml_text,
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
@@ -117,8 +128,10 @@ def submit_sort(
         "show_dependencies": show_dependencies,
         "cfg_override": cfg_override,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
-        pool="default",
+        pool=pool,
         payload={"action": "sort", "args": args},
         # status and result left as defaults
     )

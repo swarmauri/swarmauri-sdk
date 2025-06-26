@@ -19,7 +19,9 @@ Expected task payload
 """
 
 from __future__ import annotations
+from pathlib import Path
 from typing import Any, Dict
+import os
 
 from peagen.core.sort_core import sort_single_project, sort_all_projects
 from peagen._utils.config_loader import resolve_cfg
@@ -35,6 +37,18 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     payload = task.get("payload", {})
     args = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir = None
+    prev_cwd = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
+        prev_cwd = Path.cwd()
+        os.chdir(tmp_dir)
 
     # ------------------------------------------------------------------ #
     # 1) Build the effective configuration for *this* task
@@ -57,6 +71,15 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     # 3) Delegate to core (single or all projects)
     # ------------------------------------------------------------------ #
-    if params["project_name"]:
-        return sort_single_project(params)
-    return sort_all_projects(params)
+    try:
+        if params["project_name"]:
+            result = sort_single_project(params)
+        else:
+            result = sort_all_projects(params)
+    finally:
+        if repo and tmp_dir and prev_cwd:
+            import shutil
+
+            os.chdir(prev_cwd)
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+    return result

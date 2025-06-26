@@ -22,6 +22,18 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
 
     cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")
     tmp_dir = None
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    repo_dir = None
+    prev_cwd = None
+    if repo:
+        from peagen.core.fetch_core import fetch_single
+        import tempfile
+
+        repo_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+        fetch_single(repo=repo, ref=ref, dest_root=repo_dir)
+        prev_cwd = Path.cwd()
+        os.chdir(repo_dir)
     if "spec_text" in args or "template_text" in args:
         import tempfile
 
@@ -34,6 +46,21 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             tmpl_file = tmp_dir / "template.yaml"
             tmpl_file.write_text(args["template_text"], encoding="utf-8")
             args["template"] = str(tmpl_file)
+    if repo:
+
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str)
+            cand = repo_dir / path
+            return cand if cand.exists() else path
+    else:
+
+        def _resolve_existing(path_str: str) -> Path:
+            path = Path(path_str).expanduser()
+            if path.exists():
+                return path
+            alt = Path(__file__).resolve().parents[2] / path_str
+            return alt if alt.exists() else path
+
     pm = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
@@ -41,10 +68,10 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs = None
 
     result = generate_payload(
-        spec_path=Path(args["spec"]).expanduser(),
-        template_path=Path(args["template"]).expanduser(),
+        spec_path=_resolve_existing(args["spec"]),
+        template_path=_resolve_existing(args["template"]),
         output_path=Path(args["output"]).expanduser(),
-        cfg_path=Path(args["config"]).expanduser() if args.get("config") else None,
+        cfg_path=_resolve_existing(args["config"]) if args.get("config") else None,
         notify_uri=args.get("notify"),
         dry_run=args.get("dry_run", False),
         force=args.get("force", False),
@@ -62,9 +89,9 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             result["commit"] = commit_sha
             vcs.push(vcs.repo.active_branch.name)
 
-        spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
+        spec_obj = yaml.safe_load(_resolve_existing(args["spec"]).read_text())
         if spec_obj.get("baseArtifact"):
-            spec_dir = Path(args["spec"]).expanduser().parent
+            spec_dir = _resolve_existing(args["spec"]).expanduser().parent
             create_factor_branches(vcs, spec_obj, spec_dir)
             create_run_branches(vcs, spec_obj, spec_dir)
 
@@ -72,4 +99,9 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         import shutil
 
         shutil.rmtree(tmp_dir, ignore_errors=True)
+    if repo_dir and prev_cwd:
+        import shutil
+
+        os.chdir(prev_cwd)
+        shutil.rmtree(repo_dir, ignore_errors=True)
     return result
