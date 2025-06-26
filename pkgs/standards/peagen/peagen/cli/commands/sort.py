@@ -24,6 +24,8 @@ def run_sort(  # ← now receives the Typer context
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Run sort **locally** (no queue).  We:
@@ -46,6 +48,8 @@ def run_sort(  # ← now receives the Typer context
         "transitive": transitive,
         "show_dependencies": show_dependencies,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
         pool="default",
         payload={
@@ -86,6 +90,8 @@ def submit_sort(
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Submit this sort as a background task. Returns immediately with a taskId.
@@ -117,6 +123,8 @@ def submit_sort(
         "show_dependencies": show_dependencies,
         "cfg_override": cfg_override,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = Task(
         pool="default",
         payload={"action": "sort", "args": args},
