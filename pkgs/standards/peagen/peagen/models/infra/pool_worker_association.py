@@ -54,9 +54,7 @@ class PoolWorkerAssociation(BaseModel):
         default=PoolWorkerStatus.active,
     )
 
-    __table_args__ = (
-        UniqueConstraint("pool_id", "worker_id", name="uq_pool_worker"),
-    )
+    __table_args__ = (UniqueConstraint("pool_id", "worker_id", name="uq_pool_worker"),)
 
     # ───────────── Relationships ────────────────
     pool: Mapped["Pool"] = relationship(

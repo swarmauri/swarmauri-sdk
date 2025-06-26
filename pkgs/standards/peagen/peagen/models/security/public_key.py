@@ -20,9 +20,17 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
-from sqlalchemy import String, Text, Boolean, TIMESTAMP, UniqueConstraint, ForeignKey, Enum
+from sqlalchemy import (
+    String,
+    Text,
+    Boolean,
+    TIMESTAMP,
+    UniqueConstraint,
+    ForeignKey,
+    Enum,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,7 +43,7 @@ class KeyType(str, enum.Enum):
     ssh_rsa = "ssh-rsa"
     ssh_ed25519 = "ssh-ed25519"
     ssh_ecdsa = "ssh-ecdsa"
-    pgp = "pgp"            # ASCII-armored PGP public key
+    pgp = "pgp"  # ASCII-armored PGP public key
 
 
 class PublicKey(BaseModel):

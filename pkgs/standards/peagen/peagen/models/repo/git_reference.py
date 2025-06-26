@@ -37,7 +37,9 @@ class GitReference(BaseModel):
 
     # ──────────────────────── Columns ────────────────────────
     repository_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("repositories.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("repositories.id", ondelete="CASCADE"),
+        nullable=False,
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
     commit_sha: Mapped[str] = mapped_column(String(length=40), nullable=True)

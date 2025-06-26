@@ -43,10 +43,9 @@ class Tenant(BaseModel):
         lazy="selectin",
     )
 
-
     # convenience: direct list of members via the association table
     members: Mapped[list["User"]] = relationship(
-    "User",
+        "User",
         secondary="tenant_user_associations",
         viewonly=True,
         lazy="selectin",
