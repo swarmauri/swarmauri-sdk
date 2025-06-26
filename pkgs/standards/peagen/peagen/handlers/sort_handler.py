@@ -21,6 +21,8 @@ Expected task payload
 from __future__ import annotations
 from typing import Any, Dict
 
+from peagen._utils import maybe_clone_repo
+
 from peagen.core.sort_core import sort_single_project, sort_all_projects
 from peagen._utils.config_loader import resolve_cfg
 
@@ -34,6 +36,8 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     """
     payload = task.get("payload", {})
     args = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
     cfg_override = payload.get("cfg_override", {})
 
     # ------------------------------------------------------------------ #
@@ -57,6 +61,7 @@ async def sort_handler(task: Dict[str, Any]) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     # 3) Delegate to core (single or all projects)
     # ------------------------------------------------------------------ #
-    if params["project_name"]:
-        return sort_single_project(params)
-    return sort_all_projects(params)
+    with maybe_clone_repo(repo, ref):
+        if params["project_name"]:
+            return sort_single_project(params)
+        return sort_all_projects(params)

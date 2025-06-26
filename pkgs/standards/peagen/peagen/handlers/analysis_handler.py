@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
+from peagen._utils import maybe_clone_repo
+
 from peagen.core.analysis_core import analyze_runs
 from peagen.models import Task
 from peagen._utils.config_loader import resolve_cfg
@@ -14,6 +16,8 @@ from .repo_utils import fetch_repo, cleanup_repo
 async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
 
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
@@ -22,7 +26,8 @@ async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any
     run_dirs = [Path(p) for p in args.get("run_dirs", [])]
     spec_name = args.get("spec_name", "analysis")
 
-    result = analyze_runs(run_dirs, spec_name=spec_name)
+    with maybe_clone_repo(repo, ref):
+        result = analyze_runs(run_dirs, spec_name=spec_name)
 
     cfg = resolve_cfg()
     pm = PluginManager(cfg)

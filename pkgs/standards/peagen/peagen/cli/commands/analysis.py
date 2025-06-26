@@ -32,8 +32,12 @@ def run(
     run_dirs: List[Path] = typer.Argument(..., exists=True, dir_okay=True),
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
     json_out: bool = typer.Option(False, "--json"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(analysis_handler(task))
     typer.echo(
@@ -46,8 +50,12 @@ def submit(
     ctx: typer.Context,
     run_dirs: List[Path] = typer.Argument(..., exists=True, dir_okay=True),
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
     rpc_req = {
         "jsonrpc": "2.0",
