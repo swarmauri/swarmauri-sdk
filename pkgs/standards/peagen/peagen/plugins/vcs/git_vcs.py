@@ -76,36 +76,7 @@ class GitVCS:
                 )
 
     # ------------------------------------------------------------------ init/use
-    @classmethod
-    def open(
-        cls,
-        path: str | Path,
-        remote_url: str | None = None,
-        **kwargs: str | None,
-    ) -> "GitVCS":
-        return cls(
-            path,
-            remote_url=remote_url,
-            mirror_git_url=kwargs.get("mirror_git_url"),
-            mirror_git_token=kwargs.get("mirror_git_token"),
-            owner=kwargs.get("owner"),
-        )
-
-    @classmethod
-    def ensure_repo(
-        cls,
-        path: str | Path,
-        remote_url: str | None = None,
-        **kwargs: str | None,
-    ) -> "GitVCS":
-        """Initialise ``path`` if needed and return a :class:`GitVCS`."""
-        return cls(
-            path,
-            remote_url=remote_url,
-            mirror_git_url=kwargs.get("mirror_git_url"),
-            mirror_git_token=kwargs.get("mirror_git_token"),
-            owner=kwargs.get("owner"),
-        )
+    # NOTE: ``open_repo`` and ``ensure_repo`` moved to ``peagen.core.mirror_core``
 
     # ------------------------------------------------------------------ branch mgmt
     def create_branch(
@@ -429,9 +400,9 @@ class GitVCS:
     @contextmanager
     def repo_lock(repo_uri: str):
         """Context manager yielding a file lock for ``repo_uri``."""
-        lock_root = Path(
-            os.getenv("PEAGEN_LOCK_DIR", "~/.cache/peagen/locks")
-        ).expanduser()
+        from peagen.defaults import LOCK_DIR
+
+        lock_root = Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
         lock_root.mkdir(parents=True, exist_ok=True)
         lock_path = lock_root / f"{hashlib.sha1(repo_uri.encode()).hexdigest()}.lock"
         with open(lock_path, "w") as fh:

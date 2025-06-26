@@ -53,9 +53,9 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs = pm.get("vcs")
     except Exception:  # pragma: no cover - optional
         if tmp_dir and (tmp_dir / ".git").exists():
-            from peagen.plugins.vcs import GitVCS
+            from peagen.core.mirror_core import open_repo
 
-            vcs = GitVCS.open(tmp_dir)
+            vcs = open_repo(tmp_dir)
         else:
             vcs = None
 

@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from peagen.plugins.vcs import GitVCS
+from peagen.core.mirror_core import ensure_repo
 from peagen.handlers import mutate_handler as handler
 
 
@@ -8,11 +8,12 @@ from peagen.handlers import mutate_handler as handler
 @pytest.mark.asyncio
 async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
     repo_dir = tmp_path / "repo"
-    vcs = GitVCS.ensure_repo(repo_dir)
+    vcs = ensure_repo(repo_dir)
     (repo_dir / "t.py").write_text("x = 1", encoding="utf-8")
     vcs.commit(["t.py"], "init")
 
     # Prevent push errors for the local repo without a remote
+    from peagen.plugins.vcs import GitVCS
     monkeypatch.setattr(GitVCS, "push", lambda self, branch: None)
 
     captured = {}

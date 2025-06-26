@@ -6,12 +6,17 @@ Peagen can store and manage artifacts inside a Git repository. The
 is created via the ``vcs`` plugin group.
 
 ```python
-from peagen.plugins.vcs import GitVCS, pea_ref, RUN_REF
+from peagen.plugins import PluginManager
+from peagen.core.mirror_core import ensure_repo
+from peagen.plugins.vcs import pea_ref, RUN_REF
+
+pm = PluginManager({})
+GitVCS = pm.get("vcs")
 
 # open or create a repository locally
-vcs = GitVCS.ensure_repo("./repo")
+vcs = ensure_repo("./repo")
 # clone a remote repository if needed
-vcs_remote = GitVCS.ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
+vcs_remote = ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
 vcs.commit(["results.json"], "initial result")
 run_ref = pea_ref("run", "exp-a")
 vcs.tag(run_ref)

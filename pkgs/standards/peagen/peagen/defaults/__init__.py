@@ -7,6 +7,8 @@ from .abuse import BAN_THRESHOLD
 from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .error_codes import ErrorCode
 
+LOCK_DIR = "~/.cache/peagen/locks"
+
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
     "gateway_url": "http://localhost:8000/rpc",
@@ -47,5 +49,6 @@ __all__ = [
     "READY_QUEUE",
     "PUBSUB_CHANNEL",
     "TASK_KEY",
+    "LOCK_DIR",
     "ErrorCode",
 ]
