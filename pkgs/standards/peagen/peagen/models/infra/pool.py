@@ -62,9 +62,7 @@ class Pool(BaseModel):
         doc="Optional human-readable description.",
     )
 
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_pool_per_tenant"),
-    )
+    __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_pool_per_tenant"),)
 
     # ───────────────── Relationships ───────────────────
     tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")

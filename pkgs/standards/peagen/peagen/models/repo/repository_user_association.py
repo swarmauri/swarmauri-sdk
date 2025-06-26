@@ -26,14 +26,18 @@ class RepositoryUserAssociation(BaseModel):
 
     # ──────────────────────── Columns ────────────────────────
     repository_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("repositories.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("repositories.id", ondelete="CASCADE"),
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     role: Mapped[str] = mapped_column(
-        String, nullable=False, default="read",
-        doc="Per-repository role: read / write / admin"
+        String,
+        nullable=False,
+        default="read",
+        doc="Per-repository role: read / write / admin",
     )
 
     # ──────────────────── Constraints ────────────────────────

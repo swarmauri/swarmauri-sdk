@@ -69,9 +69,7 @@ class PeagenTomlSpec(BaseModel):
         default=dict,
     )
 
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_toml_per_tenant"),
-    )
+    __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_toml_per_tenant"),)
 
     # ───────────────── Relationships ───────────────────
     tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
