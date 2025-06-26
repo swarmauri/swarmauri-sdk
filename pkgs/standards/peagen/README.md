@@ -143,13 +143,13 @@ output_dir = "./peagen_artifacts"
 default_vcs = "git"
 
 
-[vcs.git]
+[vcs.adapters.git]
 mirror_git_url = "${MIRROR_GIT_URL}"
 mirror_git_token = "${MIRROR_GIT_TOKEN}"
 owner = "${OWNER}"
 
 
-[vcs.git.remotes]
+[vcs.adapters.git.remotes]
 origin = "${GITEA_REMOTE}"
 upstream = "${GITHUB_REMOTE}"
 ```
