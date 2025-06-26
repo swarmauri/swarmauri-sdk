@@ -46,3 +46,8 @@ dsn = "${PG_DSN}"
 provider = "git"
 default_vcs = "git"
 
+[vcs.provider_params]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+

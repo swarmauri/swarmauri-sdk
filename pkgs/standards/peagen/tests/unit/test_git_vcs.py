@@ -134,3 +134,27 @@ def test_remote_helpers(tmp_path: Path) -> None:
     # updating the remote should change the url
     vcs.configure_remote("https://example.com/new.git")
     assert vcs.repo.remotes.origin.url == "https://example.com/new.git"
+
+
+def test_mirror_push(tmp_path: Path) -> None:
+    origin = tmp_path / "origin"
+    mirror = tmp_path / "mirror"
+    clone = tmp_path / "clone"
+
+    vcs_origin = GitVCS.ensure_repo(origin)
+    (origin / "base.txt").write_text("base")
+    vcs_origin.commit(["base.txt"], "init")
+
+    GitVCS.ensure_repo(mirror)
+
+    vcs = GitVCS.ensure_repo(
+        clone,
+        remote_url=str(origin),
+        mirror_git_url=str(mirror),
+    )
+    vcs.fetch("HEAD")
+    (clone / "new.txt").write_text("new")
+    vcs.commit(["new.txt"], "update")
+    vcs.push("HEAD")
+
+    assert (mirror / "new.txt").exists()

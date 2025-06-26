@@ -17,6 +17,11 @@ run_ref = pea_ref("run", "exp-a")
 vcs.tag(run_ref)
 ```
 
+Git repositories can also push to a secondary **mirror**. Set
+``mirror_git_url`` and ``mirror_git_token`` under the ``[vcs.provider_params]``
+section in your ``.peagen.toml``.  When configured, :class:`GitVCS` pushes the
+same ref to the ``mirror`` remote after updating ``origin``.
+
 Git references follow the ``refs/pea/<kind>`` convention. Constants are
 exported for common prefixes such as :data:`RUN_REF`, :data:`PROMOTED_REF`,
 and :data:`KEY_AUDIT_REF`.
