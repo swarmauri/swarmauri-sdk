@@ -42,7 +42,6 @@ from .task.task_relation import TaskRelation  # noqa: F401
 from .task.task_run_relation_association import (
     TaskRunTaskRelationAssociation,  # noqa: F401
 )
-from .task.project_task_association import ProjectTaskAssociation  # noqa: F401
 
 # ----------------------------------------------------------------------
 # DOE / Render / Evolution domain
@@ -75,7 +74,7 @@ from .git_mirror import GitMirror  # noqa: F401
 # ----------------------------------------------------------------------
 # Misc / security
 # ----------------------------------------------------------------------
-from .abuse import AbuseRecord  # noqa: F401
+from .AbuseRecord import AbuseRecord  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Public re-exports
@@ -100,7 +99,6 @@ __all__: list[str] = [
     "TaskRun",
     "TaskRelation",
     "TaskRunTaskRelationAssociation",
-    "ProjectTaskAssociation",
     # evolution
     "DoeSpec",
     "EvolveSpec",
