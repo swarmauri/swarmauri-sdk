@@ -79,7 +79,7 @@ def init_project(
     with_doe: bool = False,
     with_eval_stub: bool = False,
     force: bool = False,
-    git_remote: str | None = None,
+    git_remotes: dict[str, str] | None = None,
     filter_uri: str | None = None,
     add_filter_config: bool = False,
 ) -> Dict[str, Any]:
@@ -103,7 +103,7 @@ def init_project(
 
     from peagen.core.mirror_core import ensure_repo
 
-    vcs = ensure_repo(path, remote_url=git_remote)
+    vcs = ensure_repo(path, remotes=git_remotes)
     vcs.commit(["."], "initial commit")
 
     if filter_uri:
@@ -244,3 +244,11 @@ def init_repo(
         "deploy_key": str(deploy_key),
         "next": "configure DEPLOY_KEY_SECRET",
     }
+
+
+def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
+    """Configure an existing repository with additional remotes."""
+    from peagen.core.mirror_core import ensure_repo
+
+    ensure_repo(path, remotes=remotes)
+    return {"configured": str(path), "remotes": remotes}
