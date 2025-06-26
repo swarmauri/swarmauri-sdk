@@ -69,6 +69,8 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             pat=args.get("pat"),
             description=args.get("description", ""),
             deploy_key=Path(args["deploy_key"]) if args.get("deploy_key") else None,
+            path=Path(args["path"]) if args.get("path") else None,
+            remotes=args.get("remotes"),
         )
 
     raise ValueError(f"Unknown init kind '{kind}'")
