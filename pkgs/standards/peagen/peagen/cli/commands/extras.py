@@ -32,6 +32,8 @@ def run_extras(
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Run EXTRAS generation locally."""
     logger = Logger(name="extras locally")
@@ -41,6 +43,8 @@ def run_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
     try:
@@ -64,6 +68,8 @@ def submit_extras(
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
     gateway_url: str = typer.Option(
         "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -73,6 +79,8 @@ def submit_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
+    if repo:
+        args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
     envelope = {
