@@ -20,10 +20,10 @@ local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 
 
-def _build_task(args: dict) -> Task:
+def _build_task(args: dict, pool: str) -> Task:
     return Task(
         id=str(uuid.uuid4()),
-        pool="default",
+        pool=pool,
         payload={"action": "mutate", "args": args},
     )
 
@@ -67,7 +67,7 @@ def run(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(mutate_handler(task))
 
     if json_out:
@@ -111,7 +111,7 @@ def submit(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     rpc_req = {
         "jsonrpc": "2.0",

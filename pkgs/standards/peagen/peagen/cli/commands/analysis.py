@@ -17,10 +17,10 @@ local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
 
-def _build_task(args: dict) -> Task:
+def _build_task(args: dict, pool: str) -> Task:
     return Task(
         id=str(uuid.uuid4()),
-        pool="default",
+        pool=pool,
         status=Status.waiting,
         payload={"action": "analysis", "args": args},
     )
@@ -34,7 +34,7 @@ def run(
     json_out: bool = typer.Option(False, "--json"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(analysis_handler(task))
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -48,7 +48,7 @@ def submit(
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     rpc_req = {
         "jsonrpc": "2.0",
         "id": task.id,

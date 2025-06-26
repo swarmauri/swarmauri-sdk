@@ -34,6 +34,8 @@ and :data:`KEY_AUDIT_REF`.
 When fetching content from Git, a ``git+`` URL will be cloned to the
 destination directory. Both branches and commit SHAs are supported via
 ``git+<url>@<ref>``.
+You can also use the shorthand ``gh://owner/repo[@ref]`` which resolves to
+``https://github.com/owner/repo.git``.
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
 to write ``clean`` and ``smudge`` helpers. Pass ``--add-config`` to also store
@@ -114,6 +116,14 @@ push results back to it.
 
    ```bash
    peagen remote --gateway-url https://gw.peagen.com process projects.yaml
+  ```
+
+  Use `--pool <tenant>` to select a workspace when submitting tasks in
+  multi-tenant deployments:
+
+  ```bash
+  peagen remote --gateway-url https://gw.peagen.com \
+    --pool acme-lab process projects.yaml
   ```
 
    The deploy key handles Git operations while the login step allows the
