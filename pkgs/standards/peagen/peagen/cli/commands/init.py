@@ -56,6 +56,9 @@ def local_init_repo(
     pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
     description: str = typer.Option("", help="Repository description"),
     deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
+    path: Path = typer.Option(None, "--path", help="Existing repository to configure"),
+    origin: str = typer.Option(None, "--origin", help="Origin remote URL"),
+    upstream: str = typer.Option(None, "--upstream", help="Upstream remote URL"),
 ) -> None:
     """Create a GitHub repository and register a deploy key."""
     self = Logger(name="init_repo")
@@ -67,6 +70,15 @@ def local_init_repo(
         "description": description,
         "deploy_key": str(deploy_key) if deploy_key else None,
     }
+    if path is not None:
+        args["path"] = str(path)
+    if origin or upstream:
+        remotes: Dict[str, str] = {}
+        if origin:
+            remotes["origin"] = origin
+        if upstream:
+            remotes["upstream"] = upstream
+        args["remotes"] = remotes
     result = _call_handler(args)
     _summary(Path("."), result["next"])
     self.logger.info("Exiting local init_repo command")
@@ -352,6 +364,9 @@ def remote_init_repo(
     pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
     description: str = typer.Option("", help="Repository description"),
     deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
+    path: Path = typer.Option(None, "--path", help="Existing repository to configure"),
+    origin: str = typer.Option(None, "--origin", help="Origin remote URL"),
+    upstream: str = typer.Option(None, "--upstream", help="Upstream remote URL"),
 ) -> None:
     """Create a GitHub repository via JSON-RPC."""
     args = {
@@ -361,6 +376,15 @@ def remote_init_repo(
         "description": description,
         "deploy_key": str(deploy_key) if deploy_key else None,
     }
+    if path is not None:
+        args["path"] = str(path)
+    if origin or upstream:
+        remotes: Dict[str, str] = {}
+        if origin:
+            remotes["origin"] = origin
+        if upstream:
+            remotes["upstream"] = upstream
+        args["remotes"] = remotes
     try:
         _submit_task(args, ctx.obj.get("gateway_url"), "init repo", allow_pat=True)
     except PATNotAllowedError as exc:
