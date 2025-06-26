@@ -29,7 +29,14 @@ CONFIG = {
     "mutation": {
         "mutators": {"default_mutator": "DefaultMutator"},
     },
-    "vcs": {"default_vcs": "git"},
+    "vcs": {
+        "default_vcs": "git",
+        "provider_params": {
+            "mirror_git_url": "",
+            "mirror_git_token": "",
+            "owner": "",
+        },
+    },
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
 }
 

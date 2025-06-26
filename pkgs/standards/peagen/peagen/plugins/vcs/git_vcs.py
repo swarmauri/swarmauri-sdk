@@ -30,8 +30,18 @@ class GitVCS:
     """Lightweight wrapper around :class:`git.Repo`."""
 
     def __init__(
-        self, path: str | Path = ".", *, remote_url: str | None = None
+        self,
+        path: str | Path = ".",
+        *,
+        remote_url: str | None = None,
+        mirror_git_url: str | None = None,
+        mirror_git_token: str | None = None,
+        owner: str | None = None,
     ) -> None:
+        self.mirror_git_url = mirror_git_url
+        self.mirror_git_token = mirror_git_token
+        self.owner = owner
+
         p = Path(path)
         if (p / ".git").exists():
             self.repo = Repo(p)
@@ -45,6 +55,12 @@ class GitVCS:
 
         if remote_url:
             self.configure_remote(remote_url)
+        if mirror_git_url:
+            url = mirror_git_url
+            if mirror_git_token and url.startswith("http"):
+                scheme, rest = url.split("://", 1)
+                url = f"{scheme}://{mirror_git_token}@{rest}"
+            self.configure_remote(url, name="mirror")
 
         # ensure we have a commit identity to avoid git errors
         with self.repo.config_reader() as cr, self.repo.config_writer() as cw:
@@ -57,13 +73,35 @@ class GitVCS:
 
     # ------------------------------------------------------------------ init/use
     @classmethod
-    def open(cls, path: str | Path, remote_url: str | None = None) -> "GitVCS":
-        return cls(path, remote_url=remote_url)
+    def open(
+        cls,
+        path: str | Path,
+        remote_url: str | None = None,
+        **kwargs: str | None,
+    ) -> "GitVCS":
+        return cls(
+            path,
+            remote_url=remote_url,
+            mirror_git_url=kwargs.get("mirror_git_url"),
+            mirror_git_token=kwargs.get("mirror_git_token"),
+            owner=kwargs.get("owner"),
+        )
 
     @classmethod
-    def ensure_repo(cls, path: str | Path, remote_url: str | None = None) -> "GitVCS":
+    def ensure_repo(
+        cls,
+        path: str | Path,
+        remote_url: str | None = None,
+        **kwargs: str | None,
+    ) -> "GitVCS":
         """Initialise ``path`` if needed and return a :class:`GitVCS`."""
-        return cls(path, remote_url=remote_url)
+        return cls(
+            path,
+            remote_url=remote_url,
+            mirror_git_url=kwargs.get("mirror_git_url"),
+            mirror_git_token=kwargs.get("mirror_git_token"),
+            owner=kwargs.get("owner"),
+        )
 
     # ------------------------------------------------------------------ branch mgmt
     def create_branch(
@@ -148,6 +186,15 @@ class GitVCS:
         except GitCommandError as exc:
             raise GitPushError(ref, remote) from exc
 
+        if self.mirror_git_url:
+            mirror_remote = "mirror"
+            if mirror_remote not in [r.name for r in self.repo.remotes]:
+                self.configure_remote(self.mirror_git_url, name=mirror_remote)
+            try:
+                self.repo.git.push(mirror_remote, ref)
+            except GitCommandError as exc:
+                raise GitPushError(ref, mirror_remote) from exc
+
     def push_with_secret(
         self,
         ref: str,
@@ -181,6 +228,16 @@ class GitVCS:
             remote_obj.push([ref], callbacks=callbacks)
         except pygit2.GitError as exc:
             raise GitPushError(ref, remote) from exc
+
+        if self.mirror_git_url:
+            mirror_remote = "mirror"
+            repo_mirror = repo.remotes.get(mirror_remote)
+            if repo_mirror is None:
+                repo_mirror = repo.remotes.create(mirror_remote, self.mirror_git_url)
+            try:
+                repo_mirror.push([ref], callbacks=callbacks)
+            except pygit2.GitError as exc:
+                raise GitPushError(ref, mirror_remote) from exc
 
     # ------------------------------------------------------------------ remote helpers
     def has_remote(self, name: str = "origin") -> bool:
