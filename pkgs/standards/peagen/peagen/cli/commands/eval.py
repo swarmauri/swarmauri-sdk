@@ -33,10 +33,10 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict) -> Task:
+def _build_task(args: dict, pool: str) -> Task:
     return Task(
         id=str(uuid.uuid4()),
-        pool="default",
+        pool=pool,
         status=Status.waiting,
         payload={"action": "eval", "args": args},
     )
@@ -68,7 +68,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(eval_handler(task))
     report = result["report"]
 
@@ -117,7 +117,7 @@ def submit(  # noqa: PLR0913
         "strict": strict,
         "skip_failed": skip_failed,
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     # ─────────────────────── cfg override  ──────────────────────────────
     inline = ctx.obj.get("task_override_inline")

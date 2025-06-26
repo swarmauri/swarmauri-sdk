@@ -17,14 +17,15 @@ local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-def _build_task(args: Dict[str, Any]) -> Task:
+def _build_task(args: Dict[str, Any], pool: str) -> Task:
     return Task(
-        id=str(uuid.uuid4()), pool="default", payload={"action": "extras", "args": args}
+        id=str(uuid.uuid4()), pool=pool, payload={"action": "extras", "args": args}
     )
 
 
 @local_extras_app.command("extras")
 def run_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
@@ -40,7 +41,7 @@ def run_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     try:
         result: Dict[str, Any] = asyncio.run(extras_handler(task))
@@ -56,6 +57,7 @@ def run_extras(
 
 @remote_extras_app.command("extras")
 def submit_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
@@ -71,7 +73,7 @@ def submit_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     envelope = {
         "jsonrpc": "2.0",

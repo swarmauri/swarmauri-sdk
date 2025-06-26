@@ -19,10 +19,10 @@ local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict) -> Task:
+def _build_task(args: dict, pool: str) -> Task:
     return Task(
         id=str(uuid.uuid4()),
-        pool="default",
+        pool=pool,
         status=Status.waiting,
         payload={"action": "evolve", "args": args},
     )
@@ -60,7 +60,7 @@ def run(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(evolve_handler(task))
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -104,7 +104,7 @@ def submit(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     rpc_req = {
         "jsonrpc": "2.0",
         "method": "Task.submit",

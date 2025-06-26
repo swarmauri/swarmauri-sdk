@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from peagen import defaults
+
 import typer
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
@@ -129,6 +131,11 @@ def _global_remote_ctx(  # noqa: D401
         resolve_path=True,
         help="Path to a *second* .peagen.toml that is sent to the worker.",
     ),
+    pool: str = typer.Option(
+        os.getenv("DQ_POOL", defaults.DEFAULT_POOL),
+        "--pool",
+        help="Tenant or pool for multi-tenant deployments",
+    ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
@@ -144,6 +151,7 @@ def _global_remote_ctx(  # noqa: D401
         gateway_url=gw_url,
         task_override_inline=override,
         task_override_file=override_file,
+        pool=pool,
         quiet=quiet,
     )
 

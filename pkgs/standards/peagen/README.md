@@ -261,6 +261,16 @@ Run migrations on a gateway instance:
 peagen remote --gateway-url http://localhost:8000/rpc db upgrade
 ```
 
+### Remote Processing with Multi-Tenancy
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc \
+  --pool acme-lab process projects.yaml
+```
+
+Pass `--pool` to target a specific tenant or workspace when submitting
+tasks to the gateway.
+
 ---
 
 ## Examples & Walkthroughs
