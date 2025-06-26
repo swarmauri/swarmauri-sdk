@@ -31,18 +31,22 @@ from .repo.repository_user_association import RepositoryUserAssociation  # noqa:
 # ----------------------------------------------------------------------
 # Task / execution domain
 # ----------------------------------------------------------------------
-from .task.status import Status  # noqa: F401  
+from .task.status import Status  # noqa: F401
 from .task.task_payload import TaskPayload  # noqa: F401
 from .task.raw_blob import RawBlob  # noqa: F401
-from .task.task_run import TaskRun, TaskRunDep  # noqa: F401
+from .task.task_run import TaskRun  # noqa: F401
+from .task.task_relation import TaskRelation  # noqa: F401
+from .task.task_run_relation_association import (
+    TaskRunTaskRelationAssociation,  # noqa: F401
+)
 from .task.project_task_association import ProjectTaskAssociation  # noqa: F401
 
 # ----------------------------------------------------------------------
 # DOE / Render / Evolution domain
 # ----------------------------------------------------------------------
-from .sepcs.doe_spec import DoeSpec  # noqa: F401
-from .sepcs.evolve_spec import EvolveSpec  # noqa: F401
-from .sepcs.project_payload import ProjectPayload  # noqa: F401
+from .specs.doe_spec import DoeSpec  # noqa: F401
+from .specs.evolve_spec import EvolveSpec  # noqa: F401
+from .specs.project_payload import ProjectPayload  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Configuration / secrets
