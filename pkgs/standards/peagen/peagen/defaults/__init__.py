@@ -35,11 +35,13 @@ CONFIG = {
     },
     "vcs": {
         "default_vcs": "git",
-        "git": {
-            "mirror_git_url": "",
-            "mirror_git_token": "",
-            "owner": "",
-            "remotes": {},
+        "adapters": {
+            "git": {
+                "mirror_git_url": "",
+                "mirror_git_token": "",
+                "owner": "",
+                "remotes": {},
+            }
         },
     },
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},

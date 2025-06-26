@@ -168,7 +168,7 @@ class PluginManager:
         },
         "vcs": {
             "section": "vcs",
-            "single": "provider",
+            "items": "adapters",
             "default": "default_vcs",
         },
         "selectors": {

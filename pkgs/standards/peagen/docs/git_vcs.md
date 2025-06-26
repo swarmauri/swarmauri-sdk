@@ -23,11 +23,11 @@ vcs.tag(run_ref)
 ```
 
 Git repositories can also push to a secondary **mirror**. Set
-``mirror_git_url`` and ``mirror_git_token`` under the ``[vcs.git]`` section in
+``mirror_git_url`` and ``mirror_git_token`` under the ``[vcs.adapters.git]`` section in
 your ``.peagen.toml``. When configured, :class:`GitVCS` pushes the same ref to
 the ``mirror`` remote after updating ``origin``.
 
-Multiple remotes can be declared via ``[vcs.git.remotes]``. The ``origin`` entry
+Multiple remotes can be declared via ``[vcs.adapters.git.remotes]``. The ``origin`` entry
 is used when cloning repositories and additional names such as ``upstream`` are
 configured after creation.
 
