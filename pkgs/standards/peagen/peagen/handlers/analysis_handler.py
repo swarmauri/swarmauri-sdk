@@ -8,11 +8,16 @@ from peagen.models import Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
+from .repo_utils import fetch_repo, cleanup_repo
 
 
 async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir, prev_cwd = fetch_repo(repo, ref)
 
     run_dirs = [Path(p) for p in args.get("run_dirs", [])]
     spec_name = args.get("spec_name", "analysis")
@@ -40,4 +45,6 @@ async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any
         vcs.switch("HEAD")
         vcs.push(analysis_branch)
         result["analysis_branch"] = analysis_branch
+    if repo:
+        cleanup_repo(tmp_dir, prev_cwd)
     return result

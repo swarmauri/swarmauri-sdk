@@ -7,12 +7,17 @@ from typing import Any, Dict
 
 from peagen.core.extras_core import generate_schemas
 from peagen.models import Task
+from .repo_utils import fetch_repo, cleanup_repo
 
 
 async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     """Generate EXTRAS schemas based on template-set ``EXTRAS.md`` files."""
     payload = task_or_dict.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
+
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir, prev_cwd = fetch_repo(repo, ref)
 
     base = Path(__file__).resolve().parents[1]
     templates_root = (
@@ -27,4 +32,6 @@ async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     )
 
     written = generate_schemas(templates_root, schemas_dir)
+    if repo:
+        cleanup_repo(tmp_dir, prev_cwd)
     return {"generated": [str(p) for p in written]}

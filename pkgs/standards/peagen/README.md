@@ -271,6 +271,10 @@ peagen remote --gateway-url http://localhost:8000/rpc \
 Pass `--pool` to target a specific tenant or workspace when submitting
 tasks to the gateway.
 
+All handlers now accept `--repo` and `--ref` parameters so workflows can
+operate on any GitHub repository and reference. This enables consistent
+multi-tenant processing across the CLI.
+
 ---
 
 ## Examples & Walkthroughs
