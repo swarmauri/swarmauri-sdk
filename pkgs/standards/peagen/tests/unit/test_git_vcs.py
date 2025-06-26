@@ -137,6 +137,17 @@ def test_remote_helpers(tmp_path: Path) -> None:
     assert vcs.repo.remotes.origin.url == "https://example.com/new.git"
 
 
+def test_multiple_remotes(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "repo_multi"
+    remotes = {
+        "origin": "git@gitea.local:demo/repo.git",
+        "upstream": "git@github.com:demo/repo.git",
+    }
+    vcs = ensure_repo(repo_dir, remotes=remotes)
+    for name, url in remotes.items():
+        assert vcs.repo.remotes[name].url == url
+
+
 def test_mirror_push(tmp_path: Path) -> None:
     origin = tmp_path / "origin"
     mirror = tmp_path / "mirror"

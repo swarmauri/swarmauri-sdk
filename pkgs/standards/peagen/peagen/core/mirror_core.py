@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 import os
 import hashlib
 import tempfile
@@ -14,7 +14,10 @@ import httpx
 
 from git import Repo
 
-from peagen.plugins.vcs import GitVCS
+from peagen.plugins import PluginManager
+
+if TYPE_CHECKING:  # pragma: no cover - import for typing only
+    from peagen.plugins.vcs import GitVCS
 
 
 def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) -> GitVCS:
@@ -29,12 +32,15 @@ def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) ->
     **kwargs:
         Additional options forwarded to :class:`GitVCS`.
     """
+    pm = PluginManager({})
+    GitVCS = pm.get("vcs")
     return GitVCS(
         path,
         remote_url=remote_url,
         mirror_git_url=kwargs.get("mirror_git_url"),
         mirror_git_token=kwargs.get("mirror_git_token"),
         owner=kwargs.get("owner"),
+        remotes=kwargs.get("remotes"),
     )
 
 
@@ -42,12 +48,15 @@ def ensure_repo(
     path: str | Path, remote_url: str | None = None, **kwargs: Any
 ) -> GitVCS:
     """Initialise ``path`` if needed and return a :class:`GitVCS`."""
+    pm = PluginManager({})
+    GitVCS = pm.get("vcs")
     return GitVCS(
         path,
         remote_url=remote_url,
         mirror_git_url=kwargs.get("mirror_git_url"),
         mirror_git_token=kwargs.get("mirror_git_token"),
         owner=kwargs.get("owner"),
+        remotes=kwargs.get("remotes"),
     )
 
 

@@ -33,10 +33,11 @@ CONFIG = {
     },
     "vcs": {
         "default_vcs": "git",
-        "provider_params": {
+        "git": {
             "mirror_git_url": "",
             "mirror_git_token": "",
             "owner": "",
+            "remotes": {},
         },
     },
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},

@@ -43,11 +43,17 @@ dsn = "${PG_DSN}"
 
 # --- VCS ------------------------------------------------------------
 [vcs]
-provider = "git"
+
 default_vcs = "git"
 
-[vcs.provider_params]
+
+[vcs.git]
 mirror_git_url = "${MIRROR_GIT_URL}"
 mirror_git_token = "${MIRROR_GIT_TOKEN}"
 owner = "${OWNER}"
+
+
+[vcs.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
 
