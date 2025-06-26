@@ -68,7 +68,6 @@ from .infra.pool_worker_association import PoolWorkerAssociation  # noqa: F401
 # ----------------------------------------------------------------------
 from .result.eval_result import EvalResult  # noqa: F401
 from .result.analysis_result import AnalysisResult  # noqa: F401
-from .mirror_result import MirrorResult  # noqa: F401
 from .git_mirror import GitMirror  # noqa: F401
 
 # ----------------------------------------------------------------------
@@ -113,7 +112,6 @@ __all__: list[str] = [
     # result
     "EvalResult",
     "AnalysisResult",
-    "MirrorResult",
     "GitMirror",
     # misc
     "AbuseRecord",
