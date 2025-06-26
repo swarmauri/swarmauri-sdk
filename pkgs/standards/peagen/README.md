@@ -137,6 +137,21 @@ default_filter = "file"
 
 [storage.filters.file]
 output_dir = "./peagen_artifacts"
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
 ```
 
 With these values in place you can omit `--provider`, `--model-name`, and other

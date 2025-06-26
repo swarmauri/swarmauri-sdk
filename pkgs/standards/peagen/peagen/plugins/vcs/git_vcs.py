@@ -37,24 +37,30 @@ class GitVCS:
         mirror_git_url: str | None = None,
         mirror_git_token: str | None = None,
         owner: str | None = None,
+        remotes: dict[str, str] | None = None,
     ) -> None:
         self.mirror_git_url = mirror_git_url
         self.mirror_git_token = mirror_git_token
         self.owner = owner
 
         p = Path(path)
+        remotes = remotes or {}
+        if remote_url and "origin" not in remotes:
+            remotes["origin"] = remote_url
+
         if (p / ".git").exists():
             self.repo = Repo(p)
-        elif remote_url:
+        elif remotes.get("origin"):
             try:
-                self.repo = Repo.clone_from(remote_url, p)
+                self.repo = Repo.clone_from(remotes["origin"], p)
             except GitCommandError as exc:
-                raise GitCloneError(remote_url) from exc
+                raise GitCloneError(remotes["origin"]) from exc
         else:
             self.repo = Repo.init(p)
 
-        if remote_url:
-            self.configure_remote(remote_url)
+        for name, url in remotes.items():
+            self.configure_remote(url, name=name)
+
         if mirror_git_url:
             url = mirror_git_url
             if mirror_git_token and url.startswith("http"):
