@@ -14,6 +14,7 @@ async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
 
     # Prevent push errors for the local repo without a remote
     from peagen.plugins.vcs import GitVCS
+
     monkeypatch.setattr(GitVCS, "push", lambda self, branch: None)
 
     captured = {}

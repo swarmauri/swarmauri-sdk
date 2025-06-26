@@ -5,7 +5,7 @@ import json
 import pytest
 
 from peagen.plugins.vcs import pea_ref
-from peagen.core.mirror_core import ensure_repo, open_repo
+from peagen.core.mirror_core import ensure_repo
 from peagen.errors import (
     GitRemoteMissingError,
     GitCloneError,
