@@ -76,7 +76,6 @@ from .infra.pool_worker_association import (  # noqa: F401
 # ----------------------------------------------------------------------
 from .result.eval_result import EvalResultModel  # noqa: F401
 from .result.analysis_result import AnalysisResultModel  # noqa: F401
-from .git_mirror import GitMirror  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Misc / security
