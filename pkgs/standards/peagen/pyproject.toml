@@ -214,3 +214,6 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
   "alembic.ini",
   "migrations/**",
 ]
+
+[tool.setuptools.packages.find]
+include = ["peagen", "peagen.*"]
