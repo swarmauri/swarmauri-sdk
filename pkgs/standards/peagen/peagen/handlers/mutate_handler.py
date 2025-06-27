@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core.mutate_core import mutate_workspace
-from peagen.models import Task
+from peagen.models.tasks import Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref

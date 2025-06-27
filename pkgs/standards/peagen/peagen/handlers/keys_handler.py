@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import keys_core
-from peagen.models import Task
+from peagen.models.tasks import Task
 
 
 async def keys_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:

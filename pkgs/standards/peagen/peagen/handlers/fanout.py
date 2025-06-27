@@ -6,7 +6,8 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.models import Task, Status
+from peagen.models.tasks import Task
+from peagen.models import Status
 
 
 async def fan_out(

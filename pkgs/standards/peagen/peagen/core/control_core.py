@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from peagen.models import Task, Status
+from peagen.models.tasks import Task
+from peagen.models import Status
 
 
 def pause(tasks: Iterable[Task]) -> int:

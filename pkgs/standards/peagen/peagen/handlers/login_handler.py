@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from peagen.core.login_core import login
-from peagen.models import Task
+from peagen.models.tasks import Task
 
 
 async def login_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:

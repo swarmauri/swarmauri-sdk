@@ -10,7 +10,7 @@ from peagen.core.migrate_core import (
     alembic_revision,
     alembic_upgrade,
 )
-from peagen.models import Task
+from peagen.models.tasks import Task
 
 
 async def migrate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

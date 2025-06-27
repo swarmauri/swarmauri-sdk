@@ -10,7 +10,7 @@ from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
 )
-from peagen.models import Task
+from peagen.models.tasks import Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 import yaml

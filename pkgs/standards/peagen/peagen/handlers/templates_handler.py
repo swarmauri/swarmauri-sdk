@@ -16,7 +16,7 @@ from peagen.core.templates_core import (
     add_template_set,
     remove_template_set,
 )
-from peagen.models.task import Task  # type: ignore
+from peagen.models.tasks import Task  # type: ignore
 
 
 async def templates_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:

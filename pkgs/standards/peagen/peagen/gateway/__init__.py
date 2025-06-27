@@ -26,7 +26,8 @@ from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
-from peagen.models import Task, Status, Base, TaskRun
+from peagen.models.tasks import Task
+from peagen.models import Status, Base, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
