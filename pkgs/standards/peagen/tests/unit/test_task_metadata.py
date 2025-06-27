@@ -2,6 +2,10 @@ import pytest
 
 from peagen.models.task.task import Task
 from peagen.models.task.task_run import TaskRun
+from datetime import datetime, UTC
+import uuid
+from peagen.models.schemas import TaskCreate, TaskRead
+from peagen.models.task.task import TaskModel
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
 
@@ -104,3 +108,25 @@ async def test_task_submit_roundtrip(monkeypatch):
     assert stored["labels"] == ["lab"]
     assert stored["in_degree"] == 0
     assert stored["config_toml"] == "cfg"
+
+
+@pytest.mark.unit
+def test_task_schema_roundtrip():
+    now = datetime.now(UTC)
+    create = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        parameters={"x": 1},
+        note="demo",
+    )
+    model = TaskModel(
+        date_created=now,
+        last_modified=now,
+        **create.model_dump(),
+    )
+    fields = TaskRead.model_fields.keys()
+    read = TaskRead(**{f: getattr(model, f) for f in fields})
+    dumped = read.model_dump_json()
+    roundtrip = TaskRead.model_validate_json(dumped)
+    assert roundtrip == read
