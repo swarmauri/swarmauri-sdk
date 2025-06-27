@@ -27,7 +27,7 @@ from peagen.plugins.queues import QueueBase
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
 from peagen.models import Base, Status, Task
-from peagen.models.schemas import TaskRead, TaskCreate, TaskUpdate
+from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.models.task.task import TaskModel
 from peagen.models.task.task_run import TaskRun
 
