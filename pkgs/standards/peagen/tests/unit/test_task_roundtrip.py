@@ -3,7 +3,7 @@ import datetime
 
 import pytest
 
-from peagen.schemas import TaskCreate, TaskRead
+from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 
 
 @pytest.mark.unit
@@ -29,6 +29,7 @@ def test_task_roundtrip_json(monkeypatch):
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
+        last_modified=datetime.datetime.now(datetime.timezone.utc),
         parameters={"foo": "bar"},
         note="demo",
     )
@@ -39,3 +40,18 @@ def test_task_roundtrip_json(monkeypatch):
     dumped = read.model_dump_json()
     restored = TaskRead.model_validate_json(dumped)
     assert restored == read
+
+
+@pytest.mark.unit
+def test_task_schema_fields():
+    # TaskCreate includes id and last_modified but not date_created
+    assert "id" in TaskCreate.model_fields
+    assert "last_modified" in TaskCreate.model_fields
+    assert "date_created" not in TaskCreate.model_fields
+
+    # TaskUpdate excludes id and date_created
+    assert "id" not in TaskUpdate.model_fields
+    assert "date_created" not in TaskUpdate.model_fields
+
+    # TaskRead includes date_created
+    assert "date_created" in TaskRead.model_fields
