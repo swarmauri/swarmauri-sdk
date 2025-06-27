@@ -10,14 +10,15 @@ import httpx
 import typer
 
 from peagen.handlers.analysis_handler import analysis_handler
-from peagen.orm import Status, Task
+from peagen.orm import Task
+from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
 
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,

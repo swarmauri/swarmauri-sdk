@@ -21,7 +21,8 @@ import typer
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.orm import Status, Task
+from peagen.orm import Task
+from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -33,7 +34,7 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,
