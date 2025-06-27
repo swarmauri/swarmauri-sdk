@@ -41,8 +41,11 @@ from .repo.repository_user_association import (  # noqa: F401
 # ----------------------------------------------------------------------
 # Task / execution domain
 # ----------------------------------------------------------------------
+from dataclasses import dataclass
 from .task.status import Status  # noqa: F401
-from .task.task import TaskModel, Task  # noqa: F401
+from .task.task import TaskModel  # noqa: F401
+
+
 from .task.raw_blob import RawBlobModel, RawBlob  # noqa: F401
 from .task.task_run import TaskRunModel, TaskRun  # noqa: F401
 from .task.task_relation import TaskRelationModel, TaskRelation  # noqa: F401
@@ -88,6 +91,20 @@ from .AbuseRecord import AbuseRecordModel, AbuseRecord  # noqa: F401
 from .security.public_key import PublicKeyModel, PublicKey  # noqa: F401
 
 # ----------------------------------------------------------------------
+# Lightweight Task container for tests
+# ----------------------------------------------------------------------
+
+
+@dataclass
+class Task:
+    """Lightweight task container for handler unit tests."""
+
+    pool: str
+    payload: dict
+    id: str = ""
+
+
+# ----------------------------------------------------------------------
 # Public re-exports
 # ----------------------------------------------------------------------
 __all__: list[str] = [
@@ -106,7 +123,7 @@ __all__: list[str] = [
     # task
     "TaskModel",
     "RawBlobModel",
-    "TaskModel",
+    "Task",
     "Status",
     "TaskRunModel",
     "TaskRelationModel",
