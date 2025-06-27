@@ -103,8 +103,8 @@ def repo_lock(repo_uri: str):
     lock_root = Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
     lock_root.mkdir(parents=True, exist_ok=True)
     lock_path = lock_root / f"{hashlib.sha1(repo_uri.encode()).hexdigest()}.lock"
-    lock = FileLock(lock_path)
-    with lock:
+    file_lock = FileLock(lock_path)
+    with file_lock:
         yield
 
 
