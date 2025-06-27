@@ -207,6 +207,7 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 
 [tool.setuptools.package-data]
 "peagen.schemas" = ["*.json", "extras/*.json"]
+"peagen.jsonschemas" = ["*.json", "extras/*.json"]
 "peagen" = [
   "tests/examples/locking_demo/*",
   "tests/examples/peagen_tomls/*",
