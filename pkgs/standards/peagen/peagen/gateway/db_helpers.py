@@ -94,23 +94,18 @@ async def upsert_secret(
     name: str,
     cipher: str,
 ) -> None:
+    """Insert or update a secret for a tenant."""
     data = {
         "tenant_id": tenant_id,
-        "owner_fpr": owner_fpr,
         "name": name,
         "cipher": cipher,
-        "created_at": dt.datetime.utcnow(),
     }
     stmt = (
         pg_insert(Secret)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["tenant_id", "name"],
-            set_={
-                "cipher": cipher,
-                "owner_fpr": owner_fpr,
-                "created_at": data["created_at"],
-            },
+            set_={"cipher": cipher},
         )
     )
     await session.execute(stmt)
