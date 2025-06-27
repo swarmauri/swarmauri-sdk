@@ -15,6 +15,7 @@ import httpx
 from git import Repo
 
 from peagen.plugins import PluginManager
+from peagen.plugin_manager import resolve_plugin_spec
 from peagen import defaults
 
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
@@ -34,15 +35,19 @@ def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) ->
         Additional options forwarded to :class:`GitVCS`.
     """
     pm = PluginManager(defaults.CONFIG)
-    GitVCS = pm.get("vcs")
-    return GitVCS(
-        path,
-        remote_url=remote_url,
-        mirror_git_url=kwargs.get("mirror_git_url"),
-        mirror_git_token=kwargs.get("mirror_git_token"),
-        owner=kwargs.get("owner"),
-        remotes=kwargs.get("remotes"),
-    )
+    cfg = pm._group_cfg("vcs")
+    name = cfg.get("default_vcs")
+    params = cfg.get("adapters", {}).get(name, {})
+    params = {
+        **params,
+        "remote_url": remote_url,
+        "mirror_git_url": kwargs.get("mirror_git_url"),
+        "mirror_git_token": kwargs.get("mirror_git_token"),
+        "owner": kwargs.get("owner"),
+        "remotes": kwargs.get("remotes"),
+    }
+    GitVCS = resolve_plugin_spec("vcs", name)
+    return GitVCS(path, **params)
 
 
 def ensure_repo(
@@ -50,15 +55,19 @@ def ensure_repo(
 ) -> GitVCS:
     """Initialise ``path`` if needed and return a :class:`GitVCS`."""
     pm = PluginManager(defaults.CONFIG)
-    GitVCS = pm.get("vcs")
-    return GitVCS(
-        path,
-        remote_url=remote_url,
-        mirror_git_url=kwargs.get("mirror_git_url"),
-        mirror_git_token=kwargs.get("mirror_git_token"),
-        owner=kwargs.get("owner"),
-        remotes=kwargs.get("remotes"),
-    )
+    cfg = pm._group_cfg("vcs")
+    name = cfg.get("default_vcs")
+    params = cfg.get("adapters", {}).get(name, {})
+    params = {
+        **params,
+        "remote_url": remote_url,
+        "mirror_git_url": kwargs.get("mirror_git_url"),
+        "mirror_git_token": kwargs.get("mirror_git_token"),
+        "owner": kwargs.get("owner"),
+        "remotes": kwargs.get("remotes"),
+    }
+    GitVCS = resolve_plugin_spec("vcs", name)
+    return GitVCS(path, **params)
 
 
 def add_git_deploy_key(mirror_uri: str, pub_key: str) -> None:
