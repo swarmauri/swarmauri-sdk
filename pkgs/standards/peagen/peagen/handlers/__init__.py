@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from peagen.models import Task
+from peagen.orm import Task
 from peagen.models.schemas import TaskRead
 
 

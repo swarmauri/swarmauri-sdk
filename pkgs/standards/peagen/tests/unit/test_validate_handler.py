@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 
 from peagen.handlers import validate_handler as handler
-from peagen.models import Task
+from peagen.orm import Task
 
 
 @pytest.mark.unit

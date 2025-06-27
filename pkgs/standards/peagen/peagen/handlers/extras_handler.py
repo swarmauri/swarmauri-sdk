@@ -10,7 +10,7 @@ from . import ensure_task
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.extras_core import generate_schemas
-from peagen.models import Task
+from peagen.orm import Task
 from .repo_utils import fetch_repo, cleanup_repo
 
 

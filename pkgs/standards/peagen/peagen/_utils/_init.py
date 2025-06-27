@@ -8,7 +8,7 @@ import re
 import typer
 from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
-from peagen.models.task import Task
+from peagen.orm.task import Task
 from peagen.plugins import discover_and_register_plugins
 
 _PAT_RE = re.compile(r"(gh[pousr]_\w+|github_pat_[0-9A-Za-z]+)", re.IGNORECASE)

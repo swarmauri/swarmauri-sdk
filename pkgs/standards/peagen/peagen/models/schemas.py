@@ -6,8 +6,8 @@ from typing import Any, Optional
 
 from pydantic import create_model
 
-from . import __all__ as model_names
-from . import base as base_module
+from peagen.orm import __all__ as model_names
+from peagen.orm import base as base_module
 
 __all__ = []
 
@@ -23,7 +23,7 @@ for _name in model_names:
     model_cls = getattr(base_module, _name, None)
     if model_cls is None:
         try:
-            mod = __import__("peagen.models", fromlist=[_name])
+            mod = __import__("peagen.orm", fromlist=[_name])
             model_cls = getattr(mod, _name)
         except Exception:
             continue

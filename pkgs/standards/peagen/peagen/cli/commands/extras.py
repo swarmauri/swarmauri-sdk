@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen.handlers.extras_handler import extras_handler
-from peagen.models import Task
+from peagen.orm import Task
 from swarmauri_standard.loggers.Logger import Logger
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
