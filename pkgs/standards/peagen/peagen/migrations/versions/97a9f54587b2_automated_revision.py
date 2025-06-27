@@ -464,7 +464,6 @@ def upgrade() -> None:
     op.create_foreign_key(
         None, "task_runs", "tasks", ["task_id"], ["id"], ondelete="CASCADE"
     )
-    op.drop_column("task_runs", "task_type")
     op.drop_column("task_runs", "oids")
     op.drop_column("task_runs", "in_degree")
     op.drop_column("task_runs", "finished_at")
@@ -648,7 +647,6 @@ def downgrade() -> None:
         ),
     )
     op.add_column("task_runs", sa.Column("oids", sqlite.JSON(), nullable=True))
-    op.add_column("task_runs", sa.Column("task_type", sa.VARCHAR(), nullable=True))
     op.drop_constraint(None, "task_runs", type_="foreignkey")
     op.drop_constraint(None, "task_runs", type_="foreignkey")
     op.drop_constraint(None, "task_runs", type_="foreignkey")

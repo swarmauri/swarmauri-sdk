@@ -18,7 +18,6 @@ async def test_result_backend_selector_picks_leader_and_running_candidates():
     tr1 = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.running,
         payload={},
         result=None,
@@ -26,7 +25,6 @@ async def test_result_backend_selector_picks_leader_and_running_candidates():
     tr2 = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result={"score": 1},
@@ -34,7 +32,6 @@ async def test_result_backend_selector_picks_leader_and_running_candidates():
     tr3 = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.running,
         payload={},
         result=None,
@@ -58,7 +55,6 @@ async def test_bootstrap_selector_switches_after_first_call():
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.running,
         payload={},
         result=None,
@@ -80,7 +76,6 @@ async def test_input_selector_uses_initial_candidate_once():
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.running,
         payload={},
         result=None,

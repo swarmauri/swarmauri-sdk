@@ -16,7 +16,6 @@ async def test_localfs_backend_writes_file(tmp_path):
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
@@ -59,7 +58,6 @@ async def test_postgres_backend_invokes_helpers(monkeypatch):
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
@@ -77,7 +75,6 @@ async def test_in_memory_backend_stores_in_dict():
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
