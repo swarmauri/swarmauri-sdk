@@ -106,7 +106,6 @@ __all__: list[str] = [
     # task
     "TaskModel",
     "RawBlobModel",
-    "TaskModel",
     "Status",
     "TaskRunModel",
     "TaskRelationModel",
