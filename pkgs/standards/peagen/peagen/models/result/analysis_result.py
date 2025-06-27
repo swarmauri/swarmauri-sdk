@@ -22,6 +22,10 @@ import uuid
 from sqlalchemy import JSON, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imports for type hints
+    from .eval_result import EvalResult
 
 from ..base import BaseModel
 
