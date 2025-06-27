@@ -416,6 +416,11 @@ task = TaskRead.model_validate_json(raw_json)
 The gateway and worker components rely on these schema classes rather than the
 ORM models under `peagen.orm`.
 
+> **Note**
+> Earlier versions exposed these models under ``peagen.models`` and the
+> transport schemas under ``peagen.models.schemas``. Update any imports to use
+> ``peagen.orm`` and ``peagen.schemas`` going forward.
+
 ### Git Filters & Publishers
 
 Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available filters include `S3FSFilter` and `MinioFilter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
