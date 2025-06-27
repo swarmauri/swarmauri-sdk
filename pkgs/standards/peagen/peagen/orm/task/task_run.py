@@ -127,7 +127,6 @@ class TaskRunModel(BaseModel):
 
         tr = cls(
             id=uuid.UUID(task.id),
-            task_payload_id=uuid.uuid4(),
             status=task.status,
             result=None,
         )
