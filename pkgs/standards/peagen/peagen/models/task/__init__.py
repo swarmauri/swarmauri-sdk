@@ -12,7 +12,7 @@ class Task(BaseModel):
     """Lightweight task envelope used by the gateway and CLI."""
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    pool: str
+    pool: str = "default"
     payload: Dict[str, Any]
     status: Status = Status.waiting
     relations: List[str] = Field(default_factory=list)
