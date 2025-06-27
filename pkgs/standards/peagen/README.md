@@ -401,6 +401,19 @@ projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
 
+### Task Schemas
+
+Transport-level validation uses the Pydantic models generated in
+`peagen.models.schemas`. Import `TaskCreate`, `TaskRead`, and `TaskUpdate`
+when serializing or validating tasks instead of `peagen.models.Task`.
+
+```python
+from peagen.models.schemas import TaskCreate
+
+task = TaskCreate(pool="default", payload={"action": "process"})
+payload_json = task.model_dump_json()
+```
+
 ### Git Filters & Publishers
 
 Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available filters include `S3FSFilter` and `MinioFilter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
