@@ -4,6 +4,8 @@ peagen.orm
 
 • Aggregates **all** SQLAlchemy ORM classes.
 • No engine/session helpers—those live elsewhere.
+
+`peagen.models` is deprecated and now forwards to this package.
 """
 
 from __future__ import annotations
