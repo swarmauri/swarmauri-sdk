@@ -19,7 +19,7 @@ local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,

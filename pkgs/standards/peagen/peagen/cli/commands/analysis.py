@@ -17,7 +17,7 @@ local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
 
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,

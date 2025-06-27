@@ -20,7 +20,7 @@ local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 
 
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,

@@ -17,7 +17,7 @@ local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-def _build_task(args: Dict[str, Any], pool: str) -> Task:
+def _build_task(args: Dict[str, Any], pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()), pool=pool, payload={"action": "extras", "args": args}
     )
