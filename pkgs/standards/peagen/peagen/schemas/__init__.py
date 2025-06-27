@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import inspect
-from datetime import datetime
 from typing import Any, Optional
 
 from pydantic import create_model
@@ -39,29 +38,26 @@ for _name in model_names:
         continue
     id_type = _python_type(id_col)
 
-    # CREATE: all required fields except 'id' and 'date_created'
+    # CREATE: all required fields except 'date_created'
     create_fields = {
         c_name: (_python_type(c), ...)
         for c_name, c in columns.items()
-        if c_name not in ["last_modified", "date_created"]
+        if c_name != "date_created"
     }
     root_name = _name[:-5] if _name.endswith("Model") else _name
     create_cls = create_model(f"{root_name}Create", **create_fields)
 
-    # UPDATE: all optional fields except 'date_created'
+    # UPDATE: all optional fields except 'id' and 'date_created'
     update_fields = {
         c_name: (Optional[_python_type(c)], None)
         for c_name, c in columns.items()
-        if c_name not in ["date_created", "last_modified"]
+        if c_name not in ["id", "date_created"]
     }
     update_cls = create_model(f"{root_name}Update", **update_fields)
 
     # READ: all required, including id and date_created
-    read_fields = {"id": (id_type, ...)}
-    for c_name, c in columns.items():
-        read_fields[c_name] = (_python_type(c), ...)
-    if "date_created" not in read_fields and "date_created" in columns:
-        read_fields["date_created"] = (datetime, ...)
+    read_fields = {c_name: (_python_type(c), ...) for c_name, c in columns.items()}
+    read_fields["id"] = (id_type, ...)
     read_cls = create_model(f"{root_name}Read", **read_fields)
 
     # CHILD: id only

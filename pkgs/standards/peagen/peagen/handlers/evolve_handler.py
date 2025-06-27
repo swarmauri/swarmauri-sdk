@@ -101,14 +101,16 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             if uri:
                 mut["uri"] = _resolve_path(uri)
 
-        children.append(
-            Task(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                status=Status.waiting,
-                payload={"action": "mutate", "args": job},
-            )
+        child = Task(
+            id=str(uuid.uuid4()),
+            tenant_id=uuid.uuid4(),
+            parameters={},
+            note=None,
         )
+        child.pool = pool
+        child.status = Status.waiting
+        child.payload = {"action": "mutate", "args": job}
+        children.append(child)
 
     fan_res = await fan_out(
         task,

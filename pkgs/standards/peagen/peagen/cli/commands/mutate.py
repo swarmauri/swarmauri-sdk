@@ -20,12 +20,16 @@ local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 
 
-def _build_task(args: dict, pool: str) -> Task:
-    return Task(
+def _build_task(args: dict, pool: str = "default") -> Task:
+    task = Task(
         id=str(uuid.uuid4()),
-        pool=pool,
-        payload={"action": "mutate", "args": args},
+        tenant_id=uuid.uuid4(),
+        parameters={},
+        note=None,
     )
+    task.pool = pool
+    task.payload = {"action": "mutate", "args": args}
+    return task
 
 
 @local_mutate_app.command("mutate")

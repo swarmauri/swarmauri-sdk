@@ -60,12 +60,17 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-def _build_task(args: Dict[str, Any], pool: str) -> Task:
+def _build_task(args: Dict[str, Any], pool: str = "default") -> Task:
     """Fabricate a Task model so the CLI uses the same payload shape as workers."""
-    return Task(
-        pool=pool,
-        payload={"action": "process", "args": args},
+    task = Task(
+        id=str(uuid.uuid4()),
+        tenant_id=uuid.uuid4(),
+        parameters={},
+        note=None,
     )
+    task.pool = pool
+    task.payload = {"action": "process", "args": args}
+    return task
 
 
 # ────────────────────────── local run ────────────────────────────────────────

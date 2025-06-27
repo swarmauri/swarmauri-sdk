@@ -33,13 +33,17 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict, pool: str) -> Task:
-    return Task(
+def _build_task(args: dict, pool: str = "default") -> Task:
+    task = Task(
         id=str(uuid.uuid4()),
-        pool=pool,
-        status=Status.waiting,
-        payload={"action": "eval", "args": args},
+        tenant_id=uuid.uuid4(),
+        parameters={},
+        note=None,
     )
+    task.pool = pool
+    task.status = Status.waiting
+    task.payload = {"action": "eval", "args": args}
+    return task
 
 
 # ───────────────────────── local run ───────────────────────────────────────
