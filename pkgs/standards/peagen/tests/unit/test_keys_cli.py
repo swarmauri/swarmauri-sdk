@@ -51,12 +51,19 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
 
     monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
 
-    keys_mod.upload(ctx=None, key_dir=tmp_path, gateway_url="http://gw/rpc")
+    keys_mod.upload(
+        ctx=None,
+        key_dir=tmp_path,
+        gateway_url="http://gw/rpc",
+        pool="demo",
+        repo="org/repo",
+    )
     out = capsys.readouterr().out
 
     assert captured["url"] == "http://gw/rpc"
     assert captured["json"]["method"] == "Keys.upload"
     assert captured["json"]["params"]["public_key"] == "PUB"
+    assert captured["json"]["params"]["tenant_id"] == "demo"
     assert "Uploaded public key" in out
 
 
@@ -75,11 +82,18 @@ def test_remove_posts_delete(monkeypatch, capsys):
 
     monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
 
-    keys_mod.remove(ctx=None, fingerprint="abc", gateway_url="http://gw")
+    keys_mod.remove(
+        ctx=None,
+        fingerprint="abc",
+        gateway_url="http://gw",
+        pool="demo",
+        repo="org/repo",
+    )
     out = capsys.readouterr().out
 
     assert captured["json"]["method"] == "Keys.delete"
     assert captured["json"]["params"]["fingerprint"] == "abc"
+    assert captured["json"]["params"]["tenant_id"] == "demo"
     assert "Removed key abc" in out
 
 
@@ -94,7 +108,7 @@ def test_fetch_server_prints_response(monkeypatch, capsys):
 
     monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
 
-    keys_mod.fetch_server(ctx=None, gateway_url="http://gw")
+    keys_mod.fetch_server(ctx=None, gateway_url="http://gw", pool="demo")
     out = capsys.readouterr().out
 
     assert json.loads(out) == {"k": "v"}

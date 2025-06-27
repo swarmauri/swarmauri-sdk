@@ -11,6 +11,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
+from peagen._utils.slug_utils import repo_slug
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -33,14 +34,18 @@ def upload(
     ctx: typer.Context,
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    pool: str = typer.Option("default", "--pool"),
+    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
+    if repo and pool == "default":
+        pool = repo_slug(repo)
     envelope = {
         "jsonrpc": "2.0",
         "method": "Keys.upload",
-        "params": {"public_key": pubkey},
+        "params": {"public_key": pubkey, "tenant_id": pool},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo("Uploaded public key")
@@ -51,12 +56,16 @@ def remove(
     ctx: typer.Context,
     fingerprint: str,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    pool: str = typer.Option("default", "--pool"),
+    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Remove a public key from the gateway."""
+    if repo and pool == "default":
+        pool = repo_slug(repo)
     envelope = {
         "jsonrpc": "2.0",
         "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
+        "params": {"fingerprint": fingerprint, "tenant_id": pool},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
@@ -66,9 +75,13 @@ def remove(
 def fetch_server(
     ctx: typer.Context,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    pool: str = typer.Option("default", "--pool"),
+    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
+    if repo and pool == "default":
+        pool = repo_slug(repo)
+    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch", "params": {"tenant_id": pool}}
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(json.dumps(res.json().get("result", {}), indent=2))
 

@@ -112,7 +112,8 @@ push results back to it.
    can verify your requests.
 
    ```bash
-   peagen login --gateway-url https://gw.peagen.com
+   peagen login --gateway-url https://gw.peagen.com --pool acme-lab \
+     --repo myuser/myrepo
    ```
 
    After logging in you can run remote commands that operate on the GitHub
