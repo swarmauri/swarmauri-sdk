@@ -4,7 +4,7 @@ import asyncio
 import json
 import uuid
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import httpx
 import typer
