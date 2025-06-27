@@ -1,4 +1,4 @@
-from .task import TaskModel, Task
+from .task import TaskModel
 from .task_run import TaskRunModel, TaskRun
 from .task_relation import TaskRelationModel, TaskRelation
 from .task_run_relation_association import (
@@ -9,7 +9,6 @@ from .raw_blob import RawBlobModel, RawBlob
 
 __all__ = [
     "TaskModel",
-    "Task",
     "TaskRunModel",
     "TaskRun",
     "TaskRelationModel",

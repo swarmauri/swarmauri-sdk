@@ -81,6 +81,3 @@ class TaskModel(BaseModel):
             f"<Task id={self.id} tenant={self.tenant_id} "
             f"git_ref={self.git_reference_id or '∅'}>"
         )
-
-
-Task = TaskModel

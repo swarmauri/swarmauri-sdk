@@ -26,9 +26,9 @@ from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
-from peagen.models import Base, Status, Task
-from peagen.models.task.task_run import TaskRun
-
+from peagen.orm import Base, Status, TaskModel
+from peagen.orm.task.task_run import TaskRunModel
+from peagen.models.schemas import TaskRead
 from peagen.gateway.ws_server import router as ws_router
 
 from importlib import reload
@@ -62,6 +62,12 @@ engine = _db.engine
 Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
+
+
+def to_orm(schema: TaskRead) -> TaskModel:
+    """Convert a :class:`TaskRead` into a :class:`TaskModel`."""
+
+    return TaskModel(**schema.model_dump())
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -266,7 +272,7 @@ def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 
-async def _save_task(task: Task) -> None:
+async def _save_task(task: TaskRead) -> None:
     """
     Upsert a task into its Redis hash and refresh TTL atomically.
     Stores the canonical JSON blob plus the status for quick look-up.
@@ -278,12 +284,12 @@ async def _save_task(task: Task) -> None:
     await queue.expire(key, TASK_TTL)
 
 
-async def _load_task(tid: str) -> Task | None:
+async def _load_task(tid: str) -> TaskRead | None:
     data = await queue.hget(_task_key(tid), "blob")
-    return Task.model_validate_json(data) if data else None
+    return TaskRead.model_validate_json(data) if data else None
 
 
-async def _select_tasks(selector: str) -> list[Task]:
+async def _select_tasks(selector: str) -> list[TaskRead]:
     """Return tasks matching *selector*.
 
     A selector may be a task-id or ``label:<name>``.
@@ -295,7 +301,7 @@ async def _select_tasks(selector: str) -> list[Task]:
             data = await queue.hget(key, "blob")
             if not data:
                 continue
-            t = Task.model_validate_json(data)
+            t = TaskRead.model_validate_json(data)
             if label in t.labels:
                 tasks.append(t)
         return tasks
@@ -306,10 +312,10 @@ async def _select_tasks(selector: str) -> list[Task]:
 # ──────────────────────   Results Backend ────────────────────────
 
 
-async def _persist(task: Task) -> None:
+async def _persist(task: TaskRead) -> None:
     try:
         log.info("persisting task %s", task.id)
-        await result_backend.store(TaskRun.from_task(task))
+        await result_backend.store(TaskRunModel.from_task(to_orm(task)))
     except Exception as e:
         log.warning(f"_persist error '{e}'")
 
@@ -337,14 +343,14 @@ async def _flush_state() -> None:
         data = await queue.hget(key, "blob")
         if not data:
             continue
-        task = Task.model_validate_json(data)
+        task = TaskRead.model_validate_json(data)
         if result_backend:
-            await result_backend.store(TaskRun.from_task(task))
+            await result_backend.store(TaskRunModel.from_task(to_orm(task)))
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
 
-async def _publish_task(task: Task) -> None:
+async def _publish_task(task: TaskRead) -> None:
     data = task.model_dump()
     if task.duration is not None:
         data["duration"] = task.duration
@@ -358,7 +364,7 @@ async def _finalize_parent_tasks(child_id: str) -> None:
         data = await queue.hget(key, "blob")
         if not data:
             continue
-        parent = Task.model_validate_json(data)
+        parent = TaskRead.model_validate_json(data)
         children = []
         if parent.result and isinstance(parent.result, dict):
             children = parent.result.get("children") or []
@@ -387,7 +393,7 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
             data = await queue.hget(key, "blob")
             if not data:
                 continue
-            t = Task.model_validate_json(data)
+            t = TaskRead.model_validate_json(data)
             children = []
             if t.result and isinstance(t.result, dict):
                 children = t.result.get("children") or []
@@ -614,7 +620,7 @@ async def task_submit(
         log.warning("task id collision: %s → %s", taskId, new_id)
         taskId = new_id
 
-    task = Task(
+    task = TaskRead(
         id=taskId or str(uuid.uuid4()),
         pool=pool,
         payload=payload,
@@ -707,7 +713,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
         raise TaskNotFoundError(taskId)
 
     for field, value in changes.items():
-        if field not in Task.model_fields:
+        if field not in TaskRead.model_fields:
             continue
         if field == "status":
             value = Status(value)
@@ -755,7 +761,7 @@ async def pool_list(poolName: str, limit: int | None = None, offset: int = 0):
     ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", start, end)
     tasks = []
     for r in ids:
-        t = Task.model_validate_json(r)
+        t = TaskRead.model_validate_json(r)
         data = t.model_dump()
         if t.duration is not None:
             data["duration"] = t.duration
@@ -872,7 +878,7 @@ async def work_finished(taskId: str, status: str, result: dict | None = None):
 
 
 # ────────────────────────── Helpers ──────────────────────────
-async def _fail_task(task: Task, error: Exception) -> None:
+async def _fail_task(task: TaskRead, error: Exception) -> None:
     """Mark *task* as failed and persist the error message."""
     task.status = Status.failed
     task.result = {"error": str(error)}
@@ -905,7 +911,7 @@ async def scheduler():
             queue_key, task_raw = res  # guaranteed 2-tuple here
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             await _publish_queue_length(pool)
-            task = Task.model_validate_json(task_raw)
+            task = TaskRead.model_validate_json(task_raw)
 
             # pick a worker that supports the task's action
             worker_list = await _live_workers_by_pool(pool)
