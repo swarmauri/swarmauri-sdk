@@ -15,7 +15,7 @@ from typing import Any, Dict, List
 from . import ensure_task
 
 from peagen.core.fetch_core import fetch_many
-from peagen.models import Task  # for type hints only
+from peagen.orm import Task  # for type hints only
 
 
 async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

@@ -8,7 +8,7 @@ from . import ensure_task
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.validate_core import validate_artifact
-from peagen.models import Task
+from peagen.orm import Task
 
 
 async def validate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

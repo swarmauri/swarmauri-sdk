@@ -414,7 +414,7 @@ task = TaskRead.model_validate_json(raw_json)
 ```
 
 The gateway and worker components rely on these schema classes rather than the
-ORM models under `peagen.models`.
+ORM models under `peagen.orm`.
 
 ### Git Filters & Publishers
 

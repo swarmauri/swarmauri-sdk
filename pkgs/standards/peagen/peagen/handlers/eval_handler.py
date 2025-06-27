@@ -19,7 +19,7 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.models import Task  # for typing only
+from peagen.orm import Task  # for typing only
 from . import ensure_task
 
 

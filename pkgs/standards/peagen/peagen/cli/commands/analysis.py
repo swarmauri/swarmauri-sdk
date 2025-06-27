@@ -10,7 +10,7 @@ import httpx
 import typer
 
 from peagen.handlers.analysis_handler import analysis_handler
-from peagen.models import Status, Task
+from peagen.orm import Status, Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
