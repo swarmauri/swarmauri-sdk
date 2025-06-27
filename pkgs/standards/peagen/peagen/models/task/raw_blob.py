@@ -2,12 +2,12 @@
 peagen.models.task.raw_blob
 ===========================
 
-Binary or encoded attachments tied to a TaskPayload.
+Binary or encoded attachments tied to a Task.
 
 Design Highlights
 -----------------
 • Uses the global BaseModel mixin (id, date_created, last_modified).
-• Belongs to exactly one TaskPayload (FK → task_payloads.id).
+• Belongs to exactly one Task (FK → tasks.id).
 • `media_type` records MIME type (e.g. 'image/png', 'text/csv').
 • `encoding` specifies how `data` is represented:
       'base64' | 'utf-8' | 'binary'  (extend as needed).
@@ -19,21 +19,25 @@ import uuid
 from sqlalchemy import String, LargeBinary, ForeignKey, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imports for type hints
+    from .task import Task
 
 from ..base import BaseModel
 
 
 class RawBlob(BaseModel):
     """
-    Opaque blob packaged with a TaskPayload.
+    Opaque blob packaged with a Task.
     """
 
     __tablename__ = "raw_blobs"
 
     # ──────────────────────── Columns ────────────────────────
-    task_payload_id: Mapped[uuid.UUID] = mapped_column(
+    task_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("task_payloads.id", ondelete="CASCADE"),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -56,13 +60,13 @@ class RawBlob(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    task_payload: Mapped["TaskPayload"] = relationship(
-        "TaskPayload", back_populates="raw_blobs", lazy="selectin"
+    task: Mapped["Task"] = relationship(
+        "Task", back_populates="raw_blobs", lazy="selectin"
     )
 
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return (
-            f"<RawBlob id={self.id} payload={self.task_payload_id} "
+            f"<RawBlob id={self.id} payload={self.task_id} "
             f"type={self.media_type!r} enc={self.encoding}>"
         )
