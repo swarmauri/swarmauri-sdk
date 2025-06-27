@@ -1,8 +1,8 @@
 """
-peagen.models.task.task_payload
-===============================
+peagen.models.task.task
+=======================
 
-Structured payload describing *what* a Task should operate on.
+Structured payload describing *what* a task should operate on.
 
 Key Features
 ------------
@@ -18,11 +18,16 @@ import uuid
 from sqlalchemy import JSON, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imports for type hints
+    from ..repo.git_reference import GitReference
+    from .raw_blob import RawBlob
 
 from ..base import BaseModel
 
 
-class TaskPayload(BaseModel):
+class Task(BaseModel):
     """
     Domain-level description of a Task’s inputs.
 
@@ -34,7 +39,7 @@ class TaskPayload(BaseModel):
     note            : TEXT? – human note / description
     """
 
-    __tablename__ = "task_payloads"
+    __tablename__ = "tasks"
 
     # ──────────────────────── Columns ────────────────────────
     tenant_id: Mapped[uuid.UUID] = mapped_column(
@@ -64,7 +69,7 @@ class TaskPayload(BaseModel):
 
     raw_blobs: Mapped[list["RawBlob"]] = relationship(
         "RawBlob",
-        back_populates="task_payload",
+        back_populates="task",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
@@ -72,6 +77,6 @@ class TaskPayload(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return (
-            f"<TaskPayload id={self.id} tenant={self.tenant_id} "
+            f"<Task id={self.id} tenant={self.tenant_id} "
             f"git_ref={self.git_reference_id or '∅'}>"
         )

@@ -2,11 +2,11 @@
 peagen.models.task.task_run
 ===========================
 
-Execution record for a TaskPayload dispatched to the worker pool.
+Execution record for a Task dispatched to the worker pool.
 
 Relationships
 -------------
-TaskPayload 1 ─⟶ 1..n TaskRun
+Task       1 ─⟶ 1..n TaskRun
 TaskRun      n ─⟶ n TaskRunDependencyAssociation (DAG edges)
 TaskRun      1 ─⟶ 0..n EvalResult
 """
@@ -18,6 +18,16 @@ import uuid
 from sqlalchemy import JSON, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imports for type hints
+    from ..infra.pool import Pool
+    from ..infra.worker import Worker
+    from ..tenant.user import User
+    from .task import Task
+    from .task_relation import TaskRelation
+    from .task_run_relation_association import TaskRunTaskRelationAssociation
+    from ..result.eval_result import EvalResult
 
 from ..base import BaseModel  # id, timestamps
 from .status import Status
@@ -26,15 +36,15 @@ from ..task import Task
 
 class TaskRun(BaseModel):
     """
-    One execution attempt of a TaskPayload on a Worker.
+    One execution attempt of a Task on a Worker.
     """
 
     __tablename__ = "task_runs"
 
     # ─────────────────────── Columns ────────────────────────
-    task_payload_id: Mapped[uuid.UUID] = mapped_column(
+    task_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("task_payloads.id", ondelete="CASCADE"),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -69,7 +79,7 @@ class TaskRun(BaseModel):
     )
 
     # ────────────────── Relationships ───────────────────────
-    task_payload: Mapped["TaskPayload"] = relationship("TaskPayload", lazy="selectin")  # noqa: F821
+    task: Mapped["Task"] = relationship("Task", lazy="selectin")
 
     pool: Mapped["Pool | None"] = relationship("Pool", lazy="selectin")  # noqa: F821
 
