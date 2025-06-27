@@ -3,11 +3,22 @@
 Package-level built-in configuration and constants.
 """
 
+import os
+from pathlib import Path
+
 from .abuse import BAN_THRESHOLD
 from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .error_codes import ErrorCode
 
+# Default directory for repository lock files.
 LOCK_DIR = "~/.cache/peagen/locks"
+
+
+def lock_dir() -> Path:
+    """Return the directory used for repository locks."""
+    return Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
+
+
 # Default worker pool used when none is specified via environment variables.
 DEFAULT_POOL = "default"
 
@@ -55,6 +66,7 @@ __all__ = [
     "PUBSUB_CHANNEL",
     "TASK_KEY",
     "LOCK_DIR",
+    "lock_dir",
     "DEFAULT_POOL",
     "ErrorCode",
 ]
