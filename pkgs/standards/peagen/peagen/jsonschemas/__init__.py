@@ -46,7 +46,6 @@ PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
-
 EVENT_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
 )
@@ -80,7 +79,6 @@ EXTRAS_SCHEMAS = {
     for fp in _extras_pkg.iterdir()
     if fp.name.endswith(".schema.v1.json")
 }
-
 
 __all__ = [
     "PEAGEN_TOML_V1_SCHEMA",
