@@ -26,6 +26,13 @@ from datetime import datetime, timezone
 from sqlalchemy import JSON, Enum, ForeignKey, String, TIMESTAMP, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .pool_worker_association import PoolWorkerAssociation
+    from .pool import Pool
+    from ..tenant.tenant import Tenant
+    from ..task.task_run import TaskRun
 
 from ..base import BaseModel
 

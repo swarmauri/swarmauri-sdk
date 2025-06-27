@@ -12,6 +12,11 @@ from __future__ import annotations
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .tenant_user_association import TenantUserAssociation
+    from .user import User
 
 from ..base import BaseModel  # id, date_created, last_modified mixins
 

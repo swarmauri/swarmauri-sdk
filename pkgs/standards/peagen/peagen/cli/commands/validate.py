@@ -2,7 +2,7 @@
 
 import asyncio
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import typer
 

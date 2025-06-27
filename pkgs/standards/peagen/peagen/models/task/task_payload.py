@@ -18,6 +18,11 @@ import uuid
 from sqlalchemy import JSON, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..repo.git_reference import GitReference
+    from .raw_blob import RawBlob
 
 from ..base import BaseModel
 

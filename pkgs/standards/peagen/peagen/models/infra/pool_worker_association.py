@@ -17,6 +17,11 @@ import uuid
 from sqlalchemy import Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .pool import Pool
+    from .worker import Worker
 
 from ..base import BaseModel
 

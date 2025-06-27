@@ -118,7 +118,7 @@ def local_init_repo_config(
         "path": str(path),
         "remotes": _parse_remotes(git_remote),
     }
-    result = _call_handler(args)
+    _call_handler(args)
     _summary(path, "git remotes configured")
     self.logger.info("Exiting local init_repo_config command")
 
