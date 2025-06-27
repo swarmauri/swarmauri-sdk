@@ -21,6 +21,9 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from ..repo.repository_user_association import RepositoryUserAssociation
     from ..security.public_key import PublicKey
 
+# Import at runtime so SQLAlchemy can resolve the relationship target
+from ..security import PublicKey
+
 from ..base import BaseModel
 
 

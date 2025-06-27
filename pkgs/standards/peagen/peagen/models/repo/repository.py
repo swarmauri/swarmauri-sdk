@@ -29,6 +29,9 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from .repository_deploy_key_association import RepositoryDeployKeyAssociation
     from .deploy_key import DeployKey
     from .repository_user_association import RepositoryUserAssociation
+    from ..config.peagen_toml_spec import PeagenTomlSpec
+
+# Import at runtime so SQLAlchemy can resolve relationship targets
 
 from ..base import BaseModel
 
@@ -77,6 +80,13 @@ class Repository(BaseModel):
             cascade="all, delete-orphan",
             lazy="selectin",
         )
+    )
+
+    toml_specs: Mapped[list["PeagenTomlSpec"]] = relationship(
+        "PeagenTomlSpec",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     deploy_keys: Mapped[list["DeployKey"]] = relationship(
