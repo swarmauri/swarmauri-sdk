@@ -21,6 +21,7 @@ def _python_type(column: Any) -> type:
 
 for _name in model_names:
     model_cls = getattr(base_module, _name, None)
+    base_name = _name[:-5] if _name.endswith("Model") else _name
     if model_cls is None:
         try:
             mod = __import__("peagen.models", fromlist=[_name])
@@ -45,7 +46,7 @@ for _name in model_names:
         for c_name, c in columns.items()
         if c_name not in ["last_modified", "date_created"]
     }
-    create_cls = create_model(f"{_name}Create", **create_fields)
+    create_cls = create_model(f"{base_name}Create", **create_fields)
 
     # UPDATE: all optional fields except 'date_created'
     update_fields = {
@@ -53,7 +54,7 @@ for _name in model_names:
         for c_name, c in columns.items()
         if c_name not in ["date_created", "last_modified"]
     }
-    update_cls = create_model(f"{_name}Update", **update_fields)
+    update_cls = create_model(f"{base_name}Update", **update_fields)
 
     # READ: all required, including id and date_created
     read_fields = {"id": (id_type, ...)}
@@ -61,10 +62,10 @@ for _name in model_names:
         read_fields[c_name] = (_python_type(c), ...)
     if "date_created" not in read_fields and "date_created" in columns:
         read_fields["date_created"] = (datetime, ...)
-    read_cls = create_model(f"{_name}Read", **read_fields)
+    read_cls = create_model(f"{base_name}Read", **read_fields)
 
     # CHILD: id only
-    child_cls = create_model(f"{_name}Child", id=(id_type, ...))
+    child_cls = create_model(f"{base_name}Child", id=(id_type, ...))
 
     # Register in global scope and __all__
     globals()[create_cls.__name__] = create_cls
