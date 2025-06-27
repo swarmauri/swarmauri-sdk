@@ -29,6 +29,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from .repository_deploy_key_association import RepositoryDeployKeyAssociation
     from .deploy_key import DeployKey
     from .repository_user_association import RepositoryUserAssociation
+    from ..config.peagen_toml_spec import PeagenTomlSpec
 
 from ..base import BaseModel
 
@@ -83,6 +84,13 @@ class Repository(BaseModel):
         "DeployKey",
         secondary="repository_deploy_key_associations",
         back_populates="repositories",
+        lazy="selectin",
+    )
+
+    toml_specs: Mapped[list["PeagenTomlSpec"]] = relationship(
+        "PeagenTomlSpec",
+        back_populates="repository",
+        cascade="all, delete-orphan",
         lazy="selectin",
     )
 

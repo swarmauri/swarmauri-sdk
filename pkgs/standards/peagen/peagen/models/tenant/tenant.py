@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from .tenant_user_association import TenantUserAssociation
     from .user import User
+    from ..repo.repository import Repository
 
 from ..base import BaseModel  # id, date_created, last_modified mixins
 
@@ -53,6 +54,13 @@ class Tenant(BaseModel):
         "User",
         secondary="tenant_user_associations",
         viewonly=True,
+        lazy="selectin",
+    )
+
+    repositories: Mapped[list["Repository"]] = relationship(
+        "Repository",
+        back_populates="tenant",
+        cascade="all, delete-orphan",
         lazy="selectin",
     )
 
