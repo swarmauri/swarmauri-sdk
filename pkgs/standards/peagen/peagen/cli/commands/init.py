@@ -107,7 +107,6 @@ def local_init_repo_config(
         None,
         "--git-remote",
         help="Git remote in name=url format. Use multiple times for several remotes",
-        multiple=True,
     ),
 ) -> None:
     """Configure Git remotes for an existing repository."""
@@ -147,7 +146,6 @@ def local_init_project(
         None,
         "--git-remote",
         help="Git remote in name=url format. Use multiple times for several remotes",
-        multiple=True,
     ),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
@@ -204,7 +202,6 @@ def remote_init_project(
         None,
         "--git-remote",
         help="Git remote in name=url format. Use multiple times for several remotes",
-        multiple=True,
     ),
     filter_uri: str = typer.Option(
         None, "--filter-uri", help="Configure git filter with this URI"
@@ -240,7 +237,6 @@ def remote_init_repo_config(
         None,
         "--git-remote",
         help="Git remote in name=url format. Use multiple times for several remotes",
-        multiple=True,
     ),
 ) -> None:
     """Submit a repo configuration task via JSON-RPC."""
