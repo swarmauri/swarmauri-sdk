@@ -6,10 +6,8 @@ import os
 import json
 import tempfile
 import time
-import io
 import httpx
-import paramiko
-import pygit2
+from github import Github
 
 from git import Repo
 from git.exc import GitCommandError
@@ -201,29 +199,34 @@ class GitVCS:
         cipher = res.json()["result"]["secret"].encode()
 
         drv = AutoGpgDriver()
-        key_text = drv.decrypt(cipher).decode()
+        token = drv.decrypt(cipher).decode().strip()
 
-        pkey = paramiko.RSAKey.from_private_key(io.StringIO(key_text))
-        pubkey = f"{pkey.get_name()} {pkey.get_base64()}"
+        # Use PyGithub to verify access and obtain the remote repository
+        remote_url = self.repo.remotes[remote].url
+        https_url = remote_url
+        if remote_url.startswith("git@"):
+            host, path = remote_url.split(":", 1)
+            https_url = f"https://{host.split('@')[1]}/{path}"
+        https_url = https_url.rstrip(".git")
+        owner_repo = https_url.split("https://")[-1]
 
-        repo = pygit2.Repository(str(self.repo.working_tree_dir))
-        remote_obj = repo.remotes[remote]
-        callbacks = pygit2.RemoteCallbacks(
-            credentials=pygit2.KeypairFromMemory("git", pubkey, key_text, "")
-        )
+        gh = Github(token)
+        gh_repo = gh.get_repo(owner_repo)
+        push_url = gh_repo.clone_url.replace("https://", f"https://{token}@")
+
         try:
-            remote_obj.push([ref], callbacks=callbacks)
-        except pygit2.GitError as exc:
+            self.repo.git.push(push_url, ref)
+        except GitCommandError as exc:
             raise GitPushError(ref, remote) from exc
 
         if self.mirror_git_url:
             mirror_remote = "mirror"
-            repo_mirror = repo.remotes.get(mirror_remote)
-            if repo_mirror is None:
-                repo_mirror = repo.remotes.create(mirror_remote, self.mirror_git_url)
+            mirror_push_url = self.mirror_git_url.replace(
+                "https://", f"https://{token}@"
+            )
             try:
-                repo_mirror.push([ref], callbacks=callbacks)
-            except pygit2.GitError as exc:
+                self.repo.git.push(mirror_push_url, ref)
+            except GitCommandError as exc:
                 raise GitPushError(ref, mirror_remote) from exc
 
     # ------------------------------------------------------------------ remote helpers
