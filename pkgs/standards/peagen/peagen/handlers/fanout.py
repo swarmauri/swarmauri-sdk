@@ -7,6 +7,7 @@ from typing import Iterable, List, Dict, Any
 import httpx
 
 from peagen.models import Task, Status
+from . import ensure_task
 
 
 async def fan_out(
@@ -18,7 +19,8 @@ async def fan_out(
 ) -> Dict[str, Any]:
     """Submit *children* and update *parent* with their IDs."""
     gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-    parent_id = parent.get("id") if isinstance(parent, dict) else parent.id
+    canonical_parent = ensure_task(parent)
+    parent_id = canonical_parent.id
 
     child_ids: List[str] = []
     async with httpx.AsyncClient(timeout=10.0) as client:

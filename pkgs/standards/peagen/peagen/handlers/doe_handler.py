@@ -11,13 +11,15 @@ from peagen.core.doe_core import (
     create_run_branches,
 )
 from peagen.models import Task
+from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 import yaml
 
 
 async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 
     cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")

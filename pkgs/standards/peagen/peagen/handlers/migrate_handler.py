@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict
 
@@ -11,15 +10,12 @@ from peagen.core.migrate_core import (
     alembic_upgrade,
 )
 from peagen.models import Task
+from . import ensure_task
 
 
 async def migrate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    if not isinstance(task_or_dict, dict):
-        task_dict: Dict[str, Any] = json.loads(task_or_dict.model_dump_json())
-    else:
-        task_dict = task_or_dict
-
-    args: Dict[str, Any] = task_dict["payload"]["args"]
+    task = ensure_task(task_or_dict)
+    args: Dict[str, Any] = task.payload["args"]
     op: str = args["op"]
     cfg_path_str: str | None = args.get("alembic_ini")
     cfg_path = Path(cfg_path_str).expanduser() if cfg_path_str else ALEMBIC_CFG

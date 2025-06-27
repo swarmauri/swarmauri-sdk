@@ -17,11 +17,13 @@ from peagen.core.templates_core import (
     remove_template_set,
 )
 from peagen.models.task import Task  # type: ignore
+from . import ensure_task
 
 
 async def templates_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     """Dispatch template-set operations based on ``args.operation``."""
-    payload = task.get("payload", {})
+    task = ensure_task(task)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")

@@ -20,10 +20,12 @@ import os
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
 from peagen.models import Task  # for typing only
+from . import ensure_task
 
 
 async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})
     repo = args.get("repo")
