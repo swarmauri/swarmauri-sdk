@@ -2,9 +2,9 @@
 """Expose Peagen JSON Schemas as Python dicts."""
 
 from __future__ import annotations
-
 import json
 import importlib.resources as res
+
 
 PEAGEN_TOML_V1_SCHEMA = json.loads(
     res.files(__package__)
@@ -46,6 +46,7 @@ PROJECTS_PAYLOAD_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
+
 EVENT_V1_SCHEMA = json.loads(
     res.files(__package__).joinpath("event.schema.v1.json").read_text(encoding="utf-8")
 )
@@ -71,6 +72,7 @@ LLM_PATCH_V1_SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 
+
 # ── EXTRAS schemas ─────────────────────────────────────────────
 _extras_pkg = res.files(__package__).joinpath("extras")
 EXTRAS_SCHEMAS = {
@@ -78,6 +80,7 @@ EXTRAS_SCHEMAS = {
     for fp in _extras_pkg.iterdir()
     if fp.name.endswith(".schema.v1.json")
 }
+
 
 __all__ = [
     "PEAGEN_TOML_V1_SCHEMA",

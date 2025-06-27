@@ -72,11 +72,13 @@ for _name in model_names:
     globals()[update_cls.__name__] = update_cls
     globals()[read_cls.__name__] = read_cls
     globals()[child_cls.__name__] = child_cls
-    globals()[root_name] = read_cls
     __all__ += [
         create_cls.__name__,
         update_cls.__name__,
         read_cls.__name__,
         child_cls.__name__,
-        root_name,
     ]
+
+# Explicit exports for common task schemas
+if "TaskRead" in globals():
+    __all__.extend(["TaskRead", "TaskCreate", "TaskUpdate"])
