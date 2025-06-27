@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 
 import yaml
 
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from peagen.orm.status import Status
 from .fanout import fan_out
 from . import ensure_task
@@ -34,7 +34,7 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     return None, yaml.safe_load(path_or_text)
 
 
-async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def evolve_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
@@ -76,7 +76,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
                 return str(resolved)
         return str(resolved)
 
-    children: List[Task] = []
+    children: List[TaskRead] = []
     for job in jobs:
         if mutations is not None:
             job.setdefault("mutations", mutations)
@@ -103,7 +103,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
                 mut["uri"] = _resolve_path(uri)
 
         children.append(
-            Task(
+            TaskRead(
                 id=str(uuid.uuid4()),
                 pool=pool,
                 status=Status.waiting,

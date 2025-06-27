@@ -3,7 +3,7 @@
 
 Asynchronous entry-point for initialisation tasks.
 
-The handler accepts either a plain dictionary or a :class:`peagen.orm.Task`
+The handler accepts either a plain dictionary or a :class:`peagen.schemas.TaskRead`
 and delegates to :mod:`peagen.core.init_core`.
 """
 
@@ -13,11 +13,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from . import ensure_task
 
 
-async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def init_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     """Dispatch to the correct init function based on ``kind``."""
     task = ensure_task(task_or_dict)
     payload = task.payload

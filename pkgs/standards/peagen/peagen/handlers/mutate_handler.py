@@ -9,13 +9,13 @@ from typing import Any, Dict
 from . import ensure_task
 
 from peagen.core.mutate_core import mutate_workspace
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
 
-async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def mutate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})

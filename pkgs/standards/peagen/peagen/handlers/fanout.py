@@ -6,14 +6,14 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from peagen.orm.status import Status
 from . import ensure_task
 
 
 async def fan_out(
-    parent: Task | Dict[str, Any],
-    children: Iterable[Task],
+    parent: TaskRead | Dict[str, Any],
+    children: Iterable[TaskRead],
     *,
     result: Dict[str, Any] | None = None,
     final_status: Status = Status.waiting,

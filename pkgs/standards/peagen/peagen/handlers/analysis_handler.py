@@ -6,7 +6,7 @@ from typing import Any, Dict
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.analysis_core import analyze_runs
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
@@ -14,7 +14,7 @@ from peagen.plugins.vcs import pea_ref
 from .repo_utils import fetch_repo, cleanup_repo
 
 
-async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def analysis_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})

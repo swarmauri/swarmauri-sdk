@@ -10,7 +10,7 @@ import uuid
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.orm import Task
+from peagen.schemas import TaskRead
 from peagen.orm.status import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
@@ -19,7 +19,7 @@ from .fanout import fan_out
 from . import ensure_task
 
 
-async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def doe_process_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     """Expand the DOE spec and spawn a process task for each project."""
     task = ensure_task(task_or_dict)
     payload = task.payload
@@ -121,10 +121,10 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
     result["outputs"] = uploaded
 
     pool = task.pool
-    children: List[Task] = []
+    children: List[TaskRead] = []
     for path, proj in projects:
         children.append(
-            Task(
+            TaskRead(
                 id=str(uuid.uuid4()),
                 pool=pool,
                 action="process",

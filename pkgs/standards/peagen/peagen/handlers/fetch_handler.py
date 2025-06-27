@@ -2,7 +2,7 @@
 """
 Async entry-point for the *fetch* pipeline.
 
-• Accepts either a plain dict (decoded JSON-RPC) or a peagen.orm.Task.
+• Accepts either a plain dict (decoded JSON-RPC) or a peagen.schemas.TaskRead.
 • Delegates all heavy-lifting to core.fetch_core.fetch_many().
 • Returns a lightweight JSON-serialisable summary.
 """
@@ -15,10 +15,10 @@ from typing import Any, Dict, List
 from . import ensure_task
 
 from peagen.core.fetch_core import fetch_many
-from peagen.orm import Task  # for type hints only
+from peagen.schemas import TaskRead
 
 
-async def fetch_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def fetch_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     """
     Parameters (in task.payload.args)
     ---------------------------------

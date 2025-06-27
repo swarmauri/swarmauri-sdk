@@ -4,7 +4,7 @@ Unified entry-point for “process” tasks.
 
 A worker (or a local CLI run) will pass in either:
   • a plain ``dict`` decoded from JSON-RPC, or
-  • a ``peagen.orm.Task`` instance.
+  • a ``peagen.schemas.TaskRead`` instance.
 
 The handler merges CLI-style overrides with ``.peagen.toml``,
 invokes the appropriate functions in **process_core**, and
@@ -25,16 +25,16 @@ from peagen.core.process_core import (
     process_single_project,
     process_all_projects,
 )
-from peagen.orm import Task  # noqa: F401 – used by type hints
+from peagen.schemas import TaskRead
 from . import ensure_task
 
 logger = Logger(name=__name__)
 
 
-async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def process_handler(task: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     """Main coroutine invoked by workers and synchronous CLI runs."""
     # ------------------------------------------------------------------ #
-    # 0) Normalise input – accept Task *or* plain dict
+    # 0) Normalise input – accept TaskRead *or* plain dict
     # ------------------------------------------------------------------ #
     canonical = ensure_task(task)
     payload: Dict[str, Any] = canonical.payload
