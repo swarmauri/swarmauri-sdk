@@ -21,9 +21,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..repo.git_reference import GitReference
-    from .raw_blob import RawBlob
+    from ..repo.git_reference import GitReferenceModel
+    from .raw_blob import RawBlobModel
 
+from ..repo.git_reference import GitReferenceModel
 from ..base import BaseModel
 
 
@@ -63,12 +64,12 @@ class TaskModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    git_reference: Mapped["GitReference | None"] = relationship(
-        "GitReference", lazy="selectin"
+    git_reference: Mapped[GitReferenceModel | None] = relationship(
+        "GitReferenceModel", lazy="selectin"
     )
 
-    raw_blobs: Mapped[list["RawBlob"]] = relationship(
-        "RawBlob",
+    raw_blobs: Mapped[list["RawBlobModel"]] = relationship(
+        "RawBlobModel",
         back_populates="task",
         cascade="all, delete-orphan",
         lazy="selectin",

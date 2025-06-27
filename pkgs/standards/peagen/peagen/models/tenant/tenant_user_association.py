@@ -16,8 +16,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .tenant import Tenant
-    from .user import User
+    from .tenant import TenantModel
+    from .user import UserModel
 
 from ..base import BaseModel
 
@@ -53,11 +53,11 @@ class TenantUserAssociationModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    tenant: Mapped["Tenant"] = relationship(
-        "Tenant", back_populates="user_associations", lazy="selectin"
+    tenant: Mapped["TenantModel"] = relationship(
+        "TenantModel", back_populates="user_associations", lazy="selectin"
     )
-    user: Mapped["User"] = relationship(
-        "User", back_populates="tenant_associations", lazy="selectin"
+    user: Mapped["UserModel"] = relationship(
+        "UserModel", back_populates="tenant_associations", lazy="selectin"
     )
 
     # ─────────────────────── Magic ───────────────────────────

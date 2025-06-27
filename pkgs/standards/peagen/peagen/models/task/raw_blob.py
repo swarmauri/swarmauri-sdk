@@ -22,7 +22,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .task import Task
+    from .task import TaskModel
 
 from ..base import BaseModel
 
@@ -60,8 +60,8 @@ class RawBlobModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    task: Mapped["Task"] = relationship(
-        "Task", back_populates="raw_blobs", lazy="selectin"
+    task: Mapped["TaskModel"] = relationship(
+        "TaskModel", back_populates="raw_blobs", lazy="selectin"
     )
 
     # ─────────────────────── Magic ───────────────────────────

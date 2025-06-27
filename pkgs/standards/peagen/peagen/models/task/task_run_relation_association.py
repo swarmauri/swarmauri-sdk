@@ -14,8 +14,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .task_run import TaskRun
-    from .task_relation import TaskRelation
+    from .task_run import TaskRunModel
+    from .task_relation import TaskRelationModel
 
 from ..base import BaseModel
 
@@ -41,11 +41,11 @@ class TaskRunTaskRelationAssociationModel(BaseModel):
     )
 
     # ───────────── Relationships ────────────────
-    task_run: Mapped["TaskRun"] = relationship(
-        "TaskRun", back_populates="relation_associations", lazy="selectin"
+    task_run: Mapped["TaskRunModel"] = relationship(
+        "TaskRunModel", back_populates="relation_associations", lazy="selectin"
     )
-    relation: Mapped["TaskRelation"] = relationship(
-        "TaskRelation", back_populates="task_associations", lazy="selectin"
+    relation: Mapped["TaskRelationModel"] = relationship(
+        "TaskRelationModel", back_populates="task_associations", lazy="selectin"
     )
 
     # ─────────────────── Magic ───────────────────

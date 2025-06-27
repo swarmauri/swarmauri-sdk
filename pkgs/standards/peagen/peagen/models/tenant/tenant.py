@@ -15,9 +15,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .tenant_user_association import TenantUserAssociation
-    from .user import User
-    from ..repo.repository import Repository
+    from .tenant_user_association import TenantUserAssociationModel
+    from .user import UserModel
+    from ..repo.repository import RepositoryModel
 
 # Import at runtime so SQLAlchemy can resolve the relationship target
 
@@ -44,23 +44,23 @@ class TenantModel(BaseModel):
 
     # ──────────────────── Relationships ──────────────────────
     # full association rows (contains role etc.)
-    user_associations: Mapped[list["TenantUserAssociation"]] = relationship(
-        "TenantUserAssociation",
+    user_associations: Mapped[list["TenantUserAssociationModel"]] = relationship(
+        "TenantUserAssociationModel",
         back_populates="tenant",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
     # convenience: direct list of members via the association table
-    members: Mapped[list["User"]] = relationship(
-        "User",
+    members: Mapped[list["UserModel"]] = relationship(
+        "UserModel",
         secondary="tenant_user_associations",
         viewonly=True,
         lazy="selectin",
     )
 
-    repositories: Mapped[list["Repository"]] = relationship(
-        "Repository",
+    repositories: Mapped[list["RepositoryModel"]] = relationship(
+        "RepositoryModel",
         back_populates="tenant",
         cascade="all, delete-orphan",
         lazy="selectin",

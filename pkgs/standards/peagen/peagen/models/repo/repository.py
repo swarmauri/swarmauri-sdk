@@ -24,12 +24,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
-    from .git_reference import GitReference
-    from .repository_deploy_key_association import RepositoryDeployKeyAssociation
-    from .deploy_key import DeployKey
-    from .repository_user_association import RepositoryUserAssociation
-    from ..config.peagen_toml_spec import PeagenTomlSpec
+    from ..tenant.tenant import TenantModel
+    from .git_reference import GitReferenceModel
+    from .repository_deploy_key_association import RepositoryDeployKeyAssociationModel
+    from .deploy_key import DeployKeyModel
+    from .repository_user_association import RepositoryUserAssociationModel
+    from ..config.peagen_toml_spec import PeagenTomlSpecModel
 
 # Import at runtime so SQLAlchemy can resolve relationship targets
 
@@ -62,42 +62,42 @@ class RepositoryModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    tenant: Mapped["Tenant"] = relationship(
-        "Tenant", lazy="selectin", back_populates="repositories"
+    tenant: Mapped["TenantModel"] = relationship(
+        "TenantModel", lazy="selectin", back_populates="repositories"
     )
 
-    git_references: Mapped[list["GitReference"]] = relationship(
-        "GitReference",
+    git_references: Mapped[list["GitReferenceModel"]] = relationship(
+        "GitReferenceModel",
         back_populates="repository",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    deploy_key_associations: Mapped[list["RepositoryDeployKeyAssociation"]] = (
+    deploy_key_associations: Mapped[list["RepositoryDeployKeyAssociationModel"]] = (
         relationship(
-            "RepositoryDeployKeyAssociation",
+            "RepositoryDeployKeyAssociationModel",
             back_populates="repository",
             cascade="all, delete-orphan",
             lazy="selectin",
         )
     )
 
-    toml_specs: Mapped[list["PeagenTomlSpec"]] = relationship(
-        "PeagenTomlSpec",
+    toml_specs: Mapped[list["PeagenTomlSpecModel"]] = relationship(
+        "PeagenTomlSpecModel",
         back_populates="repository",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    deploy_keys: Mapped[list["DeployKey"]] = relationship(
-        "DeployKey",
+    deploy_keys: Mapped[list["DeployKeyModel"]] = relationship(
+        "DeployKeyModel",
         secondary="repository_deploy_key_associations",
         back_populates="repositories",
         lazy="selectin",
     )
 
-    user_associations: Mapped[list["RepositoryUserAssociation"]] = relationship(
-        "RepositoryUserAssociation",
+    user_associations: Mapped[list["RepositoryUserAssociationModel"]] = relationship(
+        "RepositoryUserAssociationModel",
         back_populates="repository",
         cascade="all, delete-orphan",
         lazy="selectin",

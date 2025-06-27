@@ -20,9 +20,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
-    from .task_run_relation_association import TaskRunTaskRelationAssociation
-    from .task_run import TaskRun
+    from ..tenant.tenant import TenantModel
+    from .task_run_relation_association import TaskRunTaskRelationAssociationModel
+    from .task_run import TaskRunModel
 
 from ..base import BaseModel
 
@@ -54,17 +54,19 @@ class TaskRelationModel(BaseModel):
     )
 
     # ───────────── Relationships ────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
-    task_associations: Mapped[list["TaskRunTaskRelationAssociation"]] = relationship(
-        "TaskRunTaskRelationAssociation",
-        back_populates="relation",
-        cascade="all, delete-orphan",
-        lazy="selectin",
+    task_associations: Mapped[list["TaskRunTaskRelationAssociationModel"]] = (
+        relationship(
+            "TaskRunTaskRelationAssociationModel",
+            back_populates="relation",
+            cascade="all, delete-orphan",
+            lazy="selectin",
+        )
     )
 
-    task_runs: Mapped[list["TaskRun"]] = relationship(
-        "TaskRun",
+    task_runs: Mapped[list["TaskRunModel"]] = relationship(
+        "TaskRunModel",
         secondary="task_run_task_relation_associations",
         viewonly=True,
         lazy="selectin",
