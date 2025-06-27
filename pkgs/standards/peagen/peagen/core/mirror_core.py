@@ -15,6 +15,7 @@ import httpx
 from git import Repo
 
 from peagen.plugins import PluginManager
+from peagen import defaults
 
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
     from peagen.plugins.vcs import GitVCS
@@ -32,7 +33,7 @@ def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) ->
     **kwargs:
         Additional options forwarded to :class:`GitVCS`.
     """
-    pm = PluginManager({})
+    pm = PluginManager(defaults.CONFIG)
     GitVCS = pm.get("vcs")
     return GitVCS(
         path,
@@ -48,7 +49,7 @@ def ensure_repo(
     path: str | Path, remote_url: str | None = None, **kwargs: Any
 ) -> GitVCS:
     """Initialise ``path`` if needed and return a :class:`GitVCS`."""
-    pm = PluginManager({})
+    pm = PluginManager(defaults.CONFIG)
     GitVCS = pm.get("vcs")
     return GitVCS(
         path,
