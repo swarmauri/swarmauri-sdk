@@ -73,6 +73,12 @@ dependencies = [
     "pygit2",
     "s3fs",
     "pytest-monitor>=1.6.6",
+
+
+    #core
+    "fcntl"
+
+
 ]
 
 
