@@ -101,7 +101,7 @@ cd pkgs/standards/peagen
 pip install .
 
 peagen --help
-````
+```
 
 ### Executing `peagen --help`
 
