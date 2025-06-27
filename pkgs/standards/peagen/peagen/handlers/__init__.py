@@ -8,7 +8,7 @@ from peagen.schemas import TaskRead
 
 
 def ensure_task(task: TaskRead | Dict[str, Any]) -> TaskRead:
-    """Return ``task`` as a :class:`~peagen.orm.Task` instance."""
+    """Return ``task`` as a :class:`~peagen.schemas.TaskRead` instance."""
 
     if isinstance(task, TaskRead):
         return task
