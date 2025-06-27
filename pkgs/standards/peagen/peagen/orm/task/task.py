@@ -84,20 +84,3 @@ class TaskModel(BaseModel):
             f"git_ref={self.git_reference_id or '∅'}>"
         )
 
-
-class Task(PydanticModel):
-    """Lightweight task schema used by CLI and gateway."""
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    pool: str = "default"
-    payload: dict = Field(default_factory=dict)
-    relations: list[str] = Field(default_factory=list)
-    deps: list[str] = Field(default_factory=list)
-    edge_pred: str | None = None
-    labels: list[str] = Field(default_factory=list)
-    in_degree: int = 0
-    config_toml: str | None = None
-    status: Status = Status.waiting
-    result: dict | None = None
-    commit_hexsha: str | None = None
-    oids: list[str] = Field(default_factory=list)
