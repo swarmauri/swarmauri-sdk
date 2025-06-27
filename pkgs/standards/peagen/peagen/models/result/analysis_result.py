@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class AnalysisResult(BaseModel):
+class AnalysisResultModel(BaseModel):
     """
     Qualitative or extended quantitative analysis of an EvalResult.
     """
@@ -67,3 +67,6 @@ class AnalysisResult(BaseModel):
     # ───────────────────── Magic ───────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AnalysisResult id={self.id} eval={self.eval_result_id}>"
+
+
+AnalysisResult = AnalysisResultModel

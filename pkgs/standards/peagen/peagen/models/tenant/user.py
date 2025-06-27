@@ -27,7 +27,7 @@ from ..security.public_key import PublicKey
 from ..base import BaseModel
 
 
-class User(BaseModel):
+class UserModel(BaseModel):
     """
     A globally unique user who may join any number of tenant workspaces.
     """
@@ -73,3 +73,6 @@ class User(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<User username={self.username!r} email={self.email!r}>"
+
+
+User = UserModel

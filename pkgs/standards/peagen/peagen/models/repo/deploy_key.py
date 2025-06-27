@@ -33,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class DeployKey(BaseModel):
+class DeployKeyModel(BaseModel):
     """SSH deploy key bound to a user."""
 
     __tablename__ = "deploy_keys"
@@ -86,3 +86,6 @@ class DeployKey(BaseModel):
     def __repr__(self) -> str:  # pragma: no cover
         scope = "RO" if self.read_only else "RW"
         return f"<DeployKey user={self.user_id} name={self.name!r} {scope}>"
+
+
+DeployKey = DeployKeyModel

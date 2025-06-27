@@ -27,7 +27,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class Task(BaseModel):
+class TaskModel(BaseModel):
     """
     Domain-level description of a Task’s inputs.
 
@@ -80,3 +80,6 @@ class Task(BaseModel):
             f"<Task id={self.id} tenant={self.tenant_id} "
             f"git_ref={self.git_reference_id or '∅'}>"
         )
+
+
+Task = TaskModel

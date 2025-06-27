@@ -36,7 +36,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class Repository(BaseModel):
+class RepositoryModel(BaseModel):
     """
     Represents a Git repository mirrored or managed by Peagen.
     """
@@ -106,3 +106,6 @@ class Repository(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Repository tenant_id={self.tenant_id} name={self.name!r}>"
+
+
+Repository = RepositoryModel

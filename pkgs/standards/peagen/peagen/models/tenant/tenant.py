@@ -24,7 +24,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel  # id, date_created, last_modified mixins
 
 
-class Tenant(BaseModel):
+class TenantModel(BaseModel):
     """
     Represents an organizational boundary (company, team, project-space).
 
@@ -69,3 +69,6 @@ class Tenant(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Tenant slug={self.slug!r} name={self.name!r}>"
+
+
+Tenant = TenantModel

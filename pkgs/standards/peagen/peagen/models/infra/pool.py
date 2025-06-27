@@ -28,7 +28,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class Pool(BaseModel):
+class PoolModel(BaseModel):
     """
     Compute / execution pool definition.
     """
@@ -93,3 +93,6 @@ class Pool(BaseModel):
             f"<Pool id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} capacity={self.capacity}>"
         )
+
+
+Pool = PoolModel

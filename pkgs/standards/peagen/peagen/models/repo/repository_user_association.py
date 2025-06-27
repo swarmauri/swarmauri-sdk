@@ -26,7 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class RepositoryUserAssociation(BaseModel):
+class RepositoryUserAssociationModel(BaseModel):
     __tablename__ = "repository_user_associations"
 
     # ──────────────────────── Columns ────────────────────────
@@ -64,3 +64,6 @@ class RepositoryUserAssociation(BaseModel):
             f"<RepositoryUserAssociation repo_id={self.repository_id} "
             f"user_id={self.user_id} role={self.role!r}>"
         )
+
+
+RepositoryUserAssociation = RepositoryUserAssociationModel

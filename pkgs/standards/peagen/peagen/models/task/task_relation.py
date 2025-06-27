@@ -27,7 +27,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class TaskRelation(BaseModel):
+class TaskRelationModel(BaseModel):
     """
     A named relation / tag that can be attached to many TaskRuns.
     """
@@ -73,3 +73,6 @@ class TaskRelation(BaseModel):
     # ─────────────────── Magic ───────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TaskRelation id={self.id} tenant={self.tenant_id} name={self.name!r}>"
+
+
+TaskRelation = TaskRelationModel

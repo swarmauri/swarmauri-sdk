@@ -33,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class ProjectPayload(BaseModel):
+class ProjectPayloadModel(BaseModel):
     """
     A workspace-level project definition (packages, datasets, resources …).
     """
@@ -97,3 +97,6 @@ class ProjectPayload(BaseModel):
             f"<ProjectPayload id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
+
+
+ProjectPayload = ProjectPayloadModel

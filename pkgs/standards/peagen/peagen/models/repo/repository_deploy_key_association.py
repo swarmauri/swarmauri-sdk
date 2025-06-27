@@ -23,7 +23,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class RepositoryDeployKeyAssociation(BaseModel):
+class RepositoryDeployKeyAssociationModel(BaseModel):
     """Associates a deploy key with a repository."""
 
     __tablename__ = "repository_deploy_key_associations"
@@ -58,3 +58,6 @@ class RepositoryDeployKeyAssociation(BaseModel):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<RepositoryDeployKeyAssociation repo={self.repository_id} key={self.deploy_key_id}>"
+
+
+RepositoryDeployKeyAssociation = RepositoryDeployKeyAssociationModel

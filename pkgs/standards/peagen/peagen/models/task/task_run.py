@@ -34,7 +34,7 @@ from .status import Status
 from ..task import Task
 
 
-class TaskRun(BaseModel):
+class TaskRunModel(BaseModel):
     """
     One execution attempt of a Task on a Worker.
     """
@@ -138,3 +138,6 @@ class TaskRun(BaseModel):
         tr.commit_hexsha = task.commit_hexsha
         tr.oids = task.oids
         return tr
+
+
+TaskRun = TaskRunModel

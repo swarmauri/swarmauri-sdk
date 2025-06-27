@@ -26,7 +26,7 @@ from ..tenant.tenant import Tenant
 from ..base import BaseModel
 
 
-class PeagenTomlSpec(BaseModel):
+class PeagenTomlSpecModel(BaseModel):
     """
     Parsed & raw representation of a `.peagen.toml` file.
     """
@@ -89,3 +89,6 @@ class PeagenTomlSpec(BaseModel):
             f"<PeagenTomlSpec id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
+
+
+PeagenTomlSpec = PeagenTomlSpecModel

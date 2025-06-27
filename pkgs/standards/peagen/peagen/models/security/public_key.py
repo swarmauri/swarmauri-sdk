@@ -50,7 +50,7 @@ class KeyType(str, enum.Enum):
     pgp = "pgp"  # ASCII-armored PGP public key
 
 
-class PublicKey(BaseModel):
+class PublicKeyModel(BaseModel):
     """
     Public key linked to a user identity.
     """
@@ -120,3 +120,6 @@ class PublicKey(BaseModel):
             f"<PublicKey id={self.id} user={self.user_id} "
             f"type={self.key_type} status={status}>"
         )
+
+
+PublicKey = PublicKeyModel
