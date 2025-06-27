@@ -13,10 +13,10 @@ from peagen import defaults
 import typer
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
-from ._banner import _print_banner
+from peagen.cli._banner import _print_banner
 
 # ─── Sub-command apps ──────────────────────────────────────────────────────
-from .commands import (
+from peagen.cli.commands import (
     local_doe_app,
     local_eval_app,
     local_extras_app,
