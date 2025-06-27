@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Callable, Dict
 
-from .schemas import RPCError
+from peagen.transport.schemas import RPCError
 
 
 class RPCException(Exception):
