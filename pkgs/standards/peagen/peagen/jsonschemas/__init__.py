@@ -1,20 +1,26 @@
-<<<<<<<< HEAD:pkgs/standards/peagen/peagen/jsonschemas/__init__.py
-# peagen/jsonschemas/__init__.py
-"""Expose Peagen JSON Schemas as Python dicts."""
-========
-"""Deprecated access point for JSON Schemas."""
->>>>>>>> coby/peagenv2-add_schemas_06_25_25:pkgs/standards/peagen/peagen/schemas/__init__.py
+"""Expose Peagen JSON Schemas as Python dictionaries."""
 
 from __future__ import annotations
 
-import warnings
+import json
+from importlib.resources import files
+from typing import List
 
-from peagen.jsonschemas import *  # noqa: F401,F403
+__all__: List[str] = []
 
-warnings.warn(
-    "peagen.schemas is deprecated; use peagen.jsonschemas instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
+_pkg_files = files(__name__)
 
-__all__ = [name for name in globals() if name.isupper()]
+for _path in _pkg_files.rglob("*.json"):
+    if _path.name == "__init__.py":
+        continue
+    name_part, version_part_json = _path.name.split(".schema.")
+    version_part = version_part_json[: -len(".json")]
+    const_name = (
+        f"{name_part.upper().replace('-', '_')}"
+        f"_{version_part.upper().replace('.', '_')}_SCHEMA"
+    )
+    with _path.open("r", encoding="utf-8") as f:
+        globals()[const_name] = json.load(f)
+    __all__.append(const_name)
+
+__all__.sort()
