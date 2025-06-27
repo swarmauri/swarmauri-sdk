@@ -14,6 +14,11 @@ import uuid
 from sqlalchemy import UniqueConstraint, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .repository import Repository
+    from .deploy_key import DeployKey
 
 from ..base import BaseModel
 

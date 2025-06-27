@@ -17,6 +17,11 @@ import uuid
 from sqlalchemy import JSON, String, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..task.task_run import TaskRun
+    from .analysis_result import AnalysisResult
 
 from ..base import BaseModel
 
