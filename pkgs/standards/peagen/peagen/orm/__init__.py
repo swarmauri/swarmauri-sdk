@@ -29,6 +29,7 @@ from .tenant.tenant_user_association import (  # noqa: F401
 # ----------------------------------------------------------------------
 from .repo.repository import RepositoryModel  # noqa: F401
 from .repo.git_reference import GitReferenceModel  # noqa: F401
+from .repo.git_mirror import GitMirrorModel  # noqa: F401
 from .repo.deploy_key import DeployKeyModel  # noqa: F401
 from .repo.repository_deploy_key_association import (  # noqa: F401
     RepositoryDeployKeyAssociationModel,
