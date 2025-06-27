@@ -4,7 +4,7 @@ Unified entry-point for “process” tasks.
 
 A worker (or a local CLI run) will pass in either:
   • a plain ``dict`` decoded from JSON-RPC, or
-  • a ``peagen.models.Task`` instance.
+  • a ``peagen.orm.Task`` instance.
 
 The handler merges CLI-style overrides with ``.peagen.toml``,
 invokes the appropriate functions in **process_core**, and

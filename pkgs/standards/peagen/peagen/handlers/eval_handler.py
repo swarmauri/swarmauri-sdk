@@ -3,7 +3,7 @@
 Async task-handler for “eval” jobs.
 
 The worker runtime (or a local CLI run) calls this coroutine with
-either a plain dict (decoded JSON-RPC) or a peagen.models.Task object.
+either a plain dict (decoded JSON-RPC) or a peagen.orm.Task object.
 
 Returns a JSON-serialisable mapping:
   { "report": {…}, "strict_failed": bool }
