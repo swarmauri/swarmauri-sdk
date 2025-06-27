@@ -80,5 +80,4 @@ for _name in model_names:
     ]
 
 # Explicit exports for common task schemas
-if "TaskRead" in globals():
-    __all__.extend(["TaskRead", "TaskCreate", "TaskUpdate"])
+__all__.extend(["TaskRead", "TaskCreate", "TaskUpdate"])
