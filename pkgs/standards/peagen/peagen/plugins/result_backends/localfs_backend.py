@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from peagen.orm.task.task_run import TaskRun
+from peagen.orm import TaskRun
 from .base import ResultBackendBase
 
 

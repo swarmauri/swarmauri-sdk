@@ -1,7 +1,6 @@
 import pytest
 
-from peagen.orm.task.task import Task
-from peagen.orm.task.task_run import TaskRun
+from peagen.orm import Task, TaskRun
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
 

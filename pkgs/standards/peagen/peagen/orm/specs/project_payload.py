@@ -97,6 +97,3 @@ class ProjectPayloadModel(BaseModel):
             f"<ProjectPayload id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
-
-
-ProjectPayload = ProjectPayloadModel

@@ -51,6 +51,3 @@ class TaskRunTaskRelationAssociationModel(BaseModel):
     # ─────────────────── Magic ───────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TaskRunTaskRelationAssociation run={self.task_run_id} rel={self.relation_id}>"
-
-
-TaskRunTaskRelationAssociation = TaskRunTaskRelationAssociationModel

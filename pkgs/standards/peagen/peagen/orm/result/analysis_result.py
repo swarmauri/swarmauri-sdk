@@ -67,6 +67,3 @@ class AnalysisResultModel(BaseModel):
     # ───────────────────── Magic ───────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AnalysisResult id={self.id} eval={self.eval_result_id}>"
-
-
-AnalysisResult = AnalysisResultModel

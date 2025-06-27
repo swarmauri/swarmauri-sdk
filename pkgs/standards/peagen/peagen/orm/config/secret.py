@@ -80,6 +80,3 @@ class SecretModel(BaseModel):
             f"<Secret id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} owner={self.owner_user_id or '∅'}>"
         )
-
-
-Secret = SecretModel

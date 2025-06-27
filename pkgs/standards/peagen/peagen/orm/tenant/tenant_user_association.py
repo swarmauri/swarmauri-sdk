@@ -66,6 +66,3 @@ class TenantUserAssociationModel(BaseModel):
             f"<TenantUserAssociation tenant_id={self.tenant_id} "
             f"user_id={self.user_id} role={self.role!r}>"
         )
-
-
-TenantUserAssociation = TenantUserAssociationModel

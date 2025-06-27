@@ -120,6 +120,3 @@ class PublicKeyModel(BaseModel):
             f"<PublicKey id={self.id} user={self.user_id} "
             f"type={self.key_type} status={status}>"
         )
-
-
-PublicKey = PublicKeyModel

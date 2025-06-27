@@ -106,6 +106,3 @@ class RepositoryModel(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Repository tenant_id={self.tenant_id} name={self.name!r}>"
-
-
-Repository = RepositoryModel

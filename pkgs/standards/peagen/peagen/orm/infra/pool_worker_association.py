@@ -80,6 +80,3 @@ class PoolWorkerAssociationModel(BaseModel):
             f"<PoolWorkerAssociation pool={self.pool_id} "
             f"worker={self.worker_id} status={self.status}>"
         )
-
-
-PoolWorkerAssociation = PoolWorkerAssociationModel

@@ -67,6 +67,3 @@ class GitReferenceModel(BaseModel):
             f"<GitReference repo_id={self.repository_id} "
             f"name={self.name!r} sha={self.commit_sha or '…'}>"
         )
-
-
-GitReference = GitReferenceModel

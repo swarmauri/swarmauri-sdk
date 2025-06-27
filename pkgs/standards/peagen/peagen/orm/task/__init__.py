@@ -1,11 +1,14 @@
-from .task import TaskModel, Task
-from .task_run import TaskRunModel, TaskRun
-from .task_relation import TaskRelationModel, TaskRelation
-from .task_run_relation_association import (
-    TaskRunTaskRelationAssociationModel,
-    TaskRunTaskRelationAssociation,
-)
-from .raw_blob import RawBlobModel, RawBlob
+from .task import TaskModel
+from .task_run import TaskRunModel
+from .task_relation import TaskRelationModel
+from .task_run_relation_association import TaskRunTaskRelationAssociationModel
+from .raw_blob import RawBlobModel
+
+Task = TaskModel
+TaskRun = TaskRunModel
+TaskRelation = TaskRelationModel
+TaskRunTaskRelationAssociation = TaskRunTaskRelationAssociationModel
+RawBlob = RawBlobModel
 
 __all__ = [
     "TaskModel",

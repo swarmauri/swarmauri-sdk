@@ -74,6 +74,3 @@ class UserModel(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<User username={self.username!r} email={self.email!r}>"
-
-
-User = UserModel

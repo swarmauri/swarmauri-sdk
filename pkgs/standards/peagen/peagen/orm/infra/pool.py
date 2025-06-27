@@ -93,6 +93,3 @@ class PoolModel(BaseModel):
             f"<Pool id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} capacity={self.capacity}>"
         )
-
-
-Pool = PoolModel

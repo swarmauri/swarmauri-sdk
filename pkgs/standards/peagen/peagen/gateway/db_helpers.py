@@ -12,8 +12,8 @@ from peagen.orm import (
     TaskRun,
     TaskRunTaskRelationAssociation,
 )
-from peagen.orm.config.secret import Secret
-from peagen.orm.AbuseRecord import AbuseRecord
+from peagen.orm import Secret
+from peagen.orm import AbuseRecord
 
 log = Logger(name="upsert")
 

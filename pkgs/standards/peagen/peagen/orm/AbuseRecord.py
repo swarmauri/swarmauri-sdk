@@ -21,6 +21,3 @@ class AbuseRecordModel(Base):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AbuseRecord ip={self.ip!r} count={self.count} banned={self.banned}>"
-
-
-AbuseRecord = AbuseRecordModel

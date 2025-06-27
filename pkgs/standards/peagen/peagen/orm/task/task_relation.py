@@ -75,6 +75,3 @@ class TaskRelationModel(BaseModel):
     # ─────────────────── Magic ───────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TaskRelation id={self.id} tenant={self.tenant_id} name={self.name!r}>"
-
-
-TaskRelation = TaskRelationModel

@@ -7,7 +7,7 @@ from peagen.plugins.selectors import (
     InputSelector,
 )
 from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend
-from peagen.orm.task.task_run import TaskRun
+from peagen.orm import TaskRun
 from peagen.orm.status import Status
 
 

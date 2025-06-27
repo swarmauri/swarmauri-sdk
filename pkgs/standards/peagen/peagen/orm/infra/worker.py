@@ -124,6 +124,3 @@ class WorkerModel(BaseModel):
             f"<Worker id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} status={self.status}>"
         )
-
-
-Worker = WorkerModel

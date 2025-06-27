@@ -64,6 +64,3 @@ class RepositoryUserAssociationModel(BaseModel):
             f"<RepositoryUserAssociation repo_id={self.repository_id} "
             f"user_id={self.user_id} role={self.role!r}>"
         )
-
-
-RepositoryUserAssociation = RepositoryUserAssociationModel
