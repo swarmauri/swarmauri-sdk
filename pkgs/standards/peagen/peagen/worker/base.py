@@ -19,7 +19,7 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
 from peagen.handlers import ensure_task
-from peagen.models.schemas import TaskRead
+from peagen.schemas import TaskRead
 
 
 # ──────────────────────────── utils  ────────────────────────────

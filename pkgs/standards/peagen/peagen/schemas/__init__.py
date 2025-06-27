@@ -4,6 +4,7 @@
 from __future__ import annotations
 import json
 import importlib.resources as res
+from ..models import schemas as _pyd_schemas
 
 
 PEAGEN_TOML_V1_SCHEMA = json.loads(
@@ -96,3 +97,11 @@ __all__ = [
     "LLM_PATCH_V1_SCHEMA",
     "EXTRAS_SCHEMAS",
 ]
+
+# ---------------------------------------------------------------------------
+# Pydantic models previously in ``peagen.models.schemas``
+# ---------------------------------------------------------------------------
+for _name in getattr(_pyd_schemas, "__all__", []):
+    globals()[_name] = getattr(_pyd_schemas, _name)
+
+__all__ += list(getattr(_pyd_schemas, "__all__", []))
