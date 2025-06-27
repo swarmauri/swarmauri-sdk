@@ -10,7 +10,7 @@ from jsonschema import Draft7Validator
 from peagen._utils._validation import _path
 
 from peagen._utils.config_loader import load_peagen_toml
-from peagen.schemas import (
+from peagen.jsonschemas import (
     PEAGEN_TOML_V1_SCHEMA,
     DOE_SPEC_V2_SCHEMA,
     PTREE_V1_SCHEMA,

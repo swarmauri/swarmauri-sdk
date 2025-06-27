@@ -32,7 +32,7 @@ async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         schemas_dir = (
             Path(args.get("schemas_dir")).expanduser()
             if args.get("schemas_dir")
-            else base / "schemas" / "extras"
+            else base / "jsonschemas" / "extras"
         )
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
@@ -47,7 +47,7 @@ async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     schemas_dir = (
         Path(args.get("schemas_dir")).expanduser()
         if args.get("schemas_dir")
-        else base / "schemas" / "extras"
+        else base / "jsonschemas" / "extras"
     )
 
     written = generate_schemas(templates_root, schemas_dir)

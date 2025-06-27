@@ -1,4 +1,4 @@
-# peagen/schemas/__init__.py
+# peagen/jsonschemas/__init__.py
 """Expose Peagen JSON Schemas as Python dicts."""
 
 from __future__ import annotations
