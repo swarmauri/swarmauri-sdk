@@ -1,20 +1,35 @@
-<<<<<<<< HEAD:pkgs/standards/peagen/peagen/jsonschemas/__init__.py
-# peagen/jsonschemas/__init__.py
 """Expose Peagen JSON Schemas as Python dicts."""
-========
-"""Deprecated access point for JSON Schemas."""
->>>>>>>> coby/peagenv2-add_schemas_06_25_25:pkgs/standards/peagen/peagen/schemas/__init__.py
 
 from __future__ import annotations
 
-import warnings
+import json
+from importlib import resources
+from typing import Any, Dict
 
-from peagen.jsonschemas import *  # noqa: F401,F403
+__all__: list[str] = []
 
-warnings.warn(
-    "peagen.schemas is deprecated; use peagen.jsonschemas instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
-__all__ = [name for name in globals() if name.isupper()]
+def _load_schema(rel: str) -> Dict[str, Any]:
+    with resources.files(__name__).joinpath(rel).open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+for _file in resources.files(__name__).iterdir():
+    if _file.suffix == ".json":
+        _stem = _file.stem  # e.g. doe_spec.schema.v1
+        try:
+            base, ver = _stem.split(".schema.")
+        except ValueError:
+            continue
+        const = f"{base.upper().replace('.', '_').replace('-', '_')}_{ver.upper().replace('.', '_')}_SCHEMA"
+        globals()[const] = _load_schema(_file.name)
+        __all__.append(const)
+
+_extras = resources.files(__name__).joinpath("extras")
+if _extras.is_dir():
+    for _file in _extras.iterdir():
+        if _file.suffix == ".json":
+            base, ver = _file.stem.split(".schema.")
+            const = f"{base.upper().replace('.', '_').replace('-', '_')}_{ver.upper().replace('.', '_')}_SCHEMA"
+            globals()[const] = _load_schema(f"extras/{_file.name}")
+            __all__.append(const)
