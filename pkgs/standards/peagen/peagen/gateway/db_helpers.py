@@ -8,10 +8,10 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 from peagen.orm import (
-    Status,
     TaskRun,
     TaskRunTaskRelationAssociation,
 )
+from peagen.orm.status import Status
 from peagen.orm.config.secret import Secret
 from peagen.orm.AbuseRecord import AbuseRecord
 

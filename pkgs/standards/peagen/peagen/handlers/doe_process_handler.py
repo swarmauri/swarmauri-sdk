@@ -10,7 +10,8 @@ import uuid
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.orm import Task, Status
+from peagen.orm import Task
+from peagen.orm.status import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
