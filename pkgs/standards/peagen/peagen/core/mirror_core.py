@@ -8,7 +8,7 @@ import os
 import hashlib
 import tempfile
 import shutil
-import fcntl
+from filelock import FileLock
 from contextlib import contextmanager
 import httpx
 
@@ -103,12 +103,9 @@ def repo_lock(repo_uri: str):
     lock_root = Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
     lock_root.mkdir(parents=True, exist_ok=True)
     lock_path = lock_root / f"{hashlib.sha1(repo_uri.encode()).hexdigest()}.lock"
-    with open(lock_path, "w") as fh:
-        fcntl.flock(fh, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(fh, fcntl.LOCK_UN)
+    lock = FileLock(lock_path)
+    with lock:
+        yield
 
 
 def add_git_worktree(repo: Repo, ref: str) -> Path:
