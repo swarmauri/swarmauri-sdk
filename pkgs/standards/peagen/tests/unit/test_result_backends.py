@@ -2,8 +2,8 @@ import json
 import uuid
 import pytest
 
-from peagen.models.task.task_run import TaskRun
-from peagen.models.task.status import Status
+from peagen.orm.task.task_run import TaskRun
+from peagen.orm.task.status import Status
 from peagen.plugins.result_backends.localfs_backend import LocalFsResultBackend
 from peagen.plugins.result_backends.postgres_backend import PostgresResultBackend
 from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend

@@ -7,13 +7,13 @@ from typing import Dict, Any
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
-from peagen.models import (
+from peagen.orm import (
     Status,
     TaskRun,
     TaskRunTaskRelationAssociation,
 )
-from peagen.models.config.secret import Secret
-from peagen.models.AbuseRecord import AbuseRecord
+from peagen.orm.config.secret import Secret
+from peagen.orm.AbuseRecord import AbuseRecord
 
 log = Logger(name="upsert")
 

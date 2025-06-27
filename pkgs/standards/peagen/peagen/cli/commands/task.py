@@ -11,7 +11,7 @@ import uuid
 import httpx
 import typer
 
-from peagen.models import Status
+from peagen.orm import Status
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
