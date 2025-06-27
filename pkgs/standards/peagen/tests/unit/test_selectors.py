@@ -7,7 +7,7 @@ from peagen.plugins.selectors import (
     InputSelector,
 )
 from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend
-from peagen.models.task_run import TaskRun, Status
+from peagen.models import TaskRun, Status
 
 
 @pytest.mark.unit

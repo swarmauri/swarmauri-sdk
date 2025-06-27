@@ -2,7 +2,7 @@ import asyncio
 import uuid
 import pytest
 
-from peagen.models.task_run import TaskRun, Status
+from peagen.models import TaskRun, Status
 from peagen.plugins.result_backends.localfs_backend import LocalFsResultBackend
 from peagen.plugins.result_backends.postgres_backend import PostgresResultBackend
 from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend
