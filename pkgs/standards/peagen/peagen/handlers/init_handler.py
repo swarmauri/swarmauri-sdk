@@ -14,11 +14,13 @@ from typing import Any, Dict
 
 from peagen.core import init_core
 from peagen.models import Task
+from . import ensure_task
 
 
 async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     """Dispatch to the correct init function based on ``kind``."""
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     kind = args.get("kind")
     if not kind:

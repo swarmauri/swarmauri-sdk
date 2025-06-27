@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
+from . import ensure_task
+
 from peagen.core.mutate_core import mutate_workspace
 from peagen.models import Task
 from peagen._utils.config_loader import resolve_cfg
@@ -14,7 +16,8 @@ from peagen.plugins.vcs import pea_ref
 
 
 async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")

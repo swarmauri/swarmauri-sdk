@@ -18,6 +18,8 @@ from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
+from peagen.models import Task
+from peagen.handlers import ensure_task
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -110,11 +112,12 @@ class WorkerBase:
         # 1) Work.start  →  on_work_start (async)
         @self.rpc.method("Work.start")
         async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
+            canonical = ensure_task(task)
             self.log.info(
-                "Work.start received    task=%s pool=%s", task.get("id"), self.POOL
+                "Work.start received    task=%s pool=%s", canonical.id, self.POOL
             )
             # Launch the real work in the background
-            asyncio.create_task(self._run_task(task))
+            asyncio.create_task(self._run_task(canonical))
             return {"accepted": True}
 
         # 2) Work.cancel → calls work_cancel (sync or async)
@@ -196,18 +199,11 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
-    async def _run_task(self, task: Dict[str, Any]) -> None:
-        """
-        Called when Work.start arrives (in on_work_start).
-        Will:
-          1) Look at payload["action"]
-          2) If not registered, immediately _notify failed
-          3) If registered, call handler(task) → result_dict
-          4) On success: _notify("success", taskId, result_dict)
-             On exception: _notify("failed", taskId, {"error": ...})
-        """
-        task_id = task.get("id")
-        payload = task.get("payload", {})
+    async def _run_task(self, task: Task | Dict[str, Any]) -> None:
+        """Execute *task* by dispatching to a registered handler."""
+        canonical = ensure_task(task)
+        task_id = canonical.id
+        payload = canonical.payload
         action = payload.get("action")
         args = payload.get("args", {})
 
@@ -228,7 +224,7 @@ class WorkerBase:
         await self._notify("running", task_id)
 
         try:
-            result: Dict[str, Any] = await handler(task)
+            result: Dict[str, Any] = await handler(canonical)
             try:
                 cfg = resolve_cfg()
                 pm = PluginManager(cfg)

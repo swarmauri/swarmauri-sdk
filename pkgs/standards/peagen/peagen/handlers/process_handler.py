@@ -26,6 +26,7 @@ from peagen.core.process_core import (
     process_all_projects,
 )
 from peagen.models import Task, Status  # noqa: F401 – used by type hints
+from . import ensure_task
 
 logger = Logger(name=__name__)
 
@@ -35,7 +36,8 @@ async def process_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     # ------------------------------------------------------------------ #
     # 0) Normalise input – accept Task *or* plain dict
     # ------------------------------------------------------------------ #
-    payload: Dict[str, Any] = task.get("payload", {})
+    canonical = ensure_task(task)
+    payload: Dict[str, Any] = canonical.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
     # Mandatory flag

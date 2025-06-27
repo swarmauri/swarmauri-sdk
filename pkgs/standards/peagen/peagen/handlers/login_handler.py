@@ -7,11 +7,13 @@ from typing import Any, Dict, Optional
 
 from peagen.core.login_core import login
 from peagen.models import Task
+from . import ensure_task
 
 
 async def login_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:
     """Handle a login task."""
-    payload = task.get("payload", {})
+    task = ensure_task(task)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     key_dir = args.get("key_dir")
     passphrase: Optional[str] = args.get("passphrase")
