@@ -1,4 +1,5 @@
 from peagen.transport.jsonrpc import RPCDispatcher
+
 from peagen.transport.schemas import (
     RPCRequest,
     RPCResponse,

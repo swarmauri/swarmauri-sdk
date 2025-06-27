@@ -26,7 +26,8 @@ from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
-from peagen.orm import Base, Status, Task
+from peagen.orm import Base, Task
+from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRun
 
@@ -57,6 +58,7 @@ from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
+from peagen.services import create_task, get_task, update_task
 
 _db = reload(_db)
 engine = _db.engine
@@ -327,7 +329,31 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
     try:
         log.info("persisting task %s", task.id)
         orm_task = task if isinstance(task, TaskModel) else to_orm(task)
-        await result_backend.store(TaskRun.from_task(orm_task))
+        if result_backend:
+            await result_backend.store(TaskRun.from_task(orm_task))
+        async with Session() as session:
+            existing = await get_task(session, orm_task.id)
+            if existing:
+                await update_task(
+                    session,
+                    orm_task.id,
+                    TaskUpdate(
+                        git_reference_id=orm_task.git_reference_id,
+                        parameters=orm_task.parameters,
+                        note=orm_task.note or "",
+                    ),
+                )
+            else:
+                await create_task(
+                    session,
+                    TaskCreate(
+                        id=orm_task.id,
+                        tenant_id=orm_task.tenant_id,
+                        git_reference_id=orm_task.git_reference_id,
+                        parameters=orm_task.parameters,
+                        note=orm_task.note or "",
+                    ),
+                )
     except Exception as e:
         log.warning(f"_persist error '{e}'")
 

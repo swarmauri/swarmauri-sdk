@@ -5,7 +5,7 @@ import pytest
 import typer
 
 from peagen.cli.commands import fetch
-from peagen.orm import Status
+from peagen.orm.status import Status
 
 
 @pytest.mark.unit

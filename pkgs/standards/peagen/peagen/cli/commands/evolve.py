@@ -12,14 +12,15 @@ import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.orm import Status, Task
+from peagen.orm import Task
+from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict, pool: str) -> Task:
+def _build_task(args: dict, pool: str = "default") -> Task:
     return Task(
         id=str(uuid.uuid4()),
         pool=pool,

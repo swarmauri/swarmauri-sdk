@@ -215,5 +215,3 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
   "migrations/**",
 ]
 
-[tool.setuptools.packages.find]
-include = ["peagen", "peagen.*"]

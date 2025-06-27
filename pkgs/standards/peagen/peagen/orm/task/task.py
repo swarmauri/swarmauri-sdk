@@ -26,6 +26,8 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 
 from ..repo.git_reference import GitReferenceModel
 from ..base import BaseModel
+from pydantic import BaseModel as PydanticModel, Field
+from .status import Status
 
 
 class TaskModel(BaseModel):
