@@ -18,8 +18,8 @@ from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
-from peagen.models import Task
 from peagen.handlers import ensure_task
+from peagen.models.schemas import TaskRead
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -199,7 +199,7 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
-    async def _run_task(self, task: Task | Dict[str, Any]) -> None:
+    async def _run_task(self, task: TaskRead | Dict[str, Any]) -> None:
         """Execute *task* by dispatching to a registered handler."""
         canonical = ensure_task(task)
         task_id = canonical.id
