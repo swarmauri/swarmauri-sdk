@@ -26,9 +26,10 @@ from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
-from peagen.orm import Base, Status, Task
-from peagen.models.schemas import TaskRead
-from peagen.orm.task.task_run import TaskRun
+from peagen.models import Base, Status, Task
+from peagen.models.schemas import TaskRead, TaskCreate, TaskUpdate
+from peagen.models.task.task import TaskModel
+from peagen.models.task.task_run import TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
@@ -263,6 +264,20 @@ def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
 
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
+
+
+def to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    return TaskModel(**data.model_dump())
+
+
+def to_schema(row: TaskModel) -> TaskRead:
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    return TaskRead.from_orm(row)
+
+
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
@@ -307,10 +322,13 @@ async def _select_tasks(selector: str) -> list[TaskRead]:
 # ──────────────────────   Results Backend ────────────────────────
 
 
-async def _persist(task: Task) -> None:
+async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
+    """Persist a task to the results backend."""
+
     try:
         log.info("persisting task %s", task.id)
-        await result_backend.store(TaskRun.from_task(task))
+        orm_task = task if isinstance(task, TaskModel) else to_orm(task)
+        await result_backend.store(TaskRun.from_task(orm_task))
     except Exception as e:
         log.warning(f"_persist error '{e}'")
 
