@@ -29,8 +29,7 @@ from peagen.transport.jsonrpc import RPCException
 from peagen.orm import Base, Task
 from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
-from peagen.orm.task.task import TaskModel
-from peagen.orm.task.task_run import TaskRun
+from peagen.orm import TaskModel, TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 

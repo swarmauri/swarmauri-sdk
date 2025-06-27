@@ -140,6 +140,3 @@ class TaskRunModel(BaseModel):
         tr.commit_hexsha = task.commit_hexsha
         tr.oids = task.oids
         return tr
-
-
-TaskRun = TaskRunModel

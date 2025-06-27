@@ -69,6 +69,3 @@ class TenantModel(BaseModel):
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Tenant slug={self.slug!r} name={self.name!r}>"
-
-
-Tenant = TenantModel

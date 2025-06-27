@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from peagen.orm.task.task_run import TaskRun
+from peagen.orm import TaskRun
 
 
 class ResultBackendBase:

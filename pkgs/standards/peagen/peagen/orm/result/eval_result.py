@@ -72,6 +72,3 @@ class EvalResultModel(BaseModel):
             f"<EvalResult id={self.id} task_run={self.task_run_id} "
             f"label={self.label or '∅'}>"
         )
-
-
-EvalResult = EvalResultModel

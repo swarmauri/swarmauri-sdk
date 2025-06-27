@@ -86,6 +86,3 @@ class DoeSpecModel(BaseModel):
             f"<DoeSpec id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
-
-
-DoeSpec = DoeSpecModel

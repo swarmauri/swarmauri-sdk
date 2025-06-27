@@ -77,6 +77,3 @@ class EvolveSpecModel(BaseModel):
             f"<EvolveSpec id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
-
-
-EvolveSpec = EvolveSpecModel

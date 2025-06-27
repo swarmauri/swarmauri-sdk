@@ -70,6 +70,3 @@ class RawBlobModel(BaseModel):
             f"<RawBlob id={self.id} payload={self.task_id} "
             f"type={self.media_type!r} enc={self.encoding}>"
         )
-
-
-RawBlob = RawBlobModel

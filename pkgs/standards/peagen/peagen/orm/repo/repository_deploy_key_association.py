@@ -58,6 +58,3 @@ class RepositoryDeployKeyAssociationModel(BaseModel):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<RepositoryDeployKeyAssociation repo={self.repository_id} key={self.deploy_key_id}>"
-
-
-RepositoryDeployKeyAssociation = RepositoryDeployKeyAssociationModel

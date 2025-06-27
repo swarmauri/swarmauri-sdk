@@ -86,6 +86,3 @@ class DeployKeyModel(BaseModel):
     def __repr__(self) -> str:  # pragma: no cover
         scope = "RO" if self.read_only else "RW"
         return f"<DeployKey user={self.user_id} name={self.name!r} {scope}>"
-
-
-DeployKey = DeployKeyModel
