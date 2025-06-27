@@ -508,7 +508,7 @@ class QueueDashboardApp(App):
                         task_item.get("started_at") or task_item.get("finished_at") or 0
                     )
                 if sort_key == "status":
-                    from peagen.models.schemas import Status
+                    from peagen.models.task.status import Status
 
                     status_value = task_item.get("status")
                     try:

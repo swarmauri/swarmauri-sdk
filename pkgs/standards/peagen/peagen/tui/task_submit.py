@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 from typing import Any
 
-from peagen.models.schemas import Task
+from peagen.models.task import Task
 
 
 def build_task(action: str, args: dict[str, Any], pool: str = "default") -> Task:
