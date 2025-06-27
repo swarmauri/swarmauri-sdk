@@ -34,7 +34,7 @@ def test_generate_schemas_creates_files(tmp_path: Path):
     (tmpl_root / "set2").mkdir()
     (tmpl_root / "set2" / "EXTRAS.md").write_text("- c")
 
-    out_dir = tmp_path / "schemas"
+    out_dir = tmp_path / "jsonschemas"
     written = generate_schemas(tmpl_root, out_dir)
     assert len(written) == 2
     contents = [json.loads(p.read_text()) for p in written]

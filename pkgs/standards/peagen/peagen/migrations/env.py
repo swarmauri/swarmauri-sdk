@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from peagen.gateway.runtime_cfg import settings
-from peagen.models import Base
+from peagen.orm import Base
 
 if settings.pg_host and settings.pg_db and settings.pg_user:
     dsn = settings.apg_dsn

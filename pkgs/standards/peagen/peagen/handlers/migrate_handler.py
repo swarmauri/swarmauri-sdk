@@ -9,7 +9,7 @@ from peagen.core.migrate_core import (
     alembic_revision,
     alembic_upgrade,
 )
-from peagen.models import Task
+from peagen.orm import Task
 from . import ensure_task
 
 

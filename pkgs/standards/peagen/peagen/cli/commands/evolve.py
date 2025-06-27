@@ -12,7 +12,7 @@ import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.models import Status, Task
+from peagen.orm import Status, Task
 from peagen.core.validate_core import validate_evolve_spec
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
