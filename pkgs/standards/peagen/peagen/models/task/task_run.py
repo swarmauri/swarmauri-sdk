@@ -21,17 +21,20 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..infra.pool import Pool
-    from ..infra.worker import Worker
-    from ..tenant.user import User
-    from .task import Task
-    from .task_relation import TaskRelation
-    from .task_run_relation_association import TaskRunTaskRelationAssociation
-    from ..result.eval_result import EvalResult
+    from ..infra.pool import PoolModel
+    from ..infra.worker import WorkerModel
+    from ..tenant.user import UserModel
+    from .task import TaskModel
+    from .task_relation import TaskRelationModel
+    from .task_run_relation_association import TaskRunTaskRelationAssociationModel
+    from ..result.eval_result import EvalResultModel
 
 from ..base import BaseModel  # id, timestamps
 from .status import Status
-from ..task import Task
+from ..task.task import TaskModel
+from ..infra.pool import PoolModel
+from ..infra.worker import WorkerModel
+from ..tenant.user import UserModel
 
 
 class TaskRunModel(BaseModel):
@@ -79,18 +82,18 @@ class TaskRunModel(BaseModel):
     )
 
     # ────────────────── Relationships ───────────────────────
-    task: Mapped["Task"] = relationship("Task", lazy="selectin")
+    task: Mapped["TaskModel"] = relationship("TaskModel", lazy="selectin")
 
-    pool: Mapped["Pool | None"] = relationship("Pool", lazy="selectin")  # noqa: F821
+    pool: Mapped[PoolModel | None] = relationship("PoolModel", lazy="selectin")  # noqa: F821
 
-    worker: Mapped["Worker | None"] = relationship("Worker", lazy="selectin")  # noqa: F821
+    worker: Mapped[WorkerModel | None] = relationship("WorkerModel", lazy="selectin")  # noqa: F821
 
-    user: Mapped["User | None"] = relationship("User", lazy="selectin")  # noqa: F821
+    user: Mapped[UserModel | None] = relationship("UserModel", lazy="selectin")  # noqa: F821
 
     # join-rows
-    relation_associations: Mapped[list["TaskRunTaskRelationAssociation"]] = (
+    relation_associations: Mapped[list["TaskRunTaskRelationAssociationModel"]] = (
         relationship(
-            "TaskRunTaskRelationAssociation",
+            "TaskRunTaskRelationAssociationModel",
             back_populates="task_run",
             cascade="all, delete-orphan",
             lazy="selectin",
@@ -98,16 +101,16 @@ class TaskRunModel(BaseModel):
     )  # noqa: F821
 
     # convenience list of TaskRelation objects
-    relations: Mapped[list["TaskRelation"]] = relationship(
-        "TaskRelation",
+    relations: Mapped[list["TaskRelationModel"]] = relationship(
+        "TaskRelationModel",
         secondary="task_run_task_relation_associations",
         viewonly=True,
         lazy="selectin",
     )  # noqa: F821
 
     # Evaluation pipeline
-    eval_results: Mapped[list["EvalResult"]] = relationship(
-        "EvalResult",
+    eval_results: Mapped[list["EvalResultModel"]] = relationship(
+        "EvalResultModel",
         back_populates="task_run",
         cascade="all, delete-orphan",
         lazy="selectin",
@@ -119,7 +122,7 @@ class TaskRunModel(BaseModel):
 
     # ------------------------------------------------------------------
     @classmethod
-    def from_task(cls, task: "Task") -> "TaskRun":
+    def from_task(cls, task: "TaskModel") -> "TaskRunModel":
         """Create a minimal TaskRun instance from a :class:`Task`."""
 
         tr = cls(

@@ -17,8 +17,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .repository import Repository
-    from .deploy_key import DeployKey
+    from .repository import RepositoryModel
+    from .deploy_key import DeployKeyModel
 
 from ..base import BaseModel
 
@@ -49,11 +49,11 @@ class RepositoryDeployKeyAssociationModel(BaseModel):
     )
 
     # --------------------------- Relationships ---------------------------
-    repository: Mapped["Repository"] = relationship(
-        "Repository", back_populates="deploy_key_associations", lazy="selectin"
+    repository: Mapped["RepositoryModel"] = relationship(
+        "RepositoryModel", back_populates="deploy_key_associations", lazy="selectin"
     )
-    deploy_key: Mapped["DeployKey"] = relationship(
-        "DeployKey", back_populates="repository_associations", lazy="selectin"
+    deploy_key: Mapped["DeployKeyModel"] = relationship(
+        "DeployKeyModel", back_populates="repository_associations", lazy="selectin"
     )
 
     def __repr__(self) -> str:  # pragma: no cover

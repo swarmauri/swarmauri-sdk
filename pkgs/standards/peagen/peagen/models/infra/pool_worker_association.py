@@ -20,8 +20,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .pool import Pool
-    from .worker import Worker
+    from .pool import PoolModel
+    from .worker import WorkerModel
 
 from ..base import BaseModel
 
@@ -62,14 +62,14 @@ class PoolWorkerAssociationModel(BaseModel):
     __table_args__ = (UniqueConstraint("pool_id", "worker_id", name="uq_pool_worker"),)
 
     # ───────────── Relationships ────────────────
-    pool: Mapped["Pool"] = relationship(
-        "Pool",
+    pool: Mapped["PoolModel"] = relationship(
+        "PoolModel",
         back_populates="worker_associations",
         lazy="selectin",
     )
 
-    worker: Mapped["Worker"] = relationship(
-        "Worker",
+    worker: Mapped["WorkerModel"] = relationship(
+        "WorkerModel",
         back_populates="pool_associations",
         lazy="selectin",
     )

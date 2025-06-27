@@ -27,8 +27,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
-    from .doe_spec import DoeSpec
+    from ..tenant.tenant import TenantModel
+    from .doe_spec import DoeSpecModel
 
 from ..base import BaseModel
 
@@ -83,10 +83,10 @@ class ProjectPayloadModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
-    doe_spec: Mapped["DoeSpec | None"] = relationship(
-        "DoeSpec",
+    doe_spec: Mapped[DoeSpecModel | None] = relationship(
+        "DoeSpecModel",
         back_populates="project_payloads",
         lazy="selectin",
     )

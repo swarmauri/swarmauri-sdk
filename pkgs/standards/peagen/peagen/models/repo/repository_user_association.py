@@ -20,8 +20,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .repository import Repository
-    from ..tenant.user import User
+    from .repository import RepositoryModel
+    from ..tenant.user import UserModel
 
 from ..base import BaseModel
 
@@ -51,11 +51,11 @@ class RepositoryUserAssociationModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    repository: Mapped["Repository"] = relationship(
-        "Repository", back_populates="user_associations", lazy="selectin"
+    repository: Mapped["RepositoryModel"] = relationship(
+        "RepositoryModel", back_populates="user_associations", lazy="selectin"
     )
-    user: Mapped["User"] = relationship(
-        "User", back_populates="repository_associations", lazy="selectin"
+    user: Mapped["UserModel"] = relationship(
+        "UserModel", back_populates="repository_associations", lazy="selectin"
     )
 
     # ─────────────────────── Magic ───────────────────────────

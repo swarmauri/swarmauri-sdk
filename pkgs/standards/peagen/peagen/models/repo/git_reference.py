@@ -20,7 +20,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .repository import Repository
+    from .repository import RepositoryModel
 
 from ..base import BaseModel
 
@@ -55,8 +55,8 @@ class GitReferenceModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    repository: Mapped["Repository"] = relationship(
-        "Repository",
+    repository: Mapped["RepositoryModel"] = relationship(
+        "RepositoryModel",
         back_populates="git_references",
         lazy="selectin",
     )

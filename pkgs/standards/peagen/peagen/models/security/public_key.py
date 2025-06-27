@@ -36,7 +36,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.user import User
+    from ..tenant.user import UserModel
 
 from ..base import BaseModel
 
@@ -107,8 +107,8 @@ class PublicKeyModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    user: Mapped["User"] = relationship(
-        "User",
+    user: Mapped["UserModel"] = relationship(
+        "UserModel",
         back_populates="public_keys",
         lazy="selectin",
     )

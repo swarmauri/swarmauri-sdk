@@ -25,10 +25,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.user import User
-    from ..config.secret import Secret
-    from .repository_deploy_key_association import RepositoryDeployKeyAssociation
-    from .repository import Repository
+    from ..tenant.user import UserModel
+    from ..config.secret import SecretModel
+    from .repository_deploy_key_association import RepositoryDeployKeyAssociationModel
+    from .repository import RepositoryModel
 
 from ..base import BaseModel
 
@@ -63,10 +63,10 @@ class DeployKeyModel(BaseModel):
     )
 
     # ──────────────────── Relationships ──────────────────────
-    user: Mapped["User"] = relationship("User", lazy="selectin")
-    secret: Mapped["Secret"] = relationship("Secret", lazy="selectin")
+    user: Mapped["UserModel"] = relationship("UserModel", lazy="selectin")
+    secret: Mapped["SecretModel"] = relationship("SecretModel", lazy="selectin")
 
-    repository_associations: Mapped[list["RepositoryDeployKeyAssociation"]] = (
+    repository_associations: Mapped[list["RepositoryDeployKeyAssociationModel"]] = (
         relationship(
             "RepositoryDeployKeyAssociation",
             back_populates="deploy_key",
@@ -75,8 +75,8 @@ class DeployKeyModel(BaseModel):
         )
     )
 
-    repositories: Mapped[list["Repository"]] = relationship(
-        "Repository",
+    repositories: Mapped[list["RepositoryModel"]] = relationship(
+        "RepositoryModel",
         secondary="repository_deploy_key_associations",
         back_populates="deploy_keys",
         lazy="selectin",

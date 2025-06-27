@@ -20,7 +20,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
+    from ..tenant.tenant import TenantModel
 
 from ..base import BaseModel
 
@@ -69,7 +69,7 @@ class EvolveSpecModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
     # ───────────────────── Magic ───────────────────────
     def __repr__(self) -> str:  # pragma: no cover
