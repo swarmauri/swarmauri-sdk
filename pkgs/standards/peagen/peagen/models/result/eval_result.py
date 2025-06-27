@@ -20,8 +20,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..task.task_run import TaskRun
-    from .analysis_result import AnalysisResult
+    from ..task.task_run import TaskRunModel
+    from .analysis_result import AnalysisResultModel
 
 from ..base import BaseModel
 
@@ -53,14 +53,14 @@ class EvalResultModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    task_run: Mapped["TaskRun"] = relationship(
-        "TaskRun",
+    task_run: Mapped["TaskRunModel"] = relationship(
+        "TaskRunModel",
         back_populates="eval_results",
         lazy="selectin",
     )
 
-    analyses: Mapped[list["AnalysisResult"]] = relationship(
-        "AnalysisResult",
+    analyses: Mapped[list["AnalysisResultModel"]] = relationship(
+        "AnalysisResultModel",
         back_populates="eval_result",
         cascade="all, delete-orphan",
         lazy="selectin",

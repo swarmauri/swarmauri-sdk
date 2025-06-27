@@ -25,7 +25,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .eval_result import EvalResult
+    from .eval_result import EvalResultModel
 
 from ..base import BaseModel
 
@@ -58,8 +58,8 @@ class AnalysisResultModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    eval_result: Mapped["EvalResult"] = relationship(
-        "EvalResult",
+    eval_result: Mapped["EvalResultModel"] = relationship(
+        "EvalResultModel",
         back_populates="analyses",
         lazy="selectin",
     )

@@ -16,13 +16,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from .tenant_user_association import TenantUserAssociation
-    from .tenant import Tenant
-    from ..repo.repository_user_association import RepositoryUserAssociation
-    from ..security.public_key import PublicKey
+    from .tenant_user_association import TenantUserAssociationModel
+    from .tenant import TenantModel
+    from ..repo.repository_user_association import RepositoryUserAssociationModel
+    from ..security.public_key import PublicKeyModel
 
 # Import at runtime so SQLAlchemy can resolve the relationship target
-from ..security.public_key import PublicKey
 
 from ..base import BaseModel
 
@@ -40,31 +39,33 @@ class UserModel(BaseModel):
     role: Mapped[str] = mapped_column(String, nullable=False, default="member")
 
     # ──────────────────── Relationships ──────────────────────
-    tenant_associations: Mapped[list["TenantUserAssociation"]] = relationship(
-        "TenantUserAssociation",
+    tenant_associations: Mapped[list["TenantUserAssociationModel"]] = relationship(
+        "TenantUserAssociationModel",
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
     # Convenience relationship to fetch all tenants a user belongs to
-    tenants: Mapped[list["Tenant"]] = relationship(
-        "Tenant",
+    tenants: Mapped[list["TenantModel"]] = relationship(
+        "TenantModel",
         secondary="tenant_user_associations",
         viewonly=True,
         lazy="selectin",
     )
 
     # user.py  (add this block)
-    repository_associations: Mapped[list["RepositoryUserAssociation"]] = relationship(
-        "RepositoryUserAssociation",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        lazy="selectin",
+    repository_associations: Mapped[list["RepositoryUserAssociationModel"]] = (
+        relationship(
+            "RepositoryUserAssociationModel",
+            back_populates="user",
+            cascade="all, delete-orphan",
+            lazy="selectin",
+        )
     )
 
-    public_keys: Mapped[list["PublicKey"]] = relationship(
-        "PublicKey",
+    public_keys: Mapped[list["PublicKeyModel"]] = relationship(
+        "PublicKeyModel",
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin",

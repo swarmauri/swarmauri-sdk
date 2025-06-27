@@ -29,10 +29,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
-    from .pool_worker_association import PoolWorkerAssociation
-    from .pool import Pool
-    from ..task.task_run import TaskRun
+    from ..tenant.tenant import TenantModel
+    from .pool_worker_association import PoolWorkerAssociationModel
+    from .pool import PoolModel
+    from ..task.task_run import TaskRunModel
 
 from ..base import BaseModel
 
@@ -96,24 +96,24 @@ class WorkerModel(BaseModel):
     )
 
     # ─────────────── Relationships ────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
-    pool_associations: Mapped[list["PoolWorkerAssociation"]] = relationship(
-        "PoolWorkerAssociation",
+    pool_associations: Mapped[list["PoolWorkerAssociationModel"]] = relationship(
+        "PoolWorkerAssociationModel",
         back_populates="worker",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    pools: Mapped[list["Pool"]] = relationship(
-        "Pool",
+    pools: Mapped[list["PoolModel"]] = relationship(
+        "PoolModel",
         secondary="pool_worker_associations",
         viewonly=True,
         lazy="selectin",
     )
 
-    task_runs: Mapped[list["TaskRun"]] = relationship(
-        "TaskRun",
+    task_runs: Mapped[list["TaskRunModel"]] = relationship(
+        "TaskRunModel",
         back_populates="worker",
         lazy="selectin",
     )

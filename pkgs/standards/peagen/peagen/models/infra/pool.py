@@ -21,9 +21,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
-    from ..tenant.tenant import Tenant
-    from .pool_worker_association import PoolWorkerAssociation
-    from .worker import Worker
+    from ..tenant.tenant import TenantModel
+    from .pool_worker_association import PoolWorkerAssociationModel
+    from .worker import WorkerModel
 
 from ..base import BaseModel
 
@@ -71,17 +71,17 @@ class PoolModel(BaseModel):
     __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_pool_per_tenant"),)
 
     # ───────────────── Relationships ───────────────────
-    tenant: Mapped["Tenant"] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
-    worker_associations: Mapped[list["PoolWorkerAssociation"]] = relationship(
-        "PoolWorkerAssociation",
+    worker_associations: Mapped[list["PoolWorkerAssociationModel"]] = relationship(
+        "PoolWorkerAssociationModel",
         back_populates="pool",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    workers: Mapped[list["Worker"]] = relationship(
-        "Worker",
+    workers: Mapped[list["WorkerModel"]] = relationship(
+        "WorkerModel",
         secondary="pool_worker_associations",
         viewonly=True,
         lazy="selectin",

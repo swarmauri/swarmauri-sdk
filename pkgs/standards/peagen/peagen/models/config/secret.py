@@ -20,8 +20,8 @@ from sqlalchemy import String, Text, UniqueConstraint, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..tenant.user import User
-from ..tenant.tenant import Tenant
+from ..tenant.user import UserModel
+from ..tenant.tenant import TenantModel
 
 from ..base import BaseModel
 
@@ -70,9 +70,9 @@ class SecretModel(BaseModel):
     )
 
     # ───────────────── Relationships ───────────────────
-    tenant: Mapped[Tenant] = relationship("Tenant", lazy="selectin")
+    tenant: Mapped["TenantModel"] = relationship("TenantModel", lazy="selectin")
 
-    owner: Mapped[User | None] = relationship("User", lazy="selectin")
+    owner: Mapped[UserModel | None] = relationship("UserModel", lazy="selectin")
 
     # ───────────────────── Magic ───────────────────────
     def __repr__(self) -> str:  # pragma: no cover
