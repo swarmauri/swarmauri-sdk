@@ -5,6 +5,9 @@ from __future__ import annotations
 import json
 import importlib.resources as res
 
+from . import models as _models
+from .models import *  # noqa: F401,F403
+
 
 PEAGEN_TOML_V1_SCHEMA = json.loads(
     res.files(__package__)
@@ -96,3 +99,5 @@ __all__ = [
     "LLM_PATCH_V1_SCHEMA",
     "EXTRAS_SCHEMAS",
 ]
+
+__all__ += _models.__all__
