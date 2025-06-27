@@ -45,7 +45,8 @@ for _name in model_names:
         for c_name, c in columns.items()
         if c_name not in ["last_modified", "date_created"]
     }
-    create_cls = create_model(f"{_name}Create", **create_fields)
+    root_name = _name[:-5] if _name.endswith("Model") else _name
+    create_cls = create_model(f"{root_name}Create", **create_fields)
 
     # UPDATE: all optional fields except 'date_created'
     update_fields = {
@@ -53,7 +54,7 @@ for _name in model_names:
         for c_name, c in columns.items()
         if c_name not in ["date_created", "last_modified"]
     }
-    update_cls = create_model(f"{_name}Update", **update_fields)
+    update_cls = create_model(f"{root_name}Update", **update_fields)
 
     # READ: all required, including id and date_created
     read_fields = {"id": (id_type, ...)}
@@ -61,19 +62,21 @@ for _name in model_names:
         read_fields[c_name] = (_python_type(c), ...)
     if "date_created" not in read_fields and "date_created" in columns:
         read_fields["date_created"] = (datetime, ...)
-    read_cls = create_model(f"{_name}Read", **read_fields)
+    read_cls = create_model(f"{root_name}Read", **read_fields)
 
     # CHILD: id only
-    child_cls = create_model(f"{_name}Child", id=(id_type, ...))
+    child_cls = create_model(f"{root_name}Child", id=(id_type, ...))
 
     # Register in global scope and __all__
     globals()[create_cls.__name__] = create_cls
     globals()[update_cls.__name__] = update_cls
     globals()[read_cls.__name__] = read_cls
     globals()[child_cls.__name__] = child_cls
+    globals()[root_name] = read_cls
     __all__ += [
         create_cls.__name__,
         update_cls.__name__,
         read_cls.__name__,
         child_cls.__name__,
+        root_name,
     ]
