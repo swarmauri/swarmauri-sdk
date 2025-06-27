@@ -35,7 +35,7 @@ from .repo.repository_user_association import RepositoryUserAssociation  # noqa:
 # Task / execution domain
 # ----------------------------------------------------------------------
 from .task.status import Status  # noqa: F401
-from .task.task_payload import TaskPayload  # noqa: F401
+from .task.task import Task  # noqa: F401
 from .task.raw_blob import RawBlob  # noqa: F401
 from .task.task_run import TaskRun  # noqa: F401
 from .task.task_relation import TaskRelation  # noqa: F401
@@ -92,7 +92,7 @@ __all__: list[str] = [
     "RepositoryDeployKeyAssociation",
     "RepositoryUserAssociation",
     # task
-    "TaskPayload",
+    "Task",
     "RawBlob",
     "Status",
     "TaskRun",
