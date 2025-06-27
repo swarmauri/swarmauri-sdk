@@ -46,7 +46,7 @@ class WorkerStatus(str, enum.Enum):
 
 
 # ──────────────────────────── Model ─────────────────────────────
-class Worker(BaseModel):
+class WorkerModel(BaseModel):
     """
     Execution agent capable of processing tasks.
     """
@@ -124,3 +124,6 @@ class Worker(BaseModel):
             f"<Worker id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} status={self.status}>"
         )
+
+
+Worker = WorkerModel

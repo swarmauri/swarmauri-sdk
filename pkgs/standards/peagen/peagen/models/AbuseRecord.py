@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .base import Base
 
 
-class AbuseRecord(Base):
+class AbuseRecordModel(Base):
     """Track abuse metrics for a given IP address."""
 
     __tablename__ = "abuse_records"
@@ -21,3 +21,6 @@ class AbuseRecord(Base):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AbuseRecord ip={self.ip!r} count={self.count} banned={self.banned}>"
+
+
+AbuseRecord = AbuseRecordModel

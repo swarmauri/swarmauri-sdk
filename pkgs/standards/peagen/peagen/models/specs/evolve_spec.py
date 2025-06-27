@@ -25,7 +25,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class EvolveSpec(BaseModel):
+class EvolveSpecModel(BaseModel):
     """
     Evolutionary strategy definition (population config, operators, etc.).
     """
@@ -77,3 +77,6 @@ class EvolveSpec(BaseModel):
             f"<EvolveSpec id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
+
+
+EvolveSpec = EvolveSpecModel

@@ -27,7 +27,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class DoeSpec(BaseModel):
+class DoeSpecModel(BaseModel):
     """
     A Design-of-Experiments definition (factor levels, ranges, or sampling plan).
     """
@@ -86,3 +86,6 @@ class DoeSpec(BaseModel):
             f"<DoeSpec id={self.id} tenant={self.tenant_id} "
             f"name={self.name!r} version={self.schema_version}>"
         )
+
+
+DoeSpec = DoeSpecModel

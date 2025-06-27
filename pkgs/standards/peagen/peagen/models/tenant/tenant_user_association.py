@@ -22,7 +22,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class TenantUserAssociation(BaseModel):
+class TenantUserAssociationModel(BaseModel):
     """
     Association row defining a user's membership (and role) within a Tenant.
 
@@ -66,3 +66,6 @@ class TenantUserAssociation(BaseModel):
             f"<TenantUserAssociation tenant_id={self.tenant_id} "
             f"user_id={self.user_id} role={self.role!r}>"
         )
+
+
+TenantUserAssociation = TenantUserAssociationModel

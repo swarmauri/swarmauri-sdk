@@ -25,7 +25,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class GitReference(BaseModel):
+class GitReferenceModel(BaseModel):
     """
     A named pointer within a Git repository (e.g., `refs/heads/main`).
 
@@ -67,3 +67,6 @@ class GitReference(BaseModel):
             f"<GitReference repo_id={self.repository_id} "
             f"name={self.name!r} sha={self.commit_sha or '…'}>"
         )
+
+
+GitReference = GitReferenceModel

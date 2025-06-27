@@ -20,7 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class TaskRunTaskRelationAssociation(BaseModel):
+class TaskRunTaskRelationAssociationModel(BaseModel):
     __tablename__ = "task_run_task_relation_associations"
 
     # ─────────────────── Columns ──────────────────
@@ -51,3 +51,6 @@ class TaskRunTaskRelationAssociation(BaseModel):
     # ─────────────────── Magic ───────────────────
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TaskRunTaskRelationAssociation run={self.task_run_id} rel={self.relation_id}>"
+
+
+TaskRunTaskRelationAssociation = TaskRunTaskRelationAssociationModel

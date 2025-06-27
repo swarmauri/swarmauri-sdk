@@ -33,7 +33,7 @@ class PoolWorkerStatus(str, enum.Enum):
 
 
 # ───────────────────────── Association ───────────────────────────
-class PoolWorkerAssociation(BaseModel):
+class PoolWorkerAssociationModel(BaseModel):
     """
     Maps a Worker to a Pool with an optional status.
     """
@@ -80,3 +80,6 @@ class PoolWorkerAssociation(BaseModel):
             f"<PoolWorkerAssociation pool={self.pool_id} "
             f"worker={self.worker_id} status={self.status}>"
         )
+
+
+PoolWorkerAssociation = PoolWorkerAssociationModel

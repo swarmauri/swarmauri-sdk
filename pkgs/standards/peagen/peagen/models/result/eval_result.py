@@ -26,7 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 from ..base import BaseModel
 
 
-class EvalResult(BaseModel):
+class EvalResultModel(BaseModel):
     """
     Numeric or structured evaluation results for a TaskRun.
     """
@@ -72,3 +72,6 @@ class EvalResult(BaseModel):
             f"<EvalResult id={self.id} task_run={self.task_run_id} "
             f"label={self.label or '∅'}>"
         )
+
+
+EvalResult = EvalResultModel
