@@ -86,32 +86,9 @@ from .security.public_key import PublicKeyModel  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Backwards compatibility aliases
+# All backwards compatibility aliases have been depcrecated. If the Model is not export below. Then it is not supported.
 # ----------------------------------------------------------------------
-Tenant = TenantModel
-User = UserModel
-TenantUserAssociation = TenantUserAssociationModel
-Repository = RepositoryModel
-GitReference = GitReferenceModel
-DeployKey = DeployKeyModel
-RepositoryDeployKeyAssociation = RepositoryDeployKeyAssociationModel
-RepositoryUserAssociation = RepositoryUserAssociationModel
-Task = TaskModel
-RawBlob = RawBlobModel
-TaskRun = TaskRunModel
-TaskRelation = TaskRelationModel
-TaskRunTaskRelationAssociation = TaskRunTaskRelationAssociationModel
-DoeSpec = DoeSpecModel
-EvolveSpec = EvolveSpecModel
-ProjectPayload = ProjectPayloadModel
-PeagenTomlSpec = PeagenTomlSpecModel
-Secret = SecretModel
-Pool = PoolModel
-Worker = WorkerModel
-PoolWorkerAssociation = PoolWorkerAssociationModel
-EvalResult = EvalResultModel
-AnalysisResult = AnalysisResultModel
-AbuseRecord = AbuseRecordModel
-PublicKey = PublicKeyModel
+
 
 # ----------------------------------------------------------------------
 # Public re-exports
@@ -150,7 +127,6 @@ __all__: list[str] = [
     # result
     "EvalResultModel",
     "AnalysisResultModel",
-    "GitMirror",
     # misc
     "AbuseRecordModel",
     "PublicKeyModel",
