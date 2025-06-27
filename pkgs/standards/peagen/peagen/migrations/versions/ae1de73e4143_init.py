@@ -30,7 +30,6 @@ def upgrade() -> None:
                 "id", sa.dialects.postgresql.UUID(as_uuid=True), primary_key=True
             ),
             sa.Column("pool", sa.String()),
-            sa.Column("task_type", sa.String()),
             sa.Column("status", status_enum, nullable=False),
             sa.Column("payload", sa.JSON()),
             sa.Column("result", sa.JSON()),
