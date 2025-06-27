@@ -19,7 +19,7 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.models import Task  # for typing only
+from peagen.models.task import Task  # for typing only
 
 
 async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

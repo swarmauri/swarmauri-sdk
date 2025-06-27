@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.models import Task
+from peagen.models.task import Task
 
 
 async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

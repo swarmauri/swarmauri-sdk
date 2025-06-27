@@ -25,7 +25,8 @@ from peagen.core.process_core import (
     process_single_project,
     process_all_projects,
 )
-from peagen.models import Task, Status  # noqa: F401 – used by type hints
+from peagen.models.task import Task  # noqa: F401 – used by type hints
+from peagen.models.task.status import Status  # noqa: F401 – used by type hints
 
 logger = Logger(name=__name__)
 

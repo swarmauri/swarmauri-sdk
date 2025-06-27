@@ -8,7 +8,8 @@ from typing import Any, Dict, List
 
 import yaml
 
-from peagen.models import Task, Status
+from peagen.models.task import Task
+from peagen.models.task.status import Status
 from .fanout import fan_out
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager

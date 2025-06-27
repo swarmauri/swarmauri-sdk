@@ -7,8 +7,8 @@ from typing import Dict, Any
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
+from peagen.models.task.status import Status
 from peagen.models import (
-    Status,
     TaskRun,
     TaskRunTaskRelationAssociation,
 )

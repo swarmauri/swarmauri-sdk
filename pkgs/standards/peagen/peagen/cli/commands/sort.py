@@ -9,7 +9,7 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.models import Task
+from peagen.models.task import Task
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")

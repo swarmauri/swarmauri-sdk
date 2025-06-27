@@ -6,7 +6,7 @@ from typing import Any, Dict
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.analysis_core import analyze_runs
-from peagen.models import Task
+from peagen.models.task import Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref

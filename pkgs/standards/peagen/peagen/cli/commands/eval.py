@@ -21,7 +21,8 @@ import typer
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.models import Status, Task
+from peagen.models.task.status import Status
+from peagen.models.task import Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(

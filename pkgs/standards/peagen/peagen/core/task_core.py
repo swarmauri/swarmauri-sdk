@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Dict
 
 from peagen.gateway.db import Session
-from peagen.models import TaskRun
+from peagen.models.task import TaskRun
 from sqlalchemy.exc import DataError
 from peagen.errors import TaskNotFoundError
 
