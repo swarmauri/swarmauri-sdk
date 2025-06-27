@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen._utils.slug_utils import repo_slug
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -96,15 +95,12 @@ def remote_add(
     version: int = typer.Option(0, "--version"),
     recipient: List[Path] = typer.Option([], "--recipient"),
     pool: str = typer.Option("default", "--pool"),
-    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Upload an encrypted secret to the gateway."""
     gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    if repo and pool == "default":
-        pool = repo_slug(repo)
     drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
@@ -135,15 +131,12 @@ def remote_get(
     secret_id: str,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
     pool: str = typer.Option("default", "--pool"),
-    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Retrieve and decrypt a secret from the gateway."""
     gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    if repo and pool == "default":
-        pool = repo_slug(repo)
     drv = AutoGpgDriver()
     envelope = {
         "jsonrpc": "2.0",
@@ -168,15 +161,12 @@ def remote_remove(
     version: int = typer.Option(None, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
     pool: str = typer.Option("default", "--pool"),
-    repo: Optional[str] = typer.Option(None, "--repo"),
 ) -> None:
     """Delete a secret on the gateway."""
     gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    if repo and pool == "default":
-        pool = repo_slug(repo)
     envelope = {
         "jsonrpc": "2.0",
         "method": "Secrets.delete",

@@ -31,24 +31,13 @@ def test_login_success(monkeypatch, tmp_path):
     runner = CliRunner()
     result = runner.invoke(
         app,
-        [
-            "login",
-            "--key-dir",
-            str(tmp_path),
-            "--gateway-url",
-            "http://gw/rpc",
-            "--pool",
-            "demo",
-            "--repo",
-            "org/repo",
-        ],
+        ["login", "--key-dir", str(tmp_path), "--gateway-url", "http://gw/rpc"],
     )
 
     assert result.exit_code == 0
     assert "Logged in and uploaded public key" in result.output
     assert captured["url"] == "http://gw/rpc"
     assert captured["json"]["params"]["public_key"] == "PUB"
-    assert captured["json"]["params"]["tenant_id"] == "demo"
 
 
 @pytest.mark.unit
