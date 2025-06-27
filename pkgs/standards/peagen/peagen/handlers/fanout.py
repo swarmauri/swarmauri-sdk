@@ -6,7 +6,8 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.orm import Task, Status
+from peagen.orm import Task
+from peagen.orm.status import Status
 from . import ensure_task
 
 

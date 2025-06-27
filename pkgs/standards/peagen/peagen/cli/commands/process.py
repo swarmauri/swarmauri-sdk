@@ -22,7 +22,8 @@ import httpx
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.orm import Status, Task  # noqa: F401 – only for type hints
+from peagen.orm import Task  # noqa: F401 – only for type hints
+from peagen.orm.status import Status
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
