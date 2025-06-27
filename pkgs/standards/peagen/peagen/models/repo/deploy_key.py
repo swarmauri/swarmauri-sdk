@@ -68,7 +68,7 @@ class DeployKeyModel(BaseModel):
 
     repository_associations: Mapped[list["RepositoryDeployKeyAssociationModel"]] = (
         relationship(
-            "RepositoryDeployKeyAssociation",
+            "RepositoryDeployKeyAssociationModel",
             back_populates="deploy_key",
             cascade="all, delete-orphan",
             lazy="selectin",
