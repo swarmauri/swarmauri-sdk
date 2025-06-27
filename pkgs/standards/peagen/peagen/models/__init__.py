@@ -74,6 +74,7 @@ from .git_mirror import GitMirror  # noqa: F401
 # Misc / security
 # ----------------------------------------------------------------------
 from .AbuseRecord import AbuseRecord  # noqa: F401
+from .security.public_key import PublicKey  # noqa: F401
 
 # ----------------------------------------------------------------------
 # Public re-exports
@@ -116,4 +117,5 @@ __all__: list[str] = [
     "GitMirror",
     # misc
     "AbuseRecord",
+    "PublicKey",
 ]
