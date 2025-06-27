@@ -22,7 +22,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from ..security.public_key import PublicKey
 
 # Import at runtime so SQLAlchemy can resolve the relationship target
-from ..security import PublicKey
+from ..security.public_key import PublicKey
 
 from ..base import BaseModel
 
