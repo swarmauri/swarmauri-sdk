@@ -2,7 +2,11 @@
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
-from peagen.models.task_run import status_enum  # ← shared object, create_type=False
+from peagen.models.task.status import Status
+
+# Recreate the Status enum used by TaskRun. SQLAlchemy expects a shared Enum
+# object when creating types during migrations.
+status_enum = sa.Enum(Status, name="task_status_enum")
 
 revision = "ae1de73e4143"
 down_revision = None
