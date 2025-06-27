@@ -58,7 +58,17 @@ class GitVCS:
         else:
             self.repo = Repo.init(p)
 
+        ordered: list[tuple[str, str]] = []
+        if "origin" in remotes:
+            ordered.append(("origin", remotes["origin"]))
+        if "upstream" in remotes:
+            ordered.append(("upstream", remotes["upstream"]))
         for name, url in remotes.items():
+            if name in {"origin", "upstream"}:
+                continue
+            ordered.append((name, url))
+
+        for name, url in ordered:
             self.configure_remote(url, name=name)
 
         if mirror_git_url:

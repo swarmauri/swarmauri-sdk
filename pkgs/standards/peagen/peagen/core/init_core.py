@@ -251,6 +251,14 @@ def init_repo(
         "next": "configure DEPLOY_KEY_SECRET",
     }
 
+    if path is not None:
+        from peagen.core.mirror_core import ensure_repo
+
+        ensure_repo(path, remotes=remotes)
+        result.update({"configured": str(path)})
+
+    return result
+
 
 def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
     """Configure an existing repository with additional remotes."""
