@@ -10,7 +10,7 @@ async def test_task_model_roundtrip():
     t = Task(
         pool="p",
         payload={},
-        deps=["a"],
+        relations=["a"],
         edge_pred="e",
         labels=["l"],
         in_degree=2,
@@ -18,7 +18,7 @@ async def test_task_model_roundtrip():
     )
     dumped = t.model_dump_json()
     t2 = Task.model_validate_json(dumped)
-    assert t2.deps == ["a"]
+    assert t2.relations == ["a"]
     assert t2.edge_pred == "e"
     assert t2.labels == ["l"]
     assert t2.in_degree == 2
@@ -31,14 +31,14 @@ async def test_taskrun_from_task():
     t = Task(
         pool="p",
         payload={},
-        deps=["a"],
+        relations=["a"],
         edge_pred="e",
         labels=["l"],
         in_degree=1,
         config_toml="c",
     )
     tr = TaskRun.from_task(t)
-    assert tr.deps == ["a"]
+    assert tr.relations == ["a"]
     assert tr.edge_pred == "e"
     assert tr.labels == ["l"]
     assert tr.in_degree == 1
@@ -90,7 +90,7 @@ async def test_task_submit_roundtrip(monkeypatch):
         pool="p",
         payload={},
         taskId=None,
-        deps=["d"],
+        relations=["d"],
         edge_pred="ep",
         labels=["lab"],
         in_degree=0,
@@ -98,7 +98,7 @@ async def test_task_submit_roundtrip(monkeypatch):
     )
     tid = result["taskId"]
     stored = await task_get(tid)
-    assert stored["deps"] == ["d"]
+    assert stored["relations"] == ["d"]
     assert stored["edge_pred"] == "ep"
     assert stored["labels"] == ["lab"]
     assert stored["in_degree"] == 0
