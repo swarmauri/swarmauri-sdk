@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from peagen.models import TaskRun
+from peagen.models.task.task_run import TaskRun
 from .base import ResultBackendBase
 
 
