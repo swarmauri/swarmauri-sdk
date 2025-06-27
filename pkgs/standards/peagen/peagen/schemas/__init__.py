@@ -2,8 +2,15 @@
 """Expose Peagen JSON Schemas as Python dicts."""
 
 from __future__ import annotations
+
 import json
 import importlib.resources as res
+
+# Dynamic Pydantic models generated from ORM
+from peagen.models import schemas as model_schemas
+
+# Re-export ORM-based Pydantic models
+globals().update({name: getattr(model_schemas, name) for name in model_schemas.__all__})
 
 
 PEAGEN_TOML_V1_SCHEMA = json.loads(
@@ -83,6 +90,7 @@ EXTRAS_SCHEMAS = {
 
 
 __all__ = [
+    *model_schemas.__all__,
     "PEAGEN_TOML_V1_SCHEMA",
     "PEAGEN_TOML_V1_1_SCHEMA",
     "DOE_SPEC_V1_SCHEMA",
