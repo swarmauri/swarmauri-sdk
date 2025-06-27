@@ -2,7 +2,7 @@ import importlib
 
 import pytest
 
-from peagen.models import Base
+from peagen.orm import Base
 import peagen.gateway as gw
 import peagen.gateway.db as db
 

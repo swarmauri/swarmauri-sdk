@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from . import ensure_task
+from peagen.handlers import ensure_task
 
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.extras_core import generate_schemas
-from peagen.models import Task
-from .repo_utils import fetch_repo, cleanup_repo
+from peagen.orm import Task
+from peagen.handlers.repo_utils import fetch_repo, cleanup_repo
 
 
 async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

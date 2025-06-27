@@ -3,7 +3,7 @@
 Async task-handler for “eval” jobs.
 
 The worker runtime (or a local CLI run) calls this coroutine with
-either a plain dict (decoded JSON-RPC) or a peagen.models.Task object.
+either a plain dict (decoded JSON-RPC) or a peagen.orm.Task object.
 
 Returns a JSON-serialisable mapping:
   { "report": {…}, "strict_failed": bool }
@@ -19,8 +19,8 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.models import Task  # for typing only
-from . import ensure_task
+from peagen.orm import Task  # for typing only
+from peagen.handlers import ensure_task
 
 
 async def eval_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

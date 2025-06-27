@@ -10,12 +10,12 @@ import uuid
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.models import Task, Status
+from peagen.orm import Task, Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
-from .fanout import fan_out
-from . import ensure_task
+from peagen.handlers.fanout import fan_out
+from peagen.handlers import ensure_task
 
 
 async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

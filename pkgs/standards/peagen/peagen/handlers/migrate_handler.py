@@ -9,8 +9,8 @@ from peagen.core.migrate_core import (
     alembic_revision,
     alembic_upgrade,
 )
-from peagen.models import Task
-from . import ensure_task
+from peagen.orm import Task
+from peagen.handlers import ensure_task
 
 
 async def migrate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:

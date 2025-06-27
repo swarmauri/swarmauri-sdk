@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import secrets_core
-from peagen.models import Task
-from . import ensure_task
+from peagen.orm import Task
+from peagen.handlers import ensure_task
 
 
 async def secrets_handler(task: Dict[str, Any] | Task) -> Dict[str, Any]:

@@ -13,7 +13,7 @@ import httpx
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.models import Task
+from peagen.orm import Task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_mutate_app = typer.Typer(help="Run the mutate workflow")

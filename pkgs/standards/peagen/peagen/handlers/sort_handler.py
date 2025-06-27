@@ -21,9 +21,9 @@ Expected task payload
 from __future__ import annotations
 from typing import Any, Dict
 
-from peagen.models import Task
+from peagen.orm import Task
 
-from . import ensure_task
+from peagen.handlers import ensure_task
 
 from peagen._utils import maybe_clone_repo
 
