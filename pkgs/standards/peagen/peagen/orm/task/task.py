@@ -26,6 +26,8 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 
 from ..repo.git_reference import GitReferenceModel
 from ..base import BaseModel
+from pydantic import BaseModel as PydanticModel, Field
+from .status import Status
 
 
 class TaskModel(BaseModel):
@@ -83,4 +85,19 @@ class TaskModel(BaseModel):
         )
 
 
-Task = TaskModel
+class Task(PydanticModel):
+    """Lightweight task schema used by CLI and gateway."""
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    pool: str = "default"
+    payload: dict = Field(default_factory=dict)
+    relations: list[str] = Field(default_factory=list)
+    deps: list[str] = Field(default_factory=list)
+    edge_pred: str | None = None
+    labels: list[str] = Field(default_factory=list)
+    in_degree: int = 0
+    config_toml: str | None = None
+    status: Status = Status.waiting
+    result: dict | None = None
+    commit_hexsha: str | None = None
+    oids: list[str] = Field(default_factory=list)
