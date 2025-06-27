@@ -101,7 +101,7 @@ cd pkgs/standards/peagen
 pip install .
 
 peagen --help
-````
+```
 
 ### Executing `peagen --help`
 
@@ -415,6 +415,11 @@ task = TaskRead.model_validate_json(raw_json)
 
 The gateway and worker components rely on these schema classes rather than the
 ORM models under `peagen.orm`.
+
+> **Note**
+> Earlier versions exposed these models under ``peagen.models`` and the
+> transport schemas under ``peagen.models.schemas``. Update any imports to use
+> ``peagen.orm`` and ``peagen.schemas`` going forward.
 
 ### Git Filters & Publishers
 

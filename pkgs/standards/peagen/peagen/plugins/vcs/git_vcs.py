@@ -19,7 +19,8 @@ from peagen.errors import (
     GitPushError,
     GitCommitError,
 )
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.plugins import PluginManager
+from peagen._utils.config_loader import resolve_cfg
 
 from .constants import PEAGEN_REFS_PREFIX
 
@@ -198,7 +199,8 @@ class GitVCS:
         res.raise_for_status()
         cipher = res.json()["result"]["secret"].encode()
 
-        drv = AutoGpgDriver()
+        pm = PluginManager(resolve_cfg())
+        drv = pm.get("secrets_drivers")
         token = drv.decrypt(cipher).decode().strip()
 
         # Use PyGithub to verify access and obtain the remote repository
