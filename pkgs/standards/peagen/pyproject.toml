@@ -206,7 +206,6 @@ simple_time = "peagen.plugins.evaluators.simple_time:SimpleTimeEvaluator"
 default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 
 [tool.setuptools.package-data]
-"peagen.schemas" = ["*.json", "extras/*.json"]
 "peagen.jsonschemas" = ["*.json", "extras/*.json"]
 "peagen" = [
   "tests/examples/locking_demo/*",
@@ -215,3 +214,4 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
   "alembic.ini",
   "migrations/**",
 ]
+

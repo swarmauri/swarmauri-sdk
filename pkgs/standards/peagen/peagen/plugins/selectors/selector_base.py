@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from peagen.models.task.status import Status
+from peagen.orm.status import Status
 from peagen.plugins.result_backends import ResultBackendBase
 
 

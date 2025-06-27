@@ -12,8 +12,13 @@ async def test_valid_jsonrpc_request():
         "method": "POST",
         "headers": [(b"content-type", b"application/json")],
     }
+
     async def receive():
-        return {"type": "http.request", "body": b'{"jsonrpc": "2.0", "id": 1}', "more_body": False}
+        return {
+            "type": "http.request",
+            "body": b'{"jsonrpc": "2.0", "id": 1}',
+            "more_body": False,
+        }
 
     request = Request(scope=scope, receive=receive)
 
@@ -34,6 +39,7 @@ async def test_invalid_json():
         "method": "POST",
         "headers": [(b"content-type", b"application/json")],
     }
+
     async def receive():
         return {"type": "http.request", "body": b"{invalid", "more_body": False}
 
@@ -55,6 +61,7 @@ async def test_missing_jsonrpc_field():
         "method": "POST",
         "headers": [(b"content-type", b"application/json")],
     }
+
     async def receive():
         return {"type": "http.request", "body": b"{}", "more_body": False}
 

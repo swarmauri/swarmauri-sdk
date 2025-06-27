@@ -2,20 +2,36 @@
 import uuid
 from swarmauri_standard.loggers.Logger import Logger
 import datetime as dt
-from typing import Dict, Any
+from typing import Any, Dict
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
-from peagen.models import (
+from peagen.orm import (
     Status,
     TaskRun,
     TaskRunTaskRelationAssociation,
 )
-from peagen.models.config.secret import Secret
-from peagen.models.AbuseRecord import AbuseRecord
+from peagen.orm.config.secret import Secret
+from peagen.orm.AbuseRecord import AbuseRecord
 
 log = Logger(name="upsert")
+
+
+def _tenant_uuid(tid: str | uuid.UUID) -> uuid.UUID:
+    """Return a ``uuid.UUID`` for *tid*.
+
+    Accepts either a UUID instance, a valid UUID string, or an arbitrary
+    slug-like string. Slug strings are mapped deterministically via
+    :func:`uuid.uuid5` using the DNS namespace.
+    """
+
+    if isinstance(tid, uuid.UUID):
+        return tid
+    try:
+        return uuid.UUID(str(tid))
+    except ValueError:
+        return uuid.uuid5(uuid.NAMESPACE_DNS, str(tid))
 
 
 def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -96,7 +112,7 @@ async def upsert_secret(
 ) -> None:
     """Insert or update a secret for a tenant."""
     data = {
-        "tenant_id": tenant_id,
+        "tenant_id": _tenant_uuid(tenant_id),
         "name": name,
         "cipher": cipher,
     }
@@ -115,14 +131,18 @@ async def fetch_secret(
     session: AsyncSession, tenant_id: str, name: str
 ) -> Secret | None:
     result = await session.execute(
-        sa.select(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+        sa.select(Secret).where(
+            Secret.tenant_id == _tenant_uuid(tenant_id), Secret.name == name
+        )
     )
     return result.scalar_one_or_none()
 
 
 async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> None:
     await session.execute(
-        sa.delete(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+        sa.delete(Secret).where(
+            Secret.tenant_id == _tenant_uuid(tenant_id), Secret.name == name
+        )
     )
 
 

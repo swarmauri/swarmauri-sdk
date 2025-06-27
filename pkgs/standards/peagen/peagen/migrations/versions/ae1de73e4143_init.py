@@ -2,7 +2,7 @@
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
-from peagen.models.task.status import Status
+from peagen.orm.status import Status
 
 status_enum = sa.Enum(
     Status, name="task_status_enum"
@@ -30,7 +30,6 @@ def upgrade() -> None:
                 "id", sa.dialects.postgresql.UUID(as_uuid=True), primary_key=True
             ),
             sa.Column("pool", sa.String()),
-            sa.Column("task_type", sa.String()),
             sa.Column("status", status_enum, nullable=False),
             sa.Column("payload", sa.JSON()),
             sa.Column("result", sa.JSON()),

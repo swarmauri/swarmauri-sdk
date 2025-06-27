@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import secrets_core
-from peagen.models import Task
+from peagen.orm import Task
 from . import ensure_task
 
 

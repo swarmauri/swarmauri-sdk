@@ -26,9 +26,10 @@ from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException
-from peagen.models import Base, Status, Task
-from peagen.models.schemas import TaskRead
-from peagen.models.task.task_run import TaskRun
+from peagen.orm import Base, Status, Task
+from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
+from peagen.orm.task.task import TaskModel
+from peagen.orm.task.task_run import TaskRun
 
 from peagen.gateway.ws_server import router as ws_router
 
@@ -57,6 +58,7 @@ from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.core.task_core import get_task_result
+from peagen.services import create_task
 
 _db = reload(_db)
 engine = _db.engine
@@ -263,6 +265,20 @@ def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
 
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
+
+
+def to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    return TaskModel(**data.model_dump())
+
+
+def to_schema(row: TaskModel) -> TaskRead:
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    return TaskRead.from_orm(row)
+
+
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
@@ -307,10 +323,25 @@ async def _select_tasks(selector: str) -> list[TaskRead]:
 # ──────────────────────   Results Backend ────────────────────────
 
 
-async def _persist(task: Task) -> None:
+async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
+    """Persist a task to the results backend."""
+
     try:
         log.info("persisting task %s", task.id)
-        await result_backend.store(TaskRun.from_task(task))
+        orm_task = task if isinstance(task, TaskModel) else to_orm(task)
+        if result_backend:
+            await result_backend.store(TaskRun.from_task(orm_task))
+        async with Session() as session:
+            await create_task(
+                session,
+                TaskCreate(
+                    id=orm_task.id,
+                    tenant_id=orm_task.tenant_id,
+                    git_reference_id=orm_task.git_reference_id,
+                    parameters=orm_task.parameters,
+                    note=orm_task.note or "",
+                ),
+            )
     except Exception as e:
         log.warning(f"_persist error '{e}'")
 

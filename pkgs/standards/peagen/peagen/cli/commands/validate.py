@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen.handlers.validate_handler import validate_handler
-from peagen.models import Task
+from peagen.orm import Task
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")

@@ -101,7 +101,7 @@ cd pkgs/standards/peagen
 pip install .
 
 peagen --help
-````
+```
 
 ### Executing `peagen --help`
 
@@ -404,17 +404,22 @@ result, idx = pea.process_single_project(projects[0], start_idx=0)
 ### Transport Models
 
 Runtime RPC payloads should be validated using the Pydantic schemas generated
-in `peagen.models.schemas`. For example, use
+in `peagen.schemas`. For example, use
 `TaskRead.model_validate_json()` when decoding a task received over the network:
 
 ```python
-from peagen.models.schemas import TaskRead
+from peagen.schemas import TaskRead
 
 task = TaskRead.model_validate_json(raw_json)
 ```
 
 The gateway and worker components rely on these schema classes rather than the
-ORM models under `peagen.models`.
+ORM models under `peagen.orm`.
+
+> **Note**
+> Earlier versions exposed these models under ``peagen.models`` and the
+> transport schemas under ``peagen.models.schemas``. Update any imports to use
+> ``peagen.orm`` and ``peagen.schemas`` going forward.
 
 ### Git Filters & Publishers
 

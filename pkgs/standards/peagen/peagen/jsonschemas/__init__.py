@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import importlib.resources as res
 
+
 PEAGEN_TOML_V1_SCHEMA = json.loads(
     res.files(__package__)
     .joinpath("peagen.toml.schema.v1.json")
@@ -69,6 +70,7 @@ LLM_PATCH_V1_SCHEMA = json.loads(
     .joinpath("llm_patch.schema.v1.json")
     .read_text(encoding="utf-8")
 )
+
 
 # ── EXTRAS schemas ─────────────────────────────────────────────
 _extras_pkg = res.files(__package__).joinpath("extras")

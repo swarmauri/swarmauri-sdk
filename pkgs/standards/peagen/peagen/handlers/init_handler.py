@@ -3,7 +3,7 @@
 
 Asynchronous entry-point for initialisation tasks.
 
-The handler accepts either a plain dictionary or a :class:`peagen.models.Task`
+The handler accepts either a plain dictionary or a :class:`peagen.orm.Task`
 and delegates to :mod:`peagen.core.init_core`.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.models import Task
+from peagen.orm import Task
 from . import ensure_task
 
 

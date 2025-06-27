@@ -10,7 +10,7 @@ from . import ensure_task
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.extras_core import generate_schemas
-from peagen.models import Task
+from peagen.orm import Task
 from .repo_utils import fetch_repo, cleanup_repo
 
 
@@ -32,7 +32,7 @@ async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         schemas_dir = (
             Path(args.get("schemas_dir")).expanduser()
             if args.get("schemas_dir")
-            else base / "schemas" / "extras"
+            else base / "jsonschemas" / "extras"
         )
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
@@ -47,7 +47,7 @@ async def extras_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     schemas_dir = (
         Path(args.get("schemas_dir")).expanduser()
         if args.get("schemas_dir")
-        else base / "schemas" / "extras"
+        else base / "jsonschemas" / "extras"
     )
 
     written = generate_schemas(templates_root, schemas_dir)

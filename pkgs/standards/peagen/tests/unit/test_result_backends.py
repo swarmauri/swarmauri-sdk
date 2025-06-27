@@ -2,8 +2,8 @@ import json
 import uuid
 import pytest
 
-from peagen.models.task.task_run import TaskRun
-from peagen.models.task.status import Status
+from peagen.orm.task.task_run import TaskRun
+from peagen.orm.status import Status
 from peagen.plugins.result_backends.localfs_backend import LocalFsResultBackend
 from peagen.plugins.result_backends.postgres_backend import PostgresResultBackend
 from peagen.plugins.result_backends.in_memory_backend import InMemoryResultBackend
@@ -16,7 +16,6 @@ async def test_localfs_backend_writes_file(tmp_path):
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
@@ -59,7 +58,6 @@ async def test_postgres_backend_invokes_helpers(monkeypatch):
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
@@ -77,7 +75,6 @@ async def test_in_memory_backend_stores_in_dict():
     tr = TaskRun(
         id=uuid.uuid4(),
         pool="p",
-        task_type="t",
         status=Status.success,
         payload={},
         result=None,
