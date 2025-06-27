@@ -1,6 +1,5 @@
 import tempfile
 from pathlib import Path
-import pytest
 
 
 from peagen.core import keys_core
@@ -65,25 +64,3 @@ def test_export_public_key_delegates(monkeypatch, tmp_path):
     monkeypatch.setattr(keys_core, "PluginManager", PM)
     text = keys_core.export_public_key("FP", key_dir=tmp_path)
     assert text == "KEY"
-
-
-@pytest.mark.unit
-def test_upload_and_remove_key(monkeypatch, tmp_path):
-    monkeypatch.setattr(keys_core, "_get_driver", lambda *a, **k: DummyDriver(tmp_path))
-    posted = {}
-
-    def fake_post(url, json, timeout):
-        posted.update(json=json)
-
-        class R:
-            def json(self):
-                return {}
-
-        return R()
-
-    monkeypatch.setattr(keys_core, "httpx", type("X", (), {"post": fake_post}))
-
-    keys_core.upload_public_key(key_dir=tmp_path, tenant_id="t")
-    assert posted["json"]["params"]["tenant_id"] == "t"
-    keys_core.remove_public_key("FP", tenant_id="t")
-    assert posted["json"]["method"] == "Keys.delete"

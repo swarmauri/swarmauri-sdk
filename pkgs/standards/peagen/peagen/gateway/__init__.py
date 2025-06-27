@@ -11,14 +11,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
 import json
 import httpx
 import time
-from collections import defaultdict
 from json.decoder import JSONDecodeError
-from swarmauri_standard.loggers.Logger import Logger
 
 
 import pgpy
@@ -107,7 +106,7 @@ except KeyError:
     result_backend = None
 
 # ─────────────────────────── Key/Secret store ───────────────────
-TRUSTED_USERS: dict[str, dict[str, str]] = defaultdict(dict)
+TRUSTED_USERS: dict[str, str] = {}
 
 # ─────────────────────────── Workers ────────────────────────────
 # workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
@@ -497,25 +496,25 @@ async def rpc_endpoint(request: Request):
 
 
 @rpc.method("Keys.upload")
-async def keys_upload(public_key: str, tenant_id: str = "default") -> dict:
+async def keys_upload(public_key: str) -> dict:
     """Store a trusted public key."""
     key = pgpy.PGPKey()
     key.parse(public_key)
-    TRUSTED_USERS[tenant_id][key.fingerprint] = public_key
+    TRUSTED_USERS[key.fingerprint] = public_key
     log.info("key uploaded: %s", key.fingerprint)
     return {"fingerprint": key.fingerprint}
 
 
 @rpc.method("Keys.fetch")
-async def keys_fetch(tenant_id: str = "default") -> dict:
+async def keys_fetch() -> dict:
     """Return all trusted keys indexed by fingerprint."""
-    return TRUSTED_USERS.get(tenant_id, {})
+    return TRUSTED_USERS
 
 
 @rpc.method("Keys.delete")
-async def keys_delete(fingerprint: str, tenant_id: str = "default") -> dict:
+async def keys_delete(fingerprint: str) -> dict:
     """Remove a public key by its fingerprint."""
-    TRUSTED_USERS.get(tenant_id, {}).pop(fingerprint, None)
+    TRUSTED_USERS.pop(fingerprint, None)
     log.info("key removed: %s", fingerprint)
     return {"ok": True}
 
@@ -959,19 +958,19 @@ async def scheduler():
 
 
 # ────────────────────────── Key Management ──────────────────────────
-async def upload_key(public_key: str, tenant_id: str = "default") -> dict:
+async def upload_key(public_key: str) -> dict:
     key = pgpy.PGPKey()
     key.parse(public_key)
-    TRUSTED_USERS[tenant_id][key.fingerprint] = public_key
+    TRUSTED_USERS[key.fingerprint] = public_key
     return {"fingerprint": key.fingerprint}
 
 
-async def list_keys(tenant_id: str = "default") -> dict:
-    return {"keys": list(TRUSTED_USERS.get(tenant_id, {}))}
+async def list_keys() -> dict:
+    return {"keys": list(TRUSTED_USERS.keys())}
 
 
-async def delete_key(fingerprint: str, tenant_id: str = "default") -> dict:
-    TRUSTED_USERS.get(tenant_id, {}).pop(fingerprint, None)
+async def delete_key(fingerprint: str) -> dict:
+    TRUSTED_USERS.pop(fingerprint, None)
     return {"removed": fingerprint}
 
 

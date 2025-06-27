@@ -9,7 +9,6 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen._utils.slug_utils import repo_slug
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -25,21 +24,17 @@ def login(
     ),
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
-    pool: str = typer.Option("default", "--pool", help="Tenant/workspace name"),
-    repo: Optional[str] = typer.Option(None, "--repo", help="GitHub repo slug"),
 ) -> None:
     """Ensure keys exist and upload the public key."""
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    if repo and pool == "default":
-        pool = repo_slug(repo)
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     payload = {
         "jsonrpc": "2.0",
         "method": "Keys.upload",
-        "params": {"public_key": pubkey, "tenant_id": pool},
+        "params": {"public_key": pubkey},
     }
     try:
         res = httpx.post(gateway_url, json=payload, timeout=10.0)
