@@ -12,7 +12,7 @@ from typing import Any, Dict, Tuple, Literal
 
 import tracemalloc
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.programs.IProgram import IProgram as Program
 
 

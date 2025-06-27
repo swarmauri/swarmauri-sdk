@@ -139,7 +139,7 @@ def build_nav(
     for module_name in sorted_modules:
         class_names = sorted(module_classes_map[module_name])
         for cls_name in class_names:
-            # E.g. "src/swarmauri_core/ComponentBase/ComponentBase.md"
+            # E.g. "src/swarmauri_base/ComponentBase/ComponentBase.md"
             if len(module_name.split(".")) > 2:
                 print(module_name)
                 module_name = "/".join(module_name.split(".")[:2])
