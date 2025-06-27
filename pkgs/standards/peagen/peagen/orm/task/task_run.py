@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
     from ..result.eval_result import EvalResultModel
 
 from ..base import BaseModel  # id, timestamps
-from ..status import Status
+from .status import Status
 from ..task.task import TaskModel
 from ..infra.pool import PoolModel
 from ..infra.worker import WorkerModel
