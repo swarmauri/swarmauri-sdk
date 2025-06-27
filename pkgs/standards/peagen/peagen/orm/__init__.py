@@ -41,7 +41,7 @@ from .repo.repository_user_association import (  # noqa: F401
 # ----------------------------------------------------------------------
 # Task / execution domain
 # ----------------------------------------------------------------------
-from .task.status import Status  # noqa: F401
+from .status import Status  # noqa: F401
 from .task.task import TaskModel, Task  # noqa: F401
 from .task.raw_blob import RawBlobModel, RawBlob  # noqa: F401
 from .task.task_run import TaskRunModel, TaskRun  # noqa: F401
