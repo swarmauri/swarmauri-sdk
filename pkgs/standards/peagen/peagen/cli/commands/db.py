@@ -67,13 +67,13 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
 def upgrade() -> None:
     """Apply Alembic migrations up to HEAD."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
-    task = TaskCreate(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
@@ -97,9 +97,9 @@ def revision(
     typer.echo(
         f"Running alembic -c {ALEMBIC_CFG} revision --autogenerate -m '{message}' …"
     )
-    task = TaskCreate(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {
                 "op": "revision",
@@ -107,7 +107,7 @@ def revision(
                 "alembic_ini": str(ALEMBIC_CFG),
             },
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
@@ -122,13 +122,13 @@ def revision(
 def downgrade() -> None:
     """Downgrade the database by one revision."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
-    task = TaskCreate(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
