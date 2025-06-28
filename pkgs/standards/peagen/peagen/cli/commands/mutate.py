@@ -13,7 +13,7 @@ import typer
 from functools import partial
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import Request, Response, TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -109,25 +109,21 @@ def submit(
     }
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    req = Request(id=task.id, method=TASK_SUBMIT, params=task.model_dump(mode="json"))
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=req.model_dump(mode="json"))
         resp.raise_for_status()
-        reply = resp.json()
+        reply = Response.model_validate(resp.json())
 
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if reply.result:
+        typer.echo(json.dumps(reply.result, indent=2))
