@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
@@ -32,26 +32,17 @@ def login(
         gateway_url += "/rpc"
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    payload = {
-        "jsonrpc": "2.0",
-        "method": KEYS_UPLOAD,
-        "params": {"public_key": pubkey},
-    }
     try:
-        res = httpx.post(gateway_url, json=payload, timeout=10.0)
-    except httpx.RequestError as e:  # pragma: no cover - network errors
+        reply = rpc_post(
+            gateway_url,
+            KEYS_UPLOAD,
+            {"public_key": pubkey},
+            timeout=10.0,
+        )
+    except Exception as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
-    if res.status_code == 404:
-        typer.echo(
-            "Gateway endpoint not found. Did you append '/rpc'?",
-            err=True,
-        )
-        raise typer.Exit(1)
-    if res.status_code >= 400:
-        typer.echo(
-            f"Failed to upload key: {res.status_code} {res.text}",
-            err=True,
-        )
+    if reply.get("error"):
+        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
         raise typer.Exit(1)
     typer.echo("Logged in and uploaded public key")

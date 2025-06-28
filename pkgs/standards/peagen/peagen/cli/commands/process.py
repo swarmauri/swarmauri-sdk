@@ -12,19 +12,17 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 import time
 from pathlib import Path
 import tempfile
 from typing import Any, Dict, Optional
 
-import httpx
 import typer
 from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.defaults import TASK_GET
+from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.cli.rpc_utils import rpc_post
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
@@ -188,15 +186,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
-        resp.raise_for_status()
-        reply = resp.json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
 
     if "error" in reply:
         typer.secho(
@@ -212,13 +206,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            res = rpc_post(
+                ctx.obj.get("gateway_url"),
+                TASK_GET,
+                {"taskId": task.id},
+            )
             return res["result"]
 
         while True:
