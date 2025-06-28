@@ -773,20 +773,19 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 async def _on_start() -> None:
     log.info("gateway startup initiated")
-    result = migrate_core.alembic_upgrade()
-    if not result.get("ok", False):
-        error_msg = result.get("error")
-        log.error("migration failed: %s", error_msg)
-        raise MigrationFailureError(str(error_msg))
-    log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
-        # ensure schema is up to date for Postgres deployments
+        result = migrate_core.alembic_upgrade()
+        if not result.get("ok", False):
+            error_msg = result.get("error")
+            log.error("migration failed: %s", error_msg)
+            raise MigrationFailureError(str(error_msg))
+        log.info("migrations applied; verifying database schema")
         await db_helpers.ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
             await conn.run_sync(Base.metadata.create_all)
-        log.info("SQLite metadata initialized")
+        log.info("SQLite metadata initialized (migrations skipped)")
 
     async with Session() as session:
         banned = await db_helpers.fetch_banned_ips(session)
