@@ -3,7 +3,7 @@ import datetime
 
 import pytest
 
-from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
+from peagen.schemas import TaskCreate, TaskDelete, TaskRead, TaskUpdate
 
 
 @pytest.mark.unit
@@ -55,3 +55,6 @@ def test_task_schema_fields():
 
     # TaskRead includes date_created
     assert "date_created" in TaskRead.model_fields
+
+    # TaskDelete requires only id
+    assert set(TaskDelete.model_fields) == {"id"}
