@@ -24,12 +24,16 @@ def test_submit_task_sends_request(monkeypatch):
                 pass
 
             def json(self):
-                return {"ok": True}
+                return {
+                    "jsonrpc": "2.0",
+                    "id": json.get("id"),
+                    "result": {"taskId": json["params"]["task"]["id"]},
+                }
 
         return Resp()
 
     monkeypatch.setattr(httpx, "post", fake_post)
     task = build_task("demo", {})
     reply = submit_task("http://gw/rpc", task)
-    assert captured["json"]["params"]["id"] == task.id
-    assert reply == {"ok": True}
+    assert captured["json"]["params"]["task"]["id"] == task.id
+    assert reply["result"]["taskId"] == task.id

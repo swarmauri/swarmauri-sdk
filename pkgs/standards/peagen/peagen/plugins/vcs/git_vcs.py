@@ -8,6 +8,14 @@ import tempfile
 import time
 import httpx
 from github import Github
+from pydantic import TypeAdapter
+
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.secrets import (
+    SECRETS_GET,
+    GetParams,
+    GetResult,
+)
 
 from git import Repo
 from git.exc import GitCommandError
@@ -207,14 +215,13 @@ class GitVCS:
         gateway_url: str = "http://localhost:8000/rpc",
     ) -> None:
         """Push ``ref`` using an encrypted deploy key secret."""
-        envelope = {
-            "jsonrpc": "2.0",
-            "method": "Secrets.get",
-            "params": {"name": secret_name},
-        }
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        params = GetParams(name=secret_name).model_dump()
+        req = Request(id="1", method=SECRETS_GET, params=params).model_dump()
+        res = httpx.post(gateway_url, json=req, timeout=10.0)
         res.raise_for_status()
-        cipher = res.json()["result"]["secret"].encode()
+        adapter = TypeAdapter(Response[GetResult])  # type: ignore[index]
+        reply = adapter.validate_python(res.json())
+        cipher = reply.result.secret.encode()
 
         pm = PluginManager(resolve_cfg())
         drv = pm.get("secrets_drivers")

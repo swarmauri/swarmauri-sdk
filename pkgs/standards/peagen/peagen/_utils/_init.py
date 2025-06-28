@@ -13,7 +13,16 @@ from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
 from peagen.orm.status import Status
+from pydantic import TypeAdapter
+
 from peagen.schemas import TaskCreate
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.task import (
+    TASK_SUBMIT,
+    SubmitParams,
+    SubmitResult,
+)
+from peagen.cli.task_builder import _build_task
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
 # module. Expose a lightweight alias instead.
@@ -59,27 +68,25 @@ def _submit_task(
     """Send *args* to a JSON-RPC worker."""
     if not allow_pat and ("pat" in args or _contains_pat(args)):
         raise PATNotAllowedError()
-    task = TaskCreate(pool="default", payload={"action": "init", "args": args})
-    from peagen.protocols.methods import TASK_SUBMIT
-
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
-            **task.model_dump(mode="json"),
-        },
-    }
+    task = _build_task("init", args)
+    params = SubmitParams(task=task).model_dump()
+    envelope = Request(
+        id=str(uuid.uuid4()), method=TASK_SUBMIT, params=params
+    ).model_dump()
 
     try:
         import httpx
 
         resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
         resp.raise_for_status()
-        data = resp.json()
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        adapter = TypeAdapter(Response[SubmitResult])  # type: ignore[index]
+        reply = adapter.validate_python(resp.json())
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted {tag} → taskId={data['result']['taskId']}")
+        typer.echo(
+            f"Submitted {tag} → taskId={reply.result.taskId if reply.result else task.id}"
+        )
     except PATNotAllowedError:
         raise
     except Exception as exc:  # noqa: BLE001

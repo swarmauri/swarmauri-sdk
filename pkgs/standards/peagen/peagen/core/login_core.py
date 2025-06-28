@@ -6,8 +6,15 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
+from pydantic import TypeAdapter
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.keys import (
+    KEYS_UPLOAD,
+    UploadParams,
+    UploadResult,
+)
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -29,11 +36,9 @@ def login(
     """
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    payload = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    res = httpx.post(gateway_url, json=payload, timeout=10.0)
+    params = UploadParams(public_key=pubkey).model_dump()
+    req = Request(id="1", method=KEYS_UPLOAD, params=params).model_dump()
+    res = httpx.post(gateway_url, json=req, timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    adapter = TypeAdapter(Response[UploadResult])  # type: ignore[index]
+    return adapter.validate_python(res.json()).model_dump()

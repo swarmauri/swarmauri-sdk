@@ -10,6 +10,15 @@ from typing import Any, Dict, List
 import math
 from urllib.parse import urlparse
 
+from pydantic import TypeAdapter
+
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.worker import (
+    WORKER_LIST,
+    ListParams,
+    ListResult,
+)
+
 import httpx
 from textual import events
 from textual.app import App, ComposeResult
@@ -168,15 +177,14 @@ class RemoteBackend:
         self.tasks = resp.json().get("result", [])
 
     async def fetch_workers(self) -> None:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "2",
-            "method": "Worker.list",
-            "params": {},
-        }
+        payload = Request(
+            id="2", method=WORKER_LIST, params=ListParams().model_dump()
+        ).model_dump()
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
-        raw_workers = resp.json().get("result", [])
+        adapter = TypeAdapter(Response[ListResult])  # type: ignore[index]
+        reply = adapter.validate_python(resp.json())
+        raw_workers = reply.result.root if reply.result else []
         workers: Dict[str, dict] = {}
         for entry in raw_workers:
             info = {**entry}

@@ -32,12 +32,7 @@ from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
-from peagen.protocols.methods.task import (
-    SubmitParams,
-    PatchParams,
-    GetParams,
-    SimpleSelectorParams,
-)
+from peagen.protocols.methods.task import PatchParams, SubmitParams, SubmitResult
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -123,6 +118,7 @@ from peagen.protocols.methods.secrets import (  # noqa: E402
     DeleteParams,
     GetParams,
 )
+from peagen.protocols.methods.task import GetParams as TaskGetParams  # noqa: E402
 
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
@@ -146,7 +142,9 @@ async def secrets_add(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_add_rpc(**kwargs)
+    else:
+        params = AddParams(**kwargs)
+    return await _secrets_add_rpc(params)
 
 
 async def secrets_get(
@@ -157,7 +155,9 @@ async def secrets_get(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_get_rpc(**kwargs)
+    else:
+        params = GetParams(**kwargs)
+    return await _secrets_get_rpc(params)
 
 
 async def secrets_delete(
@@ -168,7 +168,9 @@ async def secrets_delete(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_delete_rpc(**kwargs)
+    else:
+        params = DeleteParams(**kwargs)
+    return await _secrets_delete_rpc(params)
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
@@ -810,7 +812,7 @@ async def task_submit(
 
     try:
         res = await _task_submit_rpc(SubmitParams(task=task))
-        return {"task_id": res["taskId"]}
+        return {"taskId": res["taskId"]}
     except ValidationError:
         task_id = str(task.id)
         if await _load_task(task_id):
@@ -825,6 +827,25 @@ async def task_submit(
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
         return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
 
+
+async def task_get(taskId: str | TaskGetParams) -> dict:
+    """Return task information for *taskId*."""
+    if isinstance(taskId, TaskGetParams):
+        params = taskId
+    else:
+        params = TaskGetParams(taskId=str(taskId))
+    return await _task_get_rpc(params)
+
+
+async def task_patch(taskId: str | PatchParams, changes: dict | None = None) -> dict:
+    """Patch an existing task."""
+    if isinstance(taskId, PatchParams):
+        params = taskId
+    else:
+        if changes is None:
+            raise TypeError("changes required")
+        params = PatchParams(taskId=str(taskId), changes=changes)
+    return await _task_patch_rpc(params)
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
