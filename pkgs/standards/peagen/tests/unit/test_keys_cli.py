@@ -41,23 +41,20 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(keys_mod, "AutoGpgDriver", DummyDriver)
     captured = {}
 
-    def fake_post(url, json, timeout):
+    def fake_rpc_post(url, method, params, *, timeout):
         captured["url"] = url
-        captured["json"] = json
+        captured["method"] = method
+        captured["params"] = params
+        return {}
 
-        class Resp:
-            pass
-
-        return Resp()
-
-    monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
+    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
     keys_mod.upload(ctx=None, key_dir=tmp_path, gateway_url="http://gw/rpc")
     out = capsys.readouterr().out
 
     assert captured["url"] == "http://gw/rpc"
-    assert captured["json"]["method"] == KEYS_UPLOAD
-    assert captured["json"]["params"]["public_key"] == "PUB"
+    assert captured["method"] == KEYS_UPLOAD
+    assert captured["params"]["public_key"] == "PUB"
     assert "Uploaded public key" in out
 
 
@@ -65,35 +62,28 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
 def test_remove_posts_delete(monkeypatch, capsys):
     captured = {}
 
-    def fake_post(url, json, timeout):
+    def fake_rpc_post(url, method, params, *, timeout):
         captured["url"] = url
-        captured["json"] = json
+        captured["method"] = method
+        captured["params"] = params
+        return {}
 
-        class Resp:
-            pass
-
-        return Resp()
-
-    monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
+    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
     keys_mod.remove(ctx=None, fingerprint="abc", gateway_url="http://gw")
     out = capsys.readouterr().out
 
-    assert captured["json"]["method"] == KEYS_DELETE
-    assert captured["json"]["params"]["fingerprint"] == "abc"
+    assert captured["method"] == KEYS_DELETE
+    assert captured["params"]["fingerprint"] == "abc"
     assert "Removed key abc" in out
 
 
 @pytest.mark.unit
 def test_fetch_server_prints_response(monkeypatch, capsys):
-    def fake_post(url, json, timeout):
-        class Resp:
-            def json(self):
-                return {"result": {"k": "v"}}
+    def fake_rpc_post(url, method, params, *, timeout):
+        return {"result": {"k": "v"}}
 
-        return Resp()
-
-    monkeypatch.setattr(keys_mod, "httpx", type("X", (), {"post": fake_post}))
+    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
     keys_mod.fetch_server(ctx=None, gateway_url="http://gw")
     out = capsys.readouterr().out

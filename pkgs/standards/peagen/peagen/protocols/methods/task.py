@@ -80,7 +80,6 @@ class GetResult(PatchResult):
     """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
 
 
-
 TASK_SUBMIT = register(
     method="Task.submit",
     params_model=SubmitParams,

@@ -17,16 +17,12 @@ class DummyDriver:
 def test_login_success(monkeypatch, tmp_path):
     captured = {}
 
-    def fake_post(url, json, timeout):
-        captured.update({"url": url, "json": json})
-
-        class Resp:
-            status_code = 200
-
-        return Resp()
+    def fake_rpc_post(url, method, params, *, timeout):
+        captured.update({"url": url, "method": method, "params": params})
+        return {}
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod.httpx, "post", fake_post)
+    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
 
     runner = CliRunner()
     result = runner.invoke(
@@ -37,17 +33,17 @@ def test_login_success(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert "Logged in and uploaded public key" in result.output
     assert captured["url"] == "http://gw/rpc"
-    assert captured["json"]["params"]["public_key"] == "PUB"
+    assert captured["params"]["public_key"] == "PUB"
 
 
 @pytest.mark.unit
 def test_login_http_error(monkeypatch, tmp_path):
-    class Resp:
-        status_code = 400
-        text = "fail"
-
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod.httpx, "post", lambda *a, **k: Resp())
+
+    def fake_rpc_post(*_a, **_k):
+        return {"error": "fail"}
+
+    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -58,11 +54,11 @@ def test_login_http_error(monkeypatch, tmp_path):
 
 @pytest.mark.unit
 def test_login_request_error(monkeypatch, tmp_path):
-    def fake_post(*_a, **_k):
+    def fake_rpc_post(*_a, **_k):
         raise httpx.RequestError("oops")
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod.httpx, "post", fake_post)
+    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -81,9 +77,7 @@ def test_login_passphrase(monkeypatch, tmp_path):
             captured.update(self.called)
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", CaptureDriver)
-    monkeypatch.setattr(
-        login_mod.httpx, "post", lambda *a, **k: type("R", (), {"status_code": 200})()
-    )
+    monkeypatch.setattr(login_mod, "rpc_post", lambda *a, **k: {})
 
     runner = CliRunner()
     result = runner.invoke(
