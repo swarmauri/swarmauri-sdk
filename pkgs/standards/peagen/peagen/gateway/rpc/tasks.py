@@ -38,7 +38,7 @@ from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
-@rpc.method("Task.submit")
+@rpc.method(TASK_SUBMIT)
 async def task_submit(dto: TaskCreate) -> dict:
     await queue.sadd("pools", pool)
 
