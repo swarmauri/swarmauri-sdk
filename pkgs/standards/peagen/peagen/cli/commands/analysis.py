@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import httpx
 import typer
@@ -30,7 +30,7 @@ def run(
     run_dirs: List[Path] = typer.Argument(..., exists=True, dir_okay=True),
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
     json_out: bool = typer.Option(False, "--json"),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
@@ -48,7 +48,7 @@ def submit(
     ctx: typer.Context,
     run_dirs: List[Path] = typer.Argument(..., exists=True, dir_okay=True),
     spec_name: str = typer.Option(..., "--spec-name", "-s"),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}

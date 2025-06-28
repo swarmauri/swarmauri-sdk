@@ -9,7 +9,7 @@
   "source_packages": [
     {
       "type": "git",
-      "uri": "https://github.com/swarmauri/swarmauri-sdk.git",
+      "uri": "testproject",
       "ref": "master",
       "dest": "swarmauri_sdk"
     }

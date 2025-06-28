@@ -67,9 +67,11 @@ def submit_list(
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Enqueue a template-set listing task on the gateway."""
-    args = {"operation": "list"}
+    args = {"operation": "list", "repo": repo, "ref": ref}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted list → taskId={task_id}")
@@ -110,9 +112,11 @@ def submit_show(
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Request detailed information about a template-set."""
-    args = {"operation": "show", "name": name}
+    args = {"operation": "show", "name": name, "repo": repo, "ref": ref}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted show → taskId={task_id}")
@@ -197,6 +201,8 @@ def submit_add(
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Submit a template-set installation job via JSON-RPC."""
     args = {
@@ -205,6 +211,8 @@ def submit_add(
         "from_bundle": from_bundle,
         "editable": editable,
         "force": force,
+        "repo": repo,
+        "ref": ref,
     }
     try:
         task_id = _submit_task(args, gateway_url)
@@ -249,6 +257,8 @@ def submit_remove(
     gateway_url: str = typer.Option(
         DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Submit a template-set removal job via JSON-RPC."""
     if not yes:
@@ -256,7 +266,7 @@ def submit_remove(
             typer.echo("Aborted.")
             raise typer.Exit()
 
-    args = {"operation": "remove", "name": name}
+    args = {"operation": "remove", "name": name, "repo": repo, "ref": ref}
     try:
         task_id = _submit_task(args, gateway_url)
         typer.echo(f"Submitted remove → taskId={task_id}")

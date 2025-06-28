@@ -9,6 +9,7 @@ import pytest
 pytestmark = pytest.mark.smoke
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+REPO = "testproject"
 
 SPEC_PATH = (
     Path(__file__).resolve().parents[2]
@@ -43,6 +44,8 @@ def test_remote_evolve(tmp_path: Path) -> None:
         "evolve",
         str(SPEC_PATH),
         "--watch",
+        "--repo",
+        REPO,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=60)
     out = result.stdout

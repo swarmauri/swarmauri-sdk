@@ -98,7 +98,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
         "--output-base",
         help="Root dir for materialised artifacts (default ./out).",
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Execute the processing pipeline synchronously on this machine."""

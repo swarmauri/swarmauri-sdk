@@ -9,6 +9,7 @@ import pytest
 pytestmark = pytest.mark.smoke
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -105,6 +106,8 @@ def test_remote_doe_process(tmp_path: Path) -> None:
             "process",
             str(spec),
             str(template),
+            "--repo",
+            REPO,
         ],
         check=True,
         timeout=60,

@@ -19,7 +19,7 @@ API_KEY   = "${GROQ_API_KEY}"
 [[source_packages]]
 name            = "swarmauri_sdk"
 type            = "git"                # git | local | bundle | uri
-uri             = "https://github.com/swarmauri/swarmauri-sdk.git"
+uri             = "testproject"
 ref             = "mono/dev"           # replaces previous --swarmauri-dev flag
 dest            = "swarmauri_sdk"
 expose_to_jinja = true

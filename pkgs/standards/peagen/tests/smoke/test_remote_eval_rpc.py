@@ -41,7 +41,7 @@ def test_eval_submit_returns_task_id() -> None:
     payload = {
         "action": "eval",
         "args": {
-            "workspace_uri": "git+https://github.com/swarmauri/swarmauri-sdk.git@HEAD",
+            "workspace_uri": "git+testproject@HEAD",
             "program_glob": "*.py",
         },
     }
