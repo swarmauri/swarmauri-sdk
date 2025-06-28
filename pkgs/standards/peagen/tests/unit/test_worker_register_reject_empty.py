@@ -2,6 +2,7 @@ import importlib
 import pytest
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.worker import RegisterParams
 
 
 @pytest.mark.unit
@@ -41,13 +42,14 @@ async def test_worker_register_rejects_no_handlers(monkeypatch):
     monkeypatch.setattr(gw, "_publish_event", noop)
 
     with pytest.raises(gw.RPCException) as exc:
-        await gw.worker_register(
+        params = RegisterParams(
             workerId="w1",
             pool="p",
             url="http://w1/rpc",
             advertises={},
             handlers=[],
         )
+        await gw.worker_register(params)
     assert exc.value.code == -32602
     data = await q.hgetall("worker:w1")
     assert data == {}

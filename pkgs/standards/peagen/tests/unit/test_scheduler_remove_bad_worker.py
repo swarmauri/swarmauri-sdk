@@ -5,6 +5,7 @@ import datetime
 import httpx
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.worker import RegisterParams
 
 
 @pytest.mark.unit
@@ -43,9 +44,10 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_task", noop)
 
-    await gw.worker_register(
+    params = RegisterParams(
         workerId="w1", pool="p", url="http://w1/rpc", advertises={}, handlers=["demo"]
     )
+    await gw.worker_register(params)
 
     await q.sadd("pools", "p")
     task = gw.TaskRead(

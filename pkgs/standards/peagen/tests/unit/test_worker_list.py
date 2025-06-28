@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.worker import RegisterParams, ListParams, WorkerInfo
 
 
 @pytest.mark.unit
@@ -43,9 +44,11 @@ async def test_worker_list(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    await gw.worker_register(
+    params = RegisterParams(
         workerId="w1", pool="p", url="http://w1", advertises={}, handlers=["demo"]
     )
-    workers = await gw.worker_list()
-    assert workers[0]["id"] == "w1"
-    assert workers[0]["pool"] == "p"
+    await gw.worker_register(params)
+    result = await gw.worker_list(ListParams(pool=None))
+    info = WorkerInfo.model_validate(result[0])
+    assert info.id == "w1"
+    assert info.pool == "p"

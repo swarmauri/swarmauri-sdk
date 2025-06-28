@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, timezone
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.worker import RegisterParams
 from peagen.schemas import TaskCreate
 from peagen.orm.status import Status
 
@@ -47,11 +48,13 @@ async def test_task_submit_unknown_action(monkeypatch):
     monkeypatch.setattr(gw, "_publish_event", noop)
 
     await gw.worker_register(
-        workerId="w1",
-        pool="p",
-        url="http://w1/rpc",
-        advertises={},
-        handlers=["foo"],
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+            handlers=["foo"],
+        )
     )
 
     task = TaskCreate(
