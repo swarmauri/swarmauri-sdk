@@ -38,12 +38,20 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
             timeout=10.0,
             result_model=ListResult,
         )
-        workers = res.result or []
+        if res.result is None:
+            workers = []
+        elif hasattr(res.result, "root"):
+            workers = res.result.root
+        else:
+            workers = res.result
     except Exception:
         return []
     keys = []
     for w in workers:
-        advert = w.get("advertises") or {}
+        if isinstance(w, dict):
+            advert = w.get("advertises") or {}
+        else:
+            advert = w.advertises or {}
         if isinstance(advert, str):  # gateway may return JSON string
             try:
                 advert = json.loads(advert)
