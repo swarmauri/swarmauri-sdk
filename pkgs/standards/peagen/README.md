@@ -416,6 +416,11 @@ task = TaskRead.model_validate_json(raw_json)
 The gateway and worker components rely on these schema classes rather than the
 ORM models under `peagen.orm`.
 
+RPC methods accept these models directly. Do **not** wrap a task inside a
+``dto`` field or send arbitrary dictionaries; always build a valid
+``TaskCreate`` instance and serialize it with ``model_dump()`` when calling the
+API over the network.
+
 > **Note**
 > Earlier versions exposed these models under ``peagen.models`` and the
 > transport schemas under ``peagen.models.schemas``. Update any imports to use

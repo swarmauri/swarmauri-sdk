@@ -755,6 +755,8 @@ async def task_submit(
 
         # keep the UUID instance so the ORM receives the correct type
 
+    # keep the UUID instance so the ORM receives the correct type
+
     return await _task_submit_rpc(task)
 
 

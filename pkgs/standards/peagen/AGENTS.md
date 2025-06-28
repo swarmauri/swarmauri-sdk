@@ -23,6 +23,11 @@ and return ``TaskRead``, ``TaskCreate``, or ``TaskUpdate`` instances
 exclusively. This ensures interoperability across services and avoids subtle
 validation issues.
 
+RPC handlers strictly expect parameters matching these schemas. **Never** wrap a
+task under a ``dto`` key or send unvalidated dictionaries. When invoking the
+Python API, always construct a :class:`TaskCreate` object first and pass it
+directly.
+
 Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
 
 For quick local testing you can rely on the in-memory queue and an in-memory results backend:

@@ -48,10 +48,7 @@ from .. import Session, engine, Base
 
 
 def _parse_task_create(raw: dict) -> TaskCreate:
-    # Legacy support
-    if "dto" in raw and isinstance(raw["dto"], dict):
-        return TaskCreate.model_validate(raw["dto"])
-    # Preferred: flattened KV pairs
+    """Normalize *raw* into a :class:`TaskCreate` instance."""
     return TaskCreate.model_validate(raw)
 
 
