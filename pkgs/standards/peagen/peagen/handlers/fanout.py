@@ -8,7 +8,7 @@ import httpx
 
 from peagen.schemas import TaskRead
 from peagen.orm.status import Status
-from peagen.protocols.methods import TASK_SUBMIT
+from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
 from . import ensure_task
 
 
@@ -42,7 +42,7 @@ async def fan_out(
         patch = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
-            "method": "Task.patch",
+            "method": TASK_PATCH,
             "params": {
                 "taskId": parent_id,
                 "changes": {"result": {"children": child_ids}},
