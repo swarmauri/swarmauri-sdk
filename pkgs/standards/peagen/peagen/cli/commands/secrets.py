@@ -11,6 +11,11 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols.methods.secrets import (
+    AddParams,
+    GetParams,
+    DeleteParams,
+)
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -101,13 +106,13 @@ def remote_add(
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
-    envelope = {
-        "name": secret_id,
-        "cipher": cipher,
-        "version": version,
-        "tenant_id": pool,
-    }
-    res = rpc_post(gateway_url, SECRETS_ADD, envelope, timeout=10.0)
+    params = AddParams(
+        name=secret_id,
+        cipher=cipher,
+        tenant_id=pool,
+        version=version,
+    ).model_dump()
+    res = rpc_post(gateway_url, SECRETS_ADD, params, timeout=10.0)
     if res.get("error"):
         typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
@@ -127,8 +132,8 @@ def remote_get(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
-    envelope = {"name": secret_id, "tenant_id": pool}
-    res = rpc_post(gateway_url, SECRETS_GET, envelope, timeout=10.0)
+    params = GetParams(name=secret_id, tenant_id=pool).model_dump()
+    res = rpc_post(gateway_url, SECRETS_GET, params, timeout=10.0)
     if res.get("error"):
         typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
@@ -149,8 +154,12 @@ def remote_remove(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    envelope = {"name": secret_id, "version": version, "tenant_id": pool}
-    res = rpc_post(gateway_url, SECRETS_DELETE, envelope, timeout=10.0)
+    params = DeleteParams(
+        name=secret_id,
+        tenant_id=pool,
+        version=version,
+    ).model_dump()
+    res = rpc_post(gateway_url, SECRETS_DELETE, params, timeout=10.0)
     if res.get("error"):
         typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
