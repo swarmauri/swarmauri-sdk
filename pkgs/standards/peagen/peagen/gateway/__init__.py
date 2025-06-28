@@ -27,6 +27,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
+from .runtime_cfg import settings
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -773,6 +774,15 @@ async def health() -> dict:
 # ───────────────────────────────    Startup  ───────────────────────────────
 async def _on_start() -> None:
     log.info("gateway startup initiated")
+    missing = [
+        name
+        for name in ("pg_host", "pg_port", "pg_db", "pg_user", "pg_pass")
+        if not getattr(settings, name)
+    ]
+    if missing:
+        msg = f"missing required database settings: {', '.join(missing)}"
+        log.error(msg)
+        raise MigrationFailureError(msg)
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
         error_msg = result.get("error")
