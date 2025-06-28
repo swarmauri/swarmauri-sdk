@@ -539,14 +539,20 @@ async def rpc_endpoint(request: Request):
 
 
 # ────────────────────────── Helpers ──────────────────────────
-async def _fail_task(task: TaskUpdate, error: Exception) -> None:
+async def _fail_task(task: TaskRead, error: Exception) -> None:
     """Mark *task* as failed and persist the error message."""
-    task.status = Status.failed
-    task.result = {"error": str(error)}
-    task.finished_at = time.time()
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
+    data = task.model_dump()
+    data.update(
+        {
+            "status": Status.failed,
+            "result": {"error": str(error)},
+            "finished_at": time.time(),
+        }
+    )
+    updated = TaskRead.model_validate(data)
+    await _save_task(updated)
+    await _persist(updated)
+    await _publish_task(updated)
 
 
 # ─────────────────────────── Scheduler loop ─────────────────────
@@ -805,4 +811,3 @@ def __getattr__(name: str):
         module = modules[name]
         return getattr(module, name)
     raise AttributeError(name)
-
