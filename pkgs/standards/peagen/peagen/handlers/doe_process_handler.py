@@ -126,18 +126,19 @@ async def doe_process_handler(
     children: List[TaskRead] = []
     for path, proj in projects:
         children.append(
-            TaskRead(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                action="process",
-                status=Status.waiting,
-                payload={
-                    "action": "process",
-                    "args": {
-                        "projects_payload": path,
-                        "project_name": proj.get("NAME"),
+            ensure_task(
+                {
+                    "id": str(uuid.uuid4()),
+                    "pool": pool,
+                    "status": Status.waiting,
+                    "payload": {
+                        "action": "process",
+                        "args": {
+                            "projects_payload": path,
+                            "project_name": proj.get("NAME"),
+                        },
                     },
-                },
+                }
             )
         )
 
