@@ -37,7 +37,12 @@ from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.protocols.methods.task import (
+    SubmitParams,
+    SubmitResult,
+    PatchParams,
+    GetParams,
+)
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -121,8 +126,7 @@ from .rpc.secrets import (  # noqa: E402
 from peagen.protocols.methods.secrets import (  # noqa: E402
     AddParams,
     DeleteParams,
-    GetParams as SecretsGetParams,
-
+    GetParams as SecretGetParams,
 )
 
 # ─────────────────────────── Key/Secret store ───────────────────
@@ -147,7 +151,7 @@ async def secrets_add(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_add_rpc(**kwargs)
+    return await _secrets_add_rpc(AddParams(**kwargs))
 
 
 async def secrets_get(
@@ -158,7 +162,7 @@ async def secrets_get(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_get_rpc(**kwargs)
+    return await _secrets_get_rpc(SecretGetParams(**kwargs))
 
 
 async def secrets_delete(
@@ -169,7 +173,7 @@ async def secrets_delete(
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
         kwargs = params.model_dump()
-    return await _secrets_delete_rpc(**kwargs)
+    return await _secrets_delete_rpc(DeleteParams(**kwargs))
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
@@ -811,7 +815,7 @@ async def task_submit(
 
     try:
         res = await _task_submit_rpc(SubmitParams(task=task))
-        return {"task_id": res["taskId"]}
+        return res
     except ValidationError:
         task_id = str(task.id)
         if await _load_task(task_id):
@@ -826,6 +830,15 @@ async def task_submit(
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
         return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
 
+
+async def task_get(taskId: str) -> dict:
+    """Compatibility wrapper for :func:`_task_get_rpc`."""
+    return await _task_get_rpc(GetParams(taskId=taskId))
+
+
+async def task_patch(*, taskId: str, changes: dict) -> dict:
+    """Compatibility wrapper for :func:`_task_patch_rpc`."""
+    return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])

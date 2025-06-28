@@ -37,7 +37,7 @@ from peagen.protocols.methods.worker import (
 
 
 @dispatcher.method(WORKER_REGISTER)
-async def worker_register(params: RegisterParams) -> RegisterResult:
+async def worker_register(params: RegisterParams) -> dict:
     """Register a worker and persist its advertised handlers."""
 
     workerId = params.workerId
@@ -70,11 +70,11 @@ async def worker_register(params: RegisterParams) -> RegisterResult:
         },
     )
     log.info("worker %s registered (%s) handlers=%s", workerId, pool, handler_list)
-    return RegisterResult(ok=True)
+    return RegisterResult(ok=True).model_dump()
 
 
 @dispatcher.method(WORKER_HEARTBEAT)
-async def worker_heartbeat(params: HeartbeatParams) -> HeartbeatResult:
+async def worker_heartbeat(params: HeartbeatParams) -> dict:
     workerId = params.workerId
     # metrics are currently ignored
     pool = params.pool
@@ -95,11 +95,11 @@ async def worker_heartbeat(params: HeartbeatParams) -> HeartbeatResult:
         mapping["url"] = url
     await queue.hset(WORKER_KEY.format(workerId), mapping=mapping)
     await queue.expire(WORKER_KEY.format(workerId), WORKER_TTL)
-    return HeartbeatResult(ok=True)
+    return HeartbeatResult(ok=True).model_dump()
 
 
 @dispatcher.method(WORKER_LIST)
-async def worker_list(params: ListParams) -> ListResult:
+async def worker_list(params: ListParams) -> dict:
     """Return active workers, optionally filtered by *pool*."""
 
     pool = params.pool
@@ -135,7 +135,7 @@ async def worker_list(params: ListParams) -> ListResult:
             "handlers": handlers,
         }
         workers.append(worker_info)
-    return ListResult([WorkerInfo(**w) for w in workers])
+    return ListResult([WorkerInfo(**w) for w in workers]).model_dump()
 
 
 @dispatcher.method(WORK_FINISHED)
