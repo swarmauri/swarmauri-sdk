@@ -10,12 +10,13 @@ from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE, WORKER_LIST
 from peagen.protocols.methods.secrets import (
     AddParams,
     GetParams,
     DeleteParams,
 )
+from peagen.protocols.methods.worker import ListParams
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -25,12 +26,12 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    envelope = {"pool": pool}
+    envelope = ListParams(pool=pool)
     try:
-        res = rpc_post(gateway_url, "Worker.list", envelope, timeout=10.0)
+        res = rpc_post(gateway_url, WORKER_LIST, envelope, timeout=10.0)
     except Exception:
         return []
-    workers = res.get("result", [])
+    workers = res.result or []
     keys = []
     for w in workers:
         advert = w.get("advertises") or {}
@@ -111,10 +112,10 @@ def remote_add(
         cipher=cipher,
         tenant_id=pool,
         version=version,
-    ).model_dump()
+    )
     res = rpc_post(gateway_url, SECRETS_ADD, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Uploaded secret {secret_id}")
 
@@ -132,12 +133,12 @@ def remote_get(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
-    params = GetParams(name=secret_id, tenant_id=pool).model_dump()
+    params = GetParams(name=secret_id, tenant_id=pool)
     res = rpc_post(gateway_url, SECRETS_GET, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
-    cipher = res["result"]["secret"].encode()
+    cipher = res.result.secret.encode()
     typer.echo(drv.decrypt(cipher).decode())
 
 
@@ -158,9 +159,9 @@ def remote_remove(
         name=secret_id,
         tenant_id=pool,
         version=version,
-    ).model_dump()
+    )
     res = rpc_post(gateway_url, SECRETS_DELETE, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Removed secret {secret_id}")

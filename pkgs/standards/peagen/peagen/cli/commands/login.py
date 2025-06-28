@@ -34,7 +34,7 @@ def login(
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     try:
-        params = UploadParams(public_key=pubkey).model_dump()
+        params = UploadParams(public_key=pubkey)
         reply = rpc_post(
             gateway_url,
             KEYS_UPLOAD,
@@ -44,7 +44,7 @@ def login(
     except Exception as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
-    if reply.get("error"):
-        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
+    if reply.error:
+        typer.echo(f"Failed to upload key: {reply.error}", err=True)
         raise typer.Exit(1)
     typer.echo("Logged in and uploaded public key")

@@ -18,6 +18,7 @@ from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols.methods.task import GetParams
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -150,9 +151,9 @@ def submit_gen(  # noqa: PLR0913
         task.model_dump(mode="json"),
     )
 
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
@@ -297,9 +298,9 @@ def submit_process(  # noqa: PLR0913
         task.model_dump(mode="json"),
     )
 
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
@@ -309,12 +310,13 @@ def submit_process(  # noqa: PLR0913
     if watch:
 
         def _rpc_call(tid: str) -> dict:
+            params = GetParams(taskId=tid)
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
                 TASK_GET,
-                {"taskId": tid},
+                params,
             )
-            return res["result"]
+            return res.result
 
         while True:
             task_reply = _rpc_call(task.id)
@@ -323,7 +325,7 @@ def submit_process(  # noqa: PLR0913
                 break
             time.sleep(interval)
 
-        children = task_reply.get("result", {}).get("children", [])
+        children = task_reply.get("children", [])
         for cid in children:
             while True:
                 child_reply = _rpc_call(cid)

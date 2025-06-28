@@ -145,10 +145,10 @@ def submit_sort(
             task,
             timeout=10.0,
         )
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        if data.error:
+            typer.echo(f"[ERROR] {data.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={data['result']['taskId']}")
+        typer.echo(f"Submitted sort → taskId={data.result['taskId']}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

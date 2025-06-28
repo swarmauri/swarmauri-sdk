@@ -22,6 +22,7 @@ from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols.methods.task import GetParams
 from peagen.cli.rpc_utils import rpc_post
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
@@ -206,12 +207,13 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if watch:
 
         def _rpc_call() -> dict:
+            params = GetParams(taskId=task.id)
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
                 TASK_GET,
-                {"taskId": task.id},
+                params,
             )
-            return res["result"]
+            return res.result
 
         while True:
             task_reply = _rpc_call()

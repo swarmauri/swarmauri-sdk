@@ -18,6 +18,11 @@ from peagen.protocols import (
     TASK_RETRY,
     TASK_RETRY_FROM,
 )
+from peagen.protocols.methods.task import (
+    GetParams,
+    PatchParams,
+    SimpleSelectorParams,
+)
 from peagen.cli.rpc_utils import rpc_post
 
 from peagen.orm.status import Status
@@ -37,12 +42,13 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> dict:
+        params = GetParams(taskId=task_id)
         res = rpc_post(
             ctx.obj.get("gateway_url"),
             TASK_GET,
-            {"taskId": task_id},
+            params,
         )
-        return res["result"]
+        return res.result
 
     while True:
         reply = _rpc_call()
@@ -62,21 +68,23 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
+    params = PatchParams(taskId=task_id, changes=payload)
     res = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_PATCH,
-        {"taskId": task_id, "changes": payload},
+        params,
     )
-    typer.echo(json.dumps(res["result"], indent=2))
+    typer.echo(json.dumps(res.result, indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
+    params = SimpleSelectorParams(selector=selector)
     res = rpc_post(
         ctx.obj.get("gateway_url"),
         method,
-        {"selector": selector},
+        params,
     )
-    typer.echo(json.dumps(res["result"], indent=2))
+    typer.echo(json.dumps(res.result, indent=2))
 
 
 @remote_task_app.command("pause")

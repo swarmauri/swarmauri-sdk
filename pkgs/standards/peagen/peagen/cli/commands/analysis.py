@@ -57,12 +57,12 @@ def submit(
         TASK_SUBMIT,
         task.model_dump(mode="json"),
     )
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    typer.echo(json.dumps(reply.get("result", {}), indent=2))
+    typer.echo(json.dumps(reply.result or {}, indent=2))

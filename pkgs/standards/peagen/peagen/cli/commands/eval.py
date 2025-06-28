@@ -130,9 +130,9 @@ def submit(  # noqa: PLR0913
         task.model_dump(mode="json"),
     )
 
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )

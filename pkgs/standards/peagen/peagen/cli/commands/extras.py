@@ -89,10 +89,10 @@ def submit_extras(
             task.model_dump(mode="json"),
             timeout=10.0,
         )
-        if reply.get("error"):
-            typer.echo(f"[ERROR] {reply['error']}")
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted extras generation → taskId={reply['id']}")
+        typer.echo(f"Submitted extras generation → taskId={reply.id}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

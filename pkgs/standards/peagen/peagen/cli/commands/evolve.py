@@ -14,7 +14,8 @@ from functools import partial
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols.methods.task import GetParams
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -119,12 +120,13 @@ def submit(
     if watch:
 
         def _rpc_call() -> dict:
+            params = GetParams(taskId=task.id)
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
-                "Task.get",
-                {"taskId": task.id},
+                TASK_GET,
+                params,
             )
-            return res["result"]
+            return res.result
 
         import time
 

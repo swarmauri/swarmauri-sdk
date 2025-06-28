@@ -52,9 +52,9 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         {"pool": task.pool, "payload": task.payload, "taskId": task.id},
         timeout=10.0,
     )
-    if data.get("error"):
-        raise RuntimeError(data["error"])
-    return str(data.get("result", {}).get("taskId", task.id))
+    if data.error:
+        raise RuntimeError(data.error)
+    return str(data.result.get("taskId", task.id))
 
 
 @local_db_app.command("upgrade")

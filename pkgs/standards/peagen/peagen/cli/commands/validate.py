@@ -98,8 +98,8 @@ def submit_validate(
             task.model_dump(mode="json"),
             timeout=10.0,
         )
-        if reply.get("error"):
-            typer.echo(f"[ERROR] {reply['error']}")
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error}")
             raise typer.Exit(1)
         typer.echo(f"Submitted validation → taskId={task.id}")
     except Exception as exc:

@@ -43,7 +43,7 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    params = UploadParams(public_key=pubkey).model_dump()
+    params = UploadParams(public_key=pubkey)
     rpc_post(gateway_url, KEYS_UPLOAD, params, timeout=10.0)
     typer.echo("Uploaded public key")
 
@@ -55,7 +55,7 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    params = DeleteParams(fingerprint=fingerprint).model_dump()
+    params = DeleteParams(fingerprint=fingerprint)
     rpc_post(gateway_url, KEYS_DELETE, params, timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
@@ -66,9 +66,9 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    params = FetchParams().model_dump()
+    params = FetchParams()
     res = rpc_post(gateway_url, KEYS_FETCH, params, timeout=10.0)
-    typer.echo(json.dumps(res.get("result", {}), indent=2))
+    typer.echo(json.dumps(res.result or {}, indent=2))
 
 
 @keys_app.command("list")
