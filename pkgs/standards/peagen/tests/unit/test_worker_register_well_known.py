@@ -65,8 +65,15 @@ async def test_worker_register_fetches_well_known(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams
+
     await gw.worker_register(
-        workerId="w1", pool="p", url="http://w1/rpc", advertises={}
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+        )
     )
     data = await q.hgetall("worker:w1")
     handlers = json.loads(data["handlers"])

@@ -110,7 +110,9 @@ async def test_task_submit_roundtrip(monkeypatch):
     )
 
     result = await task_submit(dto)
-    tid = result["task_id"]
-    stored = await task_get(tid)
+    tid = result["taskId"]
+    from peagen.protocols.methods.task import GetParams
+
+    stored = await task_get(GetParams(taskId=tid))
     assert stored["pool"] == "p"
     assert stored["payload"] == {}

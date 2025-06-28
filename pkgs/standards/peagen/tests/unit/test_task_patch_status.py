@@ -77,8 +77,12 @@ async def test_task_patch_updates_status(monkeypatch):
     )
 
     result = await task_submit(dto)
-    tid = result["task_id"]
+    tid = result["taskId"]
 
-    await task_patch(taskId=tid, changes={"status": "success"})
-    patched = await task_get(tid)
+    from peagen.protocols.methods.task import PatchParams
+
+    await task_patch(PatchParams(taskId=tid, changes={"status": "success"}))
+    from peagen.protocols.methods.task import GetParams
+
+    patched = await task_get(GetParams(taskId=tid))
     assert patched["status"] == "success"

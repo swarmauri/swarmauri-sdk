@@ -9,6 +9,7 @@ import os
 import socket
 import uuid
 from typing import Any, Awaitable, Callable, Dict, List, Optional
+from pydantic import BaseModel
 
 import httpx
 from fastapi import Body, FastAPI, Request, HTTPException
@@ -16,12 +17,12 @@ from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen.protocols import Request as RPCEnvelope
-from peagen.defaults import (
-    WORK_START,
-    WORK_CANCEL,
-    WORK_FINISHED,
+from peagen.defaults import WORK_START, WORK_CANCEL, WORK_FINISHED
+from peagen.protocols.methods.worker import (
     WORKER_REGISTER,
     WORKER_HEARTBEAT,
+    RegisterParams,
+    HeartbeatParams,
 )
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
@@ -265,13 +266,15 @@ class WorkerBase:
             self.log.error("Failed to send Work.finished for %s: %s", task_id, exc)
 
     # ───────────────────────── Startup / Heartbeat / Shutdown ──────────────────────
-    async def _send_rpc(self, method: str, params: Dict[str, Any]) -> None:
+    async def _send_rpc(self, method: str, params: Dict[str, Any] | BaseModel) -> None:
         """
         Helper to send any JSON-RPC call to the gateway:
           { "jsonrpc":"2.0", "id": uuid, "method": method, "params": params }
         """
         if self._client is None:
             raise HTTPClientNotInitializedError()
+        if isinstance(params, BaseModel):
+            params = params.model_dump(mode="json")
         body = RPCEnvelope(
             id=str(uuid.uuid4()),
             method=method,
@@ -292,13 +295,13 @@ class WorkerBase:
         # ───── Worker.register ─────────────────────────────────────
         await self._send_rpc(
             WORKER_REGISTER,
-            {
-                "workerId": self.WORKER_ID,
-                "pool": self.POOL,
-                "url": self.url_self,
-                "advertises": {"cpu": True},
-                "handlers": self.supported_handlers(),
-            },
+            RegisterParams(
+                workerId=self.WORKER_ID,
+                pool=self.POOL,
+                url=self.url_self,
+                advertises={"cpu": True},
+                handlers=self.supported_handlers(),
+            ),
         )
         self.log.info(
             "registered  id=%s pool=%s url=%s", self.WORKER_ID, self.POOL, self.url_self
@@ -311,12 +314,12 @@ class WorkerBase:
                 try:
                     await self._send_rpc(
                         WORKER_HEARTBEAT,
-                        {
-                            "workerId": self.WORKER_ID,
-                            "pool": self.POOL,
-                            "url": self.url_self,
-                            "metrics": {},
-                        },
+                        HeartbeatParams(
+                            workerId=self.WORKER_ID,
+                            pool=self.POOL,
+                            url=self.url_self,
+                            metrics={},
+                        ),
                     )
                     self.log.debug("heartbeat ok")
                 except Exception as exc:

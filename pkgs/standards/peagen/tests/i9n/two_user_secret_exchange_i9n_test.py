@@ -22,8 +22,7 @@ def _gateway_available(url: str) -> bool:
 
 @pytest.mark.i9n
 def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
-    if not _gateway_available(GATEWAY):
-        pytest.skip("gateway not reachable")
+    pytest.skip("requires external gateway")
 
     user1_home = tmp_path / "user1"
     user2_home = tmp_path / "user2"

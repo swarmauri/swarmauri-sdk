@@ -43,9 +43,17 @@ async def test_worker_list(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams, ListParams
+
     await gw.worker_register(
-        workerId="w1", pool="p", url="http://w1", advertises={}, handlers=["demo"]
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1",
+            advertises={},
+            handlers=["demo"],
+        )
     )
-    workers = await gw.worker_list()
+    workers = await gw.worker_list(ListParams())
     assert workers[0]["id"] == "w1"
     assert workers[0]["pool"] == "p"

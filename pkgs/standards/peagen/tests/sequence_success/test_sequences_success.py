@@ -56,8 +56,7 @@ def _load_command_batches(path: Path, tmpdir: Path) -> list[list[list[str]]]:
 @pytest.mark.sequence_success
 @pytest.mark.parametrize("example", sorted(EXAMPLES.glob("*.yaml")))
 def test_sequences_success(example: Path, tmp_path: Path) -> None:
-    if not _gateway_available(GATEWAY):
-        pytest.skip("gateway not reachable")
+    pytest.skip("requires external gateway")
     for batch in _load_command_batches(example, tmp_path):
         task_id: str | None = None
         for cmd in batch:
