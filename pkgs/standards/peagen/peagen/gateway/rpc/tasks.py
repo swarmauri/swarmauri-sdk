@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import uuid
 import typing as t
-
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
 from peagen.defaults import (
@@ -44,15 +43,23 @@ from peagen.orm.status import Status
 from .. import Session, engine, Base
 
 
+# -----------------Helper---------------------------------------
+
+
+def _parse_task_create(task: t.Any) -> TaskCreate:
+    """Return ``task`` if it is a :class:`TaskCreate` instance."""
+
+    if not isinstance(task, TaskCreate):
+        raise TypeError("TaskCreate required")
+    return task
 
 # --------------Basic Task Methods ---------------------------------
 
 
 @dispatcher.method(TASK_SUBMIT)
-async def task_submit(**raw: t.Any) -> dict:
-    """Persist *dto* and enqueue the task."""
-    dto = TaskCreate.model_validate(raw)
-    
+async def task_submit(task: TaskCreate) -> dict:
+    """Persist *task* and enqueue it."""
+    dto = _parse_task_create(task)
     await queue.sadd("pools", dto.pool)
 
     action = (dto.payload or {}).get("action")

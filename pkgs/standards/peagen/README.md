@@ -416,6 +416,11 @@ task = TaskRead.model_validate_json(raw_json)
 The gateway and worker components rely on these schema classes rather than the
 ORM models under `peagen.orm`.
 
+> **Important**
+> JSON-RPC methods such as `Task.submit` **only** accept `TaskCreate`,
+> `TaskUpdate`, or `TaskRead` instances. Passing dictionaries or nested `dto`
+> mappings is unsupported and will trigger a `TypeError`.
+
 > **Note**
 > Earlier versions exposed these models under ``peagen.models`` and the
 > transport schemas under ``peagen.models.schemas``. Update any imports to use
