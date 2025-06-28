@@ -9,5 +9,5 @@ __all__ = [
     "TaskRunModel",
     "TaskRelationModel",
     "TaskRunTaskRelationAssociationModel",
-    "RawBlobModel"
+    "RawBlobModel",
 ]

@@ -7,14 +7,14 @@ from typing import Any, Dict
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
-from peagen.orm import (
-    TaskRunModelModel,
-    TaskRunModelTaskRelationAssociationModelModel,
-)
 
 from peagen.orm.status import Status
 from peagen.orm.config.secret import Secret
 from peagen.orm.AbuseRecord import AbuseRecord
+from peagen.orm.task.task_run import TaskRunModel
+from peagen.orm.task.task_run_relation_association import (
+    TaskRunTaskRelationAssociationModel,
+)
 
 log = Logger(name="upsert")
 
@@ -67,13 +67,15 @@ async def upsert_task(session: AsyncSession, row: TaskRunModel) -> None:
     )
     result = await session.execute(stmt)
     await session.execute(
-        sa.delete(TaskRunModelTaskRelationAssociationModel).where(
-            TaskRunModelTaskRelationAssociationModel.task_run_id == row.id
+        sa.delete(TaskRunTaskRelationAssociationModel).where(
+            TaskRunTaskRelationAssociationModel.task_run_id == row.id
         )
     )
     values = [{"task_run_id": row.id, "relation_id": uuid.UUID(d)} for d in row.deps]
     if values:
-        await session.execute(sa.insert(TaskRunModelTaskRelationAssociationModel), values)
+        await session.execute(
+            sa.insert(TaskRunTaskRelationAssociationModel), values
+        )
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 

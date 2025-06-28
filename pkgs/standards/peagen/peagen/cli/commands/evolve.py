@@ -12,7 +12,7 @@ import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.orm import Task
+from peagen.schemas import TaskCreate
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.defaults import TASK_SUBMIT
@@ -21,11 +21,9 @@ local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict, pool: str = "default") -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
         pool=pool,
-        status=Status.waiting,
         payload={"action": "evolve", "args": args},
     )
 
@@ -110,7 +108,7 @@ def submit(
     rpc_req = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "params": task.model_dump(mode="json"),
     }
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()

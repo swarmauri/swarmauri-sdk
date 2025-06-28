@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
 
 from peagen.handlers.extras_handler import extras_handler
-from peagen.orm import Task
+from peagen.schemas import TaskCreate
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.defaults import TASK_SUBMIT
 
@@ -18,10 +17,8 @@ local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-def _build_task(args: Dict[str, Any], pool: str = "default") -> Task:
-    return Task(
-        id=str(uuid.uuid4()), pool=pool, payload={"action": "extras", "args": args}
-    )
+def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
+    return TaskCreate(pool=pool, payload={"action": "extras", "args": args})
 
 
 @local_extras_app.command("extras")
@@ -87,10 +84,7 @@ def submit_extras(
     envelope = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "params": task.model_dump(mode="json"),
     }
 
     try:
