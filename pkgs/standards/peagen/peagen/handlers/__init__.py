@@ -20,7 +20,7 @@ def ensure_task(task: TaskRead | TaskCreate | Dict[str, Any]) -> TaskRead:
         task = task.model_dump()
 
     if not isinstance(task, dict):  # pragma: no cover - defensive
-        raise TypeError(f"Expected dict or TaskRead, got {type(task)!r}")
+        raise TypeError(f"Expected dict or TaskRead or TaskCreate, got {type(task)!r}")
 
     # If the incoming mapping is missing required fields, assume it comes from
     # a local CLI invocation and populate sane defaults so handler logic can
