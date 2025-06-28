@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 from peagen.orm.status import Status
 from peagen.orm.config.secret import SecretModel
-from peagen.orm.AbuseRecordModel import AbuseRecordModel
+from peagen.orm.abuse_record import AbuseRecordModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.task.task_run_relation_association import (
     TaskRunTaskRelationAssociationModel,
