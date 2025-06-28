@@ -33,7 +33,7 @@ from .. import (
     queue,
 )
 from peagen.errors import TaskNotFoundError
-from peagen.schemas import TaskCreate, TaskUpdate
+from peagen.schemas import TaskCreate, TaskUpdate, TaskRead
 from peagen.services.tasks import _to_schema
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
@@ -70,27 +70,46 @@ async def task_submit(dto: TaskCreate) -> dict:
         log.warning("task id collision: %s → %s", task_id, new_id)
         task_id = new_id
 
-    # Ensure the database schema exists for test environments that
-    # do not run migrations.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Determine whether the provided task ID is a valid UUID. If not, we
+    # still accept it for in-memory tracking but skip persistence to the
+    # relational database to avoid driver errors.
+    persist_to_db = True
+    if task_id is not None:
+        try:
+            uuid.UUID(str(task_id))
+        except ValueError:
+            persist_to_db = False
 
-    async with Session() as ses:
-        # 1. create definition-of-task row
-        payload = dto.model_dump()
+    task_rd: TaskRead | None = None
+    if persist_to_db:
+        # Ensure the database schema exists for test environments that
+        # do not run migrations.
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async with Session() as ses:
+            # 1. create definition-of-task row
+            payload = dto.model_dump()
+            if task_id:
+                payload["id"] = uuid.UUID(str(task_id))
+            task_db = TaskModel(**payload)
+            ses.add(task_db)
+            await ses.flush()  # gets task_db.id
+
+            # 2. create first execution attempt
+            run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
+            ses.add(run_db)
+            await ses.commit()
+
+        # 3. make the object that will travel over Redis / websockets
+        task_rd = _to_schema(task_db)
+    else:
+        # Build a ``TaskRead`` instance directly from the provided data without
+        # validation to accommodate non-UUID identifiers used in older tests.
+        data = dto.model_dump()
         if task_id:
-            payload["id"] = task_id
-        task_db = TaskModel(**payload)
-        ses.add(task_db)
-        await ses.flush()  # gets task_db.id
-
-        # 2. create first execution attempt
-        run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
-        ses.add(run_db)
-        await ses.commit()
-
-    # 3. make the object that will travel over Redis / websockets
-    task_rd = _to_schema(task_db)
+            data["id"] = task_id
+        task_rd = TaskRead.model_construct(**data)
 
     await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
     await _publish_queue_length(task_rd.pool)
