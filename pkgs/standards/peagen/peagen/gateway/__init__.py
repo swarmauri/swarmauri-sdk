@@ -22,6 +22,7 @@ from json.decoder import JSONDecodeError
 
 import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.responses import JSONResponse
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
@@ -54,6 +55,8 @@ from peagen.errors import (
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
+from peagen.gateway.errors import GatewayError
+from peagen.transport.jsonrpc import RPCException
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 
@@ -93,6 +96,111 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 app = FastAPI(title="Peagen Pool Manager Gateway")
 app.include_router(ws_router)  # 1-liner, no prefix
 READY = False
+
+# ─── Error handling middleware ──────────────────────────────────────────
+CB_THRESHOLD = 3
+CB_WINDOW = 60
+_failures: dict[str, list[float]] = {}
+_circuit_open: dict[str, float] = {}
+
+
+def _record_failure(route: str) -> None:
+    now = time.time()
+    hist = [t for t in _failures.get(route, []) if now - t < CB_WINDOW]
+    hist.append(now)
+    _failures[route] = hist
+    if len(hist) >= CB_THRESHOLD:
+        _circuit_open[route] = now + CB_WINDOW
+        _failures[route] = []
+
+
+def _circuit_is_open(route: str) -> bool:
+    expiry = _circuit_open.get(route)
+    if expiry and expiry > time.time():
+        return True
+    if expiry and expiry <= time.time():
+        _circuit_open.pop(route, None)
+    return False
+
+
+@app.middleware("http")
+async def _envelope_middleware(request: Request, call_next):
+    req_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    if _circuit_is_open(request.url.path):
+        payload = {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": GatewayError.SERVICE_UNAVAILABLE,
+                "message": "service_unavailable",
+                "data": {"request_id": req_id},
+            },
+        }
+        return JSONResponse(payload, status_code=503)
+
+    try:
+        resp = await call_next(request)
+    except RPCException as exc:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+                "data": {"request_id": req_id, **(exc.data or {})},
+            },
+        }
+        return JSONResponse(payload, status_code=200)
+    except HTTPException as exc:
+        code = (
+            GatewayError.SERVICE_UNAVAILABLE
+            if exc.status_code == 503
+            else GatewayError.INTERNAL_ERROR
+        )
+        payload = {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": code,
+                "message": str(exc.detail),
+                "data": {"request_id": req_id, "detail": str(exc.detail)},
+            },
+        }
+        if code == GatewayError.SERVICE_UNAVAILABLE:
+            _record_failure(request.url.path)
+        return JSONResponse(payload, status_code=exc.status_code)
+    except Exception as exc:  # noqa: BLE001
+        _record_failure(request.url.path)
+        payload = {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": GatewayError.INTERNAL_ERROR,
+                "message": "internal_error",
+                "data": {"request_id": req_id, "detail": str(exc)},
+            },
+        }
+        return JSONResponse(payload, status_code=500)
+
+    resp.headers["X-Request-ID"] = req_id
+    if resp.status_code >= 400:
+        try:
+            body = json.loads(resp.body)
+            detail = body.get("detail") if isinstance(body, dict) else None
+        except Exception:  # noqa: BLE001
+            detail = None
+        payload = {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": GatewayError.INTERNAL_ERROR,
+                "message": "internal_error",
+                "data": {"request_id": req_id, "detail": detail},
+            },
+        }
+        return JSONResponse(payload, status_code=resp.status_code)
+    return resp
+
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])

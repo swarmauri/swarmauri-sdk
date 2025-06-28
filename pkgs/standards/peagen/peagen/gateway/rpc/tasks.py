@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 import uuid
 
-from peagen.transport.jsonrpc import RPCException
-from peagen.defaults.error_codes import ErrorCode
+from peagen.gateway.errors import GatewayError, raise_rpc
 
 from .. import (
     log,
@@ -50,9 +49,7 @@ async def task_submit(
                 raw = []
         handlers.update(raw)
     if action is not None and action not in handlers:
-        raise RPCException(
-            code=-32601, message="Method not found", data={"method": str(action)}
-        )
+        raise_rpc(GatewayError.INVALID_PARAMS, "Method not found", method=str(action))
 
     if taskId and await _load_task(taskId):
         new_id = str(uuid.uuid4())
@@ -170,7 +167,7 @@ async def task_get(taskId: str) -> dict:
     try:
         uuid.UUID(taskId)
     except ValueError:
-        raise RPCException(code=-32602, message="Invalid task id")
+        raise_rpc(GatewayError.INVALID_PARAMS, "Invalid task id")
     if t := await _load_task(taskId):
         data = t.model_dump()
         if t.duration is not None:
@@ -181,4 +178,4 @@ async def task_get(taskId: str) -> dict:
 
         return await get_task_result(taskId)
     except TaskNotFoundError as exc:
-        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
+        raise_rpc(GatewayError.INVALID_PARAMS, str(exc))

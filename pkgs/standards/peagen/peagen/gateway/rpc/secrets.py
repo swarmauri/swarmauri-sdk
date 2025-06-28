@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from .. import log, rpc, Session
 from ..db_helpers import delete_secret, fetch_secret, upsert_secret
-from peagen.defaults.error_codes import ErrorCode
-from peagen.transport.jsonrpc import RPCException
+from peagen.gateway.errors import GatewayError, raise_rpc
 
 
 @rpc.method("Secrets.add")
@@ -28,10 +27,7 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
-        raise RPCException(
-            code=ErrorCode.SECRET_NOT_FOUND,
-            message="secret not found",
-        )
+        raise_rpc(GatewayError.INVALID_PARAMS, "secret not found")
     return {"secret": row.cipher}
 
 
