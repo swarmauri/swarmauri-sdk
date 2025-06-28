@@ -9,7 +9,6 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
@@ -51,14 +50,14 @@ def run_sort(  # ← now receives the Typer context
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = TaskCreate(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "sort",
             "args": args,
             "cfg_override": cfg_override,
         },
-    )
+    }
 
     # ─────────────────────── 3) call handler ────────────────────────────
     try:
@@ -126,16 +125,13 @@ def submit_sort(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = TaskCreate(
-        pool="default",
-        payload={"action": "sort", "args": args},
-    )
+    task = {"pool": "default", "payload": {"action": "sort", "args": args}}
 
     # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
+        "params": task,
     }
 
     # 3) POST to gateway
