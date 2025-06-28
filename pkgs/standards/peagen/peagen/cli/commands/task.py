@@ -10,15 +10,7 @@ import uuid
 
 import httpx
 import typer
-from peagen.defaults import (
-    TASK_GET,
-    TASK_PATCH,
-    TASK_PAUSE,
-    TASK_RESUME,
-    TASK_CANCEL,
-    TASK_RETRY,
-    TASK_RETRY_FROM,
-)
+from peagen.protocols import Request
 
 from peagen.orm.status import Status
 
@@ -37,13 +29,14 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> dict:
-        req = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": TASK_GET,
-            "params": {"taskId": task_id},
-        }
-        res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+        req = Request(
+            id=str(uuid.uuid4()),
+            method="Task.get",
+            params={"taskId": task_id},
+        )
+        res = httpx.post(
+            ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+        ).json()
         return res["result"]
 
     while True:
@@ -64,24 +57,26 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": TASK_PATCH,
-        "params": {"taskId": task_id, "changes": payload},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    req = Request(
+        id=str(uuid.uuid4()),
+        method="Task.patch",
+        params={"taskId": task_id, "changes": payload},
+    )
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+    ).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": method,
-        "params": {"selector": selector},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    req = Request(
+        id=str(uuid.uuid4()),
+        method=method,
+        params={"selector": selector},
+    )
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+    ).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
 
@@ -91,7 +86,7 @@ def pause(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Pause one task or all tasks matching a label."""
-    _simple_call(ctx, TASK_PAUSE, selector)
+    _simple_call(ctx, "Task.pause", selector)
 
 
 @remote_task_app.command("resume")
@@ -100,7 +95,7 @@ def resume(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Resume a paused task or label set."""
-    _simple_call(ctx, TASK_RESUME, selector)
+    _simple_call(ctx, "Task.resume", selector)
 
 
 @remote_task_app.command("cancel")
@@ -109,7 +104,7 @@ def cancel(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Cancel a task or label set."""
-    _simple_call(ctx, TASK_CANCEL, selector)
+    _simple_call(ctx, "Task.cancel", selector)
 
 
 @remote_task_app.command("retry")
@@ -118,7 +113,7 @@ def retry(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Retry a task or label set."""
-    _simple_call(ctx, TASK_RETRY, selector)
+    _simple_call(ctx, "Task.retry", selector)
 
 
 @remote_task_app.command("retry-from")
@@ -127,4 +122,4 @@ def retry_from(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Retry a task and its descendants."""
-    _simple_call(ctx, TASK_RETRY_FROM, selector)
+    _simple_call(ctx, "Task.retry_from", selector)

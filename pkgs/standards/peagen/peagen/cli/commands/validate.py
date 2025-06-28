@@ -7,7 +7,7 @@ import typer
 
 from peagen.handlers.validate_handler import validate_handler
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import Request
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")
@@ -90,17 +90,19 @@ def submit_validate(
     )
 
     # 2) Build Task.submit envelope using Task fields
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    envelope = Request(
+        id=task.id,
+        method="Task.submit",
+        params=task.model_dump(mode="json"),
+    )
 
     # 3) POST to gateway
     try:
         import httpx
 
-        resp = httpx.post(ctx.obj.get("gateway_url"), json=envelope, timeout=10.0)
+        resp = httpx.post(
+            ctx.obj.get("gateway_url"), json=envelope.model_dump(), timeout=10.0
+        )
         resp.raise_for_status()
         data = resp.json()
         if data.get("error"):

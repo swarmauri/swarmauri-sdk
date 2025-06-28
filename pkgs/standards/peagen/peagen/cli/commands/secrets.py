@@ -10,6 +10,7 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import Request
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -19,13 +20,13 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Worker.list",
-        "params": {"pool": pool},
-    }
+    envelope = Request(
+        id="worker-list",
+        method="Worker.list",
+        params={"pool": pool},
+    )
     try:
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
         res.raise_for_status()
     except Exception:
         return []
@@ -105,17 +106,17 @@ def remote_add(
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.add",
-        "params": {
+    envelope = Request(
+        id="secrets-add",
+        method="Secrets.add",
+        params={
             "name": secret_id,
             "cipher": cipher,
             "version": version,
             "tenant_id": pool,
         },
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    )
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
@@ -138,12 +139,12 @@ def remote_get(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.get",
-        "params": {"name": secret_id, "tenant_id": pool},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = Request(
+        id="secrets-get",
+        method="Secrets.get",
+        params={"name": secret_id, "tenant_id": pool},
+    )
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",
@@ -167,13 +168,13 @@ def remote_remove(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.delete",
-        "params": {"name": secret_id, "version": version, "tenant_id": pool},
-    }
+    envelope = Request(
+        id="secrets-delete",
+        method="Secrets.delete",
+        params={"name": secret_id, "version": version, "tenant_id": pool},
+    )
 
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     if getattr(res, "status_code", 200) >= 400:
         typer.echo(
             f"Error {getattr(res, 'status_code', 'unknown')}: {getattr(res, 'text', '')}",

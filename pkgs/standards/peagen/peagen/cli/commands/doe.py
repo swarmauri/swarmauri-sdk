@@ -18,7 +18,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT, TASK_GET
+from peagen.protocols import Request
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -145,14 +145,16 @@ def submit_gen(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        id=task.id,
+        method="Task.submit",
+        params=task.model_dump(mode="json"),
+    )
 
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump()
+        ).json()
 
     if "error" in reply:
         typer.secho(
@@ -295,14 +297,16 @@ def submit_process(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe_process")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        id=task.id,
+        method="Task.submit",
+        params=task.model_dump(mode="json"),
+    )
 
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump()
+        ).json()
 
     if "error" in reply:
         typer.secho(
@@ -316,13 +320,14 @@ def submit_process(  # noqa: PLR0913
     if watch:
 
         def _rpc_call(tid: str) -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": tid},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            req = Request(
+                id=str(uuid.uuid4()),
+                method="Task.get",
+                params={"taskId": tid},
+            )
+            res = httpx.post(
+                ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+            ).json()
             return res["result"]
 
         while True:

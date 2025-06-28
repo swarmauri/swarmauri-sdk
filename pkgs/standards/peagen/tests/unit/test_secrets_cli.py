@@ -151,6 +151,7 @@ def test_remote_get(monkeypatch):
     assert out == ["value"]
     assert posted["json"] == {
         "jsonrpc": "2.0",
+        "id": "secrets-get",
         "method": "Secrets.get",
         "params": {"name": "ID", "tenant_id": "default"},
     }
@@ -178,6 +179,7 @@ def test_remote_remove(monkeypatch):
     )
     assert posted["json"] == {
         "jsonrpc": "2.0",
+        "id": "secrets-delete",
         "method": "Secrets.delete",
         "params": {"name": "ID", "version": 2, "tenant_id": "default"},
     }
