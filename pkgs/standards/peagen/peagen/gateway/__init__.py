@@ -756,7 +756,7 @@ async def task_submit(
         # keep the UUID instance so the ORM receives the correct type
 
     try:
-        return await _task_submit_rpc(**task.model_dump())
+        return await _task_submit_rpc(task)
     except ValidationError:
         task_id = str(task.id)
         if await _load_task(task_id):

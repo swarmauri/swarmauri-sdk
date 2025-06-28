@@ -51,19 +51,19 @@ class DeleteResult(BaseModel):
 
 
 SECRETS_ADD = register(
-    method="Secrets.add.v1",
+    method="Secrets.add",
     params_model=AddParams,
     result_model=AddResult,
 )
 
 SECRETS_GET = register(
-    method="Secrets.get.v1",
+    method="Secrets.get",
     params_model=GetParams,
     result_model=GetResult,
 )
 
 SECRETS_DELETE = register(
-    method="Secrets.delete.v1",
+    method="Secrets.delete",
     params_model=DeleteParams,
     result_model=DeleteResult,
 )
