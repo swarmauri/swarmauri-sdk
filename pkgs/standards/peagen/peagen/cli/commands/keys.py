@@ -8,6 +8,7 @@ from typing import Optional
 
 import httpx
 import typer
+from peagen.transport import RPCRequest, RPCResponse
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
@@ -37,12 +38,8 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = RPCRequest(method="Keys.upload", params={"public_key": pubkey})
+    httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     typer.echo("Uploaded public key")
 
 
@@ -53,12 +50,8 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = RPCRequest(method="Keys.delete", params={"fingerprint": fingerprint})
+    httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -68,9 +61,10 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    typer.echo(json.dumps(res.json().get("result", {}), indent=2))
+    envelope = RPCRequest(method="Keys.fetch")
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
+    result = RPCResponse.model_validate(res.json()).result or {}
+    typer.echo(json.dumps(result, indent=2))
 
 
 @keys_app.command("list")

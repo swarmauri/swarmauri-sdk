@@ -21,6 +21,7 @@ from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -127,17 +128,16 @@ def submit(  # noqa: PLR0913
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "id": task.id,
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCRequest(
+        id=task.id,
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req.model_dump())
         resp.raise_for_status()
-        reply = resp.json()
+        reply = RPCResponse.model_validate(resp.json()).model_dump()
 
     if "error" in reply:
         typer.secho(

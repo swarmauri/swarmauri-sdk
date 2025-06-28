@@ -10,6 +10,7 @@ import typer
 
 from peagen.handlers.extras_handler import extras_handler
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.defaults import TASK_SUBMIT
 
@@ -81,18 +82,14 @@ def submit_extras(
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    envelope = RPCRequest(method=TASK_SUBMIT, params=task.model_dump(mode="json"))
 
     try:
         import httpx
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        resp = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
         resp.raise_for_status()
-        data = resp.json()
+        data = RPCResponse.model_validate(resp.json()).model_dump()
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)

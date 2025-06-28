@@ -15,6 +15,7 @@ import typer
 from peagen.handlers.migrate_handler import migrate_handler
 
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.defaults import TASK_SUBMIT
 
 
@@ -46,18 +47,17 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         pool="default",
         payload={"action": "migrate", "args": args},
     )
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
+    envelope = RPCRequest(
+        method=TASK_SUBMIT,
+        params={
             "pool": task.pool,
             "payload": task.payload,
             "taskId": task.id,
         },
-    }
-    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    )
+    resp = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     resp.raise_for_status()
-    data = resp.json()
+    data = RPCResponse.model_validate(resp.json()).model_dump()
     if data.get("error"):
         raise RuntimeError(data["error"])
     return str(data.get("result", {}).get("taskId", task.id))

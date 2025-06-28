@@ -26,7 +26,7 @@ import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -151,15 +151,14 @@ async def _reject(
         async with Session() as session:
             await mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
-    return {
-        "jsonrpc": "2.0",
-        "error": {
-            "code": code,
-            "message": message,
-            "data": {"method": str(method)},
-        },
-        "id": req_id,
-    }
+    return RPCResponse(
+        id=req_id,
+        error=RPCError(
+            code=code,
+            message=message,
+            data={"method": str(method)},
+        ).error,
+    ).model_dump()
 
 
 async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
@@ -492,8 +491,12 @@ async def rpc_endpoint(request: Request):
     KNOWN_IPS.add(ip)
     if ip in BANNED_IPS:
         log.warning("blocked request from banned ip %s", ip)
+        banned = RPCResponse(
+            id=None,
+            error=RPCError(code=-32098, message="Banned"),
+        ).model_dump_json()
         return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32098,"message":"Banned"},"id":null}',
+            content=banned,
             status_code=403,
             media_type="application/json",
         )
@@ -501,8 +504,12 @@ async def rpc_endpoint(request: Request):
         raw = await request.json()
     except JSONDecodeError:
         log.warning("parse error from %s", request.client.host)
+        parse_err = RPCResponse(
+            id=None,
+            error=RPCError(code=-32700, message="Parse error"),
+        ).model_dump_json()
         return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
+            content=parse_err,
             status_code=400,
             media_type="application/json",
         )
@@ -619,15 +626,14 @@ async def scheduler():
                 )
                 await _fail_task(task, NoWorkerAvailableError(pool, action))
                 continue
-            rpc_req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Work.start",
-                "params": {"task": task.model_dump()},
-            }
+            rpc_req = RPCRequest(
+                id=str(uuid.uuid4()),
+                method="Work.start",
+                params={"task": task.model_dump()},
+            )
 
             try:
-                resp = await client.post(target["url"], json=rpc_req)
+                resp = await client.post(target["url"], json=rpc_req.model_dump())
                 if resp.status_code != 200:
                     raise DispatchHTTPError(resp.status_code)
 

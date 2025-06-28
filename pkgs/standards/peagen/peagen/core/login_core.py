@@ -8,6 +8,7 @@ from typing import Optional
 import httpx
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.transport import RPCRequest, RPCResponse
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -29,11 +30,7 @@ def login(
     """
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    payload = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    res = httpx.post(gateway_url, json=payload, timeout=10.0)
+    payload = RPCRequest(method="Keys.upload", params={"public_key": pubkey})
+    res = httpx.post(gateway_url, json=payload.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    return RPCResponse.model_validate(res.json()).model_dump()

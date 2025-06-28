@@ -17,6 +17,7 @@ from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.defaults import TASK_SUBMIT
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -113,13 +114,11 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCRequest(method=TASK_SUBMIT, params=task.model_dump(mode="json"))
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump()
+        ).json()
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",
@@ -133,14 +132,15 @@ def submit(
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Task.get",
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-            return res["result"]
+            req = RPCRequest(
+                id=str(uuid.uuid4()),
+                method="Task.get",
+                params={"taskId": task.id},
+            )
+            res = httpx.post(
+                ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+            ).json()
+            return RPCResponse.model_validate(res).result
 
         import time
 

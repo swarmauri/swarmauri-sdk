@@ -13,6 +13,7 @@ import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -112,16 +113,12 @@ def submit(
     }
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCRequest(method=TASK_SUBMIT, params=task.model_dump(mode="json"))
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req.model_dump())
         resp.raise_for_status()
-        reply = resp.json()
+        reply = RPCResponse.model_validate(resp.json()).model_dump()
 
     if "error" in reply:
         typer.secho(

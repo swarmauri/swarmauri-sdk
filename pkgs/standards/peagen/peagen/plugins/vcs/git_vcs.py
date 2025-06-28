@@ -7,6 +7,7 @@ import json
 import tempfile
 import time
 import httpx
+from peagen.transport import RPCRequest, RPCResponse
 from github import Github
 
 from git import Repo
@@ -207,14 +208,12 @@ class GitVCS:
         gateway_url: str = "http://localhost:8000/rpc",
     ) -> None:
         """Push ``ref`` using an encrypted deploy key secret."""
-        envelope = {
-            "jsonrpc": "2.0",
-            "method": "Secrets.get",
-            "params": {"name": secret_name},
-        }
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        envelope = RPCRequest(method="Secrets.get", params={"name": secret_name})
+        res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
         res.raise_for_status()
-        cipher = res.json()["result"]["secret"].encode()
+        cipher = (
+            RPCResponse.model_validate(res.json()).result.get("secret", "").encode()
+        )
 
         pm = PluginManager(resolve_cfg())
         drv = pm.get("secrets_drivers")

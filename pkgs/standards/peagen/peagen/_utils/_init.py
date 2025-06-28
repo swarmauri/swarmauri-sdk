@@ -14,6 +14,7 @@ from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
 from peagen.orm.status import Status
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
 # module. Expose a lightweight alias instead.
@@ -60,20 +61,19 @@ def _submit_task(
     if not allow_pat and ("pat" in args or _contains_pat(args)):
         raise PATNotAllowedError()
     task = TaskCreate(pool="default", payload={"action": "init", "args": args})
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {
+    envelope = RPCRequest(
+        method="Task.submit",
+        params={
             **task.model_dump(mode="json"),
         },
-    }
+    )
 
     try:
         import httpx
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        resp = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
         resp.raise_for_status()
-        data = resp.json()
+        data = RPCResponse.model_validate(resp.json()).model_dump()
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)

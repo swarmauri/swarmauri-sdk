@@ -9,6 +9,7 @@ import importlib
 from typing import Any, Callable, Dict
 
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.defaults import TASK_SUBMIT
 from peagen.orm.status import Status
 
@@ -57,11 +58,7 @@ def build_task(action: str, args: dict[str, Any], pool: str = "default") -> Task
 def submit_task(gateway_url: str, task: TaskCreate) -> dict:
     """Submit *task* to the gateway via JSON-RPC and return the reply."""
 
-    req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-    resp = httpx.post(gateway_url, json=req, timeout=30.0)
+    req = RPCRequest(method=TASK_SUBMIT, params=task.model_dump(mode="json"))
+    resp = httpx.post(gateway_url, json=req.model_dump(), timeout=30.0)
     resp.raise_for_status()
-    return resp.json()
+    return RPCResponse.model_validate(resp.json()).model_dump()

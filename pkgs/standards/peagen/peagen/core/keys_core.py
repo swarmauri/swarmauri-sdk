@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import httpx
+from peagen.transport import RPCRequest, RPCResponse
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
@@ -63,34 +64,29 @@ def upload_public_key(
     """Upload the local public key to the gateway."""
     drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = RPCRequest(method="Keys.upload", params={"public_key": pubkey})
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    return RPCResponse.model_validate(res.json()).model_dump()
 
 
 def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Remove a stored public key on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = RPCRequest(
+        method="Keys.delete",
+        params={"fingerprint": fingerprint},
+    )
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    return RPCResponse.model_validate(res.json()).model_dump()
 
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Fetch trusted keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = RPCRequest(method="Keys.fetch")
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json().get("result", {})
+    return RPCResponse.model_validate(res.json()).result or {}
 
 
 def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:

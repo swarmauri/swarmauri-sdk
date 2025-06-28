@@ -10,6 +10,7 @@ import typer
 
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -55,14 +56,15 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "id": task.id,
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCRequest(
+        id=task.id,
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+        reply = RPCResponse.model_validate(
+            client.post(ctx.obj.get("gateway_url"), json=rpc_req.model_dump()).json()
+        ).model_dump()
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",

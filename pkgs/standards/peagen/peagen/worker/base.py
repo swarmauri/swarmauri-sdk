@@ -14,7 +14,7 @@ import httpx
 from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse, RPCError
 from peagen.defaults import (
     WORK_START,
     WORK_CANCEL,
@@ -154,11 +154,10 @@ class WorkerBase:
                 resp = await self.rpc.dispatch(payload)
             except JSONDecodeError as e:
                 # Malformed JSON-RPC
-                return {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": str(e)},
-                    "id": body.id,
-                }
+                return RPCResponse(
+                    id=body.id,
+                    error=RPCError(code=-32700, message=str(e)).error,
+                ).model_dump()
             if resp.get("error"):
                 self.log.warning("%s error → %s", body.method, resp["error"])
             else:
@@ -252,14 +251,13 @@ class WorkerBase:
         if self._client is None:
             raise HTTPClientNotInitializedError()
 
-        payload = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": WORK_FINISHED,
-            "params": {"taskId": task_id, "status": state, "result": result},
-        }
+        payload = RPCRequest(
+            id=str(uuid.uuid4()),
+            method=WORK_FINISHED,
+            params={"taskId": task_id, "status": state, "result": result},
+        )
         try:
-            await self._client.post(self.DQ_GATEWAY, json=payload)
+            await self._client.post(self.DQ_GATEWAY, json=payload.model_dump())
             self.log.info("Work.finished sent    task=%s state=%s", task_id, state)
         except Exception as exc:
             self.log.error("Failed to send Work.finished for %s: %s", task_id, exc)
@@ -272,14 +270,13 @@ class WorkerBase:
         """
         if self._client is None:
             raise HTTPClientNotInitializedError()
-        body = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": method,
-            "params": params,
-        }
+        body = RPCRequest(
+            id=str(uuid.uuid4()),
+            method=method,
+            params=params,
+        )
         try:
-            await self._client.post(self.DQ_GATEWAY, json=body)
+            await self._client.post(self.DQ_GATEWAY, json=body.model_dump())
             self.log.debug("sent %s → %s", method, params)
         except Exception as exc:
             self.log.warning("Failed sending %s to gateway: %s", method, exc)

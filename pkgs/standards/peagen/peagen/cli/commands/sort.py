@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
+from peagen.transport import RPCRequest, RPCResponse
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
@@ -137,19 +138,17 @@ def submit_sort(
     }
 
     # 2) Build Task.submit envelope using Task fields
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task,
-    }
+    envelope = RPCRequest(method=TASK_SUBMIT, params=task)
 
     # 3) POST to gateway
     try:
         import httpx
 
-        resp = httpx.post(ctx.obj.get("gateway_url"), json=envelope, timeout=10.0)
+        resp = httpx.post(
+            ctx.obj.get("gateway_url"), json=envelope.model_dump(), timeout=10.0
+        )
         resp.raise_for_status()
-        data = resp.json()
+        data = RPCResponse.model_validate(resp.json()).model_dump()
         if data.get("error"):
             typer.echo(f"[ERROR] {data['error']}")
             raise typer.Exit(1)

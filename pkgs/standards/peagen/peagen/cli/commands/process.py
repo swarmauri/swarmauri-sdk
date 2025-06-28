@@ -24,6 +24,7 @@ from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.schemas import TaskCreate
+from peagen.transport import RPCRequest, RPCResponse
 from peagen.orm.status import Status
 
 local_process_app = typer.Typer(help="Render / generate project files.")
@@ -188,15 +189,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCRequest(method=TASK_SUBMIT, params=task.model_dump(mode="json"))
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req.model_dump())
         resp.raise_for_status()
-        reply = resp.json()
+        reply = RPCResponse.model_validate(resp.json()).model_dump()
 
     if "error" in reply:
         typer.secho(
@@ -212,14 +209,15 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-            return res["result"]
+            req = RPCRequest(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params={"taskId": task.id},
+            )
+            res = httpx.post(
+                ctx.obj.get("gateway_url"), json=req.model_dump(), timeout=30.0
+            ).json()
+            return RPCResponse.model_validate(res).result
 
         while True:
             task_reply = _rpc_call()
