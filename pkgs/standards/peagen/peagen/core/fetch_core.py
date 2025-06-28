@@ -19,7 +19,7 @@ from typing import List, Optional
 
 import os
 
-from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
+from peagen.plugins.git_filters import make_filter_for_uri
 from peagen.core.mirror_core import ensure_repo, open_repo
 from peagen.errors import WorkspaceNotFoundError
 
@@ -48,9 +48,9 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
         return
 
     if "://" in uri:
-        adapter = make_adapter_for_uri(uri)
-        prefix = getattr(adapter, "_prefix", "")
-        adapter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
+        git_filter = make_filter_for_uri(uri)
+        prefix = getattr(git_filter, "_prefix", "")
+        git_filter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
         return
 
     path = Path(uri)
