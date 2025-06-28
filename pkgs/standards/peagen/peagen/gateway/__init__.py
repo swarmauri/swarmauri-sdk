@@ -111,11 +111,13 @@ WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # expose secret management RPC handlers for test usage
+# expose secret management RPC handlers for test usage
 from .rpc.secrets import (  # noqa: F401,E402
     secrets_add,
     secrets_delete,
     secrets_get,
 )
+
 
 # ─────────────────────────── IP tracking ─────────────────────────
 
@@ -721,3 +723,57 @@ async def _on_shutdown() -> None:
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+# expose RPC handlers lazily to avoid circular imports
+__all__ = [
+    "keys_upload",
+    "keys_fetch",
+    "keys_delete",
+    "pool_create",
+    "pool_join",
+    "pool_list",
+    "task_submit",
+    "task_cancel",
+    "task_pause",
+    "task_resume",
+    "task_retry",
+    "task_retry_from",
+    "guard_set",
+    "task_patch",
+    "task_get",
+    "worker_register",
+    "worker_heartbeat",
+    "worker_list",
+    "work_finished",
+]
+
+
+def __getattr__(name: str):
+    if name in __all__:
+        from .rpc import keys, pool, tasks, workers
+
+        modules = {
+            "keys_upload": keys,
+            "keys_fetch": keys,
+            "keys_delete": keys,
+            "pool_create": pool,
+            "pool_join": pool,
+            "pool_list": pool,
+            "task_submit": tasks,
+            "task_cancel": tasks,
+            "task_pause": tasks,
+            "task_resume": tasks,
+            "task_retry": tasks,
+            "task_retry_from": tasks,
+            "guard_set": tasks,
+            "task_patch": tasks,
+            "task_get": tasks,
+            "worker_register": workers,
+            "worker_heartbeat": workers,
+            "worker_list": workers,
+            "work_finished": workers,
+        }
+        module = modules[name]
+        return getattr(module, name)
+    raise AttributeError(name)
