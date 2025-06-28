@@ -9,7 +9,7 @@ from peagen.protocols import (
 )
 
 
-class RPCError(Exception):
+class RPCException(Exception):
     """Exception carrying JSON-RPC error details."""
 
     def __init__(self, *, code: int, message: str, data: dict | None = None) -> None:
@@ -20,4 +20,4 @@ class RPCError(Exception):
         return self.error.model_dump()
 
 
-__all__ = ["RPCRequest", "RPCResponse", "RPCError", "RPCErrorData"]
+__all__ = ["RPCRequest", "RPCResponse", "RPCException", "RPCErrorData"]
