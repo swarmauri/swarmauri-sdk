@@ -27,7 +27,6 @@ from peagen.protocols.methods.task import (
     GetResult,
 )
 from peagen.defaults import GUARD_SET
-from peagen.protocols.methods.task import CountResult
 
 from .. import (
     READY_QUEUE,
@@ -46,7 +45,6 @@ from .. import (
 )
 from peagen.errors import TaskNotFoundError
 from peagen.schemas import TaskCreate, TaskUpdate, TaskRead
-from peagen.protocols.methods.task import SubmitResult
 from peagen.services.tasks import _to_schema
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
@@ -146,7 +144,6 @@ async def task_submit(params: SubmitParams) -> dict:
     await _publish_task(task_rd)
     log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
     return SubmitResult(taskId=str(task_rd.id)).model_dump()
-
 
 
 @dispatcher.method(TASK_PATCH)
