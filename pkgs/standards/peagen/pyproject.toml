@@ -157,6 +157,7 @@ gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:Gith
 minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
 gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"
 s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
+file    = "peagen.plugins.git_filters.file_filter:FileFilter"
 
 [project.entry-points."peagen.plugins.vcs"]
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
