@@ -15,7 +15,7 @@ Key Features
 from __future__ import annotations
 
 import uuid
-from sqlalchemy import JSON, Text, ForeignKey
+from sqlalchemy import JSON, Text, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
@@ -26,6 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 
 from ..repo.git_reference import GitReferenceModel
 from ..base import BaseModel
+
 
 class TaskModel(BaseModel):
     """
@@ -60,6 +61,20 @@ class TaskModel(BaseModel):
 
     note: Mapped[str | None] = mapped_column(
         Text, nullable=True, doc="Optional human description"
+    )
+
+    spec_hash: Mapped[str] = mapped_column(
+        String(length=64),
+        nullable=False,
+        doc="Deterministic hash of git reference + parameters",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "spec_hash",
+            name="uq_tasks_tenant_spec_hash",
+        ),
     )
 
     # ──────────────────── Relationships ──────────────────────

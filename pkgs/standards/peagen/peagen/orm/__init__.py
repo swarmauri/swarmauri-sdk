@@ -42,9 +42,9 @@ from .repo.repository_user_association import (  # noqa: F401
 # Task / execution domain
 # ----------------------------------------------------------------------
 from .status import Status  # noqa: F401
-from .task.task import TaskModel  # noqa: F401
+from .task import TaskModel  # noqa: F401
 from .task.raw_blob import RawBlobModel  # noqa: F401
-from .task.task_run import TaskRunModel  # noqa: F401
+from .task_run import TaskRunModel  # noqa: F401
 from .task.task_relation import TaskRelationModel  # noqa: F401
 from .task.task_run_relation_association import (  # noqa: F401
     TaskRunTaskRelationAssociationModel,
@@ -84,6 +84,9 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 from .AbuseRecord import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
+Task = TaskModel
+TaskRun = TaskRunModel
+
 # ----------------------------------------------------------------------
 # Backwards compatibility aliases
 # All backwards compatibility aliases have been depcrecated. If the Model is not export below. Then it is not supported.
@@ -108,9 +111,11 @@ __all__: list[str] = [
     "RepositoryUserAssociationModel",
     # task
     "TaskModel",
+    "Task",
     "RawBlobModel",
     "Status",
     "TaskRunModel",
+    "TaskRun",
     "TaskRelationModel",
     "TaskRunTaskRelationAssociationModel",
     # evolution
@@ -131,3 +136,11 @@ __all__: list[str] = [
     "AbuseRecordModel",
     "PublicKeyModel",
 ]
+
+# Trigger Pydantic schema generation at import time
+try:  # pragma: no cover - best effort
+    import importlib
+
+    importlib.import_module("peagen.schemas")
+except Exception:  # noqa: BLE001
+    pass
