@@ -5,21 +5,21 @@ from __future__ import annotations
 import httpx
 from typing import Any
 
-from peagen.orm.task import TaskModel
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT
+
+def build_task(action: str, args: dict[str, Any], pool: str = "default") -> TaskCreate:
+    """Construct a :class:`TaskCreate` from CLI-style arguments."""
+
+    return TaskCreate(pool=pool, payload={"action": action, "args": args})
 
 
-def build_task(action: str, args: dict[str, Any], pool: str = "default") -> Task:
-    """Construct a :class:`Task` from CLI-style arguments."""
-
-    return Task(pool=pool, payload={"action": action, "args": args})
-
-
-def submit_task(gateway_url: str, task: Task) -> dict:
+def submit_task(gateway_url: str, task: TaskCreate) -> dict:
     """Submit *task* to the gateway via JSON-RPC and return the reply."""
 
     req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     resp = httpx.post(gateway_url, json=req, timeout=30.0)
