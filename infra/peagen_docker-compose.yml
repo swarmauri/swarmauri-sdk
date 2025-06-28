@@ -160,6 +160,7 @@ services:
     ports:
       - "3000:3000"                  # Web / API
       - "2222:22"                    # SSH Git
+    networks: [app_net]
 
   ## ───────────────────────────── Peagen ────────────────────────────
   gateway:
