@@ -788,6 +788,9 @@ async def _on_start() -> None:
             raise MigrationFailureError(str(error_msg))
         log.info("migrations applied; verifying database schema")
         await db_helpers.ensure_status_enum(engine)
+        async with engine.begin() as conn:
+            # create missing tables if migrations provided none
+            await conn.run_sync(Base.metadata.create_all)
     else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
