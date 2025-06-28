@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from pydantic import BaseModel, ConfigDict
+from peagen.schemas import TaskCreate
 
 from peagen.protocols._registry import register
 
@@ -9,11 +10,9 @@ from peagen.protocols._registry import register
 class SubmitParams(BaseModel):
     """Parameters for the ``Task.submit`` RPC method."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
 
-    template_set: str
-    inputs: dict
-    priority: int | None = None
+    task: TaskCreate
 
 
 class SubmitResult(BaseModel):

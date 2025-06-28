@@ -50,9 +50,11 @@ from .. import Session, engine, Base
 def _parse_task_create(task: t.Any) -> TaskCreate:
     """Return ``task`` if it is a :class:`TaskCreate` instance."""
 
-    if not isinstance(task, TaskCreate):
-        raise TypeError("TaskCreate required")
-    return task
+    if isinstance(task, TaskCreate):
+        return task
+    if isinstance(task, dict):
+        return TaskCreate.model_validate(task)
+    raise TypeError("TaskCreate required")
 
 
 # --------------Basic Task Methods ---------------------------------
