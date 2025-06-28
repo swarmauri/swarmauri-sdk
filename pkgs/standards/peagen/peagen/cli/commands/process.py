@@ -22,6 +22,7 @@ import httpx
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
+from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.orm import Task  # noqa: F401 – only for type hints
 from peagen.orm.status import Status
 
@@ -192,7 +193,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     with httpx.Client(timeout=30.0) as client:
@@ -217,7 +218,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
             req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
-                "method": "Task.get",
+                "method": TASK_GET,
                 "params": {"taskId": task.id},
             }
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .abuse import BAN_THRESHOLD
 from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
+from .methods import *  # noqa: F401,F403 re-export rpc method names
 from .error_codes import ErrorCode
 
 # Default directory for repository lock files.

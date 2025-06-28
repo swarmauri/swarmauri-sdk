@@ -8,6 +8,7 @@ import typer
 
 from peagen.handlers.validate_handler import validate_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")
@@ -96,7 +97,7 @@ def submit_validate(
     # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "taskId": task.id,
             "pool": task.pool,

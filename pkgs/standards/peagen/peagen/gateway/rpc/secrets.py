@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from .. import log, rpc, Session
+from peagen.defaults import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 from ..db_helpers import delete_secret, fetch_secret, upsert_secret
 from peagen.defaults.error_codes import ErrorCode
 from peagen.transport.jsonrpc import RPCException
 
 
-@rpc.method("Secrets.add")
+@rpc.method(SECRETS_ADD)
 async def secrets_add(
     name: str,
     secret: str,
@@ -22,7 +23,7 @@ async def secrets_add(
     return {"ok": True}
 
 
-@rpc.method("Secrets.get")
+@rpc.method(SECRETS_GET)
 async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     """Retrieve an encrypted secret."""
     async with Session() as session:
@@ -35,7 +36,7 @@ async def secrets_get(name: str, tenant_id: str = "default") -> dict:
     return {"secret": row.cipher}
 
 
-@rpc.method("Secrets.delete")
+@rpc.method(SECRETS_DELETE)
 async def secrets_delete(
     name: str,
     tenant_id: str = "default",

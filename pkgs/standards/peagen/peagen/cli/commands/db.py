@@ -13,7 +13,10 @@ from pathlib import Path
 import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
+
 from peagen.orm.task import TaskModel
+from peagen.defaults import TASK_SUBMIT
+
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
 # When running from source the module sits one directory deeper than
@@ -45,7 +48,7 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     )
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "pool": task.pool,
             "payload": task.payload,
