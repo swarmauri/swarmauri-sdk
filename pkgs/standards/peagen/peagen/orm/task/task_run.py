@@ -123,20 +123,25 @@ class TaskRunModel(BaseModel):
     # ------------------------------------------------------------------
     @classmethod
     def from_task(cls, task: "TaskModel") -> "TaskRunModel":
-        """Create a minimal TaskRun instance from a :class:`Task`."""
+        """Create a minimal ``TaskRunModel`` from a :class:`TaskModel`."""
 
         tr = cls(
-            id=uuid.UUID(task.id),
+            id=uuid.UUID(str(task.id)),
             status=task.status,
             result=None,
         )
 
-        # attach extra metadata for convenience
-        tr.relations = list(task.relations)
-        tr.edge_pred = task.edge_pred
-        tr.labels = list(task.labels)
-        tr.in_degree = task.in_degree
-        tr.config_toml = task.config_toml
-        tr.commit_hexsha = task.commit_hexsha
-        tr.oids = task.oids
+        # backward-compatibility: copy optional attributes if present
+        for attr in (
+            "relations",
+            "edge_pred",
+            "labels",
+            "in_degree",
+            "config_toml",
+            "commit_hexsha",
+            "oids",
+        ):
+            if hasattr(task, attr):
+                setattr(tr, attr, getattr(task, attr))
+
         return tr

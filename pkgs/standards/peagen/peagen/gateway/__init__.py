@@ -391,10 +391,11 @@ async def _flush_state() -> None:
         await queue.client.aclose()
 
 
-async def _publish_task(task: TaskCreate) -> None:
+async def _publish_task(task: TaskCreate | TaskRead) -> None:
     data = task.model_dump()
-    if task.duration is not None:
-        data["duration"] = task.duration
+    duration = getattr(task, "duration", None)
+    if duration is not None:
+        data["duration"] = duration
     await _publish_event("task.update", data)
 
 

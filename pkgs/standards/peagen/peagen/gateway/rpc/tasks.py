@@ -185,8 +185,9 @@ async def task_get(taskId: str) -> dict:
         raise RPCException(code=-32602, message="Invalid task id")
     if t := await _load_task(taskId):
         data = t.model_dump()
-        if t.duration is not None:
-            data["duration"] = t.duration
+        duration = getattr(t, "duration", None)
+        if duration is not None:
+            data["duration"] = duration
         return data
     try:
         from ..core.task_core import get_task_result
