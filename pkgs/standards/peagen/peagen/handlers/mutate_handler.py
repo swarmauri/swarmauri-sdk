@@ -74,7 +74,8 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, A
             branch = pea_ref("run", winner_path.stem)
             vcs.create_branch(branch, checkout=False)
             vcs.push(branch)
-        result["commit"] = commit_sha
+        if commit_sha is not None:
+            result["commit"] = commit_sha
         if branch:
             result["branch"] = branch
     if tmp_dir:
