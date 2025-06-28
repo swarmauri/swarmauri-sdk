@@ -10,14 +10,14 @@ from peagen.transport.jsonrpc import RPCException
 @dispatcher.method(SECRETS_ADD)
 async def secrets_add(
     name: str,
-    secret: str,
+    cipher: str,
     tenant_id: str = "default",
-    owner_fpr: str = "unknown",
+    owner_user_id: str | None = None,
     version: int | None = None,
 ) -> dict:
     """Store an encrypted secret."""
     async with Session() as session:
-        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await upsert_secret(session, tenant_id, "unknown", name, cipher)
         await session.commit()
     log.info("secret stored: %s", name)
     return {"ok": True}

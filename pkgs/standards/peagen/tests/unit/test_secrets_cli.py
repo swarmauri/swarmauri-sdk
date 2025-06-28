@@ -121,7 +121,7 @@ def test_remote_add_posts(monkeypatch):
         recipient=[],
         pool="p",
     )
-    assert posted["json"]["params"]["secret"].startswith("enc:")
+    assert posted["json"]["params"]["cipher"].startswith("enc:")
     assert posted["json"]["params"]["name"] == "ID"
     assert posted["json"]["params"]["version"] == 1
 

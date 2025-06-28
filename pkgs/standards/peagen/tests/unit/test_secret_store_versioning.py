@@ -16,11 +16,11 @@ async def test_secret_roundtrip(tmp_path, monkeypatch):
     async with db.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    await gw.secrets_add(name="ns/test", secret="a")
+    await gw.secrets_add(name="ns/test", cipher="a")
     val = await gw.secrets_get(name="ns/test")
     assert val == {"secret": "a"}
 
-    await gw.secrets_add(name="ns/test", secret="b")
+    await gw.secrets_add(name="ns/test", cipher="b")
     val = await gw.secrets_get(name="ns/test")
     assert val == {"secret": "b"}
 

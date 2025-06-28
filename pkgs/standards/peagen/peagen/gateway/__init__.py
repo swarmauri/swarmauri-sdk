@@ -755,7 +755,21 @@ async def task_submit(
 
         # keep the UUID instance so the ORM receives the correct type
 
-    return await _task_submit_rpc(task)
+    try:
+        return await _task_submit_rpc(**task.model_dump())
+    except ValidationError:
+        task_id = str(task.id)
+        if await _load_task(task_id):
+            new_id = str(uuid.uuid4())
+            log.warning("task id collision: %s → %s", task_id, new_id)
+            task_id = new_id
+        task_rd = TaskRead.model_construct(**{**task.model_dump(), "id": task_id})
+        await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
+        await _publish_queue_length(task_rd.pool)
+        await _save_task(task_rd)
+        await _publish_task(task_rd)
+        log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
+        return {"taskId": str(task_rd.id)}
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
