@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Optional
 
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 import typer
 from functools import partial
 
@@ -102,13 +101,11 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-    with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",
@@ -122,13 +119,11 @@ def submit(
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Task.get",
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            res = rpc_post(
+                ctx.obj.get("gateway_url"),
+                "Task.get",
+                {"taskId": task.id},
+            )
             return res["result"]
 
         import time

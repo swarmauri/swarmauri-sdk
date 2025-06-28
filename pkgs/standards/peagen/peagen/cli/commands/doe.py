@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 import time
 from pathlib import Path
 from typing import Optional
@@ -145,14 +144,11 @@ def submit_gen(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-
-    with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
 
     if "error" in reply:
         typer.secho(
@@ -295,14 +291,11 @@ def submit_process(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe_process")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-
-    with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
 
     if "error" in reply:
         typer.secho(
@@ -316,13 +309,11 @@ def submit_process(  # noqa: PLR0913
     if watch:
 
         def _rpc_call(tid: str) -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": tid},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+            res = rpc_post(
+                ctx.obj.get("gateway_url"),
+                TASK_GET,
+                {"taskId": tid},
+            )
             return res["result"]
 
         while True:

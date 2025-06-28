@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import uuid
 
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 
 
 from pathlib import Path
@@ -46,18 +46,12 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         pool="default",
         payload={"action": "migrate", "args": args},
     )
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
-            "pool": task.pool,
-            "payload": task.payload,
-            "taskId": task.id,
-        },
-    }
-    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    resp.raise_for_status()
-    data = resp.json()
+    data = rpc_post(
+        gateway_url,
+        TASK_SUBMIT,
+        {"pool": task.pool, "payload": task.payload, "taskId": task.id},
+        timeout=10.0,
+    )
     if data.get("error"):
         raise RuntimeError(data["error"])
     return str(data.get("result", {}).get("taskId", task.id))

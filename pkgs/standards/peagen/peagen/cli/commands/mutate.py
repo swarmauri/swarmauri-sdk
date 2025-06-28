@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 
 import typer
 from functools import partial
@@ -109,16 +109,11 @@ def submit(
     }
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
-        resp.raise_for_status()
-        reply = resp.json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
 
     if "error" in reply:
         typer.secho(
