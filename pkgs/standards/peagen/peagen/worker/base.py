@@ -20,7 +20,6 @@ from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen.protocols import Request as RPCEnvelope
 from peagen.defaults import WORK_CANCEL, WORK_FINISHED, WORK_START
 from peagen.protocols.methods.worker import (
-
     WORKER_HEARTBEAT,
     WORKER_REGISTER,
     HeartbeatParams,
@@ -279,9 +278,9 @@ class WorkerBase:
         ).model_dump()
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
-            self.log.debug("sent %s → %s", request.method, request.params)
+            self.log.debug("sent %s → %s", method, payload)
         except Exception as exc:
-            self.log.warning("Failed sending %s to gateway: %s", request.method, exc)
+            self.log.warning("Failed sending %s to gateway: %s", method, exc)
 
     async def _on_startup(self) -> None:
         """
