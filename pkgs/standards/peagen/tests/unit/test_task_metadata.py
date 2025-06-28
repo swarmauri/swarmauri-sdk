@@ -1,13 +1,13 @@
 import pytest
 
-from peagen.orm import Task, TaskRun
+from peagen.orm import TaskModel, TaskRunModel
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_task_model_roundtrip():
-    t = Task(
+    t = TaskModel(
         pool="p",
         payload={},
         relations=["a"],
@@ -17,7 +17,7 @@ async def test_task_model_roundtrip():
         config_toml="cfg",
     )
     dumped = t.model_dump_json()
-    t2 = Task.model_validate_json(dumped)
+    t2 = TaskModel.model_validate_json(dumped)
     assert t2.relations == ["a"]
     assert t2.edge_pred == "e"
     assert t2.labels == ["l"]
@@ -28,7 +28,7 @@ async def test_task_model_roundtrip():
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_taskrun_from_task():
-    t = Task(
+    t = TaskModel(
         pool="p",
         payload={},
         relations=["a"],
@@ -37,7 +37,7 @@ async def test_taskrun_from_task():
         in_degree=1,
         config_toml="c",
     )
-    tr = TaskRun.from_task(t)
+    tr = TaskRunModel.from_task(t)
     assert tr.relations == ["a"]
     assert tr.edge_pred == "e"
     assert tr.labels == ["l"]
