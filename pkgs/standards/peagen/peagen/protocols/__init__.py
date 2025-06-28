@@ -1,7 +1,7 @@
 """Typed JSON-RPC protocol primitives and method registry."""
 
 from .envelope import Error, Request, Response, parse_request
-from .error_codes import Code
+from .error_codes import ErrorCode, Code
 from . import _registry
 from .methods import (
     TASK_SUBMIT,
@@ -18,6 +18,7 @@ __all__ = [
     "Request",
     "Response",
     "parse_request",
+    "ErrorCode",
     "Code",
     "_registry",
     "TASK_SUBMIT",
