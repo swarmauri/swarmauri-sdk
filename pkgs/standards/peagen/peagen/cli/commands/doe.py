@@ -89,7 +89,7 @@ def run_gen(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(task))
+    result = asyncio.run(doe_handler(task.model_dump(exclude_none=True)))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -225,7 +225,7 @@ def run_process(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(task))
+    result = asyncio.run(doe_process_handler(task.model_dump(exclude_none=True)))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)

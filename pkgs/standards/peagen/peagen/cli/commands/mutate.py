@@ -67,7 +67,7 @@ def run(
         "mutations": [{"kind": mutator}],
     }
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(mutate_handler(task))
+    result = asyncio.run(mutate_handler(task.model_dump(exclude_none=True)))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))

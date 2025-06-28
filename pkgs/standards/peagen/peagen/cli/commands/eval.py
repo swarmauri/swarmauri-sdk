@@ -67,7 +67,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(eval_handler(task))
+    result = asyncio.run(eval_handler(task.model_dump(exclude_none=True)))
     report = result["report"]
 
     # ----- output ----------------------------------------------------------

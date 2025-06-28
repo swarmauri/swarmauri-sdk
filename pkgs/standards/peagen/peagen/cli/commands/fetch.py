@@ -88,5 +88,5 @@ def run(
         pool = ctx.obj.get("pool", "default")
     task = _build_task(args, pool)
 
-    result = asyncio.run(fetch_handler(task))
+    result = asyncio.run(fetch_handler(task.model_dump(exclude_none=True)))
     typer.echo(json.dumps(result, indent=2))

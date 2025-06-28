@@ -46,7 +46,9 @@ def run_validate(
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(task))
+        result: Dict[str, Any] = asyncio.run(
+            validate_handler(task.model_dump(exclude_none=True))
+        )
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)

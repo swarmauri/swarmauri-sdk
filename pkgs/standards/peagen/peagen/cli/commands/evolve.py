@@ -69,7 +69,7 @@ def run(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(evolve_handler(task))
+    result = asyncio.run(evolve_handler(task.model_dump()))
     if json_out:
         typer.echo(json.dumps(result, indent=2))
     else:

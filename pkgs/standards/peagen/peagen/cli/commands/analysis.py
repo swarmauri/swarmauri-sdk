@@ -37,7 +37,7 @@ def run(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(analysis_handler(task))
+    result = asyncio.run(analysis_handler(task.model_dump(exclude_none=True)))
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
     )

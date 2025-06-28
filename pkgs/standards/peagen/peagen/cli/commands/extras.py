@@ -46,7 +46,9 @@ def run_extras(
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
     try:
-        result: Dict[str, Any] = asyncio.run(extras_handler(task))
+        result: Dict[str, Any] = asyncio.run(
+            extras_handler(task.model_dump(exclude_none=True))
+        )
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside extras_handler: {exc}")
         raise typer.Exit(1)

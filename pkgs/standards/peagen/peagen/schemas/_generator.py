@@ -39,12 +39,47 @@ for _name in model_names:
         continue
     id_type = _python_type(id_col)
 
-    # CREATE: all required fields except 'date_created'
-    create_fields = {
-        c_name: (_python_type(c), ...)
-        for c_name, c in columns.items()
-        if c_name != "date_created"
-    }
+    # CREATE: optional fields when defaults/nullable, otherwise required
+    create_fields = {}
+    for c_name, c in columns.items():
+        if c_name == "date_created":
+            continue
+        typ = _python_type(c)
+        annotation = typ
+        default = ...
+        if (
+            c.nullable
+            or c.default is not None
+            or c.server_default is not None
+            or c_name in {"id", "last_modified", "tenant_id", "spec_hash"}
+        ):
+            annotation = Optional[typ]
+            if c.default is not None:
+                arg = getattr(c.default, "arg", None)
+                if callable(arg):
+                    try:
+                        default = arg()
+                    except Exception:
+                        default = None
+                elif isinstance(
+                    arg,
+                    (
+                        str,
+                        int,
+                        float,
+                        bool,
+                        dict,
+                        list,
+                        set,
+                        tuple,
+                    ),
+                ):
+                    default = arg
+                else:
+                    default = None
+            else:
+                default = None
+        create_fields[c_name] = (annotation, default)
     root_name = _name[:-5] if _name.endswith("Model") else _name
     create_cls = create_model(f"{root_name}Create", **create_fields)
 

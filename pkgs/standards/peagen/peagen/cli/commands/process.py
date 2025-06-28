@@ -119,7 +119,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     task = _build_task(args, ctx.obj.get("pool", "default"))
     task.payload["cfg_override"] = cfg_override
 
-    result = asyncio.run(process_handler(task))
+    result = asyncio.run(process_handler(task.model_dump(exclude_none=True)))
     typer.echo(json.dumps(result, indent=2))
 
 

@@ -62,7 +62,9 @@ def run_sort(  # ← now receives the Typer context
 
     # ─────────────────────── 3) call handler ────────────────────────────
     try:
-        result: Dict[str, Any] = asyncio.run(sort_handler(task))
+        result: Dict[str, Any] = asyncio.run(
+            sort_handler(task.model_dump(exclude_none=True))
+        )
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside sort_handler: {exc}")
         raise typer.Exit(1)
