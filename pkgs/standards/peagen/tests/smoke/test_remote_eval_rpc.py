@@ -2,6 +2,7 @@ import os
 import uuid
 import httpx
 import pytest
+from peagen.protocols import TASK_SUBMIT
 
 pytestmark = pytest.mark.smoke
 
@@ -47,7 +48,7 @@ def test_eval_submit_returns_task_id() -> None:
     }
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"pool": "default", "payload": payload, "taskId": task_id},
         "id": task_id,
     }

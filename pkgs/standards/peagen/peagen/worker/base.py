@@ -15,6 +15,7 @@ from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
+from peagen.protocols import Request as RPCEnvelope
 from peagen.defaults import (
     WORK_START,
     WORK_CANCEL,
@@ -252,12 +253,11 @@ class WorkerBase:
         if self._client is None:
             raise HTTPClientNotInitializedError()
 
-        payload = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": WORK_FINISHED,
-            "params": {"taskId": task_id, "status": state, "result": result},
-        }
+        payload = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method=WORK_FINISHED,
+            params={"taskId": task_id, "status": state, "result": result},
+        ).model_dump()
         try:
             await self._client.post(self.DQ_GATEWAY, json=payload)
             self.log.info("Work.finished sent    task=%s state=%s", task_id, state)
@@ -272,12 +272,11 @@ class WorkerBase:
         """
         if self._client is None:
             raise HTTPClientNotInitializedError()
-        body = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": method,
-            "params": params,
-        }
+        body = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method=method,
+            params=params,
+        ).model_dump()
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
             self.log.debug("sent %s → %s", method, params)
