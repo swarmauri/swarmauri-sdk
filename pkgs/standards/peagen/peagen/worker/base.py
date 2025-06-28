@@ -16,6 +16,7 @@ from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
 from peagen.protocols import Request as RPCEnvelope
+from peagen.protocols.methods.worker import RegisterParams, HeartbeatParams
 from peagen.defaults import (
     WORK_START,
     WORK_CANCEL,
@@ -265,23 +266,17 @@ class WorkerBase:
             self.log.error("Failed to send Work.finished for %s: %s", task_id, exc)
 
     # ───────────────────────── Startup / Heartbeat / Shutdown ──────────────────────
-    async def _send_rpc(self, method: str, params: Dict[str, Any]) -> None:
-        """
-        Helper to send any JSON-RPC call to the gateway:
-          { "jsonrpc":"2.0", "id": uuid, "method": method, "params": params }
-        """
+    async def _send_rpc(self, request: RPCEnvelope[Any]) -> None:
+        """Send a preconstructed JSON-RPC request to the gateway."""
         if self._client is None:
             raise HTTPClientNotInitializedError()
-        body = RPCEnvelope(
-            id=str(uuid.uuid4()),
-            method=method,
-            params=params,
-        ).model_dump()
+
+        body = request.model_dump()
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
-            self.log.debug("sent %s → %s", method, params)
+            self.log.debug("sent %s → %s", request.method, request.params)
         except Exception as exc:
-            self.log.warning("Failed sending %s to gateway: %s", method, exc)
+            self.log.warning("Failed sending %s to gateway: %s", request.method, exc)
 
     async def _on_startup(self) -> None:
         """
@@ -291,14 +286,17 @@ class WorkerBase:
 
         # ───── Worker.register ─────────────────────────────────────
         await self._send_rpc(
-            WORKER_REGISTER,
-            {
-                "workerId": self.WORKER_ID,
-                "pool": self.POOL,
-                "url": self.url_self,
-                "advertises": {"cpu": True},
-                "handlers": self.supported_handlers(),
-            },
+            RPCEnvelope[RegisterParams](
+                id=str(uuid.uuid4()),
+                method=WORKER_REGISTER,
+                params=RegisterParams(
+                    workerId=self.WORKER_ID,
+                    pool=self.POOL,
+                    url=self.url_self,
+                    advertises={"cpu": True},
+                    handlers=self.supported_handlers(),
+                ),
+            )
         )
         self.log.info(
             "registered  id=%s pool=%s url=%s", self.WORKER_ID, self.POOL, self.url_self
@@ -310,13 +308,16 @@ class WorkerBase:
                 await asyncio.sleep(5)
                 try:
                     await self._send_rpc(
-                        WORKER_HEARTBEAT,
-                        {
-                            "workerId": self.WORKER_ID,
-                            "pool": self.POOL,
-                            "url": self.url_self,
-                            "metrics": {},
-                        },
+                        RPCEnvelope[HeartbeatParams](
+                            id=str(uuid.uuid4()),
+                            method=WORKER_HEARTBEAT,
+                            params=HeartbeatParams(
+                                workerId=self.WORKER_ID,
+                                pool=self.POOL,
+                                url=self.url_self,
+                                metrics={},
+                            ),
+                        )
                     )
                     self.log.debug("heartbeat ok")
                 except Exception as exc:
