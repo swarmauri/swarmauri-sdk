@@ -63,6 +63,7 @@ Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
+
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 log = Logger(
@@ -107,6 +108,17 @@ try:
 except KeyError:
     result_backend = None
 
+from .rpc.secrets import (  # noqa: E402
+    secrets_add as _secrets_add_rpc,
+    secrets_delete as _secrets_delete_rpc,
+    secrets_get as _secrets_get_rpc,
+)
+from peagen.protocols.methods.secrets import (  # noqa: E402
+    AddParams,
+    DeleteParams,
+    GetParams,
+)
+
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
 
@@ -118,11 +130,40 @@ TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # expose secret management RPC handlers for test usage
 # expose secret management RPC handlers for test usage
-from .rpc.secrets import (  # noqa: F401,E402
-    secrets_add,
-    secrets_delete,
-    secrets_get,
-)
+
+
+async def secrets_add(
+    params: AddParams | None = None,
+    **kwargs,
+) -> dict:
+    """Convenience wrapper around :func:`_secrets_add_rpc`."""
+    if params is not None:
+        if kwargs:
+            raise TypeError("params or kwargs expected, not both")
+        kwargs = params.model_dump()
+    return await _secrets_add_rpc(**kwargs)
+
+
+async def secrets_get(
+    params: GetParams | None = None,
+    **kwargs,
+) -> dict:
+    if params is not None:
+        if kwargs:
+            raise TypeError("params or kwargs expected, not both")
+        kwargs = params.model_dump()
+    return await _secrets_get_rpc(**kwargs)
+
+
+async def secrets_delete(
+    params: DeleteParams | None = None,
+    **kwargs,
+) -> dict:
+    if params is not None:
+        if kwargs:
+            raise TypeError("params or kwargs expected, not both")
+        kwargs = params.model_dump()
+    return await _secrets_delete_rpc(**kwargs)
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
