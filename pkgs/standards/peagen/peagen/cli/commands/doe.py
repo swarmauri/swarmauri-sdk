@@ -18,6 +18,12 @@ from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols.methods.task import (
+    SubmitParams,
+    SubmitResult,
+    GetParams,
+    GetResult,
+)
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -147,7 +153,8 @@ def submit_gen(  # noqa: PLR0913
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        task.model_dump(mode="json"),
+        SubmitParams(task=task).model_dump(),
+        result_model=SubmitResult,
     )
 
     if "error" in reply:
@@ -294,12 +301,13 @@ def submit_process(  # noqa: PLR0913
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        task.model_dump(mode="json"),
+        SubmitParams(task=task).model_dump(),
+        result_model=SubmitResult,
     )
 
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
@@ -308,29 +316,30 @@ def submit_process(  # noqa: PLR0913
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
     if watch:
 
-        def _rpc_call(tid: str) -> dict:
+        def _rpc_call(tid: str) -> GetResult:
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
                 TASK_GET,
-                {"taskId": tid},
+                GetParams(taskId=tid).model_dump(),
+                result_model=GetResult,
             )
-            return res["result"]
+            return res.result  # type: ignore[return-value]
 
         while True:
             task_reply = _rpc_call(task.id)
-            typer.echo(json.dumps(task_reply, indent=2))
-            if Status.is_terminal(task_reply["status"]):
+            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
+            if Status.is_terminal(task_reply.status):
                 break
             time.sleep(interval)
 
-        children = task_reply.get("result", {}).get("children", [])
+        children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
             while True:
                 child_reply = _rpc_call(cid)
-                typer.echo(json.dumps(child_reply, indent=2))
-                if Status.is_terminal(child_reply["status"]):
+                typer.echo(json.dumps(child_reply.model_dump(), indent=2))
+                if Status.is_terminal(child_reply.status):
                     break
                 time.sleep(interval)
-            if child_reply["status"] != "success":
+            if child_reply.status != "success":
                 typer.secho(f"Child task {cid} failed", fg=typer.colors.RED, err=True)
                 raise typer.Exit(1)

@@ -11,6 +11,7 @@ from functools import partial
 
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -55,14 +56,15 @@ def submit(
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        task.model_dump(mode="json"),
+        SubmitParams(task=task).model_dump(),
+        result_model=SubmitResult,
     )
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    typer.echo(json.dumps(reply.get("result", {}), indent=2))
+    typer.echo(json.dumps(reply.result.model_dump() if reply.result else {}, indent=2))

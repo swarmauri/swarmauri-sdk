@@ -14,6 +14,7 @@ from functools import partial
 
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -112,7 +113,8 @@ def submit(
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        task.model_dump(mode="json"),
+        SubmitParams(task=task).model_dump(),
+        result_model=SubmitResult,
     )
 
     if "error" in reply:
