@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     # ───────── Postgres results-backend ─────────
+    pg_dsn_env: Optional[str] = Field(default=os.environ.get("PG_DSN"))
     pg_host: Optional[str] = Field(default=os.environ.get("PG_HOST"))
     pg_port: int = Field(default=int(os.environ.get("PG_PORT", "5432")))
     pg_db: Optional[str] = Field(default=os.environ.get("PG_DB"))
@@ -31,6 +32,8 @@ class Settings(BaseSettings):
 
     @property
     def pg_dsn(self) -> str:
+        if self.pg_dsn_env:
+            return self.pg_dsn_env
         return (
             f"postgresql://{self.pg_user}:{self.pg_pass}"
             f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
@@ -38,10 +41,10 @@ class Settings(BaseSettings):
 
     @property
     def apg_dsn(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.pg_user}:{self.pg_pass}"
-            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
-        )
+        dsn = self.pg_dsn
+        if dsn.startswith("postgresql://"):
+            return dsn.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return dsn
 
     # ───────── Other global settings ─────────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))

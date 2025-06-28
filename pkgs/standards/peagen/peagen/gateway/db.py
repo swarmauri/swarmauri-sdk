@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from .runtime_cfg import settings
 
-if settings.pg_host and settings.pg_db and settings.pg_user:
+if settings.pg_dsn_env or (settings.pg_host and settings.pg_db and settings.pg_user):
     dsn = settings.apg_dsn
 else:
     # Fallback to a local SQLite database when Postgres settings are missing
