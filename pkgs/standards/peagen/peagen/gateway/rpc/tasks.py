@@ -37,7 +37,9 @@ from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
-from sqlalchemy.ext.asyncio import AsyncSession as Session
+
+# Use the Session factory configured by the gateway
+from .. import Session, engine, Base
 
 
 @dispatcher.method(TASK_SUBMIT)
@@ -66,6 +68,11 @@ async def task_submit(dto: TaskCreate) -> dict:
         new_id = str(uuid.uuid4())
         log.warning("task id collision: %s → %s", task_id, new_id)
         task_id = new_id
+
+    # Ensure the database schema exists for test environments that
+    # do not run migrations.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     async with Session() as ses:
         # 1. create definition-of-task row

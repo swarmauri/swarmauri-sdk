@@ -735,7 +735,7 @@ async def task_submit(
             if field in TaskCreate.model_fields:
                 setattr(task, field, value)
 
-        task.id = str(task.id)
+        # keep the UUID instance so the ORM receives the correct type
 
     return await _task_submit_rpc(task)
 
