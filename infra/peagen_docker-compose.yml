@@ -158,7 +158,7 @@ services:
     volumes:
       - /mnt/data/gitea:/data             # <- all repos & config live here
     ports:
-      - 3000                  # Web / API
+      - "3000:3000"                  # Web / API
       - "2222:22"                    # SSH Git
 
   ## ───────────────────────────── Peagen ────────────────────────────
