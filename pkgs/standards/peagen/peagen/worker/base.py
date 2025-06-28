@@ -15,8 +15,8 @@ from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
-from peagen.protocols import Request as RPCEnvelope
-from peagen.defaults import (
+from peagen.protocols import (
+    Request as RPCEnvelope,
     WORK_START,
     WORK_CANCEL,
     WORK_FINISHED,

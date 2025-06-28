@@ -9,6 +9,7 @@ import httpx
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
+from peagen.protocols import Request, KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -63,11 +64,11 @@ def upload_public_key(
     """Upload the local public key to the gateway."""
     drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
+    envelope = Request(
+        id="0",
+        method=KEYS_UPLOAD,
+        params={"public_key": pubkey},
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
@@ -75,11 +76,11 @@ def upload_public_key(
 
 def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Remove a stored public key on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
+    envelope = Request(
+        id="0",
+        method=KEYS_DELETE,
+        params={"fingerprint": fingerprint},
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
@@ -87,7 +88,7 @@ def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> d
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Fetch trusted keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
+    envelope = Request(id="0", method=KEYS_FETCH, params={}).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json().get("result", {})

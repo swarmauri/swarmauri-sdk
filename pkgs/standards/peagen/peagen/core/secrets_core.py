@@ -9,17 +9,24 @@ from typing import List, Optional
 import httpx
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import (
+    Request,
+    WORKER_LIST,
+    SECRETS_ADD,
+    SECRETS_GET,
+    SECRETS_DELETE,
+)
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Worker.list",
-        "params": {"pool": pool},
-    }
+    envelope = Request(
+        id="0",
+        method=WORKER_LIST,
+        params={"pool": pool},
+    ).model_dump()
     try:
         res = httpx.post(gateway_url, json=envelope, timeout=10.0)
         res.raise_for_status()
@@ -88,16 +95,16 @@ def add_remote_secret(
     pubs = [p.read_text() for p in recipients or []]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.add",
-        "params": {
+    envelope = Request(
+        id="0",
+        method=SECRETS_ADD,
+        params={
             "name": secret_id,
-            "secret": cipher,
+            "cipher": cipher,
             "version": version,
             "tenant_id": pool,
         },
-    }
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()
@@ -111,11 +118,11 @@ def get_remote_secret(
 ) -> str:
     """Retrieve and decrypt a secret from the gateway."""
     drv = AutoGpgDriver()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.get",
-        "params": {"name": secret_id, "tenant_id": pool},
-    }
+    envelope = Request(
+        id="0",
+        method=SECRETS_GET,
+        params={"name": secret_id, "tenant_id": pool},
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     cipher = res.json()["result"]["secret"].encode()
@@ -130,11 +137,11 @@ def remove_remote_secret(
     pool: str = "default",
 ) -> dict:
     """Delete a secret stored on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.delete",
-        "params": {"name": secret_id, "version": version, "tenant_id": pool},
-    }
+    envelope = Request(
+        id="0",
+        method=SECRETS_DELETE,
+        params={"name": secret_id, "version": version, "tenant_id": pool},
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     res.raise_for_status()
     return res.json()

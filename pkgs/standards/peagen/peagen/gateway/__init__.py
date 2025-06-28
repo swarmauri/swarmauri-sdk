@@ -33,6 +33,7 @@ from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
 from peagen.protocols.methods.task import SubmitResult
+from peagen.protocols.methods import WORK_START
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -627,7 +628,7 @@ async def scheduler():
                 continue
             rpc_req = RPCEnvelope(
                 id=str(uuid.uuid4()),
-                method="Work.start",
+                method=WORK_START,
                 params={"task": task.model_dump()},
             ).model_dump()
 

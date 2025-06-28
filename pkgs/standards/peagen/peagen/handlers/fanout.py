@@ -8,7 +8,11 @@ import httpx
 
 from peagen.schemas import TaskRead
 from peagen.orm.status import Status
-from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
+from peagen.protocols.methods import (
+    TASK_SUBMIT,
+    TASK_PATCH,
+    WORK_FINISHED,
+)
 from . import ensure_task
 
 
@@ -53,7 +57,7 @@ async def fan_out(
         finish = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
-            "method": "Work.finished",
+            "method": WORK_FINISHED,
             "params": {
                 "taskId": parent_id,
                 "status": final_status.value,

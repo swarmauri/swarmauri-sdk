@@ -10,7 +10,12 @@ from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols import (
+    SECRETS_ADD,
+    SECRETS_GET,
+    SECRETS_DELETE,
+    WORKER_LIST,
+)
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -22,7 +27,7 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
     envelope = {"pool": pool}
     try:
-        res = rpc_post(gateway_url, "Worker.list", envelope, timeout=10.0)
+        res = rpc_post(gateway_url, WORKER_LIST, envelope, timeout=10.0)
     except Exception:
         return []
     workers = res.get("result", [])
