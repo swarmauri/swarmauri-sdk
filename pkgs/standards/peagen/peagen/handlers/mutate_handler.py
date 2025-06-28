@@ -66,16 +66,18 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, A
         repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
         rel = os.path.relpath(winner_path, repo_root)
-        if winner_path.exists():
+        commit_sha = None
+        branch = None
+        if vcs.repo.head.is_valid() and winner_path.exists():
             commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
             result["winner_oid"] = vcs.blob_oid(rel)
-        else:
-            commit_sha = None
-        branch = pea_ref("run", winner_path.stem)
-        vcs.create_branch(branch, checkout=False)
-        vcs.push(branch)
-        result["commit"] = commit_sha
-        result["branch"] = branch
+            branch = pea_ref("run", winner_path.stem)
+            vcs.create_branch(branch, checkout=False)
+            vcs.push(branch)
+        if commit_sha is not None:
+            result["commit"] = commit_sha
+        if branch:
+            result["branch"] = branch
     if tmp_dir:
         import shutil
 
