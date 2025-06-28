@@ -93,7 +93,7 @@ def add_remote_secret(
         "method": "Secrets.add",
         "params": {
             "name": secret_id,
-            "secret": cipher,
+            "cipher": cipher,
             "version": version,
             "tenant_id": pool,
         },
