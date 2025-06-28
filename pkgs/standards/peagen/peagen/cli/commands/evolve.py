@@ -15,7 +15,7 @@ from functools import partial
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT, TASK_GET
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -125,7 +125,7 @@ def submit(
             req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
-                "method": "Task.get",
+                "method": TASK_GET,
                 "params": {"taskId": task.id},
             }
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()

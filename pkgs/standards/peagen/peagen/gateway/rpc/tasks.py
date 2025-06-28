@@ -5,8 +5,8 @@ import uuid
 import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
-from peagen.protocols import TASK_SUBMIT
-from peagen.defaults import (
+from peagen.protocols import (
+    TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
     TASK_RESUME,

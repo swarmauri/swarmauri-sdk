@@ -10,7 +10,12 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols import (
+    SECRETS_ADD,
+    SECRETS_GET,
+    SECRETS_DELETE,
+    WORKER_LIST,
+)
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -22,7 +27,7 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Worker.list",
+        "method": WORKER_LIST,
         "params": {"pool": pool},
     }
     try:

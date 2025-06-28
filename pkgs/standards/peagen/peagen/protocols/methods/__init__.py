@@ -1,6 +1,25 @@
 from .task import TASK_SUBMIT
 from .keys import KEYS_UPLOAD, KEYS_FETCH, KEYS_DELETE
 from .secrets import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from .task_control import (
+    TASK_CANCEL,
+    TASK_PAUSE,
+    TASK_RESUME,
+    TASK_RETRY,
+    TASK_RETRY_FROM,
+    TASK_PATCH,
+    TASK_GET,
+    GUARD_SET,
+)
+from .worker import (
+    WORKER_REGISTER,
+    WORKER_HEARTBEAT,
+    WORKER_LIST,
+    WORK_FINISHED,
+    WORK_START,
+    WORK_CANCEL,
+)
+from .pool import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
 
 __all__ = [
     "TASK_SUBMIT",
@@ -10,4 +29,21 @@ __all__ = [
     "SECRETS_ADD",
     "SECRETS_GET",
     "SECRETS_DELETE",
+    "TASK_CANCEL",
+    "TASK_PAUSE",
+    "TASK_RESUME",
+    "TASK_RETRY",
+    "TASK_RETRY_FROM",
+    "TASK_PATCH",
+    "TASK_GET",
+    "GUARD_SET",
+    "WORKER_REGISTER",
+    "WORKER_HEARTBEAT",
+    "WORKER_LIST",
+    "WORK_FINISHED",
+    "WORK_START",
+    "WORK_CANCEL",
+    "POOL_CREATE",
+    "POOL_JOIN",
+    "POOL_LIST_TASKS",
 ]

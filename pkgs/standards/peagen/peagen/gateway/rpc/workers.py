@@ -20,7 +20,7 @@ from .. import (
 
 from peagen.orm.status import Status
 from peagen.transport.jsonrpc import RPCException
-from peagen.defaults import (
+from peagen.protocols import (
     WORKER_REGISTER,
     WORKER_HEARTBEAT,
     WORKER_LIST,

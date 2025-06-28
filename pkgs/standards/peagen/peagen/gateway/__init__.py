@@ -50,6 +50,7 @@ from peagen.errors import (
 )
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
+from peagen.protocols import WORK_START
 from peagen.protocols.error_codes import Code as ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
@@ -622,7 +623,7 @@ async def scheduler():
             rpc_req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
-                "method": "Work.start",
+                "method": WORK_START,
                 "params": {"task": task.model_dump()},
             }
 
@@ -756,7 +757,7 @@ async def task_submit(
         # keep the UUID instance so the ORM receives the correct type
 
     try:
-        return await _task_submit_rpc(**task.model_dump())
+        return await _task_submit_rpc(task)
     except ValidationError:
         task_id = str(task.id)
         if await _load_task(task_id):

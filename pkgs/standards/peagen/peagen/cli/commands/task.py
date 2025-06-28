@@ -10,7 +10,7 @@ import uuid
 
 import httpx
 import typer
-from peagen.defaults import (
+from peagen.protocols import (
     TASK_GET,
     TASK_PATCH,
     TASK_PAUSE,

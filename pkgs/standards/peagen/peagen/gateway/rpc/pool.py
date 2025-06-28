@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from .. import READY_QUEUE, dispatcher, log, queue
-from peagen.defaults import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
+from peagen.protocols import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
 
 
 @dispatcher.method(POOL_CREATE)
