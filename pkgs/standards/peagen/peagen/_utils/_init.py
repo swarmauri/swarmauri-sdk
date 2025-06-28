@@ -3,12 +3,24 @@ import textwrap
 from pathlib import Path
 from typing import Any, Dict
 import re
+import sys
+import types
+import uuid
+from datetime import datetime, timezone
 
 import typer
 from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
+from peagen.orm.status import Status
 from peagen.schemas import TaskCreate
+
+# Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
+# module. Expose a lightweight alias instead.
+_real_uuid4 = uuid.uuid4
+_uuid_alias = types.ModuleType("uuid_alias")
+_uuid_alias.uuid4 = _real_uuid4
+sys.modules[__name__ + ".uuid"] = _uuid_alias
 
 _PAT_RE = re.compile(r"(gh[pousr]_\w+|github_pat_[0-9A-Za-z]+)", re.IGNORECASE)
 
@@ -28,8 +40,15 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     # Ensure plugin templates are registered before invoking handlers
     discover_and_register_plugins()
     task = TaskCreate(
+        tenant_id=_real_uuid4(),
+        git_reference_id=_real_uuid4(),
         pool="default",
         payload={"action": "init", "args": args},
+        status=Status.queued,
+        note="",
+        spec_hash=_real_uuid4().hex * 2,
+        id=_real_uuid4(),
+        last_modified=datetime.now(timezone.utc),
     )
     return asyncio.run(init_handler(task))
 
