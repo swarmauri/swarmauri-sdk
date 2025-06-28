@@ -30,7 +30,7 @@ async def pool_list(
     end = -1 if limit is None else start + limit - 1
     ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", start, end)
     tasks = []
-    from ..schemas import TaskRead  # dynamic import to avoid circular
+    from peagen.schemas import TaskRead  # dynamic import to avoid circular
 
     for r in ids:
         t = TaskRead.model_validate_json(r)
