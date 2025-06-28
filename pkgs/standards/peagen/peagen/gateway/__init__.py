@@ -25,6 +25,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
@@ -57,13 +58,6 @@ from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 
-from .rpc import (  # noqa: F401
-    keys as _rpc_keys,
-    pool as _rpc_pool,
-    secrets as _rpc_secrets,
-    tasks as _rpc_tasks,
-    workers as _rpc_workers,
-)
 
 _db = reload(_db)
 engine = _db.engine
@@ -100,7 +94,8 @@ READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
-rpc = RPCDispatcher()
+_rpc_dispatcher = RPCDispatcher()
+rpc = _rpc_dispatcher
 try:
     queue_plugin = pm.get("queues")
 except KeyError:
@@ -127,6 +122,23 @@ TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
+
+
+from .rpc import (  # noqa: F401, E402
+    keys as _rpc_keys,
+    pool as _rpc_pool,
+    secrets as _rpc_secrets,
+    tasks as _rpc_tasks,
+    workers as _rpc_workers,
+)
+
+# expose selected RPC methods at the package level for convenience
+secrets_add = _rpc_secrets.secrets_add
+secrets_get = _rpc_secrets.secrets_get
+secrets_delete = _rpc_secrets.secrets_delete
+
+# restore dispatcher overwritten by importing the rpc package
+rpc = _rpc_dispatcher
 
 
 def _supports(method: str | None) -> bool:

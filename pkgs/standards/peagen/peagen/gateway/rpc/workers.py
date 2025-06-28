@@ -4,20 +4,8 @@ import time
 
 import httpx
 
-from .. import (
-    _upsert_worker,
-    WORKER_KEY,
-    WORKER_TTL,
-    log,
-    queue,
-    rpc,
-    _load_task,
-    _persist,
-    _publish_task,
-    _save_task,
-    _finalize_parent_tasks,
-)
-from ..orm.status import Status
+from .. import WORKER_KEY, WORKER_TTL, log, queue, rpc
+from peagen.orm.status import Status
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults import (
     WORKER_REGISTER,
@@ -36,6 +24,8 @@ async def worker_register(
     handlers: list[str] | None = None,
 ) -> dict:
     """Register a worker and persist its advertised handlers."""
+
+    from .. import _upsert_worker
 
     handler_list: list[str] = handlers or []
     if not handler_list:
@@ -110,6 +100,14 @@ async def worker_list(pool: str | None = None) -> list[dict]:
 
 @rpc.method(WORK_FINISHED)
 async def work_finished(taskId: str, status: str, result: dict | None = None) -> dict:
+    from .. import (
+        _finalize_parent_tasks,
+        _load_task,
+        _persist,
+        _publish_task,
+        _save_task,
+    )
+
     t = await _load_task(taskId)
     if not t:
         log.warning("Work.finished for unknown task %s", taskId)

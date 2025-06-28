@@ -17,21 +17,7 @@ from peagen.defaults import (
     TASK_GET,
 )
 
-from .. import (
-    READY_QUEUE,
-    TASK_TTL,
-    _finalize_parent_tasks,
-    _live_workers_by_pool,
-    _load_task,
-    _persist,
-    _publish_queue_length,
-    _publish_task,
-    _save_task,
-    _select_tasks,
-    log,
-    queue,
-    rpc,
-)
+from .. import READY_QUEUE, TASK_TTL, log, queue, rpc
 from peagen.errors import TaskNotFoundError
 from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
@@ -42,6 +28,14 @@ from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 @rpc.method(TASK_SUBMIT)
 async def task_submit(dto: TaskCreate) -> dict:
+    from .. import (
+        _live_workers_by_pool,
+        _load_task,
+        _publish_queue_length,
+        _publish_task,
+        _save_task,
+    )
+
     """Persist *dto* and enqueue the task."""
 
     await queue.sadd("pools", dto.pool)
@@ -94,6 +88,8 @@ async def task_submit(dto: TaskCreate) -> dict:
 
 @rpc.method(TASK_CANCEL)
 async def task_cancel(selector: str) -> dict:
+    from .. import _select_tasks
+
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -104,6 +100,8 @@ async def task_cancel(selector: str) -> dict:
 
 @rpc.method(TASK_PAUSE)
 async def task_pause(selector: str) -> dict:
+    from .. import _select_tasks
+
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -114,6 +112,8 @@ async def task_pause(selector: str) -> dict:
 
 @rpc.method(TASK_RESUME)
 async def task_resume(selector: str) -> dict:
+    from .. import _select_tasks
+
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -124,6 +124,8 @@ async def task_resume(selector: str) -> dict:
 
 @rpc.method(TASK_RETRY)
 async def task_retry(selector: str) -> dict:
+    from .. import _select_tasks
+
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -134,6 +136,8 @@ async def task_retry(selector: str) -> dict:
 
 @rpc.method(TASK_RETRY_FROM)
 async def task_retry_from(selector: str) -> dict:
+    from .. import _select_tasks
+
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -154,6 +158,14 @@ async def guard_set(label: str, spec: dict) -> dict:
 @rpc.method(TASK_PATCH)
 async def task_patch(taskId: str, changes: dict) -> dict:
     """Update persisted metadata for an existing task."""
+    from .. import (
+        _finalize_parent_tasks,
+        _load_task,
+        _persist,
+        _publish_task,
+        _save_task,
+    )
+
     task = await _load_task(taskId)
     if not task:
         raise TaskNotFoundError(taskId)
@@ -179,6 +191,8 @@ async def task_patch(taskId: str, changes: dict) -> dict:
 
 @rpc.method(TASK_GET)
 async def task_get(taskId: str) -> dict:
+    from .. import _load_task
+
     try:
         uuid.UUID(taskId)
     except ValueError:
