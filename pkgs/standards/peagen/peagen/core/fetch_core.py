@@ -76,11 +76,15 @@ def fetch_single(
     when applicable, and whether the repository was updated during the fetch.
     """
     if repo:
-        if "://" not in repo:
-            workspace_uri = f"gh://{repo}"
-        else:
+        if "://" in repo:
             workspace_uri = f"git+{repo}@{ref}"
-    if workspace_uri and workspace_uri.startswith("gh://") and "@" not in workspace_uri:
+        elif Path(repo).exists():
+            workspace_uri = repo
+        else:
+            workspace_uri = f"gh://{repo}"
+    elif (
+        workspace_uri and workspace_uri.startswith("gh://") and "@" not in workspace_uri
+    ):
         workspace_uri += f"@{ref}"
     if workspace_uri is None:
         raise ValueError("workspace_uri or repo required")
