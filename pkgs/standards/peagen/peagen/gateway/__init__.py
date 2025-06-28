@@ -32,6 +32,7 @@ from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
+from peagen.protocols.methods.task import SubmitResult
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -760,7 +761,7 @@ async def task_submit(
         # keep the UUID instance so the ORM receives the correct type
 
     try:
-        return await _task_submit_rpc(**task.model_dump())
+        return await _task_submit_rpc(task)
     except ValidationError:
         task_id = str(task.id)
         if await _load_task(task_id):
@@ -773,7 +774,7 @@ async def task_submit(
         await _save_task(task_rd)
         await _publish_task(task_rd)
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-        return {"taskId": str(task_rd.id)}
+        return SubmitResult.model_construct(task_id=str(task_rd.id)).model_dump()
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
