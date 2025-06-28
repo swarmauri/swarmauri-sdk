@@ -1,13 +1,12 @@
 # peagen/commands/validate.py
 
 import asyncio
-import uuid
 from typing import Any, Dict, Optional
 
 import typer
 
 from peagen.handlers.validate_handler import validate_handler
-from peagen.orm import Task
+from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
@@ -34,15 +33,13 @@ def run_validate(
     and invoking the same handler that a worker would use.
     """
     # 1) Create a Task instance with default status/result
-    task_id = str(uuid.uuid4())
     args: Dict[str, Any] = {
         "kind": kind,
         "path": path,
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = Task(
-        id=task_id,
+    task = TaskCreate(
         pool="default",
         payload={"action": "validate", "args": args},
     )
@@ -81,15 +78,13 @@ def submit_validate(
     Submit this validation as a background task. Returns immediately with a taskId.
     """
     # 1) Create a Task instance
-    task_id = str(uuid.uuid4())
     args: Dict[str, Any] = {
         "kind": kind,
         "path": path,
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = Task(
-        id=task_id,
+    task = TaskCreate(
         pool="default",
         payload={"action": "validate", "args": args},
     )
@@ -98,11 +93,7 @@ def submit_validate(
     envelope = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "params": task.model_dump(mode="json"),
     }
 
     # 3) POST to gateway

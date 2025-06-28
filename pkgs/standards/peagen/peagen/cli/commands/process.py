@@ -23,7 +23,7 @@ import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.defaults import TASK_SUBMIT, TASK_GET
-from peagen.orm import Task  # noqa: F401 – only for type hints
+from peagen.schemas import TaskCreate
 from peagen.orm.status import Status
 
 local_process_app = typer.Typer(help="Render / generate project files.")
@@ -62,12 +62,9 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-def _build_task(args: Dict[str, Any], pool: str = "default") -> Task:
-    """Fabricate a Task model so the CLI uses the same payload shape as workers."""
-    return Task(
-        pool=pool,
-        payload={"action": "process", "args": args},
-    )
+def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
+    """Construct a ``TaskCreate`` with the process payload."""
+    return TaskCreate(pool=pool, payload={"action": "process", "args": args})
 
 
 # ────────────────────────── local run ────────────────────────────────────────
@@ -194,7 +191,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     rpc_req = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "params": task.model_dump(mode="json"),
     }
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)

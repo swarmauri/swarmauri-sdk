@@ -9,26 +9,22 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import List, Optional
 
 import typer
 
 from peagen.handlers.fetch_handler import fetch_handler
-from peagen.orm import Task
-from peagen.orm.status import Status
+from peagen.schemas import TaskCreate
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 
 # ───────────────────────── helpers ─────────────────────────
-def _build_task(args: dict, pool: str = "default") -> Task:
-    """Construct a Task with the fetch action embedded in the payload."""
-    return Task(
-        id=str(uuid.uuid4()),
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    """Construct a ``TaskCreate`` with the fetch action embedded in the payload."""
+    return TaskCreate(
         pool=pool,
-        status=Status.waiting,
         payload={"action": "fetch", "args": args},
     )
 
