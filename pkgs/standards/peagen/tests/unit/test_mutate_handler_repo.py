@@ -45,5 +45,5 @@ async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
     assert not Path(captured["workspace_uri"]).exists()
     assert result["score"] == "0"
     assert result["meta"] == {"ok": True}
-    assert result["commit"] is None
+    assert "commit" not in result
     assert "winner_oid" not in result

@@ -68,6 +68,11 @@ async def task_submit(dto: TaskCreate) -> dict:
         log.warning("task id collision: %s → %s", task_id, new_id)
         task_id = new_id
 
+    # Ensure the database schema exists for test environments that
+    # do not run migrations.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     async with Session() as ses:
         # 1. create definition-of-task row
         payload = dto.model_dump()
