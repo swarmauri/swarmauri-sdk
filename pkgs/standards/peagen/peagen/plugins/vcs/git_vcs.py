@@ -49,13 +49,17 @@ class GitVCS:
 
         if (p / ".git").exists():
             self.repo = Repo(p)
-        elif remotes.get("origin"):
+        elif remote_url:
+            if "origin" not in remotes:
+                remotes["origin"] = remote_url
             try:
-                self.repo = Repo.clone_from(remotes["origin"], p)
+                self.repo = Repo.clone_from(remote_url, p)
             except GitCommandError as exc:
-                raise GitCloneError(remotes["origin"]) from exc
+                raise GitCloneError(remote_url) from exc
         else:
             self.repo = Repo.init(p)
+            with self.repo.config_writer() as cw:
+                cw.set_value("receive", "denyCurrentBranch", "updateInstead")
 
         ordered: list[tuple[str, str]] = []
         if "origin" in remotes:
@@ -167,8 +171,21 @@ class GitVCS:
             return
 
         self.require_remote(remote)
+        push_ref = ref
+        if ref == "HEAD":
+            try:
+                push_ref = self.repo.active_branch.name
+            except TypeError:  # pragma: no cover - detached HEAD
+                try:
+                    remote_head = self.repo.git.symbolic_ref(
+                        f"refs/remotes/{remote}/HEAD"
+                    )
+                    remote_branch = remote_head.split("/")[-1]
+                    push_ref = f"HEAD:refs/heads/{remote_branch}"
+                except Exception:
+                    push_ref = ref
         try:
-            self.repo.git.push(remote, ref)
+            self.repo.git.push(remote, push_ref)
         except GitCommandError as exc:
             raise GitPushError(ref, remote) from exc
 
@@ -177,7 +194,7 @@ class GitVCS:
             if mirror_remote not in [r.name for r in self.repo.remotes]:
                 self.configure_remote(self.mirror_git_url, name=mirror_remote)
             try:
-                self.repo.git.push(mirror_remote, ref)
+                self.repo.git.push(mirror_remote, push_ref)
             except GitCommandError as exc:
                 raise GitPushError(ref, mirror_remote) from exc
 
