@@ -16,6 +16,7 @@ from peagen.handlers.migrate_handler import migrate_handler
 
 from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -46,15 +47,16 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         pool="default",
         payload={"action": "migrate", "args": args},
     )
-    data = rpc_post(
+    reply = rpc_post(
         gateway_url,
         TASK_SUBMIT,
-        {"pool": task.pool, "payload": task.payload, "taskId": task.id},
+        SubmitParams(task=task).model_dump(),
         timeout=10.0,
+        result_model=SubmitResult,
     )
-    if data.get("error"):
-        raise RuntimeError(data["error"])
-    return str(data.get("result", {}).get("taskId", task.id))
+    if reply.error:
+        raise RuntimeError(reply.error.message)
+    return str(reply.result.taskId if reply.result else task.id)
 
 
 @local_db_app.command("upgrade")
