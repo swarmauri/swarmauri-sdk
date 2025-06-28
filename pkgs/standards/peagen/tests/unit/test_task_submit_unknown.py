@@ -1,7 +1,12 @@
 import importlib
 import pytest
 
+import uuid
+from datetime import datetime, timezone
+
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.schemas import TaskCreate
+from peagen.orm.status import Status
 
 
 @pytest.mark.unit
@@ -49,8 +54,20 @@ async def test_task_submit_unknown_action(monkeypatch):
         handlers=["foo"],
     )
 
+    task = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool="p",
+        payload={"action": "bar"},
+        status=Status.queued,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.now(timezone.utc),
+    )
+
     with pytest.raises(gw.RPCException) as exc:
-        await gw.task_submit(pool="p", payload={"action": "bar"}, taskId=None)
+        await gw.task_submit(task)
     assert exc.value.code == -32601
     items = await q.lrange("ready:p", 0, -1)
     assert items == []
