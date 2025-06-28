@@ -37,7 +37,8 @@ from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
-from sqlalchemy.ext.asyncio import AsyncSession as Session
+import sqlalchemy as sa
+from .. import Base, Session
 
 
 @dispatcher.method(TASK_SUBMIT)
@@ -71,10 +72,21 @@ async def task_submit(dto: TaskCreate) -> dict:
         # 1. create definition-of-task row
         payload = dto.model_dump()
         if task_id:
-            payload["id"] = task_id
+            payload["id"] = uuid.UUID(str(task_id))
         task_db = TaskModel(**payload)
         ses.add(task_db)
-        await ses.flush()  # gets task_db.id
+        try:
+            await ses.flush()  # gets task_db.id
+        except sa.exc.OperationalError as exc:  # pragma: no cover - tables missing
+            if "no such table" in str(exc).lower():
+                await ses.rollback()
+                await ses.run_sync(
+                    lambda s: Base.metadata.create_all(bind=s.connection())
+                )
+                ses.add(task_db)
+                await ses.flush()
+            else:
+                raise
 
         # 2. create first execution attempt
         run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
