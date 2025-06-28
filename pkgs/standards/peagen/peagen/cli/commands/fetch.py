@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 import typer
 
 from peagen.handlers.fetch_handler import fetch_handler
+from peagen.orm.status import Status
 from peagen.schemas import TaskCreate
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
@@ -23,10 +26,19 @@ fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 # ───────────────────────── helpers ─────────────────────────
 def _build_task(args: dict, pool: str = "default") -> TaskCreate:
     """Construct a ``TaskCreate`` with the fetch action embedded in the payload."""
-    return TaskCreate(
+    task = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
         pool=pool,
         payload={"action": "fetch", "args": args},
+        status=Status.waiting,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.utcnow(),
     )
+    task.id = str(task.id)
+    return task
 
 
 def _collect_args(
@@ -65,9 +77,16 @@ def run(
 ):
     """Synchronously build the workspace on this machine."""
     args = _collect_args(
-        workspaces or [], no_source, install_template_sets_flag, repo, ref
+        workspaces or [],
+        no_source,
+        install_template_sets_flag,
+        repo,
+        ref,
     )
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    pool = "default"
+    if ctx is not None and getattr(ctx, "obj", None):
+        pool = ctx.obj.get("pool", "default")
+    task = _build_task(args, pool)
 
     result = asyncio.run(fetch_handler(task))
     typer.echo(json.dumps(result, indent=2))
