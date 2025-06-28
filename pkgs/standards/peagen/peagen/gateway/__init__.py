@@ -25,7 +25,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.orm import Base, Task
+from peagen.orm import Base
 from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRun
@@ -131,7 +131,6 @@ BANNED_IPS: set[str] = set()
 
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
-
     return method in rpc._methods
 
 
@@ -288,7 +287,7 @@ def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 
-async def _save_task(task: Task) -> None:
+async def _save_task(task: TaskCreate) -> None:
     """
     Upsert a task into its Redis hash and refresh TTL atomically.
     Stores the canonical JSON blob plus the status for quick look-up.
@@ -393,7 +392,7 @@ async def _flush_state() -> None:
         await queue.client.aclose()
 
 
-async def _publish_task(task: Task) -> None:
+async def _publish_task(task: TaskCreate) -> None:
     data = task.model_dump()
     if task.duration is not None:
         data["duration"] = task.duration
@@ -543,7 +542,7 @@ async def rpc_endpoint(request: Request):
 
 
 # ────────────────────────── Helpers ──────────────────────────
-async def _fail_task(task: Task, error: Exception) -> None:
+async def _fail_task(task: TaskUpdate, error: Exception) -> None:
     """Mark *task* as failed and persist the error message."""
     task.status = Status.failed
     task.result = {"error": str(error)}

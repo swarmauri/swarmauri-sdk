@@ -34,7 +34,7 @@ from .. import (
 )
 from ..errors import TaskNotFoundError
 from ..orm.status import Status
-from ..orm import Task
+from ..orm import TaskRunModel
 
 
 @rpc.method(TASK_SUBMIT)
@@ -70,7 +70,9 @@ async def task_submit(
         log.warning("task id collision: %s → %s", taskId, new_id)
         taskId = new_id
 
-    task = Task(
+
+    # this needs to be updated to align with the new ORM db models and schemas DTO
+    task = TaskCreate(
         id=taskId or str(uuid.uuid4()),
         pool=pool,
         payload=payload,
@@ -158,7 +160,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
         raise TaskNotFoundError(taskId)
 
     for field, value in changes.items():
-        if field not in Task.model_fields:
+        if field not in TaskUpdate.model_fields:
             continue
         if field == "status":
             value = Status(value)

@@ -84,15 +84,6 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 from .AbuseRecord import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
-Task = TaskModel
-TaskRun = TaskRunModel
-
-# ----------------------------------------------------------------------
-# Backwards compatibility aliases
-# All backwards compatibility aliases have been depcrecated. If the Model is not export below. Then it is not supported.
-# ----------------------------------------------------------------------
-
-
 # ----------------------------------------------------------------------
 # Public re-exports
 # ----------------------------------------------------------------------
@@ -111,11 +102,9 @@ __all__: list[str] = [
     "RepositoryUserAssociationModel",
     # task
     "TaskModel",
-    "Task",
     "RawBlobModel",
     "Status",
     "TaskRunModel",
-    "TaskRun",
     "TaskRelationModel",
     "TaskRunTaskRelationAssociationModel",
     # evolution
