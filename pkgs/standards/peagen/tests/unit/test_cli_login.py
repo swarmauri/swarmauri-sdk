@@ -1,4 +1,4 @@
-import httpx
+from httpx import RequestError
 from typer.testing import CliRunner
 import pytest
 
@@ -55,7 +55,7 @@ def test_login_http_error(monkeypatch, tmp_path):
 @pytest.mark.unit
 def test_login_request_error(monkeypatch, tmp_path):
     def fake_rpc_post(*_a, **_k):
-        raise httpx.RequestError("oops")
+        raise RequestError("oops")
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
     monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
