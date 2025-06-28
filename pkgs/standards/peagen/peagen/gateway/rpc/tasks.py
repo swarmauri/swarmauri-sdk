@@ -23,6 +23,7 @@ from .. import (
     _finalize_parent_tasks,
     _live_workers_by_pool,
     _load_task,
+    _task_key,
     _persist,
     _publish_queue_length,
     _publish_task,
@@ -37,9 +38,24 @@ from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
+from .. import Session, engine, Base
+
+# -------------------------- helpers --------------------------
+
+
+def _is_uuid(value: str | uuid.UUID | None) -> bool:
+    """Return ``True`` if *value* can be parsed as a UUID."""
+
+    if value is None:
+        return False
+    try:
+        uuid.UUID(str(value))
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
 
 # Use the Session factory configured by the gateway
-from .. import Session, engine, Base
 
 
 @dispatcher.method(TASK_SUBMIT)
@@ -64,10 +80,37 @@ async def task_submit(dto: TaskCreate) -> dict:
         )
 
     task_id = dto.id
-    if task_id and await _load_task(task_id):
-        new_id = str(uuid.uuid4())
-        log.warning("task id collision: %s → %s", task_id, new_id)
-        task_id = new_id
+    if task_id:
+        if _is_uuid(task_id):
+            if await _load_task(task_id):
+                new_id = str(uuid.uuid4())
+                log.warning("task id collision: %s → %s", task_id, new_id)
+                task_id = new_id
+        else:
+            if await queue.exists(_task_key(str(task_id))):
+                new_id = str(uuid.uuid4())
+                log.warning("task id collision: %s → %s", task_id, new_id)
+                task_id = new_id
+
+    if task_id and not _is_uuid(task_id):
+        payload = dto.model_dump()
+        internal_id = uuid.uuid4()
+        payload["id"] = internal_id
+        async with Session() as ses:
+            task_db = TaskModel(**payload)
+            ses.add(task_db)
+            await ses.flush()
+            run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
+            ses.add(run_db)
+            await ses.commit()
+        task_rd = TaskRead.model_validate(task_db.__dict__)
+        task_rd.id = task_id  # type: ignore[assignment]
+        await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
+        await _publish_queue_length(task_rd.pool)
+        await _save_task(task_rd)
+        await _publish_task(task_rd)
+        log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
+        return {"taskId": str(task_id)}
 
     # Ensure the database schema exists for test environments that
     # do not run migrations.
@@ -78,7 +121,9 @@ async def task_submit(dto: TaskCreate) -> dict:
         # 1. create definition-of-task row
         payload = dto.model_dump()
         if task_id:
-            payload["id"] = task_id
+            payload["id"] = (
+                uuid.UUID(str(task_id)) if isinstance(task_id, str) else task_id
+            )
         task_db = TaskModel(**payload)
         ses.add(task_db)
         await ses.flush()  # gets task_db.id
