@@ -38,6 +38,7 @@ from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway import db_helpers
+from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
@@ -111,11 +112,13 @@ WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 # expose secret management RPC handlers for test usage
+# expose secret management RPC handlers for test usage
 from .rpc.secrets import (  # noqa: F401,E402
     secrets_add,
     secrets_delete,
     secrets_get,
 )
+
 
 # ─────────────────────────── IP tracking ─────────────────────────
 
@@ -139,11 +142,11 @@ async def _reject(
     """Return an error response and track abuse."""
 
     async with Session() as session:
-        count = await db_helpers.record_unknown_handler(session, ip)
+        count = await record_unknown_handler(session, ip)
     if count >= BAN_THRESHOLD:
         BANNED_IPS.add(ip)
         async with Session() as session:
-            await db_helpers.mark_ip_banned(session, ip)
+            await mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
     return {
         "jsonrpc": "2.0",
@@ -337,7 +340,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                     orm_task.id,
                     TaskUpdate(
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -348,7 +351,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                         id=orm_task.id,
                         tenant_id=orm_task.tenant_id,
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -741,3 +744,65 @@ async def _on_shutdown() -> None:
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+# expose RPC handlers for test modules
+from .rpc.pool import (  # noqa: F401,E402
+    pool_create,
+    pool_join,
+    pool_list,
+)
+
+# expose RPC handlers lazily to avoid circular imports
+__all__ = [
+    "keys_upload",
+    "keys_fetch",
+    "keys_delete",
+    "pool_create",
+    "pool_join",
+    "pool_list",
+    "task_submit",
+    "task_cancel",
+    "task_pause",
+    "task_resume",
+    "task_retry",
+    "task_retry_from",
+    "guard_set",
+    "task_patch",
+    "task_get",
+    "worker_register",
+    "worker_heartbeat",
+    "worker_list",
+    "work_finished",
+]
+
+
+def __getattr__(name: str):
+    if name in __all__:
+        from .rpc import keys, pool, tasks, workers
+
+        modules = {
+            "keys_upload": keys,
+            "keys_fetch": keys,
+            "keys_delete": keys,
+            "pool_create": pool,
+            "pool_join": pool,
+            "pool_list": pool,
+            "task_submit": tasks,
+            "task_cancel": tasks,
+            "task_pause": tasks,
+            "task_resume": tasks,
+            "task_retry": tasks,
+            "task_retry_from": tasks,
+            "guard_set": tasks,
+            "task_patch": tasks,
+            "task_get": tasks,
+            "worker_register": workers,
+            "worker_heartbeat": workers,
+            "worker_list": workers,
+            "work_finished": workers,
+        }
+        module = modules[name]
+        return getattr(module, name)
+    raise AttributeError(name)
+

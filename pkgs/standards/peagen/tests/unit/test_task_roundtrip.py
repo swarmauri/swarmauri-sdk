@@ -25,13 +25,12 @@ def test_task_roundtrip_json(monkeypatch):
 
     from peagen.gateway import to_orm
 
-    params = {"foo": "bar"}
     create = TaskCreate(
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
         last_modified=datetime.datetime.now(datetime.timezone.utc),
-        parameters=params,
+        payload={"foo": "bar"},
         note="demo",
         spec_hash=gw.rpc.tasks._spec_hash(params)
         if hasattr(gw.rpc.tasks, "_spec_hash")
