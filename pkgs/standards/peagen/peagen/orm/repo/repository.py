@@ -93,8 +93,8 @@ class RepositoryModel(BaseModel):
         "DeployKeyModel",
         secondary="repository_deploy_key_associations",
         back_populates="repositories",
-        viewonly=True,                      # 🔑 read-only
-        overlaps="deploy_key_associations", # silence SAWarning
+        viewonly=True,  # 🔑 read-only
+        overlaps="deploy_key_associations",  # silence SAWarning
     )
 
     user_associations: Mapped[list["RepositoryUserAssociationModel"]] = relationship(
