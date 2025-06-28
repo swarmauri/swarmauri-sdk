@@ -782,35 +782,8 @@ async def task_submit(
         await _save_task(task_rd)
         await _publish_task(task_rd)
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-        return {"task_id": str(task_rd.id)}
+        return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
 
-
-async def task_patch(*, taskId: str, changes: dict) -> dict:
-    return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
-
-
-async def task_get(taskId: str) -> dict:
-    return await _task_get_rpc(GetParams(taskId=taskId))
-
-
-async def task_cancel(selector: str) -> dict:
-    return await _task_cancel_rpc(SimpleSelectorParams(selector=selector))
-
-
-async def task_pause(selector: str) -> dict:
-    return await _task_pause_rpc(SimpleSelectorParams(selector=selector))
-
-
-async def task_resume(selector: str) -> dict:
-    return await _task_resume_rpc(SimpleSelectorParams(selector=selector))
-
-
-async def task_retry(selector: str) -> dict:
-    return await _task_retry_rpc(SimpleSelectorParams(selector=selector))
-
-
-async def task_retry_from(selector: str) -> dict:
-    return await _task_retry_from_rpc(SimpleSelectorParams(selector=selector))
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────

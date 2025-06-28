@@ -143,7 +143,8 @@ async def task_submit(params: SubmitParams) -> dict:
     await _save_task(task_rd)
     await _publish_task(task_rd)
     log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-    return SubmitResult(taskId=str(task_rd.id)).model_dump()
+    return {"taskId": str(task_rd.id)}
+
 
 
 @dispatcher.method(TASK_PATCH)
