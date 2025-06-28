@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import uuid
+import typing as t
 
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
@@ -43,10 +44,25 @@ from peagen.orm.status import Status
 from .. import Session, engine, Base
 
 
-@dispatcher.method(TASK_SUBMIT)
-async def task_submit(dto: TaskCreate) -> dict:
-    """Persist *dto* and enqueue the task."""
+# -----------------Helper---------------------------------------
 
+
+def _parse_task_create(raw: dict) -> TaskCreate:
+    # Legacy support
+    if "dto" in raw and isinstance(raw["dto"], dict):
+        return TaskCreate.model_validate(raw["dto"])
+    # Preferred: flattened KV pairs
+    return TaskCreate.model_validate(raw)
+
+
+# --------------Basic Task Methods ---------------------------------
+
+
+@dispatcher.method(TASK_SUBMIT)
+async def task_submit(dto: TaskCreate | None = None, **raw: t.Any) -> dict:
+    """Persist *dto* and enqueue the task."""
+    if dto is None:
+        dto = _parse_task_create(raw)
     await queue.sadd("pools", dto.pool)
 
     action = (dto.payload or {}).get("action")
@@ -119,6 +135,55 @@ async def task_submit(dto: TaskCreate) -> dict:
     return {"taskId": str(task_rd.id)}
 
 
+@dispatcher.method(TASK_PATCH)
+async def task_patch(taskId: str, changes: dict) -> dict:
+    """Update persisted metadata for an existing task."""
+    task = await _load_task(taskId)
+    if not task:
+        raise TaskNotFoundError(taskId)
+
+    for field, value in changes.items():
+        if field not in TaskUpdate.model_fields and field not in {"labels", "result"}:
+            continue
+        if field == "status":
+            value = Status(value)
+        setattr(task, field, value)
+
+    await _save_task(task)
+    await _persist(task)
+    await _publish_task(task)
+    if "result" in changes and isinstance(changes["result"], dict):
+        children = changes["result"].get("children")
+        if children:
+            for cid in children:
+                await _finalize_parent_tasks(cid)
+    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
+    return task.model_dump()
+
+
+@dispatcher.method(TASK_GET)
+async def task_get(taskId: str) -> dict:
+    try:
+        uuid.UUID(taskId)
+    except ValueError:
+        raise RPCException(code=-32602, message="Invalid task id")
+    if t := await _load_task(taskId):
+        data = t.model_dump()
+        duration = getattr(t, "duration", None)
+        if duration is not None:
+            data["duration"] = duration
+        return data
+    try:
+        from ..core.task_core import get_task_result
+
+        return await get_task_result(taskId)
+    except TaskNotFoundError as exc:
+        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
+
+
+# ----------- Extended Task Methods --------------------------------
+
+
 @dispatcher.method(TASK_CANCEL)
 async def task_cancel(selector: str) -> dict:
     targets = await _select_tasks(selector)
@@ -171,54 +236,11 @@ async def task_retry_from(selector: str) -> dict:
     return {"count": count}
 
 
+# --------Guard Rail Support --------------------------------------
+
+
 @dispatcher.method(GUARD_SET)
 async def guard_set(label: str, spec: dict) -> dict:
     await queue.hset(f"guard:{label}", mapping=spec)
     log.info("guard set %s", label)
     return {"ok": True}
-
-
-@dispatcher.method(TASK_PATCH)
-async def task_patch(taskId: str, changes: dict) -> dict:
-    """Update persisted metadata for an existing task."""
-    task = await _load_task(taskId)
-    if not task:
-        raise TaskNotFoundError(taskId)
-
-    for field, value in changes.items():
-        if field not in TaskUpdate.model_fields and field not in {"labels", "result"}:
-            continue
-        if field == "status":
-            value = Status(value)
-        setattr(task, field, value)
-
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
-    if "result" in changes and isinstance(changes["result"], dict):
-        children = changes["result"].get("children")
-        if children:
-            for cid in children:
-                await _finalize_parent_tasks(cid)
-    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
-    return task.model_dump()
-
-
-@dispatcher.method(TASK_GET)
-async def task_get(taskId: str) -> dict:
-    try:
-        uuid.UUID(taskId)
-    except ValueError:
-        raise RPCException(code=-32602, message="Invalid task id")
-    if t := await _load_task(taskId):
-        data = t.model_dump()
-        duration = getattr(t, "duration", None)
-        if duration is not None:
-            data["duration"] = duration
-        return data
-    try:
-        from ..core.task_core import get_task_result
-
-        return await get_task_result(taskId)
-    except TaskNotFoundError as exc:
-        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))

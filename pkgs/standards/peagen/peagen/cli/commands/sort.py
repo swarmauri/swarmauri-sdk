@@ -114,6 +114,9 @@ def submit_sort(
         )
 
     # ─────────────────────── 2) build Task model ────────────────────────
+    if repo is None:
+        raise typer.BadParameter("--repo is required for remote sorting")
+
     args = {
         "projects_payload": yaml_text,  # ← inline text
         "project_name": project_name,
@@ -121,11 +124,17 @@ def submit_sort(
         "start_file": start_file,
         "transitive": transitive,
         "show_dependencies": show_dependencies,
-        "cfg_override": cfg_override,
+        "repo": repo,
+        "ref": ref,
     }
-    if repo:
-        args.update({"repo": repo, "ref": ref})
-    task = {"pool": "default", "payload": {"action": "sort", "args": args}}
+    task = {
+        "pool": "default",
+        "payload": {
+            "action": "sort",
+            "args": args,
+            "cfg_override": cfg_override,
+        },
+    }
 
     # 2) Build Task.submit envelope using Task fields
     envelope = {
