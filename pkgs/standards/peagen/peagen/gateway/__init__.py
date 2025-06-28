@@ -121,7 +121,8 @@ from .rpc.secrets import (  # noqa: E402
 from peagen.protocols.methods.secrets import (  # noqa: E402
     AddParams,
     DeleteParams,
-    GetParams as SecretGetParams,
+    GetParams as SecretsGetParams,
+
 )
 
 # ─────────────────────────── Key/Secret store ───────────────────
