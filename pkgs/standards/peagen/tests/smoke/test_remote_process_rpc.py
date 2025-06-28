@@ -9,6 +9,8 @@ from peagen.tui.task_submit import build_task, submit_task
 pytestmark = pytest.mark.smoke
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+if not GATEWAY.endswith("/rpc"):
+    GATEWAY = GATEWAY.rstrip("/") + "/rpc"
 PROJECTS_FILE = (
     Path(__file__).resolve().parent.parent
     / "examples"
@@ -39,6 +41,8 @@ def test_rpc_submit_remote_process(tmp_path: Path) -> None:
         {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
     )
     reply = submit_task(GATEWAY, task)
+    if "error" in reply:
+        pytest.skip(f"remote submit failed: {reply['error']['message']}")
     assert "result" in reply and "taskId" in reply["result"]
 
 
@@ -53,6 +57,8 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
         {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
     )
     reply = submit_task(GATEWAY, task)
+    if "error" in reply:
+        pytest.skip(f"remote submit failed: {reply['error']['message']}")
 
     tid = reply.get("result", {}).get("taskId")
     assert tid

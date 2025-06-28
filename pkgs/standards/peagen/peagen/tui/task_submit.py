@@ -5,16 +5,25 @@ from __future__ import annotations
 import httpx
 import uuid
 from datetime import datetime
-from typing import Any
+import importlib
+from typing import Any, Callable, Dict
 
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 from peagen.orm.status import Status
 
 
-def build_task(action: str, args: dict[str, Any], pool: str = "default") -> TaskCreate:
-    """Construct a :class:`TaskCreate` from CLI-style arguments."""
+_TASK_BUILDERS: Dict[str, str] = {
+    "process": "peagen.cli.commands.process:_build_task",
+    "analysis": "peagen.cli.commands.analysis:_build_task",
+    "mutate": "peagen.cli.commands.mutate:_build_task",
+    "evolve": "peagen.cli.commands.evolve:_build_task",
+    "extras": "peagen.cli.commands.extras:_build_task",
+    "fetch": "peagen.cli.commands.fetch:_build_task",
+}
 
+
+def _fallback_builder(action: str, args: dict[str, Any], pool: str) -> TaskCreate:
     task = TaskCreate(
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
@@ -26,9 +35,23 @@ def build_task(action: str, args: dict[str, Any], pool: str = "default") -> Task
         spec_hash="dummy",
         last_modified=datetime.utcnow(),
     )
-    # Expose identifier as string for consistency with CLI-generated tasks
     task.id = str(task.id)
     return task
+
+
+def build_task(action: str, args: dict[str, Any], pool: str = "default") -> TaskCreate:
+    """Construct a :class:`TaskCreate` using CLI helpers when available."""
+
+    builder_path = _TASK_BUILDERS.get(action)
+    if builder_path:
+        module_name, func_name = builder_path.split(":")
+        module = importlib.import_module(module_name)
+        builder: Callable[[dict[str, Any], str], TaskCreate] = getattr(
+            module, func_name
+        )  # type: ignore[assignment]
+        return builder(args, pool)
+
+    return _fallback_builder(action, args, pool)
 
 
 def submit_task(gateway_url: str, task: TaskCreate) -> dict:
@@ -37,7 +60,7 @@ def submit_task(gateway_url: str, task: TaskCreate) -> dict:
     req = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "params": task.model_dump(mode="json"),
     }
     resp = httpx.post(gateway_url, json=req, timeout=30.0)
     resp.raise_for_status()
