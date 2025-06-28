@@ -118,7 +118,7 @@ class WorkerBase:
         # ─── REGISTER built‐in RPC methods ──────────────────────────
         # 1) Work.start  →  on_work_start (async)
         @self.rpc.method(WORK_START)
-        async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
+        async def on_work_start(task: TaskRead) -> Dict[str, Any]:
             canonical = ensure_task(task)
             self.log.info(
                 "Work.start received    task=%s pool=%s", canonical.id, self.POOL
@@ -206,7 +206,7 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
-    async def _run_task(self, task: TaskRead | Dict[str, Any]) -> None:
+    async def _run_task(self, task: TaskRead) -> None:
         """Execute *task* by dispatching to a registered handler."""
         canonical = ensure_task(task)
         task_id = canonical.id

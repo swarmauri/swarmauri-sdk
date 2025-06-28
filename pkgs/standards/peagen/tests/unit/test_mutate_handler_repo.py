@@ -2,6 +2,10 @@ import pytest
 from pathlib import Path
 from peagen.core.mirror_core import ensure_repo
 from peagen.handlers import mutate_handler as handler
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
+import uuid
+from datetime import datetime, timezone
 
 
 @pytest.mark.unit
@@ -40,7 +44,19 @@ async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    result = await handler.mutate_handler({"payload": {"args": args}})
+    task = TaskRead.model_construct(
+        id=str(uuid.uuid4()),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={"args": args},
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
+    )
+    result = await handler.mutate_handler(task)
 
     assert not Path(captured["workspace_uri"]).exists()
     assert result["score"] == "0"

@@ -1,6 +1,10 @@
 import pytest
 
 from peagen.handlers import doe_process_handler as handler
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
+import uuid
+from datetime import datetime, timezone
 
 
 @pytest.mark.unit
@@ -57,13 +61,20 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
 
-    task = {
-        "id": "T0",
-        "pool": "default",
-        "payload": {
+    task = TaskRead.model_construct(
+        id="T0",
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={
             "args": {"spec": "s", "template": "t", "output": str(tmp_path / "out.yaml")}
         },
-    }
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
+    )
     result = await handler.doe_process_handler(task)
 
     assert len(sent) == 4
@@ -133,10 +144,12 @@ async def test_doe_process_handler_dry_run(monkeypatch, tmp_path):
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
 
-    task = {
-        "id": "T0",
-        "pool": "default",
-        "payload": {
+    task = TaskRead.model_construct(
+        id="T0",
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={
             "args": {
                 "spec": "s",
                 "template": "t",
@@ -144,7 +157,12 @@ async def test_doe_process_handler_dry_run(monkeypatch, tmp_path):
                 "dry_run": True,
             }
         },
-    }
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
+    )
     result = await handler.doe_process_handler(task)
 
     assert sent == []

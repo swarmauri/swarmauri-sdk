@@ -1,6 +1,10 @@
 import pytest
 
 from peagen.handlers import templates_handler as handler
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
+import uuid
+from datetime import datetime, timezone
 
 
 @pytest.mark.unit
@@ -28,9 +32,19 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
-    result = await handler.templates_handler(
-        {"payload": {"args": {"operation": op, **args}}}
+    task = TaskRead.model_construct(
+        id=str(uuid.uuid4()),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={"args": {"operation": op, **args}},
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
     )
+    result = await handler.templates_handler(task)
 
     assert result == {"op": op}
     assert called

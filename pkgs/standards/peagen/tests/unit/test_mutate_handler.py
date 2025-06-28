@@ -1,6 +1,10 @@
 import pytest
 
 from peagen.handlers import mutate_handler as handler
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
+import uuid
+from datetime import datetime, timezone
 
 
 @pytest.mark.unit
@@ -26,7 +30,19 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    result = await handler.mutate_handler({"payload": {"args": args}})
+    task = TaskRead.model_construct(
+        id=str(uuid.uuid4()),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={"args": args},
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
+    )
+    result = await handler.mutate_handler(task)
 
     assert result == {"winner": "w.py", "score": "1", "meta": {"ok": True}}
     assert captured["workspace_uri"] == "ws"

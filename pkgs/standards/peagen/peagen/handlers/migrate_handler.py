@@ -13,8 +13,8 @@ from peagen.schemas import TaskRead
 from . import ensure_task
 
 
-async def migrate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def migrate_handler(task: TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task)
     args: Dict[str, Any] = task.payload["args"]
     op: str = args["op"]
     cfg_path_str: str | None = args.get("alembic_ini")

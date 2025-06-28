@@ -11,8 +11,8 @@ from peagen.core.validate_core import validate_artifact
 from peagen.schemas import TaskRead
 
 
-async def validate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def validate_handler(task: TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task)
     args: Dict[str, Any] = task.payload["args"]
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")

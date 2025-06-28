@@ -17,9 +17,9 @@ from peagen.schemas import TaskRead
 from . import ensure_task
 
 
-async def init_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def init_handler(task: TaskRead) -> Dict[str, Any]:
     """Dispatch to the correct init function based on ``kind``."""
-    task = ensure_task(task_or_dict)
+    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     kind = args.get("kind")

@@ -12,7 +12,7 @@ from . import ensure_task
 
 
 async def fan_out(
-    parent: TaskRead | Dict[str, Any],
+    parent: TaskRead,
     children: Iterable[TaskRead],
     *,
     result: Dict[str, Any] | None = None,

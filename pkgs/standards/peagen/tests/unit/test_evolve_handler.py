@@ -1,6 +1,10 @@
 import pytest
 
 from peagen.handlers import evolve_handler as handler
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
+import uuid
+from datetime import datetime, timezone
 
 
 @pytest.mark.unit
@@ -36,11 +40,18 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
         "JOBS:\n- workspace_uri: ws\n  target_file: t.py\n  import_path: mod\n  entry_fn: f\noperators:\n  mutation:\n    - kind: echo_mutator\n      probability: 1\n      uri: patch.p\n"
     )
 
-    task = {
-        "id": "P1",
-        "pool": "default",
-        "payload": {"args": {"evolve_spec": str(spec)}},
-    }
+    task = TaskRead.model_construct(
+        id="P1",
+        tenant_id=uuid.uuid4(),
+        git_reference_id=None,
+        pool="default",
+        payload={"args": {"evolve_spec": str(spec)}},
+        status=Status.queued,
+        note=None,
+        spec_hash="",
+        date_created=datetime.now(timezone.utc),
+        last_modified=datetime.now(timezone.utc),
+    )
     result = await handler.evolve_handler(task)
 
     assert result["jobs"] == 1

@@ -14,8 +14,8 @@ from peagen.plugins.vcs import pea_ref
 from .repo_utils import fetch_repo, cleanup_repo
 
 
-async def analysis_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def analysis_handler(task: TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")

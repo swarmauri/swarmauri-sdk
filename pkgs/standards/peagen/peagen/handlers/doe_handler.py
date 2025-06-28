@@ -17,8 +17,8 @@ from peagen.plugins import PluginManager
 import yaml
 
 
-async def doe_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def doe_handler(task: TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 

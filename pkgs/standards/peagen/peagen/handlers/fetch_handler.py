@@ -18,7 +18,7 @@ from peagen.core.fetch_core import fetch_many
 from peagen.schemas import TaskRead
 
 
-async def fetch_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def fetch_handler(task: TaskRead) -> Dict[str, Any]:
     """
     Parameters (in task.payload.args)
     ---------------------------------
@@ -28,7 +28,7 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, An
     install_template_sets: bool – ignored
     """
     # normalise ---------------------------------------------
-    task = ensure_task(task_or_dict)
+    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     uris: List[str] = args.get("workspaces", [])
