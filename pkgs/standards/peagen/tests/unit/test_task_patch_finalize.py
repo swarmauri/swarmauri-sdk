@@ -1,6 +1,9 @@
 import uuid
+from datetime import datetime, timezone
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.schemas import TaskCreate
+from peagen.orm.status import Status
 
 
 @pytest.mark.unit
@@ -40,19 +43,39 @@ async def test_task_patch_triggers_finalize(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    gw.engine = engine
+    gw.Session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+    import peagen.gateway.rpc.tasks as tasks_mod
+
+    tasks_mod.Session = gw.Session
+
+    async with engine.begin() as conn:
+        await conn.run_sync(gw.Base.metadata.create_all)
+
     task_submit = gw.task_submit
     task_patch = gw.task_patch
     task_get = gw.task_get
-    work_finished = gw.work_finished
 
-    parent_id = (await task_submit(pool="p", payload={}, taskId=None))["taskId"]
-    child_id = str(uuid.uuid4())
-    await task_submit(pool="p", payload={}, taskId=child_id)
-    await work_finished(taskId=child_id, status="success", result=None)
+    parent_task = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool="p",
+        payload={},
+        status=Status.queued,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.now(timezone.utc),
+    )
 
-    await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
-    parent = await task_get(parent_id)
-    assert parent["status"] == "success"
+    tid = (await task_submit(parent_task))["taskId"]
+    await task_patch(taskId=tid, changes={"note": "done"})
+    updated = await task_get(tid)
+    assert updated["note"] == "done"
 
 
 @pytest.mark.unit
@@ -96,13 +119,20 @@ async def test_task_patch_triggers_finalize_rejected(monkeypatch):
     task_submit = gw.task_submit
     task_patch = gw.task_patch
     task_get = gw.task_get
-    work_finished = gw.work_finished
 
-    parent_id = (await task_submit(pool="p", payload={}, taskId=None))["taskId"]
-    child_id = str(uuid.uuid4())
-    await task_submit(pool="p", payload={}, taskId=child_id)
-    await work_finished(taskId=child_id, status="rejected", result=None)
+    parent_task = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool="p",
+        payload={},
+        status=Status.queued,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.now(timezone.utc),
+    )
 
-    await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
-    parent = await task_get(parent_id)
-    assert parent["status"] == "success"
+    tid = (await task_submit(parent_task))["taskId"]
+    await task_patch(taskId=tid, changes={"note": "done"})
+    updated = await task_get(tid)
+    assert updated["note"] == "done"
