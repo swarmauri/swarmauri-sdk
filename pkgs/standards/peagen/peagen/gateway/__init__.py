@@ -14,9 +14,11 @@ import logging
 from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
+from datetime import datetime
 import json
 import httpx
 import time
+from typing import Any
 from json.decoder import JSONDecodeError
 
 
@@ -692,8 +694,35 @@ from .rpc.tasks import (  # noqa: F401,E402
     task_resume,
     task_retry,
     task_retry_from,
-    task_submit,
+    task_submit as _task_submit_rpc,
 )
+
+
+async def task_submit(
+    *, pool: str, payload: dict, taskId: str | None = None, **extras: Any
+) -> dict:
+    """Compatibility wrapper for :func:`_task_submit_rpc`."""
+
+    task = TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool=pool,
+        payload=payload,
+        status=Status.queued,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.utcnow(),
+    )
+    if taskId is not None:
+        task.id = taskId
+
+    for field, value in extras.items():
+        if field in TaskCreate.model_fields:
+            setattr(task, field, value)
+
+    task.id = str(task.id)
+    return await _task_submit_rpc(task)
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
