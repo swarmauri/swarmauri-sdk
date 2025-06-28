@@ -10,6 +10,8 @@ import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.schemas import TaskCreate
 from peagen.cli.rpc_utils import rpc_post
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
@@ -119,7 +121,7 @@ def submit_sort(
         raise typer.BadParameter("--repo is required for remote sorting")
 
     args = {
-        "projects_payload": yaml_text,  # ← inline text
+        "projects_payload": yaml_text,
         "project_name": project_name,
         "start_idx": start_idx,
         "start_file": start_file,
@@ -128,27 +130,23 @@ def submit_sort(
         "repo": repo,
         "ref": ref,
     }
-    task = {
-        "pool": "default",
-        "payload": {
-            "action": "sort",
-            "args": args,
-            "cfg_override": cfg_override,
-        },
-    }
+    task_obj = TaskCreate(
+        pool="default",
+        payload={"action": "sort", "args": args, "cfg_override": cfg_override},
+    )
 
-    # 2) Build Task.submit envelope using Task fields
     try:
-        data = rpc_post(
+        resp = rpc_post(
             ctx.obj.get("gateway_url"),
             TASK_SUBMIT,
-            task,
+            SubmitParams(task=task_obj).model_dump(),
             timeout=10.0,
+            result_model=SubmitResult,
         )
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        if resp.error:
+            typer.echo(f"[ERROR] {resp.error.message}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={data['result']['taskId']}")
+        typer.echo(f"Submitted sort → taskId={resp.result.taskId}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
