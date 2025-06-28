@@ -18,6 +18,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -153,7 +154,7 @@ def submit_gen(  # noqa: PLR0913
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
@@ -307,7 +308,7 @@ def submit_process(  # noqa: PLR0913
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 
@@ -329,7 +330,7 @@ def submit_process(  # noqa: PLR0913
             req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
-                "method": "Task.get",
+                "method": TASK_GET,
                 "params": {"taskId": tid},
             }
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()

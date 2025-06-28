@@ -10,6 +10,7 @@ import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")
@@ -134,7 +135,7 @@ def submit_sort(
     # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 

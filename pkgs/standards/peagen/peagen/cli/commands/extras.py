@@ -12,6 +12,7 @@ import typer
 from peagen.handlers.extras_handler import extras_handler
 from peagen.orm import Task
 from swarmauri_standard.loggers.Logger import Logger
+from peagen.defaults import TASK_SUBMIT
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
@@ -85,7 +86,7 @@ def submit_extras(
 
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "pool": task.pool,
             "payload": task.payload,

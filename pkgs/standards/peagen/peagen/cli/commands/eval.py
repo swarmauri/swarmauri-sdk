@@ -22,6 +22,7 @@ from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -133,7 +134,7 @@ def submit(  # noqa: PLR0913
     rpc_req = {
         "jsonrpc": "2.0",
         "id": task.id,
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
 

@@ -15,6 +15,13 @@ from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
 from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
+from peagen.defaults import (
+    WORK_START,
+    WORK_CANCEL,
+    WORK_FINISHED,
+    WORKER_REGISTER,
+    WORKER_HEARTBEAT,
+)
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
@@ -110,7 +117,7 @@ class WorkerBase:
 
         # ─── REGISTER built‐in RPC methods ──────────────────────────
         # 1) Work.start  →  on_work_start (async)
-        @self.rpc.method("Work.start")
+        @self.rpc.method(WORK_START)
         async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
             canonical = ensure_task(task)
             self.log.info(
@@ -121,7 +128,7 @@ class WorkerBase:
             return {"accepted": True}
 
         # 2) Work.cancel → calls work_cancel (sync or async)
-        @self.rpc.method("Work.cancel")
+        @self.rpc.method(WORK_CANCEL)
         async def on_work_cancel(taskId: str) -> Dict[str, Any]:
             self.log.info("Work.cancel received   task=%s", taskId)
             # (Demo worker: you can override this in a subclass if needed)
@@ -255,7 +262,7 @@ class WorkerBase:
         payload = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
-            "method": "Work.finished",
+            "method": WORK_FINISHED,
             "params": {"taskId": task_id, "status": state, "result": result},
         }
         try:
@@ -292,7 +299,7 @@ class WorkerBase:
 
         # ───── Worker.register ─────────────────────────────────────
         await self._send_rpc(
-            "Worker.register",
+            WORKER_REGISTER,
             {
                 "workerId": self.WORKER_ID,
                 "pool": self.POOL,
@@ -311,7 +318,7 @@ class WorkerBase:
                 await asyncio.sleep(5)
                 try:
                     await self._send_rpc(
-                        "Worker.heartbeat",
+                        WORKER_HEARTBEAT,
                         {
                             "workerId": self.WORKER_ID,
                             "pool": self.POOL,

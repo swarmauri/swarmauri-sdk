@@ -10,6 +10,7 @@ import typer
 
 from peagen.handlers.templates_handler import templates_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -43,7 +44,7 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     )
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "pool": task.pool,
             "payload": task.payload,

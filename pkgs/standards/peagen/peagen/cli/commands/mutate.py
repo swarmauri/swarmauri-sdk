@@ -14,6 +14,7 @@ import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.orm import Task
+from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_mutate_app = typer.Typer(help="Run the mutate workflow")
@@ -115,7 +116,7 @@ def submit(
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "pool": task.pool,
             "payload": task.payload,
