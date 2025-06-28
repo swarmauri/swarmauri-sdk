@@ -8,8 +8,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 from peagen.orm import (
-    TaskRunModel,
-    TaskRunTaskRelationAssociationModel,
+    TaskRunModelModel,
+    TaskRunModelTaskRelationAssociationModelModel,
 )
 
 from peagen.orm.status import Status
@@ -55,10 +55,10 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
+async def upsert_task(session: AsyncSession, row: TaskRunModel) -> None:
     data = _coerce(row.to_dict(exclude={"deps", "duration"}))
     stmt = (
-        pg_insert(TaskRun)
+        pg_insert(TaskRunModel)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
@@ -67,13 +67,13 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
     )
     result = await session.execute(stmt)
     await session.execute(
-        sa.delete(TaskRunTaskRelationAssociation).where(
-            TaskRunTaskRelationAssociation.task_run_id == row.id
+        sa.delete(TaskRunModelTaskRelationAssociationModel).where(
+            TaskRunModelTaskRelationAssociationModel.task_run_id == row.id
         )
     )
     values = [{"task_run_id": row.id, "relation_id": uuid.UUID(d)} for d in row.deps]
     if values:
-        await session.execute(sa.insert(TaskRunTaskRelationAssociation), values)
+        await session.execute(sa.insert(TaskRunModelTaskRelationAssociationModel), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
