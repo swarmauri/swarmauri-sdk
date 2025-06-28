@@ -58,4 +58,4 @@ def test_eval_submit_returns_task_id() -> None:
     assert resp.status_code == 200
     data = resp.json()
 
-    assert "result" in data and "task_id" in data["result"]
+    assert "result" in data and "taskId" in data["result"]

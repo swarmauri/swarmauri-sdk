@@ -14,7 +14,13 @@ from functools import partial
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols.methods.task import (
+    SubmitParams,
+    SubmitResult,
+    GetParams,
+    GetResult,
+)
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -104,33 +110,35 @@ def submit(
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        task.model_dump(mode="json"),
+        SubmitParams(task=task).model_dump(),
+        result_model=SubmitResult,
     )
-    if "error" in reply:
+    if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if reply.result:
+        typer.echo(json.dumps(reply.result.model_dump(), indent=2))
     if watch:
 
-        def _rpc_call() -> dict:
+        def _rpc_call() -> GetResult:
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
-                "Task.get",
-                {"taskId": task.id},
+                TASK_GET,
+                GetParams(taskId=task.id).model_dump(),
+                result_model=GetResult,
             )
-            return res["result"]
+            return res.result  # type: ignore[return-value]
 
         import time
 
         while True:
             task_reply = _rpc_call()
-            typer.echo(json.dumps(task_reply, indent=2))
-            if Status.is_terminal(task_reply["status"]):
+            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
+            if Status.is_terminal(task_reply.status):
                 break
             time.sleep(interval)

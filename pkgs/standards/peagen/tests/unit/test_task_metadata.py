@@ -110,7 +110,7 @@ async def test_task_submit_roundtrip(monkeypatch):
     )
 
     result = await task_submit(dto)
-    tid = result["task_id"]
+    tid = result["taskId"]
     stored = await task_get(tid)
     assert stored["pool"] == "p"
     assert stored["payload"] == {}
