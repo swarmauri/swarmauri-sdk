@@ -777,7 +777,14 @@ async def _on_start() -> None:
         result = migrate_core.alembic_upgrade()
         if not result.get("ok", False):
             error_msg = result.get("error")
-            log.error("migration failed: %s", error_msg)
+            stdout = result.get("stdout", "").strip()
+            stderr = result.get("stderr", "").strip()
+            log.error(
+                "migration failed: %s\nstdout:\n%s\nstderr:\n%s",
+                error_msg,
+                stdout,
+                stderr,
+            )
             raise MigrationFailureError(str(error_msg))
         log.info("migrations applied; verifying database schema")
         await db_helpers.ensure_status_enum(engine)
