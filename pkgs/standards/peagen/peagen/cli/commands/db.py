@@ -13,8 +13,10 @@ from pathlib import Path
 import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
-from peagen.orm.task import Task
+
+from peagen.orm.task import TaskModel
 from peagen.defaults import TASK_SUBMIT
+
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
 # When running from source the module sits one directory deeper than
