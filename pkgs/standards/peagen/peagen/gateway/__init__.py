@@ -26,8 +26,13 @@ import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.protocols import Request as RPCEnvelope, parse_request, _registry
+from peagen.transport import RPCDispatcher
+from peagen.protocols import (
+    Request as RPCRequest,
+    Request as RPCEnvelope,
+    parse_request,
+    _registry,
+)
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -834,7 +839,6 @@ async def task_get(taskId: str) -> dict:
 async def task_patch(*, taskId: str, changes: dict) -> dict:
     """Compatibility wrapper for :func:`_task_patch_rpc`."""
     return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
-
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])

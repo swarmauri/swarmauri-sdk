@@ -3,28 +3,41 @@ from __future__ import annotations
 import uuid
 
 from .. import READY_QUEUE, dispatcher, log, queue
-from peagen.defaults import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
+from peagen.protocols.methods.pool import (
+    POOL_CREATE,
+    POOL_JOIN,
+    POOL_LIST_TASKS,
+    CreateParams,
+    CreateResult,
+    JoinParams,
+    JoinResult,
+    ListParams,
+    ListResult,
+)
 
 
 @dispatcher.method(POOL_CREATE)
-async def pool_create(name: str) -> dict:
+async def pool_create(params: CreateParams) -> dict:
+    name = params.name
     await queue.sadd("pools", name)
     log.info("pool created: %s", name)
-    return {"name": name}
+    return CreateResult(name=name).model_dump()
 
 
 @dispatcher.method(POOL_JOIN)
-async def pool_join(name: str) -> dict:
+async def pool_join(params: JoinParams) -> dict:
+    name = params.name
     member = str(uuid.uuid4())[:8]
     await queue.sadd(f"pool:{name}:members", member)
     log.info("member %s joined pool %s", member, name)
-    return {"memberId": member}
+    return JoinResult(memberId=member).model_dump()
 
 
 @dispatcher.method(POOL_LIST_TASKS)
-async def pool_list(
-    poolName: str, limit: int | None = None, offset: int = 0
-) -> list[dict]:
+async def pool_list(params: ListParams) -> dict:
+    poolName = params.poolName
+    limit = params.limit
+    offset = params.offset
     """Return tasks queued for *poolName* with optional pagination."""
     start = max(offset, 0)
     end = -1 if limit is None else start + limit - 1
@@ -38,4 +51,4 @@ async def pool_list(
         if t.duration is not None:
             data["duration"] = t.duration
         tasks.append(data)
-    return tasks
+    return ListResult(tasks).model_dump()

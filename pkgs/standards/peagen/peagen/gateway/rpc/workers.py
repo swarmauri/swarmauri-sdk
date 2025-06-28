@@ -21,7 +21,7 @@ from .. import (
 
 from peagen.orm.status import Status
 from peagen.transport.jsonrpc import RPCException
-from peagen.defaults import WORK_FINISHED
+from peagen.protocols.methods.work import WORK_FINISHED, FinishedParams, FinishedResult
 from peagen.protocols.methods.worker import (
     WORKER_REGISTER,
     WORKER_HEARTBEAT,
@@ -139,7 +139,10 @@ async def worker_list(params: ListParams) -> dict:
 
 
 @dispatcher.method(WORK_FINISHED)
-async def work_finished(taskId: str, status: str, result: dict | None = None) -> dict:
+async def work_finished(params: FinishedParams) -> dict:
+    taskId = params.taskId
+    status = params.status
+    result = params.result
     t = await _load_task(taskId)
     if not t:
         log.warning("Work.finished for unknown task %s", taskId)
@@ -163,4 +166,4 @@ async def work_finished(taskId: str, status: str, result: dict | None = None) ->
         await _finalize_parent_tasks(taskId)
 
     log.info("task %s completed: %s", taskId, status)
-    return {"ok": True}
+    return FinishedResult(ok=True).model_dump()
