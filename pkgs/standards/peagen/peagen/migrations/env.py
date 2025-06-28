@@ -8,6 +8,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 import os
 from peagen.orm import Base
 
+pg_dsn = os.environ.get("PG_DSN")
+pg_host = os.environ.get("PG_HOST")
+pg_port = os.environ.get("PG_PORT", "5432")
+pg_db = os.environ.get("PG_DB")
+pg_user = os.environ.get("PG_USER")
+pg_pass = os.environ.get("PG_PASS")
+
+if pg_dsn:
+    if pg_dsn.startswith("postgresql://"):
+        dsn = pg_dsn.replace("postgresql://", "postgresql+asyncpg://", 1)
+    else:
+        dsn = pg_dsn
+elif pg_host and pg_db and pg_user:
+    dsn = f"postgresql+asyncpg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
+else:
+    dsn = "sqlite+aiosqlite:///./gateway.db"
+
 engine = create_async_engine(
     dsn,
     pool_size=10,
