@@ -18,10 +18,11 @@ importing modules from ``peagen.plugins`` directly in application code.
 
 Always rely on the Pydantic models defined under ``peagen.schemas`` when
 working with tasks. Do **not** introduce convenience wrappers like a ``Task``
-class that extends these schemas. Gateway and worker functions should accept
-and return ``TaskRead``, ``TaskCreate``, or ``TaskUpdate`` instances
-exclusively. This ensures interoperability across services and avoids subtle
-validation issues.
+class that extends these schemas. Gateway and worker functions must accept and
+return ``TaskRead``, ``TaskCreate``, or ``TaskUpdate`` instances exclusively.
+Passing plain dictionaries or nested ``dto`` objects is **not** supported and
+will raise a ``TypeError``. This strict schema usage ensures interoperability
+across services and avoids subtle validation issues.
 
 Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
 
