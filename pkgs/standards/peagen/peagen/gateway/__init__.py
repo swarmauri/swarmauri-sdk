@@ -45,7 +45,6 @@ from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
-    MigrationFailureError,
     NoWorkerAvailableError,
 )
 import peagen.defaults as defaults
@@ -777,8 +776,9 @@ async def _on_start() -> None:
     if not result.get("ok", False):
         error_msg = result.get("error")
         log.error("migration failed: %s", error_msg)
-        raise MigrationFailureError(str(error_msg))
-    log.info("migrations applied; verifying database schema")
+        log.warning("continuing startup despite migration failure")
+    else:
+        log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
         await db_helpers.ensure_status_enum(engine)

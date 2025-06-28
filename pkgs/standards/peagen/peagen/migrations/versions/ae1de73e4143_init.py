@@ -5,8 +5,10 @@ from sqlalchemy import inspect
 from peagen.orm.status import Status
 
 status_enum = sa.Enum(
-    Status, name="task_status_enum"
-)  # ← shared object, create_type=False
+    Status,
+    name="task_status_enum",
+    create_type=False,
+)  # shared object used across revisions
 
 revision = "ae1de73e4143"
 down_revision = None
@@ -20,7 +22,35 @@ def upgrade() -> None:
     bind = op.get_bind()
 
     # 1) ensure enum exists (idempotent)
-    status_enum.create(bind, checkfirst=True)
+    if bind.dialect.name == "postgresql":
+        op.execute(
+            """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_type WHERE typname = 'task_status_enum'
+                ) THEN
+                    CREATE TYPE task_status_enum AS ENUM (
+                        'queued',
+                        'waiting',
+                        'input_required',
+                        'auth_required',
+                        'approved',
+                        'rejected',
+                        'dispatched',
+                        'running',
+                        'paused',
+                        'success',
+                        'failed',
+                        'cancelled'
+                    );
+                END IF;
+            END;
+            $$
+            """
+        )
+    else:
+        status_enum.create(bind, checkfirst=True)
 
     # 2) create table only if it doesn't exist
     if _table_missing(bind, "task_runs"):
