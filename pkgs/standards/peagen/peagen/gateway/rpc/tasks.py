@@ -44,13 +44,6 @@ from peagen.orm.status import Status
 from .. import Session, engine, Base
 
 
-# -----------------Helper---------------------------------------
-
-
-def _parse_task_create(raw: dict) -> TaskCreate:
-    # Preferred: flattened KV pairs
-    return 
-
 
 # --------------Basic Task Methods ---------------------------------
 
