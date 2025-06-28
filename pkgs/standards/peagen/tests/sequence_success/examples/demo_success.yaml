@@ -8,7 +8,7 @@ command_sets:
       name: "remote sort"
       desc: "run sort remotely and fetch the result"
       commands:
-        - ["remote", "--gateway-url", "https://gw.peagen.com", "sort", "peagen/tests/examples/projects_payloads/template_two_project.yaml"]
+        - ["remote", "--gateway-url", "https://gw.peagen.com", "sort", "tests/examples/projects_payloads/template_two_project.yaml"]
         - ["remote", "--gateway-url", "https://gw.peagen.com", "task", "get", "{task_id}"]
   - batch:
       name: "remote secrets"
