@@ -43,8 +43,16 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_task", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams
+
     await gw.worker_register(
-        workerId="w1", pool="p", url="http://w1/rpc", advertises={}, handlers=["demo"]
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+            handlers=["demo"],
+        )
     )
 
     await q.sadd("pools", "p")

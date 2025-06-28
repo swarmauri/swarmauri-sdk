@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import json
 
 import httpx
 
@@ -20,23 +21,30 @@ from .. import (
 
 from peagen.orm.status import Status
 from peagen.transport.jsonrpc import RPCException
-from peagen.defaults import (
+from peagen.defaults import WORK_FINISHED
+from peagen.protocols.methods.worker import (
     WORKER_REGISTER,
     WORKER_HEARTBEAT,
     WORKER_LIST,
-    WORK_FINISHED,
+    RegisterParams,
+    RegisterResult,
+    HeartbeatParams,
+    HeartbeatResult,
+    ListParams,
+    ListResult,
+    WorkerInfo,
 )
 
 
 @dispatcher.method(WORKER_REGISTER)
-async def worker_register(
-    workerId: str,
-    pool: str,
-    url: str,
-    advertises: dict,
-    handlers: list[str] | None = None,
-) -> dict:
+async def worker_register(params: RegisterParams) -> RegisterResult:
     """Register a worker and persist its advertised handlers."""
+
+    workerId = params.workerId
+    pool = params.pool
+    url = params.url
+    advertises = params.advertises
+    handlers = params.handlers
 
     handler_list: list[str] = handlers or []
     if not handler_list:
@@ -62,16 +70,16 @@ async def worker_register(
         },
     )
     log.info("worker %s registered (%s) handlers=%s", workerId, pool, handler_list)
-    return {"ok": True}
+    return RegisterResult(ok=True)
 
 
 @dispatcher.method(WORKER_HEARTBEAT)
-async def worker_heartbeat(
-    workerId: str,
-    metrics: dict,
-    pool: str | None = None,
-    url: str | None = None,
-) -> dict:
+async def worker_heartbeat(params: HeartbeatParams) -> HeartbeatResult:
+    workerId = params.workerId
+    # metrics are currently ignored
+    pool = params.pool
+    url = params.url
+
     known = await queue.exists(WORKER_KEY.format(workerId))
     if not known and not (pool and url):
         log.warning(
@@ -87,12 +95,14 @@ async def worker_heartbeat(
         mapping["url"] = url
     await queue.hset(WORKER_KEY.format(workerId), mapping=mapping)
     await queue.expire(WORKER_KEY.format(workerId), WORKER_TTL)
-    return {"ok": True}
+    return HeartbeatResult(ok=True)
 
 
 @dispatcher.method(WORKER_LIST)
-async def worker_list(pool: str | None = None) -> list[dict]:
+async def worker_list(params: ListParams) -> ListResult:
     """Return active workers, optionally filtered by *pool*."""
+
+    pool = params.pool
 
     keys = await queue.keys("worker:*")
     workers = []
@@ -105,8 +115,27 @@ async def worker_list(pool: str | None = None) -> list[dict]:
             continue
         if pool and w.get("pool") != pool:
             continue
-        workers.append({"id": key.split(":", 1)[1], **{k: v for k, v in w.items()}})
-    return workers
+        # decode json-encoded fields
+        advertises = w.get("advertises")
+        if isinstance(advertises, str):
+            try:
+                advertises = json.loads(advertises)
+            except Exception:
+                advertises = {}
+        handlers = w.get("handlers")
+        if isinstance(handlers, str):
+            try:
+                handlers = json.loads(handlers)
+            except Exception:
+                handlers = []
+        worker_info = {
+            "id": key.split(":", 1)[1],
+            **{k: v for k, v in w.items()},
+            "advertises": advertises,
+            "handlers": handlers,
+        }
+        workers.append(worker_info)
+    return ListResult([WorkerInfo(**w) for w in workers])
 
 
 @dispatcher.method(WORK_FINISHED)

@@ -41,12 +41,16 @@ async def test_worker_register_records_handlers(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams
+
     await gw.worker_register(
-        workerId="w1",
-        pool="p",
-        url="http://w1/rpc",
-        advertises={},
-        handlers=["demo"],
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+            handlers=["demo"],
+        )
     )
     data = await q.hgetall("worker:w1")
     assert json.loads(data["handlers"]) == ["demo"]
