@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import List
 
-import httpx
+from peagen.cli.rpc_utils import rpc_post
 import typer
 from functools import partial
 
@@ -52,14 +52,11 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "id": task.id,
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-    with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
+    reply = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_SUBMIT,
+        task.model_dump(mode="json"),
+    )
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",

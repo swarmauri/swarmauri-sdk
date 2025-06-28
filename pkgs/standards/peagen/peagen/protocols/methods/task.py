@@ -79,7 +79,6 @@ class GetParams(BaseModel):
 class GetResult(PatchResult):
     """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
 
-    pass
 
 
 TASK_SUBMIT = register(

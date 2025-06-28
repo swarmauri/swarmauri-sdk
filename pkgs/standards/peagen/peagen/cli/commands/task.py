@@ -6,12 +6,11 @@ from __future__ import annotations
 
 import json
 import time
-import uuid
 
-import httpx
 import typer
+
+from peagen.protocols import TASK_GET
 from peagen.protocols import (
-    TASK_GET,
     TASK_PATCH,
     TASK_PAUSE,
     TASK_RESUME,
@@ -19,6 +18,7 @@ from peagen.protocols import (
     TASK_RETRY,
     TASK_RETRY_FROM,
 )
+from peagen.cli.rpc_utils import rpc_post
 
 from peagen.orm.status import Status
 
@@ -37,13 +37,11 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> dict:
-        req = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": TASK_GET,
-            "params": {"taskId": task_id},
-        }
-        res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+        res = rpc_post(
+            ctx.obj.get("gateway_url"),
+            TASK_GET,
+            {"taskId": task_id},
+        )
         return res["result"]
 
     while True:
@@ -64,24 +62,20 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": TASK_PATCH,
-        "params": {"taskId": task_id, "changes": payload},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    res = rpc_post(
+        ctx.obj.get("gateway_url"),
+        TASK_PATCH,
+        {"taskId": task_id, "changes": payload},
+    )
     typer.echo(json.dumps(res["result"], indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": method,
-        "params": {"selector": selector},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
+    res = rpc_post(
+        ctx.obj.get("gateway_url"),
+        method,
+        {"selector": selector},
+    )
     typer.echo(json.dumps(res["result"], indent=2))
 
 
