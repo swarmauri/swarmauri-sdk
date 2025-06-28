@@ -6,13 +6,14 @@ from typer.testing import CliRunner
 
 from peagen.cli import app
 from peagen.cli.commands import process as process_mod
+from peagen.protocols.methods import TASK_SUBMIT
 
 
 @pytest.mark.smoke
 def test_cli_task_submit_local(monkeypatch, tmp_path: Path) -> None:
     def fake_post(url: str, json: dict, timeout: float):
-        assert json["method"] == "Task.submit"
-        data = {"result": {"taskId": "123"}}
+        assert json["method"] == TASK_SUBMIT
+        data = {"result": {"task_id": "123"}}
 
         class Resp:
             def raise_for_status(self):
@@ -69,4 +70,4 @@ def test_cli_task_submit_local(monkeypatch, tmp_path: Path) -> None:
     output = result.stdout.strip().splitlines()
     assert any("Submitted task" in line for line in output)
     last = json.loads("\n".join(output[-3:]))
-    assert "taskId" in last
+    assert "task_id" in last

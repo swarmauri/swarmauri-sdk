@@ -6,7 +6,6 @@ import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
 from peagen.defaults import (
-    TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
     TASK_RESUME,
@@ -16,6 +15,7 @@ from peagen.defaults import (
     TASK_PATCH,
     TASK_GET,
 )
+from peagen.protocols.methods.task import SubmitResult, TASK_SUBMIT
 
 from .. import (
     READY_QUEUE,
@@ -52,6 +52,7 @@ def _parse_task_create(task: t.Any) -> TaskCreate:
     if not isinstance(task, TaskCreate):
         raise TypeError("TaskCreate required")
     return task
+
 
 # --------------Basic Task Methods ---------------------------------
 
@@ -129,7 +130,7 @@ async def task_submit(task: TaskCreate) -> dict:
     await _save_task(task_rd)
     await _publish_task(task_rd)
     log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-    return {"taskId": str(task_rd.id)}
+    return SubmitResult.model_construct(task_id=str(task_rd.id)).model_dump()
 
 
 @dispatcher.method(TASK_PATCH)

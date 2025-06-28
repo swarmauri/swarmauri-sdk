@@ -60,9 +60,11 @@ def _submit_task(
     if not allow_pat and ("pat" in args or _contains_pat(args)):
         raise PATNotAllowedError()
     task = TaskCreate(pool="default", payload={"action": "init", "args": args})
+    from peagen.protocols.methods import TASK_SUBMIT
+
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             **task.model_dump(mode="json"),
         },

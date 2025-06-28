@@ -77,7 +77,7 @@ async def test_task_patch_updates_status(monkeypatch):
     )
 
     result = await task_submit(dto)
-    tid = result["taskId"]
+    tid = result["task_id"]
 
     await task_patch(taskId=tid, changes={"status": "success"})
     patched = await task_get(tid)
