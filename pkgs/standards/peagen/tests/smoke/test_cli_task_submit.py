@@ -41,16 +41,19 @@ def test_cli_task_submit_local(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(httpx, "post", fake_post)
     monkeypatch.setattr(httpx, "Client", DummyClient)
 
-    class DummyTask:
-        def __init__(self, pool: str, payload: dict):
-            self.id = "abc"
-            self.pool = pool
-            self.payload = payload
+    from pydantic import BaseModel
+
+    class DummyTask(BaseModel):
+        id: str = "abc"
+        pool: str
+        payload: dict
 
     monkeypatch.setattr(
         process_mod,
         "_build_task",
-        lambda args, pool: DummyTask(pool, {"action": "process", "args": args}),
+        lambda args, pool: DummyTask(
+            pool=pool, payload={"action": "process", "args": args}
+        ),
     )
 
     payload = tmp_path / "payload.yaml"
