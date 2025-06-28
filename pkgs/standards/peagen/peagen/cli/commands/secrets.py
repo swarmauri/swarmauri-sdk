@@ -6,11 +6,11 @@ import json
 from pathlib import Path
 from typing import List
 
-from peagen.cli.rpc_utils import rpc_post
+from peagen.cli.rpc_utils import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE, Request
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -20,9 +20,11 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    envelope = {"pool": pool}
+    envelope = Request(id="0", method="Worker.list", params={"pool": pool})
     try:
-        res = rpc_post(gateway_url, "Worker.list", envelope, timeout=10.0)
+        resp = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
+        resp.raise_for_status()
+        res = resp.json()
     except Exception:
         return []
     workers = res.get("result", [])
@@ -102,15 +104,16 @@ def remote_add(
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
     envelope = {
-        "name": secret_id,
-        "cipher": cipher,
-        "version": version,
-        "tenant_id": pool,
+        "jsonrpc": "2.0",
+        "method": SECRETS_ADD,
+        "params": {
+            "name": secret_id,
+            "cipher": cipher,
+            "version": version,
+            "tenant_id": pool,
+        },
     }
-    res = rpc_post(gateway_url, SECRETS_ADD, envelope, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
-        raise typer.Exit(1)
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Uploaded secret {secret_id}")
 
 
@@ -127,12 +130,14 @@ def remote_get(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
-    envelope = {"name": secret_id, "tenant_id": pool}
-    res = rpc_post(gateway_url, SECRETS_GET, envelope, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
-        raise typer.Exit(1)
-    cipher = res["result"]["secret"].encode()
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": SECRETS_GET,
+        "params": {"name": secret_id, "tenant_id": pool},
+    }
+    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    data = res.json()
+    cipher = data["result"]["secret"].encode()
     typer.echo(drv.decrypt(cipher).decode())
 
 
@@ -149,9 +154,10 @@ def remote_remove(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    envelope = {"name": secret_id, "version": version, "tenant_id": pool}
-    res = rpc_post(gateway_url, SECRETS_DELETE, envelope, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
-        raise typer.Exit(1)
+    envelope = {
+        "jsonrpc": "2.0",
+        "method": SECRETS_DELETE,
+        "params": {"name": secret_id, "version": version, "tenant_id": pool},
+    }
+    httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Removed secret {secret_id}")
