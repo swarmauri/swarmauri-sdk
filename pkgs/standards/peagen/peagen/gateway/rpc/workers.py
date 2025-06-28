@@ -17,7 +17,7 @@ from .. import (
     log,
     queue,
 )
-from ..orm.status import Status
+from peagen.orm.status import Status
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults import (
     WORKER_REGISTER,
