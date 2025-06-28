@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 
 from peagen.orm.status import Status
+from peagen.orm import Base
 from peagen.orm.config.secret import SecretModel
 from peagen.orm.abuse_record import AbuseRecordModel
 from peagen.orm.task.task_run import TaskRunModel
@@ -73,9 +74,7 @@ async def upsert_task(session: AsyncSession, row: TaskRunModel) -> None:
     )
     values = [{"task_run_id": row.id, "relation_id": uuid.UUID(d)} for d in row.deps]
     if values:
-        await session.execute(
-            sa.insert(TaskRunTaskRelationAssociationModel), values
-        )
+        await session.execute(sa.insert(TaskRunTaskRelationAssociationModel), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
@@ -119,15 +118,24 @@ async def upsert_secret(
         "name": name,
         "cipher": cipher,
     }
-    stmt = (
-        pg_insert(SecretModel)
-        .values(**data)
-        .on_conflict_do_update(
+    stmt = sa.insert(SecretModel).values(**data)
+    if session.bind.dialect.name == "sqlite":
+        stmt = stmt.prefix_with("OR REPLACE")
+    else:
+        stmt = stmt.on_conflict_do_update(
             index_elements=["tenant_id", "name"],
             set_={"cipher": cipher},
         )
-    )
-    await session.execute(stmt)
+    try:
+        await session.execute(stmt)
+    except sa.exc.OperationalError as exc:
+        if "no such table" in str(exc).lower():
+            await session.run_sync(
+                lambda sync_sess: Base.metadata.create_all(bind=sync_sess.connection())
+            )
+            await session.execute(stmt)
+        else:
+            raise
 
 
 async def fetch_secret(

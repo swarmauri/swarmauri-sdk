@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import uuid
 
-from .. import log, queue, rpc, READY_QUEUE
+from .. import READY_QUEUE, dispatcher, log, queue
 from peagen.defaults import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
 
 
-@rpc.method(POOL_CREATE)
+@dispatcher.method(POOL_CREATE)
 async def pool_create(name: str) -> dict:
     await queue.sadd("pools", name)
     log.info("pool created: %s", name)
     return {"name": name}
 
 
-@rpc.method(POOL_JOIN)
+@dispatcher.method(POOL_JOIN)
 async def pool_join(name: str) -> dict:
     member = str(uuid.uuid4())[:8]
     await queue.sadd(f"pool:{name}:members", member)
@@ -21,7 +21,7 @@ async def pool_join(name: str) -> dict:
     return {"memberId": member}
 
 
-@rpc.method(POOL_LIST_TASKS)
+@dispatcher.method(POOL_LIST_TASKS)
 async def pool_list(
     poolName: str, limit: int | None = None, offset: int = 0
 ) -> list[dict]:

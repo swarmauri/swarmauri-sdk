@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from pgpy import PGPKey
 
-from .. import log, rpc, TRUSTED_USERS
+from .. import dispatcher, log, TRUSTED_USERS
 from peagen.defaults import KEYS_UPLOAD, KEYS_FETCH, KEYS_DELETE
 
 
-@rpc.method(KEYS_UPLOAD)
+@dispatcher.method(KEYS_UPLOAD)
 async def keys_upload(public_key: str) -> dict:
     """Store a trusted public key."""
     key = PGPKey()
@@ -16,13 +16,13 @@ async def keys_upload(public_key: str) -> dict:
     return {"fingerprint": key.fingerprint}
 
 
-@rpc.method(KEYS_FETCH)
+@dispatcher.method(KEYS_FETCH)
 async def keys_fetch() -> dict:
     """Return all trusted keys indexed by fingerprint."""
     return TRUSTED_USERS
 
 
-@rpc.method(KEYS_DELETE)
+@dispatcher.method(KEYS_DELETE)
 async def keys_delete(fingerprint: str) -> dict:
     """Remove a public key by its fingerprint."""
     TRUSTED_USERS.pop(fingerprint, None)
