@@ -287,7 +287,7 @@ def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 
-def _save_task(task: TaskRead) -> None:
+async def _save_task(task: TaskRead) -> None:
     """
     Upsert a task into its Redis hash and refresh TTL atomically.
     Stores the canonical JSON blob plus the status for quick look-up.
@@ -299,7 +299,7 @@ def _save_task(task: TaskRead) -> None:
     await queue.expire(key, TASK_TTL)
 
 
-def _load_task(tid: str) -> TaskRead | None:
+async def _load_task(tid: str) -> TaskRead | None:
     data = await queue.hget(_task_key(tid), "blob")
     return TaskRead.model_validate_json(data) if data else None
 
