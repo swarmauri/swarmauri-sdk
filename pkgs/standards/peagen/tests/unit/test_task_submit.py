@@ -31,5 +31,5 @@ def test_submit_task_sends_request(monkeypatch):
     monkeypatch.setattr(httpx, "post", fake_post)
     task = build_task("demo", {})
     reply = submit_task("http://gw/rpc", task)
-    assert captured["json"]["params"]["taskId"] == task.id
+    assert captured["json"]["params"]["id"] == task.id
     assert reply == {"ok": True}

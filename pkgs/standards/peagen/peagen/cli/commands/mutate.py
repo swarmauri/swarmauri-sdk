@@ -10,21 +10,18 @@ from typing import Optional
 import httpx
 
 import typer
+from functools import partial
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 
 
-def _build_task(args: dict, pool: str = "default") -> TaskCreate:
-    return TaskCreate(
-        pool=pool,
-        payload={"action": "mutate", "args": args},
-    )
+_build_task = partial(_generic_build_task, "mutate")
 
 
 @local_mutate_app.command("mutate")

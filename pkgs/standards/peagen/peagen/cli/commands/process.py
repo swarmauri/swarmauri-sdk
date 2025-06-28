@@ -20,11 +20,12 @@ from typing import Any, Dict, Optional
 
 import httpx
 import typer
+from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.defaults import TASK_SUBMIT, TASK_GET
-from peagen.schemas import TaskCreate
 from peagen.orm.status import Status
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
@@ -62,9 +63,7 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
-    """Construct a ``TaskCreate`` with the process payload."""
-    return TaskCreate(pool=pool, payload={"action": "process", "args": args})
+_build_task = partial(_generic_build_task, "process")
 
 
 # ────────────────────────── local run ────────────────────────────────────────
