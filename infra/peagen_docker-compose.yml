@@ -112,7 +112,7 @@ services:
       DB_POSTGRES_PORT:     5432
       DB_POSTGRES_USER:     ${POSTGRES_USER}
       DB_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_POSTGRES_NAME:     ${POSTGRES_DB}
+      DB_POSTGRES_NAME:     ${NPM_DB}
 
     volumes:
       - "${CONFIG_ROOT}/npm/data:/data"
@@ -178,10 +178,10 @@ services:
     environment:
       PG_HOST:              postgres
       PG_PORT:              5432
-      PG_DB:                ${POSTGRES_DB}
+      PG_DB:                ${PEAGEN_DB}
       PG_USER:              ${POSTGRES_USER}
       PG_PASS:              ${POSTGRES_PASSWORD}
-      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
       REDIS_HOST:           redis
       REDIS_PASSWORD:       ${REDIS_PASSWORD}
       REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0

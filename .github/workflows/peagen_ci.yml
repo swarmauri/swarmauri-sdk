@@ -21,7 +21,9 @@ jobs:
       CONFIG_ROOT: /mnt/config
       MINIO_ROOT_USER: minioadmin
       POSTGRES_USER:  npm
-      POSTGRES_DB:    npm
+      POSTGRES_DB:    postgres
+      NPM_DB:         npm
+      PEAGEN_DB:      peagen
       # --- secrets ---
       MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
       MINIO_ACCESS_KEY:         ${{ secrets.PEAGEN_MINIO_ACCESS_KEY }}
