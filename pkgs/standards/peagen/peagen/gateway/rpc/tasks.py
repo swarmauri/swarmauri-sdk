@@ -37,7 +37,7 @@ from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
-from sqlalchemy.ext.asyncio import AsyncSession as Session
+from ..db import Session
 
 
 @dispatcher.method(TASK_SUBMIT)
