@@ -12,6 +12,7 @@ import typer
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.orm import Task
 from peagen.orm.status import Status
+from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
@@ -61,7 +62,7 @@ def submit(
     rpc_req = {
         "jsonrpc": "2.0",
         "id": task.id,
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     with httpx.Client(timeout=30.0) as client:

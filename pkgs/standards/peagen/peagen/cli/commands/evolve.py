@@ -15,6 +15,7 @@ from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm import Task
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
+from peagen.defaults import TASK_SUBMIT
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -108,7 +109,7 @@ def submit(
     task = _build_task(args, ctx.obj.get("pool", "default"))
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
     }
     with httpx.Client(timeout=30.0) as client:

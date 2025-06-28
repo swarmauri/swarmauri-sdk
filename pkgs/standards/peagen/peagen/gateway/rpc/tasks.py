@@ -5,6 +5,17 @@ import uuid
 
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
+from peagen.defaults import (
+    TASK_SUBMIT,
+    TASK_CANCEL,
+    TASK_PAUSE,
+    TASK_RESUME,
+    TASK_RETRY,
+    TASK_RETRY_FROM,
+    GUARD_SET,
+    TASK_PATCH,
+    TASK_GET,
+)
 
 from .. import (
     log,
@@ -26,7 +37,7 @@ from ..orm.status import Status
 from ..orm import Task
 
 
-@rpc.method("Task.submit")
+@rpc.method(TASK_SUBMIT)
 async def task_submit(
     pool: str,
     payload: dict,
@@ -80,7 +91,7 @@ async def task_submit(
     return {"taskId": task.id}
 
 
-@rpc.method("Task.cancel")
+@rpc.method(TASK_CANCEL)
 async def task_cancel(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -90,7 +101,7 @@ async def task_cancel(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method("Task.pause")
+@rpc.method(TASK_PAUSE)
 async def task_pause(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -100,7 +111,7 @@ async def task_pause(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method("Task.resume")
+@rpc.method(TASK_RESUME)
 async def task_resume(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -110,7 +121,7 @@ async def task_resume(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method("Task.retry")
+@rpc.method(TASK_RETRY)
 async def task_retry(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -120,7 +131,7 @@ async def task_retry(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method("Task.retry_from")
+@rpc.method(TASK_RETRY_FROM)
 async def task_retry_from(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -132,14 +143,14 @@ async def task_retry_from(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method("Guard.set")
+@rpc.method(GUARD_SET)
 async def guard_set(label: str, spec: dict) -> dict:
     await queue.hset(f"guard:{label}", mapping=spec)
     log.info("guard set %s", label)
     return {"ok": True}
 
 
-@rpc.method("Task.patch")
+@rpc.method(TASK_PATCH)
 async def task_patch(taskId: str, changes: dict) -> dict:
     """Update persisted metadata for an existing task."""
     task = await _load_task(taskId)
@@ -165,7 +176,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     return task.model_dump()
 
 
-@rpc.method("Task.get")
+@rpc.method(TASK_GET)
 async def task_get(taskId: str) -> dict:
     try:
         uuid.UUID(taskId)

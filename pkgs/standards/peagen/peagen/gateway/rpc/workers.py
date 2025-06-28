@@ -19,9 +19,15 @@ from .. import (
 )
 from ..orm.status import Status
 from peagen.transport.jsonrpc import RPCException
+from peagen.defaults import (
+    WORKER_REGISTER,
+    WORKER_HEARTBEAT,
+    WORKER_LIST,
+    WORK_FINISHED,
+)
 
 
-@rpc.method("Worker.register")
+@rpc.method(WORKER_REGISTER)
 async def worker_register(
     workerId: str,
     pool: str,
@@ -58,7 +64,7 @@ async def worker_register(
     return {"ok": True}
 
 
-@rpc.method("Worker.heartbeat")
+@rpc.method(WORKER_HEARTBEAT)
 async def worker_heartbeat(
     workerId: str,
     metrics: dict,
@@ -83,7 +89,7 @@ async def worker_heartbeat(
     return {"ok": True}
 
 
-@rpc.method("Worker.list")
+@rpc.method(WORKER_LIST)
 async def worker_list(pool: str | None = None) -> list[dict]:
     """Return active workers, optionally filtered by *pool*."""
 
@@ -102,7 +108,7 @@ async def worker_list(pool: str | None = None) -> list[dict]:
     return workers
 
 
-@rpc.method("Work.finished")
+@rpc.method(WORK_FINISHED)
 async def work_finished(taskId: str, status: str, result: dict | None = None) -> dict:
     t = await _load_task(taskId)
     if not t:
