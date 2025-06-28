@@ -3,6 +3,9 @@ from __future__ import annotations
 import inspect
 from typing import Callable, Dict
 
+from pydantic import BaseModel
+from peagen.protocols import _registry
+
 from peagen.protocols import Error
 
 
@@ -47,9 +50,30 @@ class RPCDispatcher:
 
         try:
             params = req.get("params") or {}
-            result = fn(**params)
+            PModel = _registry.params_model(req["method"])
+            sig = inspect.signature(fn)
+
+            if PModel and len(sig.parameters) == 1:
+                arg_name, _ = next(iter(sig.parameters.items()))
+                hints = inspect.get_annotations(fn, eval_str=True)
+                ann = hints.get(arg_name)
+                if ann and isinstance(ann, type) and issubclass(ann, BaseModel):
+                    parsed = PModel.model_validate(params)
+                    if isinstance(parsed, ann):
+                        result = fn(parsed)
+                    elif hasattr(parsed, arg_name):
+                        result = fn(getattr(parsed, arg_name))
+                    else:
+                        result = fn(parsed)
+                else:
+                    parsed = PModel.model_validate(params).model_dump()
+                    result = fn(**parsed)
+            else:
+                result = fn(**params)
             if inspect.isawaitable(result):
                 result = await result
+            if isinstance(result, BaseModel):
+                result = result.model_dump()
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
         except RPCException as exc:
             return {
