@@ -11,7 +11,7 @@ from functools import partial
 
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")

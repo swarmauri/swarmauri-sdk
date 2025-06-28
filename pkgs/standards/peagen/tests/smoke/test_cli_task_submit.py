@@ -9,6 +9,7 @@ from peagen.cli.commands import process as process_mod
 from peagen.protocols.methods import TASK_SUBMIT
 
 
+
 @pytest.mark.smoke
 def test_cli_task_submit_local(monkeypatch, tmp_path: Path) -> None:
     def fake_post(url: str, json: dict, timeout: float):

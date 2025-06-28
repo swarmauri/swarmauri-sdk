@@ -7,7 +7,7 @@ import typer
 
 from peagen.handlers.validate_handler import validate_handler
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")

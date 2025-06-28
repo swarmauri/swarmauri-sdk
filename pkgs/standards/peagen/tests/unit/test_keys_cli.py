@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
+from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE
 
 
 @pytest.mark.unit
@@ -55,7 +56,7 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
 
     assert captured["url"] == "http://gw/rpc"
-    assert captured["json"]["method"] == "Keys.upload"
+    assert captured["json"]["method"] == KEYS_UPLOAD
     assert captured["json"]["params"]["public_key"] == "PUB"
     assert "Uploaded public key" in out
 
@@ -78,7 +79,7 @@ def test_remove_posts_delete(monkeypatch, capsys):
     keys_mod.remove(ctx=None, fingerprint="abc", gateway_url="http://gw")
     out = capsys.readouterr().out
 
-    assert captured["json"]["method"] == "Keys.delete"
+    assert captured["json"]["method"] == KEYS_DELETE
     assert captured["json"]["params"]["fingerprint"] == "abc"
     assert "Removed key abc" in out
 

@@ -27,6 +27,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.protocols import Request as RPCEnvelope, parse_request, _registry
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -51,7 +52,7 @@ from peagen.errors import (
 )
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
-from peagen.defaults.error_codes import ErrorCode
+from peagen.protocols.error_codes import Code as ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 
@@ -508,15 +509,19 @@ async def rpc_endpoint(request: Request):
             media_type="application/json",
         )
 
-    def _ensure_id(obj: dict) -> dict:
+    def _validate(obj: dict) -> dict:
         if obj.get("id") is None:
             obj["id"] = str(uuid.uuid4())
-        return RPCRequest.model_validate(obj).model_dump()
+        req = parse_request(obj)
+        PModel = _registry.params_model(req.method)
+        if PModel is not None:
+            PModel.model_validate(req.params)
+        return RPCRequest.model_validate(req.model_dump()).model_dump()
 
     if isinstance(raw, list):
-        payload = [_ensure_id(item) for item in raw]
+        payload = [_validate(item) for item in raw]
     else:
-        payload = _ensure_id(raw)
+        payload = _validate(raw)
 
     log.debug("RPC in  <- %s", payload)
     pre = await _prevalidate(payload, ip)
@@ -620,12 +625,11 @@ async def scheduler():
                 )
                 await _fail_task(task, NoWorkerAvailableError(pool, action))
                 continue
-            rpc_req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Work.start",
-                "params": {"task": task.model_dump()},
-            }
+            rpc_req = RPCEnvelope(
+                id=str(uuid.uuid4()),
+                method="Work.start",
+                params={"task": task.model_dump()},
+            ).model_dump()
 
             try:
                 resp = await client.post(target["url"], json=rpc_req)

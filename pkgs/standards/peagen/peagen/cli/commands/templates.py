@@ -9,7 +9,7 @@ import typer
 
 from peagen.handlers.templates_handler import templates_handler
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
