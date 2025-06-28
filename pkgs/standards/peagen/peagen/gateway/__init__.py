@@ -391,7 +391,7 @@ async def _publish_event(event_type: str, data: dict) -> None:
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "data": data,
     }
-    await queue.publish(PUBSUB_TOPIC, json.dumps(event))
+    await queue.publish(PUBSUB_TOPIC, json.dumps(event, default=str))
 
 
 async def _flush_state() -> None:
@@ -561,7 +561,9 @@ async def rpc_endpoint(request: Request):
                     status = 404
     log.debug("RPC out -> %s", resp)
     return Response(
-        content=json.dumps(resp), status_code=status, media_type="application/json"
+        content=json.dumps(resp, default=str),
+        status_code=status,
+        media_type="application/json",
     )
 
 
