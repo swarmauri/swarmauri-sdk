@@ -1,4 +1,5 @@
 """Simple secret resolution utilities."""
+
 from __future__ import annotations
 
 import os
@@ -23,5 +24,6 @@ def resolve_secret_ref(secret_ref: str) -> str:
     pm = PluginManager(cfg)
     secret_plugin = pm.get("secrets", provider or None)
     return secret_plugin.get(name)
+
 
 __all__ = ["resolve_secret_ref"]
