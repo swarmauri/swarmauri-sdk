@@ -38,7 +38,7 @@ from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway import db_helpers
-from sqlalchemy.ext.asyncio import AsyncSession
+from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
@@ -122,22 +122,6 @@ from .rpc.secrets import (  # noqa: F401,E402
 
 KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
-
-
-async def record_unknown_handler(session: AsyncSession, ip: str) -> int:
-    """Delegate to :func:`db_helpers.record_unknown_handler`.
-
-    This wrapper exists so unit tests can monkeypatch the function without
-    touching the ``db_helpers`` module directly.
-    """
-
-    return await db_helpers.record_unknown_handler(session, ip)
-
-
-async def mark_ip_banned(session: AsyncSession, ip: str) -> None:
-    """Delegate to :func:`db_helpers.mark_ip_banned` for unit tests."""
-
-    await db_helpers.mark_ip_banned(session, ip)
 
 
 def _supports(method: str | None) -> bool:
