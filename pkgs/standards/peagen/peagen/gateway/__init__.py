@@ -776,7 +776,7 @@ async def task_submit(
         await _save_task(task_rd)
         await _publish_task(task_rd)
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-        return SubmitResult.model_construct(task_id=str(task_rd.id)).model_dump()
+        return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
