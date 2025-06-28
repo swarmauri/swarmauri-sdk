@@ -7,14 +7,17 @@ from typing import Any, Dict
 import uuid
 
 from peagen.orm.status import Status
-from peagen.schemas import TaskRead
+from peagen.schemas import TaskCreate, TaskRead
 
 
-def ensure_task(task: TaskRead | Dict[str, Any]) -> TaskRead:
+def ensure_task(task: TaskRead | TaskCreate | Dict[str, Any]) -> TaskRead:
     """Return ``task`` as a :class:`~peagen.schemas.TaskRead` instance."""
 
     if isinstance(task, TaskRead):
         return task
+
+    if isinstance(task, TaskCreate):
+        task = task.model_dump()
 
     if not isinstance(task, dict):  # pragma: no cover - defensive
         raise TypeError(f"Expected dict or TaskRead, got {type(task)!r}")
