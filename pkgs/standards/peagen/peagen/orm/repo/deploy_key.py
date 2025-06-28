@@ -79,7 +79,8 @@ class DeployKeyModel(BaseModel):
         "RepositoryModel",
         secondary="repository_deploy_key_associations",
         back_populates="deploy_keys",
-        lazy="selectin",
+        viewonly=True,
+        overlaps="repository_associations",
     )
 
     # ─────────────────────── Magic ───────────────────────────

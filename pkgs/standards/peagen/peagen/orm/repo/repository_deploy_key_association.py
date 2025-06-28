@@ -50,10 +50,14 @@ class RepositoryDeployKeyAssociationModel(BaseModel):
 
     # --------------------------- Relationships ---------------------------
     repository: Mapped["RepositoryModel"] = relationship(
-        "RepositoryModel", back_populates="deploy_key_associations", lazy="selectin"
+        "RepositoryModel",
+        back_populates="deploy_key_associations",
+        overlaps="deploy_keys,repositories",  # tell SQLAlchemy about both parents
     )
     deploy_key: Mapped["DeployKeyModel"] = relationship(
-        "DeployKeyModel", back_populates="repository_associations", lazy="selectin"
+        "DeployKeyModel",
+        back_populates="repository_associations",
+        overlaps="deploy_keys,repositories",
     )
 
     def __repr__(self) -> str:  # pragma: no cover
