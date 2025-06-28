@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from peagen.orm import Base, AbuseRecord
+from peagen.orm import Base, AbuseRecordModel
 from peagen.gateway.db_helpers import (
     record_unknown_handler,
     fetch_banned_ips,
@@ -28,7 +28,7 @@ async def test_record_and_ban_ip(tmp_path):
     async with Session() as session:
         count = await record_unknown_handler(session, "1.2.3.4")
         assert count == 2
-        rec = await session.get(AbuseRecord, "1.2.3.4")
+        rec = await session.get(AbuseRecordModel, "1.2.3.4")
         assert rec.count == 2
         assert isinstance(rec.first_seen, dt.datetime)
         assert rec.banned is False
@@ -37,7 +37,7 @@ async def test_record_and_ban_ip(tmp_path):
         await mark_ip_banned(session, "1.2.3.4")
         banned = await fetch_banned_ips(session)
         assert "1.2.3.4" in banned
-        rec = await session.get(AbuseRecord, "1.2.3.4")
+        rec = await session.get(AbuseRecordModel, "1.2.3.4")
         assert rec.banned is True
 
     await engine.dispose()

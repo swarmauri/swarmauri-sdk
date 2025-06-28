@@ -28,7 +28,7 @@ from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.orm import Base
 from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
-from peagen.orm import TaskModel, TaskRun
+from peagen.orm import TaskModel, TaskRunModel
 
 from peagen.gateway.ws_server import router as ws_router
 
@@ -334,7 +334,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
         log.info("persisting task %s", task.id)
         orm_task = task if isinstance(task, TaskModel) else to_orm(task)
         if result_backend:
-            await result_backend.store(TaskRun.from_task(orm_task))
+            await result_backend.store(TaskRunModel.from_task(orm_task))
         async with Session() as session:
             existing = await get_task(session, orm_task.id)
             if existing:
@@ -387,7 +387,7 @@ async def _flush_state() -> None:
             continue
         task = TaskRead.model_validate_json(data)
         if result_backend:
-            await result_backend.store(TaskRun.from_task(task))
+            await result_backend.store(TaskRunModel.from_task(task))
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
