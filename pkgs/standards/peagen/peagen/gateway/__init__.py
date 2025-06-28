@@ -38,6 +38,7 @@ from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway import db_helpers
+from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
@@ -141,11 +142,11 @@ async def _reject(
     """Return an error response and track abuse."""
 
     async with Session() as session:
-        count = await db_helpers.record_unknown_handler(session, ip)
+        count = await record_unknown_handler(session, ip)
     if count >= BAN_THRESHOLD:
         BANNED_IPS.add(ip)
         async with Session() as session:
-            await db_helpers.mark_ip_banned(session, ip)
+            await mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
     return {
         "jsonrpc": "2.0",
@@ -669,6 +670,26 @@ async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
     return {"removed": name}
 
 
+# expose RPC handler functions for unit tests
+from .rpc.workers import (  # noqa: F401,E402
+    work_finished,
+    worker_heartbeat,
+    worker_list,
+    worker_register,
+)
+from .rpc.tasks import (  # noqa: F401,E402
+    guard_set,
+    task_cancel,
+    task_get,
+    task_patch,
+    task_pause,
+    task_resume,
+    task_retry,
+    task_retry_from,
+    task_submit,
+)
+
+
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])
 async def health() -> dict:
@@ -777,3 +798,4 @@ def __getattr__(name: str):
         module = modules[name]
         return getattr(module, name)
     raise AttributeError(name)
+
