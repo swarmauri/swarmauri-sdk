@@ -61,11 +61,17 @@ def load_projects_payload(
                 if not parsed.scheme:
                     raise ValueError(f"Invalid URI: {projects_payload}")
 
-                dir_path, key = parsed.path.rsplit("/", 1)
-                root = urlunparse((parsed.scheme, parsed.netloc, dir_path, "", "", ""))
-                git_filter = make_filter_for_uri(root)
-                with git_filter.download(key) as fh:  # type: ignore[attr-defined]
-                    yaml_text = fh.read().decode("utf-8")
+                if parsed.scheme == "file":
+                    path = Path(parsed.path)
+                    yaml_text = path.read_text(encoding="utf-8")
+                else:
+                    dir_path, key = parsed.path.rsplit("/", 1)
+                    root = urlunparse(
+                        (parsed.scheme, parsed.netloc, dir_path, "", "", "")
+                    )
+                    git_filter = make_filter_for_uri(root)
+                    with git_filter.download(key) as fh:  # type: ignore[attr-defined]
+                        yaml_text = fh.read().decode("utf-8")
             else:
                 yaml_text = projects_payload
         except (OSError, TypeError, ValueError):
