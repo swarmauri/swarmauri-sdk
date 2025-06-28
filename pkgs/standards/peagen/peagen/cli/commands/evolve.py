@@ -42,7 +42,7 @@ def run(
     spec: Path = typer.Argument(..., exists=True),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out", help="Write results to file"),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     result = validate_evolve_spec(spec)
@@ -86,7 +86,7 @@ def submit(
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     result = validate_evolve_spec(spec)

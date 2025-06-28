@@ -59,9 +59,9 @@ def _parse_task_create(raw: dict) -> TaskCreate:
 
 
 @dispatcher.method(TASK_SUBMIT)
-async def task_submit(task: TaskCreate | None = None, **raw: t.Any) -> dict:
+async def task_submit(**raw: t.Any) -> dict:
     """Persist *dto* and enqueue the task."""
-    dto: TaskCreate = task if task is not None else _parse_task_create(raw)
+    dto = _parse_task_create(raw)
     await queue.sadd("pools", dto.pool)
 
     action = (dto.payload or {}).get("action")

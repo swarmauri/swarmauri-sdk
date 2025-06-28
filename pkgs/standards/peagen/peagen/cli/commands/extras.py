@@ -30,7 +30,7 @@ def run_extras(
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Run EXTRAS generation locally."""
@@ -66,7 +66,7 @@ def submit_extras(
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
     gateway_url: str = typer.Option(
         "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"

@@ -8,7 +8,7 @@ population:
     baseArtifacts:
       - workspace
 JOBS:
-  - repo: https://github.com/swarmauri/swarmauri-sdk.git
+  - repo: testproject
     ref: HEAD
     workspace_uri: workspace
     target_file: main.py

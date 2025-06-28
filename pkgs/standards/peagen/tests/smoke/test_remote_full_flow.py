@@ -13,6 +13,7 @@ BASE = Path(__file__).resolve().parents[2] / "tests" / "examples"
 DOE_SPEC = BASE / "gateway_demo" / "doe_spec.yaml"
 DOE_TEMPLATE = BASE / "gateway_demo" / "template_project.yaml"
 EVOLVE_SPEC = BASE / "simple_evolve_demo" / "evolve_remote_spec.yaml"
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -69,6 +70,8 @@ def test_remote_full_flow(tmp_path: Path) -> None:
             "process",
             str(DOE_SPEC),
             str(DOE_TEMPLATE),
+            "--repo",
+            REPO,
         ],
         check=True,
         timeout=60,
@@ -84,6 +87,8 @@ def test_remote_full_flow(tmp_path: Path) -> None:
             "evolve",
             str(EVOLVE_SPEC),
             "--watch",
+            "--repo",
+            REPO,
         ],
         capture_output=True,
         text=True,

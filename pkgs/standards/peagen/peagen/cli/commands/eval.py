@@ -52,7 +52,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
     skip_failed: bool = typer.Option(False, "--skip-failed/--include-failed"),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out"),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """Run evaluation synchronously on this machine."""

@@ -10,6 +10,7 @@ import pytest
 pytestmark = pytest.mark.smoke
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -51,6 +52,8 @@ def test_remote_eval_submits_task(tmp_path: Path) -> None:
             "eval",
             str(workspace),
             "*.py",
+            "--repo",
+            REPO,
         ],
         capture_output=True,
         text=True,
@@ -84,6 +87,8 @@ def test_remote_eval_returns_json(tmp_path: Path) -> None:
             "eval",
             str(workspace),
             "*.py",
+            "--repo",
+            REPO,
         ],
         capture_output=True,
         text=True,

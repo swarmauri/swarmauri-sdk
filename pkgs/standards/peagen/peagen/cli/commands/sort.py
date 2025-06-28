@@ -24,7 +24,7 @@ def run_sort(  # ← now receives the Typer context
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
@@ -90,7 +90,7 @@ def submit_sort(
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """

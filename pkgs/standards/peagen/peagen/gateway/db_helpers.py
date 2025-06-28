@@ -118,6 +118,7 @@ async def upsert_secret(
         "name": name,
         "cipher": cipher,
     }
+    stmt = pg_insert(SecretModel).values(**data)
     if session.bind.dialect.name == "sqlite":
         stmt = sa.insert(SecretModel).values(**data)
         stmt = stmt.prefix_with("OR REPLACE")

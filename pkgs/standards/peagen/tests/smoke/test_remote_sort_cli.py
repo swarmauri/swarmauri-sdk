@@ -10,6 +10,7 @@ pytestmark = pytest.mark.smoke
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples" / "projects_payloads"
 BASE_URL = GATEWAY.removesuffix("/rpc")
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -32,7 +33,16 @@ def test_remote_sort_submits_task(tmp_path: Path) -> None:
     payload.write_text(payload_src.read_text())
 
     result = subprocess.run(
-        ["peagen", "remote", "--gateway-url", BASE_URL, "sort", str(payload)],
+        [
+            "peagen",
+            "remote",
+            "--gateway-url",
+            BASE_URL,
+            "sort",
+            str(payload),
+            "--repo",
+            REPO,
+        ],
         capture_output=True,
         text=True,
         check=True,
@@ -49,7 +59,16 @@ def test_remote_sort_unreachable(tmp_path: Path) -> None:
     payload.write_text(payload_src.read_text())
 
     result = subprocess.run(
-        ["peagen", "remote", "--gateway-url", bad_gateway, "sort", str(payload)],
+        [
+            "peagen",
+            "remote",
+            "--gateway-url",
+            bad_gateway,
+            "sort",
+            str(payload),
+            "--repo",
+            REPO,
+        ],
         capture_output=True,
         text=True,
         check=False,

@@ -25,7 +25,7 @@ def test_remote_mutate_submit(tmp_path: str) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
 
-    repo = "https://github.com/swarmauri/swarmauri-sdk.git"
+    repo = "testproject"
     workspace = str(
         Path(__file__).resolve().parents[2]
         / "tests"
