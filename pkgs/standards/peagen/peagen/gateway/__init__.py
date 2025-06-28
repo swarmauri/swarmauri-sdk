@@ -340,7 +340,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                     orm_task.id,
                     TaskUpdate(
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -351,7 +351,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                         id=orm_task.id,
                         tenant_id=orm_task.tenant_id,
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -745,6 +745,13 @@ async def _on_shutdown() -> None:
     await engine.dispose()
     log.info("database connections closed")
 
+
+# expose RPC handlers for test modules
+from .rpc.pool import (  # noqa: F401,E402
+    pool_create,
+    pool_join,
+    pool_list,
+)
 
 # expose RPC handlers lazily to avoid circular imports
 __all__ = [
