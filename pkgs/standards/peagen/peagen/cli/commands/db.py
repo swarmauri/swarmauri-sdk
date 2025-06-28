@@ -14,7 +14,7 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.orm.task import TaskModel
+from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
 
@@ -41,7 +41,7 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
         args["message"] = message
-    task = Task(
+    task = TaskCreate(
         id=str(uuid.uuid4()),
         pool="default",
         payload={"action": "migrate", "args": args},
@@ -67,7 +67,7 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
 def upgrade() -> None:
     """Apply Alembic migrations up to HEAD."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
-    task = Task(
+    task = TaskCreate(
         pool="default",
         payload={
             "action": "migrate",
@@ -97,7 +97,7 @@ def revision(
     typer.echo(
         f"Running alembic -c {ALEMBIC_CFG} revision --autogenerate -m '{message}' …"
     )
-    task = Task(
+    task = TaskCreate(
         pool="default",
         payload={
             "action": "migrate",
@@ -122,7 +122,7 @@ def revision(
 def downgrade() -> None:
     """Downgrade the database by one revision."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
-    task = Task(
+    task = TaskCreate(
         pool="default",
         payload={
             "action": "migrate",
