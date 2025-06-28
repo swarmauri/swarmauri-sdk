@@ -5,6 +5,8 @@ import uuid
 
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
+import peagen.defaults as defaults
+import hashlib
 from peagen.defaults import (
     TASK_SUBMIT,
     TASK_CANCEL,
@@ -40,15 +42,22 @@ from peagen.orm.status import Status
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 
+def _spec_hash(payload: dict) -> str:
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
 @dispatcher.method(TASK_SUBMIT)
 async def task_submit(dto: TaskCreate) -> dict:
     """Persist *dto* and enqueue the task."""
 
-    await queue.sadd("pools", dto.pool)
+    pool = dto.parameters.get("pool", defaults.DEFAULT_POOL)
 
-    action = (dto.payload or {}).get("action")
+    await queue.sadd("pools", pool)
+
+    action = dto.parameters.get("action")
     handlers: set[str] = set()
-    for w in await _live_workers_by_pool(dto.pool):
+    for w in await _live_workers_by_pool(pool):
         raw = w.get("handlers", [])
         if isinstance(raw, str):
             try:
@@ -67,6 +76,9 @@ async def task_submit(dto: TaskCreate) -> dict:
         log.warning("task id collision: %s → %s", task_id, new_id)
         task_id = new_id
 
+    if not getattr(dto, "spec_hash", None):
+        dto.spec_hash = _spec_hash(dto.parameters)
+
     async with Session() as ses:
         # 1. create definition-of-task row
         payload = dto.model_dump()
@@ -84,11 +96,11 @@ async def task_submit(dto: TaskCreate) -> dict:
     # 3. make the object that will travel over Redis / websockets
     task_rd = TaskRead.model_validate(task_db.__dict__)
 
-    await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
-    await _publish_queue_length(task_rd.pool)
+    await queue.rpush(f"{READY_QUEUE}:{pool}", task_rd.model_dump_json())
+    await _publish_queue_length(pool)
     await _save_task(task_rd)
     await _publish_task(task_rd)
-    log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
+    log.info("task %s queued in %s (ttl=%s)", task_rd.id, pool, TASK_TTL)
     return {"taskId": str(task_rd.id)}
 
 

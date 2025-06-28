@@ -34,6 +34,9 @@ async def test_task_submit_unknown_action(monkeypatch):
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
+    import peagen.gateway.rpc.tasks as tasks_mod
+
+    monkeypatch.setattr(tasks_mod, "queue", q)
 
     async def noop(*_args, **_kw):
         return None
@@ -49,8 +52,11 @@ async def test_task_submit_unknown_action(monkeypatch):
         handlers=["foo"],
     )
 
+    from peagen.tui.task_submit import build_task
+
+    dto = build_task("bar", {}, pool="p")
     with pytest.raises(gw.RPCException) as exc:
-        await gw.task_submit(pool="p", payload={"action": "bar"}, taskId=None)
+        await gw.task_submit(dto)
     assert exc.value.code == -32601
     items = await q.lrange("ready:p", 0, -1)
     assert items == []
