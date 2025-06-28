@@ -8,7 +8,9 @@ import httpx
 
 from peagen.schemas import TaskRead
 from peagen.orm.status import Status
+from peagen.protocols import Request as RPCEnvelope
 from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
+from peagen.protocols.methods.task import PatchParams
 from . import ensure_task
 
 
@@ -27,39 +29,37 @@ async def fan_out(
     child_ids: List[str] = []
     async with httpx.AsyncClient(timeout=10.0) as client:
         for child in children:
-            req = {
-                "jsonrpc": "2.0",
-                "method": TASK_SUBMIT,
-                "params": {
+            req = RPCEnvelope(
+                id=str(uuid.uuid4()),
+                method=TASK_SUBMIT,
+                params={
                     "taskId": child.id,
                     "pool": child.pool,
                     "payload": child.payload,
                 },
-            }
+            ).model_dump()
             await client.post(gateway, json=req)
             child_ids.append(child.id)
 
-        patch = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": TASK_PATCH,
-            "params": {
-                "taskId": parent_id,
-                "changes": {"result": {"children": child_ids}},
-            },
-        }
+        patch = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method=TASK_PATCH,
+            params=PatchParams(
+                taskId=str(parent_id),
+                changes={"result": {"children": child_ids}},
+            ).model_dump(),
+        ).model_dump()
         await client.post(gateway, json=patch)
 
-        finish = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": "Work.finished",
-            "params": {
+        finish = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method="Work.finished",
+            params={
                 "taskId": parent_id,
                 "status": final_status.value,
                 "result": result,
             },
-        }
+        ).model_dump()
         await client.post(gateway, json=finish)
 
     return {"children": child_ids, "_final_status": final_status.value}
