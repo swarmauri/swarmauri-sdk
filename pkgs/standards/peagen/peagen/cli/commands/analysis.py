@@ -9,6 +9,7 @@ import httpx
 import typer
 
 from peagen.handlers.analysis_handler import analysis_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
@@ -37,7 +38,7 @@ def run(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(analysis_handler(task))
+    result = asyncio.run(analysis_handler(ensure_task(task)))
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
     )

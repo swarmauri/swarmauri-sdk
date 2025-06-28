@@ -1,6 +1,6 @@
 import pytest
 
-from peagen.handlers import mutate_handler as handler
+from peagen.handlers import mutate_handler as handler, ensure_task
 
 
 @pytest.mark.unit
@@ -26,7 +26,7 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    result = await handler.mutate_handler({"payload": {"args": args}})
+    result = await handler.mutate_handler(ensure_task({"payload": {"args": args}}))
 
     assert result == {"winner": "w.py", "score": "1", "meta": {"ok": True}}
     assert captured["workspace_uri"] == "ws"

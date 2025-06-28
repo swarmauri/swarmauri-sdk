@@ -17,12 +17,10 @@ from peagen.core.templates_core import (
     remove_template_set,
 )
 from peagen.schemas import TaskRead
-from . import ensure_task
 
 
-async def templates_handler(task: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def templates_handler(task: TaskRead) -> Dict[str, Any]:
     """Dispatch template-set operations based on ``args.operation``."""
-    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")

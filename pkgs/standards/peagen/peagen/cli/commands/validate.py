@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen.handlers.validate_handler import validate_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
@@ -46,7 +47,7 @@ def run_validate(
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(task))
+        result: Dict[str, Any] = asyncio.run(validate_handler(ensure_task(task)))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)

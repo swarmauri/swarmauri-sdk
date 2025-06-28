@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from peagen.handlers import doe_handler as handler
+from peagen.handlers import doe_handler as handler, ensure_task
 
 
 @pytest.mark.unit
@@ -26,7 +26,7 @@ async def test_doe_handler_calls_generate_payload(monkeypatch):
         "skip_validate": True,
     }
 
-    result = await handler.doe_handler({"payload": {"args": args}})
+    result = await handler.doe_handler(ensure_task({"payload": {"args": args}}))
 
     assert result == {"done": True}
     assert captured["spec_path"] == Path("spec.yml")

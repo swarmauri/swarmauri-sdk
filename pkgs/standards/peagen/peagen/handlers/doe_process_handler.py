@@ -18,11 +18,8 @@ from .fanout import fan_out
 from . import ensure_task
 
 
-async def doe_process_handler(
-    task_or_dict: Dict[str, Any] | TaskRead,
-) -> Dict[str, Any]:
+async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:
     """Expand the DOE spec and spawn a process task for each project."""
-    task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")

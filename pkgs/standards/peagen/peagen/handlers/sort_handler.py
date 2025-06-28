@@ -23,22 +23,19 @@ from typing import Any, Dict
 
 from peagen.schemas import TaskRead
 
-from . import ensure_task
-
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.sort_core import sort_single_project, sort_all_projects
 from peagen._utils.config_loader import resolve_cfg
 
 
-async def sort_handler(task: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def sort_handler(task: TaskRead) -> Dict[str, Any]:
     """
     Async handler registered under JSON-RPC method ``Task.sort`` (or similar).
 
     • Delegates to sort_core.
     • Returns whatever the core returns (sorted list or error dict).
     """
-    task = ensure_task(task)
     payload = task.payload
     args = payload.get("args", {})
     repo = args.get("repo")

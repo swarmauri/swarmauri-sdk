@@ -1,6 +1,6 @@
 import pytest
 
-from peagen.handlers import eval_handler as handler
+from peagen.handlers import eval_handler as handler, ensure_task
 
 
 @pytest.mark.unit
@@ -13,7 +13,7 @@ async def test_eval_handler(monkeypatch, strict):
     monkeypatch.setattr(handler, "evaluate_workspace", fake_evaluate_workspace)
 
     args = {"workspace_uri": "ws", "strict": strict}
-    result = await handler.eval_handler({"payload": {"args": args}})
+    result = await handler.eval_handler(ensure_task({"payload": {"args": args}}))
 
     assert result["report"]["results"][0]["score"] == 0
     assert result["strict_failed"] == (strict and True)

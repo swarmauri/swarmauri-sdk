@@ -1,6 +1,6 @@
 import pytest
 
-from peagen.handlers import evolve_handler as handler
+from peagen.handlers import evolve_handler as handler, ensure_task
 
 
 @pytest.mark.unit
@@ -41,7 +41,7 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
         "pool": "default",
         "payload": {"args": {"evolve_spec": str(spec)}},
     }
-    result = await handler.evolve_handler(task)
+    result = await handler.evolve_handler(ensure_task(task))
 
     assert result["jobs"] == 1
     assert sent and sent[-1]["method"] == "Work.finished"

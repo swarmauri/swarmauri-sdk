@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen.handlers.extras_handler import extras_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.defaults import TASK_SUBMIT
@@ -46,7 +47,7 @@ def run_extras(
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
     try:
-        result: Dict[str, Any] = asyncio.run(extras_handler(task))
+        result: Dict[str, Any] = asyncio.run(extras_handler(ensure_task(task)))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside extras_handler: {exc}")
         raise typer.Exit(1)

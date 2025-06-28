@@ -26,18 +26,16 @@ from peagen.core.process_core import (
     process_all_projects,
 )
 from peagen.schemas import TaskRead
-from . import ensure_task
 
 logger = Logger(name=__name__)
 
 
-async def process_handler(task: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def process_handler(task: TaskRead) -> Dict[str, Any]:
     """Main coroutine invoked by workers and synchronous CLI runs."""
     # ------------------------------------------------------------------ #
-    # 0) Normalise input – accept TaskRead *or* plain dict
+    # 0) Extract payload and arguments
     # ------------------------------------------------------------------ #
-    canonical = ensure_task(task)
-    payload: Dict[str, Any] = canonical.payload
+    payload: Dict[str, Any] = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
     # Mandatory flag

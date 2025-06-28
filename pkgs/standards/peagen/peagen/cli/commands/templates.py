@@ -8,6 +8,7 @@ import httpx
 import typer
 
 from peagen.handlers.templates_handler import templates_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
@@ -27,7 +28,7 @@ remote_template_sets_app = typer.Typer(
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
-    return asyncio.run(templates_handler(task))
+    return asyncio.run(templates_handler(ensure_task(task)))
 
 
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:

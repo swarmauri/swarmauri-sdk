@@ -7,12 +7,10 @@ from typing import Any, Dict
 
 from peagen.core import secrets_core
 from peagen.schemas import TaskRead
-from . import ensure_task
 
 
-async def secrets_handler(task: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def secrets_handler(task: TaskRead) -> Dict[str, Any]:
     """Dispatch secret management actions."""
-    task = ensure_task(task)
     payload = task.payload
     action = payload.get("action")
     args: Dict[str, Any] = payload.get("args", {})

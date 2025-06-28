@@ -13,6 +13,7 @@ from pathlib import Path
 import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
+from peagen.handlers import ensure_task
 
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
@@ -74,7 +75,7 @@ def upgrade() -> None:
             "args": {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
     }
-    result = asyncio.run(migrate_handler(task))
+    result = asyncio.run(migrate_handler(ensure_task(task)))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
     if stderr := result.get("stderr"):
@@ -108,7 +109,7 @@ def revision(
             },
         },
     }
-    result = asyncio.run(migrate_handler(task))
+    result = asyncio.run(migrate_handler(ensure_task(task)))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
     if stderr := result.get("stderr"):
@@ -129,7 +130,7 @@ def downgrade() -> None:
             "args": {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
     }
-    result = asyncio.run(migrate_handler(task))
+    result = asyncio.run(migrate_handler(ensure_task(task)))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
     if stderr := result.get("stderr"):

@@ -12,6 +12,7 @@ import httpx
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
@@ -67,7 +68,7 @@ def run(
         "mutations": [{"kind": mutator}],
     }
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    result = asyncio.run(mutate_handler(task))
+    result = asyncio.run(mutate_handler(ensure_task(task)))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))

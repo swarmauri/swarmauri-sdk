@@ -7,6 +7,7 @@ import re
 import typer
 from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
+from peagen.handlers import ensure_task
 from peagen.plugins import discover_and_register_plugins
 from peagen.schemas import TaskCreate
 
@@ -31,7 +32,8 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
         pool="default",
         payload={"action": "init", "args": args},
     )
-    return asyncio.run(init_handler(task))
+    canonical = ensure_task(task)
+    return asyncio.run(init_handler(canonical))
 
 
 def _submit_task(

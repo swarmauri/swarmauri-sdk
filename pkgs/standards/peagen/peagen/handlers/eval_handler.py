@@ -20,11 +20,9 @@ import os
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
 from peagen.schemas import TaskRead
-from . import ensure_task
 
 
-async def eval_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def eval_handler(task: TaskRead) -> Dict[str, Any]:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})

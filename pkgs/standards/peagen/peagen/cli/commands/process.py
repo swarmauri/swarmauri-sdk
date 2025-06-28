@@ -22,6 +22,7 @@ import httpx
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
+from peagen.handlers import ensure_task
 from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.schemas import TaskCreate
 from peagen.orm.status import Status
@@ -119,7 +120,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     task = _build_task(args, ctx.obj.get("pool", "default"))
     task.payload["cfg_override"] = cfg_override
 
-    result = asyncio.run(process_handler(task))
+    result = asyncio.run(process_handler(ensure_task(task)))
     typer.echo(json.dumps(result, indent=2))
 
 

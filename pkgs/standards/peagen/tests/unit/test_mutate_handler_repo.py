@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 from peagen.core.mirror_core import ensure_repo
-from peagen.handlers import mutate_handler as handler
+from peagen.handlers import mutate_handler as handler, ensure_task
 
 
 @pytest.mark.unit
@@ -40,7 +40,7 @@ async def test_mutate_handler_repo(tmp_path: Path, monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    result = await handler.mutate_handler({"payload": {"args": args}})
+    result = await handler.mutate_handler(ensure_task({"payload": {"args": args}}))
 
     assert not Path(captured["workspace_uri"]).exists()
     assert result["score"] == "0"

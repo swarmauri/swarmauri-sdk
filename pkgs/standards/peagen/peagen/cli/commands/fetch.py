@@ -17,6 +17,7 @@ from typing import List, Optional
 import typer
 
 from peagen.handlers.fetch_handler import fetch_handler
+from peagen.handlers import ensure_task
 from peagen.orm.status import Status
 from peagen.schemas import TaskCreate
 
@@ -88,5 +89,5 @@ def run(
         pool = ctx.obj.get("pool", "default")
     task = _build_task(args, pool)
 
-    result = asyncio.run(fetch_handler(task))
+    result = asyncio.run(fetch_handler(ensure_task(task)))
     typer.echo(json.dumps(result, indent=2))

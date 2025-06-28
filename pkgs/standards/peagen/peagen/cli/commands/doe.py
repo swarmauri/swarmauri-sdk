@@ -17,6 +17,7 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
+from peagen.handlers import ensure_task
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.orm.status import Status
@@ -89,7 +90,7 @@ def run_gen(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(task))
+    result = asyncio.run(doe_handler(ensure_task(task)))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -225,7 +226,7 @@ def run_process(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     task = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(task))
+    result = asyncio.run(doe_process_handler(ensure_task(task)))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)

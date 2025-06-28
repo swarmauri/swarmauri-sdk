@@ -33,8 +33,7 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     return None, yaml.safe_load(path_or_text)
 
 
-async def evolve_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
-    task = ensure_task(task_or_dict)
+async def evolve_handler(task: TaskRead) -> Dict[str, Any]:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 
