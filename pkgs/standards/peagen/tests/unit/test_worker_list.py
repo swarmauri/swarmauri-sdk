@@ -51,5 +51,5 @@ async def test_worker_list(monkeypatch):
         )
     )
     workers = await gw.worker_list(ListParams())
-    assert workers.root[0].id == "w1"
-    assert workers.root[0].pool == "p"
+    assert workers[0]["id"] == "w1"
+    assert workers[0]["pool"] == "p"
