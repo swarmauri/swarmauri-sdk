@@ -5,6 +5,7 @@ from pathlib import Path
 import httpx
 import pytest
 from peagen.tui.task_submit import build_task, submit_task
+from peagen.protocols.methods import TASK_GET
 
 pytestmark = pytest.mark.smoke
 
@@ -65,7 +66,7 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
 
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.get",
+        "method": TASK_GET,
         "params": {"taskId": tid},
         "id": 1,
     }

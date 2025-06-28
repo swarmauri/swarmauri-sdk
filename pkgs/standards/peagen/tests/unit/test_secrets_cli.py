@@ -1,6 +1,7 @@
 import json
 import pytest
 import typer
+from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 
 from peagen.cli.commands import secrets as secrets_cli
 
@@ -111,6 +112,7 @@ def test_remote_add_posts(monkeypatch):
         recipient=[],
         pool="p",
     )
+    assert posted["method"] == SECRETS_ADD
     assert posted["params"]["cipher"].startswith("enc:")
     assert posted["params"]["name"] == "ID"
     assert posted["params"]["version"] == 1
@@ -135,7 +137,7 @@ def test_remote_get(monkeypatch):
         pool="default",
     )
     assert out == ["value"]
-    assert posted["method"] == "Secrets.get"
+    assert posted["method"] == SECRETS_GET
     assert posted["params"] == {"name": "ID", "tenant_id": "default"}
 
 
@@ -156,5 +158,5 @@ def test_remote_remove(monkeypatch):
         gateway_url="https://gw.peagen.com",
         pool="default",
     )
-    assert posted["method"] == "Secrets.delete"
+    assert posted["method"] == SECRETS_DELETE
     assert posted["params"] == {"name": "ID", "version": 2, "tenant_id": "default"}
