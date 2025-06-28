@@ -5,7 +5,9 @@ from sqlalchemy import inspect
 from peagen.orm.status import Status
 
 status_enum = sa.Enum(
-    Status, name="task_status_enum"
+    Status,
+    name="status",
+    _create_events=False,
 )  # ← shared object, create_type=False
 
 revision = "ae1de73e4143"
