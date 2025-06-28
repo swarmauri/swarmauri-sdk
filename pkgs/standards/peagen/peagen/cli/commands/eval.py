@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -21,9 +20,8 @@ import typer
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.orm import Task
+from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
-from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -35,11 +33,9 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict, pool: str = "default") -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
         pool=pool,
-        status=Status.waiting,
         payload={"action": "eval", "args": args},
     )
 
@@ -135,7 +131,7 @@ def submit(  # noqa: PLR0913
         "jsonrpc": "2.0",
         "id": task.id,
         "method": TASK_SUBMIT,
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "params": task.model_dump(mode="json"),
     }
 
     with httpx.Client(timeout=30.0) as client:

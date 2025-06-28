@@ -8,6 +8,7 @@ from typing import Any
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
+
 def build_task(action: str, args: dict[str, Any], pool: str = "default") -> TaskCreate:
     """Construct a :class:`TaskCreate` from CLI-style arguments."""
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import List, Optional
 
@@ -10,8 +9,7 @@ import httpx
 import typer
 
 from peagen.handlers.analysis_handler import analysis_handler
-from peagen.orm import Task
-from peagen.orm.status import Status
+from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -19,11 +17,9 @@ local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
 
-def _build_task(args: dict, pool: str = "default") -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
         pool=pool,
-        status=Status.waiting,
         payload={"action": "analysis", "args": args},
     )
 
@@ -63,7 +59,7 @@ def submit(
         "jsonrpc": "2.0",
         "id": task.id,
         "method": TASK_SUBMIT,
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "params": task.model_dump(mode="json"),
     }
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()

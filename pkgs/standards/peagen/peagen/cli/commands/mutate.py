@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -13,7 +12,7 @@ import httpx
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.orm import Task
+from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -21,9 +20,8 @@ local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 
 
-def _build_task(args: dict, pool: str = "default") -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
         pool=pool,
         payload={"action": "mutate", "args": args},
     )
@@ -117,11 +115,7 @@ def submit(
     rpc_req = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,
-        "params": {
-            "pool": task.pool,
-            "payload": task.payload,
-            "taskId": task.id,
-        },
+        "params": task.model_dump(mode="json"),
     }
 
     with httpx.Client(timeout=30.0) as client:
