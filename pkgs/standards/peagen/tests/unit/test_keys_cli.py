@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
-from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE
+from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, Response
+from peagen.protocols.methods.keys import FetchResult
 
 
 @pytest.mark.unit
@@ -41,11 +42,11 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(keys_mod, "AutoGpgDriver", DummyDriver)
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         captured["url"] = url
         captured["method"] = method
         captured["params"] = params
-        return {}
+        return Response.ok(id="1", result=None)
 
     monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
@@ -62,11 +63,11 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
 def test_remove_posts_delete(monkeypatch, capsys):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         captured["url"] = url
         captured["method"] = method
         captured["params"] = params
-        return {}
+        return Response.ok(id="1", result=None)
 
     monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
@@ -80,15 +81,15 @@ def test_remove_posts_delete(monkeypatch, capsys):
 
 @pytest.mark.unit
 def test_fetch_server_prints_response(monkeypatch, capsys):
-    def fake_rpc_post(url, method, params, *, timeout):
-        return {"result": {"k": "v"}}
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
+        return Response.ok(id="1", result=FetchResult(keys={"k": "v"}))
 
     monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
 
     keys_mod.fetch_server(ctx=None, gateway_url="http://gw")
     out = capsys.readouterr().out
 
-    assert json.loads(out) == {"k": "v"}
+    assert json.loads(out) == {"keys": {"k": "v"}}
 
 
 @pytest.mark.unit

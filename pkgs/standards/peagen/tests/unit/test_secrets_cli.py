@@ -3,6 +3,8 @@ import pytest
 import typer
 from peagen.cli.commands import secrets as secrets_cli
 from peagen.protocols.methods.worker import WORKER_LIST
+from peagen.protocols.methods.secrets import GetResult
+from peagen.protocols import Response
 
 
 class DummyDriver:
@@ -30,16 +32,15 @@ class Ctx:
 def test_pool_worker_pubs_collects_keys(monkeypatch):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         captured["url"] = url
         captured["method"] = method
         captured["params"] = params
-        return {
-            "result": [
-                {"advertises": {"public_key": "A"}},
-                {"advertises": {"pubkey": "B"}},
-            ]
-        }
+        res = [
+            {"advertises": {"public_key": "A"}},
+            {"advertises": {"pubkey": "B"}},
+        ]
+        return Response.ok(id="1", result=res)
 
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     keys = secrets_cli._pool_worker_pubs("p", "http://gw")
@@ -94,10 +95,10 @@ def test_local_remove(monkeypatch, tmp_path):
 def test_remote_add_posts(monkeypatch):
     posted = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         posted["method"] = method
         posted["params"] = params
-        return {}
+        return Response.ok(id="1", result=None)
 
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     monkeypatch.setattr(secrets_cli, "_pool_worker_pubs", lambda pool, url: ["P"])
@@ -119,10 +120,10 @@ def test_remote_add_posts(monkeypatch):
 def test_remote_get(monkeypatch):
     posted = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         posted["method"] = method
         posted["params"] = params
-        return {"result": {"secret": "enc:value"}}
+        return Response.ok(id="1", result=GetResult(secret="enc:value"))
 
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     out = []
@@ -142,10 +143,10 @@ def test_remote_get(monkeypatch):
 def test_remote_remove(monkeypatch):
     posted = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         posted["method"] = method
         posted["params"] = params
-        return {}
+        return Response.ok(id="1", result=None)
 
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     ctx = Ctx()
