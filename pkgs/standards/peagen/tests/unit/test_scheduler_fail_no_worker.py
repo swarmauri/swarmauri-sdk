@@ -1,5 +1,7 @@
 import asyncio
 import importlib
+import uuid
+import datetime
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
 
@@ -54,7 +56,18 @@ async def test_scheduler_fails_task_without_worker(monkeypatch):
     monkeypatch.setattr(gw, "_live_workers_by_pool", empty_workers)
 
     await q.sadd("pools", "p")
-    task = gw.Task(pool="p", payload={"action": "demo"})
+    task = gw.TaskRead(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool="p",
+        payload={"action": "demo"},
+        status=gw.Status.queued,
+        note="",
+        spec_hash=uuid.uuid4().hex,
+        date_created=datetime.datetime.now(datetime.timezone.utc),
+        last_modified=datetime.datetime.now(datetime.timezone.utc),
+    )
     await q.rpush(f"{gw.READY_QUEUE}:p", task.model_dump_json())
 
     orig_blpop = q.blpop
