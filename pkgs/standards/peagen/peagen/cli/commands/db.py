@@ -15,7 +15,7 @@ import typer
 from peagen.handlers.migrate_handler import migrate_handler
 
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.

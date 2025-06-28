@@ -11,6 +11,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
+from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -39,7 +40,7 @@ def upload(
     pubkey = drv.pub_path.read_text()
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Keys.upload",
+        "method": KEYS_UPLOAD,
         "params": {"public_key": pubkey},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
@@ -55,7 +56,7 @@ def remove(
     """Remove a public key from the gateway."""
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Keys.delete",
+        "method": KEYS_DELETE,
         "params": {"fingerprint": fingerprint},
     }
     httpx.post(gateway_url, json=envelope, timeout=10.0)
@@ -68,7 +69,7 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
+    envelope = {"jsonrpc": "2.0", "method": KEYS_FETCH}
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(json.dumps(res.json().get("result", {}), indent=2))
 

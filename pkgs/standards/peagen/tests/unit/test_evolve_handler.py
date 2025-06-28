@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import evolve_handler as handler
+from peagen.protocols import TASK_SUBMIT
 
 
 @pytest.mark.unit
@@ -46,6 +47,6 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
     assert result["jobs"] == 1
     assert sent and sent[-1]["method"] == "Work.finished"
     submit = sent[0]
-    assert submit["method"] == "Task.submit"
+    assert submit["method"] == TASK_SUBMIT
     assert submit["params"]["payload"]["action"] == "mutate"
     assert submit["params"]["payload"]["args"].get("mutations")

@@ -5,8 +5,8 @@ import uuid
 import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.defaults.error_codes import ErrorCode
+from peagen.protocols import TASK_SUBMIT
 from peagen.defaults import (
-    TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
     TASK_RESUME,
@@ -52,6 +52,7 @@ def _parse_task_create(task: t.Any) -> TaskCreate:
     if not isinstance(task, TaskCreate):
         raise TypeError("TaskCreate required")
     return task
+
 
 # --------------Basic Task Methods ---------------------------------
 

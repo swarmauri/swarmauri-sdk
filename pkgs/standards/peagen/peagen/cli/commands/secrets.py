@@ -10,6 +10,7 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -107,7 +108,7 @@ def remote_add(
     cipher = drv.encrypt(value.encode(), pubs).decode()
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Secrets.add",
+        "method": SECRETS_ADD,
         "params": {
             "name": secret_id,
             "cipher": cipher,
@@ -140,7 +141,7 @@ def remote_get(
     drv = AutoGpgDriver()
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Secrets.get",
+        "method": SECRETS_GET,
         "params": {"name": secret_id, "tenant_id": pool},
     }
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
@@ -169,7 +170,7 @@ def remote_remove(
         gateway_url += "/rpc"
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Secrets.delete",
+        "method": SECRETS_DELETE,
         "params": {"name": secret_id, "version": version, "tenant_id": pool},
     }
 
