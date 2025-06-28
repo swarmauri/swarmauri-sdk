@@ -31,7 +31,7 @@ def test_parse_and_registry() -> None:
     PModel = _registry.params_model(req.method)
     params = PModel.model_validate(req.params)
     assert params.task.pool == "default"
-    res = Response.ok(id=req.id, result={"task_id": "ABCDEFGHIJKL"})
+    res = Response.ok(id=req.id, result={"taskId": "ABCDEFGHIJKL"})
     assert res.jsonrpc == "2.0"
 
 
