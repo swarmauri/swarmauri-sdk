@@ -24,3 +24,4 @@ pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
 !.gitkeep          # keep the empty dir in repo
 peagen_artifacts/
 gateway.db
+pkgs/standards/peagen/peagen.zip
