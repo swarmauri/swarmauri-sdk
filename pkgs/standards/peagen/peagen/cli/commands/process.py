@@ -26,6 +26,7 @@ from peagen.handlers.process_handler import process_handler
 from peagen.defaults import TASK_SUBMIT, TASK_GET
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.protocols import Request, Response
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
@@ -187,38 +188,43 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump(mode="json")
+        )
         resp.raise_for_status()
         reply = resp.json()
 
-    if "error" in reply:
+    response = Response[dict].model_validate(reply)
+    if response.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {response.error.code}: {response.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(code=1)
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if response.result:
+        typer.echo(json.dumps(response.result, indent=2))
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-            return res["result"]
+            req = Request(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params={"taskId": task.id},
+            )
+            res = httpx.post(
+                ctx.obj.get("gateway_url"),
+                json=req.model_dump(mode="json"),
+                timeout=30.0,
+            ).json()
+            return Response[dict].model_validate(res).result or {}
 
         while True:
             task_reply = _rpc_call()

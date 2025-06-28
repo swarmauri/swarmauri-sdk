@@ -10,6 +10,7 @@ import typer
 from peagen.handlers.templates_handler import templates_handler
 from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import Request, Response
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -33,17 +34,16 @@ def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     """Submit a templates task via JSON-RPC."""
     task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
-    resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = Request(
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
+    resp = httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0)
     resp.raise_for_status()
-    data = resp.json()
-    if data.get("error"):
-        raise RuntimeError(data["error"])
-    return str(data.get("result", {}).get("taskId", task.id))
+    data = Response[dict].model_validate(resp.json())
+    if data.error:
+        raise RuntimeError(data.error)
+    return str((data.result or {}).get("taskId", task.id))
 
 
 # ─── list ──────────────────────────────

@@ -12,6 +12,7 @@ from functools import partial
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.defaults import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.protocols import Request, Response
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
@@ -52,20 +53,22 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "id": task.id,
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        id=task.id,
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
-    if "error" in reply:
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump(mode="json")
+        ).json()
+    response = Response[dict].model_validate(reply)
+    if response.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {response.error.code}: {response.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    typer.echo(json.dumps(reply.get("result", {}), indent=2))
+    typer.echo(json.dumps(response.result or {}, indent=2))

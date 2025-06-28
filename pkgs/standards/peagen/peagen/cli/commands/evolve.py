@@ -17,6 +17,7 @@ from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.defaults import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.protocols import Request, Response
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -102,34 +103,39 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
     with httpx.Client(timeout=30.0) as client:
-        reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
-    if "error" in reply:
+        reply = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump(mode="json")
+        ).json()
+    response = Response[dict].model_validate(reply)
+    if response.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {response.error.code}: {response.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if response.result:
+        typer.echo(json.dumps(response.result, indent=2))
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Task.get",
-                "params": {"taskId": task.id},
-            }
-            res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-            return res["result"]
+            req = Request(
+                id=str(uuid.uuid4()),
+                method="Task.get",
+                params={"taskId": task.id},
+            )
+            res = httpx.post(
+                ctx.obj.get("gateway_url"),
+                json=req.model_dump(mode="json"),
+                timeout=30.0,
+            ).json()
+            return Response[dict].model_validate(res).result or {}
 
         import time
 

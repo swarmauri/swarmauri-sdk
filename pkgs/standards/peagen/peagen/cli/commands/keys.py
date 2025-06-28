@@ -11,6 +11,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
+from peagen.protocols import Request, Response
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -37,12 +38,11 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = Request(
+        method="Keys.upload",
+        params={"public_key": pubkey},
+    )
+    httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0)
     typer.echo("Uploaded public key")
 
 
@@ -53,12 +53,11 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
-    httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = Request(
+        method="Keys.delete",
+        params={"fingerprint": fingerprint},
+    )
+    httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -68,9 +67,10 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    typer.echo(json.dumps(res.json().get("result", {}), indent=2))
+    envelope = Request(method="Keys.fetch", params={})
+    res = httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0)
+    data = Response[dict].model_validate(res.json())
+    typer.echo(json.dumps(data.result or {}, indent=2))
 
 
 @keys_app.command("list")

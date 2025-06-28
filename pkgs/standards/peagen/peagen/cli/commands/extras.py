@@ -13,6 +13,7 @@ from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.defaults import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.protocols import Request, Response
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
@@ -81,22 +82,24 @@ def submit_extras(
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    envelope = Request(
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
 
     try:
         import httpx
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
+        resp = httpx.post(
+            gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0
+        )
         resp.raise_for_status()
-        data = resp.json()
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        data = Response[dict].model_validate(resp.json())
+        if data.error:
+            typer.echo(f"[ERROR] {data.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted extras generation → taskId={data['id']}")
+        task_id = (data.result or {}).get("taskId")
+        typer.echo(f"Submitted extras generation → taskId={task_id}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

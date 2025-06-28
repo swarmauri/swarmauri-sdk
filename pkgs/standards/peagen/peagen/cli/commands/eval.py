@@ -23,6 +23,7 @@ from peagen._utils.config_loader import load_peagen_toml
 from peagen.handlers.eval_handler import eval_handler
 from peagen.defaults import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.protocols import Request, Response
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -124,26 +125,28 @@ def submit(  # noqa: PLR0913
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "id": task.id,
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = Request(
+        id=task.id,
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    )
 
     with httpx.Client(timeout=30.0) as client:
-        resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
+        resp = client.post(
+            ctx.obj.get("gateway_url"), json=rpc_req.model_dump(mode="json")
+        )
         resp.raise_for_status()
         reply = resp.json()
 
-    if "error" in reply:
+    response = Response[dict].model_validate(reply)
+    if response.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {response.error.code}: {response.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if response.result:
+        typer.echo(json.dumps(response.result, indent=2))

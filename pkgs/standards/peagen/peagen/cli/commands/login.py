@@ -9,6 +9,7 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import Request
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -31,13 +32,11 @@ def login(
         gateway_url += "/rpc"
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
-    payload = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
+    payload = Request(method="Keys.upload", params={"public_key": pubkey})
     try:
-        res = httpx.post(gateway_url, json=payload, timeout=10.0)
+        res = httpx.post(
+            gateway_url, json=payload.model_dump(mode="json"), timeout=10.0
+        )
     except httpx.RequestError as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)

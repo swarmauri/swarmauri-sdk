@@ -21,6 +21,7 @@ from peagen.defaults import (
 )
 
 from peagen.orm.status import Status
+from peagen.protocols import Request, Response
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
@@ -37,14 +38,15 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> dict:
-        req = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": TASK_GET,
-            "params": {"taskId": task_id},
-        }
-        res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-        return res["result"]
+        req = Request(
+            id=str(uuid.uuid4()),
+            method=TASK_GET,
+            params={"taskId": task_id},
+        )
+        res = httpx.post(
+            ctx.obj.get("gateway_url"), json=req.model_dump(mode="json"), timeout=30.0
+        ).json()
+        return Response[dict].model_validate(res).result or {}
 
     while True:
         reply = _rpc_call()
@@ -64,25 +66,27 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": TASK_PATCH,
-        "params": {"taskId": task_id, "changes": payload},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-    typer.echo(json.dumps(res["result"], indent=2))
+    req = Request(
+        id=str(uuid.uuid4()),
+        method=TASK_PATCH,
+        params={"taskId": task_id, "changes": payload},
+    )
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req.model_dump(mode="json"), timeout=30.0
+    ).json()
+    typer.echo(json.dumps(Response[dict].model_validate(res).result or {}, indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": method,
-        "params": {"selector": selector},
-    }
-    res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
-    typer.echo(json.dumps(res["result"], indent=2))
+    req = Request(
+        id=str(uuid.uuid4()),
+        method=method,
+        params={"selector": selector},
+    )
+    res = httpx.post(
+        ctx.obj.get("gateway_url"), json=req.model_dump(mode="json"), timeout=30.0
+    ).json()
+    typer.echo(json.dumps(Response[dict].model_validate(res).result or {}, indent=2))
 
 
 @remote_task_app.command("pause")
