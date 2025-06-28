@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 
 from peagen.orm.status import Status
-from peagen.orm.config.secret import SecretModel
+from peagen.orm.config.secret import SecretModelModel
 from peagen.orm.AbuseRecordModel import AbuseRecordModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.task.task_run_relation_association import (
@@ -120,7 +120,7 @@ async def upsert_secret(
         "cipher": cipher,
     }
     stmt = (
-        pg_insert(Secret)
+        pg_insert(SecretModel)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["tenant_id", "name"],
@@ -132,10 +132,10 @@ async def upsert_secret(
 
 async def fetch_secret(
     session: AsyncSession, tenant_id: str, name: str
-) -> Secret | None:
+) -> SecretModel | None:
     result = await session.execute(
-        sa.select(Secret).where(
-            Secret.tenant_id == _tenant_uuid(tenant_id), Secret.name == name
+        sa.select(SecretModel).where(
+            SecretModel.tenant_id == _tenant_uuid(tenant_id), SecretModel.name == name
         )
     )
     return result.scalar_one_or_none()
@@ -143,8 +143,8 @@ async def fetch_secret(
 
 async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> None:
     await session.execute(
-        sa.delete(Secret).where(
-            Secret.tenant_id == _tenant_uuid(tenant_id), Secret.name == name
+        sa.delete(SecretModel).where(
+            SecretModel.tenant_id == _tenant_uuid(tenant_id), SecretModel.name == name
         )
     )
 
@@ -153,13 +153,13 @@ async def record_unknown_handler(session: AsyncSession, ip: str) -> int:
     """Increment and return the unknown handler count for *ip*."""
 
     stmt = (
-        pg_insert(AbuseRecord)
+        pg_insert(AbuseRecordModel)
         .values(ip=ip, count=1, first_seen=dt.datetime.utcnow())
         .on_conflict_do_update(
             index_elements=["ip"],
-            set_={"count": AbuseRecord.__table__.c.count + 1},
+            set_={"count": AbuseRecordModel.__table__.c.count + 1},
         )
-        .returning(AbuseRecord.__table__.c.count)
+        .returning(AbuseRecordModel.__table__.c.count)
     )
     result = await session.execute(stmt)
     (count,) = result.one()
@@ -171,7 +171,7 @@ async def fetch_banned_ips(session: AsyncSession) -> list[str]:
     """Return all IP addresses currently marked as banned."""
 
     result = await session.execute(
-        sa.select(AbuseRecord.ip).where(AbuseRecord.banned.is_(True))
+        sa.select(AbuseRecordModel.ip).where(AbuseRecordModel.banned.is_(True))
     )
     return [row[0] for row in result]
 
@@ -180,6 +180,6 @@ async def mark_ip_banned(session: AsyncSession, ip: str) -> None:
     """Set the banned flag for *ip*."""
 
     await session.execute(
-        sa.update(AbuseRecord).where(AbuseRecord.ip == ip).values(banned=True)
+        sa.update(AbuseRecordModel).where(AbuseRecordModel.ip == ip).values(banned=True)
     )
     await session.commit()
