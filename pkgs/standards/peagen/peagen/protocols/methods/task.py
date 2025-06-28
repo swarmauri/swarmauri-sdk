@@ -7,24 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from peagen.protocols._registry import register
 
 
-class SubmitParams(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    template_set: str = Field(
-        ..., description="Name of the template set to instantiate"
-    )
-    inputs: dict[str, str] = Field(
-        ..., description="Template input variables (raw strings only)"
-    )
-    priority: int | None = Field(0, ge=0, le=9, description="Lower is higher priority")
-
-
-class SubmitResult(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    task_id: Annotated[str, Field(pattern=r"^[A-Z0-9]{12}$")]
-
-
 TASK_SUBMIT = register(
     method="Task.submit.v1",
     params_model=SubmitParams,
