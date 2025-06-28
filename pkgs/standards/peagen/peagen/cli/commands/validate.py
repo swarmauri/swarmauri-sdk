@@ -1,7 +1,7 @@
 # peagen/commands/validate.py
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import typer
 
@@ -25,7 +25,7 @@ def run_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
@@ -71,7 +71,7 @@ def submit_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """

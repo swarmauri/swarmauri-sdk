@@ -12,6 +12,7 @@ GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 BASE = Path(__file__).resolve().parents[2] / "tests" / "examples" / "gateway_demo"
 SPEC = BASE / "doe_spec.yaml"
 TEMPLATE = BASE / "template_project.yaml"
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -45,6 +46,8 @@ def doe_process_result(tmp_path_factory):
         "--output",
         str(out_file),
         "--watch",
+        "--repo",
+        REPO,
     ]
     result = subprocess.run(
         cmd, capture_output=True, text=True, check=True, timeout=120

@@ -14,6 +14,7 @@ PROJECTS_FILE = (
     / "projects_payloads"
     / "project_payloads.yaml"
 )
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -40,6 +41,8 @@ def test_remote_process_submit(tmp_path: Path) -> None:
                 str(PROJECTS_FILE),
                 "--gateway-url",
                 GATEWAY,
+                "--repo",
+                REPO,
             ],
             check=True,
             timeout=60,
@@ -62,6 +65,8 @@ def test_remote_process_watch(tmp_path: Path) -> None:
                 str(PROJECTS_FILE),
                 "--gateway-url",
                 GATEWAY,
+                "--repo",
+                REPO,
                 "--watch",
                 "--interval",
                 "1",

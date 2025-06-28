@@ -15,6 +15,7 @@ PROJECTS_FILE = (
     / "projects_payloads"
     / "project_payloads.yaml"
 )
+REPO = "testproject"
 
 
 def _gateway_available(url: str) -> bool:
@@ -33,7 +34,10 @@ def test_rpc_submit_remote_process(tmp_path: Path) -> None:
         pytest.skip("gateway not reachable")
 
     payload_text = PROJECTS_FILE.read_text(encoding="utf-8")
-    task = build_task("process", {"projects_payload": payload_text})
+    task = build_task(
+        "process",
+        {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
+    )
     reply = submit_task(GATEWAY, task)
     assert "result" in reply and "taskId" in reply["result"]
 
@@ -44,7 +48,10 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
         pytest.skip("gateway not reachable")
 
     payload_text = PROJECTS_FILE.read_text(encoding="utf-8")
-    task = build_task("process", {"projects_payload": payload_text})
+    task = build_task(
+        "process",
+        {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
+    )
     reply = submit_task(GATEWAY, task)
 
     tid = reply.get("result", {}).get("taskId")
