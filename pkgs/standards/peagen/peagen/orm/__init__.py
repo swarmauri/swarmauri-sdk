@@ -81,7 +81,7 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 # ----------------------------------------------------------------------
 # Misc / security
 # ----------------------------------------------------------------------
-from .AbuseRecord import AbuseRecordModel  # noqa: F401
+from .abuse_record import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
 # ----------------------------------------------------------------------

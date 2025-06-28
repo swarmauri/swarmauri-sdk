@@ -4,7 +4,8 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from peagen.orm import Base, AbuseRecordModel
+from peagen.orm import Base
+from peagen.orm.abuse_record import AbuseRecordModel
 from peagen.gateway.db_helpers import (
     record_unknown_handler,
     fetch_banned_ips,
