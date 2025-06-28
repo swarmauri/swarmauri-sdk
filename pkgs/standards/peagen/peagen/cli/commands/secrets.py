@@ -25,9 +25,11 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    envelope = {"pool": pool}
+    from peagen.protocols.methods.worker import WORKER_LIST, ListParams
+
+    params = ListParams(pool=pool).model_dump()
     try:
-        res = rpc_post(gateway_url, "Worker.list", envelope, timeout=10.0)
+        res = rpc_post(gateway_url, WORKER_LIST, params, timeout=10.0)
     except Exception:
         return []
     workers = res.get("result", [])

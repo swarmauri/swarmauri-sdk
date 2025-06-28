@@ -168,12 +168,10 @@ class RemoteBackend:
         self.tasks = resp.json().get("result", [])
 
     async def fetch_workers(self) -> None:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "2",
-            "method": "Worker.list",
-            "params": {},
-        }
+        from peagen.protocols import Request
+        from peagen.protocols.methods.worker import WORKER_LIST, ListParams
+
+        payload = Request(id="2", method=WORKER_LIST, params=ListParams()).model_dump()
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
         raw_workers = resp.json().get("result", [])
