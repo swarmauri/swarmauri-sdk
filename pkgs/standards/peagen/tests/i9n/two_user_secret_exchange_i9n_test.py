@@ -6,12 +6,13 @@ import shutil
 
 import httpx
 import pytest
+from peagen.defaults import WORKER_LIST
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 
 def _gateway_available(url: str) -> bool:
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}}
+    envelope = {"jsonrpc": "2.0", "method": WORKER_LIST, "params": {}}
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:

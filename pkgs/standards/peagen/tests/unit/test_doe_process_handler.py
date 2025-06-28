@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import doe_process_handler as handler
+from peagen.defaults import WORK_FINISHED
 
 
 @pytest.mark.unit
@@ -67,7 +68,7 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
     result = await handler.doe_process_handler(task)
 
     assert len(sent) == 4
-    assert sent[-1]["method"] == "Work.finished"
+    assert sent[-1]["method"] == WORK_FINISHED
     assert sent[-1]["params"]["status"] == "waiting"
     assert result["children"] and len(result["children"]) == 2
     assert result["outputs"][0].startswith("PROJECTS:")

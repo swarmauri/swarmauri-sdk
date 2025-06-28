@@ -1,6 +1,8 @@
 import json
 import pytest
 import typer
+from peagen.defaults import WORKER_LIST
+from peagen.protocols import SECRETS_GET, SECRETS_DELETE
 
 from peagen.cli.commands import secrets as secrets_cli
 
@@ -44,7 +46,7 @@ def test_pool_worker_pubs_collects_keys(monkeypatch):
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     keys = secrets_cli._pool_worker_pubs("p", "http://gw")
     assert keys == ["A", "B"]
-    assert captured["method"] == "Worker.list"
+    assert captured["method"] == WORKER_LIST
 
 
 def test_pool_worker_pubs_handles_error(monkeypatch):
@@ -135,7 +137,7 @@ def test_remote_get(monkeypatch):
         pool="default",
     )
     assert out == ["value"]
-    assert posted["method"] == "Secrets.get"
+    assert posted["method"] == SECRETS_GET
     assert posted["params"] == {"name": "ID", "tenant_id": "default"}
 
 
@@ -156,5 +158,5 @@ def test_remote_remove(monkeypatch):
         gateway_url="https://gw.peagen.com",
         pool="default",
     )
-    assert posted["method"] == "Secrets.delete"
+    assert posted["method"] == SECRETS_DELETE
     assert posted["params"] == {"name": "ID", "version": 2, "tenant_id": "default"}

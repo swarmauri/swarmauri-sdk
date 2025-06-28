@@ -4,7 +4,9 @@ from pathlib import Path
 
 import httpx
 import pytest
+from peagen.defaults import WORKER_LIST
 from peagen.tui.task_submit import build_task, submit_task
+from peagen.protocols.methods import TASK_GET
 
 pytestmark = pytest.mark.smoke
 
@@ -22,7 +24,7 @@ REPO = "testproject"
 
 def _gateway_available(url: str) -> bool:
     """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
+    envelope = {"jsonrpc": "2.0", "method": WORKER_LIST, "params": {}, "id": 0}
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:
@@ -65,7 +67,7 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
 
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.get",
+        "method": TASK_GET,
         "params": {"taskId": tid},
         "id": 1,
     }
