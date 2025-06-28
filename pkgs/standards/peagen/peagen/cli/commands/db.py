@@ -6,6 +6,7 @@ import asyncio
 import uuid
 
 from peagen.cli.rpc_utils import rpc_post
+from peagen.protocols.methods.task import SubmitResult
 
 
 from pathlib import Path
@@ -51,10 +52,11 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         TASK_SUBMIT,
         {"pool": task.pool, "payload": task.payload, "taskId": task.id},
         timeout=10.0,
+        result_model=SubmitResult,
     )
-    if data.get("error"):
-        raise RuntimeError(data["error"])
-    return str(data.get("result", {}).get("taskId", task.id))
+    if data.error:
+        raise RuntimeError(data.error)
+    return str(data.result.taskId if data.result else task.id)
 
 
 @local_db_app.command("upgrade")
