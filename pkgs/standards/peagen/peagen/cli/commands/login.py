@@ -10,7 +10,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.protocols import KEYS_UPLOAD
-from peagen.protocols.methods.keys import UploadParams
+from peagen.protocols.methods.keys import UploadParams, UploadResult
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -40,11 +40,12 @@ def login(
             KEYS_UPLOAD,
             params,
             timeout=10.0,
+            result_model=UploadResult,
         )
     except Exception as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
-    if reply.get("error"):
-        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
+    if reply.error:
+        typer.echo(f"Failed to upload key: {reply.error}", err=True)
         raise typer.Exit(1)
     typer.echo("Logged in and uploaded public key")

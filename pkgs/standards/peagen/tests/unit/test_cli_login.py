@@ -4,6 +4,7 @@ import pytest
 
 from peagen.cli import app
 import peagen.cli.commands.login as login_mod
+from peagen.protocols import Response, Error
 
 
 class DummyDriver:
@@ -17,9 +18,9 @@ class DummyDriver:
 def test_login_success(monkeypatch, tmp_path):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout):
+    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
         captured.update({"url": url, "method": method, "params": params})
-        return {}
+        return Response.ok(id="1", result=None)
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
     monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
@@ -41,7 +42,7 @@ def test_login_http_error(monkeypatch, tmp_path):
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
 
     def fake_rpc_post(*_a, **_k):
-        return {"error": "fail"}
+        return Response.fail(id="1", err=Error(code=-1, message="fail"))
 
     monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
 
@@ -77,7 +78,9 @@ def test_login_passphrase(monkeypatch, tmp_path):
             captured.update(self.called)
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", CaptureDriver)
-    monkeypatch.setattr(login_mod, "rpc_post", lambda *a, **k: {})
+    monkeypatch.setattr(
+        login_mod, "rpc_post", lambda *a, **k: Response.ok(id="1", result=None)
+    )
 
     runner = CliRunner()
     result = runner.invoke(

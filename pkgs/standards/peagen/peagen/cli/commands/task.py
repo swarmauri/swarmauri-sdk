@@ -9,14 +9,22 @@ import time
 
 import typer
 
-from peagen.protocols import TASK_GET
 from peagen.protocols import (
+    TASK_GET,
     TASK_PATCH,
     TASK_PAUSE,
     TASK_RESUME,
     TASK_CANCEL,
     TASK_RETRY,
     TASK_RETRY_FROM,
+)
+from peagen.protocols.methods.task import (
+    GetParams,
+    GetResult,
+    PatchParams,
+    PatchResult,
+    SimpleSelectorParams,
+    CountResult,
 )
 from peagen.cli.rpc_utils import rpc_post
 
@@ -36,19 +44,20 @@ def get(  # noqa: D401
 ):
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
-    def _rpc_call() -> dict:
+    def _rpc_call() -> GetResult:
         res = rpc_post(
             ctx.obj.get("gateway_url"),
             TASK_GET,
-            {"taskId": task_id},
+            GetParams(taskId=task_id).model_dump(),
+            result_model=GetResult,
         )
-        return res["result"]
+        return res.result  # type: ignore[return-value]
 
     while True:
         reply = _rpc_call()
-        typer.echo(json.dumps(reply, indent=2))
+        typer.echo(json.dumps(reply.model_dump(), indent=2))
 
-        if not watch or Status.is_terminal(reply["status"]):
+        if not watch or Status.is_terminal(reply.status):
             break
         time.sleep(interval)
 
@@ -65,18 +74,20 @@ def patch_task(
     res = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_PATCH,
-        {"taskId": task_id, "changes": payload},
+        PatchParams(taskId=task_id, changes=payload).model_dump(),
+        result_model=PatchResult,
     )
-    typer.echo(json.dumps(res["result"], indent=2))
+    typer.echo(json.dumps(res.result, indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
     res = rpc_post(
         ctx.obj.get("gateway_url"),
         method,
-        {"selector": selector},
+        SimpleSelectorParams(selector=selector).model_dump(),
+        result_model=CountResult,
     )
-    typer.echo(json.dumps(res["result"], indent=2))
+    typer.echo(json.dumps(res.result, indent=2))
 
 
 @remote_task_app.command("pause")

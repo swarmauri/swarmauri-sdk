@@ -16,6 +16,9 @@ from peagen.protocols.methods.keys import (
     UploadParams,
     DeleteParams,
     FetchParams,
+    UploadResult,
+    DeleteResult,
+    FetchResult,
 )
 
 
@@ -44,7 +47,13 @@ def upload(
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     params = UploadParams(public_key=pubkey).model_dump()
-    rpc_post(gateway_url, KEYS_UPLOAD, params, timeout=10.0)
+    rpc_post(
+        gateway_url,
+        KEYS_UPLOAD,
+        params,
+        timeout=10.0,
+        result_model=UploadResult,
+    )
     typer.echo("Uploaded public key")
 
 
@@ -56,7 +65,13 @@ def remove(
 ) -> None:
     """Remove a public key from the gateway."""
     params = DeleteParams(fingerprint=fingerprint).model_dump()
-    rpc_post(gateway_url, KEYS_DELETE, params, timeout=10.0)
+    rpc_post(
+        gateway_url,
+        KEYS_DELETE,
+        params,
+        timeout=10.0,
+        result_model=DeleteResult,
+    )
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -67,8 +82,14 @@ def fetch_server(
 ) -> None:
     """Fetch trusted public keys from the gateway."""
     params = FetchParams().model_dump()
-    res = rpc_post(gateway_url, KEYS_FETCH, params, timeout=10.0)
-    typer.echo(json.dumps(res.get("result", {}), indent=2))
+    res = rpc_post(
+        gateway_url,
+        KEYS_FETCH,
+        params,
+        timeout=10.0,
+        result_model=FetchResult,
+    )
+    typer.echo(json.dumps(res.result.model_dump() if res.result else {}, indent=2))
 
 
 @keys_app.command("list")
