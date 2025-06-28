@@ -840,6 +840,7 @@ async def task_patch(*, taskId: str, changes: dict) -> dict:
     """Compatibility wrapper for :func:`_task_patch_rpc`."""
     return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
 
+
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])
 async def health() -> dict:
