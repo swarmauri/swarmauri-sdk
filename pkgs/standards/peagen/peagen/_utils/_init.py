@@ -62,24 +62,21 @@ def _submit_task(
     task = TaskCreate(pool="default", payload={"action": "init", "args": args})
     from peagen.protocols.methods import TASK_SUBMIT
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
-            **task.model_dump(mode="json"),
-        },
-    }
-
     try:
-        import httpx
+        from peagen.protocols.methods.task import SubmitParams, SubmitResult
+        from peagen.cli.rpc_utils import rpc_post
 
-        resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        reply = rpc_post(
+            gateway_url,
+            TASK_SUBMIT,
+            SubmitParams(task=task).model_dump(),
+            timeout=10.0,
+            result_model=SubmitResult,
+        )
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error.message}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted {tag} → taskId={data['result']['taskId']}")
+        typer.echo(f"Submitted {tag} → taskId={reply.result.taskId}")
     except PATNotAllowedError:
         raise
     except Exception as exc:  # noqa: BLE001
