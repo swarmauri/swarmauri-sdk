@@ -48,11 +48,8 @@ from .. import Session, engine, Base
 
 
 def _parse_task_create(raw: dict) -> TaskCreate:
-    # Legacy support
-    if "dto" in raw and isinstance(raw["dto"], dict):
-        return TaskCreate.model_validate(raw["dto"])
     # Preferred: flattened KV pairs
-    return TaskCreate.model_validate(raw)
+    return 
 
 
 # --------------Basic Task Methods ---------------------------------
@@ -61,7 +58,8 @@ def _parse_task_create(raw: dict) -> TaskCreate:
 @dispatcher.method(TASK_SUBMIT)
 async def task_submit(**raw: t.Any) -> dict:
     """Persist *dto* and enqueue the task."""
-    dto = _parse_task_create(raw)
+    dto = TaskCreate.model_validate(raw)
+    
     await queue.sadd("pools", dto.pool)
 
     action = (dto.payload or {}).get("action")
