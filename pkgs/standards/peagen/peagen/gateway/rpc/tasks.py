@@ -18,11 +18,9 @@ from peagen.defaults import (
 )
 
 from .. import (
-    log,
-    rpc,
-    queue,
     READY_QUEUE,
     TASK_TTL,
+    _finalize_parent_tasks,
     _live_workers_by_pool,
     _load_task,
     _persist,
@@ -30,21 +28,27 @@ from .. import (
     _publish_task,
     _save_task,
     _select_tasks,
-    _finalize_parent_tasks,
+    log,
+    queue,
+    rpc,
 )
-from peagen.schemas import TaskCreate, TaskRead
+from peagen.errors import TaskNotFoundError
+from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
+
 @rpc.method(TASK_SUBMIT)
 async def task_submit(dto: TaskCreate) -> dict:
-    await queue.sadd("pools", pool)
+    """Persist *dto* and enqueue the task."""
 
-    action = (payload or {}).get("action")
+    await queue.sadd("pools", dto.pool)
+
+    action = (dto.payload or {}).get("action")
     handlers: set[str] = set()
-    for w in await _live_workers_by_pool(pool):
+    for w in await _live_workers_by_pool(dto.pool):
         raw = w.get("handlers", [])
         if isinstance(raw, str):
             try:
@@ -57,18 +61,20 @@ async def task_submit(dto: TaskCreate) -> dict:
             code=-32601, message="Method not found", data={"method": str(action)}
         )
 
-
-    if taskId and await _load_task(taskId):
+    task_id = dto.id
+    if task_id and await _load_task(task_id):
         new_id = str(uuid.uuid4())
-        log.warning("task id collision: %s → %s", taskId, new_id)
-        taskId = new_id
-
+        log.warning("task id collision: %s → %s", task_id, new_id)
+        task_id = new_id
 
     async with Session() as ses:
         # 1. create definition-of-task row
-        task_db = TaskModel(**dto.model_dump())          # ← ORM
+        payload = dto.model_dump()
+        if task_id:
+            payload["id"] = task_id
+        task_db = TaskModel(**payload)
         ses.add(task_db)
-        await ses.flush()                                # gets task_db.id
+        await ses.flush()  # gets task_db.id
 
         # 2. create first execution attempt
         run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
@@ -78,15 +84,12 @@ async def task_submit(dto: TaskCreate) -> dict:
     # 3. make the object that will travel over Redis / websockets
     task_rd = TaskRead.model_validate(task_db.__dict__)
 
-
     await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
     await _publish_queue_length(task_rd.pool)
     await _save_task(task_rd)
     await _publish_task(task_rd)
+    log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
     return {"taskId": str(task_rd.id)}
-
-    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
-    return {"taskId": task.id}
 
 
 @rpc.method(TASK_CANCEL)
