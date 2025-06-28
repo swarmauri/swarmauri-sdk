@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from github import Github
 
 from peagen.plugins import registry, discover_and_register_plugins
 from peagen.core.doe_core import _sha256
@@ -205,7 +206,6 @@ def init_repo(
     remotes: dict[str, str] | None = None,
 ) -> Dict[str, Any]:
     """Create a GitHub repository and optionally configure a local repo."""
-    from github import Github
     import subprocess
     import tempfile
 

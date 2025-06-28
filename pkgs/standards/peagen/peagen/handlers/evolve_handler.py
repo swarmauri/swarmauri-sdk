@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -103,11 +102,12 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, A
                 mut["uri"] = _resolve_path(uri)
 
         children.append(
-            TaskRead(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                status=Status.waiting,
-                payload={"action": "mutate", "args": job},
+            ensure_task(
+                {
+                    "pool": pool,
+                    "status": Status.waiting,
+                    "payload": {"action": "mutate", "args": job},
+                }
             )
         )
 
