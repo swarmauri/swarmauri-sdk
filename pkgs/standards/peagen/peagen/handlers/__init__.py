@@ -4,11 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any, Dict
-from datetime import datetime, timezone
-import uuid
-
-from peagen.orm.status import Status
-
 import uuid
 
 from peagen.orm.status import Status
@@ -41,7 +36,11 @@ def ensure_task(task: TaskRead | Dict[str, Any]) -> TaskRead:
     }
 
     merged = {**defaults, **task}
-    return TaskRead.model_validate(merged)
+    try:
+        return TaskRead.model_validate(merged)
+    except Exception:  # pragma: no cover - fallback for invalid input
+        merged["id"] = uuid.uuid4()
+        return TaskRead.model_validate(merged)
 
 
 __all__ = ["ensure_task"]
