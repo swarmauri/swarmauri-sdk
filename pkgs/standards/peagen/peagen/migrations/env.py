@@ -5,11 +5,17 @@ from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from sqlalchemy.ext.asyncio import create_async_engine
-from peagen.gateway.runtime_cfg import settings
+import os
 from peagen.orm import Base
 
-if settings.pg_host and settings.pg_db and settings.pg_user:
-    dsn = settings.apg_dsn
+pg_host = os.environ.get("PG_HOST")
+pg_port = os.environ.get("PG_PORT", "5432")
+pg_db = os.environ.get("PG_DB")
+pg_user = os.environ.get("PG_USER")
+pg_pass = os.environ.get("PG_PASS")
+
+if pg_host and pg_db and pg_user:
+    dsn = f"postgresql+asyncpg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
 else:
     dsn = "sqlite+aiosqlite:///./gateway.db"
 

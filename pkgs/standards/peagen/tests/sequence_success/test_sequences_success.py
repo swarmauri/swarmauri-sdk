@@ -1,11 +1,23 @@
 import re
 import subprocess
 from pathlib import Path
+import os
 
 import yaml
 import pytest
+import httpx
 
 EXAMPLES = Path(__file__).resolve().parent / "examples"
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+
+
+def _gateway_available(url: str) -> bool:
+    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}}
+    try:
+        response = httpx.post(url, json=envelope, timeout=5)
+    except Exception:
+        return False
+    return response.status_code == 200
 
 
 def _load_command_batches(path: Path, tmpdir: Path) -> list[list[list[str]]]:
@@ -43,6 +55,8 @@ def _load_command_batches(path: Path, tmpdir: Path) -> list[list[list[str]]]:
 @pytest.mark.sequence_success
 @pytest.mark.parametrize("example", sorted(EXAMPLES.glob("*.yaml")))
 def test_sequences_success(example: Path, tmp_path: Path) -> None:
+    if not _gateway_available(GATEWAY):
+        pytest.skip("gateway not reachable")
     for batch in _load_command_batches(example, tmp_path):
         task_id: str | None = None
         for cmd in batch:
