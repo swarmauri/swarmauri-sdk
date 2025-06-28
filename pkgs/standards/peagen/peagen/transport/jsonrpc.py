@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Dict
+from typing import Callable, Dict, get_type_hints
+
+from pydantic import BaseModel
 
 from peagen.protocols import Error
 
@@ -47,7 +49,17 @@ class RPCDispatcher:
 
         try:
             params = req.get("params") or {}
-            result = fn(**params)
+            sig = inspect.signature(fn)
+            bound_args = None
+            if len(sig.parameters) == 1:
+                param = next(iter(sig.parameters.values()))
+                hints = get_type_hints(fn)
+                ann = hints.get(param.name, param.annotation)
+                if inspect.isclass(ann) and issubclass(ann, BaseModel):
+                    bound_args = {param.name: ann(**params)}
+            if bound_args is None:
+                bound_args = params
+            result = fn(**bound_args)
             if inspect.isawaitable(result):
                 result = await result
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
