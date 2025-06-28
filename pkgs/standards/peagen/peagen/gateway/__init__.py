@@ -292,7 +292,10 @@ async def _save_task(task: TaskRead) -> None:
     Stores the canonical JSON blob plus the status for quick look-up.
     """
     key = _task_key(task.id)
-    blob = task.model_dump_json()
+    data = task.model_dump(mode="json")
+    extras = getattr(task, "__pydantic_extra__", None) or {}
+    data.update(extras)
+    blob = json.dumps(data)
 
     await queue.hset(key, mapping={"blob": blob, "status": task.status.value})
     await queue.expire(key, TASK_TTL)
@@ -331,7 +334,14 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
 
     try:
         log.info("persisting task %s", task.id)
-        orm_task = task if isinstance(task, TaskModel) else to_orm(task)
+        if isinstance(task, TaskModel):
+            orm_task = task
+        else:
+            cols = {c.name for c in TaskModel.__table__.columns}
+            data = {
+                k: v for k, v in task.model_dump(mode="python").items() if k in cols
+            }
+            orm_task = TaskModel(**data)
         if result_backend:
             await result_backend.store(TaskRunModel.from_task(orm_task))
         async with Session() as session:
@@ -408,8 +418,9 @@ async def _finalize_parent_tasks(child_id: str) -> None:
             continue
         parent = TaskRead.model_validate_json(data)
         children = []
-        if parent.result and isinstance(parent.result, dict):
-            children = parent.result.get("children") or []
+        result = getattr(parent, "result", None)
+        if result and isinstance(result, dict):
+            children = result.get("children") or []
         if child_id not in children:
             continue
         all_done = True

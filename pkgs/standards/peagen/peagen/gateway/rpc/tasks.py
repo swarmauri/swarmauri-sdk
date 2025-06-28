@@ -33,7 +33,8 @@ from .. import (
     queue,
 )
 from peagen.errors import TaskNotFoundError
-from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
+from peagen.schemas import TaskCreate, TaskUpdate
+from peagen.services.tasks import _to_schema
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
@@ -89,7 +90,7 @@ async def task_submit(dto: TaskCreate) -> dict:
         await ses.commit()
 
     # 3. make the object that will travel over Redis / websockets
-    task_rd = TaskRead.model_validate(task_db.__dict__)
+    task_rd = _to_schema(task_db)
 
     await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
     await _publish_queue_length(task_rd.pool)
@@ -166,7 +167,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
         raise TaskNotFoundError(taskId)
 
     for field, value in changes.items():
-        if field not in TaskUpdate.model_fields:
+        if field not in TaskUpdate.model_fields and field not in {"labels", "result"}:
             continue
         if field == "status":
             value = Status(value)

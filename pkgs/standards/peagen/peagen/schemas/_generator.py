@@ -4,7 +4,7 @@ import inspect
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import create_model
+from pydantic import ConfigDict, create_model
 
 from peagen.orm import __all__ as model_names
 from peagen.orm import base as base_module
@@ -40,13 +40,14 @@ for _name in model_names:
     id_type = _python_type(id_col)
 
     # CREATE: all required fields except 'date_created'
+    cfg = ConfigDict(extra="allow", from_attributes=True)
     create_fields = {
         c_name: (_python_type(c), ...)
         for c_name, c in columns.items()
         if c_name != "date_created"
     }
     root_name = _name[:-5] if _name.endswith("Model") else _name
-    create_cls = create_model(f"{root_name}Create", **create_fields)
+    create_cls = create_model(f"{root_name}Create", __config__=cfg, **create_fields)
 
     # UPDATE: all optional fields except 'id' and 'date_created'
     update_fields = {
@@ -54,7 +55,7 @@ for _name in model_names:
         for c_name, c in columns.items()
         if c_name not in ["id", "date_created"]
     }
-    update_cls = create_model(f"{root_name}Update", **update_fields)
+    update_cls = create_model(f"{root_name}Update", __config__=cfg, **update_fields)
 
     # READ: all required, including id and date_created
     read_fields = {"id": (id_type, ...)}
@@ -62,13 +63,13 @@ for _name in model_names:
         read_fields[c_name] = (_python_type(c), ...)
     if "date_created" not in read_fields and "date_created" in columns:
         read_fields["date_created"] = (datetime, ...)
-    read_cls = create_model(f"{root_name}Read", **read_fields)
+    read_cls = create_model(f"{root_name}Read", __config__=cfg, **read_fields)
 
     # CHILD: id only
-    child_cls = create_model(f"{root_name}Child", id=(id_type, ...))
+    child_cls = create_model(f"{root_name}Child", __config__=cfg, id=(id_type, ...))
 
     # DELETE: id only
-    delete_cls = create_model(f"{root_name}Delete", id=(id_type, ...))
+    delete_cls = create_model(f"{root_name}Delete", __config__=cfg, id=(id_type, ...))
 
     # Register in global scope and __all__
     globals()[create_cls.__name__] = create_cls

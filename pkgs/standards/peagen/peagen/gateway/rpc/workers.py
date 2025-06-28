@@ -119,10 +119,11 @@ async def work_finished(taskId: str, status: str, result: dict | None = None) ->
     t.status = Status(status)
     t.result = result
     now = time.time()
-    if status == "running" and t.started_at is None:
+    started = getattr(t, "started_at", None)
+    if status == "running" and started is None:
         t.started_at = now
     elif Status.is_terminal(status):
-        if t.started_at is None:
+        if started is None:
             t.started_at = now
         t.finished_at = now
 
