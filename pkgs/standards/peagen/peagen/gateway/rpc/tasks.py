@@ -17,6 +17,7 @@ from peagen.protocols import (
     TASK_GET,
 )
 from peagen.defaults import GUARD_SET
+from peagen.protocols.methods.task import CountResult
 
 from .. import (
     READY_QUEUE,
@@ -192,7 +193,7 @@ async def task_cancel(selector: str) -> dict:
 
     count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count).model_dump()
 
 
 @dispatcher.method(TASK_PAUSE)
@@ -202,7 +203,7 @@ async def task_pause(selector: str) -> dict:
 
     count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count).model_dump()
 
 
 @dispatcher.method(TASK_RESUME)
@@ -212,7 +213,7 @@ async def task_resume(selector: str) -> dict:
 
     count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count).model_dump()
 
 
 @dispatcher.method(TASK_RETRY)
@@ -222,7 +223,7 @@ async def task_retry(selector: str) -> dict:
 
     count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count).model_dump()
 
 
 @dispatcher.method(TASK_RETRY_FROM)
@@ -234,7 +235,7 @@ async def task_retry_from(selector: str) -> dict:
         "retry_from", queue, targets, READY_QUEUE, TASK_TTL
     )
     log.info("retry_from %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count).model_dump()
 
 
 # --------Guard Rail Support --------------------------------------
