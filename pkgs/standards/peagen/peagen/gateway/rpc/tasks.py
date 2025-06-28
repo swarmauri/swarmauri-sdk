@@ -28,6 +28,7 @@ from .. import (
     _publish_task,
     _save_task,
     _select_tasks,
+    _ensure_db,
     dispatcher,
     log,
     queue,
@@ -37,7 +38,8 @@ from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
-from sqlalchemy.ext.asyncio import AsyncSession as Session
+import sqlalchemy as sa
+from .. import Session
 
 
 @dispatcher.method(TASK_SUBMIT)
@@ -67,6 +69,8 @@ async def task_submit(dto: TaskCreate) -> dict:
         log.warning("task id collision: %s → %s", task_id, new_id)
         task_id = new_id
 
+    await _ensure_db()
+
     async with Session() as ses:
         # 1. create definition-of-task row
         payload = dto.model_dump()
@@ -74,7 +78,15 @@ async def task_submit(dto: TaskCreate) -> dict:
             payload["id"] = task_id
         task_db = TaskModel(**payload)
         ses.add(task_db)
-        await ses.flush()  # gets task_db.id
+        try:
+            await ses.flush()  # gets task_db.id
+        except sa.exc.OperationalError as exc:
+            if "no such table" in str(exc).lower():
+                await ses.rollback()
+                await _ensure_db()
+                await ses.flush()
+            else:
+                raise
 
         # 2. create first execution attempt
         run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
@@ -82,7 +94,7 @@ async def task_submit(dto: TaskCreate) -> dict:
         await ses.commit()
 
     # 3. make the object that will travel over Redis / websockets
-    task_rd = TaskRead.model_validate(task_db.__dict__)
+    task_rd = TaskRead.model_validate(task_db, from_attributes=True)
 
     await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
     await _publish_queue_length(task_rd.pool)
@@ -185,8 +197,9 @@ async def task_get(taskId: str) -> dict:
         raise RPCException(code=-32602, message="Invalid task id")
     if t := await _load_task(taskId):
         data = t.model_dump()
-        if t.duration is not None:
-            data["duration"] = t.duration
+        duration = getattr(t, "duration", None)
+        if duration is not None:
+            data["duration"] = duration
         return data
     try:
         from ..core.task_core import get_task_result

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from pydantic import create_model
+from pydantic.config import ConfigDict
 
 from peagen.orm import __all__ as model_names
 from peagen.orm import base as base_module
@@ -62,7 +63,11 @@ for _name in model_names:
         read_fields[c_name] = (_python_type(c), ...)
     if "date_created" not in read_fields and "date_created" in columns:
         read_fields["date_created"] = (datetime, ...)
-    read_cls = create_model(f"{root_name}Read", **read_fields)
+    read_cls = create_model(
+        f"{root_name}Read",
+        **read_fields,
+        __config__=ConfigDict(extra="allow", from_attributes=True),
+    )
 
     # CHILD: id only
     child_cls = create_model(f"{root_name}Child", id=(id_type, ...))

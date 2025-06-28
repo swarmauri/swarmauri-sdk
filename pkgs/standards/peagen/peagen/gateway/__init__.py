@@ -58,6 +58,24 @@ _db = reload(_db)
 engine = _db.engine
 Session = _db.Session
 
+# Track whether the SQLite schema has been initialized. Unit tests import
+# gateway functions directly without running the normal startup hooks, so
+# tables may not exist. Lazily creating the schema avoids test failures when
+# the database file is empty.
+_DB_INITIALIZED = False
+
+
+async def _ensure_db() -> None:
+    """Create all ORM tables if they do not already exist."""
+
+    global _DB_INITIALIZED
+    if _DB_INITIALIZED:
+        return
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    _DB_INITIALIZED = True
+
+
 TASK_KEY = defaults.CONFIG["task_key"]
 
 # ─────────────────────────── logging ────────────────────────────
@@ -391,10 +409,11 @@ async def _flush_state() -> None:
         await queue.client.aclose()
 
 
-async def _publish_task(task: TaskCreate) -> None:
+async def _publish_task(task: TaskCreate | TaskRead) -> None:
     data = task.model_dump()
-    if task.duration is not None:
-        data["duration"] = task.duration
+    duration = getattr(task, "duration", None)
+    if duration is not None:
+        data["duration"] = duration
     await _publish_event("task.update", data)
 
 
@@ -407,8 +426,9 @@ async def _finalize_parent_tasks(child_id: str) -> None:
             continue
         parent = TaskRead.model_validate_json(data)
         children = []
-        if parent.result and isinstance(parent.result, dict):
-            children = parent.result.get("children") or []
+        result = getattr(parent, "result", None)
+        if result and isinstance(result, dict):
+            children = result.get("children") or []
         if child_id not in children:
             continue
         all_done = True
@@ -436,8 +456,9 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
                 continue
             t = TaskRead.model_validate_json(data)
             children = []
-            if t.result and isinstance(t.result, dict):
-                children = t.result.get("children") or []
+            result = getattr(t, "result", None)
+            if result and isinstance(result, dict):
+                children = result.get("children") or []
             for cid in children:
                 await _finalize_parent_tasks(cid)
         await asyncio.sleep(interval)
@@ -715,13 +736,12 @@ async def task_submit(
         last_modified=datetime.utcnow(),
     )
     if taskId is not None:
-        task.id = taskId
+        task.id = uuid.UUID(taskId)
 
     for field, value in extras.items():
         if field in TaskCreate.model_fields:
             setattr(task, field, value)
 
-    task.id = str(task.id)
     return await _task_submit_rpc(task)
 
 
