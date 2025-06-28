@@ -15,7 +15,7 @@ import typer
 from peagen.handlers.migrate_handler import migrate_handler
 
 from peagen.schemas import TaskCreate
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -46,15 +46,15 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         pool="default",
         payload={"action": "migrate", "args": args},
     )
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params={
             "pool": task.pool,
             "payload": task.payload,
             "taskId": task.id,
         },
-    }
+    ).model_dump()
     resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
     resp.raise_for_status()
     data = resp.json()

@@ -61,14 +61,15 @@ def _submit_task(
         raise PATNotAllowedError()
     task = TaskCreate(pool="default", payload={"action": "init", "args": args})
     from peagen.protocols.methods import TASK_SUBMIT
+    from peagen.protocols import Request as RPCEnvelope
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params={
             **task.model_dump(mode="json"),
         },
-    }
+    ).model_dump()
 
     try:
         import httpx

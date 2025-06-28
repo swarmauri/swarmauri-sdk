@@ -27,7 +27,13 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.protocols import Request as RPCEnvelope, parse_request, _registry
+from peagen.protocols import (
+    Request as RPCEnvelope,
+    Response as RPCResponseModel,
+    Error,
+    parse_request,
+    _registry,
+)
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -153,15 +159,8 @@ async def _reject(
         async with Session() as session:
             await mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
-    return {
-        "jsonrpc": "2.0",
-        "error": {
-            "code": code,
-            "message": message,
-            "data": {"method": str(method)},
-        },
-        "id": req_id,
-    }
+    err = Error(code=code, message=message, data={"method": str(method)})
+    return Response.fail(id=req_id, err=err).model_dump()
 
 
 async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
@@ -494,20 +493,16 @@ async def rpc_endpoint(request: Request):
     KNOWN_IPS.add(ip)
     if ip in BANNED_IPS:
         log.warning("blocked request from banned ip %s", ip)
-        return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32098,"message":"Banned"},"id":null}',
-            status_code=403,
-            media_type="application/json",
-        )
+        err = Error(code=-32098, message="Banned")
+        resp = RPCResponseModel.fail(id=None, err=err).model_dump_json()
+        return Response(content=resp, status_code=403, media_type="application/json")
     try:
         raw = await request.json()
     except JSONDecodeError:
         log.warning("parse error from %s", request.client.host)
-        return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
-            status_code=400,
-            media_type="application/json",
-        )
+        err = Error(code=-32700, message="Parse error")
+        resp = RPCResponseModel.fail(id=None, err=err).model_dump_json()
+        return Response(content=resp, status_code=400, media_type="application/json")
 
     def _validate(obj: dict) -> dict:
         if obj.get("id") is None:

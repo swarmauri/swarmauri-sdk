@@ -15,7 +15,7 @@ from functools import partial
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
@@ -102,11 +102,11 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    ).model_dump()
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
     if "error" in reply:
@@ -122,12 +122,11 @@ def submit(
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "Task.get",
-                "params": {"taskId": task.id},
-            }
+            req = RPCEnvelope(
+                id=str(uuid.uuid4()),
+                method="Task.get",
+                params={"taskId": task.id},
+            ).model_dump()
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
             return res["result"]
 

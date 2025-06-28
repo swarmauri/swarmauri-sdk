@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -11,7 +12,12 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
-from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
+from peagen.protocols import (
+    Request as RPCEnvelope,
+    KEYS_UPLOAD,
+    KEYS_DELETE,
+    KEYS_FETCH,
+)
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -38,11 +44,11 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": KEYS_UPLOAD,
-        "params": {"public_key": pubkey},
-    }
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=KEYS_UPLOAD,
+        params={"public_key": pubkey},
+    ).model_dump()
     httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo("Uploaded public key")
 
@@ -54,11 +60,11 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": KEYS_DELETE,
-        "params": {"fingerprint": fingerprint},
-    }
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=KEYS_DELETE,
+        params={"fingerprint": fingerprint},
+    ).model_dump()
     httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
@@ -69,7 +75,9 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": KEYS_FETCH}
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()), method=KEYS_FETCH, params={}
+    ).model_dump()
     res = httpx.post(gateway_url, json=envelope, timeout=10.0)
     typer.echo(json.dumps(res.json().get("result", {}), indent=2))
 

@@ -6,7 +6,6 @@ import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.protocols.error_codes import Code as ErrorCode
 
-from peagen.protocols import TASK_SUBMIT
 from peagen.defaults import (
     TASK_CANCEL,
     TASK_PAUSE,

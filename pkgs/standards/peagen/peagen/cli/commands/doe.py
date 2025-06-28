@@ -18,7 +18,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.schemas import TaskCreate
-from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT, TASK_GET
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -145,11 +145,11 @@ def submit_gen(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    ).model_dump()
 
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
@@ -295,11 +295,11 @@ def submit_process(  # noqa: PLR0913
     args.update({"repo": repo, "ref": ref})
     task = _make_task(args, action="doe_process")
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    ).model_dump()
 
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()
@@ -316,12 +316,11 @@ def submit_process(  # noqa: PLR0913
     if watch:
 
         def _rpc_call(tid: str) -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": tid},
-            }
+            req = RPCEnvelope(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params={"taskId": tid},
+            ).model_dump()
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
             return res["result"]
 

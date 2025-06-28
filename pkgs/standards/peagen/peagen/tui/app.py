@@ -40,6 +40,7 @@ from peagen.tui.components import (
     TemplatesView,
     WorkersView,
 )
+from peagen.protocols import Request as RPCEnvelope
 from peagen.tui.fileops import download_remote, upload_remote
 from peagen.tui.ws_client import TaskStreamClient
 
@@ -157,23 +158,21 @@ class RemoteBackend:
             params["limit"] = int(limit)
         if offset:
             params["offset"] = int(offset)
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "1",
-            "method": "Pool.listTasks",
-            "params": params,
-        }
+        payload = RPCEnvelope(
+            id="1",
+            method="Pool.listTasks",
+            params=params,
+        ).model_dump()
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
         self.tasks = resp.json().get("result", [])
 
     async def fetch_workers(self) -> None:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "2",
-            "method": "Worker.list",
-            "params": {},
-        }
+        payload = RPCEnvelope(
+            id="2",
+            method="Worker.list",
+            params={},
+        ).model_dump()
         resp = await self.http.post(self.rpc_url, json=payload)
         resp.raise_for_status()
         raw_workers = resp.json().get("result", [])

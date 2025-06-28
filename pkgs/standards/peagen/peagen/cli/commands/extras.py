@@ -8,10 +8,11 @@ from typing import Any, Dict, Optional
 
 import typer
 from functools import partial
+import uuid
 
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
@@ -81,11 +82,11 @@ def submit_extras(
         args.update({"repo": repo, "ref": ref})
     task = _build_task(args, ctx.obj.get("pool", "default"))
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    ).model_dump()
 
     try:
         import httpx

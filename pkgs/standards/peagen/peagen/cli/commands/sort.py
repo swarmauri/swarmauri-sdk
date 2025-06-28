@@ -9,7 +9,8 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT
+import uuid
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")
@@ -137,11 +138,11 @@ def submit_sort(
     }
 
     # 2) Build Task.submit envelope using Task fields
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task,
-    }
+    envelope = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task,
+    ).model_dump()
 
     # 3) POST to gateway
     try:

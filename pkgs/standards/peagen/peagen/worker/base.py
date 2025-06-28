@@ -14,8 +14,8 @@ import httpx
 from fastapi import Body, FastAPI, Request, HTTPException
 from json.decoder import JSONDecodeError
 
-from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse
-from peagen.protocols import Request as RPCEnvelope
+from peagen.transport import RPCDispatcher, RPCRequest, RPCResponse as TransportResponse
+from peagen.protocols import Error, Request as RPCEnvelope, Response as RPCResponse
 from peagen.defaults import (
     WORK_START,
     WORK_CANCEL,
@@ -138,7 +138,7 @@ class WorkerBase:
         # ─── MOUNT /rpc endpoint for JSON-RPC ────────────────────────
         @self.app.post(
             self.LISTEN_PATH,
-            response_model=RPCResponse,
+            response_model=TransportResponse,
             response_model_exclude_none=True,
             summary="JSON-RPC 2.0 endpoint",
         )
@@ -155,11 +155,8 @@ class WorkerBase:
                 resp = await self.rpc.dispatch(payload)
             except JSONDecodeError as e:
                 # Malformed JSON-RPC
-                return {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": str(e)},
-                    "id": body.id,
-                }
+                err = Error(code=-32700, message=str(e))
+                return RPCResponse.fail(id=body.id, err=err).model_dump()
             if resp.get("error"):
                 self.log.warning("%s error → %s", body.method, resp["error"])
             else:

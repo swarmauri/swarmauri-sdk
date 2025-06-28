@@ -23,7 +23,7 @@ import typer
 from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.protocols import TASK_SUBMIT
+from peagen.protocols import Request as RPCEnvelope, TASK_SUBMIT
 from peagen.defaults import TASK_GET
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
@@ -188,11 +188,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    rpc_req = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": task.model_dump(mode="json"),
-    }
+    rpc_req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_SUBMIT,
+        params=task.model_dump(mode="json"),
+    ).model_dump()
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(ctx.obj.get("gateway_url"), json=rpc_req)
         resp.raise_for_status()
@@ -212,12 +212,11 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if watch:
 
         def _rpc_call() -> dict:
-            req = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": TASK_GET,
-                "params": {"taskId": task.id},
-            }
+            req = RPCEnvelope(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params={"taskId": task.id},
+            ).model_dump()
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
             return res["result"]
 

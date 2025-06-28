@@ -21,6 +21,7 @@ from peagen.defaults import (
 )
 
 from peagen.orm.status import Status
+from peagen.protocols import Request as RPCEnvelope
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
@@ -37,12 +38,11 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> dict:
-        req = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": TASK_GET,
-            "params": {"taskId": task_id},
-        }
+        req = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method=TASK_GET,
+            params={"taskId": task_id},
+        ).model_dump()
         res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
         return res["result"]
 
@@ -64,23 +64,21 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": TASK_PATCH,
-        "params": {"taskId": task_id, "changes": payload},
-    }
+    req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=TASK_PATCH,
+        params={"taskId": task_id, "changes": payload},
+    ).model_dump()
     res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": method,
-        "params": {"selector": selector},
-    }
+    req = RPCEnvelope(
+        id=str(uuid.uuid4()),
+        method=method,
+        params={"selector": selector},
+    ).model_dump()
     res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
     typer.echo(json.dumps(res["result"], indent=2))
 
