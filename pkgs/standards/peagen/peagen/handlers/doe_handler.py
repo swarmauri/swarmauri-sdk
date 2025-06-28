@@ -54,7 +54,11 @@ async def doe_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]
         evaluate_runs=args.get("evaluate_runs", False),
     )
 
-    if vcs and not result.get("dry_run"):
+    dry_run = result.get("dry_run")
+    if dry_run is None:
+        dry_run = args.get("dry_run", False)
+
+    if vcs and not dry_run:
         repo_root = Path(vcs.repo.working_tree_dir)
         rel_paths: List[str] = [
             os.path.relpath(p, repo_root) for p in result.get("outputs", [])
