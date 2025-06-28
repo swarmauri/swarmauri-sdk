@@ -29,6 +29,7 @@ remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spe
 def _make_task(args: dict, action: str = "doe") -> TaskCreate:
     return TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={"action": action, "args": args},
     )
 

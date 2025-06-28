@@ -24,6 +24,7 @@ remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 def _build_task(args: dict, pool: str = "default") -> TaskCreate:
     return TaskCreate(
         pool=pool,
+        tenant_id=uuid.uuid4(),
         payload={"action": "evolve", "args": args},
     )
 

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -36,6 +37,7 @@ remote_eval_app = typer.Typer(
 def _build_task(args: dict, pool: str = "default") -> TaskCreate:
     return TaskCreate(
         pool=pool,
+        tenant_id=uuid.uuid4(),
         payload={"action": "eval", "args": args},
     )
 

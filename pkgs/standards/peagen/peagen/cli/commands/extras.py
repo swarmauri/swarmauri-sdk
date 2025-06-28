@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -18,7 +19,11 @@ remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
 def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
-    return TaskCreate(pool=pool, payload={"action": "extras", "args": args})
+    return TaskCreate(
+        pool=pool,
+        tenant_id=uuid.uuid4(),
+        payload={"action": "extras", "args": args},
+    )
 
 
 @local_extras_app.command("extras")

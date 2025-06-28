@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from pathlib import Path
 from typing import List, Optional
 
@@ -25,6 +26,7 @@ def _build_task(args: dict, pool: str = "default") -> TaskCreate:
     """Construct a ``TaskCreate`` with the fetch action embedded in the payload."""
     return TaskCreate(
         pool=pool,
+        tenant_id=uuid.uuid4(),
         payload={"action": "fetch", "args": args},
     )
 

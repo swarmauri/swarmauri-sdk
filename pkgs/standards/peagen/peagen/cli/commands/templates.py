@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import uuid
 from typing import Any, Dict, Optional
 
 import httpx
@@ -26,13 +27,21 @@ remote_template_sets_app = typer.Typer(
 
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
+    task = TaskCreate(
+        pool="default",
+        tenant_id=uuid.uuid4(),
+        payload={"action": "templates", "args": args},
+    )
     return asyncio.run(templates_handler(task))
 
 
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     """Submit a templates task via JSON-RPC."""
-    task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
+    task = TaskCreate(
+        pool="default",
+        tenant_id=uuid.uuid4(),
+        payload={"action": "templates", "args": args},
+    )
     envelope = {
         "jsonrpc": "2.0",
         "method": TASK_SUBMIT,

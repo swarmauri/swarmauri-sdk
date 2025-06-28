@@ -1,6 +1,7 @@
 # peagen/commands/validate.py
 
 import asyncio
+import uuid
 from typing import Any, Dict, Optional
 
 import typer
@@ -41,6 +42,7 @@ def run_validate(
         args.update({"repo": repo, "ref": ref})
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={"action": "validate", "args": args},
     )
 
@@ -86,6 +88,7 @@ def submit_validate(
         args.update({"repo": repo, "ref": ref})
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={"action": "validate", "args": args},
     )
 

@@ -1,5 +1,6 @@
 import asyncio
 import textwrap
+import uuid
 from pathlib import Path
 from typing import Any, Dict
 import re
@@ -29,6 +30,7 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     discover_and_register_plugins()
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={"action": "init", "args": args},
     )
     return asyncio.run(init_handler(task))
@@ -40,7 +42,11 @@ def _submit_task(
     """Send *args* to a JSON-RPC worker."""
     if not allow_pat and ("pat" in args or _contains_pat(args)):
         raise PATNotAllowedError()
-    task = TaskCreate(pool="default", payload={"action": "init", "args": args})
+    task = TaskCreate(
+        pool="default",
+        tenant_id=uuid.uuid4(),
+        payload={"action": "init", "args": args},
+    )
     envelope = {
         "jsonrpc": "2.0",
         "method": "Task.submit",

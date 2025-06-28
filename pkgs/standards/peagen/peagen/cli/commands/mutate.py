@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -23,6 +24,7 @@ remote_mutate_app = typer.Typer(help="Run the mutate workflow")
 def _build_task(args: dict, pool: str = "default") -> TaskCreate:
     return TaskCreate(
         pool=pool,
+        tenant_id=uuid.uuid4(),
         payload={"action": "mutate", "args": args},
     )
 

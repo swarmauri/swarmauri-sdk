@@ -64,7 +64,11 @@ def _collect_args(  # noqa: C901 – straight-through mapper
 
 def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
     """Construct a ``TaskCreate`` with the process payload."""
-    return TaskCreate(pool=pool, payload={"action": "process", "args": args})
+    return TaskCreate(
+        pool=pool,
+        tenant_id=uuid.uuid4(),
+        payload={"action": "process", "args": args},
+    )
 
 
 # ────────────────────────── local run ────────────────────────────────────────

@@ -5,17 +5,24 @@ from __future__ import annotations
 import httpx
 from typing import Any
 
-from peagen.schemas import TaskCreate
+import uuid
+from pydantic import BaseModel, Field
 from peagen.defaults import TASK_SUBMIT
 
 
-def build_task(action: str, args: dict[str, Any], pool: str = "default") -> TaskCreate:
-    """Construct a :class:`TaskCreate` from CLI-style arguments."""
+class SubmitTask(BaseModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    pool: str
+    payload: dict[str, Any]
 
-    return TaskCreate(pool=pool, payload={"action": action, "args": args})
+
+def build_task(action: str, args: dict[str, Any], pool: str = "default") -> SubmitTask:
+    """Construct a task payload for submission."""
+
+    return SubmitTask(pool=pool, payload={"action": action, "args": args})
 
 
-def submit_task(gateway_url: str, task: TaskCreate) -> dict:
+def submit_task(gateway_url: str, task: SubmitTask) -> dict:
     """Submit *task* to the gateway via JSON-RPC and return the reply."""
 
     req = {

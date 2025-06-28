@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -53,6 +54,7 @@ def run_sort(  # ← now receives the Typer context
         args.update({"repo": repo, "ref": ref})
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={
             "action": "sort",
             "args": args,
@@ -128,6 +130,7 @@ def submit_sort(
         args.update({"repo": repo, "ref": ref})
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={"action": "sort", "args": args},
     )
 

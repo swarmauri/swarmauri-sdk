@@ -43,6 +43,7 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
         args["message"] = message
     task = TaskCreate(
         id=str(uuid.uuid4()),
+        tenant_id=uuid.uuid4(),
         pool="default",
         payload={"action": "migrate", "args": args},
     )
@@ -69,6 +70,7 @@ def upgrade() -> None:
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={
             "action": "migrate",
             "args": {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
@@ -99,6 +101,7 @@ def revision(
     )
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={
             "action": "migrate",
             "args": {
@@ -124,6 +127,7 @@ def downgrade() -> None:
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
     task = TaskCreate(
         pool="default",
+        tenant_id=uuid.uuid4(),
         payload={
             "action": "migrate",
             "args": {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
