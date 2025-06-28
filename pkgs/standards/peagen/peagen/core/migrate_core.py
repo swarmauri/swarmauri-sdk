@@ -80,14 +80,14 @@ def _run_alembic(cmd: List[str], stream: bool) -> Dict[str, Any]:
 
 
 def alembic_upgrade(cfg: Path = ALEMBIC_CFG, *, stream: bool = False) -> Dict[str, Any]:
-    """Apply migrations up to HEAD using *cfg*."""
+    """Apply all outstanding migrations using *cfg*."""
     return _run_alembic(
         [
             "alembic",
             "-c",
             str(cfg),
             "upgrade",
-            "head",
+            "heads",
         ],
         stream,
     )

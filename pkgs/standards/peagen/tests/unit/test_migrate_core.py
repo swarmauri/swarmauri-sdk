@@ -23,7 +23,7 @@ def test_alembic_upgrade_invokes_subprocess(monkeypatch, tmp_path: Path):
     result = migrate_core.alembic_upgrade(cfg)
 
     assert result == {"ok": True, "stdout": "stdout", "stderr": ""}
-    assert calls["cmd"] == ["alembic", "-c", str(cfg), "upgrade", "head"]
+    assert calls["cmd"] == ["alembic", "-c", str(cfg), "upgrade", "heads"]
 
 
 @pytest.mark.unit
@@ -92,4 +92,4 @@ def test_alembic_upgrade_stream(monkeypatch, tmp_path: Path):
     result = migrate_core.alembic_upgrade(cfg, stream=True)
 
     assert result == {"ok": True, "stdout": "out\n", "stderr": "err\n"}
-    assert calls["cmd"] == ["alembic", "-c", str(cfg), "upgrade", "head"]
+    assert calls["cmd"] == ["alembic", "-c", str(cfg), "upgrade", "heads"]
