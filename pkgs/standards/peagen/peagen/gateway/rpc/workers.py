@@ -5,17 +5,17 @@ import time
 import httpx
 
 from .. import (
-    _upsert_worker,
     WORKER_KEY,
     WORKER_TTL,
-    log,
-    queue,
-    rpc,
+    _finalize_parent_tasks,
     _load_task,
     _persist,
     _publish_task,
     _save_task,
-    _finalize_parent_tasks,
+    _upsert_worker,
+    dispatcher,
+    log,
+    queue,
 )
 from ..orm.status import Status
 from peagen.transport.jsonrpc import RPCException
@@ -27,7 +27,7 @@ from peagen.defaults import (
 )
 
 
-@rpc.method(WORKER_REGISTER)
+@dispatcher.method(WORKER_REGISTER)
 async def worker_register(
     workerId: str,
     pool: str,
@@ -64,7 +64,7 @@ async def worker_register(
     return {"ok": True}
 
 
-@rpc.method(WORKER_HEARTBEAT)
+@dispatcher.method(WORKER_HEARTBEAT)
 async def worker_heartbeat(
     workerId: str,
     metrics: dict,
@@ -89,7 +89,7 @@ async def worker_heartbeat(
     return {"ok": True}
 
 
-@rpc.method(WORKER_LIST)
+@dispatcher.method(WORKER_LIST)
 async def worker_list(pool: str | None = None) -> list[dict]:
     """Return active workers, optionally filtered by *pool*."""
 
@@ -108,7 +108,7 @@ async def worker_list(pool: str | None = None) -> list[dict]:
     return workers
 
 
-@rpc.method(WORK_FINISHED)
+@dispatcher.method(WORK_FINISHED)
 async def work_finished(taskId: str, status: str, result: dict | None = None) -> dict:
     t = await _load_task(taskId)
     if not t:

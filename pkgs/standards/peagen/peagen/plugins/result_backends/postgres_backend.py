@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from peagen.orm import TaskRun
+from peagen.orm import TaskRunModel
 from .base import ResultBackendBase
 
 Session = None
@@ -23,7 +23,7 @@ class PostgresResultBackend(ResultBackendBase):
     def __init__(self, dsn: str | None = None, **_: object) -> None:
         self.dsn = dsn  # unused but kept for future extension
 
-    async def store(self, task_run: TaskRun) -> None:
+    async def store(self, task_run: TaskRunModel) -> None:
         _ensure_deps()
         async with Session() as session:
             await upsert_task(session, task_run)

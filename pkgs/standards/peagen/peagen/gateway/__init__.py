@@ -25,6 +25,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
+from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
@@ -36,15 +37,7 @@ from importlib import reload
 from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import (
-    ensure_status_enum,
-    upsert_secret,
-    fetch_secret,
-    delete_secret,
-    record_unknown_handler,
-    fetch_banned_ips,
-    mark_ip_banned,
-)
+from peagen.gateway import db_helpers
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
@@ -57,13 +50,6 @@ from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 
-from .rpc import (  # noqa: F401
-    keys as _rpc_keys,
-    pool as _rpc_pool,
-    secrets as _rpc_secrets,
-    tasks as _rpc_tasks,
-    workers as _rpc_workers,
-)
 
 _db = reload(_db)
 engine = _db.engine
@@ -88,6 +74,7 @@ sched_log = Logger(
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
+
 # ─────────────────────────── FastAPI / state ────────────────────
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
@@ -100,7 +87,7 @@ READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
-rpc = RPCDispatcher()
+dispatcher = RPCDispatcher()
 try:
     queue_plugin = pm.get("queues")
 except KeyError:
@@ -123,6 +110,13 @@ WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
+# expose secret management RPC handlers for test usage
+from .rpc.secrets import (  # noqa: F401,E402
+    secrets_add,
+    secrets_delete,
+    secrets_get,
+)
+
 # ─────────────────────────── IP tracking ─────────────────────────
 
 KNOWN_IPS: set[str] = set()
@@ -131,7 +125,7 @@ BANNED_IPS: set[str] = set()
 
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
-    return method in rpc._methods
+    return method in dispatcher._methods
 
 
 async def _reject(
@@ -145,11 +139,11 @@ async def _reject(
     """Return an error response and track abuse."""
 
     async with Session() as session:
-        count = await record_unknown_handler(session, ip)
+        count = await db_helpers.record_unknown_handler(session, ip)
     if count >= BAN_THRESHOLD:
         BANNED_IPS.add(ip)
         async with Session() as session:
-            await mark_ip_banned(session, ip)
+            await db_helpers.mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
     return {
         "jsonrpc": "2.0",
@@ -503,7 +497,7 @@ async def rpc_endpoint(request: Request):
     pre = await _prevalidate(payload, ip)
     if pre is not None:
         return pre
-    resp = await rpc.dispatch(payload)
+    resp = await dispatcher.dispatch(payload)
 
     async def _check_unknown(r: dict, method: str) -> None:
         code = r.get("error", {}).get("code")
@@ -511,11 +505,11 @@ async def rpc_endpoint(request: Request):
             if code == -32601:
                 r["error"]["data"] = {"method": method}
             async with Session() as session:
-                count = await record_unknown_handler(session, ip)
+                count = await db_helpers.record_unknown_handler(session, ip)
             if count >= BAN_THRESHOLD:
                 BANNED_IPS.add(ip)
                 async with Session() as session:
-                    await mark_ip_banned(session, ip)
+                    await db_helpers.mark_ip_banned(session, ip)
                 log.warning("banned ip %s", ip)
 
     status = 200
@@ -653,14 +647,14 @@ async def add_secret(
     owner_fpr: str = "unknown",
 ) -> dict:
     async with Session() as session:
-        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await db_helpers.upsert_secret(session, tenant_id, owner_fpr, name, secret)
         await session.commit()
     return {"stored": name}
 
 
 async def get_secret(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
-        row = await fetch_secret(session, tenant_id, name)
+        row = await db_helpers.fetch_secret(session, tenant_id, name)
     if not row:
         return {"error": "not found"}
     return {"secret": row.cipher}
@@ -668,7 +662,7 @@ async def get_secret(name: str, tenant_id: str = "default") -> dict:
 
 async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
-        await delete_secret(session, tenant_id, name)
+        await db_helpers.delete_secret(session, tenant_id, name)
         await session.commit()
     return {"removed": name}
 
@@ -697,7 +691,7 @@ async def _on_start():
     log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
-        await ensure_status_enum(engine)
+        await db_helpers.ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
@@ -705,8 +699,11 @@ async def _on_start():
         log.info("SQLite metadata initialized")
 
     async with Session() as session:
-        banned = await fetch_banned_ips(session)
+        banned = await db_helpers.fetch_banned_ips(session)
     BANNED_IPS.update(banned)
+
+    # Load RPC handlers now that dependencies are ready
+    from .rpc import keys, pool, secrets, tasks, workers  # noqa: F401
 
     log.info("database migrations complete")
     asyncio.create_task(scheduler())

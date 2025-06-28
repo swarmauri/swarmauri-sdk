@@ -28,9 +28,9 @@ from .. import (
     _publish_task,
     _save_task,
     _select_tasks,
+    dispatcher,
     log,
     queue,
-    rpc,
 )
 from peagen.errors import TaskNotFoundError
 from peagen.schemas import TaskCreate, TaskRead, TaskUpdate
@@ -40,7 +40,7 @@ from peagen.orm.status import Status
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 
-@rpc.method(TASK_SUBMIT)
+@dispatcher.method(TASK_SUBMIT)
 async def task_submit(dto: TaskCreate) -> dict:
     """Persist *dto* and enqueue the task."""
 
@@ -92,7 +92,7 @@ async def task_submit(dto: TaskCreate) -> dict:
     return {"taskId": str(task_rd.id)}
 
 
-@rpc.method(TASK_CANCEL)
+@dispatcher.method(TASK_CANCEL)
 async def task_cancel(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -102,7 +102,7 @@ async def task_cancel(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method(TASK_PAUSE)
+@dispatcher.method(TASK_PAUSE)
 async def task_pause(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -112,7 +112,7 @@ async def task_pause(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method(TASK_RESUME)
+@dispatcher.method(TASK_RESUME)
 async def task_resume(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -122,7 +122,7 @@ async def task_resume(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method(TASK_RETRY)
+@dispatcher.method(TASK_RETRY)
 async def task_retry(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -132,7 +132,7 @@ async def task_retry(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method(TASK_RETRY_FROM)
+@dispatcher.method(TASK_RETRY_FROM)
 async def task_retry_from(selector: str) -> dict:
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -144,14 +144,14 @@ async def task_retry_from(selector: str) -> dict:
     return {"count": count}
 
 
-@rpc.method(GUARD_SET)
+@dispatcher.method(GUARD_SET)
 async def guard_set(label: str, spec: dict) -> dict:
     await queue.hset(f"guard:{label}", mapping=spec)
     log.info("guard set %s", label)
     return {"ok": True}
 
 
-@rpc.method(TASK_PATCH)
+@dispatcher.method(TASK_PATCH)
 async def task_patch(taskId: str, changes: dict) -> dict:
     """Update persisted metadata for an existing task."""
     task = await _load_task(taskId)
@@ -177,7 +177,7 @@ async def task_patch(taskId: str, changes: dict) -> dict:
     return task.model_dump()
 
 
-@rpc.method(TASK_GET)
+@dispatcher.method(TASK_GET)
 async def task_get(taskId: str) -> dict:
     try:
         uuid.UUID(taskId)
