@@ -739,8 +739,7 @@ async def health() -> dict:
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
-@app.on_event("startup")
-async def _on_start():
+async def _on_start() -> None:
     log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
@@ -773,13 +772,16 @@ async def _on_start():
     log.info("gateway startup complete")
 
 
-@app.on_event("shutdown")
 async def _on_shutdown() -> None:
     log.info("gateway shutdown initiated")
     await _flush_state()
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+app.add_event_handler("startup", _on_start)
+app.add_event_handler("shutdown", _on_shutdown)
 
 
 # expose RPC handlers for test modules

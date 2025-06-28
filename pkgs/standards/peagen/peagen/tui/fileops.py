@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
-from peagen.plugins.storage_adapters import make_adapter_for_uri
+from peagen.plugins.git_filters import make_filter_for_uri
 
 
 def download_remote(uri: str) -> tuple[Path, object, str]:
@@ -13,7 +13,7 @@ def download_remote(uri: str) -> tuple[Path, object, str]:
 
     root = uri.rsplit("/", 1)[0] + "/"
     key = uri.rsplit("/", 1)[1]
-    adapter = make_adapter_for_uri(root)
+    adapter = make_filter_for_uri(root)
     data = adapter.download(key)
     tmp = Path(tempfile.mkdtemp()) / Path(urlparse(uri).path).name
     with open(tmp, "wb") as fh:

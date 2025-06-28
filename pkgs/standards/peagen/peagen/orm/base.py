@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import DateTime, func
 
