@@ -15,9 +15,9 @@ Key Features
 from __future__ import annotations
 
 import uuid
-from sqlalchemy import JSON, Text, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, Text, ForeignKey, String, UniqueConstraint, Enum
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, synonym
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - imports for type hints
@@ -26,6 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover - imports for type hints
 
 from ..repo.git_reference import GitReferenceModel
 from ..base import BaseModel
+from .status import Status
 
 
 class TaskModel(BaseModel):
@@ -55,8 +56,18 @@ class TaskModel(BaseModel):
         nullable=True,
     )
 
-    parameters: Mapped[dict] = mapped_column(
-        JSON, nullable=False, default=dict, doc="Arbitrary JSON parameters"
+    pool: Mapped[str] = mapped_column(
+        String, nullable=False, default="default", doc="Target worker pool"
+    )
+
+    payload: Mapped[dict] = mapped_column(
+        JSON, nullable=False, default=dict, doc="Arbitrary task payload"
+    )
+
+    status: Mapped[Status] = mapped_column(
+        Enum(Status, name="task_status_enum"),
+        nullable=False,
+        default=Status.queued,
     )
 
     note: Mapped[str | None] = mapped_column(
@@ -66,7 +77,7 @@ class TaskModel(BaseModel):
     spec_hash: Mapped[str] = mapped_column(
         String(length=64),
         nullable=False,
-        doc="Deterministic hash of git reference + parameters",
+        doc="Deterministic hash of git reference + payload",
     )
 
     __table_args__ = (
@@ -88,6 +99,9 @@ class TaskModel(BaseModel):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+
+    # Backwards compatibility for callers using 'parameters'
+    parameters = synonym("payload")
 
     # ─────────────────────── Magic ───────────────────────────
     def __repr__(self) -> str:  # pragma: no cover

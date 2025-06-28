@@ -30,7 +30,7 @@ def test_task_roundtrip_json(monkeypatch):
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
         last_modified=datetime.datetime.now(datetime.timezone.utc),
-        parameters={"foo": "bar"},
+        payload={"foo": "bar"},
         note="demo",
     )
     model = to_orm(create)

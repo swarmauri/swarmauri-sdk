@@ -338,7 +338,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                     orm_task.id,
                     TaskUpdate(
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -349,7 +349,7 @@ async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
                         id=orm_task.id,
                         tenant_id=orm_task.tenant_id,
                         git_reference_id=orm_task.git_reference_id,
-                        parameters=orm_task.parameters,
+                        payload=orm_task.payload,
                         note=orm_task.note or "",
                     ),
                 )
@@ -745,23 +745,6 @@ async def _on_shutdown() -> None:
 
 
 # expose RPC handlers for test modules
-from .rpc.workers import (  # noqa: F401,E402
-    worker_register,
-    worker_heartbeat,
-    worker_list,
-    work_finished,
-)
-from .rpc.tasks import (  # noqa: F401,E402
-    task_submit,
-    task_cancel,
-    task_pause,
-    task_resume,
-    task_retry,
-    task_retry_from,
-    guard_set,
-    task_patch,
-    task_get,
-)
 from .rpc.pool import (  # noqa: F401,E402
     pool_create,
     pool_join,
