@@ -1,19 +1,5 @@
-"""peagen.defaults.error_codes
-----------------------------
-Application-specific JSON-RPC error codes.
-"""
+"""Backward compatible re-export of the canonical error codes."""
 
-from enum import IntEnum
-
-
-class ErrorCode(IntEnum):
-    """Enumerates Peagen-specific JSON-RPC error codes."""
-
-    SECRET_NOT_FOUND = -32004
-    TASK_NOT_FOUND = -32001
-    INVALID_REQUEST = -32600
-    METHOD_NOT_FOUND = -32601
-    INVALID_PARAMS = -32602
-
+from peagen.protocols.error_codes import Code as ErrorCode
 
 __all__ = ["ErrorCode"]
