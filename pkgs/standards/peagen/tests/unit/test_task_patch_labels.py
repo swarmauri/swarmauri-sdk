@@ -77,7 +77,7 @@ async def test_task_patch_updates_labels(monkeypatch):
     )
 
     result = await task_submit(dto)
-    tid = result["taskId"]
+    tid = result["task_id"]
 
     await task_patch(taskId=tid, changes={"labels": ["patched"]})
     patched = await task_get(tid)

@@ -8,6 +8,7 @@ import httpx
 
 from peagen.schemas import TaskRead
 from peagen.orm.status import Status
+from peagen.protocols.methods import TASK_SUBMIT
 from . import ensure_task
 
 
@@ -28,7 +29,7 @@ async def fan_out(
         for child in children:
             req = {
                 "jsonrpc": "2.0",
-                "method": "Task.submit",
+                "method": TASK_SUBMIT,
                 "params": {
                     "taskId": child.id,
                     "pool": child.pool,

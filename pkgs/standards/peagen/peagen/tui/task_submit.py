@@ -6,7 +6,7 @@ import httpx
 from typing import Any
 
 from peagen.schemas import TaskCreate
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task
 
 
