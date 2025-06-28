@@ -23,7 +23,6 @@ def _gateway_available(url: str) -> bool:
 def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
-    pytest.skip("requires credentials for remote gateway")
 
     user1_home = tmp_path / "user1"
     user2_home = tmp_path / "user2"
