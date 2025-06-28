@@ -27,6 +27,7 @@ from peagen.protocols.methods.task import (
     GetResult,
 )
 from peagen.defaults import GUARD_SET
+from peagen.protocols.methods.task import CountResult
 
 from .. import (
     READY_QUEUE,
