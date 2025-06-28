@@ -5,6 +5,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from peagen.protocols import Request
 
 pytestmark = pytest.mark.smoke
 
@@ -14,7 +15,7 @@ REPO = "testproject"
 
 def _gateway_available(url: str) -> bool:
     """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
+    envelope = Request(id=0, method="Worker.list", params={}).model_dump()
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:

@@ -1,6 +1,7 @@
 import httpx
 from typer.testing import CliRunner
 import pytest
+from peagen.protocols.methods import KEYS_UPLOAD
 
 from peagen.cli import app
 import peagen.cli.commands.login as login_mod
@@ -33,6 +34,7 @@ def test_login_success(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert "Logged in and uploaded public key" in result.output
     assert captured["url"] == "http://gw/rpc"
+    assert captured["method"] == KEYS_UPLOAD
     assert captured["params"]["public_key"] == "PUB"
 
 

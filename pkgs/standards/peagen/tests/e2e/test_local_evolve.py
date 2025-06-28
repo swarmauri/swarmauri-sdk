@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 
 import httpx
+from peagen.protocols import Request
 import pytest
 
 pytestmark = pytest.mark.e2e
@@ -14,7 +15,7 @@ GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
 
 
 def _gateway_available(url: str) -> bool:
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
+    envelope = Request(id=0, method="Worker.list", params={}).model_dump()
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:

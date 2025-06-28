@@ -6,13 +6,14 @@ import os
 import yaml
 import pytest
 import httpx
+from peagen.protocols import Request
 
 EXAMPLES = Path(__file__).resolve().parent / "examples"
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 
 def _gateway_available(url: str) -> bool:
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}}
+    envelope = Request(id=0, method="Worker.list", params={}).model_dump()
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:
