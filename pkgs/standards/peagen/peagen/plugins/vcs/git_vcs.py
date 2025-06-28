@@ -6,7 +6,11 @@ import os
 import json
 import tempfile
 import time
+import uuid
 import httpx
+from pydantic import TypeAdapter
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.secrets import GetParams, GetResult, SECRETS_GET
 from github import Github
 
 from git import Repo
@@ -23,6 +27,20 @@ from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 
 from .constants import PEAGEN_REFS_PREFIX
+
+
+def _rpc_post(
+    url: str, method: str, params: dict, *, timeout: float = 10.0, result_model=None
+):
+    """Send a JSON-RPC request and return a typed ``Response``."""
+    envelope = Request(id=str(uuid.uuid4()), method=method, params=params)
+    resp = httpx.post(url, json=envelope.model_dump(), timeout=timeout)
+    resp.raise_for_status()
+    if result_model is not None:
+        adapter = TypeAdapter(Response[result_model])  # type: ignore[index]
+    else:
+        adapter = TypeAdapter(Response[dict])
+    return adapter.validate_python(resp.json())
 
 
 class GitVCS:
@@ -207,14 +225,15 @@ class GitVCS:
         gateway_url: str = "http://localhost:8000/rpc",
     ) -> None:
         """Push ``ref`` using an encrypted deploy key secret."""
-        envelope = {
-            "jsonrpc": "2.0",
-            "method": "Secrets.get",
-            "params": {"name": secret_name},
-        }
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-        res.raise_for_status()
-        cipher = res.json()["result"]["secret"].encode()
+        params = GetParams(name=secret_name).model_dump()
+        res = _rpc_post(
+            gateway_url,
+            SECRETS_GET,
+            params,
+            timeout=10.0,
+            result_model=GetResult,
+        )
+        cipher = res.result.secret.encode()
 
         pm = PluginManager(resolve_cfg())
         drv = pm.get("secrets_drivers")
