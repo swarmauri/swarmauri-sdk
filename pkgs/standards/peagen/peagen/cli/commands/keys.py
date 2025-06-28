@@ -12,6 +12,11 @@ import typer
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
 from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
+from peagen.protocols.methods.keys import (
+    UploadParams,
+    DeleteParams,
+    FetchParams,
+)
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -38,7 +43,8 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    rpc_post(gateway_url, KEYS_UPLOAD, {"public_key": pubkey}, timeout=10.0)
+    params = UploadParams(public_key=pubkey).model_dump()
+    rpc_post(gateway_url, KEYS_UPLOAD, params, timeout=10.0)
     typer.echo("Uploaded public key")
 
 
@@ -49,12 +55,8 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    rpc_post(
-        gateway_url,
-        KEYS_DELETE,
-        {"fingerprint": fingerprint},
-        timeout=10.0,
-    )
+    params = DeleteParams(fingerprint=fingerprint).model_dump()
+    rpc_post(gateway_url, KEYS_DELETE, params, timeout=10.0)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -64,7 +66,8 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    res = rpc_post(gateway_url, KEYS_FETCH, {}, timeout=10.0)
+    params = FetchParams().model_dump()
+    res = rpc_post(gateway_url, KEYS_FETCH, params, timeout=10.0)
     typer.echo(json.dumps(res.get("result", {}), indent=2))
 
 

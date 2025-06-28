@@ -10,6 +10,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.protocols import KEYS_UPLOAD
+from peagen.protocols.methods.keys import UploadParams
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -33,10 +34,11 @@ def login(
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     try:
+        params = UploadParams(public_key=pubkey).model_dump()
         reply = rpc_post(
             gateway_url,
             KEYS_UPLOAD,
-            {"public_key": pubkey},
+            params,
             timeout=10.0,
         )
     except Exception as e:  # pragma: no cover - network errors
