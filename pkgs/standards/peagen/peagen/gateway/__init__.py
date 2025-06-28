@@ -700,29 +700,43 @@ from .rpc.tasks import (  # noqa: F401,E402
 
 
 async def task_submit(
-    *, pool: str, payload: dict, taskId: str | None = None, **extras: Any
+    task: TaskCreate | None = None,
+    *,
+    pool: str | None = None,
+    payload: dict | None = None,
+    taskId: str | None = None,
+    **extras: Any,
 ) -> dict:
-    """Compatibility wrapper for :func:`_task_submit_rpc`."""
+    """Compatibility wrapper for :func:`_task_submit_rpc`.
 
-    task = TaskCreate(
-        id=uuid.uuid4(),
-        tenant_id=uuid.uuid4(),
-        git_reference_id=uuid.uuid4(),
-        pool=pool,
-        payload=payload,
-        status=Status.queued,
-        note="",
-        spec_hash="dummy",
-        last_modified=datetime.utcnow(),
-    )
-    if taskId is not None:
-        task.id = taskId
+    Accepts either a preconstructed :class:`TaskCreate` instance as the first
+    positional argument or keyword arguments to build one.
+    """
 
-    for field, value in extras.items():
-        if field in TaskCreate.model_fields:
-            setattr(task, field, value)
+    if task is None:
+        if pool is None or payload is None:
+            raise TypeError("task or pool/payload required")
 
-    task.id = str(task.id)
+        task = TaskCreate(
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            git_reference_id=uuid.uuid4(),
+            pool=pool,
+            payload=payload,
+            status=Status.queued,
+            note="",
+            spec_hash="dummy",
+            last_modified=datetime.utcnow(),
+        )
+        if taskId is not None:
+            task.id = taskId
+
+        for field, value in extras.items():
+            if field in TaskCreate.model_fields:
+                setattr(task, field, value)
+
+        task.id = str(task.id)
+
     return await _task_submit_rpc(task)
 
 
