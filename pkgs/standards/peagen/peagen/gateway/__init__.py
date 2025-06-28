@@ -26,8 +26,13 @@ import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.protocols import Request as RPCEnvelope, parse_request, _registry
+from peagen.transport import RPCDispatcher
+from peagen.protocols import (
+    Request as RPCRequest,
+    Request as RPCEnvelope,
+    parse_request,
+    _registry,
+)
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
@@ -117,6 +122,7 @@ from peagen.protocols.methods.secrets import (  # noqa: E402
     AddParams,
     DeleteParams,
     GetParams as SecretsGetParams,
+
 )
 
 # ─────────────────────────── Key/Secret store ───────────────────
@@ -145,7 +151,7 @@ async def secrets_add(
 
 
 async def secrets_get(
-    params: SecretsGetParams | None = None,
+    params: SecretGetParams | None = None,
     **kwargs,
 ) -> dict:
     if params is not None:
