@@ -17,11 +17,12 @@ from typing import Any, Dict, Optional
 
 import httpx
 import typer
+from functools import partial
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -33,11 +34,7 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict, pool: str = "default") -> TaskCreate:
-    return TaskCreate(
-        pool=pool,
-        payload={"action": "eval", "args": args},
-    )
+_build_task = partial(_generic_build_task, "eval")
 
 
 # ───────────────────────── local run ───────────────────────────────────────

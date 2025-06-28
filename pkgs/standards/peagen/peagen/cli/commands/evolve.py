@@ -5,35 +5,24 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 import httpx
 import typer
+from functools import partial
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.defaults import TASK_SUBMIT
-from peagen.schemas import TaskCreate
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict, pool: str = "default") -> TaskCreate:
-    return TaskCreate(
-        id=uuid.uuid4(),
-        tenant_id=uuid.uuid4(),
-        git_reference_id=uuid.uuid4(),
-        pool=pool,
-        payload={"action": "evolve", "args": args},
-        status=Status.queued,
-        note="",
-        spec_hash="dummy",
-        last_modified=datetime.utcnow(),
-    )
+_build_task = partial(_generic_build_task, "evolve")
 
 
 @local_evolve_app.command("evolve")

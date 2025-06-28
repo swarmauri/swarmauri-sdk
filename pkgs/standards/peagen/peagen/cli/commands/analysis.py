@@ -7,21 +7,18 @@ from typing import List
 
 import httpx
 import typer
+from functools import partial
 
 from peagen.handlers.analysis_handler import analysis_handler
-from peagen.schemas import TaskCreate
 from peagen.defaults import TASK_SUBMIT
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
 
-def _build_task(args: dict, pool: str = "default") -> TaskCreate:
-    return TaskCreate(
-        pool=pool,
-        payload={"action": "analysis", "args": args},
-    )
+_build_task = partial(_generic_build_task, "analysis")
 
 
 @local_analysis_app.command("analysis")

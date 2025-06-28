@@ -7,18 +7,18 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
+from functools import partial
 
 from peagen.handlers.extras_handler import extras_handler
-from peagen.schemas import TaskCreate
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.defaults import TASK_SUBMIT
+from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
-    return TaskCreate(pool=pool, payload={"action": "extras", "args": args})
+_build_task = partial(_generic_build_task, "extras")
 
 
 @local_extras_app.command("extras")
