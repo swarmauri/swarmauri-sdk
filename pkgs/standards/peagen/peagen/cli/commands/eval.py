@@ -141,5 +141,5 @@ def submit(  # noqa: PLR0913
         raise typer.Exit(1)
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    if reply.result:
+        typer.echo(json.dumps(reply.result.model_dump(), indent=2))
