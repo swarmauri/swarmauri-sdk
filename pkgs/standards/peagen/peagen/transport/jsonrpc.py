@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Callable, Dict
 
-from peagen.transport.schemas import RPCError
+from peagen.protocols import Error
 
 
 class RPCException(Exception):
@@ -16,9 +16,7 @@ class RPCException(Exception):
         self.data = data
 
     def as_error(self) -> dict:
-        return RPCError(
-            code=self.code, message=self.message, data=self.data
-        ).model_dump()
+        return Error(code=self.code, message=self.message, data=self.data).model_dump()
 
 
 class RPCDispatcher:

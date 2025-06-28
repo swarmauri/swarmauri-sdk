@@ -216,3 +216,9 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
   "migrations/**",
 ]
 
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict_optional = true
+warn_unused_configs = true
+
