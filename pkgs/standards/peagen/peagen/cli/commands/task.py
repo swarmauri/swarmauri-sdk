@@ -10,8 +10,17 @@ import uuid
 
 import httpx
 import typer
+from peagen.defaults import (
+    TASK_GET,
+    TASK_PATCH,
+    TASK_PAUSE,
+    TASK_RESUME,
+    TASK_CANCEL,
+    TASK_RETRY,
+    TASK_RETRY_FROM,
+)
 
-from peagen.models import Status
+from peagen.orm.status import Status
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
@@ -31,7 +40,7 @@ def get(  # noqa: D401
         req = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
-            "method": "Task.get",
+            "method": TASK_GET,
             "params": {"taskId": task_id},
         }
         res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
@@ -58,7 +67,7 @@ def patch_task(
     req = {
         "jsonrpc": "2.0",
         "id": str(uuid.uuid4()),
-        "method": "Task.patch",
+        "method": TASK_PATCH,
         "params": {"taskId": task_id, "changes": payload},
     }
     res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()
@@ -82,7 +91,7 @@ def pause(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Pause one task or all tasks matching a label."""
-    _simple_call(ctx, "Task.pause", selector)
+    _simple_call(ctx, TASK_PAUSE, selector)
 
 
 @remote_task_app.command("resume")
@@ -91,7 +100,7 @@ def resume(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Resume a paused task or label set."""
-    _simple_call(ctx, "Task.resume", selector)
+    _simple_call(ctx, TASK_RESUME, selector)
 
 
 @remote_task_app.command("cancel")
@@ -100,7 +109,7 @@ def cancel(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Cancel a task or label set."""
-    _simple_call(ctx, "Task.cancel", selector)
+    _simple_call(ctx, TASK_CANCEL, selector)
 
 
 @remote_task_app.command("retry")
@@ -109,7 +118,7 @@ def retry(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Retry a task or label set."""
-    _simple_call(ctx, "Task.retry", selector)
+    _simple_call(ctx, TASK_RETRY, selector)
 
 
 @remote_task_app.command("retry-from")
@@ -118,4 +127,4 @@ def retry_from(
     selector: str = typer.Argument(..., help="Task ID or label selector"),
 ) -> None:
     """Retry a task and its descendants."""
-    _simple_call(ctx, "Task.retry_from", selector)
+    _simple_call(ctx, TASK_RETRY_FROM, selector)

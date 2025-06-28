@@ -10,14 +10,16 @@ from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
 )
-from peagen.models import Task
+from peagen.schemas import TaskRead
+from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 import yaml
 
 
-async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+async def doe_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 
     cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")
@@ -52,7 +54,11 @@ async def doe_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         evaluate_runs=args.get("evaluate_runs", False),
     )
 
-    if vcs and not result.get("dry_run"):
+    dry_run = result.get("dry_run")
+    if dry_run is None:
+        dry_run = args.get("dry_run", False)
+
+    if vcs and not dry_run:
         repo_root = Path(vcs.repo.working_tree_dir)
         rel_paths: List[str] = [
             os.path.relpath(p, repo_root) for p in result.get("outputs", [])

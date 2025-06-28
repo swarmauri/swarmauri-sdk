@@ -17,19 +17,30 @@ from pathlib import Path
 from typing import List, Optional
 
 
-from peagen.plugins.storage_adapters import make_adapter_for_uri  # deprecated
-from peagen.plugins.vcs import GitVCS
+import os
+
+from peagen.plugins.git_filters import make_filter_for_uri
+from peagen.core.mirror_core import ensure_repo, open_repo
 from peagen.errors import WorkspaceNotFoundError
 
 
 # ─────────────────────────── low-level helpers ────────────────────────────
 def _materialise_workspace(uri: str, dest: Path) -> None:
     """Copy or clone ``uri`` into ``dest``."""
+    if uri.startswith("gh://"):
+        url = f"https://github.com/{uri[5:]}.git"
+        token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+        if token:
+            url = url.replace("https://", f"https://{token}@")
+        vcs = ensure_repo(dest, remote_url=url)
+        vcs.fetch("HEAD", checkout=True)
+        return
+
     if uri.startswith("git+"):
         url_ref = uri[4:]
         url, _, ref = url_ref.partition("@")
         ref = ref or "HEAD"
-        vcs = GitVCS.ensure_repo(dest, remote_url=url)
+        vcs = ensure_repo(dest, remote_url=url)
         try:
             vcs.fetch(ref, checkout=True)
         except Exception:
@@ -37,16 +48,18 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
         return
 
     if "://" in uri:
-        adapter = make_adapter_for_uri(uri)
-        prefix = getattr(adapter, "_prefix", "")
-        adapter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
+        git_filter = make_filter_for_uri(uri)
+        prefix = getattr(git_filter, "_prefix", "")
+        git_filter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
         return
 
     path = Path(uri)
     if not path.exists():
         raise WorkspaceNotFoundError(uri)
     if path.is_dir():
-        shutil.copytree(path, dest, dirs_exist_ok=True)
+        if dest.exists():
+            shutil.rmtree(dest)
+        shutil.copytree(path, dest)
     else:
         raise ValueError(f"Unsupported workspace URI: {uri}")
 
@@ -64,15 +77,24 @@ def fetch_single(
     Returns a dictionary containing the workspace path, the fetched commit SHA
     when applicable, and whether the repository was updated during the fetch.
     """
-    if repo:
-        workspace_uri = f"git+{repo}@{ref}"
+    if repo is not None:
+        if "://" in repo:
+            workspace_uri = f"git+{repo}@{ref}"
+        elif Path(repo).exists():
+            workspace_uri = repo
+        else:
+            workspace_uri = f"gh://{repo}"
+    elif (
+        workspace_uri and workspace_uri.startswith("gh://") and "@" not in workspace_uri
+    ):
+        workspace_uri += f"@{ref}"
     if workspace_uri is None:
         raise ValueError("workspace_uri or repo required")
 
     old_sha = None
     if (dest_root / ".git").exists():
         try:
-            old_sha = GitVCS.open(dest_root).repo.head.commit.hexsha
+            old_sha = open_repo(dest_root).repo.head.commit.hexsha
         except Exception:  # pragma: no cover - repo may be empty
             pass
 
@@ -82,7 +104,7 @@ def fetch_single(
     updated = True
     if (dest_root / ".git").exists():
         try:
-            vcs = GitVCS.open(dest_root)
+            vcs = open_repo(dest_root)
             new_sha, updated = vcs.repo.head.commit.hexsha, True
             if old_sha is not None:
                 updated = old_sha != new_sha
@@ -115,7 +137,10 @@ def fetch_many(
 
     workspace_uris = workspace_uris or []
     if repo:
-        workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
+        if "://" not in repo:
+            workspace_uris = [f"gh://{repo}@{ref}"] + workspace_uris
+        else:
+            workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
 
     results = [fetch_single(uri, dest_root=workspace) for uri in workspace_uris]
 

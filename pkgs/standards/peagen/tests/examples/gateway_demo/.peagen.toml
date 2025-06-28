@@ -12,6 +12,16 @@ default_backend = "local_fs"
 root_dir = "./task_runs"
 
 [vcs]
-provider = "git"
-provider_params = { path = "." }
+
 default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"

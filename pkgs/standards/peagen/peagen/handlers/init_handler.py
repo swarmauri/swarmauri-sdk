@@ -3,7 +3,7 @@
 
 Asynchronous entry-point for initialisation tasks.
 
-The handler accepts either a plain dictionary or a :class:`peagen.models.Task`
+The handler accepts either a plain dictionary or a :class:`peagen.schemas.TaskRead`
 and delegates to :mod:`peagen.core.init_core`.
 """
 
@@ -13,12 +13,14 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.models import Task
+from peagen.schemas import TaskRead
+from . import ensure_task
 
 
-async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def init_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
     """Dispatch to the correct init function based on ``kind``."""
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     kind = args.get("kind")
     if not kind:
@@ -34,7 +36,7 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             with_doe=args.get("with_doe", False),
             with_eval_stub=args.get("with_eval_stub", False),
             force=args.get("force", False),
-            git_remote=args.get("git_remote"),
+            git_remotes=args.get("git_remotes"),
             filter_uri=args.get("filter_uri"),
             add_filter_config=args.get("add_filter_config", False),
         )
@@ -69,6 +71,14 @@ async def init_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
             pat=args.get("pat"),
             description=args.get("description", ""),
             deploy_key=Path(args["deploy_key"]) if args.get("deploy_key") else None,
+            path=Path(args["path"]) if args.get("path") else None,
+            remotes=args.get("remotes"),
+        )
+
+    if kind == "repo-config":
+        return init_core.configure_repo(
+            path=path,
+            remotes=args.get("remotes", {}),
         )
 
     raise ValueError(f"Unknown init kind '{kind}'")

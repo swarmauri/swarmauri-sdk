@@ -2,6 +2,9 @@
 
 This guide explains how to extend Peagen and how to propose major changes via Peagen Improvement Proposals (PEA-IPs).
 
+All plugin implementations must be accessed via ``PluginManager``. Do not import
+modules from ``peagen.plugins`` directly in production code.
+
 ## Template-Sets
 
 - Place new template files under `peagen/templates/<set_name>`.

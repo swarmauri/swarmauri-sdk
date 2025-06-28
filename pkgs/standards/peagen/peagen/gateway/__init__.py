@@ -14,9 +14,11 @@ import logging
 from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
+from datetime import datetime
 import json
 import httpx
 import time
+from typing import Any
 from json.decoder import JSONDecodeError
 
 
@@ -25,8 +27,12 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.transport.jsonrpc import RPCException
-from peagen.models import Task, Status, Base, TaskRun
+from peagen.transport.jsonrpc import RPCException as RPCException
+from peagen.orm import Base
+from peagen.orm.status import Status
+from pydantic import ValidationError
+from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
+from peagen.orm import TaskModel, TaskRunModel
 
 from peagen.gateway.ws_server import router as ws_router
 
@@ -34,27 +40,20 @@ from importlib import reload
 from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway.db_helpers import (
-    ensure_status_enum,
-    upsert_secret,
-    fetch_secret,
-    delete_secret,
-    record_unknown_handler,
-    fetch_banned_ips,
-    mark_ip_banned,
-)
+from peagen.gateway import db_helpers
+from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
     MigrationFailureError,
     NoWorkerAvailableError,
-    TaskNotFoundError,
 )
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
 from peagen.defaults.error_codes import ErrorCode
 from peagen.core import migrate_core
-from peagen.core.task_core import get_task_result
+from peagen.services import create_task, get_task, update_task
+
 
 _db = reload(_db)
 engine = _db.engine
@@ -79,6 +78,7 @@ sched_log = Logger(
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
+
 # ─────────────────────────── FastAPI / state ────────────────────
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
@@ -91,7 +91,7 @@ READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
-rpc = RPCDispatcher()
+dispatcher = RPCDispatcher()
 try:
     queue_plugin = pm.get("queues")
 except KeyError:
@@ -114,6 +114,15 @@ WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
+# expose secret management RPC handlers for test usage
+# expose secret management RPC handlers for test usage
+from .rpc.secrets import (  # noqa: F401,E402
+    secrets_add,
+    secrets_delete,
+    secrets_get,
+)
+
+
 # ─────────────────────────── IP tracking ─────────────────────────
 
 KNOWN_IPS: set[str] = set()
@@ -122,8 +131,7 @@ BANNED_IPS: set[str] = set()
 
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
-
-    return method in rpc._methods
+    return method in dispatcher._methods
 
 
 async def _reject(
@@ -261,28 +269,51 @@ def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
 
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
+
+
+def to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    return TaskModel(**data.model_dump())
+
+
+def to_schema(row: TaskModel) -> TaskRead:
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    return TaskRead.from_orm(row)
+
+
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 
-async def _save_task(task: Task) -> None:
+async def _save_task(task: TaskRead) -> None:
     """
     Upsert a task into its Redis hash and refresh TTL atomically.
     Stores the canonical JSON blob plus the status for quick look-up.
     """
     key = _task_key(task.id)
-    blob = task.model_dump_json()
+    data = task.model_dump(mode="json")
+    extras = getattr(task, "__pydantic_extra__", None) or {}
+    data.update(extras)
+    blob = json.dumps(data)
 
     await queue.hset(key, mapping={"blob": blob, "status": task.status.value})
     await queue.expire(key, TASK_TTL)
 
 
-async def _load_task(tid: str) -> Task | None:
+async def _load_task(tid: str) -> TaskRead | None:
     data = await queue.hget(_task_key(tid), "blob")
-    return Task.model_validate_json(data) if data else None
+    if not data:
+        return None
+    try:
+        return TaskRead.model_validate_json(data)
+    except ValidationError:
+        obj = json.loads(data)
+        return TaskRead.model_construct(**obj)
 
 
-async def _select_tasks(selector: str) -> list[Task]:
+async def _select_tasks(selector: str) -> list[TaskRead]:
     """Return tasks matching *selector*.
 
     A selector may be a task-id or ``label:<name>``.
@@ -294,7 +325,7 @@ async def _select_tasks(selector: str) -> list[Task]:
             data = await queue.hget(key, "blob")
             if not data:
                 continue
-            t = Task.model_validate_json(data)
+            t = TaskRead.model_validate_json(data)
             if label in t.labels:
                 tasks.append(t)
         return tasks
@@ -305,10 +336,44 @@ async def _select_tasks(selector: str) -> list[Task]:
 # ──────────────────────   Results Backend ────────────────────────
 
 
-async def _persist(task: Task) -> None:
+async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
+    """Persist a task to the results backend."""
+
     try:
         log.info("persisting task %s", task.id)
-        await result_backend.store(TaskRun.from_task(task))
+        if isinstance(task, TaskModel):
+            orm_task = task
+        else:
+            cols = {c.name for c in TaskModel.__table__.columns}
+            data = {
+                k: v for k, v in task.model_dump(mode="python").items() if k in cols
+            }
+            orm_task = TaskModel(**data)
+        if result_backend:
+            await result_backend.store(TaskRunModel.from_task(orm_task))
+        async with Session() as session:
+            existing = await get_task(session, orm_task.id)
+            if existing:
+                await update_task(
+                    session,
+                    orm_task.id,
+                    TaskUpdate(
+                        git_reference_id=orm_task.git_reference_id,
+                        payload=orm_task.payload,
+                        note=orm_task.note or "",
+                    ),
+                )
+            else:
+                await create_task(
+                    session,
+                    TaskCreate(
+                        id=orm_task.id,
+                        tenant_id=orm_task.tenant_id,
+                        git_reference_id=orm_task.git_reference_id,
+                        payload=orm_task.payload,
+                        note=orm_task.note or "",
+                    ),
+                )
     except Exception as e:
         log.warning(f"_persist error '{e}'")
 
@@ -336,17 +401,18 @@ async def _flush_state() -> None:
         data = await queue.hget(key, "blob")
         if not data:
             continue
-        task = Task.model_validate_json(data)
+        task = TaskRead.model_validate_json(data)
         if result_backend:
-            await result_backend.store(TaskRun.from_task(task))
+            await result_backend.store(TaskRunModel.from_task(task))
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
 
-async def _publish_task(task: Task) -> None:
+async def _publish_task(task: TaskCreate | TaskRead) -> None:
     data = task.model_dump()
-    if task.duration is not None:
-        data["duration"] = task.duration
+    duration = getattr(task, "duration", None)
+    if duration is not None:
+        data["duration"] = duration
     await _publish_event("task.update", data)
 
 
@@ -357,10 +423,11 @@ async def _finalize_parent_tasks(child_id: str) -> None:
         data = await queue.hget(key, "blob")
         if not data:
             continue
-        parent = Task.model_validate_json(data)
+        parent = TaskRead.model_validate_json(data)
         children = []
-        if parent.result and isinstance(parent.result, dict):
-            children = parent.result.get("children") or []
+        result = getattr(parent, "result", None)
+        if result and isinstance(result, dict):
+            children = result.get("children") or []
         if child_id not in children:
             continue
         all_done = True
@@ -386,7 +453,7 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
             data = await queue.hget(key, "blob")
             if not data:
                 continue
-            t = Task.model_validate_json(data)
+            t = TaskRead.model_validate_json(data)
             children = []
             if t.result and isinstance(t.result, dict):
                 children = t.result.get("children") or []
@@ -454,7 +521,7 @@ async def rpc_endpoint(request: Request):
     pre = await _prevalidate(payload, ip)
     if pre is not None:
         return pre
-    resp = await rpc.dispatch(payload)
+    resp = await dispatcher.dispatch(payload)
 
     async def _check_unknown(r: dict, method: str) -> None:
         code = r.get("error", {}).get("code")
@@ -462,11 +529,11 @@ async def rpc_endpoint(request: Request):
             if code == -32601:
                 r["error"]["data"] = {"method": method}
             async with Session() as session:
-                count = await record_unknown_handler(session, ip)
+                count = await db_helpers.record_unknown_handler(session, ip)
             if count >= BAN_THRESHOLD:
                 BANNED_IPS.add(ip)
                 async with Session() as session:
-                    await mark_ip_banned(session, ip)
+                    await db_helpers.mark_ip_banned(session, ip)
                 log.warning("banned ip %s", ip)
 
     status = 200
@@ -492,393 +559,21 @@ async def rpc_endpoint(request: Request):
     )
 
 
-# ─────────────────────────── Key/Secret RPC ─────────────────────
-
-
-@rpc.method("Keys.upload")
-async def keys_upload(public_key: str) -> dict:
-    """Store a trusted public key."""
-    key = pgpy.PGPKey()
-    key.parse(public_key)
-    TRUSTED_USERS[key.fingerprint] = public_key
-    log.info("key uploaded: %s", key.fingerprint)
-    return {"fingerprint": key.fingerprint}
-
-
-@rpc.method("Keys.fetch")
-async def keys_fetch() -> dict:
-    """Return all trusted keys indexed by fingerprint."""
-    return TRUSTED_USERS
-
-
-@rpc.method("Keys.delete")
-async def keys_delete(fingerprint: str) -> dict:
-    """Remove a public key by its fingerprint."""
-    TRUSTED_USERS.pop(fingerprint, None)
-    log.info("key removed: %s", fingerprint)
-    return {"ok": True}
-
-
-@rpc.method("Secrets.add")
-async def secrets_add(
-    name: str,
-    secret: str,
-    tenant_id: str = "default",
-    owner_fpr: str = "unknown",
-    version: int | None = None,
-) -> dict:
-    """Store an encrypted secret."""
-    async with Session() as session:
-        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
-        await session.commit()
-    log.info("secret stored: %s", name)
-    return {"ok": True}
-
-
-@rpc.method("Secrets.get")
-async def secrets_get(name: str, tenant_id: str = "default") -> dict:
-    """Retrieve an encrypted secret."""
-    async with Session() as session:
-        row = await fetch_secret(session, tenant_id, name)
-    if not row:
-        raise RPCException(
-            code=ErrorCode.SECRET_NOT_FOUND,
-            message="secret not found",
-        )
-    return {"secret": row.cipher}
-
-
-@rpc.method("Secrets.delete")
-async def secrets_delete(
-    name: str,
-    tenant_id: str = "default",
-    version: int | None = None,
-) -> dict:
-    """Remove a secret by name."""
-    async with Session() as session:
-        await delete_secret(session, tenant_id, name)
-        await session.commit()
-    log.info("secret removed: %s", name)
-
-    return {"ok": True}
-
-
-# ─────────────────────────── Pool RPCs ──────────────────────────
-@rpc.method("Pool.create")
-async def pool_create(name: str):
-    await queue.sadd("pools", name)
-    log.info("pool created: %s", name)
-    return {"name": name}
-
-
-@rpc.method("Pool.join")
-async def pool_join(name: str):
-    member = str(uuid.uuid4())[:8]
-    await queue.sadd(f"pool:{name}:members", member)
-    log.info("member %s joined pool %s", member, name)
-    return {"memberId": member}
-
-
-# ─────────────────────────── Task RPCs ──────────────────────────
-@rpc.method("Task.submit")
-async def task_submit(
-    pool: str,
-    payload: dict,
-    taskId: str | None = None,
-    deps: list[str] | None = None,
-    edge_pred: str | None = None,
-    labels: list[str] | None = None,
-    in_degree: int | None = None,
-    config_toml: str | None = None,
-):
-    await queue.sadd("pools", pool)  # track pool even if not created
-
-    action = (payload or {}).get("action")
-    handlers: set[str] = set()
-    for w in await _live_workers_by_pool(pool):
-        raw = w.get("handlers", [])
-        if isinstance(raw, str):
-            try:
-                raw = json.loads(raw)
-            except Exception:  # noqa: BLE001
-                raw = []
-        handlers.update(raw)
-    if action is not None and action not in handlers:
-        raise RPCException(
-            code=-32601, message="Method not found", data={"method": str(action)}
-        )
-
-    if taskId and await _load_task(taskId):
-        new_id = str(uuid.uuid4())
-        log.warning("task id collision: %s → %s", taskId, new_id)
-        taskId = new_id
-
-    task = Task(
-        id=taskId or str(uuid.uuid4()),
-        pool=pool,
-        payload=payload,
-        deps=deps or [],
-        edge_pred=edge_pred,
-        labels=labels or [],
-        in_degree=in_degree or 0,
-        config_toml=config_toml,
-    )
-
-    # 1) put on the queue for the scheduler
-    await queue.rpush(f"{READY_QUEUE}:{pool}", task.model_dump_json())
-    await _publish_queue_length(pool)
-
-    # 2) save hash + TTL
-    await _save_task(task)
-
-    # 3) persist to Postgres & emit CloudEvent (helpers you already have)
-    await _persist(task)
-    await _publish_task(task)
-
-    log.info("task %s queued in %s (ttl=%ss)", task.id, pool, TASK_TTL)
-    return {"taskId": task.id}
-
-
-@rpc.method("Task.cancel")
-async def task_cancel(selector: str):
-    targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
-    count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
-    log.info("cancel %s -> %d tasks", selector, count)
-    return {"count": count}
-
-
-@rpc.method("Task.pause")
-async def task_pause(selector: str):
-    targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
-    count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
-    log.info("pause %s -> %d tasks", selector, count)
-    return {"count": count}
-
-
-@rpc.method("Task.resume")
-async def task_resume(selector: str):
-    targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
-    count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
-    log.info("resume %s -> %d tasks", selector, count)
-    return {"count": count}
-
-
-@rpc.method("Task.retry")
-async def task_retry(selector: str):
-    targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
-    count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
-    log.info("retry %s -> %d tasks", selector, count)
-    return {"count": count}
-
-
-@rpc.method("Task.retry_from")
-async def task_retry_from(selector: str):
-    targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
-    count = await control_handler.apply(
-        "retry_from", queue, targets, READY_QUEUE, TASK_TTL
-    )
-    log.info("retry_from %s -> %d tasks", selector, count)
-    return {"count": count}
-
-
-@rpc.method("Guard.set")
-async def guard_set(label: str, spec: dict):
-    await queue.hset(f"guard:{label}", mapping=spec)
-    log.info("guard set %s", label)
-    return {"ok": True}
-
-
-@rpc.method("Task.patch")
-async def task_patch(taskId: str, changes: dict) -> dict:
-    """Update persisted metadata for an existing task."""
-    task = await _load_task(taskId)
-    if not task:
-        raise TaskNotFoundError(taskId)
-
-    for field, value in changes.items():
-        if field not in Task.model_fields:
-            continue
-        if field == "status":
-            value = Status(value)
-        setattr(task, field, value)
-
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
-    if "result" in changes and isinstance(changes["result"], dict):
-        children = changes["result"].get("children")
-        if children:
-            for cid in children:
-                await _finalize_parent_tasks(cid)
-    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
-    return task.model_dump()
-
-
-@rpc.method("Task.get")
-async def task_get(taskId: str):
-    try:
-        uuid.UUID(taskId)
-    except ValueError:
-        raise RPCException(code=-32602, message="Invalid task id")
-    # hot cache
-    if t := await _load_task(taskId):
-        data = t.model_dump()
-        if t.duration is not None:
-            data["duration"] = t.duration
-        return data
-
-    # authoritative fallback (Postgres)
-    try:
-        return await get_task_result(taskId)  # raises TaskNotFoundError if missing
-    except TaskNotFoundError as exc:
-        # surface a proper JSON-RPC error so the envelope is valid
-        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
-
-
-@rpc.method("Pool.listTasks")
-async def pool_list(poolName: str, limit: int | None = None, offset: int = 0):
-    """Return tasks queued for *poolName* with optional pagination."""
-
-    start = max(offset, 0)
-    end = -1 if limit is None else start + limit - 1
-    ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", start, end)
-    tasks = []
-    for r in ids:
-        t = Task.model_validate_json(r)
-        data = t.model_dump()
-        if t.duration is not None:
-            data["duration"] = t.duration
-        tasks.append(data)
-    return tasks
-
-
-# ─────────────────────────── Worker RPCs ────────────────────────
-@rpc.method("Worker.register")
-async def worker_register(
-    workerId: str,
-    pool: str,
-    url: str,
-    advertises: dict,
-    handlers: list[str] | None = None,
-):
-    """Register a worker and persist its advertised handlers."""
-
-    handler_list: list[str] = handlers or []
-    if not handler_list:
-        well_known_url = url.replace("/rpc", "/well-known")
-        try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                resp = await client.get(well_known_url)
-                if resp.status_code == 200:
-                    handler_list = resp.json().get("handlers", [])
-        except Exception as exc:  # noqa: BLE001
-            log.warning("/well-known fetch failed for %s: %s", workerId, exc)
-
-    if not handler_list:
-        raise RPCException(code=-32602, message="worker supports no handlers")
-
-    await _upsert_worker(
-        workerId,
-        {
-            "pool": pool,
-            "url": url,
-            "advertises": advertises,
-            "handlers": handler_list,
-        },
-    )
-    log.info("worker %s registered (%s) handlers=%s", workerId, pool, handler_list)
-    return {"ok": True}
-
-
-@rpc.method("Worker.heartbeat")
-async def worker_heartbeat(
-    workerId: str, metrics: dict, pool: str | None = None, url: str | None = None
-):
-    # If gateway has no record (after crash), pool & url are expected
-    known = await queue.exists(WORKER_KEY.format(workerId))
-    if not known and not (pool and url):
-        log.warning(
-            "heartbeat from %s ignored: gateway lacks metadata; send pool+url or re-register",
-            workerId,
-        )
-        return {"ok": False}
-
-    await _upsert_worker(workerId, {"pool": pool, "url": url})
-    return {"ok": True}
-
-
-@rpc.method("Worker.list")
-async def worker_list(pool: str | None = None) -> list[dict]:
-    """Return active workers, optionally filtered by *pool*."""
-
-    keys = await queue.keys("worker:*")
-    workers = []
-    now = int(time.time())
-    for key in keys:
-        w = await queue.hgetall(key)
-        if not w:
-            continue
-        if now - int(w.get("last_seen", 0)) > WORKER_TTL:
-            continue
-        if pool and w.get("pool") != pool:
-            continue
-        workers.append(
-            {
-                "id": key.split(":", 1)[1],
-                **{k: v for k, v in w.items()},
-            }
-        )
-    return workers
-
-
-@rpc.method("Work.finished")
-async def work_finished(taskId: str, status: str, result: dict | None = None):
-    t = await _load_task(taskId)
-    if not t:
-        log.warning("Work.finished for unknown task %s", taskId)
-        return {"ok": False}
-
-    # update in-memory object
-    t.status = Status(status)
-    t.result = result
-    now = time.time()
-    if status == "running" and t.started_at is None:
-        t.started_at = now
-    elif Status.is_terminal(status):
-        if t.started_at is None:
-            t.started_at = now
-        t.finished_at = now
-
-    # persist everywhere
-    await _save_task(t)
-    await _persist(t)
-    await _publish_task(t)
-    if Status.is_terminal(status):
-        await _finalize_parent_tasks(taskId)
-
-    log.info("task %s completed: %s", taskId, status)
-    return {"ok": True}
-
-
 # ────────────────────────── Helpers ──────────────────────────
-async def _fail_task(task: Task, error: Exception) -> None:
+async def _fail_task(task: TaskRead, error: Exception) -> None:
     """Mark *task* as failed and persist the error message."""
-    task.status = Status.failed
-    task.result = {"error": str(error)}
-    task.finished_at = time.time()
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
+    data = task.model_dump()
+    data.update(
+        {
+            "status": Status.failed,
+            "result": {"error": str(error)},
+            "finished_at": time.time(),
+        }
+    )
+    updated = TaskRead.model_validate(data)
+    await _save_task(updated)
+    await _persist(updated)
+    await _publish_task(updated)
 
 
 # ─────────────────────────── Scheduler loop ─────────────────────
@@ -904,7 +599,7 @@ async def scheduler():
             queue_key, task_raw = res  # guaranteed 2-tuple here
             pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
             await _publish_queue_length(pool)
-            task = Task.model_validate_json(task_raw)
+            task = TaskRead.model_validate_json(task_raw)
 
             # pick a worker that supports the task's action
             worker_list = await _live_workers_by_pool(pool)
@@ -982,14 +677,14 @@ async def add_secret(
     owner_fpr: str = "unknown",
 ) -> dict:
     async with Session() as session:
-        await upsert_secret(session, tenant_id, owner_fpr, name, secret)
+        await db_helpers.upsert_secret(session, tenant_id, owner_fpr, name, secret)
         await session.commit()
     return {"stored": name}
 
 
 async def get_secret(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
-        row = await fetch_secret(session, tenant_id, name)
+        row = await db_helpers.fetch_secret(session, tenant_id, name)
     if not row:
         return {"error": "not found"}
     return {"secret": row.cipher}
@@ -997,9 +692,70 @@ async def get_secret(name: str, tenant_id: str = "default") -> dict:
 
 async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
     async with Session() as session:
-        await delete_secret(session, tenant_id, name)
+        await db_helpers.delete_secret(session, tenant_id, name)
         await session.commit()
     return {"removed": name}
+
+
+# expose RPC handler functions for unit tests
+from .rpc.workers import (  # noqa: F401,E402
+    work_finished,
+    worker_heartbeat,
+    worker_list,
+    worker_register,
+)
+from .rpc.tasks import (  # noqa: F401,E402
+    guard_set,
+    task_cancel,
+    task_get,
+    task_patch,
+    task_pause,
+    task_resume,
+    task_retry,
+    task_retry_from,
+    task_submit as _task_submit_rpc,
+)
+
+
+async def task_submit(
+    task: TaskCreate | None = None,
+    *,
+    pool: str | None = None,
+    payload: dict | None = None,
+    taskId: str | None = None,
+    **extras: Any,
+) -> dict:
+    """Compatibility wrapper for :func:`_task_submit_rpc`.
+
+    Accepts either a preconstructed :class:`TaskCreate` instance as the first
+    positional argument or keyword arguments to build one.
+    """
+
+    if task is None:
+        if pool is None or payload is None:
+            raise TypeError("task or pool/payload required")
+
+        task = TaskCreate(
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            git_reference_id=uuid.uuid4(),
+            pool=pool,
+            payload=payload,
+            status=Status.queued,
+            note="",
+            spec_hash="dummy",
+            last_modified=datetime.utcnow(),
+        )
+        if taskId is not None:
+            task.id = taskId
+
+        for field, value in extras.items():
+            if field in TaskCreate.model_fields:
+                setattr(task, field, value)
+
+        # keep the UUID instance so the ORM receives the correct type
+
+    return await _task_submit_rpc(task)
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
@@ -1015,8 +771,7 @@ async def health() -> dict:
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
-@app.on_event("startup")
-async def _on_start():
+async def _on_start() -> None:
     log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
@@ -1026,7 +781,7 @@ async def _on_start():
     log.info("migrations applied; verifying database schema")
     if engine.url.get_backend_name() != "sqlite":
         # ensure schema is up to date for Postgres deployments
-        await ensure_status_enum(engine)
+        await db_helpers.ensure_status_enum(engine)
     else:
         async with engine.begin() as conn:
             # run once – creates task_runs if it doesn't exist
@@ -1034,8 +789,11 @@ async def _on_start():
         log.info("SQLite metadata initialized")
 
     async with Session() as session:
-        banned = await fetch_banned_ips(session)
+        banned = await db_helpers.fetch_banned_ips(session)
     BANNED_IPS.update(banned)
+
+    # Load RPC handlers now that dependencies are ready
+    from .rpc import keys, pool, secrets, tasks, workers  # noqa: F401
 
     log.info("database migrations complete")
     asyncio.create_task(scheduler())
@@ -1046,10 +804,74 @@ async def _on_start():
     log.info("gateway startup complete")
 
 
-@app.on_event("shutdown")
 async def _on_shutdown() -> None:
     log.info("gateway shutdown initiated")
     await _flush_state()
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+app.add_event_handler("startup", _on_start)
+app.add_event_handler("shutdown", _on_shutdown)
+
+
+# expose RPC handlers for test modules
+from .rpc.pool import (  # noqa: F401,E402
+    pool_create,
+    pool_join,
+    pool_list,
+)
+
+# expose RPC handlers lazily to avoid circular imports
+__all__ = [
+    "keys_upload",
+    "keys_fetch",
+    "keys_delete",
+    "pool_create",
+    "pool_join",
+    "pool_list",
+    "task_submit",
+    "task_cancel",
+    "task_pause",
+    "task_resume",
+    "task_retry",
+    "task_retry_from",
+    "guard_set",
+    "task_patch",
+    "task_get",
+    "worker_register",
+    "worker_heartbeat",
+    "worker_list",
+    "work_finished",
+]
+
+
+def __getattr__(name: str):
+    if name in __all__:
+        from .rpc import keys, pool, tasks, workers
+
+        modules = {
+            "keys_upload": keys,
+            "keys_fetch": keys,
+            "keys_delete": keys,
+            "pool_create": pool,
+            "pool_join": pool,
+            "pool_list": pool,
+            "task_submit": tasks,
+            "task_cancel": tasks,
+            "task_pause": tasks,
+            "task_resume": tasks,
+            "task_retry": tasks,
+            "task_retry_from": tasks,
+            "guard_set": tasks,
+            "task_patch": tasks,
+            "task_get": tasks,
+            "worker_register": workers,
+            "worker_heartbeat": workers,
+            "worker_list": workers,
+            "work_finished": workers,
+        }
+        module = modules[name]
+        return getattr(module, name)
+    raise AttributeError(name)

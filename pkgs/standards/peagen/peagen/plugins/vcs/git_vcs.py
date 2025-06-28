@@ -6,10 +6,8 @@ import os
 import json
 import tempfile
 import time
-import io
 import httpx
-import paramiko
-import pygit2
+from github import Github
 
 from git import Repo
 from git.exc import GitCommandError
@@ -21,7 +19,8 @@ from peagen.errors import (
     GitPushError,
     GitCommitError,
 )
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.plugins import PluginManager
+from peagen._utils.config_loader import resolve_cfg
 
 from .constants import PEAGEN_REFS_PREFIX
 
@@ -30,21 +29,57 @@ class GitVCS:
     """Lightweight wrapper around :class:`git.Repo`."""
 
     def __init__(
-        self, path: str | Path = ".", *, remote_url: str | None = None
+        self,
+        path: str | Path = ".",
+        *,
+        remote_url: str | None = None,
+        mirror_git_url: str | None = None,
+        mirror_git_token: str | None = None,
+        owner: str | None = None,
+        remotes: dict[str, str] | None = None,
     ) -> None:
+        self.mirror_git_url = mirror_git_url
+        self.mirror_git_token = mirror_git_token
+        self.owner = owner
+
         p = Path(path)
+        remotes = remotes or {}
+        if remote_url and "origin" not in remotes:
+            remotes["origin"] = remote_url
+
         if (p / ".git").exists():
             self.repo = Repo(p)
         elif remote_url:
+            if "origin" not in remotes:
+                remotes["origin"] = remote_url
             try:
                 self.repo = Repo.clone_from(remote_url, p)
             except GitCommandError as exc:
                 raise GitCloneError(remote_url) from exc
         else:
             self.repo = Repo.init(p)
+            with self.repo.config_writer() as cw:
+                cw.set_value("receive", "denyCurrentBranch", "updateInstead")
 
-        if remote_url:
-            self.configure_remote(remote_url)
+        ordered: list[tuple[str, str]] = []
+        if "origin" in remotes:
+            ordered.append(("origin", remotes["origin"]))
+        if "upstream" in remotes:
+            ordered.append(("upstream", remotes["upstream"]))
+        for name, url in remotes.items():
+            if name in {"origin", "upstream"}:
+                continue
+            ordered.append((name, url))
+
+        for name, url in ordered:
+            self.configure_remote(url, name=name)
+
+        if mirror_git_url:
+            url = mirror_git_url
+            if mirror_git_token and url.startswith("http"):
+                scheme, rest = url.split("://", 1)
+                url = f"{scheme}://{mirror_git_token}@{rest}"
+            self.configure_remote(url, name="mirror")
 
         # ensure we have a commit identity to avoid git errors
         with self.repo.config_reader() as cr, self.repo.config_writer() as cw:
@@ -56,14 +91,7 @@ class GitVCS:
                 )
 
     # ------------------------------------------------------------------ init/use
-    @classmethod
-    def open(cls, path: str | Path, remote_url: str | None = None) -> "GitVCS":
-        return cls(path, remote_url=remote_url)
-
-    @classmethod
-    def ensure_repo(cls, path: str | Path, remote_url: str | None = None) -> "GitVCS":
-        """Initialise ``path`` if needed and return a :class:`GitVCS`."""
-        return cls(path, remote_url=remote_url)
+    # NOTE: ``open_repo`` and ``ensure_repo`` moved to ``peagen.core.mirror_core``
 
     # ------------------------------------------------------------------ branch mgmt
     def create_branch(
@@ -143,10 +171,32 @@ class GitVCS:
             return
 
         self.require_remote(remote)
+        push_ref = ref
+        if ref == "HEAD":
+            try:
+                push_ref = self.repo.active_branch.name
+            except TypeError:  # pragma: no cover - detached HEAD
+                try:
+                    remote_head = self.repo.git.symbolic_ref(
+                        f"refs/remotes/{remote}/HEAD"
+                    )
+                    remote_branch = remote_head.split("/")[-1]
+                    push_ref = f"HEAD:refs/heads/{remote_branch}"
+                except Exception:
+                    push_ref = ref
         try:
-            self.repo.git.push(remote, ref)
+            self.repo.git.push(remote, push_ref)
         except GitCommandError as exc:
             raise GitPushError(ref, remote) from exc
+
+        if self.mirror_git_url:
+            mirror_remote = "mirror"
+            if mirror_remote not in [r.name for r in self.repo.remotes]:
+                self.configure_remote(self.mirror_git_url, name=mirror_remote)
+            try:
+                self.repo.git.push(mirror_remote, push_ref)
+            except GitCommandError as exc:
+                raise GitPushError(ref, mirror_remote) from exc
 
     def push_with_secret(
         self,
@@ -166,21 +216,37 @@ class GitVCS:
         res.raise_for_status()
         cipher = res.json()["result"]["secret"].encode()
 
-        drv = AutoGpgDriver()
-        key_text = drv.decrypt(cipher).decode()
+        pm = PluginManager(resolve_cfg())
+        drv = pm.get("secrets_drivers")
+        token = drv.decrypt(cipher).decode().strip()
 
-        pkey = paramiko.RSAKey.from_private_key(io.StringIO(key_text))
-        pubkey = f"{pkey.get_name()} {pkey.get_base64()}"
+        # Use PyGithub to verify access and obtain the remote repository
+        remote_url = self.repo.remotes[remote].url
+        https_url = remote_url
+        if remote_url.startswith("git@"):
+            host, path = remote_url.split(":", 1)
+            https_url = f"https://{host.split('@')[1]}/{path}"
+        https_url = https_url.rstrip(".git")
+        owner_repo = https_url.split("https://")[-1]
 
-        repo = pygit2.Repository(str(self.repo.working_tree_dir))
-        remote_obj = repo.remotes[remote]
-        callbacks = pygit2.RemoteCallbacks(
-            credentials=pygit2.KeypairFromMemory("git", pubkey, key_text, "")
-        )
+        gh = Github(token)
+        gh_repo = gh.get_repo(owner_repo)
+        push_url = gh_repo.clone_url.replace("https://", f"https://{token}@")
+
         try:
-            remote_obj.push([ref], callbacks=callbacks)
-        except pygit2.GitError as exc:
+            self.repo.git.push(push_url, ref)
+        except GitCommandError as exc:
             raise GitPushError(ref, remote) from exc
+
+        if self.mirror_git_url:
+            mirror_remote = "mirror"
+            mirror_push_url = self.mirror_git_url.replace(
+                "https://", f"https://{token}@"
+            )
+            try:
+                self.repo.git.push(mirror_push_url, ref)
+            except GitCommandError as exc:
+                raise GitPushError(ref, mirror_remote) from exc
 
     # ------------------------------------------------------------------ remote helpers
     def has_remote(self, name: str = "origin") -> bool:

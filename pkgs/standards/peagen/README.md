@@ -101,7 +101,7 @@ cd pkgs/standards/peagen
 pip install .
 
 peagen --help
-````
+```
 
 ### Executing `peagen --help`
 
@@ -137,6 +137,21 @@ default_filter = "file"
 
 [storage.filters.file]
 output_dir = "./peagen_artifacts"
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
 ```
 
 With these values in place you can omit `--provider`, `--model-name`, and other
@@ -245,6 +260,20 @@ Run migrations on a gateway instance:
 ```bash
 peagen remote --gateway-url http://localhost:8000/rpc db upgrade
 ```
+
+### Remote Processing with Multi-Tenancy
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc \
+  --pool acme-lab process projects.yaml
+```
+
+Pass `--pool` to target a specific tenant or workspace when submitting
+tasks to the gateway.
+
+All handlers now accept `--repo` and `--ref` parameters so workflows can
+operate on any GitHub repository and reference. This enables consistent
+multi-tenant processing across the CLI.
 
 ---
 
@@ -371,6 +400,26 @@ pea = Peagen(
 projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
+
+### Transport Models
+
+Runtime RPC payloads should be validated using the Pydantic schemas generated
+in `peagen.schemas`. For example, use
+`TaskRead.model_validate_json()` when decoding a task received over the network:
+
+```python
+from peagen.schemas import TaskRead
+
+task = TaskRead.model_validate_json(raw_json)
+```
+
+The gateway and worker components rely on these schema classes rather than the
+ORM models under `peagen.orm`.
+
+> **Note**
+> Earlier versions exposed these models under ``peagen.models`` and the
+> transport schemas under ``peagen.models.schemas``. Update any imports to use
+> ``peagen.orm`` and ``peagen.schemas`` going forward.
 
 ### Git Filters & Publishers
 

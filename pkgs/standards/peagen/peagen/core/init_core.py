@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from github import Github
 
 from peagen.plugins import registry, discover_and_register_plugins
 from peagen.core.doe_core import _sha256
@@ -79,7 +80,7 @@ def init_project(
     with_doe: bool = False,
     with_eval_stub: bool = False,
     force: bool = False,
-    git_remote: str | None = None,
+    git_remotes: dict[str, str] | None = None,
     filter_uri: str | None = None,
     add_filter_config: bool = False,
 ) -> Dict[str, Any]:
@@ -101,9 +102,9 @@ def init_project(
 
     _render_scaffold(src_root, path, context, force)
 
-    from peagen.plugins.vcs import GitVCS
+    from peagen.core.mirror_core import ensure_repo
 
-    vcs = GitVCS.ensure_repo(path, remote_url=git_remote)
+    vcs = ensure_repo(path, remotes=git_remotes)
     vcs.commit(["."], "initial commit")
 
     if filter_uri:
@@ -196,10 +197,15 @@ def init_ci(
 
 
 def init_repo(
-    *, repo: str, pat: str, description: str = "", deploy_key: Path | None = None
+    *,
+    repo: str,
+    pat: str,
+    description: str = "",
+    deploy_key: Path | None = None,
+    path: Path | None = None,
+    remotes: dict[str, str] | None = None,
 ) -> Dict[str, Any]:
-    """Create a GitHub repository and register a deploy key."""
-    from github import Github
+    """Create a GitHub repository and optionally configure a local repo."""
     import subprocess
     import tempfile
 
@@ -239,8 +245,24 @@ def init_repo(
     with pub_key.open() as fh:
         repo_obj.create_key(title="peagen-worker", key=fh.read(), read_only=False)
 
-    return {
+    result = {
         "created": repo,
         "deploy_key": str(deploy_key),
         "next": "configure DEPLOY_KEY_SECRET",
     }
+
+    if path is not None:
+        from peagen.core.mirror_core import ensure_repo
+
+        ensure_repo(path, remotes=remotes)
+        result.update({"configured": str(path)})
+
+    return result
+
+
+def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
+    """Configure an existing repository with additional remotes."""
+    from peagen.core.mirror_core import ensure_repo
+
+    ensure_repo(path, remotes=remotes)
+    return {"configured": str(path), "remotes": remotes}

@@ -168,7 +168,7 @@ class PluginManager:
         },
         "vcs": {
             "section": "vcs",
-            "single": "provider",
+            "items": "adapters",
             "default": "default_vcs",
         },
         "selectors": {
@@ -229,7 +229,7 @@ class PluginManager:
             model_name = cfg.get("default_model_name")
             temperature = cfg.get("default_temperature")
             max_tokens = cfg.get("default_max_tokens")
-            from ..core._llm import GenericLLM
+            from peagen.core._llm import GenericLLM
 
             llm_mgr = GenericLLM()
             kwargs: Dict[str, Any] = {}

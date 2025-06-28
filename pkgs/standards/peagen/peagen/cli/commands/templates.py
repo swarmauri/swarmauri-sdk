@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 from typing import Any, Dict, Optional
 
 import httpx
 import typer
 
 from peagen.handlers.templates_handler import templates_handler
-from peagen.models import Task
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -26,29 +26,17 @@ remote_template_sets_app = typer.Typer(
 
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    task = Task(
-        id=str(uuid.uuid4()),
-        pool="default",
-        payload={"action": "templates", "args": args},
-    )
+    task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
     return asyncio.run(templates_handler(task))
 
 
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     """Submit a templates task via JSON-RPC."""
-    task = Task(
-        id=str(uuid.uuid4()),
-        pool="default",
-        payload={"action": "templates", "args": args},
-    )
+    task = TaskCreate(pool="default", payload={"action": "templates", "args": args})
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {
-            "pool": task.pool,
-            "payload": task.payload,
-            "taskId": task.id,
-        },
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
     resp = httpx.post(gateway_url, json=envelope, timeout=10.0)
     resp.raise_for_status()

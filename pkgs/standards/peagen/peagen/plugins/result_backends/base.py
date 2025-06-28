@@ -4,13 +4,15 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from peagen.models import TaskRun
+from peagen.orm import TaskRunModel
 
 
 class ResultBackendBase:
     """Default functionality shared by result backend implementations."""
 
-    async def store(self, task_run: TaskRun) -> None:  # pragma: no cover - interface
+    async def store(
+        self, task_run: TaskRunModel
+    ) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
     async def list_tasks(self) -> List[Dict[str, Any]]:

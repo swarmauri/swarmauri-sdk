@@ -9,7 +9,7 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.models import Task
+from peagen.defaults import TASK_SUBMIT
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")
@@ -24,6 +24,8 @@ def run_sort(  # ← now receives the Typer context
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Run sort **locally** (no queue).  We:
@@ -46,14 +48,16 @@ def run_sort(  # ← now receives the Typer context
         "transitive": transitive,
         "show_dependencies": show_dependencies,
     }
-    task = Task(
-        pool="default",
-        payload={
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "sort",
             "args": args,
             "cfg_override": cfg_override,
         },
-    )
+    }
 
     # ─────────────────────── 3) call handler ────────────────────────────
     try:
@@ -86,6 +90,8 @@ def submit_sort(
     start_file: str = typer.Option(None, help="File to start sorting from."),
     transitive: bool = typer.Option(False, help="Include transitive dependencies."),
     show_dependencies: bool = typer.Option(False, help="Show dependency info."),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Submit this sort as a background task. Returns immediately with a taskId.
@@ -117,17 +123,15 @@ def submit_sort(
         "show_dependencies": show_dependencies,
         "cfg_override": cfg_override,
     }
-    task = Task(
-        pool="default",
-        payload={"action": "sort", "args": args},
-        # status and result left as defaults
-    )
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = {"pool": "default", "payload": {"action": "sort", "args": args}}
 
     # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "method": TASK_SUBMIT,
+        "params": task,
     }
 
     # 3) POST to gateway

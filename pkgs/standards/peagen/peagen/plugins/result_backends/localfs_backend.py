@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from peagen.models import TaskRun
+from peagen.orm import TaskRunModel
 from .base import ResultBackendBase
 
 
@@ -13,7 +13,7 @@ class LocalFsResultBackend(ResultBackendBase):
         self.root = Path(root_dir)
         self.root.mkdir(parents=True, exist_ok=True)
 
-    async def store(self, task_run: TaskRun) -> None:
+    async def store(self, task_run: TaskRunModel) -> None:
         path = self.root / f"{task_run.id}.json"
         with path.open("w", encoding="utf-8") as fh:
             json.dump(task_run.to_dict(), fh, default=str)

@@ -70,9 +70,14 @@ dependencies = [
     "minio", # this storage adapter needs to be pushed to its own standalone
     "GitPython",
     "paramiko",
-    "pygit2",
     "s3fs",
     "pytest-monitor>=1.6.6",
+    "filelock>=3.9",
+
+
+    #core
+    "filelock"
+
 ]
 
 
@@ -152,6 +157,7 @@ gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:Gith
 minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
 gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"
 s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
+file    = "peagen.plugins.git_filters.file_filter:FileFilter"
 
 [project.entry-points."peagen.plugins.vcs"]
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
@@ -201,7 +207,7 @@ simple_time = "peagen.plugins.evaluators.simple_time:SimpleTimeEvaluator"
 default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 
 [tool.setuptools.package-data]
-"peagen.schemas" = ["*.json", "extras/*.json"]
+"peagen.jsonschemas" = ["*.json", "extras/*.json"]
 "peagen" = [
   "tests/examples/locking_demo/*",
   "tests/examples/peagen_tomls/*",
@@ -209,3 +215,4 @@ default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
   "alembic.ini",
   "migrations/**",
 ]
+

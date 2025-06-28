@@ -11,6 +11,18 @@ This document explains how to launch the Peagen gateway and worker services and 
 * `uvicorn` available on the PATH
 * Docker (optional) for containerized deployments
 
+All plugins must be instantiated through the :class:`PluginManager`. Avoid
+importing modules from ``peagen.plugins`` directly in application code.
+
+## Schema Usage
+
+Always rely on the Pydantic models defined under ``peagen.schemas`` when
+working with tasks. Do **not** introduce convenience wrappers like a ``Task``
+class that extends these schemas. Gateway and worker functions should accept
+and return ``TaskRead``, ``TaskCreate``, or ``TaskUpdate`` instances
+exclusively. This ensures interoperability across services and avoids subtle
+validation issues.
+
 Environment variables control the runtime configuration. A minimal `.peagen.toml` is required in the working directory for both services.
 
 For quick local testing you can rely on the in-memory queue and an in-memory results backend:

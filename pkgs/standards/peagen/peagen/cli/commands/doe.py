@@ -17,19 +17,18 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.models import Status, Task
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT, TASK_GET
+from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 
-def _make_task(args: dict, action: str = "doe") -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
+def _make_task(args: dict, action: str = "doe") -> TaskCreate:
+    return TaskCreate(
         pool="default",
-        action=action,
-        status=Status.waiting,
         payload={"action": action, "args": args},
     )
 
@@ -152,8 +151,8 @@ def submit_gen(  # noqa: PLR0913
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
 
     with httpx.Client(timeout=30.0) as client:
@@ -306,8 +305,8 @@ def submit_process(  # noqa: PLR0913
 
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
 
     with httpx.Client(timeout=30.0) as client:
@@ -328,7 +327,7 @@ def submit_process(  # noqa: PLR0913
             req = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
-                "method": "Task.get",
+                "method": TASK_GET,
                 "params": {"taskId": tid},
             }
             res = httpx.post(ctx.obj.get("gateway_url"), json=req, timeout=30.0).json()

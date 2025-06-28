@@ -6,15 +6,18 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
+from . import ensure_task
+
 from peagen.core.mutate_core import mutate_workspace
-from peagen.models import Task
+from peagen.schemas import TaskRead
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
 
-async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+async def mutate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
@@ -53,9 +56,9 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         vcs = pm.get("vcs")
     except Exception:  # pragma: no cover - optional
         if tmp_dir and (tmp_dir / ".git").exists():
-            from peagen.plugins.vcs import GitVCS
+            from peagen.core.mirror_core import open_repo
 
-            vcs = GitVCS.open(tmp_dir)
+            vcs = open_repo(tmp_dir)
         else:
             vcs = None
 
@@ -63,16 +66,18 @@ async def mutate_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
         repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
         rel = os.path.relpath(winner_path, repo_root)
-        if winner_path.exists():
+        commit_sha = None
+        branch = None
+        if vcs.repo.head.is_valid() and winner_path.exists():
             commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
             result["winner_oid"] = vcs.blob_oid(rel)
-        else:
-            commit_sha = None
-        branch = pea_ref("run", winner_path.stem)
-        vcs.create_branch(branch, checkout=False)
-        vcs.push(branch)
-        result["commit"] = commit_sha
-        result["branch"] = branch
+            branch = pea_ref("run", winner_path.stem)
+            vcs.create_branch(branch, checkout=False)
+            vcs.push(branch)
+        if commit_sha is not None:
+            result["commit"] = commit_sha
+        if branch:
+            result["branch"] = branch
     if tmp_dir:
         import shutil
 

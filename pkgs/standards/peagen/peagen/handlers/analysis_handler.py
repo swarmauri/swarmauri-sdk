@@ -3,21 +3,33 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
+from peagen._utils import maybe_clone_repo
+
 from peagen.core.analysis_core import analyze_runs
-from peagen.models import Task
+from peagen.schemas import TaskRead
+from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
+from .repo_utils import fetch_repo, cleanup_repo
 
 
-async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+async def analysis_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+
+    repo = args.get("repo")
+    ref = args.get("ref", "HEAD")
+    tmp_dir, prev_cwd = fetch_repo(repo, ref)
 
     run_dirs = [Path(p) for p in args.get("run_dirs", [])]
     spec_name = args.get("spec_name", "analysis")
 
-    result = analyze_runs(run_dirs, spec_name=spec_name)
+    with maybe_clone_repo(repo, ref):
+        result = analyze_runs(run_dirs, spec_name=spec_name)
 
     cfg = resolve_cfg()
     pm = PluginManager(cfg)
@@ -40,4 +52,6 @@ async def analysis_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any
         vcs.switch("HEAD")
         vcs.push(analysis_branch)
         result["analysis_branch"] = analysis_branch
+    if repo:
+        cleanup_repo(tmp_dir, prev_cwd)
     return result

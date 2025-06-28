@@ -2,16 +2,38 @@
 import uuid
 from swarmauri_standard.loggers.Logger import Logger
 import datetime as dt
-from typing import Dict, Any
+from typing import Any, Dict
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
-from peagen.models import Status, TaskRun, TaskRunDep
-from peagen.models.secret import Secret
-from peagen.models.abuse import AbuseRecord
+
+from peagen.orm.status import Status
+from peagen.orm import Base
+from peagen.orm.config.secret import SecretModel
+from peagen.orm.abuse_record import AbuseRecordModel
+from peagen.orm.task.task_run import TaskRunModel
+from peagen.orm.task.task_run_relation_association import (
+    TaskRunTaskRelationAssociationModel,
+)
 
 log = Logger(name="upsert")
+
+
+def _tenant_uuid(tid: str | uuid.UUID) -> uuid.UUID:
+    """Return a ``uuid.UUID`` for *tid*.
+
+    Accepts either a UUID instance, a valid UUID string, or an arbitrary
+    slug-like string. Slug strings are mapped deterministically via
+    :func:`uuid.uuid5` using the DNS namespace.
+    """
+
+    if isinstance(tid, uuid.UUID):
+        return tid
+    try:
+        return uuid.UUID(str(tid))
+    except ValueError:
+        return uuid.uuid5(uuid.NAMESPACE_DNS, str(tid))
 
 
 def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -34,10 +56,10 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
+async def upsert_task(session: AsyncSession, row: TaskRunModel) -> None:
     data = _coerce(row.to_dict(exclude={"deps", "duration"}))
     stmt = (
-        pg_insert(TaskRun)
+        pg_insert(TaskRunModel)
         .values(**data)
         .on_conflict_do_update(
             index_elements=["id"],
@@ -45,10 +67,14 @@ async def upsert_task(session: AsyncSession, row: TaskRun) -> None:
         )
     )
     result = await session.execute(stmt)
-    await session.execute(sa.delete(TaskRunDep).where(TaskRunDep.task_id == row.id))
-    values = [{"task_id": row.id, "dep_id": uuid.UUID(d)} for d in row.deps]
+    await session.execute(
+        sa.delete(TaskRunTaskRelationAssociationModel).where(
+            TaskRunTaskRelationAssociationModel.task_run_id == row.id
+        )
+    )
+    values = [{"task_run_id": row.id, "relation_id": uuid.UUID(d)} for d in row.deps]
     if values:
-        await session.execute(sa.insert(TaskRunDep), values)
+        await session.execute(sa.insert(TaskRunTaskRelationAssociationModel), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
@@ -86,40 +112,48 @@ async def upsert_secret(
     name: str,
     cipher: str,
 ) -> None:
+    """Insert or update a secret for a tenant."""
     data = {
-        "tenant_id": tenant_id,
-        "owner_fpr": owner_fpr,
+        "tenant_id": _tenant_uuid(tenant_id),
         "name": name,
         "cipher": cipher,
-        "created_at": dt.datetime.utcnow(),
     }
-    stmt = (
-        pg_insert(Secret)
-        .values(**data)
-        .on_conflict_do_update(
+    stmt = sa.insert(SecretModel).values(**data)
+    if session.bind.dialect.name == "sqlite":
+        stmt = stmt.prefix_with("OR REPLACE")
+    else:
+        stmt = stmt.on_conflict_do_update(
             index_elements=["tenant_id", "name"],
-            set_={
-                "cipher": cipher,
-                "owner_fpr": owner_fpr,
-                "created_at": data["created_at"],
-            },
+            set_={"cipher": cipher},
         )
-    )
-    await session.execute(stmt)
+    try:
+        await session.execute(stmt)
+    except sa.exc.OperationalError as exc:
+        if "no such table" in str(exc).lower():
+            await session.run_sync(
+                lambda sync_sess: Base.metadata.create_all(bind=sync_sess.connection())
+            )
+            await session.execute(stmt)
+        else:
+            raise
 
 
 async def fetch_secret(
     session: AsyncSession, tenant_id: str, name: str
-) -> Secret | None:
+) -> SecretModel | None:
     result = await session.execute(
-        sa.select(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+        sa.select(SecretModel).where(
+            SecretModel.tenant_id == _tenant_uuid(tenant_id), SecretModel.name == name
+        )
     )
     return result.scalar_one_or_none()
 
 
 async def delete_secret(session: AsyncSession, tenant_id: str, name: str) -> None:
     await session.execute(
-        sa.delete(Secret).where(Secret.tenant_id == tenant_id, Secret.name == name)
+        sa.delete(SecretModel).where(
+            SecretModel.tenant_id == _tenant_uuid(tenant_id), SecretModel.name == name
+        )
     )
 
 
@@ -127,13 +161,13 @@ async def record_unknown_handler(session: AsyncSession, ip: str) -> int:
     """Increment and return the unknown handler count for *ip*."""
 
     stmt = (
-        pg_insert(AbuseRecord)
+        pg_insert(AbuseRecordModel)
         .values(ip=ip, count=1, first_seen=dt.datetime.utcnow())
         .on_conflict_do_update(
             index_elements=["ip"],
-            set_={"count": AbuseRecord.__table__.c.count + 1},
+            set_={"count": AbuseRecordModel.__table__.c.count + 1},
         )
-        .returning(AbuseRecord.__table__.c.count)
+        .returning(AbuseRecordModel.__table__.c.count)
     )
     result = await session.execute(stmt)
     (count,) = result.one()
@@ -145,7 +179,7 @@ async def fetch_banned_ips(session: AsyncSession) -> list[str]:
     """Return all IP addresses currently marked as banned."""
 
     result = await session.execute(
-        sa.select(AbuseRecord.ip).where(AbuseRecord.banned.is_(True))
+        sa.select(AbuseRecordModel.ip).where(AbuseRecordModel.banned.is_(True))
     )
     return [row[0] for row in result]
 
@@ -154,6 +188,6 @@ async def mark_ip_banned(session: AsyncSession, ip: str) -> None:
     """Set the banned flag for *ip*."""
 
     await session.execute(
-        sa.update(AbuseRecord).where(AbuseRecord.ip == ip).values(banned=True)
+        sa.update(AbuseRecordModel).where(AbuseRecordModel.ip == ip).values(banned=True)
     )
     await session.commit()

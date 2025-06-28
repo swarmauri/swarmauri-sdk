@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import uuid
 from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
 
-from peagen.models import Task, Status
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
 from .fanout import fan_out
+from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
@@ -32,8 +33,9 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     return None, yaml.safe_load(path_or_text)
 
 
-async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
-    payload = task_or_dict.get("payload", {})
+async def evolve_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 
     repo = args.get("repo")
@@ -60,7 +62,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
     jobs: List[Dict[str, Any]] = doc.get("JOBS", [])
     mutations = doc.get("operators", {}).get("mutation")
 
-    pool = task_or_dict.get("pool", "default")
+    pool = task.pool
 
     def _resolve_path(p: str) -> str:
         if p.startswith("git+") or "://" in p or p.startswith("/"):
@@ -73,7 +75,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
                 return str(resolved)
         return str(resolved)
 
-    children: List[Task] = []
+    children: List[TaskRead] = []
     for job in jobs:
         if mutations is not None:
             job.setdefault("mutations", mutations)
@@ -100,16 +102,17 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
                 mut["uri"] = _resolve_path(uri)
 
         children.append(
-            Task(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                status=Status.waiting,
-                payload={"action": "mutate", "args": job},
+            ensure_task(
+                {
+                    "pool": pool,
+                    "status": Status.waiting,
+                    "payload": {"action": "mutate", "args": job},
+                }
             )
         )
 
     fan_res = await fan_out(
-        task_or_dict,
+        task,
         children,
         result={"evolve_spec": args["evolve_spec"]},
         final_status=Status.waiting,

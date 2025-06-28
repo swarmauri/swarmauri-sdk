@@ -13,7 +13,10 @@ from pathlib import Path
 import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
-from peagen.models import Task
+
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT
+
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
 # When running from source the module sits one directory deeper than
@@ -38,14 +41,14 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
         args["message"] = message
-    task = Task(
+    task = TaskCreate(
         id=str(uuid.uuid4()),
         pool="default",
         payload={"action": "migrate", "args": args},
     )
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
+        "method": TASK_SUBMIT,
         "params": {
             "pool": task.pool,
             "payload": task.payload,
@@ -64,13 +67,13 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
 def upgrade() -> None:
     """Apply Alembic migrations up to HEAD."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} upgrade head …")
-    task = Task(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
@@ -94,9 +97,9 @@ def revision(
     typer.echo(
         f"Running alembic -c {ALEMBIC_CFG} revision --autogenerate -m '{message}' …"
     )
-    task = Task(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {
                 "op": "revision",
@@ -104,7 +107,7 @@ def revision(
                 "alembic_ini": str(ALEMBIC_CFG),
             },
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)
@@ -119,13 +122,13 @@ def revision(
 def downgrade() -> None:
     """Downgrade the database by one revision."""
     typer.echo(f"Running alembic -c {ALEMBIC_CFG} downgrade -1 …")
-    task = Task(
-        pool="default",
-        payload={
+    task = {
+        "pool": "default",
+        "payload": {
             "action": "migrate",
             "args": {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
         },
-    )
+    }
     result = asyncio.run(migrate_handler(task))
     if stdout := result.get("stdout"):
         typer.echo(stdout)

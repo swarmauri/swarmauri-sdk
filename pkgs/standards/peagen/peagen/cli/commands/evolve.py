@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -12,19 +13,26 @@ import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.models import Status, Task
+from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
+from peagen.defaults import TASK_SUBMIT
+from peagen.schemas import TaskCreate
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 
 
-def _build_task(args: dict) -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
-        pool="default",
-        status=Status.waiting,
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
+        id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
+        git_reference_id=uuid.uuid4(),
+        pool=pool,
         payload={"action": "evolve", "args": args},
+        status=Status.queued,
+        note="",
+        spec_hash="dummy",
+        last_modified=datetime.utcnow(),
     )
 
 
@@ -60,7 +68,7 @@ def run(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(evolve_handler(task))
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -104,11 +112,11 @@ def submit(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     rpc_req = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
     with httpx.Client(timeout=30.0) as client:
         reply = client.post(ctx.obj.get("gateway_url"), json=rpc_req).json()

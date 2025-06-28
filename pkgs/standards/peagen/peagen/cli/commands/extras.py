@@ -3,34 +3,35 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
 
 from peagen.handlers.extras_handler import extras_handler
-from peagen.models import Task
+from peagen.schemas import TaskCreate
 from swarmauri_standard.loggers.Logger import Logger
+from peagen.defaults import TASK_SUBMIT
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-def _build_task(args: Dict[str, Any]) -> Task:
-    return Task(
-        id=str(uuid.uuid4()), pool="default", payload={"action": "extras", "args": args}
-    )
+def _build_task(args: Dict[str, Any], pool: str = "default") -> TaskCreate:
+    return TaskCreate(pool=pool, payload={"action": "extras", "args": args})
 
 
 @local_extras_app.command("extras")
 def run_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ) -> None:
     """Run EXTRAS generation locally."""
     logger = Logger(name="extras locally")
@@ -40,7 +41,9 @@ def run_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
-    task = _build_task(args)
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     try:
         result: Dict[str, Any] = asyncio.run(extras_handler(task))
@@ -56,12 +59,15 @@ def run_extras(
 
 @remote_extras_app.command("extras")
 def submit_extras(
+    ctx: typer.Context,
     templates_root: Optional[Path] = typer.Option(
         None, "--templates-root", help="Directory containing template sets"
     ),
     schemas_dir: Optional[Path] = typer.Option(
         None, "--schemas-dir", help="Destination for generated schema files"
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
     gateway_url: str = typer.Option(
         "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
@@ -71,15 +77,14 @@ def submit_extras(
         "templates_root": str(templates_root.expanduser()) if templates_root else None,
         "schemas_dir": str(schemas_dir.expanduser()) if schemas_dir else None,
     }
-    task = _build_task(args)
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
 
     try:

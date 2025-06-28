@@ -6,16 +6,30 @@ Peagen can store and manage artifacts inside a Git repository. The
 is created via the ``vcs`` plugin group.
 
 ```python
-from peagen.plugins.vcs import GitVCS, pea_ref, RUN_REF
+from peagen.plugins import PluginManager
+from peagen.core.mirror_core import ensure_repo
+from peagen.plugins.vcs import pea_ref, RUN_REF
+
+pm = PluginManager({})
+GitVCS = pm.get("vcs")
 
 # open or create a repository locally
-vcs = GitVCS.ensure_repo("./repo")
+vcs = ensure_repo("./repo")
 # clone a remote repository if needed
-vcs_remote = GitVCS.ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
+vcs_remote = ensure_repo("./repo", remote_url="https://github.com/org/repo.git")
 vcs.commit(["results.json"], "initial result")
 run_ref = pea_ref("run", "exp-a")
 vcs.tag(run_ref)
 ```
+
+Git repositories can also push to a secondary **mirror**. Set
+``mirror_git_url`` and ``mirror_git_token`` under the ``[vcs.adapters.git]`` section in
+your ``.peagen.toml``. When configured, :class:`GitVCS` pushes the same ref to
+the ``mirror`` remote after updating ``origin``.
+
+Multiple remotes can be declared via ``[vcs.adapters.git.remotes]``. The ``origin`` entry
+is used when cloning repositories and additional names such as ``upstream`` are
+configured after creation.
 
 Git references follow the ``refs/pea/<kind>`` convention. Constants are
 exported for common prefixes such as :data:`RUN_REF`, :data:`PROMOTED_REF`,
@@ -24,6 +38,8 @@ and :data:`KEY_AUDIT_REF`.
 When fetching content from Git, a ``git+`` URL will be cloned to the
 destination directory. Both branches and commit SHAs are supported via
 ``git+<url>@<ref>``.
+You can also use the shorthand ``gh://owner/repo[@ref]`` which resolves to
+``https://github.com/owner/repo.git``.
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
 to write ``clean`` and ``smudge`` helpers. Pass ``--add-config`` to also store
@@ -104,6 +120,14 @@ push results back to it.
 
    ```bash
    peagen remote --gateway-url https://gw.peagen.com process projects.yaml
+  ```
+
+  Use `--pool <tenant>` to select a workspace when submitting tasks in
+  multi-tenant deployments:
+
+  ```bash
+  peagen remote --gateway-url https://gw.peagen.com \
+    --pool acme-lab process projects.yaml
   ```
 
    The deploy key handles Git operations while the login step allows the

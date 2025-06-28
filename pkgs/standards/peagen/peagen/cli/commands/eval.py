@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -21,7 +20,8 @@ import typer
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.models import Status, Task
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -33,11 +33,9 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-def _build_task(args: dict) -> Task:
-    return Task(
-        id=str(uuid.uuid4()),
-        pool="default",
-        status=Status.waiting,
+def _build_task(args: dict, pool: str = "default") -> TaskCreate:
+    return TaskCreate(
+        pool=pool,
         payload={"action": "eval", "args": args},
     )
 
@@ -68,7 +66,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
     result = asyncio.run(eval_handler(task))
     report = result["report"]
 
@@ -117,7 +115,7 @@ def submit(  # noqa: PLR0913
         "strict": strict,
         "skip_failed": skip_failed,
     }
-    task = _build_task(args)
+    task = _build_task(args, ctx.obj.get("pool", "default"))
 
     # ─────────────────────── cfg override  ──────────────────────────────
     inline = ctx.obj.get("task_override_inline")
@@ -132,8 +130,8 @@ def submit(  # noqa: PLR0913
     rpc_req = {
         "jsonrpc": "2.0",
         "id": task.id,
-        "method": "Task.submit",
-        "params": {"taskId": task.id, "pool": task.pool, "payload": task.payload},
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
 
     with httpx.Client(timeout=30.0) as client:

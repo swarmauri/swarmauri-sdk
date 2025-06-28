@@ -47,7 +47,10 @@ To use a different solution, subclass one of these classes or implement the same
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.git_filters.minio_filter import MinioFilter
+from peagen.plugins import PluginManager
+
+pm = PluginManager({})
+MinioFilter = pm.get("git_filters", "minio")
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
@@ -63,14 +66,17 @@ The CLI can emit JSON events such as `process.started` and `process.done`. The r
 
 
 ```python
-from peagen.plugins.publishers.redis_publisher import RedisPublisher
+from peagen.plugins import PluginManager
+
+pm = PluginManager({})
+RedisPublisher = pm.get("publishers", "redis")
 
 bus = RedisPublisher("redis://localhost:6379/0")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
 ```python
-from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
+WebhookPublisher = pm.get("publishers", "webhook")
 
 bus = WebhookPublisher("https://example.com/peagen")
 bus.publish("peagen.events", {"type": "process.started"})
@@ -79,7 +85,7 @@ bus.publish("peagen.events", {"type": "process.started"})
 You can also publish events to RabbitMQ using `RabbitMQPublisher`:
 
 ```python
-from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
+RabbitMQPublisher = pm.get("publishers", "rabbitmq")
 
 bus = RabbitMQPublisher(host="localhost", port=5672, exchange="", routing_key="peagen.events")
 bus.publish("peagen.events", {"type": "process.started"})

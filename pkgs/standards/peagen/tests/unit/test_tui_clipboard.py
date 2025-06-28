@@ -25,7 +25,7 @@ def make_property(value):
 
 
 @pytest.mark.unit
-def test_action_copy_id_datatable(monkeypatch):
+def test_action_copy_selection_datatable(monkeypatch):
     captured = {}
 
     def fake_copy(text):
@@ -36,13 +36,13 @@ def test_action_copy_id_datatable(monkeypatch):
     monkeypatch.setattr(QueueDashboardApp, "focused", make_property(table))
 
     app = QueueDashboardApp()
-    app.action_copy_id()
+    app.action_copy_selection()
 
     assert captured["text"] == "cell"
 
 
 @pytest.mark.unit
-def test_action_copy_id_input(monkeypatch):
+def test_action_copy_selection_input(monkeypatch):
     captured = {}
 
     def fake_copy(text):
@@ -58,7 +58,7 @@ def test_action_copy_id_input(monkeypatch):
     monkeypatch.setattr(QueueDashboardApp, "focused", make_property(dummy))
 
     app = QueueDashboardApp()
-    app.action_copy_id()
+    app.action_copy_selection()
 
     assert captured["text"] == "sel"
 

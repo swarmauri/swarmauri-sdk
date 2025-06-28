@@ -28,11 +28,14 @@ async def test_worker_list(monkeypatch):
 
     monkeypatch.setattr(peagen.plugins, "PluginManager", StubPM)
     import peagen.gateway as gw
+    import peagen.gateway.rpc.workers as workers
 
     importlib.reload(gw)
+    importlib.reload(workers)
 
     monkeypatch.setattr(gw, "queue", q)
     monkeypatch.setattr(gw, "result_backend", DummyBackend())
+    monkeypatch.setattr(workers, "queue", q)
 
     async def noop(*_args, **_kw):
         return None

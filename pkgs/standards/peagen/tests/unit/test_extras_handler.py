@@ -35,7 +35,9 @@ async def test_extras_handler_calls_generate_schemas(
         Path(templates_root).expanduser() if templates_root else base / "template_sets"
     )
     expected_schemas = (
-        Path(schemas_dir).expanduser() if schemas_dir else base / "schemas" / "extras"
+        Path(schemas_dir).expanduser()
+        if schemas_dir
+        else base / "jsonschemas" / "extras"
     )
 
     assert called["templates_root"] == expected_templates

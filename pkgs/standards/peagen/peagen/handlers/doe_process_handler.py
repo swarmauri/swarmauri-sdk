@@ -5,21 +5,25 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
-import uuid
 
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.models import Task, Status
+from peagen.schemas import TaskRead
+from peagen.orm.status import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 from .fanout import fan_out
+from . import ensure_task
 
 
-async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, Any]:
+async def doe_process_handler(
+    task_or_dict: Dict[str, Any] | TaskRead,
+) -> Dict[str, Any]:
     """Expand the DOE spec and spawn a process task for each project."""
-    payload = task_or_dict.get("payload", {})
+    task = ensure_task(task_or_dict)
+    payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
     ref = args.get("ref", "HEAD")
@@ -117,27 +121,30 @@ async def doe_process_handler(task_or_dict: Dict[str, Any] | Task) -> Dict[str, 
             projects.append((payload, proj))
     result["outputs"] = uploaded
 
-    pool = task_or_dict.get("pool", "default")
-    children: List[Task] = []
+    pool = task.pool
+    children: List[TaskRead] = []
     for path, proj in projects:
         children.append(
-            Task(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                action="process",
-                status=Status.waiting,
-                payload={
-                    "action": "process",
-                    "args": {
-                        "projects_payload": path,
-                        "project_name": proj.get("NAME"),
+            ensure_task(
+                {
+                    "pool": pool,
+                    "status": Status.waiting,
+                    "payload": {
+                        "action": "process",
+                        "args": {
+                            "projects_payload": path,
+                            "project_name": proj.get("NAME"),
+                        },
                     },
-                },
+                }
             )
         )
 
     fan_res = await fan_out(
-        task_or_dict, children, result=result, final_status=Status.waiting
+        task,
+        children,
+        result=result,
+        final_status=Status.waiting,
     )
     final = {
         "children": fan_res["children"],

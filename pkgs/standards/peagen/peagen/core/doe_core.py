@@ -32,7 +32,7 @@ from peagen.errors import (
     SpecFileNotFoundError,
     TemplateFileNotFoundError,
 )
-from peagen.schemas import DOE_SPEC_V2_SCHEMA
+from peagen.jsonschemas import DOE_SPEC_V2_SCHEMA
 from peagen.plugins.vcs import pea_ref
 from peagen._utils._validation import _validate
 

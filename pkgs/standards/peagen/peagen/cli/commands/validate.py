@@ -1,13 +1,13 @@
 # peagen/commands/validate.py
 
 import asyncio
-import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import typer
 
 from peagen.handlers.validate_handler import validate_handler
-from peagen.models import Task
+from peagen.schemas import TaskCreate
+from peagen.defaults import TASK_SUBMIT
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")
@@ -25,19 +25,21 @@ def run_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Run validation locally (no queue) by constructing a Task model
     and invoking the same handler that a worker would use.
     """
     # 1) Create a Task instance with default status/result
-    task_id = str(uuid.uuid4())
     args: Dict[str, Any] = {
         "kind": kind,
         "path": path,
     }
-    task = Task(
-        id=task_id,
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = TaskCreate(
         pool="default",
         payload={"action": "validate", "args": args},
     )
@@ -69,18 +71,20 @@ def submit_validate(
     path: str = typer.Option(
         None, help="Path to the file to validate (not required for config)."
     ),
+    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
+    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     """
     Submit this validation as a background task. Returns immediately with a taskId.
     """
     # 1) Create a Task instance
-    task_id = str(uuid.uuid4())
     args: Dict[str, Any] = {
         "kind": kind,
         "path": path,
     }
-    task = Task(
-        id=task_id,
+    if repo:
+        args.update({"repo": repo, "ref": ref})
+    task = TaskCreate(
         pool="default",
         payload={"action": "validate", "args": args},
     )
@@ -88,12 +92,8 @@ def submit_validate(
     # 2) Build Task.submit envelope using Task fields
     envelope = {
         "jsonrpc": "2.0",
-        "method": "Task.submit",
-        "params": {
-            "taskId": task.id,
-            "pool": task.pool,
-            "payload": task.payload,
-        },
+        "method": TASK_SUBMIT,
+        "params": task.model_dump(mode="json"),
     }
 
     # 3) POST to gateway
