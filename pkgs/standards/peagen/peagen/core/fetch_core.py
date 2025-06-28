@@ -57,7 +57,9 @@ def _materialise_workspace(uri: str, dest: Path) -> None:
     if not path.exists():
         raise WorkspaceNotFoundError(uri)
     if path.is_dir():
-        shutil.copytree(path, dest, dirs_exist_ok=True)
+        if dest.exists():
+            shutil.rmtree(dest)
+        shutil.copytree(path, dest)
     else:
         raise ValueError(f"Unsupported workspace URI: {uri}")
 
