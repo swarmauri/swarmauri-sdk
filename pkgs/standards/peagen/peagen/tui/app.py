@@ -11,6 +11,8 @@ import math
 from urllib.parse import urlparse
 
 import httpx
+from peagen.protocols import Request
+from peagen.protocols.methods.worker import WORKER_LIST
 from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
@@ -157,24 +159,14 @@ class RemoteBackend:
             params["limit"] = int(limit)
         if offset:
             params["offset"] = int(offset)
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "1",
-            "method": "Pool.listTasks",
-            "params": params,
-        }
-        resp = await self.http.post(self.rpc_url, json=payload)
+        req = Request(id="1", method="Pool.listTasks", params=params)
+        resp = await self.http.post(self.rpc_url, json=req.model_dump())
         resp.raise_for_status()
         self.tasks = resp.json().get("result", [])
 
     async def fetch_workers(self) -> None:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": "2",
-            "method": "Worker.list",
-            "params": {},
-        }
-        resp = await self.http.post(self.rpc_url, json=payload)
+        req = Request(id="2", method=WORKER_LIST, params={})
+        resp = await self.http.post(self.rpc_url, json=req.model_dump())
         resp.raise_for_status()
         raw_workers = resp.json().get("result", [])
         workers: Dict[str, dict] = {}

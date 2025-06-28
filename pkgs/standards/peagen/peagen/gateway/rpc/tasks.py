@@ -16,6 +16,13 @@ from peagen.protocols import (
     TASK_PATCH,
     TASK_GET,
 )
+from peagen.protocols.methods.task import (
+    PatchParams,
+    PatchResult,
+    GetResult,
+    SimpleSelectorParams,
+    CountResult,
+)
 from peagen.defaults import GUARD_SET
 
 from .. import (
@@ -137,8 +144,10 @@ async def task_submit(task: TaskCreate) -> dict:
 
 
 @dispatcher.method(TASK_PATCH)
-async def task_patch(taskId: str, changes: dict) -> dict:
+async def task_patch(params: PatchParams) -> PatchResult:
     """Update persisted metadata for an existing task."""
+    taskId = params.taskId
+    changes = params.changes
     task = await _load_task(taskId)
     if not task:
         raise TaskNotFoundError(taskId)
@@ -159,11 +168,11 @@ async def task_patch(taskId: str, changes: dict) -> dict:
             for cid in children:
                 await _finalize_parent_tasks(cid)
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
-    return task.model_dump()
+    return PatchResult.model_validate(task.model_dump(mode="json"))
 
 
 @dispatcher.method(TASK_GET)
-async def task_get(taskId: str) -> dict:
+async def task_get(taskId: str) -> GetResult:
     try:
         uuid.UUID(taskId)
     except ValueError:
@@ -173,7 +182,7 @@ async def task_get(taskId: str) -> dict:
         duration = getattr(t, "duration", None)
         if duration is not None:
             data["duration"] = duration
-        return data
+        return GetResult.model_validate(TaskRead(**data).model_dump(mode="json"))
     try:
         from ..core.task_core import get_task_result
 
@@ -186,47 +195,52 @@ async def task_get(taskId: str) -> dict:
 
 
 @dispatcher.method(TASK_CANCEL)
-async def task_cancel(selector: str) -> dict:
+async def task_cancel(params: SimpleSelectorParams) -> CountResult:
+    selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_PAUSE)
-async def task_pause(selector: str) -> dict:
+async def task_pause(params: SimpleSelectorParams) -> CountResult:
+    selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RESUME)
-async def task_resume(selector: str) -> dict:
+async def task_resume(params: SimpleSelectorParams) -> CountResult:
+    selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RETRY)
-async def task_retry(selector: str) -> dict:
+async def task_retry(params: SimpleSelectorParams) -> CountResult:
+    selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RETRY_FROM)
-async def task_retry_from(selector: str) -> dict:
+async def task_retry_from(params: SimpleSelectorParams) -> CountResult:
+    selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
@@ -234,7 +248,7 @@ async def task_retry_from(selector: str) -> dict:
         "retry_from", queue, targets, READY_QUEUE, TASK_TTL
     )
     log.info("retry_from %s -> %d tasks", selector, count)
-    return {"count": count}
+    return CountResult(count=count)
 
 
 # --------Guard Rail Support --------------------------------------

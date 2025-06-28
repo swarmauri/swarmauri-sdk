@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.task import PatchParams
 
 
 @pytest.mark.unit
@@ -79,6 +80,6 @@ async def test_task_patch_updates_labels(monkeypatch):
     result = await task_submit(dto)
     tid = result["task_id"]
 
-    await task_patch(taskId=tid, changes={"labels": ["patched"]})
+    await task_patch(PatchParams(taskId=tid, changes={"labels": ["patched"]}))
     patched = await task_get(tid)
-    assert patched["labels"] == ["patched"]
+    assert patched.labels == ["patched"]
