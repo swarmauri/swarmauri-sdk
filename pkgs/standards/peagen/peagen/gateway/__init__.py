@@ -30,6 +30,7 @@ from peagen.transport import RPCDispatcher, RPCRequest
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
+from pydantic import ValidationError
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -303,7 +304,13 @@ async def _save_task(task: TaskRead) -> None:
 
 async def _load_task(tid: str) -> TaskRead | None:
     data = await queue.hget(_task_key(tid), "blob")
-    return TaskRead.model_validate_json(data) if data else None
+    if not data:
+        return None
+    try:
+        return TaskRead.model_validate_json(data)
+    except ValidationError:
+        obj = json.loads(data)
+        return TaskRead.model_construct(**obj)
 
 
 async def _select_tasks(selector: str) -> list[TaskRead]:
