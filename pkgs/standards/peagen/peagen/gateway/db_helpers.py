@@ -120,11 +120,16 @@ async def upsert_secret(
     }
     stmt = pg_insert(SecretModel).values(**data)
     if session.bind.dialect.name == "sqlite":
+        stmt = sa.insert(SecretModel).values(**data)
         stmt = stmt.prefix_with("OR REPLACE")
     else:
-        stmt = stmt.on_conflict_do_update(
-            index_elements=["tenant_id", "name"],
-            set_={"cipher": cipher},
+        stmt = (
+            pg_insert(SecretModel)
+            .values(**data)
+            .on_conflict_do_update(
+                index_elements=["tenant_id", "name"],
+                set_={"cipher": cipher},
+            )
         )
     try:
         await session.execute(stmt)
