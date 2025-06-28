@@ -18,21 +18,25 @@ def upgrade() -> None:
         sa.Column("spec_hash", sa.String(length=64), nullable=True),
     )
     bind = op.get_bind()
-    rows = list(bind.execute(text("SELECT id, parameters FROM tasks")))
+    inspector = sa.inspect(bind)
+    cols = {c["name"] for c in inspector.get_columns("tasks")}
+    column = "parameters" if "parameters" in cols else "payload"
+    rows = list(bind.execute(text(f"SELECT id, {column} FROM tasks")))
     for row in rows:
-        params = row.parameters or {}
+        params = getattr(row, column) or {}
         blob = json.dumps(params, sort_keys=True, separators=(",", ":"))
         h = hashlib.sha256(blob.encode()).hexdigest()
         bind.execute(
             text("UPDATE tasks SET spec_hash=:h WHERE id=:id"),
             {"h": h, "id": row.id},
         )
-    op.alter_column("tasks", "spec_hash", nullable=False)
-    op.create_unique_constraint(
-        "uq_tasks_tenant_spec_hash",
-        "tasks",
-        ["tenant_id", "spec_hash"],
-    )
+    if bind.dialect.name != "sqlite":
+        op.alter_column("tasks", "spec_hash", nullable=False)
+        op.create_unique_constraint(
+            "uq_tasks_tenant_spec_hash",
+            "tasks",
+            ["tenant_id", "spec_hash"],
+        )
 
 
 def downgrade() -> None:

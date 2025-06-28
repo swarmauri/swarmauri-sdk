@@ -20,6 +20,10 @@ def test_alembic_upgrade_and_current(tmp_path):
     env.pop("PG_USER", None)
     env.pop("PG_PASS", None)
 
+    db_path = repo_root / "gateway.db"
+    if db_path.exists():
+        db_path.unlink()
+
     subprocess.run(
         [
             "alembic",
