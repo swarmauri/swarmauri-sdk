@@ -67,16 +67,21 @@ for _name in model_names:
     # CHILD: id only
     child_cls = create_model(f"{root_name}Child", id=(id_type, ...))
 
+    # DELETE: id only
+    delete_cls = create_model(f"{root_name}Delete", id=(id_type, ...))
+
     # Register in global scope and __all__
     globals()[create_cls.__name__] = create_cls
     globals()[update_cls.__name__] = update_cls
     globals()[read_cls.__name__] = read_cls
     globals()[child_cls.__name__] = child_cls
+    globals()[delete_cls.__name__] = delete_cls
     __all__ += [
         create_cls.__name__,
         update_cls.__name__,
         read_cls.__name__,
         child_cls.__name__,
+        delete_cls.__name__,
     ]
 
 # Explicit exports for common task schemas
