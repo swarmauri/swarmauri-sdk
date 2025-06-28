@@ -9,6 +9,16 @@ import httpx
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
+from peagen.rpc_models import (
+    KeysUploadParams,
+    KeysUploadRequest,
+    KeysUploadResponse,
+    KeysDeleteParams,
+    KeysDeleteRequest,
+    KeysDeleteResponse,
+    KeysFetchRequest,
+    KeysFetchResponse,
+)
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -63,34 +73,29 @@ def upload_public_key(
     """Upload the local public key to the gateway."""
     drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = KeysUploadRequest(params=KeysUploadParams(public_key=pubkey))
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    return KeysUploadResponse(**res.json()).model_dump()
 
 
 def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Remove a stored public key on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = KeysDeleteRequest(params=KeysDeleteParams(fingerprint=fingerprint))
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json()
+    return KeysDeleteResponse(**res.json()).model_dump()
 
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Fetch trusted keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
+    envelope = KeysFetchRequest()
+    res = httpx.post(gateway_url, json=envelope.model_dump(), timeout=10.0)
     res.raise_for_status()
-    return res.json().get("result", {})
+    resp = KeysFetchResponse(**res.json())
+    if resp.result:
+        return resp.result.keys
+    return {}
 
 
 def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:
