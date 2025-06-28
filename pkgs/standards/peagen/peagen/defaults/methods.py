@@ -1,4 +1,28 @@
-"""Common JSON-RPC method names used across Peagen components."""
+"""Common JSON-RPC method names used across Peagen components.
+
+.. deprecated:: 0.9.0
+   Import method names from :mod:`peagen.protocols` instead.
+"""
+
+from __future__ import annotations
+
+import warnings
+
+from peagen.protocols.methods import (
+    TASK_SUBMIT as PROTO_TASK_SUBMIT,
+    KEYS_UPLOAD as PROTO_KEYS_UPLOAD,
+    KEYS_FETCH as PROTO_KEYS_FETCH,
+    KEYS_DELETE as PROTO_KEYS_DELETE,
+    SECRETS_ADD as PROTO_SECRETS_ADD,
+    SECRETS_GET as PROTO_SECRETS_GET,
+    SECRETS_DELETE as PROTO_SECRETS_DELETE,
+)
+
+warnings.warn(
+    "peagen.defaults.methods is deprecated; use peagen.protocols instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # Worker ↔ Gateway
 WORK_START = "Work.start"
@@ -9,7 +33,7 @@ WORKER_HEARTBEAT = "Worker.heartbeat"
 WORKER_LIST = "Worker.list"
 
 # Client ↔ Gateway
-TASK_SUBMIT = "Task.submit"
+TASK_SUBMIT = PROTO_TASK_SUBMIT
 TASK_CANCEL = "Task.cancel"
 TASK_PAUSE = "Task.pause"
 TASK_RESUME = "Task.resume"
@@ -23,12 +47,12 @@ GUARD_SET = "Guard.set"
 POOL_CREATE = "Pool.create"
 POOL_JOIN = "Pool.join"
 POOL_LIST_TASKS = "Pool.listTasks"
-KEYS_UPLOAD = "Keys.upload"
-KEYS_FETCH = "Keys.fetch"
-KEYS_DELETE = "Keys.delete"
-SECRETS_ADD = "Secrets.add"
-SECRETS_GET = "Secrets.get"
-SECRETS_DELETE = "Secrets.delete"
+KEYS_UPLOAD = PROTO_KEYS_UPLOAD
+KEYS_FETCH = PROTO_KEYS_FETCH
+KEYS_DELETE = PROTO_KEYS_DELETE
+SECRETS_ADD = PROTO_SECRETS_ADD
+SECRETS_GET = PROTO_SECRETS_GET
+SECRETS_DELETE = PROTO_SECRETS_DELETE
 
 __all__ = [
     "WORK_START",
