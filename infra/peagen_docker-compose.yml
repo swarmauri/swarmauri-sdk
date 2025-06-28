@@ -141,6 +141,7 @@ services:
       GITEA__server__SSH_DOMAIN:     git.peagen.com
       GITEA__server__START_SSH_SERVER: "true"
       GITEA__server__SSH_PORT:       "2222"
+      GITEA__server__SSH_LISTEN_PORT: "2222"
 
       # ---- database ----
       GITEA__database__DB_TYPE:      postgres
