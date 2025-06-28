@@ -23,7 +23,8 @@ import typer
 from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.defaults import TASK_SUBMIT, TASK_GET
+from peagen.protocols import TASK_SUBMIT
+from peagen.defaults import TASK_GET
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
 

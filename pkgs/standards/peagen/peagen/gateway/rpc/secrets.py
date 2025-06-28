@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .. import Session, dispatcher, log
-from peagen.defaults import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 from ..db_helpers import delete_secret, fetch_secret, upsert_secret
 from peagen.protocols.error_codes import Code as ErrorCode
 from peagen.transport.jsonrpc import RPCException
