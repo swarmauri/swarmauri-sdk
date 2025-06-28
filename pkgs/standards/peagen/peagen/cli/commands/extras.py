@@ -12,6 +12,7 @@ from functools import partial
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitResult
 from peagen.cli.rpc_utils import rpc_post
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
@@ -88,11 +89,13 @@ def submit_extras(
             TASK_SUBMIT,
             task.model_dump(mode="json"),
             timeout=10.0,
+            result_model=SubmitResult,
         )
-        if reply.get("error"):
-            typer.echo(f"[ERROR] {reply['error']}")
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted extras generation → taskId={reply['id']}")
+        task_id = reply.result.taskId if reply.result else task.id
+        typer.echo(f"Submitted extras generation → taskId={task_id}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

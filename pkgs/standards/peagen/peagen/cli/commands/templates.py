@@ -5,6 +5,7 @@ import asyncio
 from typing import Any, Dict, Optional
 
 from peagen.cli.rpc_utils import rpc_post
+from peagen.protocols.methods.task import SubmitResult
 import typer
 
 from peagen.handlers.templates_handler import templates_handler
@@ -38,10 +39,11 @@ def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
         TASK_SUBMIT,
         task.model_dump(mode="json"),
         timeout=10.0,
+        result_model=SubmitResult,
     )
-    if data.get("error"):
-        raise RuntimeError(data["error"])
-    return str(data.get("result", {}).get("taskId", task.id))
+    if data.error:
+        raise RuntimeError(data.error)
+    return str(data.result.taskId if data.result else task.id)
 
 
 # ─── list ──────────────────────────────

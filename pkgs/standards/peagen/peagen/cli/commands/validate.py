@@ -8,6 +8,7 @@ import typer
 from peagen.handlers.validate_handler import validate_handler
 from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT
+from peagen.protocols.methods.task import SubmitResult
 from peagen.cli.rpc_utils import rpc_post
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
@@ -97,11 +98,13 @@ def submit_validate(
             TASK_SUBMIT,
             task.model_dump(mode="json"),
             timeout=10.0,
+            result_model=SubmitResult,
         )
-        if reply.get("error"):
-            typer.echo(f"[ERROR] {reply['error']}")
+        if reply.error:
+            typer.echo(f"[ERROR] {reply.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted validation → taskId={task.id}")
+        task_id = reply.result.taskId if reply.result else task.id
+        typer.echo(f"Submitted validation → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

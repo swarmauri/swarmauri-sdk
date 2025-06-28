@@ -11,6 +11,7 @@ from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.protocols import TASK_SUBMIT
 from peagen.cli.rpc_utils import rpc_post
+from peagen.protocols.methods.task import SubmitResult
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")
@@ -144,11 +145,13 @@ def submit_sort(
             TASK_SUBMIT,
             task,
             timeout=10.0,
+            result_model=SubmitResult,
         )
-        if data.get("error"):
-            typer.echo(f"[ERROR] {data['error']}")
+        if data.error:
+            typer.echo(f"[ERROR] {data.error}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={data['result']['taskId']}")
+        task_id = data.result.taskId if data.result else task.get("taskId")
+        typer.echo(f"Submitted sort → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
