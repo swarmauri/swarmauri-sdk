@@ -38,7 +38,7 @@ from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
 from peagen.orm.status import Status
 import sqlalchemy as sa
-from .. import Base, Session
+from .. import Base, Session, engine
 
 
 @dispatcher.method(TASK_SUBMIT)
