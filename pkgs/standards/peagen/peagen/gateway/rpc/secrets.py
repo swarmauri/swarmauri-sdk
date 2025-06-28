@@ -5,8 +5,11 @@ from peagen.protocols.methods.secrets import (
     SECRETS_ADD,
     SECRETS_GET,
     SECRETS_DELETE,
+    AddParams,
     AddResult,
+    GetParams,
     GetResult,
+    DeleteParams,
     DeleteResult,
 )
 from ..db_helpers import delete_secret, fetch_secret, upsert_secret
@@ -15,15 +18,11 @@ from peagen.transport.jsonrpc import RPCException
 
 
 @dispatcher.method(SECRETS_ADD)
-async def secrets_add(
-    *,
-    name: str,
-    cipher: str,
-    tenant_id: str = "default",
-    owner_user_id: str | None = None,
-    version: int | None = None,
-) -> dict:
+async def secrets_add(params: AddParams) -> dict:
     """Store an encrypted secret."""
+    name = params.name
+    cipher = params.cipher
+    tenant_id = params.tenant_id
     async with Session() as session:
         await upsert_secret(
             session,
@@ -38,8 +37,10 @@ async def secrets_add(
 
 
 @dispatcher.method(SECRETS_GET)
-async def secrets_get(*, name: str, tenant_id: str = "default") -> dict:
+async def secrets_get(params: GetParams) -> dict:
     """Retrieve an encrypted secret."""
+    name = params.name
+    tenant_id = params.tenant_id
     async with Session() as session:
         row = await fetch_secret(session, tenant_id, name)
     if not row:
@@ -51,10 +52,10 @@ async def secrets_get(*, name: str, tenant_id: str = "default") -> dict:
 
 
 @dispatcher.method(SECRETS_DELETE)
-async def secrets_delete(
-    *, name: str, tenant_id: str = "default", version: int | None = None
-) -> dict:
+async def secrets_delete(params: DeleteParams) -> dict:
     """Remove a secret by name."""
+    name = params.name
+    tenant_id = params.tenant_id
     async with Session() as session:
         await delete_secret(session, tenant_id, name)
         await session.commit()
