@@ -40,13 +40,17 @@ async def test_worker_register_rejects_no_handlers(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams
+
     with pytest.raises(gw.RPCException) as exc:
         await gw.worker_register(
-            workerId="w1",
-            pool="p",
-            url="http://w1/rpc",
-            advertises={},
-            handlers=[],
+            RegisterParams(
+                workerId="w1",
+                pool="p",
+                url="http://w1/rpc",
+                advertises={},
+                handlers=[],
+            )
         )
     assert exc.value.code == -32602
     data = await q.hgetall("worker:w1")

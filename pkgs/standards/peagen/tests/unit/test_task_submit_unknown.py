@@ -46,12 +46,16 @@ async def test_task_submit_unknown_action(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
+    from peagen.protocols.methods.worker import RegisterParams
+
     await gw.worker_register(
-        workerId="w1",
-        pool="p",
-        url="http://w1/rpc",
-        advertises={},
-        handlers=["foo"],
+        RegisterParams(
+            workerId="w1",
+            pool="p",
+            url="http://w1/rpc",
+            advertises={},
+            handlers=["foo"],
+        )
     )
 
     task = TaskCreate(
