@@ -1,8 +1,8 @@
 import json
 import pytest
 import typer
-
 from peagen.cli.commands import secrets as secrets_cli
+from peagen.protocols.methods.worker import WORKER_LIST
 
 
 class DummyDriver:
@@ -44,7 +44,7 @@ def test_pool_worker_pubs_collects_keys(monkeypatch):
     monkeypatch.setattr(secrets_cli, "rpc_post", fake_rpc_post)
     keys = secrets_cli._pool_worker_pubs("p", "http://gw")
     assert keys == ["A", "B"]
-    assert captured["method"] == "Worker.list"
+    assert captured["method"] == WORKER_LIST
 
 
 def test_pool_worker_pubs_handles_error(monkeypatch):

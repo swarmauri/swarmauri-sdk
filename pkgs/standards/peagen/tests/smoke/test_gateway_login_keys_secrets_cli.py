@@ -4,6 +4,7 @@ import subprocess
 
 import httpx
 import pytest
+from peagen.protocols.methods.worker import WORKER_LIST
 
 pytestmark = pytest.mark.smoke
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
@@ -11,7 +12,7 @@ GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 def _gateway_available(url: str) -> bool:
     """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
-    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
+    envelope = {"jsonrpc": "2.0", "method": WORKER_LIST, "params": {}, "id": 0}
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:

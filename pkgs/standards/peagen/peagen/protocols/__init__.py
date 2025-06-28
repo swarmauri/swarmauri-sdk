@@ -18,6 +18,9 @@ from .methods import (
     SECRETS_ADD,
     SECRETS_GET,
     SECRETS_DELETE,
+    WORKER_REGISTER,
+    WORKER_HEARTBEAT,
+    WORKER_LIST,
 )
 
 __all__ = [
@@ -41,4 +44,7 @@ __all__ = [
     "SECRETS_ADD",
     "SECRETS_GET",
     "SECRETS_DELETE",
+    "WORKER_REGISTER",
+    "WORKER_HEARTBEAT",
+    "WORKER_LIST",
 ]
