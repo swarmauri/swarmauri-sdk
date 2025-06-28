@@ -3,12 +3,46 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type, TypeVar
 
+import uuid
 import httpx
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
+from pydantic import TypeAdapter
+
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.keys import (
+    KEYS_UPLOAD,
+    KEYS_DELETE,
+    KEYS_FETCH,
+    UploadParams,
+    UploadResult,
+    DeleteParams,
+    DeleteResult,
+    FetchParams,
+    FetchResult,
+)
+
+R = TypeVar("R")
+
+
+def _rpc_post(
+    url: str,
+    method: str,
+    params: Dict[str, Any],
+    *,
+    result_model: Type[R],
+    timeout: float = 10.0,
+) -> Response[R]:
+    """Send a JSON-RPC request and return the typed response."""
+    envelope = Request(id=str(uuid.uuid4()), method=method, params=params)
+    resp = httpx.post(url, json=envelope.model_dump(), timeout=timeout)
+    resp.raise_for_status()
+    adapter = TypeAdapter(Response[result_model])  # type: ignore[index]
+    return adapter.validate_python(resp.json())
+
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -63,34 +97,38 @@ def upload_public_key(
     """Upload the local public key to the gateway."""
     drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.upload",
-        "params": {"public_key": pubkey},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    return res.json()
+    params = UploadParams(public_key=pubkey).model_dump()
+    res = _rpc_post(
+        gateway_url,
+        KEYS_UPLOAD,
+        params,
+        result_model=UploadResult,
+    )
+    return res.model_dump()
 
 
 def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Remove a stored public key on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Keys.delete",
-        "params": {"fingerprint": fingerprint},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    return res.json()
+    params = DeleteParams(fingerprint=fingerprint).model_dump()
+    res = _rpc_post(
+        gateway_url,
+        KEYS_DELETE,
+        params,
+        result_model=DeleteResult,
+    )
+    return res.model_dump()
 
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Fetch trusted keys from the gateway."""
-    envelope = {"jsonrpc": "2.0", "method": "Keys.fetch"}
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    return res.json().get("result", {})
+    params = FetchParams().model_dump()
+    res = _rpc_post(
+        gateway_url,
+        KEYS_FETCH,
+        params,
+        result_model=FetchResult,
+    )
+    return res.result.model_dump() if res.result else {}
 
 
 def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:

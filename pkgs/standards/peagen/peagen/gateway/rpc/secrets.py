@@ -26,13 +26,13 @@ async def secrets_add(params: AddParams) -> dict:
     async with Session() as session:
         await upsert_secret(
             session,
-            tenant_id,
-            "unknown",
-            name,
-            cipher,
+            params.tenant_id,
+            params.owner_user_id or "unknown",
+            params.name,
+            params.cipher,
         )
         await session.commit()
-    log.info("secret stored: %s", name)
+    log.info("secret stored: %s", params.name)
     return AddResult(ok=True).model_dump()
 
 
@@ -42,7 +42,7 @@ async def secrets_get(params: GetParams) -> dict:
     name = params.name
     tenant_id = params.tenant_id
     async with Session() as session:
-        row = await fetch_secret(session, tenant_id, name)
+        row = await fetch_secret(session, params.tenant_id, params.name)
     if not row:
         raise RPCException(
             code=ErrorCode.SECRET_NOT_FOUND,
@@ -57,7 +57,7 @@ async def secrets_delete(params: DeleteParams) -> dict:
     name = params.name
     tenant_id = params.tenant_id
     async with Session() as session:
-        await delete_secret(session, tenant_id, name)
+        await delete_secret(session, params.tenant_id, params.name)
         await session.commit()
-    log.info("secret removed: %s", name)
+    log.info("secret removed: %s", params.name)
     return DeleteResult(ok=True).model_dump()

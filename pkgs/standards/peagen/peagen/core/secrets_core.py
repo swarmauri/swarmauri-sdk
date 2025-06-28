@@ -4,34 +4,70 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
+import uuid
 import httpx
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from pydantic import TypeAdapter
+
+from peagen.protocols import Request, Response
+from peagen.protocols.methods.secrets import (
+    SECRETS_ADD,
+    SECRETS_GET,
+    SECRETS_DELETE,
+    AddParams,
+    AddResult,
+    GetParams,
+    GetResult,
+    DeleteParams,
+    DeleteResult,
+)
+from peagen.protocols.methods.worker import WORKER_LIST, ListParams, ListResult
+
+R = TypeVar("R")
+
+
+def _rpc_post(
+    url: str,
+    method: str,
+    params: Dict[str, Any],
+    *,
+    result_model: Type[R],
+    timeout: float = 10.0,
+) -> Response[R]:
+    """Send a JSON-RPC request and return the typed response."""
+    envelope = Request(id=str(uuid.uuid4()), method=method, params=params)
+    resp = httpx.post(url, json=envelope.model_dump(), timeout=timeout)
+    resp.raise_for_status()
+    adapter = TypeAdapter(Response[result_model])  # type: ignore[index]
+    return adapter.validate_python(resp.json())
+
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Worker.list",
-        "params": {"pool": pool},
-    }
+    params = ListParams(pool=pool).model_dump()
     try:
-        res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-        res.raise_for_status()
+        res = _rpc_post(
+            gateway_url,
+            WORKER_LIST,
+            params,
+            result_model=ListResult,
+        )
+        workers = res.result.root if res.result else []
     except Exception:
         return []
-    workers = res.json().get("result", [])
     keys = []
     for w in workers:
-        advert = w.get("advertises") or {}
-        key = advert.get("public_key") or advert.get("pubkey")
-        if key:
-            keys.append(key)
+        advert = w.advertises or {}
+        if isinstance(advert, dict):
+            key = advert.get("public_key") or advert.get("pubkey")
+            if key:
+                keys.append(key)
     return keys
 
 
@@ -88,19 +124,19 @@ def add_remote_secret(
     pubs = [p.read_text() for p in recipients or []]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.add",
-        "params": {
-            "name": secret_id,
-            "cipher": cipher,
-            "version": version,
-            "tenant_id": pool,
-        },
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    return res.json()
+    params = AddParams(
+        name=secret_id,
+        cipher=cipher,
+        version=version,
+        tenant_id=pool,
+    ).model_dump()
+    res = _rpc_post(
+        gateway_url,
+        SECRETS_ADD,
+        params,
+        result_model=AddResult,
+    )
+    return res.model_dump()
 
 
 def get_remote_secret(
@@ -111,14 +147,14 @@ def get_remote_secret(
 ) -> str:
     """Retrieve and decrypt a secret from the gateway."""
     drv = AutoGpgDriver()
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.get",
-        "params": {"name": secret_id, "tenant_id": pool},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    cipher = res.json()["result"]["secret"].encode()
+    params = GetParams(name=secret_id, tenant_id=pool).model_dump()
+    res = _rpc_post(
+        gateway_url,
+        SECRETS_GET,
+        params,
+        result_model=GetResult,
+    )
+    cipher = res.result.secret.encode()
     return drv.decrypt(cipher).decode()
 
 
@@ -130,11 +166,11 @@ def remove_remote_secret(
     pool: str = "default",
 ) -> dict:
     """Delete a secret stored on the gateway."""
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": "Secrets.delete",
-        "params": {"name": secret_id, "version": version, "tenant_id": pool},
-    }
-    res = httpx.post(gateway_url, json=envelope, timeout=10.0)
-    res.raise_for_status()
-    return res.json()
+    params = DeleteParams(name=secret_id, tenant_id=pool, version=version).model_dump()
+    res = _rpc_post(
+        gateway_url,
+        SECRETS_DELETE,
+        params,
+        result_model=DeleteResult,
+    )
+    return res.model_dump()
