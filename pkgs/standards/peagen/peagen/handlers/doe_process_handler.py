@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
-import uuid
 
 import yaml
 
@@ -126,18 +125,18 @@ async def doe_process_handler(
     children: List[TaskRead] = []
     for path, proj in projects:
         children.append(
-            TaskRead(
-                id=str(uuid.uuid4()),
-                pool=pool,
-                action="process",
-                status=Status.waiting,
-                payload={
-                    "action": "process",
-                    "args": {
-                        "projects_payload": path,
-                        "project_name": proj.get("NAME"),
+            ensure_task(
+                {
+                    "pool": pool,
+                    "status": Status.waiting,
+                    "payload": {
+                        "action": "process",
+                        "args": {
+                            "projects_payload": path,
+                            "project_name": proj.get("NAME"),
+                        },
                     },
-                },
+                }
             )
         )
 
