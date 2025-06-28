@@ -10,6 +10,7 @@ from .task import (
 )
 from .keys import KEYS_UPLOAD, KEYS_FETCH, KEYS_DELETE
 from .secrets import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from .worker import WORKER_REGISTER, WORKER_HEARTBEAT, WORKER_LIST
 
 __all__ = [
     "TASK_SUBMIT",
@@ -26,4 +27,7 @@ __all__ = [
     "SECRETS_ADD",
     "SECRETS_GET",
     "SECRETS_DELETE",
+    "WORKER_REGISTER",
+    "WORKER_HEARTBEAT",
+    "WORKER_LIST",
 ]
