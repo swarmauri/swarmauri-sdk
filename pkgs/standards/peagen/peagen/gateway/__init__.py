@@ -721,3 +721,28 @@ async def _on_shutdown() -> None:
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+# expose RPC handlers for test modules
+from .rpc.workers import (  # noqa: F401,E402
+    worker_register,
+    worker_heartbeat,
+    worker_list,
+    work_finished,
+)
+from .rpc.tasks import (  # noqa: F401,E402
+    task_submit,
+    task_cancel,
+    task_pause,
+    task_resume,
+    task_retry,
+    task_retry_from,
+    guard_set,
+    task_patch,
+    task_get,
+)
+from .rpc.pool import (  # noqa: F401,E402
+    pool_create,
+    pool_join,
+    pool_list,
+)
