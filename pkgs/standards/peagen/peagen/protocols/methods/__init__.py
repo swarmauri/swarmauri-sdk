@@ -1,9 +1,25 @@
-from .task import TASK_SUBMIT
+from .task import (
+    TASK_SUBMIT,
+    TASK_PATCH,
+    TASK_GET,
+    TASK_CANCEL,
+    TASK_PAUSE,
+    TASK_RESUME,
+    TASK_RETRY,
+    TASK_RETRY_FROM,
+)
 from .keys import KEYS_UPLOAD, KEYS_FETCH, KEYS_DELETE
 from .secrets import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 
 __all__ = [
     "TASK_SUBMIT",
+    "TASK_PATCH",
+    "TASK_GET",
+    "TASK_CANCEL",
+    "TASK_PAUSE",
+    "TASK_RESUME",
+    "TASK_RETRY",
+    "TASK_RETRY_FROM",
     "KEYS_UPLOAD",
     "KEYS_FETCH",
     "KEYS_DELETE",
