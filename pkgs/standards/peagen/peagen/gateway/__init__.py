@@ -38,6 +38,7 @@ from peagen.gateway import db as _db
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 from peagen.gateway import db_helpers
+from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
 from peagen.errors import (
     DispatchHTTPError,
     MissingActionError,
@@ -139,11 +140,11 @@ async def _reject(
     """Return an error response and track abuse."""
 
     async with Session() as session:
-        count = await db_helpers.record_unknown_handler(session, ip)
+        count = await record_unknown_handler(session, ip)
     if count >= BAN_THRESHOLD:
         BANNED_IPS.add(ip)
         async with Session() as session:
-            await db_helpers.mark_ip_banned(session, ip)
+            await mark_ip_banned(session, ip)
         log.warning("banned ip %s", ip)
     return {
         "jsonrpc": "2.0",
