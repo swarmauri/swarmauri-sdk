@@ -73,9 +73,7 @@ async def upsert_task(session: AsyncSession, row: TaskRunModel) -> None:
     )
     values = [{"task_run_id": row.id, "relation_id": uuid.UUID(d)} for d in row.deps]
     if values:
-        await session.execute(
-            sa.insert(TaskRunTaskRelationAssociationModel), values
-        )
+        await session.execute(sa.insert(TaskRunTaskRelationAssociationModel), values)
     log.info("upsert rowcount=%s id=%s status=%s", result.rowcount, row.id, row.status)
 
 
