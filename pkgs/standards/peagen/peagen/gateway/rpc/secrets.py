@@ -20,9 +20,6 @@ from peagen.transport.jsonrpc import RPCException
 @dispatcher.method(SECRETS_ADD)
 async def secrets_add(params: AddParams) -> dict:
     """Store an encrypted secret."""
-    name = params.name
-    cipher = params.cipher
-    tenant_id = params.tenant_id
     async with Session() as session:
         await upsert_secret(
             session,
@@ -39,8 +36,6 @@ async def secrets_add(params: AddParams) -> dict:
 @dispatcher.method(SECRETS_GET)
 async def secrets_get(params: GetParams) -> dict:
     """Retrieve an encrypted secret."""
-    name = params.name
-    tenant_id = params.tenant_id
     async with Session() as session:
         row = await fetch_secret(session, params.tenant_id, params.name)
     if not row:
@@ -54,8 +49,6 @@ async def secrets_get(params: GetParams) -> dict:
 @dispatcher.method(SECRETS_DELETE)
 async def secrets_delete(params: DeleteParams) -> dict:
     """Remove a secret by name."""
-    name = params.name
-    tenant_id = params.tenant_id
     async with Session() as session:
         await delete_secret(session, params.tenant_id, params.name)
         await session.commit()

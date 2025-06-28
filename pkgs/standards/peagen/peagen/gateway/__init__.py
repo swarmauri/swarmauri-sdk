@@ -26,18 +26,18 @@ import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
-from peagen.transport import RPCDispatcher, RPCRequest
-from peagen.protocols import Request as RPCEnvelope, parse_request, _registry
+from peagen.transport import RPCDispatcher
+from peagen.protocols import (
+    Request as RPCRequest,
+    Request as RPCEnvelope,
+    parse_request,
+    _registry,
+)
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
-from peagen.protocols.methods.task import (
-    SubmitParams,
-    PatchParams,
-    GetParams,
-    SimpleSelectorParams,
-)
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -121,7 +121,7 @@ from .rpc.secrets import (  # noqa: E402
 from peagen.protocols.methods.secrets import (  # noqa: E402
     AddParams,
     DeleteParams,
-    GetParams,
+    GetParams as SecretGetParams,
 )
 
 # ─────────────────────────── Key/Secret store ───────────────────
@@ -150,7 +150,7 @@ async def secrets_add(
 
 
 async def secrets_get(
-    params: GetParams | None = None,
+    params: SecretGetParams | None = None,
     **kwargs,
 ) -> dict:
     if params is not None:
@@ -824,7 +824,6 @@ async def task_submit(
         await _publish_task(task_rd)
         log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
         return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
-
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
