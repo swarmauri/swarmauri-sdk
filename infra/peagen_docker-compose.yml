@@ -136,7 +136,7 @@ services:
       USER_GID: 1000
 
       # ---- core URLs & ports ----
-      GITEA__server__ROOT_URL:       http://git.peagen.com/
+      GITEA__server__ROOT_URL:       https://git.peagen.com/
       GITEA__server__DOMAIN:         git.peagen.com
       GITEA__server__SSH_DOMAIN:     git.peagen.com
       GITEA__server__START_SSH_SERVER: "true"
