@@ -15,7 +15,11 @@ from peagen.protocols.methods.secrets import (
     AddParams,
     GetParams,
     DeleteParams,
+    AddResult,
+    GetResult,
+    DeleteResult,
 )
+from peagen.protocols.methods.worker import WORKER_LIST, ListParams, ListResult
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -30,9 +34,9 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     params = ListParams(pool=pool).model_dump()
     try:
         res = rpc_post(gateway_url, WORKER_LIST, params, timeout=10.0)
+
     except Exception:
         return []
-    workers = res.get("result", [])
     keys = []
     for w in workers:
         advert = w.get("advertises") or {}
@@ -114,9 +118,15 @@ def remote_add(
         tenant_id=pool,
         version=version,
     ).model_dump()
-    res = rpc_post(gateway_url, SECRETS_ADD, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    res = rpc_post(
+        gateway_url,
+        SECRETS_ADD,
+        params,
+        timeout=10.0,
+        result_model=AddResult,
+    )
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Uploaded secret {secret_id}")
 
@@ -135,11 +145,17 @@ def remote_get(
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
     params = GetParams(name=secret_id, tenant_id=pool).model_dump()
-    res = rpc_post(gateway_url, SECRETS_GET, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    res = rpc_post(
+        gateway_url,
+        SECRETS_GET,
+        params,
+        timeout=10.0,
+        result_model=GetResult,
+    )
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
-    cipher = res["result"]["secret"].encode()
+    cipher = res.result.secret.encode()
     typer.echo(drv.decrypt(cipher).decode())
 
 
@@ -161,8 +177,14 @@ def remote_remove(
         tenant_id=pool,
         version=version,
     ).model_dump()
-    res = rpc_post(gateway_url, SECRETS_DELETE, params, timeout=10.0)
-    if res.get("error"):
-        typer.echo(f"Error: {res['error']}", err=True)
+    res = rpc_post(
+        gateway_url,
+        SECRETS_DELETE,
+        params,
+        timeout=10.0,
+        result_model=DeleteResult,
+    )
+    if res.error:
+        typer.echo(f"Error: {res.error}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Removed secret {secret_id}")
