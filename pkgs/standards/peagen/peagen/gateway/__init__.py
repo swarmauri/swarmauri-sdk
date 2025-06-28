@@ -667,6 +667,26 @@ async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
     return {"removed": name}
 
 
+# expose RPC handler functions for unit tests
+from .rpc.workers import (  # noqa: F401,E402
+    work_finished,
+    worker_heartbeat,
+    worker_list,
+    worker_register,
+)
+from .rpc.tasks import (  # noqa: F401,E402
+    guard_set,
+    task_cancel,
+    task_get,
+    task_patch,
+    task_pause,
+    task_resume,
+    task_retry,
+    task_retry_from,
+    task_submit,
+)
+
+
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])
 async def health() -> dict:
