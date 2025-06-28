@@ -9,6 +9,7 @@ import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.protocols import KEYS_UPLOAD
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -33,7 +34,7 @@ def login(
     pubkey = drv.pub_path.read_text()
     payload = {
         "jsonrpc": "2.0",
-        "method": "Keys.upload",
+        "method": KEYS_UPLOAD,
         "params": {"public_key": pubkey},
     }
     try:

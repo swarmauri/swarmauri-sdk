@@ -15,7 +15,7 @@ from functools import partial
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.orm.status import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.defaults import TASK_SUBMIT
+from peagen.protocols import TASK_SUBMIT
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
