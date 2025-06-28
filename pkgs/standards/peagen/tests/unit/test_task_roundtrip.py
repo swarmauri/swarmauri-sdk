@@ -4,6 +4,7 @@ import datetime
 import pytest
 
 from peagen.schemas import TaskCreate, TaskDelete, TaskRead, TaskUpdate
+from peagen.orm.status import Status
 
 
 @pytest.mark.unit
@@ -29,9 +30,12 @@ def test_task_roundtrip_json(monkeypatch):
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
-        last_modified=datetime.datetime.now(datetime.timezone.utc),
+        pool="default",
         payload={"foo": "bar"},
+        status=Status.queued,
         note="demo",
+        spec_hash="dummy",
+        last_modified=datetime.datetime.now(datetime.timezone.utc),
     )
     model = to_orm(create)
     model.date_created = datetime.datetime.now(datetime.timezone.utc)

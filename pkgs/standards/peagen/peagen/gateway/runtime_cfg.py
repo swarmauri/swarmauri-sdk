@@ -2,7 +2,7 @@
 
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 from typing import Optional
 
@@ -47,9 +47,7 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
 
-    class Config:
-        # No env_file needed since we already called load_dotenv().
-        pass
+    model_config = SettingsConfigDict(env_file=None)
 
 
 settings = Settings()

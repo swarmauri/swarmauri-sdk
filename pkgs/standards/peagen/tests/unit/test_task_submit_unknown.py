@@ -67,7 +67,7 @@ async def test_task_submit_unknown_action(monkeypatch):
     )
 
     with pytest.raises(gw.RPCException) as exc:
-        await gw.task_submit(task)
+        await gw.task_submit(pool="p", payload=task.payload)
     assert exc.value.code == -32601
     items = await q.lrange("ready:p", 0, -1)
     assert items == []

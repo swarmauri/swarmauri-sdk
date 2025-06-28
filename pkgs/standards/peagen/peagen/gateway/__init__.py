@@ -720,7 +720,12 @@ from .rpc.tasks import (  # noqa: F401,E402
 
 
 async def task_submit(
-    *, pool: str, payload: dict, taskId: str | None = None, **extras: Any
+    task: TaskCreate | None = None,
+    *,
+    pool: str | None = None,
+    payload: dict | None = None,
+    taskId: str | None = None,
+    **extras: Any,
 ) -> dict:
     """Compatibility wrapper for :func:`_task_submit_rpc`."""
 
@@ -738,9 +743,33 @@ async def task_submit(
     if taskId is not None:
         task.id = uuid.UUID(taskId)
 
-    for field, value in extras.items():
-        if field in TaskCreate.model_fields:
-            setattr(task, field, value)
+    Accepts either a preconstructed :class:`TaskCreate` instance as the first
+    positional argument or keyword arguments to build one.
+    """
+
+    if task is None:
+        if pool is None or payload is None:
+            raise TypeError("task or pool/payload required")
+
+        task = TaskCreate(
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            git_reference_id=uuid.uuid4(),
+            pool=pool,
+            payload=payload,
+            status=Status.queued,
+            note="",
+            spec_hash="dummy",
+            last_modified=datetime.utcnow(),
+        )
+        if taskId is not None:
+            task.id = taskId
+
+        for field, value in extras.items():
+            if field in TaskCreate.model_fields:
+                setattr(task, field, value)
+
+        task.id = str(task.id)
 
     return await _task_submit_rpc(task)
 
@@ -758,8 +787,7 @@ async def health() -> dict:
 
 
 # ───────────────────────────────    Startup  ───────────────────────────────
-@app.on_event("startup")
-async def _on_start():
+async def _on_start() -> None:
     log.info("gateway startup initiated")
     result = migrate_core.alembic_upgrade()
     if not result.get("ok", False):
@@ -792,13 +820,16 @@ async def _on_start():
     log.info("gateway startup complete")
 
 
-@app.on_event("shutdown")
 async def _on_shutdown() -> None:
     log.info("gateway shutdown initiated")
     await _flush_state()
     log.info("state flushed to persistent storage")
     await engine.dispose()
     log.info("database connections closed")
+
+
+app.add_event_handler("startup", _on_start)
+app.add_event_handler("shutdown", _on_shutdown)
 
 
 # expose RPC handlers for test modules
