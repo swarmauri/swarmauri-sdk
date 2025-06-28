@@ -76,6 +76,7 @@ def fetch_single(
     when applicable, and whether the repository was updated during the fetch.
     """
     if repo:
+
         if "://" in repo:
             workspace_uri = f"git+{repo}@{ref}"
         elif Path(repo).exists():
