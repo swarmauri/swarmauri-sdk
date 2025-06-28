@@ -2,7 +2,6 @@ import os
 import uuid
 import httpx
 import pytest
-from peagen.protocols import TASK_SUBMIT
 
 pytestmark = pytest.mark.smoke
 

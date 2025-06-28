@@ -8,8 +8,9 @@ import json
 import time
 
 import typer
+
 from peagen.protocols import TASK_GET
-from peagen.defaults import (
+from peagen.protocols import (
     TASK_PATCH,
     TASK_PAUSE,
     TASK_RESUME,

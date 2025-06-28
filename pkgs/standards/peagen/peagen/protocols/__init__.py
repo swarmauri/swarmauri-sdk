@@ -19,7 +19,6 @@ from .methods import (
     SECRETS_GET,
     SECRETS_DELETE,
 )
-from peagen.defaults.methods import TASK_GET
 
 __all__ = [
     "Error",
@@ -36,7 +35,6 @@ __all__ = [
     "TASK_RESUME",
     "TASK_RETRY",
     "TASK_RETRY_FROM",
-    "TASK_GET",
     "KEYS_UPLOAD",
     "KEYS_FETCH",
     "KEYS_DELETE",

@@ -6,17 +6,17 @@ import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.protocols.error_codes import Code as ErrorCode
 
-from peagen.defaults import (
+from peagen.protocols import (
+    TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
     TASK_RESUME,
     TASK_RETRY,
     TASK_RETRY_FROM,
-    GUARD_SET,
     TASK_PATCH,
     TASK_GET,
 )
-from peagen.protocols.methods.task import SubmitResult, TASK_SUBMIT
+from peagen.defaults import GUARD_SET
 
 from .. import (
     READY_QUEUE,
@@ -131,7 +131,7 @@ async def task_submit(task: TaskCreate) -> dict:
     await _save_task(task_rd)
     await _publish_task(task_rd)
     log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-    return SubmitResult.model_construct(task_id=str(task_rd.id)).model_dump()
+    return {"task_id": str(task_rd.id)}
 
 
 @dispatcher.method(TASK_PATCH)
