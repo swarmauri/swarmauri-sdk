@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import uuid
 
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.protocols.methods.task import SubmitParams
 
 

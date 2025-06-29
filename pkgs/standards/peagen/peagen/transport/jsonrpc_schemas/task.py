@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from peagen.orm import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.protocols._registry import register
 
 
@@ -12,7 +12,7 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    id:   str
+    id: str
     pool: str
     repo: str | None = None
     ref: str | None = None

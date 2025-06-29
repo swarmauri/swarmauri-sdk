@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.plugins.result_backends import ResultBackendBase
 
 

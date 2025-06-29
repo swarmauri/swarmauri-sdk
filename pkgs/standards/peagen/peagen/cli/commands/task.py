@@ -28,7 +28,7 @@ from peagen.protocols.methods.task import (
 )
 from peagen.cli.rpc_utils import rpc_post
 
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 

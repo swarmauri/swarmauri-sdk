@@ -12,7 +12,7 @@ import typer
 from functools import partial
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.protocols import TASK_SUBMIT, TASK_GET
 from peagen.protocols.methods.task import (

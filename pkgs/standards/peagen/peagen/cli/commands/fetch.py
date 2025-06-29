@@ -16,7 +16,7 @@ import typer
 from functools import partial
 
 from peagen.handlers.fetch_handler import fetch_handler
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")

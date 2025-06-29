@@ -29,7 +29,7 @@ from peagen.protocols.methods.task import (
 from peagen.cli.rpc_utils import rpc_post
 import httpx
 import uuid
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
