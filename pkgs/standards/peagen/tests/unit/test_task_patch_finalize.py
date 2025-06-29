@@ -1,6 +1,7 @@
 import uuid
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.work import FinishedParams
 
 
 @pytest.mark.unit
@@ -88,7 +89,7 @@ async def test_task_patch_triggers_finalize(monkeypatch):
         last_modified=datetime.datetime.now(timezone.utc),
     )
     child_id = (await task_submit(child_dto))["taskId"]
-    await work_finished(taskId=child_id, status="success", result=None)
+    await work_finished(FinishedParams(taskId=child_id, status="success", result=None))
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
     parent = await task_get(parent_id)
@@ -181,7 +182,7 @@ async def test_task_patch_triggers_finalize_rejected(monkeypatch):
         last_modified=datetime.datetime.now(timezone.utc),
     )
     child_id = (await task_submit(child_dto))["taskId"]
-    await work_finished(taskId=child_id, status="rejected", result=None)
+    await work_finished(FinishedParams(taskId=child_id, status="rejected", result=None))
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
     parent = await task_get(parent_id)

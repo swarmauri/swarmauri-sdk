@@ -12,12 +12,16 @@ GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 
 
 def _gateway_available(url: str) -> bool:
+    """Return ``True`` if the gateway responds with a valid worker list."""
     envelope = {"jsonrpc": "2.0", "method": WORKER_LIST, "params": {}}
     try:
         response = httpx.post(url, json=envelope, timeout=5)
+        if response.status_code != 200:
+            return False
+        data = response.json()
     except Exception:
         return False
-    return response.status_code == 200
+    return "result" in data
 
 
 @pytest.mark.i9n
