@@ -17,9 +17,11 @@ def _build_task(
 ) -> Any:
     """Return a SubmitParams (via :class:`SubmitParams`) with *action* and *args* embedded."""
 
+    repo = args.pop("repo", "")
     return {
         "id": str(uuid.uuid4()),
         "pool": pool,
+        "repo": repo,
         "payload": {"action": action, "args": args},
     }
 

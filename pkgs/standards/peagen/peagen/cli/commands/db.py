@@ -55,7 +55,8 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     )
     if reply.error:
         raise RuntimeError(reply.error.message)
-    return str(reply.result.taskId if reply.result else submit.task.id)
+    task_id = reply.result.taskId if reply.result else submit.id
+    return str(task_id)
 
 
 @local_db_app.command("upgrade")
