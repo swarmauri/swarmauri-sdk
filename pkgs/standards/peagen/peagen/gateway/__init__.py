@@ -43,6 +43,7 @@ from peagen.protocols.methods.task import (
     PatchParams,
     GetParams,
 )
+from peagen.protocols.methods.work import FinishedParams
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -684,7 +685,6 @@ async def scheduler():
                 params={"task": task.model_dump(mode="json")},
             ).model_dump()
 
-
             try:
                 resp = await client.post(target["url"], json=rpc_req)
                 if resp.status_code != 200:
@@ -758,7 +758,7 @@ async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
 
 # expose RPC handler functions for unit tests
 from .rpc.workers import (  # noqa: F401,E402
-    work_finished,
+    work_finished as _work_finished_rpc,
     worker_heartbeat,
     worker_list,
     worker_register,
@@ -840,6 +840,17 @@ async def task_get(taskId: str) -> dict:
 async def task_patch(*, taskId: str, changes: dict) -> dict:
     """Compatibility wrapper for :func:`_task_patch_rpc`."""
     return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
+
+
+async def work_finished(
+    *, taskId: str, status: str, result: dict | None = None
+) -> dict:
+    """Compatibility wrapper for :func:`rpc.workers.work_finished`."""
+    from .rpc.workers import work_finished as _work_finished
+
+    return await _work_finished(
+        FinishedParams(taskId=taskId, status=status, result=result)
+    )
 
 
 # ─────────────────────────────── Healthcheck ───────────────────────────────
