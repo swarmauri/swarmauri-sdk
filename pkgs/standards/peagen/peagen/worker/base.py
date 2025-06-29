@@ -152,7 +152,7 @@ class WorkerBase:
             # Auto-assign id if omitted
             if body.id is None:
                 body.id = str(uuid.uuid4())
-            payload = body.model_dump()
+            payload = body.model_dump(mode="json")
             self.log.debug("RPC  ←  %s", payload)
             try:
                 resp = await self.rpc.dispatch(payload)
