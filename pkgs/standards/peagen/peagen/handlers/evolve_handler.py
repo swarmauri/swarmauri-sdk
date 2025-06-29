@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 import yaml
 
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from peagen.orm.status import Status
 from .fanout import fan_out
 from . import ensure_task
@@ -33,7 +33,7 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     return None, yaml.safe_load(path_or_text)
 
 
-async def evolve_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})

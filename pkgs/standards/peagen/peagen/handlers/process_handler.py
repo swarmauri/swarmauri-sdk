@@ -25,13 +25,13 @@ from peagen.core.process_core import (
     process_single_project,
     process_all_projects,
 )
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 logger = Logger(name=__name__)
 
 
-async def process_handler(task: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def process_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """Main coroutine invoked by workers and synchronous CLI runs."""
     # ------------------------------------------------------------------ #
     # 0) Normalise input – accept PatchResult *or* plain dict

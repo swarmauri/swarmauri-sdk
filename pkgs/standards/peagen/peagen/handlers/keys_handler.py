@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import keys_core
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 
-async def keys_handler(task: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def keys_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """Handle key management actions."""
     task = ensure_task(task)
     payload = task.payload

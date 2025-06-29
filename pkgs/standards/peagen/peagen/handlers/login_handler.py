@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from peagen.core.login_core import login
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 
-async def login_handler(task: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def login_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """Handle a login task."""
     task = ensure_task(task)
     payload = task.payload
