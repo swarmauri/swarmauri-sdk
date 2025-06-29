@@ -15,7 +15,7 @@ WORKDIR /app
 
 # 1. Copy only dependency-defining files first (better layer caching)
 COPY ./pkgs/ ./pkgs/
-COPY ./infra/.worker.peagen.toml ./.peagen.toml
+COPY ./infra/peagen/.worker.peagen.toml ./.peagen.toml
 
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
