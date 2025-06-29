@@ -6,7 +6,7 @@ import shutil
 
 import httpx
 import pytest
-from peagen.protocols.methods.worker import WORKER_LIST
+from peagen.transport.json_rpcschemas.worker import WORKER_LIST
 
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
 

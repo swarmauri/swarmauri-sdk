@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import keys_core
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 

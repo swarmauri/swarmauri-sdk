@@ -18,7 +18,7 @@ from peagen.protocols import (
     TASK_RETRY,
     TASK_RETRY_FROM,
 )
-from peagen.protocols.methods.task import (
+from peagen.transport.json_rpcschemas.task import (
     GetParams,
     GetResult,
     PatchParams,

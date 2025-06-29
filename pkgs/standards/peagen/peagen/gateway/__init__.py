@@ -34,7 +34,7 @@ from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.transport.jsonrpc_schemas import Status
 from pydantic import ValidationError
-from peagen.protocols.methods.work import WORK_START
+from peagen.transport.json_rpcschemas.work import WORK_START
 from peagen.orm.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 

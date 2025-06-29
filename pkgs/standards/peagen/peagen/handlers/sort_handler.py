@@ -21,7 +21,7 @@ Expected task payload
 from __future__ import annotations
 from typing import Any, Dict
 
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 
 from . import ensure_task
 

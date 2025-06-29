@@ -16,7 +16,7 @@ from peagen.core.templates_core import (
     add_template_set,
     remove_template_set,
 )
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 

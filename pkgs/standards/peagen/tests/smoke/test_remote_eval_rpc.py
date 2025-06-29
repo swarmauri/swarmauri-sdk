@@ -2,7 +2,7 @@ import os
 import uuid
 import httpx
 import pytest
-from peagen.protocols.methods.worker import WORKER_LIST
+from peagen.transport.json_rpcschemas.worker import WORKER_LIST
 
 pytestmark = pytest.mark.smoke
 
@@ -46,7 +46,7 @@ def test_eval_submit_returns_task_id() -> None:
             "program_glob": "*.py",
         },
     }
-    from peagen.protocols.methods import TASK_SUBMIT
+    from peagen.transport.json_rpcschemas import TASK_SUBMIT
 
     envelope = {
         "jsonrpc": "2.0",

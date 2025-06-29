@@ -5,7 +5,7 @@ import pytest
 
 from peagen.cli.commands import keys as keys_mod
 from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, Response
-from peagen.protocols.methods.keys import FetchResult
+from peagen.transport.json_rpcschemas.keys import FetchResult
 
 
 @pytest.mark.unit
