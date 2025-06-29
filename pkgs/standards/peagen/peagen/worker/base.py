@@ -152,7 +152,7 @@ class WorkerBase:
             # Auto-assign id if omitted
             if body.id is None:
                 body.id = str(uuid.uuid4())
-            payload = body.model_dump()
+            payload = body.model_dump(mode="json")
             self.log.debug("RPC  ←  %s", payload)
             try:
                 resp = await self.rpc.dispatch(payload)
@@ -260,7 +260,7 @@ class WorkerBase:
             id=str(uuid.uuid4()),
             method=WORK_FINISHED,
             params={"taskId": task_id, "status": state, "result": result},
-        ).model_dump()
+        ).model_dump(mode="json")
         try:
             await self._client.post(self.DQ_GATEWAY, json=payload)
             self.log.info("Work.finished sent    task=%s state=%s", task_id, state)
@@ -273,10 +273,12 @@ class WorkerBase:
         if self._client is None:
             raise HTTPClientNotInitializedError()
 
-        payload = params.model_dump() if isinstance(params, BaseModel) else params
+        payload = (
+            params.model_dump(mode="json") if isinstance(params, BaseModel) else params
+        )
         body = RPCEnvelope(
             id=str(uuid.uuid4()), method=method, params=payload
-        ).model_dump()
+        ).model_dump(mode="json")
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
             self.log.debug("sent %s → %s", method, payload)
