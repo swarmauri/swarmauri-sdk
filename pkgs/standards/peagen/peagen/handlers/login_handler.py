@@ -7,12 +7,10 @@ from typing import Any, Dict, Optional
 
 from peagen.core.login_core import login
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from . import ensure_task
 
 
-async def login_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def login_handler(task: SubmitParams) -> SubmitResult:
     """Handle a login task."""
-    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     key_dir = args.get("key_dir")

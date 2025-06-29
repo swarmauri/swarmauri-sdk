@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from . import ensure_task
 
 from peagen._utils import maybe_clone_repo
 
@@ -14,9 +13,8 @@ from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from .repo_utils import fetch_repo, cleanup_repo
 
 
-async def extras_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def extras_handler(task: SubmitParams) -> SubmitResult:
     """Generate EXTRAS schemas based on template-set ``EXTRAS.md`` files."""
-    task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
