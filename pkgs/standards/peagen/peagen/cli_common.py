@@ -67,26 +67,15 @@ class PathOrURI(str):
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. load .peagen.toml
 # ─────────────────────────────────────────────────────────────────────────────
+from .config_loader import TomlConfigLoader
+
+
 def load_peagen_toml(
     start_dir: pathlib.Path = pathlib.Path.cwd(), path: pathlib.Path | None = None
 ) -> dict[str, Any]:
     """Locate and load ``.peagen.toml`` starting from ``start_dir`` or an explicit ``path``."""
-    if path:
-        cfg_path = path.expanduser().resolve()
-        if cfg_path.is_file():
-            import tomllib
-
-            return tomllib.loads(cfg_path.read_text("utf-8"))
-        return {}
-
-    for folder in [start_dir, *start_dir.parents]:
-        cfg_path = folder / ".peagen.toml"
-        if cfg_path.is_file():
-            import tomllib  # tomli for 3.10
-
-            res = tomllib.loads(cfg_path.read_text("utf-8"))
-            return res
-    return {}
+    loader = TomlConfigLoader(path=path, start_dir=start_dir)
+    return loader.config
 
 
 # ─────────────────────────────────────────────────────────────────────────────
