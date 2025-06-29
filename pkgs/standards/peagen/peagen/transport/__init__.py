@@ -6,6 +6,7 @@ from peagen.protocols import (
 )
 from peagen.transport.jsonrpc import RPCException
 
+
 __all__ = [
     "RPCDispatcher",
     "RPCRequest",

@@ -95,6 +95,7 @@ services:
     restart: unless-stopped
     networks: [app_net]
 
+
   # Nginx Proxy Manager
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
@@ -164,6 +165,7 @@ services:
     networks: [app_net]
 
   ## ───────────────────────────── Peagen ────────────────────────────
+
   gateway:
     build:
       context: ../

@@ -41,17 +41,17 @@ jobs:
     - name: Deploy with Docker Compose
       id: deploy
       run: |
-        # sudo -E docker-compose -f infra/peagen_docker-compose.yml pull   # optional
+        # sudo -E docker-compose -f infra/peagen/docker-compose.yml pull   # optional
         sudo docker system prune -f
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml down --remove-orphans
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml up -d --force-recreate --build 
+        sudo -E docker-compose -f infra/peagen/docker-compose.yml down --remove-orphans
+        sudo -E docker-compose -f infra/peagen/docker-compose.yml up -d --force-recreate --build 
     # Collect logs only when *any* previous step failed (deploy or later)
     - name: Get container logs on failure
       if: failure()          # <- overrides the implicit success() check
       run: |
         echo "::group::gateway logs"
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs gateway || true
+        sudo -E docker-compose -f infra/peagen/docker-compose.yml logs gateway || true
         echo "::endgroup::"
         echo "::group::worker logs"
-        sudo -E docker-compose -f infra/peagen_docker-compose.yml logs worker || true
+        sudo -E docker-compose -f infra/peagen/docker-compose.yml logs worker || true
         echo "::endgroup::"
