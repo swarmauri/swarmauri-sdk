@@ -9,11 +9,11 @@ from peagen.core.migrate_core import (
     alembic_revision,
     alembic_upgrade,
 )
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 from . import ensure_task
 
 
-async def migrate_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def migrate_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
     task = ensure_task(task_or_dict)
     args: Dict[str, Any] = task.payload["args"]
     op: str = args["op"]

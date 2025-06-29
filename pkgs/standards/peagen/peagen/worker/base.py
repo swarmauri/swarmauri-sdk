@@ -30,7 +30,7 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
 from peagen.handlers import ensure_task
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -210,7 +210,7 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
-    async def _run_task(self, task: TaskRead | Dict[str, Any]) -> None:
+    async def _run_task(self, task: PatchResult | Dict[str, Any]) -> None:
         """Execute *task* by dispatching to a registered handler."""
         canonical = ensure_task(task)
         task_id = str(canonical.id)
