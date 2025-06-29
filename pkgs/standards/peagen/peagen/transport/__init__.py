@@ -1,7 +1,7 @@
 """Typed JSON-RPC protocol primitives and method registry."""
 
 from peagen.transport.jsonrpc import RPCDispatcher
-from peagen.transport import (
+from peagen.envelope import (
     Request as RPCRequest,
     Response as RPCResponse,
     Error as RPCErrorData,
