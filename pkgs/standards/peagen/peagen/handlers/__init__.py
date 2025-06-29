@@ -28,10 +28,7 @@ def ensure_task(task: SubmitParams) -> SubmitParams:
         "pool": task.get("pool", "default"),
         "payload": task.get("payload", {}),
         "status": Status.queued,
-        "note": "",
-        "config_toml": None,
-        "labels": [],
-        "result": None,
+        "note": ""
     }
 
     merged = {**defaults, **task}

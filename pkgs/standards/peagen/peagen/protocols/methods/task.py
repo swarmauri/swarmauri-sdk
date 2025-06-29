@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -70,6 +70,19 @@ class GetResult(SubmitResult):
     """Result returned by ``Task.get`` -- identical to :class:`SubmitResult`."""
 
 
+class PatchParams(BaseModel):
+    """Parameters for ``Task.patch``."""
+
+    model_config = ConfigDict(extra="allow")
+
+    taskId: str
+    changes: dict
+
+
+class PatchResult(SubmitResult):
+    """Result returned by ``Task.patch``."""
+
+
 TASK_SUBMIT = register(
     method="Task.submit",
     params_model=SubmitParams,
@@ -79,8 +92,8 @@ TASK_SUBMIT = register(
 
 TASK_PATCH = register(
     method="Task.patch",
-    params_model=SubmitParams,
-    result_model=SubmitResult,
+    params_model=PatchParams,
+    result_model=PatchResult,
 )
 
 TASK_GET = register(
