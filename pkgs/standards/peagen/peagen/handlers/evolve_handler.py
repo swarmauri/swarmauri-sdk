@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 import yaml
 
-from peagen.transport.json_rpcschemas.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     PatchResult,
     SubmitParams,
     SubmitResult,

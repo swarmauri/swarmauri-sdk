@@ -10,7 +10,7 @@ from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
 )
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager

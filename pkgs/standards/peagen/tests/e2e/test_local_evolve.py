@@ -6,7 +6,7 @@ from pathlib import Path
 
 import httpx
 import pytest
-from peagen.transport.json_rpcschemas.worker import WORKER_LIST
+from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
 
 pytestmark = pytest.mark.e2e
 

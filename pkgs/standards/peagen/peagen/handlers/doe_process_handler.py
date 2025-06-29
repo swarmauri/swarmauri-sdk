@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Tuple
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.transport.json_rpcschemas.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     PatchResult,
     SubmitParams,
     SubmitResult,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pgpy import PGPKey
 
 from .. import dispatcher, log, TRUSTED_USERS
-from peagen.transport.json_rpcschemas.keys import (
+from peagen.transport.jsonrpc_schemas.keys import (
     KEYS_UPLOAD,
     KEYS_FETCH,
     KEYS_DELETE,

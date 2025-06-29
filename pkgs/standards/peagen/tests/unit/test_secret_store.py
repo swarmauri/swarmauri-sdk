@@ -5,7 +5,7 @@ import pytest
 from peagen.orm import Base
 import peagen.gateway as gw
 import peagen.gateway.db as db
-from peagen.transport.json_rpcschemas.secrets import AddParams, GetParams, DeleteParams
+from peagen.transport.jsonrpc_schemas.secrets import AddParams, GetParams, DeleteParams
 
 
 @pytest.mark.unit

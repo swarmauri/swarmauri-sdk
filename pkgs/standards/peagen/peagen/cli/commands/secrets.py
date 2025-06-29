@@ -11,7 +11,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.transport import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
-from peagen.transport.json_rpcschemas.secrets import (
+from peagen.transport.jsonrpc_schemas.secrets import (
     AddParams,
     GetParams,
     DeleteParams,
@@ -19,7 +19,7 @@ from peagen.transport.json_rpcschemas.secrets import (
     GetResult,
     DeleteResult,
 )
-from peagen.transport.json_rpcschemas.worker import WORKER_LIST, ListParams, ListResult
+from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST, ListParams, ListResult
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")

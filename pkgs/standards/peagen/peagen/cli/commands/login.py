@@ -10,7 +10,7 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.transport import KEYS_UPLOAD
-from peagen.transport.json_rpcschemas.keys import UploadParams, UploadResult
+from peagen.transport.jsonrpc_schemas.keys import UploadParams, UploadResult
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")

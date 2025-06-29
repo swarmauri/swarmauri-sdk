@@ -10,7 +10,7 @@ import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_builder import build_submit_params
 from peagen.cli.rpc_utils import rpc_post
 

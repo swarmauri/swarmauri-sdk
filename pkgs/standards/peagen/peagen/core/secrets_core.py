@@ -13,7 +13,7 @@ from peagen.plugins.secret_drivers import AutoGpgDriver
 from pydantic import TypeAdapter
 
 from peagen.transport import Request, Response
-from peagen.transport.json_rpcschemas.secrets import (
+from peagen.transport.jsonrpc_schemas.secrets import (
     SECRETS_ADD,
     SECRETS_GET,
     SECRETS_DELETE,
@@ -24,7 +24,7 @@ from peagen.transport.json_rpcschemas.secrets import (
     DeleteParams,
     DeleteResult,
 )
-from peagen.transport.json_rpcschemas.worker import WORKER_LIST, ListParams, ListResult
+from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST, ListParams, ListResult
 
 R = TypeVar("R")
 

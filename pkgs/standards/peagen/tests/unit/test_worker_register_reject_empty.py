@@ -40,7 +40,7 @@ async def test_worker_register_rejects_no_handlers(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    from peagen.transport.json_rpcschemas.worker import RegisterParams
+    from peagen.transport.jsonrpc_schemas.worker import RegisterParams
 
     with pytest.raises(gw.RPCException) as exc:
         await gw.worker_register(
