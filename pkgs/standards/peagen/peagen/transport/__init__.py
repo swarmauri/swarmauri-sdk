@@ -4,7 +4,6 @@ from peagen.protocols import (
     Response as RPCResponse,
     Error as RPCErrorData,
 )
-from peagen.transport.schemas import RPCException
 
 __all__ = [
     "RPCDispatcher",
