@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any, Dict
+
 import uuid
 
 from peagen.orm.status import Status
@@ -26,16 +26,13 @@ def ensure_task(task: PatchResult | Dict[str, Any]) -> PatchResult:
     # a local CLI invocation and populate sane defaults so handler logic can
     # operate on a complete ``PatchResult`` model.
     defaults = {
-        "id": str(uuid.uuid4()),
-        "tenant_id": str(uuid.uuid4()),
-        "git_reference_id": str(uuid.uuid4()),
         "pool": task.get("pool", "default"),
         "payload": task.get("payload", {}),
         "status": Status.queued,
         "note": "",
-        "spec_hash": uuid.uuid4().hex * 2,
-        "date_created": datetime.now(timezone.utc).isoformat(),
-        "last_modified": datetime.now(timezone.utc).isoformat(),
+        "config_toml": None,
+        "labels": [],
+        "result": None,
     }
 
     merged = {**defaults, **task}

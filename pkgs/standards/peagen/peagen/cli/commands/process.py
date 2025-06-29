@@ -201,7 +201,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
 
     if reply.error:
         typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
+            f"Remote error {reply.error.code}: {reply.error.message}",
             fg=typer.colors.RED,
             err=True,
         )
