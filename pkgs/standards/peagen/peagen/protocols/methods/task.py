@@ -1,9 +1,9 @@
 from __future__ import annotations
-
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
-from peagen.schemas import TaskCreate
 
+from peagen.orm import Status
 from peagen.protocols._registry import register
 
 
@@ -12,7 +12,18 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    task: TaskCreate
+    id: str = Field(default=str(uuid.uuid4()))
+    pool: str
+    payload: dict
+    status: Status = Status.waiting
+    result: Optional[dict] = None
+    deps: List[str] = Field(default_factory=list)
+    edge_pred: str | None = None
+    labels: List[str] = Field(default_factory=list)
+    in_degree: int = 0
+    config_toml: str | None = None
+    date_created: float | None = None
+    last_modified: float | None = None
 
 
 class SubmitResult(BaseModel):
@@ -20,36 +31,20 @@ class SubmitResult(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    taskId: str
-
-
-class PatchParams(BaseModel):
-    """Parameters for the ``Task.patch`` RPC method."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    taskId: str
-    changes: dict
-
-
-class PatchResult(BaseModel):
-    """Patched task representation."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    id: str
-    tenant_id: str
-    git_reference_id: str | None = None
     pool: str
     payload: dict
-    status: str
+    status: Status = Status.waiting
     note: str | None = None
-    spec_hash: str
-    date_created: str
-    last_modified: str
+    config_toml: str | None = None
     labels: list[str] | None = None
-    result: dict | None = None
+    result: Optional[dict] = None
 
+
+class PatchParams(SubmitParams):
+    """Parameters for the ``Task.patch`` RPC method."""
+
+class PatchResult(SubmitResult):
+    """Patched task representation."""
 
 class SimpleSelectorParams(BaseModel):
     """Common selector parameter used by control RPC methods."""

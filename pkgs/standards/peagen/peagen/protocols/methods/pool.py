@@ -16,7 +16,6 @@ class CreateResult(BaseModel):
 
     name: str
 
-
 class JoinParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -38,7 +37,12 @@ class ListParams(BaseModel):
 
 
 class ListResult(RootModel[list[dict]]):
-    pass
+    model_config = ConfigDict(extra="forbid")   
+
+    poolName: str
+    limit: int | None = None
+    offset: int = 0
+    members: List[str] = Field(default_factory=list)
 
 
 POOL_CREATE = register(
