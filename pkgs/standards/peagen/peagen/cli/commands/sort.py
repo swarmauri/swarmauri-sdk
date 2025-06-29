@@ -10,8 +10,8 @@ import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from peagen.schemas import TaskCreate
+from peagen.protocols.methods.task import SubmitResult
+from peagen.cli.task_builder import build_submit_params
 from peagen.cli.rpc_utils import rpc_post
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
@@ -130,16 +130,17 @@ def submit_sort(
         "repo": repo,
         "ref": ref,
     }
-    task_obj = TaskCreate(
+    submit = build_submit_params(
+        "sort",
+        {**args, "cfg_override": cfg_override},
         pool="default",
-        payload={"action": "sort", "args": args, "cfg_override": cfg_override},
     )
 
     try:
         resp = rpc_post(
             ctx.obj.get("gateway_url"),
             TASK_SUBMIT,
-            SubmitParams(task=task_obj).model_dump(),
+            submit.model_dump(),
             timeout=10.0,
             result_model=SubmitResult,
         )

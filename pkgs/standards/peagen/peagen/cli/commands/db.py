@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 
 from peagen.cli.rpc_utils import rpc_post
 
@@ -14,9 +13,9 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.protocols.methods.task import SubmitResult
+from peagen.cli.task_builder import build_submit_params
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -42,21 +41,21 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
         args["message"] = message
-    task = TaskCreate(
-        id=str(uuid.uuid4()),
+    submit = build_submit_params(
+        "migrate",
+        args,
         pool="default",
-        payload={"action": "migrate", "args": args},
     )
     reply = rpc_post(
         gateway_url,
         TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
+        submit.model_dump(),
         timeout=10.0,
         result_model=SubmitResult,
     )
     if reply.error:
         raise RuntimeError(reply.error.message)
-    return str(reply.result.taskId if reply.result else task.id)
+    return str(reply.result.taskId if reply.result else submit.task.id)
 
 
 @local_db_app.command("upgrade")

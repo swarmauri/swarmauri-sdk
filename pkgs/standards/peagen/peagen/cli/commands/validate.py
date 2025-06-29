@@ -6,9 +6,9 @@ from typing import Any, Dict
 import typer
 
 from peagen.handlers.validate_handler import validate_handler
-from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.protocols.methods.task import SubmitResult
+from peagen.cli.task_builder import build_submit_params
 from peagen.cli.rpc_utils import rpc_post
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
@@ -41,14 +41,11 @@ def run_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = TaskCreate(
-        pool="default",
-        payload={"action": "validate", "args": args},
-    )
+    submit = build_submit_params("validate", args)
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(task))
+        result: Dict[str, Any] = asyncio.run(validate_handler(submit.task))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)
@@ -86,17 +83,14 @@ def submit_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = TaskCreate(
-        pool="default",
-        payload={"action": "validate", "args": args},
-    )
+    submit = build_submit_params("validate", args)
 
     # 2) Build Task.submit envelope using Task fields
     try:
         reply = rpc_post(
             ctx.obj.get("gateway_url"),
             TASK_SUBMIT,
-            SubmitParams(task=task).model_dump(),
+            submit.model_dump(),
             timeout=10.0,
             result_model=SubmitResult,
         )
