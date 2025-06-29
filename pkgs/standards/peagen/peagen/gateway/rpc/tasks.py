@@ -4,7 +4,7 @@ import json
 import uuid
 import typing as t
 from peagen.transport.jsonrpc import RPCException
-from peagen.transport.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
 
 from peagen.transport import (
     TASK_SUBMIT,

@@ -54,7 +54,7 @@ from peagen.errors import (
 )
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
-from peagen.transport.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 

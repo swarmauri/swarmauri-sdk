@@ -1,7 +1,6 @@
 from enum import IntEnum
 
-
-class Code(IntEnum):
+class ErrorCode(IntEnum):
     PARSE_ERROR = -32700
     INVALID_REQUEST = -32600
     METHOD_NOT_FOUND = -32601

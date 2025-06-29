@@ -19,7 +19,7 @@ __all__ = [
 
 
 from .envelope import Error, Request, Response, parse_request
-from .error_codes import Code
+from .error_codes import ErrorCode
 from . import _registry
 from .schemas import (
     TASK_SUBMIT,
@@ -46,7 +46,7 @@ __all__ = [
     "Request",
     "Response",
     "parse_request",
-    "Code",
+    "ErrorCode",
     "_registry",
     "TASK_SUBMIT",
     "TASK_PATCH",

@@ -13,7 +13,7 @@ from peagen.transport.json_rpcschemas.secrets import (
     DeleteResult,
 )
 from ..db_helpers import delete_secret, fetch_secret, upsert_secret
-from peagen.transport.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
 from peagen.transport.jsonrpc import RPCException
 
 
