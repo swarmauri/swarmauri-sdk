@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from peagen.orm import Status
 from peagen.protocols._registry import register
