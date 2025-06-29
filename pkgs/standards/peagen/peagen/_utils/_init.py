@@ -35,56 +35,6 @@ def _contains_pat(obj: Any) -> bool:
         return any(_contains_pat(v) for v in obj)
     return False
 
-
-def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Invoke ``init_handler`` synchronously."""
-    # Ensure plugin templates are registered before invoking handlers
-    discover_and_register_plugins()
-    task = TaskCreate(
-        tenant_id=_real_uuid4(),
-        git_reference_id=_real_uuid4(),
-        pool="default",
-        payload={"action": "init", "args": args},
-        status=Status.queued,
-        note="",
-        spec_hash=_real_uuid4().hex * 2,
-        id=_real_uuid4(),
-        last_modified=datetime.now(timezone.utc),
-    )
-    return asyncio.run(init_handler(task))
-
-
-def _submit_task(
-    args: Dict[str, Any], gateway_url: str, tag: str, *, allow_pat: bool = False
-) -> None:
-    """Send *args* to a JSON-RPC worker."""
-    if not allow_pat and ("pat" in args or _contains_pat(args)):
-        raise PATNotAllowedError()
-    task = TaskCreate(pool="default", payload={"action": "init", "args": args})
-    from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
-
-    try:
-        from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-        from peagen.cli.rpc_utils import rpc_post
-
-        reply = rpc_post(
-            gateway_url,
-            TASK_SUBMIT,
-            SubmitParams(task=task).model_dump(),
-            timeout=10.0,
-            result_model=SubmitResult,
-        )
-        if reply.error:
-            typer.echo(f"[ERROR] {reply.error.message}")
-            raise typer.Exit(1)
-        typer.echo(f"Submitted {tag} → taskId={reply.result.taskId}")
-    except PATNotAllowedError:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
-        raise typer.Exit(1)
-
-
 def _summary(created_in: Path, next_cmd: str) -> None:
     typer.echo(
         textwrap.dedent(f"""\
