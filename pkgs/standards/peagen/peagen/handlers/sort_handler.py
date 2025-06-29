@@ -1,22 +1,4 @@
 # peagen/handlers/sort_handler.py
-"""
-Gateway / worker handler for the **sort** action.
-
-Expected task payload
----------------------
-{
-  "action": "sort",
-  "args": {                       # ← per-command flags
-      "projects_payload": "...",  # YAML text **or** path
-      "project_name": null,
-      "start_idx": 0,
-      "start_file": null,
-      "transitive": false,
-      "show_dependencies": false
-  },
-  "batch_cfg": { ... }            # ← overrides shared by the whole submit batch
-}
-"""
 
 from __future__ import annotations
 from typing import Any, Dict
