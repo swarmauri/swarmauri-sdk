@@ -684,6 +684,7 @@ async def scheduler():
                 params={"task": task.model_dump(mode="json")},
             ).model_dump()
 
+
             try:
                 resp = await client.post(target["url"], json=rpc_req)
                 if resp.status_code != 200:
