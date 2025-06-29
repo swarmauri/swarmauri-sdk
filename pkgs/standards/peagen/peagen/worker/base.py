@@ -20,6 +20,7 @@ from peagen.transport import RPCDispatcher
 from peagen.protocols import Request as RPCRequest, Response as RPCResponse
 from peagen.protocols import Request as RPCEnvelope
 from peagen.defaults import WORK_CANCEL, WORK_FINISHED, WORK_START
+from peagen.protocols.methods.work import FinishedParams
 from peagen.protocols.methods.worker import (
     WORKER_HEARTBEAT,
     WORKER_REGISTER,
@@ -256,10 +257,10 @@ class WorkerBase:
         if self._client is None:
             raise HTTPClientNotInitializedError()
 
-        payload = RPCEnvelope(
+        payload = RPCEnvelope[FinishedParams](
             id=str(uuid.uuid4()),
             method=WORK_FINISHED,
-            params={"taskId": task_id, "status": state, "result": result},
+            params=FinishedParams(taskId=task_id, status=state, result=result),
         ).model_dump(mode="json")
         try:
             await self._client.post(self.DQ_GATEWAY, json=payload)
@@ -273,15 +274,20 @@ class WorkerBase:
         if self._client is None:
             raise HTTPClientNotInitializedError()
 
-        payload = (
-            params.model_dump(mode="json") if isinstance(params, BaseModel) else params
+        req = RPCEnvelope(
+            id=str(uuid.uuid4()),
+            method=method,
+            params=params if isinstance(params, BaseModel) else params,
         )
-        body = RPCEnvelope(
-            id=str(uuid.uuid4()), method=method, params=payload
-        ).model_dump(mode="json")
+        body = req.model_dump(mode="json")
         try:
             await self._client.post(self.DQ_GATEWAY, json=body)
-            self.log.debug("sent %s → %s", method, payload)
+            data = (
+                req.params.model_dump(mode="json")
+                if isinstance(req.params, BaseModel)
+                else req.params
+            )
+            self.log.debug("sent %s → %s", method, data)
         except Exception as exc:
             self.log.warning("Failed sending %s to gateway: %s", method, exc)
 
