@@ -193,7 +193,9 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     task.payload["cfg_override"] = cfg_override
 
     task_payload = task.model_dump() if hasattr(task, "model_dump") else task
-    envelope = Request(id=str(uuid.uuid4()), method=TASK_SUBMIT, params={"task": task_payload})
+    envelope = Request(
+        id=str(uuid.uuid4()), method=TASK_SUBMIT, params={"task": task_payload}
+    )
     resp = httpx.post(
         ctx.obj.get("gateway_url"),
         json=envelope.model_dump(mode="json"),

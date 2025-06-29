@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict
 
 from peagen.orm import Status
 from peagen.protocols._registry import register
-from peagen.schemas import TaskCreate
 
 
 class SubmitParams(BaseModel):
@@ -15,7 +14,8 @@ class SubmitParams(BaseModel):
 
     id:   str
     pool: str
-    repo: str
+    repo: str | None = None
+    ref: str | None = None
     payload: dict
     status: Status = Status.waiting
     note: str | None = None
@@ -49,6 +49,7 @@ class CountResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     count: int
+
 
 class GetParams(BaseModel):
     """Parameters for ``Task.get``."""
