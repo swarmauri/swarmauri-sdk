@@ -13,7 +13,6 @@ from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.orm.schemas import TaskCreate
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
@@ -34,6 +33,7 @@ def _contains_pat(obj: Any) -> bool:
     if isinstance(obj, list):
         return any(_contains_pat(v) for v in obj)
     return False
+
 
 def _summary(created_in: Path, next_cmd: str) -> None:
     typer.echo(
