@@ -341,7 +341,7 @@
 - ./pkgs/community/swarmauri_vectorstore_redis/tests/unit/RedisVectorStore_test.py
 - ./pkgs/community/swm_example_community_package/swm_example_community_package/ExampleCommunityAgent.py
 - ./pkgs/community/swm_example_community_package/swm_example_community_package/__init__.py
-- ./pkgs/core/swarmauri_core/ComponentBase.py
+- ./pkgs/base/swarmauri_base/ComponentBase.py
 - ./pkgs/core/swarmauri_core/__init__.py
 - ./pkgs/core/swarmauri_core/agent_apis/IAgentCommands.py
 - ./pkgs/core/swarmauri_core/agent_apis/IAgentRouterCRUD.py

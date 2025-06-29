@@ -27,7 +27,7 @@ from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
 from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
 
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 from swarmauri_core.messages.IMessage import IMessage
 
 @ComponentBase.register_type(AgentBase, 'IterativeMemoryAgent')

@@ -68,7 +68,7 @@ We welcome contributions from the community to help improve Swarmauri SDK. This 
 1. **Define the Plugin**: Create a new Python file for your plugin and define the necessary classes and functions.
 2. **Register the Plugin**: Use the `ComponentBase.register_type` decorator to register your plugin with the Swarmauri SDK.
    ```python
-   from swarmauri_core.ComponentBase import ComponentBase
+   from swarmauri_base.ComponentBase import ComponentBase
 
    @ComponentBase.register_type(ToolBase, "MyCustomPlugin")
    class MyCustomPlugin(ToolBase):
