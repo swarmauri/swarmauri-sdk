@@ -24,7 +24,7 @@ async def fan_out(
     """Submit *children* and update *parent* with their IDs."""
     gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
     canonical_parent = ensure_task(parent)
-    parent_id = canonical_parent.id
+    parent_id = str(canonical_parent.id)
 
     child_ids: List[str] = []
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -37,7 +37,7 @@ async def fan_out(
                     "pool": child.pool,
                     "payload": child.payload,
                 },
-            ).model_dump()
+            ).model_dump(mode="json")
             await client.post(gateway, json=req)
             child_ids.append(str(child.id))
 
@@ -45,10 +45,10 @@ async def fan_out(
             id=str(uuid.uuid4()),
             method=TASK_PATCH,
             params=PatchParams(
-                taskId=str(parent_id),
+                taskId=parent_id,
                 changes={"result": {"children": child_ids}},
-            ).model_dump(),
-        ).model_dump()
+            ).model_dump(mode="json"),
+        ).model_dump(mode="json")
         await client.post(gateway, json=patch)
 
         finish = RPCEnvelope(
@@ -59,7 +59,7 @@ async def fan_out(
                 "status": final_status.value,
                 "result": result,
             },
-        ).model_dump()
+        ).model_dump(mode="json")
         await client.post(gateway, json=finish)
 
     return {"children": child_ids, "_final_status": final_status.value}
