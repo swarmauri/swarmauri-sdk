@@ -130,6 +130,6 @@ __all__: list[str] = [
 try:  # pragma: no cover - best effort
     import importlib
 
-    importlib.import_module("peagen.schemas")
+    importlib.import_module("peagen.orm.schemas")
 except Exception:  # noqa: BLE001
     pass
