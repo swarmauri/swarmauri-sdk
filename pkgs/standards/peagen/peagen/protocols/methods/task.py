@@ -13,18 +13,7 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    id: str = Field(default=str(uuid.uuid4()))
-    pool: str
-    payload: dict
-    status: Status = Status.waiting
-    result: Optional[dict] = None
-    deps: List[str] = Field(default_factory=list)
-    edge_pred: str | None = None
-    labels: List[str] = Field(default_factory=list)
-    in_degree: int = 0
-    config_toml: str | None = None
-    date_created: float | None = None
-    last_modified: float | None = None
+    task: TaskCreate
 
 
 class SubmitResult(BaseModel):
@@ -39,7 +28,6 @@ class SubmitResult(BaseModel):
     config_toml: str | None = None
     labels: list[str] | None = None
     result: Optional[dict] = None
-
 
 class SimpleSelectorParams(BaseModel):
     """Common selector parameter used by control RPC methods."""
@@ -57,6 +45,15 @@ class CountResult(BaseModel):
     count: int
 
 
+class PatchParams(BaseModel):
+    """Parameters for ``Task.patch``."""
+
+
+class PatchResult(SubmitResult):
+    """Result returned by ``Task.patch`` -- identical to :class:`SubmitResult`."""
+
+
+
 class GetParams(BaseModel):
     """Parameters for ``Task.get``."""
 
@@ -66,7 +63,7 @@ class GetParams(BaseModel):
 
 
 class GetResult(SubmitResult):
-    """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
+    """Result returned by ``Task.get`` -- identical to :class:`SubmitResult`."""
 
 
 class PatchParams(BaseModel):

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+
 import uuid
 
 from peagen.orm.status import Status
@@ -24,11 +25,10 @@ def ensure_task(task: SubmitParams) -> SubmitParams:
     # a local CLI invocation and populate sane defaults so handler logic can
     # operate on a complete ``PatchResult`` model.
     defaults = {
-        "id": str(uuid.uuid4()),
         "pool": task.get("pool", "default"),
         "payload": task.get("payload", {}),
         "status": Status.queued,
-        "note": "",
+        "note": ""
     }
 
     merged = {**defaults, **task}
