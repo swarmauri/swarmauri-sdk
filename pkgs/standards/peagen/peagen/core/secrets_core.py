@@ -12,7 +12,7 @@ import httpx
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from pydantic import TypeAdapter
 
-from peagen.protocols import Request, Response
+from peagen.transport import Request, Response
 from peagen.transport.json_rpcschemas.secrets import (
     SECRETS_ADD,
     SECRETS_GET,

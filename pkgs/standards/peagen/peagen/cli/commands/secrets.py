@@ -10,7 +10,7 @@ from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.transport import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 from peagen.transport.json_rpcschemas.secrets import (
     AddParams,
     GetParams,

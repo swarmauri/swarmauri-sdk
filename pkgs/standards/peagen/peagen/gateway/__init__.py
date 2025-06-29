@@ -24,7 +24,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
 from peagen.transport import RPCDispatcher
-from peagen.protocols import (
+from peagen.transport import (
     Request as RPCRequest,
     Request as RPCEnvelope,
     parse_request,
@@ -54,7 +54,7 @@ from peagen.errors import (
 )
 import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
-from peagen.protocols.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import Code as ErrorCode
 from peagen.core import migrate_core
 from peagen.services import create_task, get_task, update_task
 

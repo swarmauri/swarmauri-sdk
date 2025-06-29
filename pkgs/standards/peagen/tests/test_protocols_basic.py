@@ -1,4 +1,4 @@
-from peagen.protocols import (
+from peagen.transport import (
     Response,
     parse_request,
     _registry,

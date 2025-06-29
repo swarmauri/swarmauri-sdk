@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from peagen.protocols._registry import register
+from peagen.transport._registry import register
 
 
 class AddParams(BaseModel):

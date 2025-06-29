@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.protocols._registry import register
+from peagen.transport._registry import register
 
 
 class SubmitParams(BaseModel):

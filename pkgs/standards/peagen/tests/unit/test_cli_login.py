@@ -4,7 +4,7 @@ import pytest
 
 from peagen.cli import app
 import peagen.cli.commands.login as login_mod
-from peagen.protocols import Response, Error
+from peagen.transport import Response, Error
 
 
 class DummyDriver:

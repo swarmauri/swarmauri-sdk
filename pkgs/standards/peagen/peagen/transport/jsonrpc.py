@@ -4,9 +4,9 @@ import inspect
 from typing import Callable, Dict
 
 from pydantic import BaseModel
-from . import _registry
-from .error_codes import Error
+from peagen.transport import _registry
 
+from peagen.transport import Error
 
 class RPCException(Exception):
     """Exception carrying JSON-RPC error details."""

@@ -7,7 +7,7 @@ import httpx
 
 from pydantic import TypeAdapter
 
-from peagen.protocols import Request, Response
+from peagen.transport import Request, Response
 
 R = TypeVar("R")
 
