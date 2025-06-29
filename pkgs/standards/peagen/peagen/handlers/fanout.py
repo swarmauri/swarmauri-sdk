@@ -33,13 +33,13 @@ async def fan_out(
                 id=str(uuid.uuid4()),
                 method=TASK_SUBMIT,
                 params={
-                    "taskId": child.id,
+                    "taskId": str(child.id),
                     "pool": child.pool,
                     "payload": child.payload,
                 },
             ).model_dump()
             await client.post(gateway, json=req)
-            child_ids.append(child.id)
+            child_ids.append(str(child.id))
 
         patch = RPCEnvelope(
             id=str(uuid.uuid4()),
@@ -55,7 +55,7 @@ async def fan_out(
             id=str(uuid.uuid4()),
             method="Work.finished",
             params={
-                "taskId": parent_id,
+                "taskId": str(parent_id),
                 "status": final_status.value,
                 "result": result,
             },
