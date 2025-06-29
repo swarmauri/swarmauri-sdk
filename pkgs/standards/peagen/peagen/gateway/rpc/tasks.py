@@ -73,7 +73,21 @@ def _parse_task_create(task: t.Any) -> TaskCreate:
 @dispatcher.method(TASK_SUBMIT)
 async def task_submit(params: SubmitParams) -> SubmitResult:
     """Persist *task* and enqueue it."""
-    dto = _parse_task_create(params.task)
+    task_data = getattr(params, "task", None)
+    if task_data is None:
+        extra = getattr(params, "__pydantic_extra__", {}) or {}
+        task_data = {
+            "id": extra.get("id"),
+            "tenant_id": extra.get("tenant_id"),
+            "git_reference_id": extra.get("git_reference_id"),
+            "pool": params.pool,
+            "payload": params.payload,
+            "status": params.status,
+            "note": params.note or "",
+            "spec_hash": extra.get("spec_hash", ""),
+            "last_modified": extra.get("last_modified"),
+        }
+    dto = _parse_task_create(task_data)
     await queue.sadd("pools", dto.pool)
 
     action = (dto.payload or {}).get("action")
