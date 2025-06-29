@@ -2,8 +2,8 @@ import json
 import pytest
 import typer
 from peagen.cli.commands import secrets as secrets_cli
-from peagen.transport.json_rpcschemas.worker import WORKER_LIST
-from peagen.transport.json_rpcschemas.secrets import GetResult
+from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+from peagen.transport.jsonrpc_schemas.secrets import GetResult
 from peagen.transport import Response
 
 

@@ -22,7 +22,7 @@ from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
 from peagen.transport import TASK_SUBMIT, TASK_GET, Request
-from peagen.transport.json_rpcschemas.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     GetParams,
     GetResult,
 )
