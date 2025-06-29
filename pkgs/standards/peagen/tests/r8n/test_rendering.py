@@ -105,7 +105,12 @@ class TestRendering:
         assert result == "Generated content"
         j2_instance.set_template.assert_called_once()
         j2_instance.fill.assert_called_once_with(context)
-        mock_call_agent.assert_called_once_with("Rendered prompt", {}, mock_logger)
+        mock_call_agent.assert_called_once_with(
+            "Rendered prompt",
+            {},
+            mock_logger,
+            file_record["RENDERED_FILE_NAME"],
+        )
         mock_logger.error.assert_not_called()
 
     @patch("peagen._external.call_external_agent")
@@ -153,7 +158,10 @@ class TestRendering:
         # Assertions
         assert result == "Generated content"
         mock_call_agent.assert_called_once_with(
-            "Rendered prompt", agent_env, mock_logger
+            "Rendered prompt",
+            agent_env,
+            mock_logger,
+            file_record["RENDERED_FILE_NAME"],
         )
 
     @patch("peagen._external.call_external_agent")

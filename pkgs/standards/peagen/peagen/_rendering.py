@@ -72,7 +72,8 @@ def _render_generate_template(
         rendered_prompt = j2_instance.fill(context)
         from ._external import call_external_agent
 
-        return call_external_agent(rendered_prompt, agent_env, logger)
+        file_name = file_record.get("RENDERED_FILE_NAME")
+        return call_external_agent(rendered_prompt, agent_env, logger, file_name)
     except Exception as e:
         if logger:
             e_split = str(e).split("not found")

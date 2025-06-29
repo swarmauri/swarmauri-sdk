@@ -92,6 +92,17 @@ class TestChunkContent:
             assert result == content
             logger_mock.error.assert_called_once()
 
+    def test_markdown_file_returns_full_content(self):
+        """Markdown files should bypass chunking."""
+        with patch(
+            "swarmauri.chunkers.MdSnippetChunker.MdSnippetChunker"
+        ) as mock_chunker:
+            content = "some text with ```code```"
+            result = chunk_content(content, file_name="README.md")
+
+            assert result == content
+            mock_chunker.assert_not_called()
+
 
 class TestCallExternalAgent:
     @pytest.fixture
@@ -216,7 +227,7 @@ class TestCallExternalAgent:
         result = call_external_agent(prompt, agent_env)
 
         # Verify chunk_content was called with the generated result
-        mock_chunk_content.assert_called_with("Generated content", None)
+        mock_chunk_content.assert_called_with("Generated content", None, None)
         assert result == "Chunked content"
 
     def test_keyboard_interrupt_handling(self, mock_dependencies):
