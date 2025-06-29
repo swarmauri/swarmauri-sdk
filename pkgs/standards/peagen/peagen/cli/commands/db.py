@@ -13,9 +13,10 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from uuid import uuid4
+
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -41,10 +42,10 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
         args["message"] = message
-    submit = build_submit_params(
-        "migrate",
-        args,
+    submit = SubmitParams(
+        id=str(uuid4()),
         pool="default",
+        payload={"action": "migrate", "args": args},
     )
     reply = rpc_post(
         gateway_url,

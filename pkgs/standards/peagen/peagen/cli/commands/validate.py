@@ -5,10 +5,11 @@ from typing import Any, Dict
 
 import typer
 
+from uuid import uuid4
+
 from peagen.handlers.validate_handler import validate_handler
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from peagen.cli.rpc_utils import rpc_post
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
@@ -41,11 +42,15 @@ def run_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    submit = build_submit_params("validate", args)
+    submit = SubmitParams(
+        id=str(uuid4()),
+        pool="default",
+        payload={"action": "validate", "args": args},
+    )
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(submit.task))
+        result: Dict[str, Any] = asyncio.run(validate_handler(submit))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)
@@ -83,7 +88,11 @@ def submit_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    submit = build_submit_params("validate", args)
+    submit = SubmitParams(
+        id=str(uuid4()),
+        pool="default",
+        payload={"action": "validate", "args": args},
+    )
 
     # 2) Build Task.submit envelope using Task fields
     try:

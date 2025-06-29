@@ -16,15 +16,15 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.transport import TASK_SUBMIT, TASK_GET
-from peagen.transport.json_rpcschemas.task import (
+from uuid import uuid4
+
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_GET, Status
+from peagen.transport.jsonrpc_schemas.task import (
     SubmitParams,
     SubmitResult,
     GetParams,
     GetResult,
 )
-from peagen.cli.task_builder import build_submit_params
-from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
@@ -33,8 +33,11 @@ remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spe
 
 def _make_task(args: dict, action: str = "doe") -> SubmitParams:
     """Construct :class:`SubmitParams` for *action* using *args*."""
-
-    return build_submit_params(action, args)
+    return SubmitParams(
+        id=str(uuid4()),
+        pool="default",
+        payload={"action": action, "args": args},
+    )
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -93,7 +96,7 @@ def run_gen(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     submit = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(submit.task))
+    result = asyncio.run(doe_handler(submit))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -224,7 +227,7 @@ def run_process(  # noqa: PLR0913
         args.update({"repo": repo, "ref": ref})
 
     submit = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(submit.task))
+    result = asyncio.run(doe_process_handler(submit))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -313,7 +316,7 @@ def submit_process(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
+    typer.secho(f"Submitted task {submit.id}", fg=typer.colors.GREEN)
     if watch:
 
         def _rpc_call(tid: str) -> GetResult:
@@ -326,7 +329,7 @@ def submit_process(  # noqa: PLR0913
             return res.result  # type: ignore[return-value]
 
         while True:
-            task_reply = _rpc_call(submit.task.id)
+            task_reply = _rpc_call(submit.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
