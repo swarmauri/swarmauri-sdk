@@ -35,7 +35,7 @@ from peagen.orm import Base
 from peagen.transport.jsonrpc_schemas import Status
 from pydantic import ValidationError
 from peagen.transport.json_rpcschemas.work import WORK_START
-from peagen.orm.schemas import TaskRead, TaskCreate, TaskUpdate
+from typing import Any, Dict
 from peagen.orm import TaskModel, TaskRunModel
 
 from peagen.gateway.ws_server import router as ws_router
@@ -56,7 +56,7 @@ import peagen.defaults as defaults
 from peagen.defaults import BAN_THRESHOLD
 from peagen.transport.error_codes import ErrorCode
 from peagen.core import migrate_core
-from peagen.services import create_task, get_task, update_task
+
 
 
 _db = reload(_db)
@@ -64,7 +64,7 @@ engine = _db.engine
 Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
-
+TaskBlob = Dict[str, Any]          # id / pool / payload / … as plain JSON
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -285,103 +285,168 @@ def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 
-async def _save_task(task: TaskRead) -> None:
-    """
-    Upsert a task into its Redis hash and refresh TTL atomically.
-    Stores the canonical JSON blob plus the status for quick look-up.
-    """
-    key = _task_key(task.id)
-    data = task.model_dump(mode="json")
-    extras = getattr(task, "__pydantic_extra__", None) or {}
-    data.update(extras)
-    blob = json.dumps(data)
+# ------------------------------------------------------------------
+# Helpers that operate purely on raw JSON blobs (TaskBlob)
+# ------------------------------------------------------------------
 
-    await queue.hset(key, mapping={"blob": blob, "status": task.status.value})
+async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
+    """
+    Mark *task* as failed and propagate the update everywhere.
+
+    Accepts either:
+      • an ORM TaskModel instance (worker / DB paths), or
+      • the raw TaskBlob dict (gateway / scheduler paths).
+    """
+    finished = time.time()
+
+    # ── normalise to ORM row ─────────────────────────────────────────
+    if isinstance(task, TaskModel):
+        orm_task = task
+    else:                                  # raw JSON → ORM
+        orm_task = TaskModel(**task)
+
+    orm_task.status = Status.failed
+    orm_task.result = {"error": str(error)}
+    orm_task.finished_at = finished
+
+    # ── build the wire-level dict ───────────────────────────────────
+    blob: TaskBlob = {
+        "id": str(orm_task.id),
+        "pool": orm_task.pool,
+        "payload": orm_task.payload or {},
+        "labels": orm_task.labels or [],
+        "status": orm_task.status,
+        "result": orm_task.result,
+        "finished_at": orm_task.finished_at,
+    }
+
+    # ── fan-out: Redis cache ▸ Postgres ▸ WS subscribers ────────────
+    await _save_task(blob)
+    await _persist(orm_task)
+    await _publish_task(blob)
+
+
+
+async def _save_task(task: TaskBlob) -> None:
+    """
+    Upsert *task* into Redis and refresh its TTL.
+
+    The hash stores:
+      • "blob"   – the canonical JSON-encoded task dictionary
+      • "status" – lightweight index for quick status look-ups
+    """
+    key = _task_key(task["id"])
+    # Serialise once; no model_dump / extra handling required
+    blob = json.dumps(task, default=str)
+    status_val = str(task.get("status", ""))        # tolerate absent status
+    await queue.hset(key, mapping={"blob": blob, "status": status_val})
     await queue.expire(key, TASK_TTL)
 
 
-async def _load_task(tid: str) -> TaskRead | None:
+async def _load_task(tid: str) -> TaskBlob | None:
+    """
+    Fetch a single task from Redis by id.
+
+    Returns:
+        • dict  – if the task hash exists
+        • None  – if the key is missing or blob field absent
+    """
     data = await queue.hget(_task_key(tid), "blob")
-    if not data:
-        return None
-    try:
-        return TaskRead.model_validate_json(data)
-    except ValidationError:
-        obj = json.loads(data)
-        return TaskRead.model_construct(**obj)
+    return json.loads(data) if data else None
 
 
-async def _select_tasks(selector: str) -> list[TaskRead]:
-    """Return tasks matching *selector*.
+async def _select_tasks(selector: str) -> list[TaskBlob]:
+    """
+    Resolve *selector* into concrete task dictionaries.
 
-    A selector may be a task-id or ``label:<name>``.
+    Selector formats:
+      • task-id            – exact match
+      • label:<labelname>  – all tasks whose `labels` contain <labelname>
     """
     if selector.startswith("label:"):
         label = selector.split(":", 1)[1]
-        tasks = []
+        tasks: list[TaskBlob] = []
         for key in await queue.keys("task:*"):
-            data = await queue.hget(key, "blob")
-            if not data:
+            blob = await queue.hget(key, "blob")
+            if not blob:
                 continue
-            t = TaskRead.model_validate_json(data)
-            if label in t.labels:
-                tasks.append(t)
+            task = json.loads(blob)
+            if label in task.get("labels", []):
+                tasks.append(task)
         return tasks
-    t = await _load_task(selector)
-    return [t] if t else []
 
+    single = await _load_task(selector)
+    return [single] if single else []
 
 # ──────────────────────   Results Backend ────────────────────────
 
 
-async def _persist(task: TaskModel | TaskCreate | TaskUpdate) -> None:
-    """Persist a task to the results backend."""
+# ------------------------------------------------------------------
+#  _persist  –  ORM-only implementation (no CRUD schemas, no service layer)
+# ------------------------------------------------------------------
 
+async def _persist(task: TaskModel | dict) -> None:
+    """
+    Persist a task definition—and its first execution attempt—directly
+    to Postgres, and forward the job to any configured result backend.
+
+    Parameters
+    ----------
+    task : TaskModel | dict
+        • TaskModel – already-instantiated ORM row (common in worker code)
+        • dict      – raw attributes; will be coerced into TaskModel
+    """
     try:
-        log.info("persisting task %s", task.id)
+        # ---------- normalise input → TaskModel --------------------
+        orm_task: TaskModel
         if isinstance(task, TaskModel):
             orm_task = task
-        else:
-            cols = {c.name for c in TaskModel.__table__.columns}
-            data = {
-                k: v for k, v in task.model_dump(mode="python").items() if k in cols
-            }
-            orm_task = TaskModel(**data)
+        else:                                   # raw JSON / DTO
+            orm_task = TaskModel(**task)
+
+        log.info("persisting task %s", orm_task.id)
+
+        # ---------- optional external result store ----------------
         if result_backend:
-            await result_backend.store(TaskRunModel.from_task(orm_task))
-        async with Session() as session:
-            existing = await get_task(session, orm_task.id)
-            if existing:
-                await update_task(
-                    session,
-                    orm_task.id,
-                    TaskUpdate(
-                        git_reference_id=orm_task.git_reference_id,
-                        payload=orm_task.payload,
-                        note=orm_task.note or "",
-                    ),
+            try:
+                await result_backend.store(TaskRunModel.from_task(orm_task))
+            except Exception as exc:            # noqa: BLE001
+                log.warning("result-backend store failed: %s", exc)
+
+        # ---------- upsert into Postgres --------------------------
+        async with Session() as ses:
+            existing: TaskModel | None = await ses.get(TaskModel, orm_task.id)
+
+            if existing is None:
+                # (a) brand-new task definition
+                ses.add(orm_task)
+                await ses.flush()               # obtain PK for run record
+
+                run = TaskRunModel(
+                    task_id=orm_task.id,
+                    status=Status.queued,
                 )
+                ses.add(run)
+
             else:
-                await create_task(
-                    session,
-                    TaskCreate(
-                        id=orm_task.id,
-                        tenant_id=orm_task.tenant_id,
-                        git_reference_id=orm_task.git_reference_id,
-                        payload=orm_task.payload,
-                        note=orm_task.note or "",
-                    ),
-                )
-    except Exception as e:
-        log.warning(f"_persist error '{e}'")
+                # (b) update mutable columns on existing definition
+                for col in ("git_reference_id", "payload", "note"):
+                    setattr(existing, col, getattr(orm_task, col))
+
+            await ses.commit()
+
+    except Exception as exc:                     # noqa: BLE001
+        log.warning("persist error: %s", exc)
+
 
 
 # ──────────────────────   Publish Event  ─────────────────────────
 
 
+# ------------------------------------------------------------------
+# 1. publish an event (unchanged — shown for completeness)
+# ------------------------------------------------------------------
 async def _publish_event(event_type: str, data: dict) -> None:
-    """Send an event to WebSocket subscribers."""
-
     event = {
         "type": event_type,
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -390,74 +455,101 @@ async def _publish_event(event_type: str, data: dict) -> None:
     await queue.publish(PUBSUB_TOPIC, json.dumps(event, default=str))
 
 
+# ------------------------------------------------------------------
+# 2. flush Redis state to Postgres + optional result backend
+# ------------------------------------------------------------------
 async def _flush_state() -> None:
-    """Persist all tasks from Redis to Postgres and close the queue client."""
+    """Persist every cached task to Postgres, then close the queue client."""
     if not queue:
         return
+
     keys = await queue.keys("task:*")
     for key in keys:
-        data = await queue.hget(key, "blob")
-        if not data:
+        blob = await queue.hget(key, "blob")
+        if not blob:
             continue
-        task = TaskRead.model_validate_json(data)
+
+        task_dict = json.loads(blob)
+
+        # Forward to configured result-backend (if any)
         if result_backend:
-            await result_backend.store(TaskRunModel.from_task(task))
+            try:
+                orm_row = TaskModel(**task_dict)
+                await result_backend.store(TaskRunModel.from_task(orm_row))
+            except Exception as exc:            # noqa: BLE001
+                log.warning("result-backend store failed: %s", exc)
+
+    # Gracefully close the Redis/queue client
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
 
-async def _publish_task(task: TaskCreate | TaskRead) -> None:
-    data = task.model_dump()
-    duration = getattr(task, "duration", None)
-    if duration is not None:
-        data["duration"] = duration
+# ------------------------------------------------------------------
+# 3. broadcast a single task update
+# ------------------------------------------------------------------
+async def _publish_task(task: TaskBlob) -> None:
+    data = dict(task)                           # shallow copy
+    if "duration" in task and task["duration"] is not None:
+        data["duration"] = task["duration"]
     await _publish_event("task.update", data)
 
 
+# ------------------------------------------------------------------
+# 4. cascade-complete parent tasks when all children finished
+# ------------------------------------------------------------------
 async def _finalize_parent_tasks(child_id: str) -> None:
-    """Mark parent tasks as completed once all children finish."""
     keys = await queue.keys("task:*")
     for key in keys:
-        data = await queue.hget(key, "blob")
-        if not data:
+        blob = await queue.hget(key, "blob")
+        if not blob:
             continue
-        parent = TaskRead.model_validate_json(data)
-        children = []
-        result = getattr(parent, "result", None)
-        if result and isinstance(result, dict):
-            children = result.get("children") or []
+
+        parent = json.loads(blob)
+        result_block = parent.get("result") or {}
+        children = result_block.get("children") or []
+
         if child_id not in children:
             continue
+
+        # Check every child’s terminal status
         all_done = True
         for cid in children:
-            ct = await _load_task(cid)
-            if not ct or not Status.is_terminal(ct.status):
+            child = await _load_task(cid)
+            if not child:
                 all_done = False
                 break
-        if all_done and parent.status != Status.success:
-            parent.status = Status.success
-            parent.finished_at = time.time()
+            if not Status.is_terminal(Status(child.get("status"))):
+                all_done = False
+                break
+
+        if all_done and parent.get("status") != Status.success:
+            parent["status"] = Status.success
+            parent["finished_at"] = time.time()
             await _save_task(parent)
             await _persist(parent)
             await _publish_task(parent)
 
 
+# ------------------------------------------------------------------
+# 5. periodic backlog scanner
+# ------------------------------------------------------------------
 async def _backlog_scanner(interval: float = 5.0) -> None:
-    """Periodically run `_finalize_parent_tasks` to clear any backlog."""
+    """Background task: walk the cache and close any dangling parent tasks."""
     log.info("backlog scanner started")
     while True:
         keys = await queue.keys("task:*")
         for key in keys:
-            data = await queue.hget(key, "blob")
-            if not data:
+            blob = await queue.hget(key, "blob")
+            if not blob:
                 continue
-            t = TaskRead.model_validate_json(data)
-            children = []
-            if t.result and isinstance(t.result, dict):
-                children = t.result.get("children") or []
-            for cid in children:
+
+            task_dict = json.loads(blob)
+            result_block = task_dict.get("result") or {}
+            for cid in result_block.get("children", []):
                 await _finalize_parent_tasks(cid)
+
         await asyncio.sleep(interval)
+
 
 
 # ────────────────────── client IP extraction ─────────────────────
@@ -563,70 +655,58 @@ async def rpc_endpoint(request: Request):
     )
 
 
-# ────────────────────────── Helpers ──────────────────────────
-async def _fail_task(task: TaskRead, error: Exception) -> None:
-    """Mark *task* as failed and persist the error message."""
-    data = task.model_dump()
-    data.update(
-        {
-            "status": Status.failed,
-            "result": {"error": str(error)},
-            "finished_at": time.time(),
-        }
-    )
-    updated = TaskRead.model_validate(data)
-    await _save_task(updated)
-    await _persist(updated)
-    await _publish_task(updated)
 
 
 # ─────────────────────────── Scheduler loop ─────────────────────
-async def scheduler():
+async def scheduler() -> None:
     sched_log.info("scheduler started")
+
     async with httpx.AsyncClient(timeout=10, http2=True) as client:
         while True:
-            # iterate over pools with queued work
+            # —— 1. pick the next pool that has queued work ——
             pools = await queue.smembers("pools")
             if not pools:
                 await asyncio.sleep(0.25)
                 continue
 
-            # build key list once per tick → ["queue:demo", "queue:beta", ...]
-            keys = [f"{READY_QUEUE}:{p}" for p in pools]
-
-            # BLPOP across *all* pools, 0.5-sec timeout
-            res = await queue.blpop(keys, 0.5)
+            keys = [f"{READY_QUEUE}:{p}" for p in pools]        # e.g. queue:demo
+            res = await queue.blpop(keys, 0.5)                  # 0.5-sec poll
             if res is None:
-                # no work ready this half-second
                 continue
 
-            queue_key, task_raw = res  # guaranteed 2-tuple here
-            pool = queue_key.split(":", 1)[1]  # remove prefix '<READY_QUEUE>:'
+            queue_key, task_raw = res                           # guaranteed tuple
+            pool = queue_key.split(":", 1)[1]                   # strip prefix
             await _publish_queue_length(pool)
-            task = TaskRead.model_validate_json(task_raw)
 
-            # pick a worker that supports the task's action
-            worker_list = await _live_workers_by_pool(pool)
-            action = task.payload.get("action")
+            # —— 2. decode the task blob we just pulled ——
+            try:
+                task: TaskBlob = json.loads(task_raw)
+            except Exception as exc:                            # noqa: BLE001
+                sched_log.warning("invalid task blob (%s); dropping", exc)
+                continue
+
+            action = (task.get("payload") or {}).get("action")
             if not action:
-                sched_log.warning("task %s missing action; marking failed", task.id)
+                sched_log.warning("task %s missing action; marking failed",
+                                  task.get("id"))
                 await _fail_task(task, MissingActionError())
                 continue
 
+            # —— 3. find a live worker that advertises this action ——
+            worker_list = await _live_workers_by_pool(pool)
             target = _pick_worker(worker_list, action)
             if not target:
-                sched_log.warning(
-                    "no worker for %s:%s, failing %s",
-                    pool,
-                    action,
-                    task.id,
-                )
+                sched_log.warning("no worker for %s:%s, failing %s",
+                                  pool, action, task.get("id"))
                 await _fail_task(task, NoWorkerAvailableError(pool, action))
                 continue
+
+            # —— 4. fire the WORK_START RPC to the worker ——
+            task["status"] = Status.dispatched                  # optimistic update
             rpc_req = RPCEnvelope(
                 id=str(uuid.uuid4()),
                 method=WORK_START,
-                params={"task": task.model_dump(mode="json")},
+                params={"task": json.loads(json.dumps(task, default=str))},
             ).model_dump()
 
             try:
@@ -634,24 +714,20 @@ async def scheduler():
                 if resp.status_code != 200:
                     raise DispatchHTTPError(resp.status_code)
 
-                task.status = Status.dispatched
+                # —— 5. record and broadcast the dispatch ——
                 await _save_task(task)
-                await _persist(task)
+                await _persist(task)            # ORM path inside persists to DB
                 await _publish_task(task)
-                sched_log.info(
-                    "dispatch %s → %s (HTTP %d)",
-                    task.id,
-                    target["url"],
-                    resp.status_code,
-                )
+                sched_log.info("dispatch %s → %s (HTTP %d)",
+                               task.get("id"), target["url"], resp.status_code)
 
             except Exception as exc:
-                sched_log.warning(
-                    "dispatch failed (%s) for %s; re-queueing", exc, task.id
-                )
+                # —— 6. transient failure → re-queue and maybe drop worker ——
+                sched_log.warning("dispatch failed (%s) for %s; re-queueing",
+                                  exc, task.get("id"))
                 if "id" in target:
                     await _remove_worker(target["id"])
-                await queue.rpush(queue_key, task_raw)  # retry later
+                await queue.rpush(queue_key, task_raw)          # retry later
                 await _publish_queue_length(pool)
 
 
