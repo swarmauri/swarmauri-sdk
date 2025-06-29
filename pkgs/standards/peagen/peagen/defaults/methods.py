@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import warnings
 
-from peagen.protocols.methods import (
+from peagen.transport.jsonrpc_schemas import (
     TASK_SUBMIT as PROTO_TASK_SUBMIT,
     KEYS_UPLOAD as PROTO_KEYS_UPLOAD,
     KEYS_FETCH as PROTO_KEYS_FETCH,
@@ -22,7 +22,7 @@ from peagen.protocols.methods import (
 )
 
 warnings.warn(
-    "peagen.defaults.methods is deprecated; use peagen.protocols instead",
+    "peagen.defaults.methods is deprecated; use peagen.transport.jsonrpc_schemas instead",
     DeprecationWarning,
     stacklevel=2,
 )
