@@ -8,7 +8,6 @@ from peagen.transport import _registry
 
 from peagen.transport import Error
 
-
 class RPCException(Exception):
     """Exception carrying JSON-RPC error details."""
 
