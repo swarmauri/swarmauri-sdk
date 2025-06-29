@@ -65,7 +65,7 @@ class GetParams(BaseModel):
     taskId: str
 
 
-class GetResult(PatchResult):
+class GetResult(SubmitResult):
     """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
 
 
