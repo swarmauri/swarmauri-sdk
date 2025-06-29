@@ -24,6 +24,7 @@ from .errors import (
 )
 from .core.patch_core import apply_patch
 from .plugins.secret_drivers import AutoGpgDriver, SecretDriverBase
+from .i18n import get_message, set_language
 
 __all__ = [
     "__package_name__",
@@ -39,4 +40,6 @@ __all__ = [
     "apply_patch",
     "SecretDriverBase",
     "AutoGpgDriver",
+    "get_message",
+    "set_language",
 ]

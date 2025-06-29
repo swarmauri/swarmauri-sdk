@@ -32,8 +32,11 @@
 #### Built‑In Dependency Management  
 - The CLI’s `--transitive` flag toggles between strict and transitive dependency sorts, so you can include or exclude indirect dependencies in your generation run.
 
-#### Seamless LLM Integration  
+#### Seamless LLM Integration
 - In GENERATE mode, the CLI automatically fills agent‑prompt templates with context and dependency examples, calls your configured LLM (e.g. OpenAI’s GPT‑4), and writes back the generated content. All model parameters (provider, model name, temperature) flow through CLI flags and environment variables—no extra scripting needed.
+
+#### Internationalization Ready
+- Core CLI messages are namespaced by language, making it easy to ship localized versions.
 
 ---
 

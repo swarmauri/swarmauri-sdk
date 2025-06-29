@@ -17,6 +17,7 @@ from peagen._utils._init import _call_handler, _submit_task, _summary
 from peagen.errors import PATNotAllowedError
 from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
+from peagen.i18n import get_message
 
 
 def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
@@ -35,11 +36,10 @@ def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
 
 
 # ── Typer root ───────────────────────────────────────────────────────────────
-local_init_app = typer.Typer(
-    help="Bootstrap Peagen artefacts (project, template-set …) locally"
-)
+
+local_init_app = typer.Typer(help=get_message("cli.init.local_help"))
 remote_init_app = typer.Typer(
-    help="Bootstrap Peagen artefacts (project, template-set …) via JSON-RPC",
+    help=get_message("cli.init.remote_help"),
 )
 
 

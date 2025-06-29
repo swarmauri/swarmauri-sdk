@@ -11,6 +11,7 @@ from pathlib import Path
 from peagen import defaults
 
 import typer
+from peagen.i18n import get_message
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
 from peagen.cli._banner import _print_banner
@@ -49,7 +50,7 @@ from peagen.cli.commands import (
     dashboard_app,
 )
 
-app = typer.Typer(help="CLI tool for processing project files using Peagen.")
+app = typer.Typer(help=get_message("cli.app_help"))
 local_app = typer.Typer(help="Commands executed locally on this machine.")
 remote_app = typer.Typer(help="Commands that submit tasks to a JSON-RPC gateway.")
 
