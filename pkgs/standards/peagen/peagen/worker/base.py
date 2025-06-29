@@ -213,7 +213,7 @@ class WorkerBase:
     async def _run_task(self, task: TaskRead | Dict[str, Any]) -> None:
         """Execute *task* by dispatching to a registered handler."""
         canonical = ensure_task(task)
-        task_id = canonical.id
+        task_id = str(canonical.id)
         payload = canonical.payload
         action = payload.get("action")
 
