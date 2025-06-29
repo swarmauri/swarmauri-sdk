@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Dict
 import uuid
 
 from peagen.orm.status import Status
@@ -30,7 +28,7 @@ def ensure_task(task: SubmitParams) -> SubmitParams:
         "pool": task.get("pool", "default"),
         "payload": task.get("payload", {}),
         "status": Status.queued,
-        "note": ""
+        "note": "",
     }
 
     merged = {**defaults, **task}
