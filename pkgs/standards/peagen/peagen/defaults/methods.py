@@ -16,6 +16,9 @@ from peagen.protocols.methods import (
     SECRETS_ADD as PROTO_SECRETS_ADD,
     SECRETS_GET as PROTO_SECRETS_GET,
     SECRETS_DELETE as PROTO_SECRETS_DELETE,
+    WORK_START as PROTO_WORK_START,
+    WORK_CANCEL as PROTO_WORK_CANCEL,
+    GUARD_SET as PROTO_GUARD_SET,
 )
 
 warnings.warn(
@@ -25,8 +28,8 @@ warnings.warn(
 )
 
 # Worker ↔ Gateway
-WORK_START = "Work.start"
-WORK_CANCEL = "Work.cancel"
+WORK_START = PROTO_WORK_START
+WORK_CANCEL = PROTO_WORK_CANCEL
 WORK_FINISHED = "Work.finished"
 WORKER_REGISTER = "Worker.register"
 WORKER_HEARTBEAT = "Worker.heartbeat"
@@ -43,7 +46,7 @@ TASK_PATCH = "Task.patch"
 TASK_GET = "Task.get"
 
 # Gateway-only
-GUARD_SET = "Guard.set"
+GUARD_SET = PROTO_GUARD_SET
 POOL_CREATE = "Pool.create"
 POOL_JOIN = "Pool.join"
 POOL_LIST_TASKS = "Pool.listTasks"

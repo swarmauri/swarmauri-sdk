@@ -43,7 +43,7 @@ from peagen.protocols.methods.task import (
     PatchParams,
     GetParams,
 )
-from peagen.protocols.methods.work import FinishedParams
+from peagen.protocols.methods.work import FinishedParams, WORK_START
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -681,10 +681,9 @@ async def scheduler():
                 continue
             rpc_req = RPCEnvelope(
                 id=str(uuid.uuid4()),
-                method="Work.start",
+                method=WORK_START,
                 params={"task": task.model_dump(mode="json")},
             ).model_dump()
-
 
             try:
                 resp = await client.post(target["url"], json=rpc_req)

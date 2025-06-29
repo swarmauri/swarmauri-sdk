@@ -12,7 +12,8 @@ from .keys import KEYS_UPLOAD, KEYS_FETCH, KEYS_DELETE
 from .secrets import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
 from .worker import WORKER_REGISTER, WORKER_HEARTBEAT, WORKER_LIST
 from .pool import POOL_CREATE, POOL_JOIN, POOL_LIST_TASKS
-from .work import WORK_FINISHED
+from .work import WORK_FINISHED, WORK_START, WORK_CANCEL
+from .guard import GUARD_SET
 
 __all__ = [
     "TASK_SUBMIT",
@@ -36,4 +37,7 @@ __all__ = [
     "POOL_JOIN",
     "POOL_LIST_TASKS",
     "WORK_FINISHED",
+    "WORK_START",
+    "WORK_CANCEL",
+    "GUARD_SET",
 ]
