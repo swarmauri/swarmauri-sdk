@@ -136,6 +136,8 @@ def _global_remote_ctx(  # noqa: D401
         "--pool",
         help="Tenant or pool for multi-tenant deployments",
     ),
+    repo: str = typer.Option(None, "--repo", help="repository URL"),
+    ref: str = typer.Option(None, "--ref", help="branch/tag/SHA (default: HEAD)"),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True),
     quiet: bool = typer.Option(False, "-q", "--quiet"),
 ) -> None:
@@ -152,6 +154,8 @@ def _global_remote_ctx(  # noqa: D401
         task_override_inline=override,
         task_override_file=override_file,
         pool=pool,
+        repo=repo,
+        ref=ref,
         quiet=quiet,
     )
 
