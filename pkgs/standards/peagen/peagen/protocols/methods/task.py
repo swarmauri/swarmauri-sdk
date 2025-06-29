@@ -13,7 +13,14 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    task: TaskCreate
+    pool: str
+    repo: str
+    payload: dict
+    status: Status = Status.waiting
+    note: str | None = None
+    config_toml: str | None = None
+    labels: list[str] | None = None
+    result: Optional[dict] = None
 
 
 SubmitParams.model_rebuild()
@@ -23,8 +30,8 @@ class SubmitResult(BaseModel):
     """Result envelope returned by ``Task.submit``."""
 
     model_config = ConfigDict(extra="forbid")
-
     pool: str
+    repo: str
     payload: dict
     status: Status = Status.waiting
     note: str | None = None
@@ -47,7 +54,6 @@ class CountResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     count: int
-
 
 class GetParams(BaseModel):
     """Parameters for ``Task.get``."""
