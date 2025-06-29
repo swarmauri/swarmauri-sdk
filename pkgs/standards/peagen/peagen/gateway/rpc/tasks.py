@@ -26,7 +26,7 @@ from peagen.protocols.methods.task import (
     GetParams,
     GetResult,
 )
-from peagen.defaults import GUARD_SET
+from peagen.protocols.methods.guard import GUARD_SET
 
 from .. import (
     READY_QUEUE,

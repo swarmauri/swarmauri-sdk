@@ -24,3 +24,49 @@ WORK_FINISHED = register(
     params_model=FinishedParams,
     result_model=FinishedResult,
 )
+
+
+class StartParams(BaseModel):
+    """Parameters for the ``Work.start`` RPC method."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    task: dict
+
+
+class StartResult(BaseModel):
+    """Return value for ``Work.start``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    accepted: bool
+
+
+WORK_START = register(
+    method="Work.start",
+    params_model=StartParams,
+    result_model=StartResult,
+)
+
+
+class CancelParams(BaseModel):
+    """Parameters for the ``Work.cancel`` RPC method."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    taskId: str
+
+
+class CancelResult(BaseModel):
+    """Return value for ``Work.cancel``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ok: bool
+
+
+WORK_CANCEL = register(
+    method="Work.cancel",
+    params_model=CancelParams,
+    result_model=CancelResult,
+)
