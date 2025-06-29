@@ -17,17 +17,19 @@ def _build_task(
 ) -> Any:
     """Return a Task model (via :class:`SubmitParams`) with *action* and *args* embedded."""
 
-    submit = SubmitParams(
-        task={
-            "id": uuid.uuid4(),
-            "tenant_id": uuid.uuid4(),
-            "git_reference_id": uuid.uuid4(),
-            "pool": pool,
-            "payload": {"action": action, "args": args},
-            "status": status,
-            "note": "",
-            "spec_hash": "dummy",
-            "last_modified": datetime.utcnow(),
+    submit = SubmitParams.model_validate(
+        {
+            "task": {
+                "id": uuid.uuid4(),
+                "tenant_id": uuid.uuid4(),
+                "git_reference_id": uuid.uuid4(),
+                "pool": pool,
+                "payload": {"action": action, "args": args},
+                "status": status,
+                "note": "",
+                "spec_hash": "dummy",
+                "last_modified": datetime.utcnow(),
+            }
         }
     )
     task = submit.task
