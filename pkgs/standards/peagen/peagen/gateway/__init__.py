@@ -681,7 +681,7 @@ async def scheduler():
             rpc_req = RPCEnvelope(
                 id=str(uuid.uuid4()),
                 method="Work.start",
-                params={"task": task.model_dump()},
+                params={"task": task.model_dump(mode="json")},
             ).model_dump()
 
             try:
