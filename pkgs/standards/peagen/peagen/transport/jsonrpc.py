@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from peagen.transport import _registry
 from peagen.transport.envelope import Error
 
+
 class RPCException(Exception):
     """Exception carrying JSON-RPC error details."""
 
