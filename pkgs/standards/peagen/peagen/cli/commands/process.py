@@ -21,14 +21,14 @@ import typer
 from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.protocols import TASK_SUBMIT, TASK_GET
+from peagen.protocols import TASK_SUBMIT, TASK_GET, Request
 from peagen.protocols.methods.task import (
     GetParams,
     GetResult,
-    SubmitParams,
-    SubmitResult,
 )
 from peagen.cli.rpc_utils import rpc_post
+import httpx
+import uuid
 from peagen.orm.status import Status
 from peagen.cli.task_builder import _build_task as _generic_build_task
 
@@ -192,31 +192,27 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    reply = rpc_post(
+    task_payload = task.model_dump() if hasattr(task, "model_dump") else task
+    envelope = Request(id=str(uuid.uuid4()), method=TASK_SUBMIT, params={"task": task_payload})
+    resp = httpx.post(
         ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
-        result_model=SubmitResult,
+        json=envelope.model_dump(mode="json"),
+        timeout=30.0,
     )
+    resp.raise_for_status()
+    data = resp.json()
 
-    if reply.error:
-        typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(code=1)
-
-    typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.result:
-        typer.echo(json.dumps(reply.result.model_dump(), indent=2))
+    tid = task.id if hasattr(task, "id") else task.get("id")
+    typer.secho(f"Submitted task {tid}", fg=typer.colors.GREEN)
+    if data.get("result") is not None:
+        typer.echo(json.dumps(data["result"], indent=2))
     if watch:
 
         def _rpc_call() -> GetResult:
             res = rpc_post(
                 ctx.obj.get("gateway_url"),
                 TASK_GET,
-                GetParams(taskId=task.id).model_dump(),
+                GetParams(taskId=tid).model_dump(),
                 result_model=GetResult,
             )
             return res.result  # type: ignore[return-value]
