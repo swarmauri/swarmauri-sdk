@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from ._generator import __all__ as _generated_all
 from ._generator import *  # noqa: F401,F403
-import warnings
 
 
 __all__: list[str] = list(_generated_all)

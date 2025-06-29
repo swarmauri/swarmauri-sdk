@@ -15,18 +15,12 @@ def _build_task(
     *,
     status: Status = Status.queued,
 ) -> Any:
-    """Return a Task model (via :class:`SubmitParams`) with *action* and *args* embedded."""
+    """Return a SubmitParams (via :class:`SubmitParams`) with *action* and *args* embedded."""
 
     return {
         "id": str(uuid.uuid4()),
-        "tenant_id": str(uuid.uuid4()),
-        "git_reference_id": str(uuid.uuid4()),
         "pool": pool,
         "payload": {"action": action, "args": args},
-        "status": status,
-        "note": "",
-        "spec_hash": "dummy",
-        "last_modified": datetime.utcnow().timestamp(),
     }
 
 
