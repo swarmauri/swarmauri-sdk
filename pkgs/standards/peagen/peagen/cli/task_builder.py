@@ -6,6 +6,7 @@ from typing import Any
 
 from peagen.orm.status import Status
 from peagen.schemas import TaskCreate
+from peagen.protocols.methods.task import SubmitParams
 
 
 def _build_task(
@@ -30,3 +31,16 @@ def _build_task(
     )
     task.id = str(task.id)
     return task
+
+
+def build_submit_params(
+    action: str,
+    args: dict[str, Any],
+    pool: str = "default",
+    *,
+    status: Status = Status.queued,
+) -> SubmitParams:
+    """Return :class:`SubmitParams` with defaults populated."""
+
+    task = _build_task(action, args, pool, status=status)
+    return SubmitParams(task=task)

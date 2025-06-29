@@ -16,7 +16,6 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.schemas import TaskCreate
 from peagen.protocols import TASK_SUBMIT, TASK_GET
 from peagen.protocols.methods.task import (
     SubmitParams,
@@ -24,6 +23,7 @@ from peagen.protocols.methods.task import (
     GetParams,
     GetResult,
 )
+from peagen.cli.task_builder import build_submit_params
 from peagen.orm.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -31,11 +31,10 @@ local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spec
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 
-def _make_task(args: dict, action: str = "doe") -> TaskCreate:
-    return TaskCreate(
-        pool="default",
-        payload={"action": action, "args": args},
-    )
+def _make_task(args: dict, action: str = "doe") -> SubmitParams:
+    """Construct :class:`SubmitParams` for *action* using *args*."""
+
+    return build_submit_params(action, args)
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -93,8 +92,8 @@ def run_gen(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    task = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(task))
+    submit = _make_task(args, action="doe")
+    result = asyncio.run(doe_handler(submit.task))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -148,12 +147,12 @@ def submit_gen(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    task = _make_task(args, action="doe")
+    submit = _make_task(args, action="doe")
 
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
+        submit.model_dump(),
         result_model=SubmitResult,
     )
 
@@ -165,7 +164,7 @@ def submit_gen(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
+    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
 
 
 # ───────────────────────────── local process ─────────────────────────────
@@ -223,8 +222,8 @@ def run_process(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    task = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(task))
+    submit = _make_task(args, action="doe_process")
+    result = asyncio.run(doe_process_handler(submit.task))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -296,12 +295,12 @@ def submit_process(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    task = _make_task(args, action="doe_process")
+    submit = _make_task(args, action="doe_process")
 
     reply = rpc_post(
         ctx.obj.get("gateway_url"),
         TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
+        submit.model_dump(),
         result_model=SubmitResult,
     )
 
@@ -313,7 +312,7 @@ def submit_process(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
+    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
     if watch:
 
         def _rpc_call(tid: str) -> GetResult:
@@ -326,7 +325,7 @@ def submit_process(  # noqa: PLR0913
             return res.result  # type: ignore[return-value]
 
         while True:
-            task_reply = _rpc_call(task.id)
+            task_reply = _rpc_call(submit.task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
