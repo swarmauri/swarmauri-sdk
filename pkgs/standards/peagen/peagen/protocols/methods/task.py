@@ -12,6 +12,7 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
+    id:   str
     pool: str
     repo: str | None = None
     ref: str | None = None
@@ -30,14 +31,7 @@ class SubmitResult(BaseModel):
     """Result envelope returned by ``Task.submit``."""
 
     model_config = ConfigDict(extra="forbid")
-    pool: str
-    repo: str | None = None
-    ref: str | None = None
-    payload: dict
-    status: Status = Status.waiting
-    note: str | None = None
-    config_toml: str | None = None
-    labels: list[str] | None = None
+    id: str
     result: Optional[dict] = None
 
 
