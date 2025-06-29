@@ -209,7 +209,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
 
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
     if reply.result:
-        typer.echo(json.dumps(reply.result, indent=2))
+        typer.echo(json.dumps(reply.result.model_dump(), indent=2))
     if watch:
 
         def _rpc_call() -> GetResult:
