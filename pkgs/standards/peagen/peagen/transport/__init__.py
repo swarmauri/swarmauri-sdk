@@ -21,7 +21,7 @@ __all__ = [
 from .envelope import Error, Request, Response, parse_request
 from .error_codes import ErrorCode
 from . import _registry
-from .schemas import (
+from peagen.transport.jsonrpc_schemas import (
     TASK_SUBMIT,
     TASK_PATCH,
     TASK_GET,
