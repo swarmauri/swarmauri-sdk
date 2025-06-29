@@ -6,7 +6,7 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 from peagen.orm.status import Status
 from peagen.protocols import Request as RPCEnvelope
 from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
@@ -15,8 +15,8 @@ from . import ensure_task
 
 
 async def fan_out(
-    parent: TaskRead | Dict[str, Any],
-    children: Iterable[TaskRead],
+    parent: PatchResult | Dict[str, Any],
+    children: Iterable[PatchResult],
     *,
     result: Dict[str, Any] | None = None,
     final_status: Status = Status.waiting,
