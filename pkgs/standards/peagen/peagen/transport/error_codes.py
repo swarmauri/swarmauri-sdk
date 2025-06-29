@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+
 class ErrorCode(IntEnum):
     PARSE_ERROR = -32700
     INVALID_REQUEST = -32600
