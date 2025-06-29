@@ -44,7 +44,7 @@ from .. import (
     queue,
 )
 from peagen.errors import TaskNotFoundError
-from peagen.schemas import TaskCreate, TaskUpdate, TaskRead
+from peagen.orm.schemas import TaskCreate, TaskUpdate, TaskRead
 from peagen.services.tasks import _to_schema
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel

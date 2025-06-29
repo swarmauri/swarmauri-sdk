@@ -16,7 +16,7 @@ class LocalFsResultBackend(ResultBackendBase):
     async def store(self, task_run: TaskRunModel) -> None:
         path = self.root / f"{task_run.id}.json"
         with path.open("w", encoding="utf-8") as fh:
-            from peagen.schemas import TaskRunRead
+            from peagen.orm.schemas import TaskRunRead
 
             data = TaskRunRead.model_validate(task_run).model_dump()
             json.dump(data, fh, default=str)

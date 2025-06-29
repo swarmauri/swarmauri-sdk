@@ -35,7 +35,7 @@ from peagen.orm import Base
 from peagen.transport.jsonrpc_schemas import Status
 from pydantic import ValidationError
 from peagen.protocols.methods.work import WORK_START
-from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
+from peagen.orm.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
 from peagen.gateway.ws_server import router as ws_router
