@@ -1,6 +1,7 @@
 import uuid
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.protocols.methods.work import FinishedParams
 
 
 @pytest.mark.unit
