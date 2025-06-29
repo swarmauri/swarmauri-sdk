@@ -6,7 +6,7 @@ on:
     branches: [ "master", "mono/dev", "coby/peagenv2" ]
     paths:
       - "pkgs/standards/peagen/**"
-      - "infra/peagen"
+      - "infra/peagen/**"
   workflow_dispatch:
 
 concurrency:
