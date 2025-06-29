@@ -44,5 +44,5 @@ async def test_task_submit_id_collision(monkeypatch):
 
     r1 = await task_submit(pool="p", payload={}, taskId="dup")
     r2 = await task_submit(pool="p", payload={}, taskId="dup")
-    assert r1["taskId"] == "dup"
-    assert r2["taskId"] != "dup"
+    assert r1.taskId == "dup"
+    assert r2.taskId != "dup"

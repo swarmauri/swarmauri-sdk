@@ -74,7 +74,7 @@ async def test_task_patch_triggers_finalize(monkeypatch):
         spec_hash=uuid.uuid4().hex,
         last_modified=datetime.datetime.now(timezone.utc),
     )
-    parent_id = (await task_submit(parent_dto))["taskId"]
+    parent_id = (await task_submit(parent_dto)).taskId
 
     child_dto = TaskCreate(
         id=uuid.uuid4(),
@@ -87,12 +87,12 @@ async def test_task_patch_triggers_finalize(monkeypatch):
         spec_hash=uuid.uuid4().hex,
         last_modified=datetime.datetime.now(timezone.utc),
     )
-    child_id = (await task_submit(child_dto))["taskId"]
+    child_id = (await task_submit(child_dto)).taskId
     await work_finished(taskId=child_id, status="success", result=None)
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
     parent = await task_get(parent_id)
-    assert parent["status"] == "success"
+    assert parent.status == "success"
 
 
 @pytest.mark.unit
@@ -167,7 +167,7 @@ async def test_task_patch_triggers_finalize_rejected(monkeypatch):
         spec_hash=uuid.uuid4().hex,
         last_modified=datetime.datetime.now(timezone.utc),
     )
-    parent_id = (await task_submit(parent_dto))["taskId"]
+    parent_id = (await task_submit(parent_dto)).taskId
 
     child_dto = TaskCreate(
         id=uuid.uuid4(),
@@ -180,9 +180,9 @@ async def test_task_patch_triggers_finalize_rejected(monkeypatch):
         spec_hash=uuid.uuid4().hex,
         last_modified=datetime.datetime.now(timezone.utc),
     )
-    child_id = (await task_submit(child_dto))["taskId"]
+    child_id = (await task_submit(child_dto)).taskId
     await work_finished(taskId=child_id, status="rejected", result=None)
 
     await task_patch(taskId=parent_id, changes={"result": {"children": [child_id]}})
     parent = await task_get(parent_id)
-    assert parent["status"] == "success"
+    assert parent.status == "success"

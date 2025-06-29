@@ -71,7 +71,7 @@ def _parse_task_create(task: t.Any) -> TaskCreate:
 
 
 @dispatcher.method(TASK_SUBMIT)
-async def task_submit(params: SubmitParams) -> dict:
+async def task_submit(params: SubmitParams) -> SubmitResult:
     """Persist *task* and enqueue it."""
     dto = _parse_task_create(params.task)
     await queue.sadd("pools", dto.pool)
@@ -143,11 +143,11 @@ async def task_submit(params: SubmitParams) -> dict:
     await _save_task(task_rd)
     await _publish_task(task_rd)
     log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-    return SubmitResult(taskId=str(task_rd.id)).model_dump()
+    return SubmitResult(taskId=str(task_rd.id))
 
 
 @dispatcher.method(TASK_PATCH)
-async def task_patch(params: PatchParams) -> dict:
+async def task_patch(params: PatchParams) -> PatchResult:
     """Update persisted metadata for an existing task."""
     taskId = params.taskId
     changes = params.changes
@@ -171,11 +171,11 @@ async def task_patch(params: PatchParams) -> dict:
             for cid in children:
                 await _finalize_parent_tasks(cid)
     log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
-    return PatchResult(**task.model_dump(mode="json")).model_dump()
+    return PatchResult(**task.model_dump(mode="json"))
 
 
 @dispatcher.method(TASK_GET)
-async def task_get(params: GetParams) -> dict:
+async def task_get(params: GetParams) -> GetResult | dict:
     taskId = params.taskId
     try:
         uuid.UUID(taskId)
@@ -187,7 +187,7 @@ async def task_get(params: GetParams) -> dict:
         if duration is not None:
             data["duration"] = duration
         filtered = {k: v for k, v in data.items() if k in GetResult.model_fields}
-        return GetResult(**filtered).model_dump()
+        return GetResult(**filtered)
     try:
         from ..core.task_core import get_task_result
 
@@ -200,51 +200,51 @@ async def task_get(params: GetParams) -> dict:
 
 
 @dispatcher.method(TASK_CANCEL)
-async def task_cancel(params: SimpleSelectorParams) -> dict:
+async def task_cancel(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
-    return CountResult(count=count).model_dump()
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_PAUSE)
-async def task_pause(params: SimpleSelectorParams) -> dict:
+async def task_pause(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
-    return CountResult(count=count).model_dump()
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RESUME)
-async def task_resume(params: SimpleSelectorParams) -> dict:
+async def task_resume(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
-    return CountResult(count=count).model_dump()
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RETRY)
-async def task_retry(params: SimpleSelectorParams) -> dict:
+async def task_retry(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
 
     count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
-    return CountResult(count=count).model_dump()
+    return CountResult(count=count)
 
 
 @dispatcher.method(TASK_RETRY_FROM)
-async def task_retry_from(params: SimpleSelectorParams) -> dict:
+async def task_retry_from(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
     from peagen.handlers import control_handler
@@ -253,7 +253,7 @@ async def task_retry_from(params: SimpleSelectorParams) -> dict:
         "retry_from", queue, targets, READY_QUEUE, TASK_TTL
     )
     log.info("retry_from %s -> %d tasks", selector, count)
-    return CountResult(count=count).model_dump()
+    return CountResult(count=count)
 
 
 # --------Guard Rail Support --------------------------------------
