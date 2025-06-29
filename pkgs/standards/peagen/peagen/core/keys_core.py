@@ -13,7 +13,7 @@ from peagen.plugins import PluginManager
 from pydantic import TypeAdapter
 
 from peagen.protocols import Request, Response
-from peagen.protocols.methods.keys import (
+from peagen.transport.json_rpcschemas.keys import (
     KEYS_UPLOAD,
     KEYS_DELETE,
     KEYS_FETCH,

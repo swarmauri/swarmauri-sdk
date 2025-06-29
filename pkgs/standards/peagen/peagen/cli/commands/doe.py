@@ -17,7 +17,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.protocols import TASK_SUBMIT, TASK_GET
-from peagen.protocols.methods.task import (
+from peagen.transport.json_rpcschemas.task import (
     SubmitParams,
     SubmitResult,
     GetParams,

@@ -19,13 +19,13 @@ from json.decoder import JSONDecodeError
 from peagen.transport import RPCDispatcher
 from peagen.protocols import Request as RPCRequest, Response as RPCResponse
 from peagen.protocols import Request as RPCEnvelope
-from peagen.protocols.methods.work import (
+from peagen.transport.json_rpcschemas.work import (
     WORK_START,
     WORK_CANCEL,
     WORK_FINISHED,
     FinishedParams,
 )
-from peagen.protocols.methods.worker import (
+from peagen.transport.json_rpcschemas.worker import (
     WORKER_HEARTBEAT,
     WORKER_REGISTER,
     HeartbeatParams,
@@ -35,7 +35,7 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
 from peagen.handlers import ensure_task
-from peagen.protocols.methods.task import PatchResult
+from peagen.transport.json_rpcschemas.task import PatchResult
 
 
 # ──────────────────────────── utils  ────────────────────────────

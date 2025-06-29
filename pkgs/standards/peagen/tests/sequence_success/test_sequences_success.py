@@ -6,7 +6,7 @@ import os
 import yaml
 import pytest
 import httpx
-from peagen.protocols.methods.worker import WORKER_LIST
+from peagen.transport.json_rpcschemas.worker import WORKER_LIST
 
 EXAMPLES = Path(__file__).resolve().parent / "examples"
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")

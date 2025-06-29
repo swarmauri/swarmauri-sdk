@@ -46,7 +46,7 @@ async def test_task_submit_unknown_action(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    from peagen.protocols.methods.worker import RegisterParams
+    from peagen.transport.json_rpcschemas.worker import RegisterParams
 
     await gw.worker_register(
         RegisterParams(

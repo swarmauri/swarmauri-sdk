@@ -6,11 +6,11 @@ from __future__ import annotations
 import uuid
 
 from peagen.orm.status import Status
-from peagen.protocols.methods.task import SubmitParams
+from peagen.transport.json_rpcschemas.task import SubmitParams
 
 
 def ensure_task(task: SubmitParams) -> SubmitParams:
-    """Return ``task`` as a :class:`~peagen.protocols.methods.task.PatchResult` instance."""
+    """Return ``task`` as a :class:`~peagen.transport.json_rpcschemas.task.PatchResult` instance."""
 
     if isinstance(task, SubmitParams):
         return task

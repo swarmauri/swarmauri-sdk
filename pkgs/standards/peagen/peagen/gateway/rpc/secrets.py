@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .. import Session, dispatcher, log
-from peagen.protocols.methods.secrets import (
+from peagen.transport.json_rpcschemas.secrets import (
     SECRETS_ADD,
     SECRETS_GET,
     SECRETS_DELETE,

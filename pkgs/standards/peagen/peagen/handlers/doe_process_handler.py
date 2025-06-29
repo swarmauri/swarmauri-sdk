@@ -9,7 +9,11 @@ from typing import Any, Dict, List, Tuple
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.protocols.methods.task import PatchResult, SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import (
+    PatchResult,
+    SubmitParams,
+    SubmitResult,
+)
 from peagen.orm.status import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager

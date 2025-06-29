@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.plugins.queues import QueueBase
-from peagen.protocols.methods.task import PatchResult, SubmitResult
+from peagen.transport.json_rpcschemas.task import PatchResult, SubmitResult
 from peagen.core import control_core
 from peagen import defaults
 

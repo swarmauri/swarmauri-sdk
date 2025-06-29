@@ -3,7 +3,7 @@
 
 Asynchronous entry-point for initialisation tasks.
 
-The handler accepts either a plain dictionary or a :class:`peagen.protocols.methods.task.PatchResult`
+The handler accepts either a plain dictionary or a :class:`peagen.transport.json_rpcschemas.task.PatchResult`
 and delegates to :mod:`peagen.core.init_core`.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 

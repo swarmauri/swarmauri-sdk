@@ -12,7 +12,7 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    id:   str
+    id: str
     pool: str
     repo: str | None = None
     ref: str | None = None
