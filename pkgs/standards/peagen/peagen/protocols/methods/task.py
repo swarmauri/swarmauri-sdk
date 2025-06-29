@@ -13,15 +13,22 @@ class SubmitParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    task: TaskCreate
+    pool: str
+    repo: str
+    payload: dict
+    status: Status = Status.waiting
+    note: str | None = None
+    config_toml: str | None = None
+    labels: list[str] | None = None
+    result: Optional[dict] = None
 
 
 class SubmitResult(BaseModel):
     """Result envelope returned by ``Task.submit``."""
 
     model_config = ConfigDict(extra="forbid")
-
     pool: str
+    repo: str
     payload: dict
     status: Status = Status.waiting
     note: str | None = None
@@ -45,7 +52,7 @@ class CountResult(BaseModel):
     count: int
 
 
-class PatchParams(BaseModel):
+class PatchParams(SubmitParams):
     """Parameters for ``Task.patch``."""
 
 
