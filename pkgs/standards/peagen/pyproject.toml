@@ -76,7 +76,10 @@ dependencies = [
 
 
     #core
-    "filelock"
+    "filelock",
+
+    # db api support
+    "crouton>=0.0.4.dev12"
 
 ]
 

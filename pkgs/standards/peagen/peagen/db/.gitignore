@@ -1,0 +1,7 @@
+# Environment
+
+env/
+.env
+
+#removed pycache from tracking
+__pycache__/
