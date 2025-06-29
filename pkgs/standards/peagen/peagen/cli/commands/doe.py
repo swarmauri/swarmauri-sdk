@@ -164,7 +164,8 @@ def submit_gen(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
+    task_id = reply.result.taskId if reply.result else submit.id
+    typer.secho(f"Submitted task {task_id}", fg=typer.colors.GREEN)
 
 
 # ───────────────────────────── local process ─────────────────────────────
