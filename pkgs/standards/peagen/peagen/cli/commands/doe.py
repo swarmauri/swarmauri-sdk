@@ -17,6 +17,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.schemas import TaskCreate
+from peagen.cli.task_builder import _build_task as _generic_build_task
 from peagen.protocols import TASK_SUBMIT, TASK_GET
 from peagen.protocols.methods.task import (
     SubmitParams,
@@ -32,10 +33,8 @@ remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spe
 
 
 def _make_task(args: dict, action: str = "doe") -> TaskCreate:
-    return TaskCreate(
-        pool="default",
-        payload={"action": action, "args": args},
-    )
+    """Return a ``TaskCreate`` populated with required defaults."""
+    return _generic_build_task(action, args)
 
 
 # ───────────────────────────── local run ───────────────────────────────────
