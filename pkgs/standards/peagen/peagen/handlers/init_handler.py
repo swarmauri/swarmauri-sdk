@@ -13,11 +13,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import init_core
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 
-async def init_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def init_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """Dispatch to the correct init function based on ``kind``."""
     task = ensure_task(task_or_dict)
     payload = task.payload

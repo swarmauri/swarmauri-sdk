@@ -15,10 +15,10 @@ from typing import Any, Dict, List
 from . import ensure_task
 
 from peagen.core.fetch_core import fetch_many
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 
 
-async def fetch_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def fetch_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """
     Parameters (in task.payload.args)
     ---------------------------------

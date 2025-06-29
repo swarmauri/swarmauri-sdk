@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peagen.core import secrets_core
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 
-async def secrets_handler(task: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def secrets_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """Dispatch secret management actions."""
     task = ensure_task(task)
     payload = task.payload

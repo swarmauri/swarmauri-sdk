@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
-from peagen.schemas import TaskCreate
+import uuid
+from pydantic import BaseModel, ConfigDict, Field
 
 from peagen.orm import Status
 from peagen.protocols._registry import register
@@ -29,15 +29,6 @@ class SubmitResult(BaseModel):
     labels: list[str] | None = None
     result: Optional[dict] = None
 
-
-class PatchParams(SubmitParams):
-    """Parameters for the ``Task.patch`` RPC method."""
-
-
-class PatchResult(SubmitResult):
-    """Patched task representation."""
-
-
 class SimpleSelectorParams(BaseModel):
     """Common selector parameter used by control RPC methods."""
 
@@ -62,7 +53,7 @@ class GetParams(BaseModel):
     taskId: str
 
 
-class GetResult(PatchResult):
+class GetResult(SubmitResult):
     """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
 
 
@@ -75,8 +66,8 @@ TASK_SUBMIT = register(
 
 TASK_PATCH = register(
     method="Task.patch",
-    params_model=PatchParams,
-    result_model=PatchResult,
+    params_model=SubmitParams,
+    result_model=SubmitResult,
 )
 
 TASK_GET = register(

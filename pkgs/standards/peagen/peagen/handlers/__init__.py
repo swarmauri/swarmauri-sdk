@@ -7,13 +7,13 @@ from typing import Any, Dict
 import uuid
 
 from peagen.orm.status import Status
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams
 
 
-def ensure_task(task: PatchResult | Dict[str, Any]) -> PatchResult:
+def ensure_task(task: SubmitParams) -> SubmitParams:
     """Return ``task`` as a :class:`~peagen.protocols.methods.task.PatchResult` instance."""
 
-    if isinstance(task, PatchResult):
+    if isinstance(task, SubmitParams):
         return task
 
     if not isinstance(task, dict):  # pragma: no cover - defensive
@@ -37,10 +37,10 @@ def ensure_task(task: PatchResult | Dict[str, Any]) -> PatchResult:
 
     merged = {**defaults, **task}
     try:
-        return PatchResult.model_validate(merged)
+        return SubmitParams.model_validate(merged)
     except Exception:  # pragma: no cover - fallback for invalid input
         merged["id"] = str(uuid.uuid4())
-        return PatchResult.model_validate(merged)
+        return SubmitParams.model_validate(merged)
 
 
 __all__ = ["ensure_task"]

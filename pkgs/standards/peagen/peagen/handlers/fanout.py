@@ -6,7 +6,7 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from peagen.orm.status import Status
 from peagen.protocols import Request as RPCEnvelope
 from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH

@@ -19,11 +19,11 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 
-async def eval_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def eval_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})

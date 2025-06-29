@@ -21,7 +21,7 @@ Expected task payload
 from __future__ import annotations
 from typing import Any, Dict
 
-from peagen.protocols.methods.task import PatchResult
+from peagen.protocols.methods.task import SubmitParams, SubmitResult
 
 from . import ensure_task
 
@@ -31,7 +31,7 @@ from peagen.core.sort_core import sort_single_project, sort_all_projects
 from peagen._utils.config_loader import resolve_cfg
 
 
-async def sort_handler(task: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
+async def sort_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
     """
     Async handler registered under JSON-RPC method ``Task.sort`` (or similar).
 
