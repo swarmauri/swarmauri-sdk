@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import List, Optional
+from typing import Optional
 
-import uuid
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from peagen.orm import Status
 from peagen.protocols._registry import register
+from peagen.schemas import TaskCreate
 
 
 class SubmitParams(BaseModel):
@@ -14,6 +14,9 @@ class SubmitParams(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     task: TaskCreate
+
+
+SubmitParams.model_rebuild()
 
 
 class SubmitResult(BaseModel):
@@ -29,6 +32,7 @@ class SubmitResult(BaseModel):
     labels: list[str] | None = None
     result: Optional[dict] = None
 
+
 class SimpleSelectorParams(BaseModel):
     """Common selector parameter used by control RPC methods."""
 
@@ -43,15 +47,6 @@ class CountResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     count: int
-
-
-class PatchParams(BaseModel):
-    """Parameters for ``Task.patch``."""
-
-
-class PatchResult(SubmitResult):
-    """Result returned by ``Task.patch`` -- identical to :class:`SubmitResult`."""
-
 
 
 class GetParams(BaseModel):
