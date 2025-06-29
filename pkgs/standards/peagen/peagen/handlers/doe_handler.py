@@ -10,14 +10,14 @@ from peagen.core.doe_core import (
     create_factor_branches,
     create_run_branches,
 )
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 import yaml
 
 
-async def doe_handler(task_or_dict: Dict[str, Any] | TaskRead) -> Dict[str, Any]:
+async def doe_handler(task_or_dict: Dict[str, Any] | PatchResult) -> Dict[str, Any]:
     task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})

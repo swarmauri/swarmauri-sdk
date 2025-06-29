@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Tuple
 import yaml
 
 from peagen.core.doe_core import generate_payload
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 from peagen.orm.status import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
@@ -19,7 +19,7 @@ from . import ensure_task
 
 
 async def doe_process_handler(
-    task_or_dict: Dict[str, Any] | TaskRead,
+    task_or_dict: Dict[str, Any] | PatchResult,
 ) -> Dict[str, Any]:
     """Expand the DOE spec and spawn a process task for each project."""
     task = ensure_task(task_or_dict)
@@ -122,7 +122,7 @@ async def doe_process_handler(
     result["outputs"] = uploaded
 
     pool = task.pool
-    children: List[TaskRead] = []
+    children: List[PatchResult] = []
     for path, proj in projects:
         children.append(
             ensure_task(

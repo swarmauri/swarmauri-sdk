@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.plugins.queues import QueueBase
-from peagen.schemas import TaskRead
+from peagen.protocols.methods.task import PatchResult
 from peagen.core import control_core
 from peagen import defaults
 
@@ -13,7 +13,7 @@ from peagen import defaults
 TASK_KEY = defaults.CONFIG["task_key"]
 
 
-async def save_task(queue: QueueBase, task: TaskRead, ttl: int) -> None:
+async def save_task(queue: QueueBase, task: PatchResult, ttl: int) -> None:
     await queue.hset(
         TASK_KEY.format(task.id),
         mapping={"blob": task.model_dump_json(), "status": task.status.value},
@@ -24,7 +24,7 @@ async def save_task(queue: QueueBase, task: TaskRead, ttl: int) -> None:
 async def apply(
     op: str,
     queue: QueueBase,
-    tasks: Iterable[TaskRead],
+    tasks: Iterable[PatchResult],
     ready_prefix: str,
     ttl: int,
 ) -> int:
