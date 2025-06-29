@@ -168,7 +168,7 @@ services:
 
   gateway:
     build:
-      context: ../../
+      context: ../
       dockerfile: ./../infra/Dockerfile.gw
     depends_on:
       postgres:
@@ -199,7 +199,7 @@ services:
 
   worker:
     build:
-      context: ../../
+      context: ../
       dockerfile: ./../infra/Dockerfile.gw
     depends_on:
       postgres:
