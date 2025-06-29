@@ -15,7 +15,7 @@ from peagen.handlers.migrate_handler import migrate_handler
 
 from peagen.transport import TASK_SUBMIT
 from peagen.transport.jsonrpc_schemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -41,21 +41,11 @@ def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
     args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
     if message:
         args["message"] = message
-    submit = build_submit_params(
-        "migrate",
-        args,
-        pool="default",
-    )
-    reply = rpc_post(
-        gateway_url,
-        TASK_SUBMIT,
-        submit.model_dump(),
-        timeout=10.0,
-        result_model=SubmitResult,
-    )
-    if reply.error:
-        raise RuntimeError(reply.error.message)
-    task_id = reply.result.taskId if reply.result else submit.id
+    task = build_task("migrate", args, pool="default")
+    reply = submit_task(gateway_url, task)
+    if "error" in reply:
+        raise RuntimeError(reply["error"]["message"])
+    task_id = reply.get("result", {}).get("taskId", task.id)
     return str(task_id)
 
 
