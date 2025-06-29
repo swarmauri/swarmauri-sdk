@@ -57,6 +57,15 @@ class CountResult(BaseModel):
     count: int
 
 
+class PatchParams(BaseModel):
+    """Parameters for ``Task.patch``."""
+
+
+class PatchResult(SubmitResult):
+    """Result returned by ``Task.patch`` -- identical to :class:`SubmitResult`."""
+
+
+
 class GetParams(BaseModel):
     """Parameters for ``Task.get``."""
 
@@ -66,7 +75,7 @@ class GetParams(BaseModel):
 
 
 class GetResult(SubmitResult):
-    """Result returned by ``Task.get`` -- identical to :class:`PatchResult`."""
+    """Result returned by ``Task.get`` -- identical to :class:`SubmitResult`."""
 
 
 TASK_SUBMIT = register(
