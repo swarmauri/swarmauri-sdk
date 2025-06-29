@@ -34,8 +34,7 @@ from peagen.transport.jsonrpc_schemas.worker import (
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.errors import HTTPClientNotInitializedError
-from peagen.handlers import ensure_task
-from peagen.transport.jsonrpc_schemas.task import PatchResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams
 
 
 # ──────────────────────────── utils  ────────────────────────────
@@ -128,7 +127,7 @@ class WorkerBase:
         # 1) Work.start  →  on_work_start (async)
         @self.rpc.method(WORK_START)
         async def on_work_start(task: Dict[str, Any]) -> Dict[str, Any]:
-            canonical = ensure_task(task)
+            canonical = SubmitParams.model_validate(task)
             self.log.info(
                 "Work.start received    task=%s pool=%s", canonical.id, self.POOL
             )
@@ -215,9 +214,11 @@ class WorkerBase:
         return list(self._handler_registry.keys())
 
     # ───────────────────────── Dispatch & Task Execution ─────────────────────────
-    async def _run_task(self, task: PatchResult | Dict[str, Any]) -> None:
+    async def _run_task(self, task: SubmitParams | Dict[str, Any]) -> None:
         """Execute *task* by dispatching to a registered handler."""
-        canonical = ensure_task(task)
+        canonical = (
+            task if isinstance(task, SubmitParams) else SubmitParams.model_validate(task)
+        )
         task_id = str(canonical.id)
         payload = canonical.payload
         action = payload.get("action")

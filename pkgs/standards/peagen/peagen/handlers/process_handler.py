@@ -1,10 +1,6 @@
 # peagen/handlers/process_handler.py
 """
-Unified entry-point for “process” tasks.
-
-A worker (or a local CLI run) will pass in either:
-  • a plain ``dict`` decoded from JSON-RPC, or
-  • a ``peagen.transport.jsonrpc_schemas.task.PatchResult`` instance.
+Unified entry-point for ``process`` tasks.
 
 The handler merges CLI-style overrides with ``.peagen.toml``,
 invokes the appropriate functions in **process_core**, and
@@ -26,18 +22,16 @@ from peagen.core.process_core import (
     process_all_projects,
 )
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from . import ensure_task
 
 logger = Logger(name=__name__)
 
 
-async def process_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def process_handler(task: SubmitParams) -> SubmitResult:
     """Main coroutine invoked by workers and synchronous CLI runs."""
     # ------------------------------------------------------------------ #
-    # 0) Normalise input – accept PatchResult *or* plain dict
+    # 0) Normalise input
     # ------------------------------------------------------------------ #
-    canonical = ensure_task(task)
-    payload: Dict[str, Any] = canonical.payload
+    payload: Dict[str, Any] = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override = payload.get("cfg_override", {})
     # Mandatory flag

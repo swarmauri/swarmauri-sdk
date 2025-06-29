@@ -3,8 +3,7 @@
 
 Asynchronous entry-point for initialisation tasks.
 
-The handler accepts either a plain dictionary or a :class:`peagen.transport.jsonrpc_schemas.task.PatchResult`
-and delegates to :mod:`peagen.core.init_core`.
+This handler delegates to :mod:`peagen.core.init_core`.
 """
 
 from __future__ import annotations
@@ -14,12 +13,10 @@ from typing import Any, Dict
 
 from peagen.core import init_core
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from . import ensure_task
 
 
-async def init_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def init_handler(task: SubmitParams) -> SubmitResult:
     """Dispatch to the correct init function based on ``kind``."""
-    task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     kind = args.get("kind")

@@ -2,8 +2,7 @@
 """
 Async entry-point for the *fetch* pipeline.
 
-• Accepts either a plain dict (decoded JSON-RPC) or a peagen.transport.jsonrpc_schemas.task.PatchResult.
-• Delegates all heavy-lifting to core.fetch_core.fetch_many().
+• Delegates all heavy-lifting to ``core.fetch_core.fetch_many``.
 • Returns a lightweight JSON-serialisable summary.
 """
 
@@ -12,13 +11,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
-from . import ensure_task
 
 from peagen.core.fetch_core import fetch_many
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
-async def fetch_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def fetch_handler(task: SubmitParams) -> SubmitResult:
     """
     Parameters (in task.payload.args)
     ---------------------------------
@@ -28,7 +26,6 @@ async def fetch_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitRe
     install_template_sets: bool – ignored
     """
     # normalise ---------------------------------------------
-    task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     uris: List[str] = args.get("workspaces", [])

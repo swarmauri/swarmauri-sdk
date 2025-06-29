@@ -10,11 +10,9 @@ from peagen.core.migrate_core import (
     alembic_upgrade,
 )
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from . import ensure_task
 
 
-async def migrate_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def migrate_handler(task: SubmitParams) -> SubmitResult:
     args: Dict[str, Any] = task.payload["args"]
     op: str = args["op"]
     cfg_path_str: str | None = args.get("alembic_ini")

@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-from . import ensure_task
 
 from peagen.core.mutate_core import mutate_workspace
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
@@ -15,8 +14,7 @@ from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
 
-async def mutate_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def mutate_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
