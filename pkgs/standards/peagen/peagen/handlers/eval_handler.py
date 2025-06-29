@@ -1,9 +1,9 @@
 # peagen/handlers/eval_handler.py
 """
-Async task-handler for “eval” jobs.
+Async task-handler for "eval" jobs.
 
-The worker runtime (or a local CLI run) calls this coroutine with
-either a plain dict (decoded JSON-RPC) or a peagen.transport.jsonrpc_schemas.task.PatchResult object.
+The worker runtime or a local CLI run calls this coroutine with a
+``SubmitParams`` instance.
 
 Returns a JSON-serialisable mapping:
   { "report": {…}, "strict_failed": bool }
@@ -20,11 +20,9 @@ import os
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from . import ensure_task
 
 
-async def eval_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def eval_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})

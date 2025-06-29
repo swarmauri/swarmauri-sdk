@@ -5,22 +5,19 @@ from typing import Any, Dict
 
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
-from . import ensure_task
-
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.sort_core import sort_single_project, sort_all_projects
 from peagen._utils.config_loader import resolve_cfg
 
 
-async def sort_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def sort_handler(task: SubmitParams) -> SubmitResult:
     """
     Async handler registered under JSON-RPC method ``Task.sort`` (or similar).
 
     • Delegates to sort_core.
     • Returns whatever the core returns (sorted list or error dict).
     """
-    task = ensure_task(task)
     payload = task.payload
     args = payload.get("args", {})
     repo = args.get("repo")
