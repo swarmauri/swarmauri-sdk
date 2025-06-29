@@ -122,7 +122,11 @@ from peagen.protocols.methods.secrets import (  # noqa: E402
     AddParams,
     DeleteParams,
     GetParams as SecretsGetParams,
-
+)
+from peagen.protocols.methods.keys import (  # noqa: E402
+    UploadResult,
+    FetchResult,
+    DeleteResult,
 )
 
 # ─────────────────────────── Key/Secret store ───────────────────
@@ -143,33 +147,36 @@ async def secrets_add(
     **kwargs,
 ) -> dict:
     """Convenience wrapper around :func:`_secrets_add_rpc`."""
-    if params is not None:
+    if params is None:
+        params = AddParams(**kwargs)
+    else:
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_add_rpc(**kwargs)
+    return await _secrets_add_rpc(params)
 
 
 async def secrets_get(
-    params: SecretGetParams | None = None,
+    params: SecretsGetParams | None = None,
     **kwargs,
 ) -> dict:
-    if params is not None:
+    if params is None:
+        params = SecretsGetParams(**kwargs)
+    else:
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_get_rpc(**kwargs)
+    return await _secrets_get_rpc(params)
 
 
 async def secrets_delete(
     params: DeleteParams | None = None,
     **kwargs,
 ) -> dict:
-    if params is not None:
+    if params is None:
+        params = DeleteParams(**kwargs)
+    else:
         if kwargs:
             raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_delete_rpc(**kwargs)
+    return await _secrets_delete_rpc(params)
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
@@ -711,16 +718,16 @@ async def upload_key(public_key: str) -> dict:
     key = pgpy.PGPKey()
     key.parse(public_key)
     TRUSTED_USERS[key.fingerprint] = public_key
-    return {"fingerprint": key.fingerprint}
+    return UploadResult(fingerprint=key.fingerprint).model_dump()
 
 
 async def list_keys() -> dict:
-    return {"keys": list(TRUSTED_USERS.keys())}
+    return FetchResult(keys=TRUSTED_USERS).model_dump()
 
 
 async def delete_key(fingerprint: str) -> dict:
     TRUSTED_USERS.pop(fingerprint, None)
-    return {"removed": fingerprint}
+    return DeleteResult(ok=True).model_dump()
 
 
 # ────────────────────────── Secret Endpoints ─────────────────────────
@@ -730,25 +737,23 @@ async def add_secret(
     tenant_id: str = "default",
     owner_fpr: str = "unknown",
 ) -> dict:
-    async with Session() as session:
-        await db_helpers.upsert_secret(session, tenant_id, owner_fpr, name, secret)
-        await session.commit()
-    return {"stored": name}
+    params = AddParams(
+        tenant_id=tenant_id,
+        owner_user_id=owner_fpr,
+        name=name,
+        cipher=secret,
+    )
+    return await _secrets_add_rpc(params)
 
 
 async def get_secret(name: str, tenant_id: str = "default") -> dict:
-    async with Session() as session:
-        row = await db_helpers.fetch_secret(session, tenant_id, name)
-    if not row:
-        return {"error": "not found"}
-    return {"secret": row.cipher}
+    params = SecretsGetParams(tenant_id=tenant_id, name=name)
+    return await _secrets_get_rpc(params)
 
 
 async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
-    async with Session() as session:
-        await db_helpers.delete_secret(session, tenant_id, name)
-        await session.commit()
-    return {"removed": name}
+    params = DeleteParams(tenant_id=tenant_id, name=name)
+    return await _secrets_delete_rpc(params)
 
 
 # expose RPC handler functions for unit tests
