@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, RootModel
+from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from .._registry import register
 
@@ -15,6 +17,7 @@ class CreateResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
+
 
 class JoinParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -36,8 +39,8 @@ class ListParams(BaseModel):
     offset: int = 0
 
 
-class ListResult(RootModel[list[dict]]):
-    model_config = ConfigDict(extra="forbid")   
+class ListResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
     poolName: str
     limit: int | None = None
