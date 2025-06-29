@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Optional
 
-import uuid
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from peagen.orm import Status
 from peagen.protocols._registry import register
+from peagen.schemas import TaskCreate
 
 
 class SubmitParams(BaseModel):
@@ -29,6 +29,11 @@ class SubmitResult(BaseModel):
     labels: list[str] | None = None
     result: Optional[dict] = None
 
+
+# Resolve forward references after dynamic schema generation
+SubmitParams.model_rebuild()
+
+
 class SimpleSelectorParams(BaseModel):
     """Common selector parameter used by control RPC methods."""
 
@@ -51,7 +56,6 @@ class PatchParams(BaseModel):
 
 class PatchResult(SubmitResult):
     """Result returned by ``Task.patch`` -- identical to :class:`SubmitResult`."""
-
 
 
 class GetParams(BaseModel):
