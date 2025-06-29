@@ -19,7 +19,7 @@ from .. import (
     queue,
 )
 
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.transport.jsonrpc import RPCException
 from peagen.protocols.methods.work import WORK_FINISHED, FinishedParams, FinishedResult
 from peagen.protocols.methods.worker import (

@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import yaml
 
 from peagen.protocols.methods.task import PatchResult, SubmitParams, SubmitResult
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from .fanout import fan_out
 from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg

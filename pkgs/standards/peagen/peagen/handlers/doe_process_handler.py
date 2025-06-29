@@ -10,7 +10,7 @@ import yaml
 
 from peagen.core.doe_core import generate_payload
 from peagen.protocols.methods.task import PatchResult, SubmitParams, SubmitResult
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter

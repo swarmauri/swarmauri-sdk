@@ -1,3 +1,4 @@
+from .status import Status
 from .task import (
     TASK_SUBMIT,
     TASK_PATCH,
@@ -40,4 +41,5 @@ __all__ = [
     "WORK_START",
     "WORK_CANCEL",
     "GUARD_SET",
+    "Status",
 ]

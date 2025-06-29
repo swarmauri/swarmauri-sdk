@@ -48,7 +48,7 @@ from peagen.orm.schemas import TaskCreate, TaskUpdate, TaskRead
 from peagen.services.tasks import _to_schema
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 
 # Use the Session factory configured by the gateway
 from .. import Session, engine, Base

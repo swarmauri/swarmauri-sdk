@@ -24,7 +24,7 @@ from peagen.protocols.methods.task import (
     GetResult,
 )
 from peagen.cli.task_builder import build_submit_params
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
