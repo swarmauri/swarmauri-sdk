@@ -14,15 +14,12 @@ import logging
 from swarmauri_standard.loggers.Logger import Logger
 import os
 import uuid
-from datetime import datetime
 import json
 import httpx
 import time
-from typing import Any
 from json.decoder import JSONDecodeError
 
 
-import pgpy
 from fastapi import FastAPI, Request, Response, HTTPException
 from peagen.plugins.queues import QueueBase
 
@@ -37,13 +34,7 @@ from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.orm.status import Status
 from pydantic import ValidationError
-from peagen.protocols.methods.task import (
-    SubmitParams,
-    SubmitResult,
-    PatchParams,
-    GetParams,
-)
-from peagen.protocols.methods.work import FinishedParams, WORK_START
+from peagen.protocols.methods.work import WORK_START
 from peagen.schemas import TaskRead, TaskCreate, TaskUpdate
 from peagen.orm import TaskModel, TaskRunModel
 
@@ -119,16 +110,6 @@ try:
 except KeyError:
     result_backend = None
 
-from .rpc.secrets import (  # noqa: E402
-    secrets_add as _secrets_add_rpc,
-    secrets_delete as _secrets_delete_rpc,
-    secrets_get as _secrets_get_rpc,
-)
-from peagen.protocols.methods.secrets import (  # noqa: E402
-    AddParams,
-    DeleteParams,
-    GetParams as SecretGetParams,
-)
 
 # ─────────────────────────── Key/Secret store ───────────────────
 TRUSTED_USERS: dict[str, str] = {}
@@ -138,43 +119,6 @@ TRUSTED_USERS: dict[str, str] = {}
 WORKER_KEY = "worker:{}"  # format with workerId
 WORKER_TTL = 15  # seconds before a worker is considered dead
 TASK_TTL = 24 * 3600  # 24 h, adjust as needed
-
-# expose secret management RPC handlers for test usage
-# expose secret management RPC handlers for test usage
-
-
-async def secrets_add(
-    params: AddParams | None = None,
-    **kwargs,
-) -> dict:
-    """Convenience wrapper around :func:`_secrets_add_rpc`."""
-    if params is not None:
-        if kwargs:
-            raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_add_rpc(AddParams(**kwargs))
-
-
-async def secrets_get(
-    params: SecretGetParams | None = None,
-    **kwargs,
-) -> dict:
-    if params is not None:
-        if kwargs:
-            raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_get_rpc(SecretGetParams(**kwargs))
-
-
-async def secrets_delete(
-    params: DeleteParams | None = None,
-    **kwargs,
-) -> dict:
-    if params is not None:
-        if kwargs:
-            raise TypeError("params or kwargs expected, not both")
-        kwargs = params.model_dump()
-    return await _secrets_delete_rpc(DeleteParams(**kwargs))
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
@@ -711,146 +655,6 @@ async def scheduler():
                 await _publish_queue_length(pool)
 
 
-# ────────────────────────── Key Management ──────────────────────────
-async def upload_key(public_key: str) -> dict:
-    key = pgpy.PGPKey()
-    key.parse(public_key)
-    TRUSTED_USERS[key.fingerprint] = public_key
-    return {"fingerprint": key.fingerprint}
-
-
-async def list_keys() -> dict:
-    return {"keys": list(TRUSTED_USERS.keys())}
-
-
-async def delete_key(fingerprint: str) -> dict:
-    TRUSTED_USERS.pop(fingerprint, None)
-    return {"removed": fingerprint}
-
-
-# ────────────────────────── Secret Endpoints ─────────────────────────
-async def add_secret(
-    name: str,
-    secret: str,
-    tenant_id: str = "default",
-    owner_fpr: str = "unknown",
-) -> dict:
-    async with Session() as session:
-        await db_helpers.upsert_secret(session, tenant_id, owner_fpr, name, secret)
-        await session.commit()
-    return {"stored": name}
-
-
-async def get_secret(name: str, tenant_id: str = "default") -> dict:
-    async with Session() as session:
-        row = await db_helpers.fetch_secret(session, tenant_id, name)
-    if not row:
-        return {"error": "not found"}
-    return {"secret": row.cipher}
-
-
-async def delete_secret_route(name: str, tenant_id: str = "default") -> dict:
-    async with Session() as session:
-        await db_helpers.delete_secret(session, tenant_id, name)
-        await session.commit()
-    return {"removed": name}
-
-
-# expose RPC handler functions for unit tests
-from .rpc.workers import (  # noqa: F401,E402
-    work_finished as _work_finished_rpc,
-    worker_heartbeat,
-    worker_list,
-    worker_register,
-)
-from .rpc.tasks import (  # noqa: F401,E402
-    guard_set,
-    task_cancel as _task_cancel_rpc,
-    task_get as _task_get_rpc,
-    task_patch as _task_patch_rpc,
-    task_pause as _task_pause_rpc,
-    task_resume as _task_resume_rpc,
-    task_retry as _task_retry_rpc,
-    task_retry_from as _task_retry_from_rpc,
-    task_submit as _task_submit_rpc,
-)
-
-
-async def task_submit(
-    task: TaskCreate | None = None,
-    *,
-    pool: str | None = None,
-    payload: dict | None = None,
-    taskId: str | None = None,
-    **extras: Any,
-) -> dict:
-    """Compatibility wrapper for :func:`_task_submit_rpc`.
-
-    Accepts either a preconstructed :class:`TaskCreate` instance as the first
-    positional argument or keyword arguments to build one.
-    """
-
-    if task is None:
-        if pool is None or payload is None:
-            raise TypeError("task or pool/payload required")
-
-        task = TaskCreate(
-            id=uuid.uuid4(),
-            tenant_id=uuid.uuid4(),
-            git_reference_id=uuid.uuid4(),
-            pool=pool,
-            payload=payload,
-            status=Status.queued,
-            note="",
-            spec_hash="dummy",
-            last_modified=datetime.utcnow(),
-        )
-        if taskId is not None:
-            task.id = taskId
-
-        for field, value in extras.items():
-            if field in TaskCreate.model_fields:
-                setattr(task, field, value)
-
-        # keep the UUID instance so the ORM receives the correct type
-
-    try:
-        res = await _task_submit_rpc(SubmitParams(task=task))
-        return res
-    except ValidationError:
-        task_id = str(task.id)
-        if await _load_task(task_id):
-            new_id = str(uuid.uuid4())
-            log.warning("task id collision: %s → %s", task_id, new_id)
-            task_id = new_id
-        task_rd = TaskRead.model_construct(**{**task.model_dump(), "id": task_id})
-        await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
-        await _publish_queue_length(task_rd.pool)
-        await _save_task(task_rd)
-        await _publish_task(task_rd)
-        log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-        return SubmitResult.model_construct(taskId=str(task_rd.id)).model_dump()
-
-
-async def task_get(taskId: str) -> dict:
-    """Compatibility wrapper for :func:`_task_get_rpc`."""
-    return await _task_get_rpc(GetParams(taskId=taskId))
-
-
-async def task_patch(*, taskId: str, changes: dict) -> dict:
-    """Compatibility wrapper for :func:`_task_patch_rpc`."""
-    return await _task_patch_rpc(PatchParams(taskId=taskId, changes=changes))
-
-
-async def work_finished(
-    *, taskId: str, status: str, result: dict | None = None
-) -> dict:
-    """Compatibility wrapper for :func:`_work_finished_rpc`."""
-    return await _work_finished_rpc(
-        FinishedParams(taskId=taskId, status=status, result=result)
-    )
-
-
 # ─────────────────────────────── Healthcheck ───────────────────────────────
 @app.get("/healthz", tags=["health"])
 async def health() -> dict:
@@ -918,13 +722,6 @@ app.add_event_handler("startup", _on_start)
 app.add_event_handler("shutdown", _on_shutdown)
 
 
-# expose RPC handlers for test modules
-from .rpc.pool import (  # noqa: F401,E402
-    pool_create,
-    pool_join,
-    pool_list,
-)
-
 # expose RPC handlers lazily to avoid circular imports
 __all__ = [
     "keys_upload",
@@ -940,6 +737,9 @@ __all__ = [
     "task_retry",
     "task_retry_from",
     "guard_set",
+    "secrets_add",
+    "secrets_get",
+    "secrets_delete",
     "task_patch",
     "task_get",
     "worker_register",
@@ -951,7 +751,7 @@ __all__ = [
 
 def __getattr__(name: str):
     if name in __all__:
-        from .rpc import keys, pool, tasks, workers
+        from .rpc import keys, pool, tasks, workers, secrets
 
         modules = {
             "keys_upload": keys,
@@ -967,6 +767,9 @@ def __getattr__(name: str):
             "task_retry": tasks,
             "task_retry_from": tasks,
             "guard_set": tasks,
+            "secrets_add": secrets,
+            "secrets_get": secrets,
+            "secrets_delete": secrets,
             "task_patch": tasks,
             "task_get": tasks,
             "worker_register": workers,
