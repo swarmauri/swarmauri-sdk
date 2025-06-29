@@ -11,9 +11,7 @@ from peagen.core.validate_core import validate_artifact
 from peagen.protocols.methods.task import SubmitParams, SubmitResult
 
 
-async def validate_handler(
-    task_or_dict: Dict[str, Any] | SubmitParams
-    ) -> SubmitResult:
+async def validate_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
     task = ensure_task(task_or_dict)
     args: Dict[str, Any] = task.payload["args"]
     repo = args.get("repo")
