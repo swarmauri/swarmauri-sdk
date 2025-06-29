@@ -151,7 +151,6 @@ services:
       GITEA__database__USER:         ${POSTGRES_USER}
       GITEA__database__PASSWD:       ${POSTGRES_PASSWORD}
 
-
       # (good defaults) disable open-registration, enable LFS, etc.
       GITEA__service__REGISTER_EMAIL_CONFIRM: "false"
       GITEA__service__DISABLE_REGISTRATION:  "true"
