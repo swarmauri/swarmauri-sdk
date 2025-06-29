@@ -10,7 +10,7 @@ from . import ensure_task
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.extras_core import generate_schemas
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 from .repo_utils import fetch_repo, cleanup_repo
 
 

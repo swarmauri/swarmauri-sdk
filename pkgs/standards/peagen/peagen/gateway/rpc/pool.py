@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from .. import READY_QUEUE, dispatcher, log, queue
-from peagen.protocols.methods.pool import (
+from peagen.transport.json_rpcschemas.pool import (
     POOL_CREATE,
     POOL_JOIN,
     POOL_LIST_TASKS,

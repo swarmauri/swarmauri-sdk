@@ -9,7 +9,7 @@ from typing import Any, Dict
 from . import ensure_task
 
 from peagen.core.mutate_core import mutate_workspace
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
+from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref

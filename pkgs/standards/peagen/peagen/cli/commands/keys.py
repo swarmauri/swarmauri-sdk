@@ -12,7 +12,7 @@ import typer
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
 from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
-from peagen.protocols.methods.keys import (
+from peagen.transport.json_rpcschemas.keys import (
     UploadParams,
     DeleteParams,
     FetchParams,

@@ -1,7 +1,7 @@
 import pytest
 
 from peagen.handlers import doe_process_handler as handler
-from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
+from peagen.transport.json_rpcschemas import TASK_SUBMIT, TASK_PATCH
 from peagen.defaults import WORK_FINISHED
 
 
