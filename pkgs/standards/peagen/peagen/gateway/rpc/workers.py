@@ -21,12 +21,12 @@ from .. import (
 
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.transport.jsonrpc import RPCException
-from peagen.transport.json_rpcschemas.work import (
+from peagen.transport.jsonrpc_schemas.work import (
     WORK_FINISHED,
     FinishedParams,
     FinishedResult,
 )
-from peagen.transport.json_rpcschemas.worker import (
+from peagen.transport.jsonrpc_schemas.worker import (
     WORKER_REGISTER,
     WORKER_HEARTBEAT,
     WORKER_LIST,

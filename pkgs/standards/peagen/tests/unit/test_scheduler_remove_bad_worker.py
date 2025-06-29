@@ -43,7 +43,7 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_task", noop)
 
-    from peagen.transport.json_rpcschemas.worker import RegisterParams
+    from peagen.transport.jsonrpc_schemas.worker import RegisterParams
 
     await gw.worker_register(
         RegisterParams(

@@ -4,7 +4,7 @@ Unified entry-point for “process” tasks.
 
 A worker (or a local CLI run) will pass in either:
   • a plain ``dict`` decoded from JSON-RPC, or
-  • a ``peagen.transport.json_rpcschemas.task.PatchResult`` instance.
+  • a ``peagen.transport.jsonrpc_schemas.task.PatchResult`` instance.
 
 The handler merges CLI-style overrides with ``.peagen.toml``,
 invokes the appropriate functions in **process_core**, and
@@ -25,7 +25,7 @@ from peagen.core.process_core import (
     process_single_project,
     process_all_projects,
 )
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 logger = Logger(name=__name__)

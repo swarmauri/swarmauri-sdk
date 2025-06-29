@@ -9,7 +9,7 @@ import typer
 
 from peagen.handlers.templates_handler import templates_handler
 from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_builder import build_submit_params
 
 # ──────────────────────────────────────

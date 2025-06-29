@@ -6,7 +6,7 @@ from typing import Any, Dict
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.analysis_core import analyze_runs
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager

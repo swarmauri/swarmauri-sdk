@@ -12,7 +12,7 @@ from functools import partial
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from peagen.cli.rpc_utils import rpc_post
 from peagen.cli.task_builder import _build_task as _generic_build_task
 

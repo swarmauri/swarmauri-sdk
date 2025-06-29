@@ -8,8 +8,8 @@ import httpx
 
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.transport import Request as RPCEnvelope
-from peagen.transport.json_rpcschemas import TASK_SUBMIT, TASK_PATCH
-from peagen.transport.json_rpcschemas.task import PatchParams, PatchResult
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
+from peagen.transport.jsonrpc_schemas.task import PatchParams, PatchResult
 from . import ensure_task
 
 

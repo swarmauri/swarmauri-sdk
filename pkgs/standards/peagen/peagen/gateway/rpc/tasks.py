@@ -16,7 +16,7 @@ from peagen.transport import (
     TASK_PATCH,
     TASK_GET,
 )
-from peagen.transport.json_rpcschemas.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     SubmitParams,
     SubmitResult,
     PatchParams,
@@ -26,7 +26,7 @@ from peagen.transport.json_rpcschemas.task import (
     GetParams,
     GetResult,
 )
-from peagen.transport.json_rpcschemas.guard import GUARD_SET
+from peagen.transport.jsonrpc_schemas.guard import GUARD_SET
 
 from .. import (
     READY_QUEUE,

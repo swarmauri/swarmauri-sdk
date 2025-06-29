@@ -3,7 +3,7 @@
 Async task-handler for “eval” jobs.
 
 The worker runtime (or a local CLI run) calls this coroutine with
-either a plain dict (decoded JSON-RPC) or a peagen.transport.json_rpcschemas.task.PatchResult object.
+either a plain dict (decoded JSON-RPC) or a peagen.transport.jsonrpc_schemas.task.PatchResult object.
 
 Returns a JSON-serialisable mapping:
   { "report": {…}, "strict_failed": bool }
@@ -19,7 +19,7 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 

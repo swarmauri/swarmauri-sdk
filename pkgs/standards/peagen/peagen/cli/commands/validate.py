@@ -7,7 +7,7 @@ import typer
 
 from peagen.handlers.validate_handler import validate_handler
 from peagen.transport import TASK_SUBMIT
-from peagen.transport.json_rpcschemas.task import SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_builder import build_submit_params
 from peagen.cli.rpc_utils import rpc_post
 

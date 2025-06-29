@@ -9,7 +9,7 @@ from peagen.core.migrate_core import (
     alembic_revision,
     alembic_upgrade,
 )
-from peagen.transport.json_rpcschemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from . import ensure_task
 
 

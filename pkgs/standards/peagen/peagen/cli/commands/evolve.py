@@ -15,7 +15,7 @@ from peagen.handlers.evolve_handler import evolve_handler
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.transport import TASK_SUBMIT, TASK_GET
-from peagen.transport.json_rpcschemas.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     SubmitParams,
     SubmitResult,
     GetParams,
