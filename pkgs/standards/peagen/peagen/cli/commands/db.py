@@ -13,7 +13,7 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.protocols import TASK_SUBMIT
+from peagen.transport import TASK_SUBMIT
 from peagen.transport.json_rpcschemas.task import SubmitResult
 from peagen.cli.task_builder import build_submit_params
 

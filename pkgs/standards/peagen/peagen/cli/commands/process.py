@@ -21,7 +21,7 @@ import typer
 from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.protocols import TASK_SUBMIT, TASK_GET, Request
+from peagen.transport import TASK_SUBMIT, TASK_GET, Request
 from peagen.transport.json_rpcschemas.task import (
     GetParams,
     GetResult,

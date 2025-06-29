@@ -9,7 +9,7 @@ from pathlib import Path
 from .abuse import BAN_THRESHOLD
 from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .methods import *  # noqa: F401,F403 re-export rpc method names
-from peagen.protocols.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import Code as ErrorCode
 
 # Default directory for repository lock files.
 LOCK_DIR = "~/.cache/peagen/locks"

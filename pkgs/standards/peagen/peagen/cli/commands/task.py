@@ -9,7 +9,7 @@ import time
 
 import typer
 
-from peagen.protocols import (
+from peagen.transport import (
     TASK_GET,
     TASK_PATCH,
     TASK_PAUSE,

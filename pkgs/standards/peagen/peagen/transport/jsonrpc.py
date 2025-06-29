@@ -4,9 +4,9 @@ import inspect
 from typing import Callable, Dict
 
 from pydantic import BaseModel
-from peagen.protocols import _registry
+from peagen.transport import _registry
 
-from peagen.protocols import Error
+from peagen.transport import Error
 
 
 class RPCException(Exception):

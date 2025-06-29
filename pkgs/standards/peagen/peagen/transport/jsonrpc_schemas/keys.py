@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict
 
-from peagen.protocols._registry import register
+from peagen.transport._registry import register
 
 
 class UploadParams(BaseModel):

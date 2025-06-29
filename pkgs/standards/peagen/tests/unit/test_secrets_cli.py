@@ -4,7 +4,7 @@ import typer
 from peagen.cli.commands import secrets as secrets_cli
 from peagen.transport.json_rpcschemas.worker import WORKER_LIST
 from peagen.transport.json_rpcschemas.secrets import GetResult
-from peagen.protocols import Response
+from peagen.transport import Response
 
 
 class DummyDriver:

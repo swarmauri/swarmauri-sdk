@@ -9,7 +9,7 @@ from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import KEYS_UPLOAD
+from peagen.transport import KEYS_UPLOAD
 from peagen.transport.json_rpcschemas.keys import UploadParams, UploadResult
 
 

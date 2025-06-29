@@ -1,7 +1,7 @@
 """Common JSON-RPC method names used across Peagen components.
 
 .. deprecated:: 0.9.0
-   Import method names from :mod:`peagen.protocols` instead.
+   Import method names from :mod:`peagen.transport` instead.
 """
 
 from __future__ import annotations
