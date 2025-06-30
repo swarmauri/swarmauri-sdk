@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import doe_process_handler as handler
+from peagen.transport.jsonrpc_schemas.task import SubmitParams
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
 from peagen.defaults import WORK_FINISHED
 
@@ -63,10 +64,14 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
         "id": "T0",
         "pool": "default",
         "payload": {
-            "args": {"spec": "s", "template": "t", "output": str(tmp_path / "out.yaml")}
+            "args": {
+                "spec": "s",
+                "template": "t",
+                "output": str(tmp_path / "out.yaml"),
+            }
         },
     }
-    result = await handler.doe_process_handler(task)
+    result = await handler.doe_process_handler(SubmitParams.model_validate(task))
 
     assert len(sent) == 4
     assert sent[0]["method"] == TASK_SUBMIT
@@ -150,7 +155,7 @@ async def test_doe_process_handler_dry_run(monkeypatch, tmp_path):
             }
         },
     }
-    result = await handler.doe_process_handler(task)
+    result = await handler.doe_process_handler(SubmitParams.model_validate(task))
 
     assert sent == []
     assert result["children"] == []
