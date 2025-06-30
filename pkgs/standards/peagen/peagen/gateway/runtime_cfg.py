@@ -20,7 +20,10 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
-        return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+        """Return a valid Redis connection URL."""
+        host = self.redis_host or "localhost"
+        cred = f":{self.redis_password}@" if self.redis_password else ""
+        return f"redis://{cred}{host}:{self.redis_port}/{self.redis_db}"
 
     # ───────── Postgres results-backend ─────────
     pg_dsn_env: Optional[str] = Field(default=os.environ.get("PG_DSN"))
