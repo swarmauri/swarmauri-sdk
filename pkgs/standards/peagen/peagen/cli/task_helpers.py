@@ -38,9 +38,9 @@ def build_task(
 
 
 def submit_task(gateway_url: str, task: SubmitParams, *, timeout: float = 30.0) -> dict:
-    """Submit *task* to *gateway_url* via JSON-RPC and return the response."""
+    """Submit *task* to *gateway_url* via JSON-RPC and return the response dictionary."""
 
     envelope = Request(id=str(uuid.uuid4()), method=TASK_SUBMIT, params=task.model_dump())
     resp = httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout)
     resp.raise_for_status()
-    return SubmitResult.model_validate_json(resp.json())
+    return resp.json()
