@@ -10,7 +10,7 @@ import typer
 from peagen.handlers.templates_handler import templates_handler
 from peagen.transport import TASK_SUBMIT
 from peagen.transport.jsonrpc_schemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -27,23 +27,17 @@ remote_template_sets_app = typer.Typer(
 
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    submit = build_submit_params("templates", args)
-    return asyncio.run(templates_handler(submit.task))
+    task = build_task("templates", args, pool="default")
+    return asyncio.run(templates_handler(task))
 
 
 def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
     """Submit a templates task via JSON-RPC."""
-    submit = build_submit_params("templates", args)
-    reply = rpc_post(
-        gateway_url,
-        TASK_SUBMIT,
-        submit.model_dump(),
-        timeout=10.0,
-        result_model=SubmitResult,
-    )
-    if reply.error:
-        raise RuntimeError(reply.error.message)
-    return str(reply.result.taskId if reply.result else submit.task.id)
+    task = build_task("templates", args, pool="default")
+    reply = submit_task(gateway_url, task)
+    if "error" in reply:
+        raise RuntimeError(reply["error"]["message"])
+    return str(reply.get("result", {}).get("taskId", task.id))
 
 
 # ─── list ──────────────────────────────

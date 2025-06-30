@@ -8,7 +8,7 @@ import typer
 from peagen.handlers.validate_handler import validate_handler
 from peagen.transport import TASK_SUBMIT
 from peagen.transport.jsonrpc_schemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 from peagen.cli.rpc_utils import rpc_post
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
@@ -41,11 +41,11 @@ def run_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    submit = build_submit_params("validate", args)
+    task = build_task("validate", args, pool="default")
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(submit.task))
+        result: Dict[str, Any] = asyncio.run(validate_handler(task))
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)
@@ -83,21 +83,15 @@ def submit_validate(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    submit = build_submit_params("validate", args)
+    task = build_task("validate", args, pool=ctx.obj.get("pool", "default"))
 
     # 2) Build Task.submit envelope using Task fields
     try:
-        reply = rpc_post(
-            ctx.obj.get("gateway_url"),
-            TASK_SUBMIT,
-            submit.model_dump(),
-            timeout=10.0,
-            result_model=SubmitResult,
-        )
-        if reply.error:
-            typer.echo(f"[ERROR] {reply.error.message}")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted validation → taskId={reply.result.taskId}")
+        typer.echo(f"Submitted validation → taskId={reply['result']['taskId']}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

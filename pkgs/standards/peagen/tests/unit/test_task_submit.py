@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from peagen.tui.task_submit import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 @pytest.mark.unit
