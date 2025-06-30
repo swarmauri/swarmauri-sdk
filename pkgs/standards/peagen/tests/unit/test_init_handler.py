@@ -3,7 +3,8 @@ from pathlib import Path
 
 from peagen.handlers import init_handler as handler
 from peagen.core import init_core
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, Status
+from peagen.transport.jsonrpc_schemas.task import Status
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -26,9 +27,7 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 
     monkeypatch.setattr(init_core, func, fake)
     args = {"kind": kind, "path": "~/p"}
-    task = SubmitParams(
-        id="1", pool="default", payload={"args": args}, status=Status.waiting
-    )
+    task = build_task("init", args, pool="default", status=Status.waiting)
     result = await handler.init_handler(task)
 
     assert result == {"kind": kind}
@@ -39,16 +38,11 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 @pytest.mark.asyncio
 async def test_init_handler_errors(monkeypatch):
     with pytest.raises(ValueError):
-        task = SubmitParams(
-            id="1", pool="default", payload={"args": {}}, status=Status.waiting
-        )
+        task = build_task("init", {}, pool="default", status=Status.waiting)
         await handler.init_handler(task)
 
     with pytest.raises(ValueError):
-        task = SubmitParams(
-            id="1",
-            pool="default",
-            payload={"args": {"kind": "unknown"}},
-            status=Status.waiting,
+        task = build_task(
+            "init", {"kind": "unknown"}, pool="default", status=Status.waiting
         )
         await handler.init_handler(task)
