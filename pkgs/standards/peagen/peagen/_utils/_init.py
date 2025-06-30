@@ -1,18 +1,12 @@
-import asyncio
 import textwrap
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 import re
 import sys
 import types
 import uuid
-from datetime import datetime, timezone
 
 import typer
-from peagen.errors import PATNotAllowedError
-from peagen.handlers.init_handler import init_handler
-from peagen.plugins import discover_and_register_plugins
-from peagen.transport.jsonrpc_schemas import Status
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``

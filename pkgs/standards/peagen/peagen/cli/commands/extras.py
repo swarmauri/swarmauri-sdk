@@ -16,8 +16,6 @@ local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
 
 
-
-
 @local_extras_app.command("extras")
 def run_extras(
     ctx: typer.Context,
@@ -83,9 +81,7 @@ def submit_extras(
         if "error" in reply:
             typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(
-            f"Submitted extras generation → taskId={reply['result']['taskId']}"
-        )
+        typer.echo(f"Submitted extras generation → taskId={reply['result']['taskId']}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

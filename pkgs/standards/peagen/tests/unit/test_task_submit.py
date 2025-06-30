@@ -3,6 +3,7 @@ import pytest
 
 from peagen.cli.task_helpers import build_task, submit_task
 
+
 @pytest.mark.unit
 def test_build_task_creates_task():
     task = build_task("demo", {"x": 1})

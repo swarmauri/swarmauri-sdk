@@ -23,7 +23,7 @@ import httpx
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.transport import Request, Response, TASK_SUBMIT, TASK_GET
+from peagen.transport import Request, Response, TASK_GET
 from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.cli.task_helpers import build_task, submit_task
@@ -62,8 +62,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
         except json.JSONDecodeError as exc:
             raise typer.BadParameter("--agent-env must be valid JSON") from exc
     return args
-
-
 
 
 # ────────────────────────── local run ────────────────────────────────────────

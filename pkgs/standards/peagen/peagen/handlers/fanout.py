@@ -9,7 +9,7 @@ import httpx
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.transport import Request as RPCEnvelope
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
-from peagen.transport.jsonrpc_schemas.task import PatchParams, PatchResult, SubmitParams
+from peagen.transport.jsonrpc_schemas.task import PatchParams, SubmitParams
 
 
 async def fan_out(

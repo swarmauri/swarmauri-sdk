@@ -12,14 +12,6 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.transport import Request, Response
-from peagen.transport.jsonrpc_schemas.secrets import (
-    AddParams,
-    GetParams,
-    DeleteParams,
-    AddResult,
-    GetResult,
-    DeleteResult,
-)
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST, ListParams, ListResult
 from peagen.cli.task_helpers import build_task, submit_task
 
@@ -127,7 +119,7 @@ def remote_add(
     drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
-    cipher = drv.encrypt(value.encode(), pubs).decode()
+    _ = drv.encrypt(value.encode(), pubs).decode()
     args = {
         "secret_id": secret_id,
         "value": value,

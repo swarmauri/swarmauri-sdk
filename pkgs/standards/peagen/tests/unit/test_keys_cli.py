@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
-from peagen.transport.jsonrpc_schemas.keys import FetchResult
 
 
 @pytest.mark.unit

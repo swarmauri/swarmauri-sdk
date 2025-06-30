@@ -3,7 +3,6 @@ import pytest
 import typer
 from peagen.cli.commands import secrets as secrets_cli
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
-from peagen.transport.jsonrpc_schemas.secrets import GetResult
 
 
 class DummyDriver:

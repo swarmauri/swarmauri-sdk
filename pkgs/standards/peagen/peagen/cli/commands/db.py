@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 
 
-
 from pathlib import Path
 
 import typer
@@ -31,8 +30,6 @@ DEFAULT_GATEWAY = (
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
-
-
 
 
 @local_db_app.command("upgrade")

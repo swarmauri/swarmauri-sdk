@@ -14,9 +14,8 @@ import typer
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.transport import Request, Response, TASK_SUBMIT, TASK_GET
+from peagen.transport import Request, Response, TASK_GET
 from peagen.transport.jsonrpc_schemas.task import (
-    SubmitResult,
     GetParams,
     GetResult,
 )
@@ -24,8 +23,6 @@ from peagen.cli.task_helpers import build_task, submit_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
-
-
 
 
 @local_evolve_app.command("evolve")

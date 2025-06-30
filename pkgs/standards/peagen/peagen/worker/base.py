@@ -217,7 +217,9 @@ class WorkerBase:
     async def _run_task(self, task: SubmitParams | Dict[str, Any]) -> None:
         """Execute *task* by dispatching to a registered handler."""
         canonical = (
-            task if isinstance(task, SubmitParams) else SubmitParams.model_validate(task)
+            task
+            if isinstance(task, SubmitParams)
+            else SubmitParams.model_validate(task)
         )
         task_id = str(canonical.id)
         payload = canonical.payload

@@ -1,5 +1,4 @@
 import pytest
-from peagen.cli.commands import evolve
 from peagen.cli.task_helpers import build_task
 
 
