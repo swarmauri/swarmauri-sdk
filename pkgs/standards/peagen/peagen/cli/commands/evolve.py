@@ -110,7 +110,7 @@ def submit(
 
         while True:
             task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
-            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-            if Status.is_terminal(task_reply.status):
+            typer.echo(json.dumps(task_reply, indent=2))
+            if Status.is_terminal(task_reply.get("status")):
                 break
             time.sleep(interval)
