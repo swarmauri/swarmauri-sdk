@@ -17,15 +17,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add labels column to tasks."""
-    op.add_column(
-        "tasks",
-        sa.Column(
-            "labels",
-            sa.JSON(),
-            nullable=False,
-            server_default=sa.text("'[]'"),
-        ),
-    )
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = {c["name"] for c in insp.get_columns("tasks")}
+    if "labels" not in cols:
+        op.add_column(
+            "tasks",
+            sa.Column(
+                "labels",
+                sa.JSON(),
+                nullable=False,
+                server_default=sa.text("'[]'"),
+            ),
+        )
 
 
 def downgrade() -> None:
