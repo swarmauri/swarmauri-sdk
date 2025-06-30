@@ -31,13 +31,6 @@ def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     return asyncio.run(templates_handler(task))
 
 
-def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
-    """Submit a templates task via JSON-RPC."""
-    task = build_task("templates", args, pool="default")
-    reply = submit_task(gateway_url, task)
-    if "error" in reply:
-        raise RuntimeError(reply["error"]["message"])
-    return str(reply.get("result", {}).get("taskId", task.id))
 
 
 # ─── list ──────────────────────────────
@@ -67,7 +60,11 @@ def submit_list(
     """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list", "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted list → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -112,7 +109,11 @@ def submit_show(
     """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name, "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted show → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -209,7 +210,11 @@ def submit_add(
         "ref": ref,
     }
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted add → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -262,7 +267,11 @@ def submit_remove(
 
     args = {"operation": "remove", "name": name, "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted remove → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
