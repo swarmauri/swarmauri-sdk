@@ -269,19 +269,6 @@ def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
 
-
-def to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
-    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
-
-    return TaskModel(**data.model_dump())
-
-
-def to_schema(row: TaskModel) -> TaskRead:
-    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
-
-    return TaskRead.from_orm(row)
-
-
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 

@@ -7,7 +7,7 @@ import httpx
 
 from peagen.transport import Request
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, Status
-from peagen.transport.jsonrpc_schemas.task import SubmitParams
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
 def build_task(
@@ -43,4 +43,4 @@ def submit_task(gateway_url: str, task: SubmitParams, *, timeout: float = 30.0) 
     envelope = Request(id=str(uuid.uuid4()), method=TASK_SUBMIT, params=task.model_dump())
     resp = httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout)
     resp.raise_for_status()
-    return resp.json()
+    return SubmitResult.model_validate_json(resp.json())

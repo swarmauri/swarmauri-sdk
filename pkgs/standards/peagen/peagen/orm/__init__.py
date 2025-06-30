@@ -84,6 +84,21 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 from .abuse_record import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
+
+
+def task_schema_to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    return TaskModel(**data.model_dump())
+
+
+def task_orm_to_schema(row: TaskModel) -> TaskRead:
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    return TaskRead.from_orm(row)
+
+
+
 # ----------------------------------------------------------------------
 # Public re-exports
 # ----------------------------------------------------------------------
@@ -124,6 +139,8 @@ __all__: list[str] = [
     # misc
     "AbuseRecordModel",
     "PublicKeyModel",
+    "task_schema_to_orm",
+    "task_orm_to_schema",
 ]
 
 # Trigger Pydantic schema generation at import time
