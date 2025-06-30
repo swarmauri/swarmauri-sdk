@@ -6,25 +6,15 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Optional
-
-from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.transport import TASK_SUBMIT, TASK_GET
-from peagen.transport.jsonrpc_schemas.task import (
-    SubmitResult,
-    GetParams,
-    GetResult,
-)
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
-
-
 
 
 @local_evolve_app.command("evolve")
@@ -116,20 +106,10 @@ def submit(
     if reply.get("result"):
         typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
-
-        def _rpc_call() -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=task.id).model_dump(),
-                result_model=GetResult,
-            )
-            return res.result  # type: ignore[return-value]
-
         import time
 
         while True:
-            task_reply = _rpc_call()
+            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break

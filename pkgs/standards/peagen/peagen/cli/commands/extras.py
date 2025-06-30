@@ -10,15 +10,10 @@ import typer
 
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import SubmitResult
-from peagen.cli.rpc_utils import rpc_post
 from peagen.cli.task_helpers import build_task, submit_task
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
-
-
 
 
 @local_extras_app.command("extras")
@@ -86,9 +81,7 @@ def submit_extras(
         if "error" in reply:
             typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(
-            f"Submitted extras generation → taskId={reply['result']['taskId']}"
-        )
+        typer.echo(f"Submitted extras generation → taskId={reply['result']['taskId']}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

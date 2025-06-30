@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from peagen.cli.rpc_utils import rpc_post
 import time
 from pathlib import Path
 from typing import Optional
@@ -16,20 +15,12 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.transport import TASK_SUBMIT, TASK_GET
-from peagen.transport.jsonrpc_schemas.task import (
-    SubmitResult,
-    GetParams,
-    GetResult,
-)
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
-
-
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -303,18 +294,8 @@ def submit_process(  # noqa: PLR0913
         fg=typer.colors.GREEN,
     )
     if watch:
-
-        def _rpc_call(tid: str) -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=tid).model_dump(),
-                result_model=GetResult,
-            )
-            return res.result  # type: ignore[return-value]
-
         while True:
-            task_reply = _rpc_call(task.id)
+            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
@@ -323,7 +304,7 @@ def submit_process(  # noqa: PLR0913
         children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
             while True:
-                child_reply = _rpc_call(cid)
+                child_reply = get_task(ctx.obj.get("gateway_url"), cid)
                 typer.echo(json.dumps(child_reply.model_dump(), indent=2))
                 if Status.is_terminal(child_reply.status):
                     break

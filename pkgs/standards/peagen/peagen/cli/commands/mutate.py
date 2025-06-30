@@ -7,20 +7,14 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
-
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_helpers import build_task, submit_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
-
-
 
 
 @local_mutate_app.command("mutate")

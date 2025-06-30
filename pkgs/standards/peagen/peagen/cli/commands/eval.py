@@ -15,13 +15,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_helpers import build_task, submit_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"

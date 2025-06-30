@@ -17,14 +17,12 @@ from pathlib import Path
 import tempfile
 from typing import Any, Dict, Optional
 
+
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.transport import TASK_SUBMIT, TASK_GET
-from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult
-from peagen.cli.rpc_utils import rpc_post
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
@@ -60,8 +58,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
         except json.JSONDecodeError as exc:
             raise typer.BadParameter("--agent-env must be valid JSON") from exc
     return args
-
-
 
 
 # ────────────────────────── local run ────────────────────────────────────────
@@ -193,18 +189,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if data.get("result") is not None:
         typer.echo(json.dumps(data["result"], indent=2))
     if watch:
-
-        def _rpc_call() -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=tid).model_dump(),
-                result_model=GetResult,
-            )
-            return res.result  # type: ignore[return-value]
-
         while True:
-            task_reply = _rpc_call()
+            task_reply = get_task(ctx.obj.get("gateway_url"), tid)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break

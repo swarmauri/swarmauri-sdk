@@ -6,13 +6,12 @@ import re
 import sys
 import types
 import uuid
-from datetime import datetime, timezone
 
 import typer
-from peagen.errors import PATNotAllowedError
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
 from peagen.transport.jsonrpc_schemas import Status
+from peagen.transport.jsonrpc_schemas.task import SubmitParams
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
@@ -33,6 +32,19 @@ def _contains_pat(obj: Any) -> bool:
     if isinstance(obj, list):
         return any(_contains_pat(v) for v in obj)
     return False
+
+
+def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Invoke :func:`init_handler` synchronously."""
+
+    discover_and_register_plugins()
+    task = SubmitParams(
+        id=str(_real_uuid4()),
+        pool="default",
+        payload={"action": "init", "args": args},
+        status=Status.waiting,
+    )
+    return asyncio.run(init_handler(task))
 
 
 def _summary(created_in: Path, next_cmd: str) -> None:

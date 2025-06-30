@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import asyncio
 
-from peagen.cli.rpc_utils import rpc_post
-
 
 from pathlib import Path
 
@@ -13,8 +11,6 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_helpers import build_task, submit_task
 
 
@@ -34,8 +30,6 @@ DEFAULT_GATEWAY = (
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
-
-
 
 
 @local_db_app.command("upgrade")
