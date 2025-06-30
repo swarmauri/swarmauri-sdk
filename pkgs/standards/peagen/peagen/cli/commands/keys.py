@@ -38,7 +38,7 @@ def upload(
     drv = AutoGpgDriver(key_dir=key_dir)
     drv.pub_path.read_text()
     args = {"key_dir": str(key_dir), "gateway_url": gateway_url}
-    pool = ctx.obj.get("pool", "default") if ctx is not None else "default"
+    pool = (ctx.obj or {}).get("pool", "default") if ctx is not None else "default"
     task = build_task("upload", args, pool=pool)
     reply = submit_task(gateway_url, task)
     if "error" in reply:
@@ -58,7 +58,7 @@ def remove(
         "fingerprint": fingerprint,
         "gateway_url": gateway_url,
     }
-    pool = ctx.obj.get("pool", "default") if ctx is not None else "default"
+    pool = (ctx.obj or {}).get("pool", "default") if ctx is not None else "default"
     task = build_task("remove", args, pool=pool)
     reply = submit_task(gateway_url, task)
     if "error" in reply:
@@ -74,7 +74,7 @@ def fetch_server(
 ) -> None:
     """Fetch trusted public keys from the gateway."""
     args = {"gateway_url": gateway_url}
-    pool = ctx.obj.get("pool", "default") if ctx is not None else "default"
+    pool = (ctx.obj or {}).get("pool", "default") if ctx is not None else "default"
     task = build_task("fetch-server", args, pool=pool)
     res = submit_task(gateway_url, task)
     if "error" in res:
