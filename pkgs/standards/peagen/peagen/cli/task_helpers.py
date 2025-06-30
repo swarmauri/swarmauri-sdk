@@ -5,9 +5,10 @@ from typing import Any, Dict
 
 import httpx
 
-from peagen.transport import Request
+from peagen.defaults import RPC_TIMEOUT
+from peagen.transport import Request, Response, TASK_GET
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, Status
-from peagen.transport.jsonrpc_schemas.task import SubmitParams
+from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult, SubmitParams
 
 
 def build_task(
@@ -48,3 +49,24 @@ def submit_task(gateway_url: str, task: SubmitParams, *, timeout: float = 30.0) 
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def get_task(
+    gateway_url: str,
+    task_id: str,
+    *,
+    timeout: float = RPC_TIMEOUT,
+) -> GetResult:
+    """Return task information from *gateway_url* via JSON-RPC."""
+
+    envelope = Request(
+        id=str(uuid.uuid4()),
+        method=TASK_GET,
+        params=GetParams(taskId=task_id).model_dump(),
+    )
+    resp = httpx.post(
+        gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
+    )
+    resp.raise_for_status()
+    parsed = Response[GetResult].model_validate_json(resp.json())
+    return parsed.result  # type: ignore[return-value]

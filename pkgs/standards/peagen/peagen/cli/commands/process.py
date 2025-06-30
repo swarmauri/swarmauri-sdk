@@ -13,20 +13,16 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-import uuid
 from pathlib import Path
 import tempfile
 from typing import Any, Dict, Optional
 
-import httpx
 
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.transport import Request, Response, TASK_GET
-from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
@@ -193,24 +189,8 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if data.get("result") is not None:
         typer.echo(json.dumps(data["result"], indent=2))
     if watch:
-
-        def _rpc_call() -> GetResult:
-            envelope = Request(
-                id=str(uuid.uuid4()),
-                method=TASK_GET,
-                params=GetParams(taskId=tid).model_dump(),
-            )
-            resp = httpx.post(
-                ctx.obj.get("gateway_url"),
-                json=envelope.model_dump(mode="json"),
-                timeout=30.0,
-            )
-            resp.raise_for_status()
-            parsed = Response[GetResult].model_validate_json(resp.json())
-            return parsed.result  # type: ignore[return-value]
-
         while True:
-            task_reply = _rpc_call()
+            task_reply = get_task(ctx.obj.get("gateway_url"), tid)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
