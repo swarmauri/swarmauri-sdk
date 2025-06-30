@@ -33,7 +33,6 @@ from peagen.transport import (
 from peagen.transport.jsonrpc import RPCException as RPCException
 from peagen.orm import Base
 from peagen.transport.jsonrpc_schemas import Status
-from pydantic import ValidationError
 from peagen.transport.jsonrpc_schemas.work import WORK_START
 from typing import Any, Dict
 
