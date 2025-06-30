@@ -44,6 +44,7 @@ async def test_task_patch_missing(monkeypatch):
     task_patch = gw.task_patch
 
     from peagen.errors import TaskNotFoundError
+    from peagen.transport.jsonrpc_schemas.task import PatchParams
 
     with pytest.raises(TaskNotFoundError):
-        await task_patch(taskId="missing", changes={"status": "success"})
+        await task_patch(PatchParams(taskId="missing", changes={"status": "success"}))
