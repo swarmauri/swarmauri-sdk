@@ -11,6 +11,9 @@ from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .methods import *  # noqa: F401,F403 re-export rpc method names
 from peagen.transport.error_codes import ErrorCode
 
+# Default timeout for JSON-RPC requests in seconds.
+RPC_TIMEOUT = 30.0
+
 # Default directory for repository lock files.
 LOCK_DIR = "~/.cache/peagen/locks"
 
@@ -69,5 +72,6 @@ __all__ = [
     "LOCK_DIR",
     "lock_dir",
     "DEFAULT_POOL",
+    "RPC_TIMEOUT",
     "ErrorCode",
 ]

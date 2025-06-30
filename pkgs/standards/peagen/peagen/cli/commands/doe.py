@@ -7,10 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
 import time
-
-import httpx
 from pathlib import Path
 from typing import Optional
 
@@ -18,12 +15,7 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.transport import Request, Response, TASK_GET
-from peagen.transport.jsonrpc_schemas.task import (
-    GetParams,
-    GetResult,
-)
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -302,24 +294,8 @@ def submit_process(  # noqa: PLR0913
         fg=typer.colors.GREEN,
     )
     if watch:
-
-        def _rpc_call(tid: str) -> GetResult:
-            envelope = Request(
-                id=str(uuid.uuid4()),
-                method=TASK_GET,
-                params=GetParams(taskId=tid).model_dump(),
-            )
-            resp = httpx.post(
-                ctx.obj.get("gateway_url"),
-                json=envelope.model_dump(mode="json"),
-                timeout=30.0,
-            )
-            resp.raise_for_status()
-            parsed = Response[GetResult].model_validate_json(resp.json())
-            return parsed.result  # type: ignore[return-value]
-
         while True:
-            task_reply = _rpc_call(task.id)
+            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
@@ -328,7 +304,7 @@ def submit_process(  # noqa: PLR0913
         children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
             while True:
-                child_reply = _rpc_call(cid)
+                child_reply = get_task(ctx.obj.get("gateway_url"), cid)
                 typer.echo(json.dumps(child_reply.model_dump(), indent=2))
                 if Status.is_terminal(child_reply.status):
                     break
