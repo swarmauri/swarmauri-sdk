@@ -5,7 +5,7 @@ from pathlib import Path
 import httpx
 import pytest
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
-from peagen.tui.task_submit import build_task, submit_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 pytestmark = pytest.mark.smoke
 

@@ -32,10 +32,6 @@ local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spec
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 
-def _make_task(args: dict, action: str = "doe"):
-    """Return a task for *action* using *args*."""
-
-    return build_task(action, args, pool="default")
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -93,7 +89,7 @@ def run_gen(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    task = _make_task(args, action="doe")
+    task = build_task("doe", args, pool="default")
     result = asyncio.run(doe_handler(task))
 
     if json_out:
@@ -148,7 +144,7 @@ def submit_gen(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    task = _make_task(args, action="doe")
+    task = build_task("doe", args, pool="default")
 
     reply = submit_task(ctx.obj.get("gateway_url"), task)
 
@@ -219,7 +215,7 @@ def run_process(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    task = _make_task(args, action="doe_process")
+    task = build_task("doe_process", args, pool="default")
     result = asyncio.run(doe_process_handler(task))
 
     typer.echo(
@@ -292,7 +288,7 @@ def submit_process(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    task = _make_task(args, action="doe_process")
+    task = build_task("doe_process", args, pool="default")
 
     reply = submit_task(ctx.obj.get("gateway_url"), task)
 
