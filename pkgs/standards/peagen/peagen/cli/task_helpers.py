@@ -16,6 +16,7 @@ def build_task(
     args: Dict[str, Any],
     *,
     pool: str = "default",
+    tenant_id: str | None = None,
     repo: str | None = None,
     ref: str | None = None,
     status: Status = Status.waiting,
@@ -25,9 +26,13 @@ def build_task(
 ) -> SubmitParams:
     """Return a :class:`SubmitParams` instance for *action* and *args*."""
 
+    if tenant_id is None:
+        tenant_id = pool
+
     return SubmitParams(
         id=str(uuid.uuid4()),
         pool=pool,
+        tenant_id=tenant_id,
         repo=repo,
         ref=ref,
         payload={"action": action, "args": args},
