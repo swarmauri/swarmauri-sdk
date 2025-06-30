@@ -462,7 +462,8 @@ def generate_payload(
             ws = Path(art).parent
             try:
                 report = evaluate_workspace(
-                    workspace_uri=str(ws),
+                    repo=str(ws),
+                    ref="HEAD",
                     program_glob=eval_program_glob,
                     pool_ref=eval_pool,
                     cfg_path=cfg_path,

@@ -92,22 +92,20 @@ def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
 
 
 # ─────────────── helper: workspace program discovery ───────────────────────
-def _collect_programs(
-    workspace_uri: str, pattern: str
-) -> Tuple[List[Path], List[Program]]:
+def _collect_programs(workspace: str, pattern: str) -> Tuple[List[Path], List[Program]]:
     """
-    Return (program_paths, Program instances) for *workspace_uri*.
+    Return (program_paths, Program instances) for *workspace*.
     Remote URIs are fetched into a temp dir via program.fetch helpers.
     """
-    if "://" in workspace_uri:
+    if "://" in workspace:
         # NOTE: rely on fetch_core to materialise remote workspace first
         from peagen.core.fetch_core import fetch_single  # local import to avoid cycle
 
         with temp_workspace() as tmp_dir:
-            fetch_single(workspace_uri, dest_root=tmp_dir)
+            fetch_single(workspace, dest_root=tmp_dir)
             workspace_path = tmp_dir
     else:
-        workspace_path = Path(PathOrURI(workspace_uri))
+        workspace_path = Path(PathOrURI(workspace))
 
     paths: List[Path] = []
     programs: List[Program] = []
@@ -122,7 +120,8 @@ def _collect_programs(
 # ───────────────────────────── public API ───────────────────────────────────
 def evaluate_workspace(
     *,
-    workspace_uri: str,
+    repo: str,
+    ref: str = "HEAD",
     program_glob: str = "**/*.*",
     pool_ref: Optional[str] = None,
     cfg_path: Optional[Path] = None,
@@ -130,13 +129,20 @@ def evaluate_workspace(
     skip_failed: bool = False,
 ) -> Dict[str, Any]:
     """
-    Evaluate programs in *workspace_uri* according to configuration.
+    Evaluate programs from ``repo`` and ``ref`` according to configuration.
 
     Returns a JSON-serialisable report (no I/O side-effects).
     """
     # 1) resolve configuration file (.peagen.toml) -------------------------
+    from peagen.core.fetch_core import fetch_single
+    import tempfile
+
+    tmp_repo = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
+    fetch_single(repo=repo, ref=ref, dest_root=tmp_repo)
+    workspace_path = str(tmp_repo)
+
     if cfg_path is None:
-        ws_cfg = Path(workspace_uri) / ".peagen.toml"
+        ws_cfg = Path(workspace_path) / ".peagen.toml"
         cwd_cfg = Path.cwd() / ".peagen.toml"
         cfg_path = ws_cfg if ws_cfg.exists() else cwd_cfg
         if not cfg_path.exists():
@@ -152,7 +158,7 @@ def evaluate_workspace(
     _register_evaluators(pool, eval_cfg.get("evaluators", {}))
 
     # 3) collect program files --------------------------------------------
-    prog_paths, progs = _collect_programs(workspace_uri, program_glob)
+    prog_paths, progs = _collect_programs(workspace_path, program_glob)
 
     # 4) run evaluation ----------------------------------------------------
     if async_eval:
@@ -180,4 +186,9 @@ def evaluate_workspace(
             for pp, rr in paired
         ],
     }
+    if tmp_repo:
+        import shutil
+
+        shutil.rmtree(tmp_repo, ignore_errors=True)
+
     return report

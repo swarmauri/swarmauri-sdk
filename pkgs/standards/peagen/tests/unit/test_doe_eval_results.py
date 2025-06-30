@@ -38,7 +38,7 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
     called = {}
 
     def fake_eval(**kwargs):
-        called["ws"] = kwargs["workspace_uri"]
+        called["repo"] = kwargs["repo"]
         return {"ok": True}
 
     monkeypatch.setattr(doe_core, "evaluate_workspace", fake_eval)
@@ -55,4 +55,4 @@ def test_generate_payload_writes_eval_results(tmp_path, monkeypatch):
     assert out_file.exists()
     data = json.loads(out_file.read_text())
     assert data["ok"] is True
-    assert called["ws"] == str(tmp_path)
+    assert called["repo"] == str(tmp_path)

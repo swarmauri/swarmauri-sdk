@@ -26,10 +26,8 @@ async def eval_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    if repo:
-        args["workspace_uri"] = f"git+{repo}@{ref}"
+    repo = task.repo or args.get("repo")
+    ref = task.ref or args.get("ref", "HEAD")
 
     cfg_path = Path(args["config"]) if args.get("config") else None
     tmp: NamedTemporaryFile | None = None
@@ -41,7 +39,8 @@ async def eval_handler(task: SubmitParams) -> SubmitResult:
         cfg_path = Path(tmp.name)
 
     report = evaluate_workspace(
-        workspace_uri=args["workspace_uri"],
+        repo=repo,
+        ref=ref,
         program_glob=args.get("program_glob", "**/*.*"),
         pool_ref=args.get("pool"),
         cfg_path=cfg_path,
