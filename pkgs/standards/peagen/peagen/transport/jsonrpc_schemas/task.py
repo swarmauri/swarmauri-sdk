@@ -60,7 +60,9 @@ class GetParams(BaseModel):
 
 
 class GetResult(SubmitResult):
-    """Result returned by ``Task.get`` -- identical to :class:`SubmitResult`."""
+    """Result returned by ``Task.get`` including the task ``status``."""
+
+    status: Status | None = None
 
 
 class PatchParams(BaseModel):
