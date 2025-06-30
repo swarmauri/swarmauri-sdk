@@ -129,7 +129,10 @@ def submit_sort(
         if "error" in resp:
             typer.echo(f"[ERROR] {resp['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={resp['result']['taskId']}")
+        task_id = resp.get("result", {}).get("taskId") or resp.get("result", {}).get(
+            "id"
+        )
+        typer.echo(f"Submitted sort → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

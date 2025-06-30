@@ -123,9 +123,7 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
             )
         }
         if action not in available:
-            raise RPCException(
-                code=-32601, message="Method not found", data={"method": str(action)}
-            )
+            log.warning("no worker advertising '%s' found", action)
 
     # 3. Avoid id collision in Redis --------------------------------
     if await _load_task(task_blob["id"]):
@@ -137,6 +135,8 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         uuid.UUID(task_blob["id"])
         persist = True
     except ValueError:
+        persist = False
+    if task_blob.get("tenant_id") is None:
         persist = False
 
     if persist:
