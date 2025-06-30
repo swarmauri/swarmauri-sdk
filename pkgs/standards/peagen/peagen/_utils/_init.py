@@ -19,6 +19,9 @@ _real_uuid4 = uuid.uuid4
 _uuid_alias = types.ModuleType("uuid_alias")
 _uuid_alias.uuid4 = _real_uuid4
 sys.modules[__name__ + ".uuid"] = _uuid_alias
+# Expose the alias as ``uuid`` within this module so tests can patch
+# ``peagen._utils._init.uuid.uuid4`` without affecting the real ``uuid`` module.
+uuid = _uuid_alias
 
 _PAT_RE = re.compile(r"(gh[pousr]_\w+|github_pat_[0-9A-Za-z]+)", re.IGNORECASE)
 
