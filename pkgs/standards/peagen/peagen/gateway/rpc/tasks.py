@@ -136,6 +136,8 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         persist = True
     except ValueError:
         persist = False
+    if task_blob.get("tenant_id") is None:
+        persist = False
 
     if persist:
         async with engine.begin() as conn:
