@@ -33,13 +33,17 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
             gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0
         )
         resp.raise_for_status()
-        parsed = Response[ListResult].model_validate_json(resp.json())
-        if parsed.result is None:
-            workers = []
-        elif hasattr(parsed.result, "root"):
-            workers = parsed.result.root
+        data = resp.json()
+        if isinstance(data, list):
+            workers = data
         else:
-            workers = parsed.result
+            parsed = Response[ListResult].model_validate(data)
+            if parsed.result is None:
+                workers = []
+            elif hasattr(parsed.result, "root"):
+                workers = parsed.result.root
+            else:
+                workers = parsed.result
     except Exception:
         return []
     keys = []
