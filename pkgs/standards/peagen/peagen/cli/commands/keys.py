@@ -10,7 +10,6 @@ import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
-from peagen.transport.jsonrpc_schemas.keys import UploadParams, DeleteParams, FetchParams
 from peagen.cli.task_helpers import build_task, submit_task
 
 
@@ -37,7 +36,7 @@ def upload(
 ) -> None:
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
-    pubkey = drv.pub_path.read_text()
+    drv.pub_path.read_text()
     args = {"key_dir": str(key_dir), "gateway_url": gateway_url}
     task = build_task("upload", args, pool=ctx.obj.get("pool", "default"))
     reply = submit_task(gateway_url, task)

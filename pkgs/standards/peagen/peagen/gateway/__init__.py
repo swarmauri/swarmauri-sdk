@@ -58,13 +58,12 @@ from peagen.transport.error_codes import ErrorCode
 from peagen.core import migrate_core
 
 
-
 _db = reload(_db)
 engine = _db.engine
 Session = _db.Session
 
 TASK_KEY = defaults.CONFIG["task_key"]
-TaskBlob = Dict[str, Any]          # id / pool / payload / … as plain JSON
+TaskBlob = Dict[str, Any]  # id / pool / payload / … as plain JSON
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -268,6 +267,7 @@ def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
 
 # ───────── task helpers (hash + ttl) ────────────────────────────
 
+
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
@@ -275,6 +275,7 @@ def _task_key(tid: str) -> str:
 # ------------------------------------------------------------------
 # Helpers that operate purely on raw JSON blobs (TaskBlob)
 # ------------------------------------------------------------------
+
 
 async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
     """
@@ -289,7 +290,7 @@ async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
     # ── normalise to ORM row ─────────────────────────────────────────
     if isinstance(task, TaskModel):
         orm_task = task
-    else:                                  # raw JSON → ORM
+    else:  # raw JSON → ORM
         orm_task = TaskModel(**task)
 
     orm_task.status = Status.failed
@@ -313,7 +314,6 @@ async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
     await _publish_task(blob)
 
 
-
 async def _save_task(task: TaskBlob) -> None:
     """
     Upsert *task* into Redis and refresh its TTL.
@@ -325,7 +325,7 @@ async def _save_task(task: TaskBlob) -> None:
     key = _task_key(task["id"])
     # Serialise once; no model_dump / extra handling required
     blob = json.dumps(task, default=str)
-    status_val = str(task.get("status", ""))        # tolerate absent status
+    status_val = str(task.get("status", ""))  # tolerate absent status
     await queue.hset(key, mapping={"blob": blob, "status": status_val})
     await queue.expire(key, TASK_TTL)
 
@@ -365,12 +365,14 @@ async def _select_tasks(selector: str) -> list[TaskBlob]:
     single = await _load_task(selector)
     return [single] if single else []
 
+
 # ──────────────────────   Results Backend ────────────────────────
 
 
 # ------------------------------------------------------------------
 #  _persist  –  ORM-only implementation (no CRUD schemas, no service layer)
 # ------------------------------------------------------------------
+
 
 async def _persist(task: TaskModel | dict) -> None:
     """
@@ -388,7 +390,7 @@ async def _persist(task: TaskModel | dict) -> None:
         orm_task: TaskModel
         if isinstance(task, TaskModel):
             orm_task = task
-        else:                                   # raw JSON / DTO
+        else:  # raw JSON / DTO
             orm_task = TaskModel(**task)
 
         log.info("persisting task %s", orm_task.id)
@@ -397,7 +399,7 @@ async def _persist(task: TaskModel | dict) -> None:
         if result_backend:
             try:
                 await result_backend.store(TaskRunModel.from_task(orm_task))
-            except Exception as exc:            # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
                 log.warning("result-backend store failed: %s", exc)
 
         # ---------- upsert into Postgres --------------------------
@@ -407,7 +409,7 @@ async def _persist(task: TaskModel | dict) -> None:
             if existing is None:
                 # (a) brand-new task definition
                 ses.add(orm_task)
-                await ses.flush()               # obtain PK for run record
+                await ses.flush()  # obtain PK for run record
 
                 run = TaskRunModel(
                     task_id=orm_task.id,
@@ -422,9 +424,8 @@ async def _persist(task: TaskModel | dict) -> None:
 
             await ses.commit()
 
-    except Exception as exc:                     # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         log.warning("persist error: %s", exc)
-
 
 
 # ──────────────────────   Publish Event  ─────────────────────────
@@ -463,7 +464,7 @@ async def _flush_state() -> None:
             try:
                 orm_row = TaskModel(**task_dict)
                 await result_backend.store(TaskRunModel.from_task(orm_row))
-            except Exception as exc:            # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
                 log.warning("result-backend store failed: %s", exc)
 
     # Gracefully close the Redis/queue client
@@ -475,7 +476,7 @@ async def _flush_state() -> None:
 # 3. broadcast a single task update
 # ------------------------------------------------------------------
 async def _publish_task(task: TaskBlob) -> None:
-    data = dict(task)                           # shallow copy
+    data = dict(task)  # shallow copy
     if "duration" in task and task["duration"] is not None:
         data["duration"] = task["duration"]
     await _publish_event("task.update", data)
@@ -536,7 +537,6 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
                 await _finalize_parent_tasks(cid)
 
         await asyncio.sleep(interval)
-
 
 
 # ────────────────────── client IP extraction ─────────────────────
@@ -642,8 +642,6 @@ async def rpc_endpoint(request: Request):
     )
 
 
-
-
 # ─────────────────────────── Scheduler loop ─────────────────────
 async def scheduler() -> None:
     sched_log.info("scheduler started")
@@ -656,26 +654,27 @@ async def scheduler() -> None:
                 await asyncio.sleep(0.25)
                 continue
 
-            keys = [f"{READY_QUEUE}:{p}" for p in pools]        # e.g. queue:demo
-            res = await queue.blpop(keys, 0.5)                  # 0.5-sec poll
+            keys = [f"{READY_QUEUE}:{p}" for p in pools]  # e.g. queue:demo
+            res = await queue.blpop(keys, 0.5)  # 0.5-sec poll
             if res is None:
                 continue
 
-            queue_key, task_raw = res                           # guaranteed tuple
-            pool = queue_key.split(":", 1)[1]                   # strip prefix
+            queue_key, task_raw = res  # guaranteed tuple
+            pool = queue_key.split(":", 1)[1]  # strip prefix
             await _publish_queue_length(pool)
 
             # —— 2. decode the task blob we just pulled ——
             try:
                 task: TaskBlob = json.loads(task_raw)
-            except Exception as exc:                            # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
                 sched_log.warning("invalid task blob (%s); dropping", exc)
                 continue
 
             action = (task.get("payload") or {}).get("action")
             if not action:
-                sched_log.warning("task %s missing action; marking failed",
-                                  task.get("id"))
+                sched_log.warning(
+                    "task %s missing action; marking failed", task.get("id")
+                )
                 await _fail_task(task, MissingActionError())
                 continue
 
@@ -683,13 +682,14 @@ async def scheduler() -> None:
             worker_list = await _live_workers_by_pool(pool)
             target = _pick_worker(worker_list, action)
             if not target:
-                sched_log.warning("no worker for %s:%s, failing %s",
-                                  pool, action, task.get("id"))
+                sched_log.warning(
+                    "no worker for %s:%s, failing %s", pool, action, task.get("id")
+                )
                 await _fail_task(task, NoWorkerAvailableError(pool, action))
                 continue
 
             # —— 4. fire the WORK_START RPC to the worker ——
-            task["status"] = Status.dispatched                  # optimistic update
+            task["status"] = Status.dispatched  # optimistic update
             rpc_req = RPCEnvelope(
                 id=str(uuid.uuid4()),
                 method=WORK_START,
@@ -703,18 +703,23 @@ async def scheduler() -> None:
 
                 # —— 5. record and broadcast the dispatch ——
                 await _save_task(task)
-                await _persist(task)            # ORM path inside persists to DB
+                await _persist(task)  # ORM path inside persists to DB
                 await _publish_task(task)
-                sched_log.info("dispatch %s → %s (HTTP %d)",
-                               task.get("id"), target["url"], resp.status_code)
+                sched_log.info(
+                    "dispatch %s → %s (HTTP %d)",
+                    task.get("id"),
+                    target["url"],
+                    resp.status_code,
+                )
 
             except Exception as exc:
                 # —— 6. transient failure → re-queue and maybe drop worker ——
-                sched_log.warning("dispatch failed (%s) for %s; re-queueing",
-                                  exc, task.get("id"))
+                sched_log.warning(
+                    "dispatch failed (%s) for %s; re-queueing", exc, task.get("id")
+                )
                 if "id" in target:
                     await _remove_worker(target["id"])
-                await queue.rpush(queue_key, task_raw)          # retry later
+                await queue.rpush(queue_key, task_raw)  # retry later
                 await _publish_queue_length(pool)
 
 

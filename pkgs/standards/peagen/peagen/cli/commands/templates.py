@@ -7,8 +7,6 @@ from typing import Any, Dict, Optional
 import typer
 
 from peagen.handlers.templates_handler import templates_handler
-from peagen.transport import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import SubmitResult
 from peagen.cli.task_helpers import build_task, submit_task
 
 # ──────────────────────────────────────
@@ -28,8 +26,6 @@ remote_template_sets_app = typer.Typer(
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     task = build_task("templates", args, pool="default")
     return asyncio.run(templates_handler(task))
-
-
 
 
 # ─── list ──────────────────────────────

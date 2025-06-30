@@ -6,7 +6,6 @@ from peagen.cli import app
 import peagen.cli.commands.login as login_mod
 
 
-
 class DummyDriver:
     def __init__(self, key_dir, passphrase):
         self.called = {"key_dir": key_dir, "passphrase": passphrase}

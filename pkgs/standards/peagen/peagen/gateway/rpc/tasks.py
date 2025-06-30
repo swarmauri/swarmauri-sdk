@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import uuid
-import typing as t
 from peagen.transport.jsonrpc import RPCException
 from peagen.transport.error_codes import ErrorCode
 
@@ -54,7 +53,7 @@ from .. import Session, engine, Base
 
 # -----------------TaskBlob ------------------------------------
 
-TaskBlob = Dict[str, Any]           # canonical on-wire / in-Redis structure
+TaskBlob = Dict[str, Any]  # canonical on-wire / in-Redis structure
 
 
 # -----------------Helper---------------------------------------
@@ -66,16 +65,16 @@ def _normalise_submit_payload(raw: dict) -> TaskBlob:
     This is the only validation performed at the RPC layer.
     """
     blob: TaskBlob = {
-        "id":               raw.get("id") or uuid.uuid4().hex,
-        "tenant_id":        raw.get("tenant_id"),
+        "id": raw.get("id") or uuid.uuid4().hex,
+        "tenant_id": raw.get("tenant_id"),
         "git_reference_id": raw.get("git_reference_id"),
-        "pool":             raw.get("pool", "default"),
-        "payload":          raw.get("payload", {}),
-        "status":           raw.get("status", Status.queued),
-        "note":             raw.get("note", ""),
-        "labels":           raw.get("labels", []),
-        "spec_hash":        raw.get("spec_hash", ""),
-        "last_modified":    raw.get("last_modified"),
+        "pool": raw.get("pool", "default"),
+        "payload": raw.get("payload", {}),
+        "status": raw.get("status", Status.queued),
+        "note": raw.get("note", ""),
+        "labels": raw.get("labels", []),
+        "spec_hash": raw.get("spec_hash", ""),
+        "last_modified": raw.get("last_modified"),
     }
     return blob
 
@@ -94,7 +93,7 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         task_blob = _normalise_submit_payload(dict(params.task))
     else:
         extra = getattr(params, "__pydantic_extra__", {}) or {}
-        base  = {
+        base = {
             "id": extra.get("id"),
             "tenant_id": extra.get("tenant_id"),
             "git_reference_id": extra.get("git_reference_id"),
@@ -113,15 +112,18 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
     action = (task_blob["payload"] or {}).get("action")
     if action:
         available = {
-            h for w in await _live_workers_by_pool(task_blob["pool"])
-            for h in (json.loads(w.get("handlers", "[]"))
-                      if isinstance(w.get("handlers"), str)
-                      else w.get("handlers", []))
+            h
+            for w in await _live_workers_by_pool(task_blob["pool"])
+            for h in (
+                json.loads(w.get("handlers", "[]"))
+                if isinstance(w.get("handlers"), str)
+                else w.get("handlers", [])
+            )
         }
         if action not in available:
-            raise RPCException(code=-32601,
-                               message="Method not found",
-                               data={"method": str(action)})
+            raise RPCException(
+                code=-32601, message="Method not found", data={"method": str(action)}
+            )
 
     # 3. Avoid id collision in Redis --------------------------------
     if await _load_task(task_blob["id"]):
@@ -141,19 +143,21 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
 
         async with Session() as ses:
             model = TaskModel(**task_blob)
-            ses.merge(model)                       # insert or update
+            ses.merge(model)  # insert or update
             ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
     # 5. Push onto ready queue & broadcast --------------------------
-    await queue.rpush(f"{READY_QUEUE}:{task_blob['pool']}",
-                      json.dumps(task_blob, default=str))
+    await queue.rpush(
+        f"{READY_QUEUE}:{task_blob['pool']}", json.dumps(task_blob, default=str)
+    )
     await _publish_queue_length(task_blob["pool"])
     await _save_task(task_blob)
     await _publish_task(task_blob)
 
-    log.info("task %s queued in %s (ttl=%ss)",
-             task_blob["id"], task_blob["pool"], TASK_TTL)
+    log.info(
+        "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
+    )
 
     return SubmitResult(taskId=str(task_blob["id"]))
 
@@ -167,13 +171,12 @@ _ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
 _ALLOWED_PATCH_EXTRAS = {"labels", "result"}
 
 
-
 @dispatcher.method(TASK_PATCH)
 async def task_patch(params: PatchParams) -> PatchResult:
     task_id = params.taskId
     changes = params.changes
 
-    task = await _load_task(task_id)          # TaskBlob | None
+    task = await _load_task(task_id)  # TaskBlob | None
     if not task:
         raise TaskNotFoundError(task_id)
 
@@ -184,11 +187,11 @@ async def task_patch(params: PatchParams) -> PatchResult:
         # coerce status enum
         if field == "status":
             value = Status(value)
-        task[field] = value                   # apply in-memory
+        task[field] = value  # apply in-memory
 
-    await _save_task(task)                    # Redis cache
-    await _persist(task)                      # Postgres + result backend
-    await _publish_task(task)                 # WebSocket event
+    await _save_task(task)  # Redis cache
+    await _persist(task)  # Postgres + result backend
+    await _publish_task(task)  # WebSocket event
 
     # cascade completion checks for parent tasks, if needed
     if isinstance(changes.get("result"), dict):
@@ -227,9 +230,11 @@ async def task_get(params: GetParams) -> GetResult | dict:
     # fall-back to slower path (possibly worker-side DB)
     try:
         from ..core.task_core import get_task_result
+
         return await get_task_result(task_id)
     except TaskNotFoundError as exc:
         raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
+
 
 # ----------- Extended Task Methods --------------------------------
 

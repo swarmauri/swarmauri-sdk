@@ -30,7 +30,7 @@ def login(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
-    pubkey = drv.pub_path.read_text()
+    drv.pub_path.read_text()
     try:
         args = {
             "key_dir": str(key_dir),
