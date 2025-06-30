@@ -401,7 +401,8 @@ async def _persist(task: TaskModel | dict) -> None:
                     try:
                         data[col] = uuid.UUID(str(data[col]))
                     except ValueError:
-                        pass
+                        if col == "tenant_id":
+                            data[col] = db_helpers._tenant_uuid(data[col])
             orm_task = TaskModel(**data)
 
         log.info("persisting task %s", orm_task.id)
