@@ -84,24 +84,6 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 from .abuse_record import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
-from .schemas import TaskCreate, TaskUpdate, TaskRead
-
-def task_schema_to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
-    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
-
-    return TaskModel(**data.model_dump())
-
-
-def task_orm_to_schema(row: TaskModel) -> TaskRead:
-    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
-
-    return TaskRead.from_orm(row)
-
-
-
-# ----------------------------------------------------------------------
-# Public re-exports
-# ----------------------------------------------------------------------
 __all__: list[str] = [
     # base
     "Base",
@@ -150,3 +132,17 @@ try:  # pragma: no cover - best effort
     importlib.import_module("peagen.orm.schemas")
 except Exception:  # noqa: BLE001
     pass
+
+from .schemas import TaskCreate, TaskUpdate, TaskRead
+
+
+def task_schema_to_orm(data: TaskCreate | TaskUpdate) -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    return TaskModel(**data.model_dump())
+
+
+def task_orm_to_schema(row: TaskModel) -> TaskRead:
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    return TaskRead.from_orm(row)
