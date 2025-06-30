@@ -120,7 +120,7 @@ async def evolve_handler(task: SubmitParams) -> SubmitResult:
     )
     child_ids = fan_res["children"]
 
-    if vcs and spec_path:
+    if vcs and spec_path and repo:
         repo_root = Path(vcs.repo.working_tree_dir)
         try:
             rel_spec = spec_path.resolve().relative_to(repo_root)
@@ -131,9 +131,10 @@ async def evolve_handler(task: SubmitParams) -> SubmitResult:
             commit_sha = vcs.commit([str(rel_spec)], f"evolve {spec_path.stem}")
             branches = [pea_ref("run", cid) for cid in child_ids]
             vcs.fan_out("HEAD", branches)
-            for b in branches:
-                vcs.push(b)
-            fan_res["commit"] = commit_sha
+            if vcs.has_remote():
+                for b in branches:
+                    vcs.push(b)
+                fan_res["commit"] = commit_sha
     result = {"children": child_ids, "jobs": len(jobs), **fan_res}
     if tmp_dir:
         import shutil
