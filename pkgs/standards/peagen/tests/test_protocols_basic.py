@@ -1,26 +1,38 @@
+import httpx
+import pytest
+
 from peagen.transport import (
     Response,
     parse_request,
     _registry,
-    TASK_SUBMIT,
     KEYS_UPLOAD,
     SECRETS_ADD,
 )
+from peagen.cli.task_helpers import build_task, submit_task
 
 
-def test_parse_and_registry() -> None:
-    raw = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": TASK_SUBMIT,
-        "params": {
-            "id": "11111111-2222-3333-4444-555555555555",
-            "pool": "default",
-            "payload": {"action": "demo"},
-            "status": "queued",
-            "note": "",
-        },
-    }
+def test_parse_and_registry(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_post(url: str, json: dict, timeout: float) -> object:
+        captured["json"] = json
+
+        class Resp:
+            def raise_for_status(self) -> None:
+                pass
+
+            def json(self) -> dict:
+                return {"ok": True}
+
+        return Resp()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    task = build_task("demo", {}, pool="default")
+    submit_task("http://gw/rpc", task)
+
+    raw = captured["json"]
+    assert isinstance(raw, dict)
     req = parse_request(raw)
     PModel = _registry.params_model(req.method)
     params = PModel.model_validate(req.params)
