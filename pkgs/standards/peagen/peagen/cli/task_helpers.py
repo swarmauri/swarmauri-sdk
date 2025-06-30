@@ -22,6 +22,7 @@ def build_task(
     note: str | None = None,
     config_toml: str | None = None,
     labels: list[str] | None = None,
+    tenant_id: str = "default",
 ) -> SubmitParams:
     """Return a :class:`SubmitParams` instance for *action* and *args*."""
 
@@ -35,6 +36,7 @@ def build_task(
         note=note,
         config_toml=config_toml,
         labels=labels,
+        tenant_id=tenant_id,
     )
 
 

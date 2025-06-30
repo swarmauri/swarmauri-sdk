@@ -64,9 +64,16 @@ def _normalise_submit_payload(raw: dict) -> TaskBlob:
     Ensure required fields exist and assign sensible defaults.
     This is the only validation performed at the RPC layer.
     """
+    tenant_id = raw.get("tenant_id") or "default"
+    try:
+        uuid.UUID(str(tenant_id))
+        tenant_uuid = str(tenant_id)
+    except (ValueError, TypeError):
+        tenant_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(tenant_id)).hex
+
     blob: TaskBlob = {
         "id": raw.get("id") or uuid.uuid4().hex,
-        "tenant_id": raw.get("tenant_id"),
+        "tenant_id": tenant_uuid,
         "git_reference_id": raw.get("git_reference_id"),
         "pool": raw.get("pool", "default"),
         "payload": raw.get("payload", {}),
