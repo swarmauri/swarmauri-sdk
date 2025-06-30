@@ -37,7 +37,8 @@ def login(
             "passphrase": passphrase,
             "gateway_url": gateway_url,
         }
-        task = build_task("login", args, pool=ctx.obj.get("pool", "default"))
+        pool = (ctx.obj or {}).get("pool", "default")
+        task = build_task("login", args, pool=pool)
         reply = submit_task(gateway_url, task)
     except Exception as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
