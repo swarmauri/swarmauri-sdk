@@ -44,7 +44,7 @@ def test_rpc_submit_remote_process(tmp_path: Path) -> None:
     reply = submit_task(GATEWAY, task)
     if "error" in reply:
         pytest.skip(f"remote submit failed: {reply['error']['message']}")
-    assert "result" in reply and "taskId" in reply["result"]
+    assert "result" in reply and "id" in reply["result"]
 
 
 @pytest.mark.i9n
@@ -61,7 +61,7 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
     if "error" in reply:
         pytest.skip(f"remote submit failed: {reply['error']['message']}")
 
-    tid = reply.get("result", {}).get("taskId")
+    tid = reply.get("result", {}).get("id")
     assert tid
 
     envelope = {

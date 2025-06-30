@@ -66,6 +66,7 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
         status=gw.Status.queued,
         note="",
         spec_hash=uuid.uuid4().hex,
+        labels={},
         date_created=datetime.datetime.now(datetime.timezone.utc),
         last_modified=datetime.datetime.now(datetime.timezone.utc),
     )

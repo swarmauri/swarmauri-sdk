@@ -299,7 +299,7 @@ async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
 
     orm_task.status = Status.failed
     orm_task.result = {"error": str(error)}
-    orm_task.finished_at = finished
+    orm_task.last_modified = finished
 
     # ── build the wire-level dict ───────────────────────────────────
     blob: TaskBlob = {
@@ -309,7 +309,7 @@ async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
         "labels": orm_task.labels or [],
         "status": orm_task.status,
         "result": orm_task.result,
-        "finished_at": orm_task.finished_at,
+        "last_modified": orm_task.last_modified,
     }
 
     # ── fan-out: Redis cache ▸ Postgres ▸ WS subscribers ────────────
@@ -523,7 +523,7 @@ async def _finalize_parent_tasks(child_id: str) -> None:
 
         if all_done and parent.get("status") != Status.success:
             parent["status"] = Status.success
-            parent["finished_at"] = time.time()
+            parent["last_modified"] = time.time()
             await _save_task(parent)
             await _persist(parent)
             await _publish_task(parent)
