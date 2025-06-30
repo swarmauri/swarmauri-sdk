@@ -14,23 +14,17 @@ def test_parse_and_registry() -> None:
         "id": 1,
         "method": TASK_SUBMIT,
         "params": {
-            "task": {
-                "tenant_id": "01234567-89ab-cdef-0123-456789abcdef",
-                "git_reference_id": "fedcba98-7654-3210-fedc-ba9876543210",
-                "pool": "default",
-                "payload": {"action": "demo"},
-                "status": "queued",
-                "note": "",
-                "spec_hash": "dummy",
-                "id": "11111111-2222-3333-4444-555555555555",
-                "last_modified": "2024-01-01T00:00:00Z",
-            }
+            "id": "11111111-2222-3333-4444-555555555555",
+            "pool": "default",
+            "payload": {"action": "demo"},
+            "status": "queued",
+            "note": "",
         },
     }
     req = parse_request(raw)
     PModel = _registry.params_model(req.method)
     params = PModel.model_validate(req.params)
-    assert params.task.pool == "default"
+    assert params.pool == "default"
     res = Response.ok(id=req.id, result={"taskId": "ABCDEFGHIJKL"})
     assert res.jsonrpc == "2.0"
 
