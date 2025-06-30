@@ -68,5 +68,5 @@ def get_task(
         gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
     )
     resp.raise_for_status()
-    parsed = Response[GetResult].model_validate_json(resp.text)
+    parsed = Response[GetResult].model_validate(resp.json())
     return parsed.result  # type: ignore[return-value]
