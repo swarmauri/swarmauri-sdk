@@ -2,6 +2,7 @@ import pytest
 
 from peagen.handlers import doe_process_handler as handler
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
+from peagen.cli.task_helpers import build_task
 from peagen.defaults import WORK_FINISHED
 
 
@@ -59,13 +60,14 @@ async def test_doe_process_handler_dispatches(monkeypatch, tmp_path):
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
 
-    task = {
-        "id": "T0",
-        "pool": "default",
-        "payload": {
-            "args": {"spec": "s", "template": "t", "output": str(tmp_path / "out.yaml")}
+    task = build_task(
+        "doe_process",
+        {
+            "spec": "s",
+            "template": "t",
+            "output": str(tmp_path / "out.yaml"),
         },
-    }
+    )
     result = await handler.doe_process_handler(task)
 
     assert len(sent) == 4
@@ -138,18 +140,15 @@ async def test_doe_process_handler_dry_run(monkeypatch, tmp_path):
 
     monkeypatch.setattr(handler, "generate_payload", fake_generate_payload)
 
-    task = {
-        "id": "T0",
-        "pool": "default",
-        "payload": {
-            "args": {
-                "spec": "s",
-                "template": "t",
-                "output": str(tmp_path / "out.yaml"),
-                "dry_run": True,
-            }
+    task = build_task(
+        "doe_process",
+        {
+            "spec": "s",
+            "template": "t",
+            "output": str(tmp_path / "out.yaml"),
+            "dry_run": True,
         },
-    }
+    )
     result = await handler.doe_process_handler(task)
 
     assert sent == []
