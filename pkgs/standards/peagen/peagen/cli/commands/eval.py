@@ -15,7 +15,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 from peagen._utils.config_loader import load_peagen_toml
 

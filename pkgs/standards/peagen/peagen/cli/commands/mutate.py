@@ -7,8 +7,6 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
-
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler

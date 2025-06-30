@@ -13,16 +13,18 @@ from __future__ import annotations
 import asyncio
 import json
 import time
+import uuid
 from pathlib import Path
 import tempfile
 from typing import Any, Dict, Optional
 
+import httpx
+
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.transport import TASK_SUBMIT, TASK_GET
+from peagen.transport import Request, Response, TASK_SUBMIT, TASK_GET
 from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult
-from peagen.cli.rpc_utils import rpc_post
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.cli.task_helpers import build_task, submit_task
 
@@ -195,13 +197,19 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if watch:
 
         def _rpc_call() -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=tid).model_dump(),
-                result_model=GetResult,
+            envelope = Request(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params=GetParams(taskId=tid).model_dump(),
             )
-            return res.result  # type: ignore[return-value]
+            resp = httpx.post(
+                ctx.obj.get("gateway_url"),
+                json=envelope.model_dump(mode="json"),
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            parsed = Response[GetResult].model_validate_json(resp.json())
+            return parsed.result  # type: ignore[return-value]
 
         while True:
             task_reply = _rpc_call()

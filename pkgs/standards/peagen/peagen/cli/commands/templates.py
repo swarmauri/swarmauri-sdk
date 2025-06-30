@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Dict, Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.handlers.templates_handler import templates_handler

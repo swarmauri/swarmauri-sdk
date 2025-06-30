@@ -6,11 +6,12 @@ import json
 from pathlib import Path
 from typing import List
 
-from peagen.cli.rpc_utils import rpc_post
+import uuid
+import httpx
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.transport import SECRETS_ADD, SECRETS_GET, SECRETS_DELETE
+from peagen.transport import Request, Response
 from peagen.transport.jsonrpc_schemas.secrets import (
     AddParams,
     GetParams,
@@ -20,6 +21,7 @@ from peagen.transport.jsonrpc_schemas.secrets import (
     DeleteResult,
 )
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST, ListParams, ListResult
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 local_secrets_app = typer.Typer(help="Manage local secret store.")
@@ -29,21 +31,23 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    envelope = ListParams(pool=pool).model_dump()
+    envelope = Request(
+        id=str(uuid.uuid4()),
+        method=WORKER_LIST,
+        params=ListParams(pool=pool).model_dump(),
+    )
     try:
-        res = rpc_post(
-            gateway_url,
-            WORKER_LIST,
-            envelope,
-            timeout=10.0,
-            result_model=ListResult,
+        resp = httpx.post(
+            gateway_url, json=envelope.model_dump(mode="json"), timeout=10.0
         )
-        if res.result is None:
+        resp.raise_for_status()
+        parsed = Response[ListResult].model_validate_json(resp.json())
+        if parsed.result is None:
             workers = []
-        elif hasattr(res.result, "root"):
-            workers = res.result.root
+        elif hasattr(parsed.result, "root"):
+            workers = parsed.result.root
         else:
-            workers = res.result
+            workers = parsed.result
     except Exception:
         return []
     keys = []
@@ -124,21 +128,18 @@ def remote_add(
     pubs = [p.read_text() for p in recipient]
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
     cipher = drv.encrypt(value.encode(), pubs).decode()
-    params = AddParams(
-        name=secret_id,
-        cipher=cipher,
-        tenant_id=pool,
-        version=version,
-    ).model_dump()
-    res = rpc_post(
-        gateway_url,
-        SECRETS_ADD,
-        params,
-        timeout=10.0,
-        result_model=AddResult,
-    )
-    if res.error:
-        typer.echo(f"Error: {res.error}", err=True)
+    args = {
+        "secret_id": secret_id,
+        "value": value,
+        "version": version,
+        "recipient": [str(p) for p in recipient],
+        "pool": pool,
+        "gateway_url": gateway_url,
+    }
+    task = build_task("remote-add", args, pool=ctx.obj.get("pool", "default"))
+    res = submit_task(gateway_url, task)
+    if "error" in res:
+        typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Uploaded secret {secret_id}")
 
@@ -156,18 +157,17 @@ def remote_get(
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
     drv = AutoGpgDriver()
-    params = GetParams(name=secret_id, tenant_id=pool).model_dump()
-    res = rpc_post(
-        gateway_url,
-        SECRETS_GET,
-        params,
-        timeout=10.0,
-        result_model=GetResult,
-    )
-    if res.error:
-        typer.echo(f"Error: {res.error}", err=True)
+    args = {
+        "secret_id": secret_id,
+        "gateway_url": gateway_url,
+        "pool": pool,
+    }
+    task = build_task("remote-get", args, pool=ctx.obj.get("pool", "default"))
+    res = submit_task(gateway_url, task)
+    if "error" in res:
+        typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
-    cipher = res.result.secret.encode()
+    cipher = res.get("result", {}).get("secret", "").encode()
     typer.echo(drv.decrypt(cipher).decode())
 
 
@@ -184,19 +184,15 @@ def remote_remove(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    params = DeleteParams(
-        name=secret_id,
-        tenant_id=pool,
-        version=version,
-    ).model_dump()
-    res = rpc_post(
-        gateway_url,
-        SECRETS_DELETE,
-        params,
-        timeout=10.0,
-        result_model=DeleteResult,
-    )
-    if res.error:
-        typer.echo(f"Error: {res.error}", err=True)
+    args = {
+        "secret_id": secret_id,
+        "version": version,
+        "gateway_url": gateway_url,
+        "pool": pool,
+    }
+    task = build_task("remote-remove", args, pool=ctx.obj.get("pool", "default"))
+    res = submit_task(gateway_url, task)
+    if "error" in res:
+        typer.echo(f"Error: {res['error']}", err=True)
         raise typer.Exit(1)
     typer.echo(f"Removed secret {secret_id}")

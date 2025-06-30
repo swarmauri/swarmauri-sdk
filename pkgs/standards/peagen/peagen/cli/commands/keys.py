@@ -6,20 +6,12 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
-from peagen.transport import KEYS_UPLOAD, KEYS_DELETE, KEYS_FETCH
-from peagen.transport.jsonrpc_schemas.keys import (
-    UploadParams,
-    DeleteParams,
-    FetchParams,
-    UploadResult,
-    DeleteResult,
-    FetchResult,
-)
+from peagen.transport.jsonrpc_schemas.keys import UploadParams, DeleteParams, FetchParams
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -46,14 +38,12 @@ def upload(
     """Upload the public key to the gateway."""
     drv = AutoGpgDriver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
-    params = UploadParams(public_key=pubkey).model_dump()
-    rpc_post(
-        gateway_url,
-        KEYS_UPLOAD,
-        params,
-        timeout=10.0,
-        result_model=UploadResult,
-    )
+    args = {"key_dir": str(key_dir), "gateway_url": gateway_url}
+    task = build_task("upload", args, pool=ctx.obj.get("pool", "default"))
+    reply = submit_task(gateway_url, task)
+    if "error" in reply:
+        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
+        raise typer.Exit(1)
     typer.echo("Uploaded public key")
 
 
@@ -64,14 +54,15 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    params = DeleteParams(fingerprint=fingerprint).model_dump()
-    rpc_post(
-        gateway_url,
-        KEYS_DELETE,
-        params,
-        timeout=10.0,
-        result_model=DeleteResult,
-    )
+    args = {
+        "fingerprint": fingerprint,
+        "gateway_url": gateway_url,
+    }
+    task = build_task("remove", args, pool=ctx.obj.get("pool", "default"))
+    reply = submit_task(gateway_url, task)
+    if "error" in reply:
+        typer.echo(f"Failed to remove key: {reply['error']}", err=True)
+        raise typer.Exit(1)
     typer.echo(f"Removed key {fingerprint}")
 
 
@@ -81,15 +72,13 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    params = FetchParams().model_dump()
-    res = rpc_post(
-        gateway_url,
-        KEYS_FETCH,
-        params,
-        timeout=10.0,
-        result_model=FetchResult,
-    )
-    typer.echo(json.dumps(res.result.model_dump() if res.result else {}, indent=2))
+    args = {"gateway_url": gateway_url}
+    task = build_task("fetch-server", args, pool=ctx.obj.get("pool", "default"))
+    res = submit_task(gateway_url, task)
+    if "error" in res:
+        typer.echo(f"Error: {res['error']}", err=True)
+        raise typer.Exit(1)
+    typer.echo(json.dumps(res.get("result", {}), indent=2))
 
 
 @keys_app.command("list")

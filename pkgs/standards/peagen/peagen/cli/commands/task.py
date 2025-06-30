@@ -6,6 +6,9 @@ from __future__ import annotations
 
 import json
 import time
+import uuid
+
+import httpx
 
 import typer
 
@@ -26,7 +29,7 @@ from peagen.transport.jsonrpc_schemas.task import (
     SimpleSelectorParams,
     CountResult,
 )
-from peagen.cli.rpc_utils import rpc_post
+from peagen.transport import Request, Response
 
 from peagen.transport.jsonrpc_schemas import Status
 
@@ -45,13 +48,19 @@ def get(  # noqa: D401
     """Fetch status / result for *TASK_ID* (optionally watch until done)."""
 
     def _rpc_call() -> GetResult:
-        res = rpc_post(
-            ctx.obj.get("gateway_url"),
-            TASK_GET,
-            GetParams(taskId=task_id).model_dump(),
-            result_model=GetResult,
+        envelope = Request(
+            id=str(uuid.uuid4()),
+            method=TASK_GET,
+            params=GetParams(taskId=task_id).model_dump(),
         )
-        return res.result  # type: ignore[return-value]
+        resp = httpx.post(
+            ctx.obj.get("gateway_url"),
+            json=envelope.model_dump(mode="json"),
+            timeout=30.0,
+        )
+        resp.raise_for_status()
+        parsed = Response[GetResult].model_validate_json(resp.json())
+        return parsed.result  # type: ignore[return-value]
 
     while True:
         reply = _rpc_call()
@@ -71,22 +80,34 @@ def patch_task(
     """Send a Task.patch RPC call."""
 
     payload = json.loads(changes)
-    res = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_PATCH,
-        PatchParams(taskId=task_id, changes=payload).model_dump(),
-        result_model=PatchResult,
+    envelope = Request(
+        id=str(uuid.uuid4()),
+        method=TASK_PATCH,
+        params=PatchParams(taskId=task_id, changes=payload).model_dump(),
     )
+    resp = httpx.post(
+        ctx.obj.get("gateway_url"),
+        json=envelope.model_dump(mode="json"),
+        timeout=30.0,
+    )
+    resp.raise_for_status()
+    res = Response[PatchResult].model_validate_json(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 
 def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    res = rpc_post(
-        ctx.obj.get("gateway_url"),
-        method,
-        SimpleSelectorParams(selector=selector).model_dump(),
-        result_model=CountResult,
+    envelope = Request(
+        id=str(uuid.uuid4()),
+        method=method,
+        params=SimpleSelectorParams(selector=selector).model_dump(),
     )
+    resp = httpx.post(
+        ctx.obj.get("gateway_url"),
+        json=envelope.model_dump(mode="json"),
+        timeout=30.0,
+    )
+    resp.raise_for_status()
+    res = Response[CountResult].model_validate_json(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 

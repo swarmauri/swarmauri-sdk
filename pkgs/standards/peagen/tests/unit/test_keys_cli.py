@@ -4,8 +4,6 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
-from peagen.transport import KEYS_UPLOAD, KEYS_DELETE
-from peagen.transport.envelope import Response
 from peagen.transport.jsonrpc_schemas.keys import FetchResult
 
 
@@ -43,20 +41,18 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(keys_mod, "AutoGpgDriver", DummyDriver)
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
+    def fake_submit_task(url, task, *, timeout=30.0):
         captured["url"] = url
-        captured["method"] = method
-        captured["params"] = params
-        return Response.ok(id="1", result=None)
+        captured["task"] = task
+        return {}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod, "submit_task", fake_submit_task)
 
     keys_mod.upload(ctx=None, key_dir=tmp_path, gateway_url="http://gw/rpc")
     out = capsys.readouterr().out
 
     assert captured["url"] == "http://gw/rpc"
-    assert captured["method"] == KEYS_UPLOAD
-    assert captured["params"]["public_key"] == "PUB"
+    assert captured["task"].payload["action"] == "upload"
     assert "Uploaded public key" in out
 
 
@@ -64,28 +60,27 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
 def test_remove_posts_delete(monkeypatch, capsys):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
+    def fake_submit_task(url, task, *, timeout=30.0):
         captured["url"] = url
-        captured["method"] = method
-        captured["params"] = params
-        return Response.ok(id="1", result=None)
+        captured["task"] = task
+        return {}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod, "submit_task", fake_submit_task)
 
     keys_mod.remove(ctx=None, fingerprint="abc", gateway_url="http://gw")
     out = capsys.readouterr().out
 
-    assert captured["method"] == KEYS_DELETE
-    assert captured["params"]["fingerprint"] == "abc"
+    assert captured["task"].payload["action"] == "remove"
+    assert captured["task"].payload["args"]["fingerprint"] == "abc"
     assert "Removed key abc" in out
 
 
 @pytest.mark.unit
 def test_fetch_server_prints_response(monkeypatch, capsys):
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
-        return Response.ok(id="1", result=FetchResult(keys={"k": "v"}))
+    def fake_submit_task(url, task, *, timeout=30.0):
+        return {"result": {"keys": {"k": "v"}}}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod, "submit_task", fake_submit_task)
 
     keys_mod.fetch_server(ctx=None, gateway_url="http://gw")
     out = capsys.readouterr().out

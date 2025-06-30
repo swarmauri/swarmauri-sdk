@@ -5,12 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.transport import KEYS_UPLOAD
-from peagen.transport.jsonrpc_schemas.keys import UploadParams, UploadResult
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 login_app = typer.Typer(help="Authenticate and upload your public key.")
@@ -34,18 +32,17 @@ def login(
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
     pubkey = drv.pub_path.read_text()
     try:
-        params = UploadParams(public_key=pubkey).model_dump()
-        reply = rpc_post(
-            gateway_url,
-            KEYS_UPLOAD,
-            params,
-            timeout=10.0,
-            result_model=UploadResult,
-        )
+        args = {
+            "key_dir": str(key_dir),
+            "passphrase": passphrase,
+            "gateway_url": gateway_url,
+        }
+        task = build_task("login", args, pool=ctx.obj.get("pool", "default"))
+        reply = submit_task(gateway_url, task)
     except Exception as e:  # pragma: no cover - network errors
         typer.echo(f"HTTP error: {e}", err=True)
         raise typer.Exit(1)
-    if reply.error:
-        typer.echo(f"Failed to upload key: {reply.error}", err=True)
+    if "error" in reply:
+        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
         raise typer.Exit(1)
     typer.echo("Logged in and uploaded public key")

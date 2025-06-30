@@ -4,16 +4,17 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
+import httpx
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.transport import TASK_SUBMIT, TASK_GET
+from peagen.transport import Request, Response, TASK_SUBMIT, TASK_GET
 from peagen.transport.jsonrpc_schemas.task import (
     SubmitResult,
     GetParams,
@@ -118,13 +119,19 @@ def submit(
     if watch:
 
         def _rpc_call() -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=task.id).model_dump(),
-                result_model=GetResult,
+            envelope = Request(
+                id=str(uuid.uuid4()),
+                method=TASK_GET,
+                params=GetParams(taskId=task.id).model_dump(),
             )
-            return res.result  # type: ignore[return-value]
+            resp = httpx.post(
+                ctx.obj.get("gateway_url"),
+                json=envelope.model_dump(mode="json"),
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            parsed = Response[GetResult].model_validate_json(resp.json())
+            return parsed.result  # type: ignore[return-value]
 
         import time
 
