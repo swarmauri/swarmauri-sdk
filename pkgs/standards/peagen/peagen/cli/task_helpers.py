@@ -23,11 +23,14 @@ def build_task(
     config_toml: str | None = None,
     labels: list[str] | None = None,
     tenant_id: str = "default",
+    spec_hash: str | None = None,
 ) -> SubmitParams:
     """Return a :class:`SubmitParams` instance for *action* and *args*."""
 
+    uid = uuid.uuid4()
+    uid_str = str(uid)
     return SubmitParams(
-        id=str(uuid.uuid4()),
+        id=uid_str,
         pool=pool,
         repo=repo,
         ref=ref,
@@ -37,6 +40,7 @@ def build_task(
         config_toml=config_toml,
         labels=labels,
         tenant_id=tenant_id,
+        spec_hash=spec_hash or getattr(uid, "hex", uid_str),
     )
 
 

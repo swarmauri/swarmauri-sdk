@@ -63,6 +63,7 @@ def do_run_migrations(connection):
 
 async def run_migrations_online() -> None:
     async def run_async_migrations(conn):
+        await conn.run_sync(Base.metadata.create_all)
         await conn.run_sync(do_run_migrations)
 
     connectable = engine
