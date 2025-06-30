@@ -18,19 +18,13 @@ import tempfile
 from typing import Any, Dict, Optional
 
 import typer
-from functools import partial
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.transport import TASK_SUBMIT, TASK_GET, Request
-from peagen.transport.jsonrpc_schemas.task import (
-    GetParams,
-    GetResult,
-)
+from peagen.transport import TASK_SUBMIT, TASK_GET
+from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult
 from peagen.cli.rpc_utils import rpc_post
-import httpx
-import uuid
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
 remote_process_app = typer.Typer(help="Render / generate project files.")
@@ -68,7 +62,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-_build_task = partial(_generic_build_task, "process")
 
 
 # ────────────────────────── local run ────────────────────────────────────────
@@ -120,7 +113,7 @@ def run(  # noqa: PLR0913 – CLI signature needs many options
     )
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("process", args, pool=ctx.obj.get("pool", "default"))
     task.payload["cfg_override"] = cfg_override
 
     result = asyncio.run(process_handler(task))
@@ -180,7 +173,7 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     )
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("process", args, pool=ctx.obj.get("pool", "default"))
 
     # ─────────────────────── cfg override  ──────────────────────────────
     inline = ctx.obj.get("task_override_inline")  # JSON string or None
@@ -192,19 +185,10 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    task_payload = task.model_dump() if hasattr(task, "model_dump") else task
-    envelope = Request(
-        id=str(uuid.uuid4()), method=TASK_SUBMIT, params={"task": task_payload}
-    )
-    resp = httpx.post(
-        ctx.obj.get("gateway_url"),
-        json=envelope.model_dump(mode="json"),
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    data = resp.json()
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    data = reply
 
-    tid = task.id if hasattr(task, "id") else task.get("id")
+    tid = task.id
     typer.secho(f"Submitted task {tid}", fg=typer.colors.GREEN)
     if data.get("result") is not None:
         typer.echo(json.dumps(data["result"], indent=2))

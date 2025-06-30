@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
-from peagen.transport import KEYS_UPLOAD, KEYS_DELETE, Response
+from peagen.transport import KEYS_UPLOAD, KEYS_DELETE
+from peagen.transport.envelope import Response
 from peagen.transport.jsonrpc_schemas.keys import FetchResult
 
 

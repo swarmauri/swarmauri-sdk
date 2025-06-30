@@ -13,17 +13,15 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
-from functools import partial
 
 from peagen.handlers.fetch_handler import fetch_handler
 from peagen.transport.jsonrpc_schemas import Status
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
 
 # ───────────────────────── helpers ─────────────────────────
-_build_task = partial(_generic_build_task, "fetch", status=Status.waiting)
 
 
 def _collect_args(
@@ -71,7 +69,7 @@ def run(
     pool = "default"
     if ctx is not None and getattr(ctx, "obj", None):
         pool = ctx.obj.get("pool", "default")
-    task = _build_task(args, pool)
+    task = build_task("fetch", args, pool=pool, status=Status.waiting)
 
     result = asyncio.run(fetch_handler(task))
     typer.echo(json.dumps(result, indent=2))

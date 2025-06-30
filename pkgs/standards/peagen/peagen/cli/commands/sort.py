@@ -11,7 +11,7 @@ from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
 from peagen.transport import TASK_SUBMIT
 from peagen.transport.jsonrpc_schemas.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 from peagen.cli.rpc_utils import rpc_post
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
@@ -130,24 +130,14 @@ def submit_sort(
         "repo": repo,
         "ref": ref,
     }
-    submit = build_submit_params(
-        "sort",
-        {**args, "cfg_override": cfg_override},
-        pool="default",
-    )
+    task = build_task("sort", {**args, "cfg_override": cfg_override}, pool="default")
 
     try:
-        resp = rpc_post(
-            ctx.obj.get("gateway_url"),
-            TASK_SUBMIT,
-            submit.model_dump(),
-            timeout=10.0,
-            result_model=SubmitResult,
-        )
-        if resp.error:
-            typer.echo(f"[ERROR] {resp.error.message}")
+        resp = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in resp:
+            typer.echo(f"[ERROR] {resp['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={resp.result.taskId}")
+        typer.echo(f"Submitted sort → taskId={resp['result']['taskId']}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

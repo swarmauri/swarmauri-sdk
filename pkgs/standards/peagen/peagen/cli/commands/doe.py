@@ -18,12 +18,11 @@ from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.transport import TASK_SUBMIT, TASK_GET
 from peagen.transport.jsonrpc_schemas.task import (
-    SubmitParams,
     SubmitResult,
     GetParams,
     GetResult,
 )
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -31,10 +30,10 @@ local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE spec
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 
 
-def _make_task(args: dict, action: str = "doe") -> SubmitParams:
-    """Construct :class:`SubmitParams` for *action* using *args*."""
+def _make_task(args: dict, action: str = "doe"):
+    """Return a task for *action* using *args*."""
 
-    return build_submit_params(action, args)
+    return build_task(action, args, pool="default")
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -92,8 +91,8 @@ def run_gen(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    submit = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(submit.task))
+    task = _make_task(args, action="doe")
+    result = asyncio.run(doe_handler(task))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -147,14 +146,9 @@ def submit_gen(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    submit = _make_task(args, action="doe")
+    task = _make_task(args, action="doe")
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        submit.model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
     if "error" in reply:
         typer.secho(
@@ -164,7 +158,7 @@ def submit_gen(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    task_id = reply.result.taskId if reply.result else submit.id
+    task_id = reply.get("result", {}).get("taskId", task.id)
     typer.secho(f"Submitted task {task_id}", fg=typer.colors.GREEN)
 
 
@@ -223,8 +217,8 @@ def run_process(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    submit = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(submit.task))
+    task = _make_task(args, action="doe_process")
+    result = asyncio.run(doe_process_handler(task))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -296,24 +290,22 @@ def submit_process(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    submit = _make_task(args, action="doe_process")
+    task = _make_task(args, action="doe_process")
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        submit.model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
-    if reply.error:
+    if "error" in reply:
         typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
+    typer.secho(
+        f"Submitted task {reply.get('result', {}).get('taskId', task.id)}",
+        fg=typer.colors.GREEN,
+    )
     if watch:
 
         def _rpc_call(tid: str) -> GetResult:
@@ -326,7 +318,7 @@ def submit_process(  # noqa: PLR0913
             return res.result  # type: ignore[return-value]
 
         while True:
-            task_reply = _rpc_call(submit.task.id)
+            task_reply = _rpc_call(task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
