@@ -24,16 +24,13 @@ from pathlib import Path
 from typing import Any, Optional
 
 import httpx
-
+from peagen.defaults import DEFAULT_GATEWAY
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.transport.client import send_jsonrpc_request
 from peagen.transport.jsonrpc_schemas import KEYS_UPLOAD
 from peagen.transport.jsonrpc_schemas.keys import UploadParams, UploadResult
 
 __all__ = ["login"]
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-_JSONRPC_VERSION = "2.0"
 
 def login(
     *,
