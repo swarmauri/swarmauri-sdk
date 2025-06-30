@@ -296,19 +296,23 @@ def submit_process(  # noqa: PLR0913
     if watch:
         while True:
             task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
-            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break
             time.sleep(interval)
 
+        typer.echo(json.dumps(task_reply.model_dump(), indent=2))
         children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
             while True:
                 child_reply = get_task(ctx.obj.get("gateway_url"), cid)
-                typer.echo(json.dumps(child_reply.model_dump(), indent=2))
                 if Status.is_terminal(child_reply.status):
                     break
                 time.sleep(interval)
+            typer.echo(json.dumps(child_reply.model_dump(), indent=2))
             if child_reply.status != "success":
-                typer.secho(f"Child task {cid} failed", fg=typer.colors.RED, err=True)
+                typer.secho(
+                    f"Child task {cid} failed",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
                 raise typer.Exit(1)
