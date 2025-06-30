@@ -22,8 +22,10 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
-async def eval_handler(task: SubmitParams) -> SubmitResult:
-    payload = task.payload
+async def eval_handler(task: SubmitParams | dict) -> SubmitResult:
+    """Evaluate a workspace task and return the results."""
+
+    payload = task.payload if hasattr(task, "payload") else task.get("payload", {})
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})
     repo = args.get("repo")
