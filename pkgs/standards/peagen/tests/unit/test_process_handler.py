@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import process_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 class DummyPM:
@@ -46,7 +47,9 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    result = await handler.process_handler({"payload": {"args": args}})
+    task = build_task("process", args)
+
+    result = await handler.process_handler(task)
 
     if project_name:
         assert calls["single"] == {"NAME": project_name}
