@@ -75,7 +75,7 @@ def _save(data: dict) -> None:
 
 
 @local_secrets_app.command("add")
-def add(name: str, value: str, recipients: List[Path] = typer.Option([])) -> None:
+def add_secret(name: str, value: str, recipients: List[Path] = typer.Option([])) -> None:
     """Encrypt and store a secret locally."""
     drv = AutoGpgDriver()
     pubkeys = [p.read_text() for p in recipients]
@@ -87,7 +87,7 @@ def add(name: str, value: str, recipients: List[Path] = typer.Option([])) -> Non
 
 
 @local_secrets_app.command("get")
-def get(name: str) -> None:
+def get_secret(name: str) -> None:
     """Decrypt and print a secret."""
     drv = AutoGpgDriver()
     val = _load().get(name)
@@ -98,7 +98,7 @@ def get(name: str) -> None:
 
 
 @local_secrets_app.command("remove")
-def remove(name: str) -> None:
+def remove_secret(name: str) -> None:
     """Delete a secret from local store."""
     data = _load()
     data.pop(name, None)
@@ -107,7 +107,7 @@ def remove(name: str) -> None:
 
 
 @remote_secrets_app.command("add")
-def remote_add(
+def add_remote_secret(
     ctx: typer.Context,
     secret_id: str,
     value: str,
@@ -141,7 +141,7 @@ def remote_add(
 
 
 @remote_secrets_app.command("get")
-def remote_get(
+def get_remote_secret(
     ctx: typer.Context,
     secret_id: str,
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
@@ -168,7 +168,7 @@ def remote_get(
 
 
 @remote_secrets_app.command("remove")
-def remote_remove(
+def remove_remote_secret(
     ctx: typer.Context,
     secret_id: str,
     version: int = typer.Option(None, "--version"),
