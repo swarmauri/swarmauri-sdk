@@ -74,6 +74,13 @@ class TaskModel(BaseModel):
         Text, nullable=True, doc="Optional human description"
     )
 
+    labels: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=list,
+        doc="Optional labels for filtering/grouping",
+    )
+
     spec_hash: Mapped[str] = mapped_column(
         String(length=64),
         nullable=False,
