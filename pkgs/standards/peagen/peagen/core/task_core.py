@@ -22,8 +22,8 @@ async def get_task_result(task_id: str) -> Dict:
         {"status": "running|finished|failed",
          "result":        {... or None},
          "oids":         [... or None],
-         "started_at":    "2025-06-04T12:34:56Z" | None,
-         "finished_at":   "... | None"}
+         "date_created":  "2025-06-04T12:34:56Z" | None,
+         "last_modified": "... | None"}
     """
     async with Session() as s:
         try:
@@ -38,11 +38,11 @@ async def get_task_result(task_id: str) -> Dict:
             "result": tr.result,
             "oids": tr.oids,
             "commit_hexsha": tr.commit_hexsha,
-            "started_at": tr.started_at.isoformat() if tr.started_at else None,
-            "finished_at": tr.finished_at.isoformat() if tr.finished_at else None,
+            "date_created": tr.date_created.isoformat() if tr.date_created else None,
+            "last_modified": tr.last_modified.isoformat() if tr.last_modified else None,
             "duration": (
-                int((tr.finished_at - tr.started_at).total_seconds())
-                if tr.started_at and tr.finished_at
+                int((tr.last_modified - tr.date_created).total_seconds())
+                if tr.date_created and tr.last_modified
                 else None
             ),
         }

@@ -28,7 +28,7 @@ class SelectorBase:
         self, tasks: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         running = [t for t in tasks if t.get("status") == Status.running.value]
-        running.sort(key=lambda d: str(d.get("started_at") or ""))
+        running.sort(key=lambda d: str(d.get("date_created") or ""))
         return running[: self.num_candidates]
 
     async def select(self) -> Dict[str, Any]:

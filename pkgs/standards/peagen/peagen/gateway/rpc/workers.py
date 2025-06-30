@@ -152,16 +152,17 @@ async def work_finished(params: FinishedParams) -> dict:
         log.warning("Work.finished for unknown task %s", taskId)
         return {"ok": False}
 
-    t.status = Status(status)
-    t.result = result
+    t["status"] = Status(status)
+    t["result"] = result
     now = time.time()
-    started = getattr(t, "started_at", None)
+    started = t.get("date_created")
     if status == "running" and started is None:
-        t.started_at = now
+        t["date_created"] = now
+        t["last_modified"] = now
     elif Status.is_terminal(status):
         if started is None:
-            t.started_at = now
-        t.finished_at = now
+            t["date_created"] = now
+        t["last_modified"] = now
 
     await _save_task(t)
     await _persist(t)
