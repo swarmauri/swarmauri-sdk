@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import List
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, RootModel
 
 from .._registry import register
 
@@ -39,13 +38,10 @@ class ListParams(BaseModel):
     offset: int = 0
 
 
-class ListResult(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class ListResult(RootModel[list[dict]]):
+    """Result returned by ``Pool.listTasks``."""
 
-    poolName: str
-    limit: int | None = None
-    offset: int = 0
-    members: List[str] = Field(default_factory=list)
+    pass
 
 
 POOL_CREATE = register(
