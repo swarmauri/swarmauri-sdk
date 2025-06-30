@@ -138,6 +138,8 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         persist = True
     except ValueError:
         persist = False
+    if task_blob.get("tenant_id") is None:
+        persist = False
 
     if persist:
         async with engine.begin() as conn:
@@ -145,7 +147,7 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
 
         async with Session() as ses:
             model = TaskModel(**task_blob)
-            ses.merge(model)  # insert or update
+            await ses.merge(model)  # insert or update
             ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
