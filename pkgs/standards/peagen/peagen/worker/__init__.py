@@ -9,7 +9,7 @@ from peagen.handlers.process_handler import process_handler
 from peagen.handlers.sort_handler import sort_handler
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.handlers.login_handler import login_handler
+# from peagen.handlers.login_handler import login_handler
 from peagen.handlers.keys_handler import keys_handler
 from peagen.handlers.secrets_handler import secrets_handler
 
@@ -32,7 +32,7 @@ class PeagenWorker(WorkerBase):
         self.register_handler("sort", sort_handler)
         self.register_handler("mutate", mutate_handler)
         self.register_handler("evolve", evolve_handler)
-        self.register_handler("login", login_handler)
+        # self.register_handler("login", login_handler)
         self.register_handler("keys", keys_handler)
         self.register_handler("secrets", secrets_handler)
         # In the future, you might also do:
