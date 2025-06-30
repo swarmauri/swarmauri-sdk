@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import sort_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -28,7 +29,8 @@ async def test_sort_handler_delegates(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    result = await handler.sort_handler({"payload": {"args": args}})
+    task = build_task("sort", args)
+    result = await handler.sort_handler(task)
 
     if project_name:
         assert "single" in calls
