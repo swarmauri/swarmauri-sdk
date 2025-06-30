@@ -403,6 +403,12 @@ async def _persist(task: TaskModel | dict) -> None:
                     except ValueError:
                         if col == "tenant_id":
                             data[col] = db_helpers._tenant_uuid(data[col])
+            for ts in ("date_created", "last_modified"):
+                val = data.get(ts)
+                if isinstance(val, (int, float)):
+                    data[ts] = db_helpers.dt.datetime.fromtimestamp(
+                        val, tz=db_helpers.dt.timezone.utc
+                    )
             orm_task = TaskModel(**data)
 
         log.info("persisting task %s", orm_task.id)
