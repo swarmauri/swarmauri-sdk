@@ -4,21 +4,21 @@ send_jsonrpc_request – build ➜ POST ➜ parse a JSON-RPC 2.0 call.
 * Strictly typed against peagen.transport.envelope.Response.
 * Uses httpx.post with a configurable *timeout*.
 """
+
 from __future__ import annotations
 
-import httpx
 import uuid
 from typing import Any, Mapping, Type, TypeVar, Union, overload
 
+import httpx
 from pydantic import BaseModel, ValidationError
 
-from .builder import build_jsonrpc_request, RPCBuildError
-from .envelope import Response, Error
-from .error_codes import ErrorCode
+from .builder import build_jsonrpc_request
+from .envelope import Error, Response
 
 # ---------- public types & defaults ----------
 R = TypeVar("R", bound=BaseModel)
-RPC_TIMEOUT: float = 30.0     # seconds
+RPC_TIMEOUT: float = 30.0  # seconds
 
 
 class RPCTransportError(RuntimeError):
@@ -27,6 +27,7 @@ class RPCTransportError(RuntimeError):
 
 class RPCResponseError(RuntimeError):
     """Gateway returned a JSON-RPC *error* object."""
+
     def __init__(self, err: Error):
         super().__init__(f"(code {err.code}) {err.message}")
         self.code: int = err.code
@@ -43,7 +44,8 @@ def send_jsonrpc_request(
     *,
     expect: None = ...,
     timeout: float = RPC_TIMEOUT,
-) -> Response[dict]: ...                                      # raw response
+) -> Response[dict]: ...  # raw response
+
 
 @overload
 def send_jsonrpc_request(
@@ -53,7 +55,7 @@ def send_jsonrpc_request(
     *,
     expect: Type[R],
     timeout: float = RPC_TIMEOUT,
-) -> R: ...                                                   # typed result
+) -> R: ...  # typed result
 
 
 def send_jsonrpc_request(
@@ -84,7 +86,7 @@ def send_jsonrpc_request(
             timeout=timeout,
         )
         resp.raise_for_status()
-    except Exception as exc:                                   # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         raise RPCTransportError(f"HTTP transport failure: {exc}") from exc
 
     # 3️⃣ parse JSON-RPC response
@@ -93,13 +95,13 @@ def send_jsonrpc_request(
     except ValidationError as exc:
         raise RPCTransportError(f"Invalid JSON-RPC payload: {exc}") from exc
 
-    if parsed.error is not None:                              # JSON-RPC error
+    if parsed.error is not None:  # JSON-RPC error
         raise RPCResponseError(parsed.error)
 
     if expect is None:
-        return parsed                                         # raw Response
+        return parsed  # raw Response
     try:
-        return expect.model_validate(parsed.result)           # typed Result
+        return expect.model_validate(parsed.result)  # typed Result
     except ValidationError as exc:
         raise RPCTransportError(
             f"Result failed validation as {expect.__name__}: {exc}"

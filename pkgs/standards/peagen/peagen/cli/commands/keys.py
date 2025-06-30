@@ -8,10 +8,8 @@ from typing import Optional
 
 import typer
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core import keys_core
-from peagen.cli.task_helpers import build_task, submit_task
-
+from peagen.transport.client import RPCResponseError, RPCTransportError
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
 
@@ -19,13 +17,17 @@ keys_app = typer.Typer(help="Manage local and remote public keys.")
 @keys_app.command("create")
 def create(
     passphrase: Optional[str] = typer.Option(
-        None, "--passphrase", prompt=False, hide_input=True
+        None, "--passphrase", prompt=True, hide_input=True, confirmation_prompt=True
     ),
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """Generate a new key pair."""
-    AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
-    typer.echo(f"Created key pair in {key_dir}")
+    try:
+        keys_core.create_keypair(key_dir=key_dir, passphrase=passphrase)
+        typer.echo(f"Created key pair in {key_dir}")
+    except Exception as e:
+        typer.echo(f"Failed to create key pair: {e}", err=True)
+        raise typer.Exit(1)
 
 
 @keys_app.command("upload")
@@ -35,16 +37,17 @@ def upload(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Upload the public key to the gateway."""
-    drv = AutoGpgDriver(key_dir=key_dir)
-    drv.pub_path.read_text()
-    args = {"key_dir": str(key_dir), "gateway_url": gateway_url}
-    pool = ctx.obj.get("pool", "default") if ctx is not None and ctx.obj else "default"
-    task = build_task("upload", args, pool=pool)
-    reply = submit_task(gateway_url, task)
-    if "error" in reply:
-        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
+    try:
+        result = keys_core.upload_public_key(key_dir=key_dir, gateway_url=gateway_url)
+        fingerprint = result.get("fingerprint")
+        if fingerprint:
+            typer.echo(f"Uploaded public key. Fingerprint: {fingerprint}")
+        else:
+            typer.echo("Failed to upload key: No fingerprint returned.", err=True)
+            raise typer.Exit(1)
+    except (RPCTransportError, RPCResponseError) as e:
+        typer.echo(f"Failed to upload key: {e}", err=True)
         raise typer.Exit(1)
-    typer.echo("Uploaded public key")
 
 
 @keys_app.command("remove")
@@ -54,17 +57,18 @@ def remove(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Remove a public key from the gateway."""
-    args = {
-        "fingerprint": fingerprint,
-        "gateway_url": gateway_url,
-    }
-    pool = ctx.obj.get("pool", "default") if ctx is not None and ctx.obj else "default"
-    task = build_task("remove", args, pool=pool)
-    reply = submit_task(gateway_url, task)
-    if "error" in reply:
-        typer.echo(f"Failed to remove key: {reply['error']}", err=True)
+    try:
+        result = keys_core.remove_public_key(
+            fingerprint=fingerprint, gateway_url=gateway_url
+        )
+        if result.get("ok"):
+            typer.echo(f"Removed key {fingerprint} from gateway.")
+        else:
+            typer.echo(f"Failed to remove key {fingerprint} on gateway.", err=True)
+            raise typer.Exit(1)
+    except (RPCTransportError, RPCResponseError) as e:
+        typer.echo(f"Failed to remove key: {e}", err=True)
         raise typer.Exit(1)
-    typer.echo(f"Removed key {fingerprint}")
 
 
 @keys_app.command("fetch-server")
@@ -73,14 +77,12 @@ def fetch_server(
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
     """Fetch trusted public keys from the gateway."""
-    args = {"gateway_url": gateway_url}
-    pool = ctx.obj.get("pool", "default") if ctx is not None and ctx.obj else "default"
-    task = build_task("fetch-server", args, pool=pool)
-    res = submit_task(gateway_url, task)
-    if "error" in res:
-        typer.echo(f"Error: {res['error']}", err=True)
+    try:
+        result = keys_core.fetch_server_keys(gateway_url=gateway_url)
+        typer.echo(json.dumps(result, indent=2))
+    except (RPCTransportError, RPCResponseError) as e:
+        typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1)
-    typer.echo(json.dumps(res.get("result", {}), indent=2))
 
 
 @keys_app.command("list")
@@ -88,7 +90,6 @@ def list_keys(
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """List fingerprints of locally stored keys."""
-
     data = keys_core.list_local_keys(key_dir)
     typer.echo(json.dumps(data, indent=2))
 
@@ -100,7 +101,6 @@ def show(
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
 ) -> None:
     """Output a public key in the requested format."""
-
     out = keys_core.export_public_key(fingerprint, key_dir=key_dir, fmt=fmt)
     typer.echo(out)
 
@@ -113,7 +113,6 @@ def add(
     name: Optional[str] = typer.Option(None, "--name"),
 ) -> None:
     """Add an existing key pair to the key store."""
-
     info = keys_core.add_key(
         public_key,
         private_key=private_key,

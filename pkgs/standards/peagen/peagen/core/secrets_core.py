@@ -4,70 +4,56 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar
-
-import uuid
-import httpx
+from typing import List, Optional
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from pydantic import TypeAdapter
-
-from peagen.transport import Request, Response
+from peagen.transport.client import (
+    RPCResponseError,
+    RPCTransportError,
+    send_jsonrpc_request,
+)
 from peagen.transport.jsonrpc_schemas.secrets import (
     SECRETS_ADD,
-    SECRETS_GET,
     SECRETS_DELETE,
+    SECRETS_GET,
     AddParams,
     AddResult,
-    GetParams,
-    GetResult,
     DeleteParams,
     DeleteResult,
+    GetParams,
+    GetResult,
 )
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST, ListParams, ListResult
-
-R = TypeVar("R")
-
-
-def _rpc_post(
-    url: str,
-    method: str,
-    params: Dict[str, Any],
-    *,
-    result_model: Type[R],
-    timeout: float = 10.0,
-) -> Response[R]:
-    """Send a JSON-RPC request and return the typed response."""
-    envelope = Request(id=str(uuid.uuid4()), method=method, params=params)
-    resp = httpx.post(url, json=envelope.model_dump(), timeout=timeout)
-    resp.raise_for_status()
-    adapter = TypeAdapter(Response[result_model])  # type: ignore[index]
-    return adapter.validate_python(resp.json())
-
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
-    params = ListParams(pool=pool).model_dump()
+    """Return public keys advertised by workers in ``pool``."""
+    params = ListParams(pool=pool)
     try:
-        res = _rpc_post(
-            gateway_url,
-            WORKER_LIST,
-            params,
-            result_model=ListResult,
+        result = send_jsonrpc_request(
+            gateway_url, WORKER_LIST, params, expect=ListResult
         )
-        workers = res.result.root if res.result else []
-    except Exception:
+        workers = result.root if hasattr(result, "root") else result
+    except (RPCTransportError, RPCResponseError):
         return []
+
     keys = []
     for w in workers:
-        advert = w.advertises or {}
-        if isinstance(advert, dict):
-            key = advert.get("public_key") or advert.get("pubkey")
-            if key:
-                keys.append(key)
+        if isinstance(w, dict):
+            advert = w.get("advertises") or {}
+        else:
+            advert = w.advertises or {}
+        if isinstance(advert, str):
+            try:
+                advert = json.loads(advert)
+            except Exception:
+                advert = {}
+        key = advert.get("public_key") or advert.get("pubkey")
+        if key:
+            keys.append(key)
     return keys
 
 
@@ -88,7 +74,8 @@ def add_local_secret(
     """Encrypt and store a secret locally."""
     drv = AutoGpgDriver()
     pubkeys = [p.read_text() for p in recipients or []]
-    cipher = drv.encrypt(value.encode(), pubkeys).decode()
+    pubkeys.append(drv.pub_path.read_text())
+    cipher = drv.encrypt(value.encode(), list(set(pubkeys))).decode()
     data = _load()
     data[name] = cipher
     _save(data)
@@ -99,7 +86,7 @@ def get_local_secret(name: str) -> str:
     drv = AutoGpgDriver()
     val = _load().get(name)
     if val is None:
-        raise KeyError("Unknown secret")
+        raise KeyError(f"Secret '{name}' not found in local store.")
     return drv.decrypt(val.encode()).decode()
 
 
@@ -122,55 +109,41 @@ def add_remote_secret(
     """Upload an encrypted secret to the gateway."""
     drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipients or []]
+    pubs.append(drv.pub_path.read_text())
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
-    cipher = drv.encrypt(value.encode(), pubs).decode()
-    params = AddParams(
-        name=secret_id,
-        cipher=cipher,
-        version=version,
-        tenant_id=pool,
-    ).model_dump()
-    res = _rpc_post(
-        gateway_url,
-        SECRETS_ADD,
-        params,
-        result_model=AddResult,
+
+    encrypted_value = drv.encrypt(value.encode(), list(set(pubs))).decode()
+
+    params = AddParams(name=secret_id, cipher=encrypted_value, version=version)
+    result = send_jsonrpc_request(
+        gateway_url, SECRETS_ADD, params, expect=AddResult, sign=True
     )
-    return res.model_dump()
+    return result.model_dump()
 
 
 def get_remote_secret(
     secret_id: str,
     gateway_url: str = DEFAULT_GATEWAY,
-    *,
-    pool: str = "default",
 ) -> str:
     """Retrieve and decrypt a secret from the gateway."""
     drv = AutoGpgDriver()
-    params = GetParams(name=secret_id, tenant_id=pool).model_dump()
-    res = _rpc_post(
-        gateway_url,
-        SECRETS_GET,
-        params,
-        result_model=GetResult,
+    params = GetParams(name=secret_id)
+    result = send_jsonrpc_request(
+        gateway_url, SECRETS_GET, params, expect=GetResult, sign=True
     )
-    cipher = res.result.secret.encode()
-    return drv.decrypt(cipher).decode()
+    if not result.cipher:
+        raise ValueError("Secret not found or is empty.")
+    return drv.decrypt(result.cipher.encode()).decode()
 
 
 def remove_remote_secret(
     secret_id: str,
     gateway_url: str = DEFAULT_GATEWAY,
     version: Optional[int] = None,
-    *,
-    pool: str = "default",
 ) -> dict:
     """Delete a secret stored on the gateway."""
-    params = DeleteParams(name=secret_id, tenant_id=pool, version=version).model_dump()
-    res = _rpc_post(
-        gateway_url,
-        SECRETS_DELETE,
-        params,
-        result_model=DeleteResult,
+    params = DeleteParams(name=secret_id, version=version)
+    result = send_jsonrpc_request(
+        gateway_url, SECRETS_DELETE, params, expect=DeleteResult, sign=True
     )
-    return res.model_dump()
+    return result.model_dump()
