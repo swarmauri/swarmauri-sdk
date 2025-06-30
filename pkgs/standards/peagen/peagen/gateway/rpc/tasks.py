@@ -80,7 +80,7 @@ def _normalise_submit_payload(raw: dict) -> TaskBlob:
         "status": raw.get("status", Status.queued),
         "note": raw.get("note", ""),
         "labels": raw.get("labels", []),
-        "spec_hash": raw.get("spec_hash", ""),
+        "spec_hash": raw.get("spec_hash") or "",
         "last_modified": raw.get("last_modified"),
     }
     return blob
