@@ -391,7 +391,9 @@ async def _persist(task: TaskModel | dict) -> None:
         if isinstance(task, TaskModel):
             orm_task = task
         else:  # raw JSON / DTO
-            orm_task = TaskModel(**task)
+            allowed = {c.name for c in TaskModel.__table__.columns}
+            filtered = {k: v for k, v in task.items() if k in allowed}
+            orm_task = TaskModel(**filtered)
 
         log.info("persisting task %s", orm_task.id)
 

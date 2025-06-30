@@ -138,14 +138,20 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         persist = True
     except ValueError:
         persist = False
+    if task_blob.get("tenant_id") is None:
+        persist = False
 
     if persist:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
         async with Session() as ses:
-            model = TaskModel(**task_blob)
-            ses.merge(model)  # insert or update
+            allowed = {c.name for c in TaskModel.__table__.columns}
+            filtered = {k: v for k, v in task_blob.items() if k in allowed}
+            if isinstance(filtered.get("id"), str):
+                filtered["id"] = uuid.UUID(filtered["id"])
+            model = TaskModel(**filtered)
+            await ses.merge(model)  # insert or update
             ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
