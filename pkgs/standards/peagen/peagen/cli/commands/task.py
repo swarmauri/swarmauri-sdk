@@ -75,7 +75,7 @@ def patch_task(
         timeout=30.0,
     )
     resp.raise_for_status()
-    res = Response[PatchResult].model_validate_json(resp.json())
+    res = Response[PatchResult].model_validate(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 
@@ -91,7 +91,7 @@ def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
         timeout=30.0,
     )
     resp.raise_for_status()
-    res = Response[CountResult].model_validate_json(resp.json())
+    res = Response[CountResult].model_validate(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 
