@@ -6,6 +6,8 @@ from pathlib import Path
 import httpx
 import pytest
 from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+import time
+import json as _json
 
 pytestmark = pytest.mark.smoke
 
@@ -31,10 +33,42 @@ def _gateway_available(url: str) -> bool:
     return resp.status_code == 200
 
 
+def _wait_for_worker(url: str, action: str, timeout: float = 10.0) -> bool:
+    """Return ``True`` if a worker advertising *action* registers within ``timeout`` seconds."""
+    envelope = {"jsonrpc": "2.0", "method": WORKER_LIST, "params": {}, "id": 0}
+    end = time.time() + timeout
+    while time.time() < end:
+        try:
+            resp = httpx.post(url, json=envelope, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json().get("result", [])
+                for w in data:
+                    handlers = w.get("handlers") if isinstance(w, dict) else None
+                    if handlers:
+                        if isinstance(handlers, str):
+                            try:
+                                handlers = _json.loads(handlers)
+                            except Exception:
+                                handlers = []
+                        if action in handlers:
+                            return True
+        except Exception:
+            pass
+        time.sleep(0.5)
+    return False
+
+
 @pytest.mark.i9n
 def test_remote_evolve(tmp_path: Path) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
+
+    required_env = ["PG_DSN", "REDIS_URL", "MINIO_ENDPOINT"]
+    if any(os.getenv(v) is None for v in required_env):
+        pytest.skip("missing external services")
+
+    if not _wait_for_worker(GATEWAY, "evolve"):
+        pytest.skip("no evolve worker registered")
 
     cmd = [
         "peagen",
