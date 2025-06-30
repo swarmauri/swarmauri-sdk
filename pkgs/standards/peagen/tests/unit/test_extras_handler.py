@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 from peagen.handlers import extras_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -28,7 +29,8 @@ async def test_extras_handler_calls_generate_schemas(
     if schemas_dir:
         args["schemas_dir"] = schemas_dir
 
-    result = await handler.extras_handler({"payload": {"args": args}})
+    task = build_task("extras", args)
+    result = await handler.extras_handler(task)
 
     base = Path(handler.__file__).resolve().parents[1]
     expected_templates = (
