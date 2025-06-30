@@ -5,7 +5,9 @@ from typing import Any, Dict
 
 import httpx
 
-from peagen.transport import Request
+from pydantic import TypeAdapter
+
+from peagen.transport import Request, Response
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, Status
 from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
@@ -37,10 +39,17 @@ def build_task(
     )
 
 
-def submit_task(gateway_url: str, task: SubmitParams, *, timeout: float = 30.0) -> dict:
-    """Submit *task* to *gateway_url* via JSON-RPC and return the response."""
+def submit_task(
+    gateway_url: str, task: SubmitParams, *, timeout: float = 30.0
+) -> Response[SubmitResult]:
+    """Submit *task* to *gateway_url* via JSON-RPC and return the typed reply."""
 
-    envelope = Request(id=str(uuid.uuid4()), method=TASK_SUBMIT, params=task.model_dump())
-    resp = httpx.post(gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout)
+    envelope = Request(
+        id=str(uuid.uuid4()), method=TASK_SUBMIT, params=task.model_dump()
+    )
+    resp = httpx.post(
+        gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
+    )
     resp.raise_for_status()
-    return SubmitResult.model_validate_json(resp.json())
+    adapter = TypeAdapter(Response[SubmitResult])  # type: ignore[index]
+    return adapter.validate_python(resp.json())

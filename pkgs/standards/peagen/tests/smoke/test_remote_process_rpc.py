@@ -42,9 +42,9 @@ def test_rpc_submit_remote_process(tmp_path: Path) -> None:
         {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
     )
     reply = submit_task(GATEWAY, task)
-    if "error" in reply:
-        pytest.skip(f"remote submit failed: {reply['error']['message']}")
-    assert "result" in reply and "taskId" in reply["result"]
+    if reply.error:
+        pytest.skip(f"remote submit failed: {reply.error.message}")
+    assert reply.result and reply.result.id
 
 
 @pytest.mark.i9n
@@ -58,10 +58,10 @@ def test_rpc_watch_remote_process(tmp_path: Path) -> None:
         {"projects_payload": payload_text, "repo": REPO, "ref": "HEAD"},
     )
     reply = submit_task(GATEWAY, task)
-    if "error" in reply:
-        pytest.skip(f"remote submit failed: {reply['error']['message']}")
+    if reply.error:
+        pytest.skip(f"remote submit failed: {reply.error.message}")
 
-    tid = reply.get("result", {}).get("taskId")
+    tid = reply.result.id if reply.result else None
     assert tid
 
     envelope = {

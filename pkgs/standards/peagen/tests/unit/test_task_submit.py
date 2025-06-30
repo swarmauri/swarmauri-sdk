@@ -24,7 +24,11 @@ def test_submit_task_sends_request(monkeypatch):
                 pass
 
             def json(self):
-                return {"ok": True}
+                return {
+                    "jsonrpc": "2.0",
+                    "id": json["id"],
+                    "result": {"id": "t1"},
+                }
 
         return Resp()
 
@@ -32,4 +36,4 @@ def test_submit_task_sends_request(monkeypatch):
     task = build_task("demo", {})
     reply = submit_task("http://gw/rpc", task)
     assert captured["json"]["params"]["id"] == task.id
-    assert reply == {"ok": True}
+    assert reply.result and reply.result.id == "t1"
