@@ -814,6 +814,7 @@ __all__ = [
     "worker_heartbeat",
     "worker_list",
     "work_finished",
+    "Status",
 ]
 
 

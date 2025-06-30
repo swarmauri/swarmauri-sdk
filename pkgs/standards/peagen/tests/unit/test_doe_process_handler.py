@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import doe_process_handler as handler
+from peagen.transport.jsonrpc_schemas.task import SubmitParams
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
 from peagen.cli.task_helpers import build_task
 from peagen.defaults import WORK_FINISHED

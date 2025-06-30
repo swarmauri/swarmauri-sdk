@@ -50,14 +50,8 @@ def run_sort(  # ← now receives the Typer context
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = {
-        "pool": "default",
-        "payload": {
-            "action": "sort",
-            "args": args,
-            "cfg_override": cfg_override,
-        },
-    }
+    task = build_task("sort", args, pool="default")
+    task.payload["cfg_override"] = cfg_override
 
     # ─────────────────────── 3) call handler ────────────────────────────
     try:
@@ -127,7 +121,8 @@ def submit_sort(
         "repo": repo,
         "ref": ref,
     }
-    task = build_task("sort", {**args, "cfg_override": cfg_override}, pool="default")
+    task = build_task("sort", args, pool="default")
+    task.payload["cfg_override"] = cfg_override
 
     try:
         resp = submit_task(ctx.obj.get("gateway_url"), task)

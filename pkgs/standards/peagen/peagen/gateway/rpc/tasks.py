@@ -89,18 +89,20 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
     Uses TaskModel + TaskRunModel for Postgres; everywhere else passes TaskBlob.
     """
     # 1. Build the raw blob -----------------------------------------
-    if params.task is not None:
-        task_blob = _normalise_submit_payload(dict(params.task))
+    raw_task = getattr(params, "task", None)
+    if raw_task is not None:
+        task_blob = _normalise_submit_payload(dict(raw_task))
     else:
         extra = getattr(params, "__pydantic_extra__", {}) or {}
         base = {
-            "id": extra.get("id"),
+            "id": params.id,
             "tenant_id": extra.get("tenant_id"),
             "git_reference_id": extra.get("git_reference_id"),
             "pool": params.pool,
             "payload": params.payload,
             "status": params.status,
             "note": params.note or "",
+            "labels": params.labels or [],
             "spec_hash": extra.get("spec_hash"),
             "last_modified": extra.get("last_modified"),
         }
@@ -159,7 +161,10 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
     )
 
-    return SubmitResult(taskId=str(task_blob["id"]))
+    # ``SubmitResult`` expects an ``id`` field. Returning ``taskId`` results in
+    # a validation error with ``extra_forbidden``. Use the canonical field name
+    # to ensure callers receive a valid model instance.
+    return SubmitResult(id=str(task_blob["id"]))
 
 
 # ------------------------------------------------------------------
