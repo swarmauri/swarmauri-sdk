@@ -26,22 +26,14 @@ from typing import Any, Optional
 import httpx
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.transport.client import send_jsonrpc_request
+from peagen.transport.jsonrpc_schemas import KEYS_UPLOAD
+from peagen.transport.jsonrpc_schemas.keys import UploadParams, UploadResult
 
 __all__ = ["login"]
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 _JSONRPC_VERSION = "2.0"
-
-
-def _build_payload(public_key: str) -> dict[str, Any]:
-    """Return a minimal JSON-RPC request body for Keys.upload."""
-    return {
-        "jsonrpc": _JSONRPC_VERSION,
-        "method": "Keys.upload",
-        "params": {"public_key": public_key},
-        "id": 1,  # single-shot call; clients may overwrite
-    }
-
 
 def login(
     *,
@@ -85,19 +77,17 @@ def login(
     public_key = drv.pub_path.read_text(encoding="utf-8")
 
     # 2. Assemble JSON-RPC request
-    payload = _build_payload(public_key)
-
-    # 3. Upload
-    with httpx.Client(timeout=timeout_s) as client:
-        response = client.post(gateway_url, json=payload)
-        response.raise_for_status()
-
-    data: dict[str, Any] = json.loads(response.text)
+    result = send_jsonrpc_request(
+        gateway_url=gateway_url,
+        method=KEYS_UPLOAD,
+        params=UploadParams(public_key=public_key),
+        expect=UploadResult,
+    )
 
     # 4. Surface gateway-level errors as Python exceptions
-    if "error" in data:
+    if "error" in result:
         raise RuntimeError(
-            f"Gateway returned JSON-RPC error: {data['error']}"
+            f"Gateway returned JSON-RPC error: {result['error']}"
         )
 
-    return data
+    return result
