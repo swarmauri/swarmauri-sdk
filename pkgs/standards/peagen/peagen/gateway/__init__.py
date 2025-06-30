@@ -62,6 +62,10 @@ _db = reload(_db)
 engine = _db.engine
 Session = _db.Session
 
+# Columns available on the TaskModel ORM table. Used to filter
+# incoming task dictionaries before persistence.
+_ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
+
 TASK_KEY = defaults.CONFIG["task_key"]
 TaskBlob = Dict[str, Any]  # id / pool / payload / … as plain JSON
 
@@ -391,7 +395,14 @@ async def _persist(task: TaskModel | dict) -> None:
         if isinstance(task, TaskModel):
             orm_task = task
         else:  # raw JSON / DTO
-            orm_task = TaskModel(**task)
+            data = {k: task[k] for k in _ORM_COLUMNS if k in task}
+            for col in ("id", "tenant_id", "git_reference_id"):
+                if col in data and isinstance(data[col], str):
+                    try:
+                        data[col] = uuid.UUID(str(data[col]))
+                    except ValueError:
+                        pass
+            orm_task = TaskModel(**data)
 
         log.info("persisting task %s", orm_task.id)
 

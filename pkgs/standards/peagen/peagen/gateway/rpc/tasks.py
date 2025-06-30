@@ -144,8 +144,19 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
             await conn.run_sync(Base.metadata.create_all)
 
         async with Session() as ses:
-            model = TaskModel(**task_blob)
-            await ses.merge(model)  # insert or update
+            orm_fields = {
+                k: task_blob[k]
+                for k in _ORM_COLUMNS
+                if k in task_blob and task_blob[k] is not None
+            }
+            for col in ("id", "tenant_id", "git_reference_id"):
+                if col in orm_fields and isinstance(orm_fields[col], str):
+                    try:
+                        orm_fields[col] = uuid.UUID(str(orm_fields[col]))
+                    except ValueError:
+                        pass
+            model = TaskModel(**orm_fields)
+            ses.merge(model)  # insert or update
             ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
