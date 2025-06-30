@@ -51,6 +51,8 @@ def _coerce(row_dict: Dict[str, Any]) -> Dict[str, Any]:
             out[k] = uuid.UUID(v)
         elif isinstance(v, dt.datetime) and v.tzinfo is None:
             out[k] = v.replace(tzinfo=dt.timezone.utc)
+        elif isinstance(v, (int, float)) and k in {"date_created", "last_modified"}:
+            out[k] = dt.datetime.fromtimestamp(v, tz=dt.timezone.utc)
         else:
             out[k] = v
     return out

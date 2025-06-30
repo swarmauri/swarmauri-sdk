@@ -40,7 +40,7 @@ def build_task(
         config_toml=config_toml,
         labels=labels,
         tenant_id=tenant_id,
-        spec_hash=spec_hash or getattr(uid, "hex", uid_str),
+        spec_hash=uuid.uuid4().hex,
     )
 
 
