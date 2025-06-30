@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import mutate_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -26,7 +27,9 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    result = await handler.mutate_handler({"payload": {"args": args}})
+    task = build_task("mutate", args, pool="default")
+
+    result = await handler.mutate_handler(task)
 
     assert result == {"winner": "w.py", "score": "1", "meta": {"ok": True}}
     assert captured["workspace_uri"] == "ws"
