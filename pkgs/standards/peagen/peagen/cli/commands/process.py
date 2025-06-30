@@ -189,9 +189,15 @@ def submit(  # noqa: PLR0913 – CLI signature needs many options
     if data.get("result") is not None:
         typer.echo(json.dumps(data["result"], indent=2))
     if watch:
+        attempts = 0
         while True:
             task_reply = get_task(ctx.obj.get("gateway_url"), tid)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-            if Status.is_terminal(task_reply.status):
+            attempts += 1
+            if (
+                Status.is_terminal(task_reply.status)
+                or task_reply.result is not None
+                or attempts >= 5
+            ):
                 break
             time.sleep(interval)

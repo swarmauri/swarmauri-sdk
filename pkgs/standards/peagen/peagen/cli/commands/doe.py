@@ -294,19 +294,31 @@ def submit_process(  # noqa: PLR0913
         fg=typer.colors.GREEN,
     )
     if watch:
+        attempts = 0
         while True:
             task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-            if Status.is_terminal(task_reply.status):
+            attempts += 1
+            if (
+                Status.is_terminal(task_reply.status)
+                or task_reply.result is not None
+                or attempts >= 5
+            ):
                 break
             time.sleep(interval)
 
         children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
+            attempts = 0
             while True:
                 child_reply = get_task(ctx.obj.get("gateway_url"), cid)
                 typer.echo(json.dumps(child_reply.model_dump(), indent=2))
-                if Status.is_terminal(child_reply.status):
+                attempts += 1
+                if (
+                    Status.is_terminal(child_reply.status)
+                    or child_reply.result is not None
+                    or attempts >= 5
+                ):
                     break
                 time.sleep(interval)
             if child_reply.status != "success":
