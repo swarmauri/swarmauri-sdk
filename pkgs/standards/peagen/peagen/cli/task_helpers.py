@@ -9,6 +9,15 @@ from peagen.defaults import RPC_TIMEOUT
 from peagen.transport import Request, Response, TASK_GET
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, Status
 from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult, SubmitParams
+from pydantic import BaseModel
+
+
+class TaskInfo(BaseModel):
+    """Minimal task information returned by :func:`get_task`."""
+
+    id: str
+    status: Status = Status.running
+    result: dict | None = None
 
 
 def build_task(
@@ -68,5 +77,26 @@ def get_task(
         gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
     )
     resp.raise_for_status()
-    parsed = Response[GetResult].model_validate_json(resp.json())
-    return parsed.result  # type: ignore[return-value]
+    data = resp.json()
+    result = data.get("result") or {}
+
+    # When talking to a gateway that only returns ``id`` and ``result`` fields,
+    # ``status`` may be absent.  Default to ``running`` so callers can still
+    # poll until a terminal state is reached.
+    if isinstance(result, dict):
+        status_val = result.get("status")
+        if status_val is None:
+            status_val = (
+                Status.success if result.get("result") is not None else Status.running
+            )
+        return TaskInfo(
+            id=str(result.get("id", task_id)),
+            status=Status(status_val),
+            result=result.get("result"),
+        )
+
+    # Fallback for legacy responses encoded via :class:`GetResult`.
+    parsed = Response[GetResult].model_validate(data)
+    return TaskInfo(
+        id=parsed.result.id, status=Status.running, result=parsed.result.result
+    )

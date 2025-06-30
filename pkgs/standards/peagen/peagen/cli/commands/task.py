@@ -50,7 +50,7 @@ def get(  # noqa: D401
         reply = get_task(ctx.obj.get("gateway_url"), task_id)
         typer.echo(json.dumps(reply.model_dump(), indent=2))
 
-        if not watch or Status.is_terminal(reply.status):
+        if not watch or Status.is_terminal(reply.status) or reply.result is not None:
             break
         time.sleep(interval)
 
@@ -75,7 +75,9 @@ def patch_task(
         timeout=30.0,
     )
     resp.raise_for_status()
-    res = Response[PatchResult].model_validate_json(resp.json())
+    # ``resp.json()`` already returns a parsed dictionary. ``model_validate_json``
+    # expects a JSON string, so use ``model_validate`` to validate the object.
+    res = Response[PatchResult].model_validate(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 
@@ -91,7 +93,8 @@ def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
         timeout=30.0,
     )
     resp.raise_for_status()
-    res = Response[CountResult].model_validate_json(resp.json())
+    # Parse the already decoded JSON instead of using ``model_validate_json``
+    res = Response[CountResult].model_validate(resp.json())
     typer.echo(json.dumps(res.result, indent=2))
 
 

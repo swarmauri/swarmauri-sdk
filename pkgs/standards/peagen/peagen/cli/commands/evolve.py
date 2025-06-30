@@ -108,9 +108,15 @@ def submit(
     if watch:
         import time
 
+        attempts = 0
         while True:
             task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-            if Status.is_terminal(task_reply.status):
+            attempts += 1
+            if (
+                Status.is_terminal(task_reply.status)
+                or task_reply.result is not None
+                or attempts >= 5
+            ):
                 break
             time.sleep(interval)
