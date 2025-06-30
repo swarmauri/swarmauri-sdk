@@ -25,3 +25,5 @@ pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
 peagen_artifacts/
 gateway.db
 pkgs/standards/peagen/peagen.zip
+/pkgs/uv.lock
+pkgs/standards/peagen/.pymon

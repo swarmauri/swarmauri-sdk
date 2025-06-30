@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 from peagen.handlers import fetch_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -22,7 +23,8 @@ async def test_fetch_handler_passes_args(monkeypatch):
         "install_template_sets": False,
     }
 
-    result = await handler.fetch_handler({"payload": {"args": args}})
+    task = build_task("fetch", args)
+    result = await handler.fetch_handler(task)
 
     assert result == {"count": 2}
     assert captured["workspace_uris"] == ["w1", "w2"]
