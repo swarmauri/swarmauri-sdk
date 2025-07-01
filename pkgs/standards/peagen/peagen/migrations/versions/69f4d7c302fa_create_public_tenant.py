@@ -32,7 +32,7 @@ def upgrade() -> None:
     if row is None:
         tenants = sa.table(
             "tenants",
-            sa.column("id", sa.String),
+            sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("slug", sa.String),
             sa.column("name", sa.String),
             sa.column("date_created", sa.DateTime),
@@ -43,7 +43,7 @@ def upgrade() -> None:
             tenants,
             [
                 {
-                    "id": str(tenant_id),
+                    "id": tenant_id,
                     "slug": "public",
                     "name": "Public",
                     "date_created": now,
@@ -61,7 +61,7 @@ def upgrade() -> None:
     if result.fetchone() is None:
         users = sa.table(
             "users",
-            sa.column("id", sa.String),
+            sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("username", sa.String),
             sa.column("email", sa.String),
             sa.column("role", sa.String),
@@ -72,7 +72,7 @@ def upgrade() -> None:
             users,
             [
                 {
-                    "id": str(user_id),
+                    "id": user_id,
                     "username": "public",
                     "email": "public@example.com",
                     "role": "member",
@@ -84,9 +84,9 @@ def upgrade() -> None:
 
         assoc = sa.table(
             "tenant_user_associations",
-            sa.column("id", sa.String),
-            sa.column("tenant_id", sa.String),
-            sa.column("user_id", sa.String),
+            sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
+            sa.column("tenant_id", sa.dialects.postgresql.UUID(as_uuid=True)),
+            sa.column("user_id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("role", sa.String),
             sa.column("date_created", sa.DateTime),
             sa.column("last_modified", sa.DateTime),
@@ -95,9 +95,9 @@ def upgrade() -> None:
             assoc,
             [
                 {
-                    "id": str(uuid.uuid4()),
-                    "tenant_id": str(tenant_id),
-                    "user_id": str(user_id),
+                    "id": uuid.uuid4(),
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
                     "role": "owner",
                     "date_created": now,
                     "last_modified": now,
