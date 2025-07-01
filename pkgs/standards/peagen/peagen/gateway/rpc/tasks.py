@@ -51,6 +51,15 @@ from peagen.transport.jsonrpc_schemas import Status
 # Use the Session factory configured by the gateway
 from .. import Session, engine, Base
 
+
+# NEW — shadow-repo helpers
+from peagen.core.git_shadow_core import (
+    ensure_org,
+    ensure_mirror,
+    attach_deploy_key,
+)
+from peagen._utils._split_github import _split_github
+
 # -----------------TaskBlob ------------------------------------
 
 TaskBlob = Dict[str, Any]  # canonical on-wire / in-Redis structure
@@ -92,10 +101,9 @@ def _normalise_submit_payload(raw: dict) -> TaskBlob:
 @dispatcher.method(TASK_SUBMIT)
 async def task_submit(params: SubmitParams) -> SubmitResult:
     """
-    Persist the task definition, enqueue it, and notify listeners.
-    Uses TaskModel + TaskRunModel for Postgres; everywhere else passes TaskBlob.
+    Persist the task definition, ensure Gitea shadow state, enqueue, broadcast.
     """
-    # 1. Build the raw blob -----------------------------------------
+    # 1. Build TaskBlob (unchanged) ────────────────────────────────────────
     raw_task = getattr(params, "task", None)
     if raw_task is not None:
         task_blob = _normalise_submit_payload(dict(raw_task))
@@ -117,10 +125,33 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
 
     await queue.sadd("pools", task_blob["pool"])
 
-    # 2. Verify a worker exists for the requested action ------------
-    action = (task_blob["payload"] or {}).get("action")
+    # 2. Shadow-repo guarantees ───────────────────────────────────────────
+    # Expect these keys in payload (client responsibility)
+    payload = task_blob["payload"] or {}
+    repo_url   = payload.get("repo")        # GitHub URL
+    deploy_key = payload.get("deploy_key")  # public key (str)
+    ref        = payload.get("ref")         # branch / sha (optionally used later)
+
+    if repo_url and deploy_key:
+        try:
+            org, repo = _split_github(repo_url)
+            slug = org.lower()
+
+            await ensure_org(slug)
+            await ensure_mirror(slug, repo, repo_url)
+            key_id = await attach_deploy_key(slug, repo, deploy_key, rw=True)
+
+            # Hand the key-id to the worker (private half lives in Vault)
+            payload["deploy_key_id"] = key_id
+            task_blob["payload"] = payload
+        except Exception as exc:
+            log.error("shadow-repo setup failed: %s", exc, exc_info=True)
+            raise RPCException(code=-32011, message="shadow-repo setup error")
+
+    # 3. Verify a worker advertises the action (unchanged) ────────────────
+    action = payload.get("action")
     if action:
-        available = {
+        advertised = {
             h
             for w in await _live_workers_by_pool(task_blob["pool"])
             for h in (
@@ -129,21 +160,18 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
                 else w.get("handlers", [])
             )
         }
-        if action not in available:
+        if action not in advertised:
             log.warning("no worker advertising '%s' found", action)
 
-    # 3. Avoid id collision in Redis --------------------------------
+    # 4. Avoid id collision in Redis (unchanged) ──────────────────────────
     if await _load_task(task_blob["id"]):
         task_blob["id"] = uuid.uuid4().hex
         log.warning("task id collision – generated new id %s", task_blob["id"])
 
-    # 4. Persist to Postgres (skip if id is not a UUID) -------------
+    # 5. Optional Postgres persistence (unchanged) ────────────────────────
     try:
-        uuid.UUID(task_blob["id"])
-        persist = True
+        uuid.UUID(task_blob["id"]); persist = task_blob.get("tenant_id") is not None
     except ValueError:
-        persist = False
-    if task_blob.get("tenant_id") is None:
         persist = False
 
     if persist:
@@ -163,11 +191,11 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
                     except ValueError:
                         pass
             model = TaskModel(**orm_fields)
-            ses.merge(model)  # insert or update
+            ses.merge(model)
             ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
-    # 5. Push onto ready queue & broadcast --------------------------
+    # 6. Enqueue & broadcast (unchanged) ──────────────────────────────────
     await queue.rpush(
         f"{READY_QUEUE}:{task_blob['pool']}", json.dumps(task_blob, default=str)
     )
@@ -175,13 +203,9 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
     await _save_task(task_blob)
     await _publish_task(task_blob)
 
-    log.info(
-        "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
-    )
+    log.info("task %s queued in %s (ttl=%ss)",
+             task_blob["id"], task_blob["pool"], TASK_TTL)
 
-    # ``SubmitResult`` expects an ``id`` field. Returning ``taskId`` results in
-    # a validation error with ``extra_forbidden``. Use the canonical field name
-    # to ensure callers receive a valid model instance.
     return SubmitResult(id=str(task_blob["id"]))
 
 

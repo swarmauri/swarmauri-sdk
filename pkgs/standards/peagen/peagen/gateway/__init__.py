@@ -130,6 +130,7 @@ KNOWN_IPS: set[str] = set()
 BANNED_IPS: set[str] = set()
 
 
+# ───────────────────────── Work Capabiility ──────────────────────
 def _supports(method: str | None) -> bool:
     """Return ``True`` if *method* is registered."""
     return method in dispatcher._methods

@@ -22,6 +22,8 @@ if TYPE_CHECKING:  # pragma: no cover - import for typing only
     from peagen.plugins.vcs import GitVCS
 
 
+# ───────── git repo convenience      ────────────────────────────
+
 def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) -> GitVCS:
     """Open a repository at ``path``.
 
@@ -50,46 +52,7 @@ def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) ->
     return GitVCS(path, **params)
 
 
-def ensure_repo(
-    path: str | Path, remote_url: str | None = None, **kwargs: Any
-) -> GitVCS:
-    """Initialise ``path`` if needed and return a :class:`GitVCS`."""
-    pm = PluginManager(defaults.CONFIG)
-    cfg = pm._group_cfg("vcs")
-    name = cfg.get("default_vcs")
-    params = cfg.get("adapters", {}).get(name, {})
-    params = {
-        **params,
-        "remote_url": remote_url,
-        "mirror_git_url": kwargs.get("mirror_git_url"),
-        "mirror_git_token": kwargs.get("mirror_git_token"),
-        "owner": kwargs.get("owner"),
-        "remotes": kwargs.get("remotes"),
-    }
-    GitVCS = resolve_plugin_spec("vcs", name)
-    return GitVCS(path, **params)
-
-
-def add_git_deploy_key(mirror_uri: str, pub_key: str) -> None:
-    """Register ``pub_key`` with the remote ``mirror_uri``."""
-    res = httpx.post(
-        f"{mirror_uri}/deploy_keys",
-        json={"key": pub_key, "read_only": False},
-        timeout=10.0,
-    )
-    res.raise_for_status()
-
-
-def ensure_git_mirror(repo_uri: str) -> Repo:
-    """Clone or open a bare mirror for ``repo_uri``."""
-    mirror_root = Path(
-        os.getenv("PEAGEN_GIT_MIRROR_DIR", "~/.cache/peagen/mirrors")
-    ).expanduser()
-    mirror_root.mkdir(parents=True, exist_ok=True)
-    dest = mirror_root / hashlib.sha1(repo_uri.encode()).hexdigest()
-    if dest.exists():
-        return Repo(str(dest))
-    return Repo.clone_from(repo_uri, dest, mirror=True)
+# ───────── git remote ops      ────────────────────────────
 
 
 def fetch_git_remote(git_repo: Repo) -> None:
@@ -105,6 +68,9 @@ def update_git_remote(git_repo: Repo, ssh_cmd: str | None = None) -> None:
     git_repo.git.push("--mirror", env=env)
 
 
+# ───────── worker repo lock      ────────────────────────────
+
+
 @contextmanager
 def repo_lock(repo_uri: str):
     """Context manager yielding a file lock for ``repo_uri``."""
@@ -117,6 +83,8 @@ def repo_lock(repo_uri: str):
     with file_lock:
         yield
 
+
+# ───────── worker worktree   ────────────────────────────
 
 def add_git_worktree(repo: Repo, ref: str) -> Path:
     """Create a temporary worktree for ``ref`` and return its path."""
@@ -133,6 +101,7 @@ def cleanup_git_worktree(worktree: Path) -> None:
         pass
     shutil.rmtree(worktree, ignore_errors=True)
 
+# ───────── worker ssh identity  ────────────────────────────
 
 @contextmanager
 def ssh_identity(priv_key: str):
@@ -149,15 +118,5 @@ def ssh_identity(priv_key: str):
         os.remove(tmp.name)
 
 
-__all__ = [
-    "open_repo",
-    "ensure_repo",
-    "add_git_deploy_key",
-    "ensure_git_mirror",
-    "fetch_git_remote",
-    "update_git_remote",
-    "repo_lock",
-    "add_git_worktree",
-    "cleanup_git_worktree",
-    "ssh_identity",
-]
+# ───────── exports  ────────────────────────────
+
