@@ -128,9 +128,8 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
     # 2. Shadow-repo guarantees ───────────────────────────────────────────
     # Expect these keys in payload (client responsibility)
     payload = task_blob["payload"] or {}
-    repo_url   = payload.get("repo")        # GitHub URL
+    repo_url = payload.get("repo")  # GitHub URL
     deploy_key = payload.get("deploy_key")  # public key (str)
-    ref        = payload.get("ref")         # branch / sha (optionally used later)
 
     if repo_url and deploy_key:
         try:
@@ -170,7 +169,8 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
 
     # 5. Optional Postgres persistence (unchanged) ────────────────────────
     try:
-        uuid.UUID(task_blob["id"]); persist = task_blob.get("tenant_id") is not None
+        uuid.UUID(task_blob["id"])
+        persist = task_blob.get("tenant_id") is not None
     except ValueError:
         persist = False
 
@@ -203,8 +203,9 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
     await _save_task(task_blob)
     await _publish_task(task_blob)
 
-    log.info("task %s queued in %s (ttl=%ss)",
-             task_blob["id"], task_blob["pool"], TASK_TTL)
+    log.info(
+        "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
+    )
 
     return SubmitResult(id=str(task_blob["id"]))
 
