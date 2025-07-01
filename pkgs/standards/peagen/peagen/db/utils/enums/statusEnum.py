@@ -1,15 +1,8 @@
-"""This module defines the DisplayThemeEnum enumeration."""
+"""This module defines the StatusEnum enumeration."""
 
 from enum import Enum
 
 
-class DisplayThemeEnum(str, Enum):
-    """
-    Enumeration for display theme options.
+class StatusEnum(str, Enum):
 
-    This enum provides a limited set of choices for the display theme, ensuring that only
-    valid values can be assigned to the display theme attribute in user settings.
-    """
-
-    LIGHT = "LIGHT"
-    DARK = "DARK"
+    WAITING = "waiting"

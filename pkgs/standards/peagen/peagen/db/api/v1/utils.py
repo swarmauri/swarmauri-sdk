@@ -7,8 +7,9 @@ from enum import Enum
 from typing import List
 from crouton import MemoryCRUDRouter, SQLAlchemyCRUDRouter  # type: ignore
 
-from app import models, schemas
-from app.db.session import get_db
+from peagen.orm import __all__ as models
+from peagen.orm.schemas import __all__ as schemas
+from peagen.db.db.session import get_db
 import inflect
 
 

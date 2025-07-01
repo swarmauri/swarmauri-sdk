@@ -2,7 +2,6 @@
 
 import logging
 from fastapi import FastAPI
-# from sqlalchemy import create_engine
 
 from peagen.db.session import engine
 from peagen.orm.models import Base

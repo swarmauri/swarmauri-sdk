@@ -9,7 +9,7 @@ Constants:
 
 from fastapi import APIRouter
 
-from app.api.v1.utils import (
+from peagen.db.api.v1.utils import (
     create_route_objects,
     create_routers,
     attach_list_of_routers,
