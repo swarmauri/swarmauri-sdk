@@ -174,8 +174,6 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
-    volumes:
-      - /mnt/data/croutondb:/app
     expose:
       - "8000"
     healthcheck:
