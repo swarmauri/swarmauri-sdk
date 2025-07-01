@@ -1,4 +1,4 @@
-# utils.py
+# peagen/db/api/v1/utils.py
 from enum import Enum
 from typing import List
 import inflect
@@ -14,25 +14,30 @@ class RouterType(Enum):
     MEMORY = "memory"
 
 
-def create_route_objects(components: List[str]) -> List[dict]:
-    p = inflect.engine()
-    routes: List[dict] = []
+def create_route_objects(components: list[str]) -> list[dict]:
+    p       = inflect.engine()
+    routes: list[dict] = []
 
-    for component in components:
-        # Skip umbrella / abstract symbols inadvertently listed in __all__
-        if not hasattr(orm_schemas, component) or not hasattr(orm, f"{component}Model"):
+    for name in components:
+        read     = f"{name}Read"
+        create   = f"{name}Create"
+        update   = f"{name}Update"
+
+        # ensure all required schemas exist
+        if not all(hasattr(orm_schemas, s) for s in (read, create, update)):
             continue
 
         routes.append(
             {
-                "schema":        getattr(orm_schemas, component),
-                "create_schema": getattr(orm_schemas, component + "Create"),
-                "update_schema": getattr(orm_schemas, component + "Update"),
-                "db_model":      getattr(orm,        component + "Model"),
-                "prefix":        p.plural(component.lower()),
+                "schema":        getattr(orm_schemas, read),
+                "create_schema": getattr(orm_schemas, create),
+                "update_schema": getattr(orm_schemas, update),
+                "db_model":      getattr(orm, f"{name}Model"),
+                "prefix":        p.plural(name.lower()),
             }
         )
     return routes
+
 
 def create_routers(
     routes_to_create: List[dict],
