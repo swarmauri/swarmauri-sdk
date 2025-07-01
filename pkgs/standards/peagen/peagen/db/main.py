@@ -4,9 +4,9 @@ import logging
 from fastapi import FastAPI
 # from sqlalchemy import create_engine
 
-from app.db.session import engine
-from app.models.base.componentbase import Base
-from app.api.v1.main import ROUTES
+from peagen.db.session import engine
+from peagen.orm.models import Base
+from peagen.db.api.v1.main import ROUTES
 
 
 # Set up logging configuration
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI()
-
 
 @app.get("/health")
 def health_check():
