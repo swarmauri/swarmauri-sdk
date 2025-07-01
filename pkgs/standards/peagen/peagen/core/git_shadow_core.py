@@ -2,13 +2,24 @@
 from __future__ import annotations
 import os, httpx, asyncio
 
-BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
-TOKEN = os.environ["PEAGEN_GIT_SHADOW_PAT"]          # service account PAT
+from peagen.defaults import (
+    GIT_SHADOW_GIT_SHADOW_BASE, 
+    GIT_SHADOW_GIT_SHADOW_TOKEN,
+    )
+
+def _split_github(url: str) -> tuple[str, str]:
+    """
+    https://github.com/<org>/<repo>.git -> ('org', 'repo')
+    """
+    parts = urlparse(url)
+    path = parts.path.lstrip("/").removesuffix(".git")
+    return tuple(path.split("/", 1))  # type: ignore[misc]
+
 
 async def _req(method: str, path: str, **kw):
-    hdr = {"Authorization": f"token {TOKEN}"}
+    hdr = {"Authorization": f"token {GIT_SHADOW_TOKEN}"}
     async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.request(method, f"{BASE}{path}", headers=hdr, **kw)
+        r = await c.request(method, f"{GIT_SHADOW_BASE}{path}", headers=hdr, **kw)
         if r.status_code == 404:
             raise FileNotFoundError(path)
         r.raise_for_status()
