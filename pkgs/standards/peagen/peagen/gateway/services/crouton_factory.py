@@ -23,7 +23,7 @@ import os
 import threading
 from typing import Optional
 
-from crouton import CroutonClient
+from crouton_client import CroutonClient
 
 # -------------------------------------------------------------------------- #
 # Internal caches (lazy singletons)                                          #
