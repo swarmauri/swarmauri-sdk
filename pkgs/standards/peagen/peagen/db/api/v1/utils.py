@@ -34,7 +34,6 @@ def create_route_objects(components: List[str]) -> List[dict]:
         )
     return routes
 
-
 def create_routers(
     routes_to_create: List[dict],
     router_type: RouterType = RouterType.SQLALCHEMY,
