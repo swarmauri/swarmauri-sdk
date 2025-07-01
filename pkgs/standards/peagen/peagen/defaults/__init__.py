@@ -27,9 +27,13 @@ def lock_dir() -> Path:
 # Default worker pool used when none is specified via environment variables.
 DEFAULT_POOL = "default"
 
-
+# Git Shadow Mirror
 GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
 GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
+
+## DEFAULT SVC USER UUID
+DEFAULT_SVC_USER_ID = "00000000-0000-0000-0000-000000000001"
+
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
     "gateway_url": "http://localhost:8000/rpc",

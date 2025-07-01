@@ -102,9 +102,6 @@ def init_project(
 
     _render_scaffold(src_root, path, context, force)
 
-    from peagen.core.mirror_core import ensure_repo
-
-    vcs = ensure_repo(path, remotes=git_remotes)
     vcs.commit(["."], "initial commit")
 
     if filter_uri:
@@ -252,9 +249,6 @@ def init_repo(
     }
 
     if path is not None:
-        from peagen.core.mirror_core import ensure_repo
-
-        ensure_repo(path, remotes=remotes)
         result.update({"configured": str(path)})
 
     return result
@@ -262,7 +256,4 @@ def init_repo(
 
 def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
     """Configure an existing repository with additional remotes."""
-    from peagen.core.mirror_core import ensure_repo
-
-    ensure_repo(path, remotes=remotes)
     return {"configured": str(path), "remotes": remotes}
