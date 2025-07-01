@@ -15,9 +15,16 @@ from alembic import op
 import sqlalchemy as sa
 
 revision: str = "69f4d7c302fa"
-down_revision: Union[str, None] = "dc70c8bef823"
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+
+def utc_now_naive() -> datetime:
+    """UTC now without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+now = utc_now_naive()
 
 
 def upgrade() -> None:
