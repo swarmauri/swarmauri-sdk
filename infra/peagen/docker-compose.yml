@@ -166,7 +166,7 @@ services:
   croutondb:
     build:
       context: ../
-      dockerfile: ./infra/Dockerfile.crud
+      dockerfile: infra/peagen/Dockerfile.crud
     depends_on:
       postgres:
         condition: service_healthy
