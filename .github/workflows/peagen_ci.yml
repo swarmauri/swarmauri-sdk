@@ -43,7 +43,7 @@ jobs:
     - name: Deploy with Docker Compose
       id: deploy
       run: |
-        sudo -E docker-compose \
+        sudo -E docker compose \
           -f infra/peagen/docker-compose.yml \
           up -d --build --force-recreate --no-deps croutondb gateway worker
 
@@ -58,13 +58,13 @@ jobs:
       if: failure()          # <- overrides the implicit success() check
       run: |
         echo "::group::croutondb logs"
-        sudo -E docker-compose -f infra/peagen/docker-compose.yml logs croutondb || true
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs croutondb || true
         echo "::endgroup::"
 
         echo "::group::gateway logs"
-        sudo -E docker-compose -f infra/peagen/docker-compose.yml logs gateway || true
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
         echo "::endgroup::"
 
         echo "::group::worker logs"
-        sudo -E docker-compose -f infra/peagen/docker-compose.yml logs worker || true
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
         echo "::endgroup::"
