@@ -17,12 +17,18 @@ class DummyDriver:
 def test_login_success(monkeypatch, tmp_path):
     captured = {}
 
-    def fake_submit_task(url, task, *, timeout=30.0):
-        captured.update({"url": url, "task": task})
+    def fake_core_login(*, key_dir, passphrase, gateway_url):
+        captured.update(
+            {
+                "key_dir": key_dir,
+                "passphrase": passphrase,
+                "gateway_url": gateway_url,
+            }
+        )
         return {}
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod, "submit_task", fake_submit_task)
+    monkeypatch.setattr(login_mod, "core_login", fake_core_login)
 
     runner = CliRunner()
     result = runner.invoke(
@@ -32,18 +38,17 @@ def test_login_success(monkeypatch, tmp_path):
 
     assert result.exit_code == 0
     assert "Logged in and uploaded public key" in result.output
-    assert captured["url"] == "http://gw/rpc"
-    assert captured["task"].payload["action"] == "login"
+    assert captured["gateway_url"] == "http://gw/rpc"
 
 
 @pytest.mark.unit
 def test_login_http_error(monkeypatch, tmp_path):
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
 
-    def fake_submit_task(*_a, **_k):
+    def fake_core_login(*_a, **_k):
         return {"error": {"code": -1, "message": "fail"}}
 
-    monkeypatch.setattr(login_mod, "submit_task", fake_submit_task)
+    monkeypatch.setattr(login_mod, "core_login", fake_core_login)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -54,11 +59,11 @@ def test_login_http_error(monkeypatch, tmp_path):
 
 @pytest.mark.unit
 def test_login_request_error(monkeypatch, tmp_path):
-    def fake_submit_task(*_a, **_k):
+    def fake_core_login(*_a, **_k):
         raise RequestError("oops")
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod, "submit_task", fake_submit_task)
+    monkeypatch.setattr(login_mod, "core_login", fake_core_login)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -77,7 +82,7 @@ def test_login_passphrase(monkeypatch, tmp_path):
             captured.update(self.called)
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", CaptureDriver)
-    monkeypatch.setattr(login_mod, "submit_task", lambda *a, **k: {})
+    monkeypatch.setattr(login_mod, "core_login", lambda **kwargs: {})
 
     runner = CliRunner()
     result = runner.invoke(
