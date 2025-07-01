@@ -9,7 +9,7 @@ Base = declarative_base()
 
 # ────────────────────────────  helpers  ────────────────────────────
 #: server-side expression that returns a *naïve* UTC timestamp
-UTC_NOW = text("now() AT TIME ZONE 'UTC'")        # ← Postgres idiom
+UTC_NOW = text("(now() AT TIME ZONE 'UTC')")
 
 # ────────────────────────────  mixins  ─────────────────────────────
 class UUIDMixin:

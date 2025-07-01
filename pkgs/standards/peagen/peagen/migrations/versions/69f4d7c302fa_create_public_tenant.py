@@ -20,9 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 # ───────────────────────── helpers ──────────────────────────
-def utc_now_naive() -> datetime:
-    """UTC now *without* tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE)."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+UTC_NOW = text("(now() AT TIME ZONE 'UTC')")
 
 
 # ───────────────────────── migration ─────────────────────────
