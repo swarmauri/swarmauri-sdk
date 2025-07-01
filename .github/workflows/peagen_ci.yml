@@ -43,12 +43,14 @@ jobs:
     - name: Deploy with Docker Compose
       id: deploy
       run: |
-        # sudo -E docker-compose -f infra/peagen/docker-compose.yml pull   # optional
-        sudo docker system prune -f
-        
         sudo -E docker-compose \
           -f infra/peagen/docker-compose.yml \
           up -d --build --force-recreate --no-deps croutondb gateway worker
+
+        # post build prune
+        sudo docker system prune -f
+
+
 
 
     # Collect logs only when *any* previous step failed (deploy or later)
