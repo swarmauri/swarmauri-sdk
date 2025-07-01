@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI
 
 from peagen.db.session import engine
-from peagen.orm.models import Base
+from peagen.orm import Base
 from peagen.db.api.v1.main import ROUTES
 
 
