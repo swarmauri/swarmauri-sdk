@@ -9,7 +9,7 @@ from crouton import MemoryCRUDRouter, SQLAlchemyCRUDRouter  # type: ignore
 
 from peagen.orm import __all__ as models
 from peagen.orm.schemas import __all__ as schemas
-from peagen.db.db.session import get_db
+from peagen.db.session import get_db
 import inflect
 
 
