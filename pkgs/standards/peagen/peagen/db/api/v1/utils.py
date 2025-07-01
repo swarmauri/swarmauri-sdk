@@ -53,3 +53,14 @@ def create_routers(
             router = MemoryCRUDRouter(**common)  # type: ignore[arg-type]
         routers.append(router)
     return routers
+
+def attach_list_of_routers(app, list_of_routers: List) -> None:
+    """
+    Attach a list of routers to the given FastAPI app.
+
+    Args:
+        app: FastAPI application instance.
+        list_of_routers (List): List of routers to attach.
+    """
+    for router in list_of_routers:
+        app.include_router(router)
