@@ -29,8 +29,7 @@ DEFAULT_POOL = "default"
 
 
 GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
-GIT_SHADOW_TOKEN = os.environ["PEAGEN_GIT_SHADOW_PAT"]          # service account PAT
-
+GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
     "gateway_url": "http://localhost:8000/rpc",
