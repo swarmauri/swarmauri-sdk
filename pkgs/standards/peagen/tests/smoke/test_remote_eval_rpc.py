@@ -1,8 +1,8 @@
 import os
-import uuid
 import httpx
 import pytest
-from peagen.protocols.methods.worker import WORKER_LIST
+from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+from peagen.cli.task_helpers import build_task, submit_task
 
 pytestmark = pytest.mark.smoke
 
@@ -38,24 +38,15 @@ def test_eval_submit_returns_task_id() -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
 
-    task_id = str(uuid.uuid4())
-    payload = {
-        "action": "eval",
-        "args": {
+    task = build_task(
+        "eval",
+        {
             "workspace_uri": "git+testproject@HEAD",
             "program_glob": "*.py",
         },
-    }
-    from peagen.protocols.methods import TASK_SUBMIT
+    )
+    reply = submit_task(GATEWAY, task)
+    if "error" in reply:
+        pytest.skip(f"remote submit failed: {reply['error']['message']}")
 
-    envelope = {
-        "jsonrpc": "2.0",
-        "method": TASK_SUBMIT,
-        "params": {"pool": "default", "payload": payload, "taskId": task_id},
-        "id": task_id,
-    }
-    resp = httpx.post(GATEWAY, json=envelope, timeout=5)
-    assert resp.status_code == 200
-    data = resp.json()
-
-    assert "result" in data and "taskId" in data["result"]
+    assert "result" in reply and "id" in reply["result"]

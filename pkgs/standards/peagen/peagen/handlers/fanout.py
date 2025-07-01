@@ -6,24 +6,22 @@ from typing import Iterable, List, Dict, Any
 
 import httpx
 
-from peagen.orm.status import Status
-from peagen.protocols import Request as RPCEnvelope
-from peagen.protocols.methods import TASK_SUBMIT, TASK_PATCH
-from peagen.protocols.methods.task import PatchParams, PatchResult
-from . import ensure_task
+from peagen.transport.jsonrpc_schemas import Status
+from peagen.transport import Request as RPCEnvelope
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT, TASK_PATCH
+from peagen.transport.jsonrpc_schemas.task import PatchParams, SubmitParams
 
 
 async def fan_out(
-    parent: PatchResult | Dict[str, Any],
-    children: Iterable[PatchResult],
+    parent: SubmitParams,
+    children: Iterable[SubmitParams],
     *,
     result: Dict[str, Any] | None = None,
     final_status: Status = Status.waiting,
 ) -> Dict[str, Any]:
     """Submit *children* and update *parent* with their IDs."""
     gateway = os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-    canonical_parent = ensure_task(parent)
-    parent_id = str(canonical_parent.id)
+    parent_id = str(parent.id)
 
     child_ids: List[str] = []
     async with httpx.AsyncClient(timeout=10.0) as client:

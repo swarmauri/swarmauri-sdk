@@ -4,24 +4,18 @@ from pathlib import Path
 import pytest
 
 from peagen.cli.commands import keys as keys_mod
-from peagen.protocols import KEYS_UPLOAD, KEYS_DELETE, Response
-from peagen.protocols.methods.keys import FetchResult
 
 
 @pytest.mark.unit
 def test_create_generates_key_pair(monkeypatch, tmp_path, capsys):
     captured = {}
 
-    def fake_driver(key_dir, passphrase=None):
+    def fake_create(key_dir, passphrase=None):
         captured["key_dir"] = key_dir
         captured["passphrase"] = passphrase
+        return {}
 
-        class Dummy:
-            pass
-
-        return Dummy()
-
-    monkeypatch.setattr(keys_mod, "AutoGpgDriver", fake_driver)
+    monkeypatch.setattr(keys_mod.keys_core, "create_keypair", fake_create)
 
     keys_mod.create(passphrase="secret", key_dir=tmp_path)
     out = capsys.readouterr().out
@@ -33,29 +27,20 @@ def test_create_generates_key_pair(monkeypatch, tmp_path, capsys):
 
 @pytest.mark.unit
 def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
-    (tmp_path / "public.asc").write_text("PUB")
-
-    class DummyDriver:
-        def __init__(self, key_dir):
-            self.pub_path = Path(key_dir) / "public.asc"
-
-    monkeypatch.setattr(keys_mod, "AutoGpgDriver", DummyDriver)
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
-        captured["url"] = url
-        captured["method"] = method
-        captured["params"] = params
-        return Response.ok(id="1", result=None)
+    def fake_upload(*, key_dir, gateway_url):
+        captured["key_dir"] = key_dir
+        captured["gateway_url"] = gateway_url
+        return {"fingerprint": "FP"}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod.keys_core, "upload_public_key", fake_upload)
 
     keys_mod.upload(ctx=None, key_dir=tmp_path, gateway_url="http://gw/rpc")
     out = capsys.readouterr().out
 
-    assert captured["url"] == "http://gw/rpc"
-    assert captured["method"] == KEYS_UPLOAD
-    assert captured["params"]["public_key"] == "PUB"
+    assert captured["gateway_url"] == "http://gw/rpc"
+    assert captured["key_dir"] == tmp_path
     assert "Uploaded public key" in out
 
 
@@ -63,28 +48,27 @@ def test_upload_sends_public_key(monkeypatch, tmp_path, capsys):
 def test_remove_posts_delete(monkeypatch, capsys):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
-        captured["url"] = url
-        captured["method"] = method
-        captured["params"] = params
-        return Response.ok(id="1", result=None)
+    def fake_remove(*, fingerprint, gateway_url):
+        captured["fingerprint"] = fingerprint
+        captured["gateway_url"] = gateway_url
+        return {"ok": True}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod.keys_core, "remove_public_key", fake_remove)
 
     keys_mod.remove(ctx=None, fingerprint="abc", gateway_url="http://gw")
     out = capsys.readouterr().out
 
-    assert captured["method"] == KEYS_DELETE
-    assert captured["params"]["fingerprint"] == "abc"
+    assert captured["fingerprint"] == "abc"
+    assert captured["gateway_url"] == "http://gw"
     assert "Removed key abc" in out
 
 
 @pytest.mark.unit
 def test_fetch_server_prints_response(monkeypatch, capsys):
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
-        return Response.ok(id="1", result=FetchResult(keys={"k": "v"}))
+    def fake_fetch(*, gateway_url):
+        return {"keys": {"k": "v"}}
 
-    monkeypatch.setattr(keys_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(keys_mod.keys_core, "fetch_server_keys", fake_fetch)
 
     keys_mod.fetch_server(ctx=None, gateway_url="http://gw")
     out = capsys.readouterr().out

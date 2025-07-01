@@ -1,133 +1,109 @@
-# peagen/core/fetch_core.py
 """
-Pure business-logic for *fetching* a Peagen workspace from a local
-directory or remote URI.  No CLI, RPC, or logging dependencies.
+peagen.core.fetch_core
+──────────────────────
+Materialise a *single* Git repository + ref (and optionally many) into a local
+workspace.  All mirror prep is already handled by the gateway, so this module
+only needs to clone/fetch and check out the requested ref.
 
 Key entry-points
 ----------------
-• fetch_many() – high-level orchestration for multiple URIs
-• fetch_single() – one URI → workspace
+• fetch_single() – repo + ref → workspace
+• fetch_many()   – convenience wrapper for multiple repos
 """
 
 from __future__ import annotations
 
 import shutil
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import List, Optional
 
+from peagen.core.git_repo_core import (
+    open_repo,       # pluggable VCS adapter
+    repo_lock,       # cross-process file lock
+)
 
-import os
+# ─────────────────────────── helpers ──────────────────────────────
+def _checkout(repo_url: str, ref: str, dest: Path) -> str | None:
+    """
+    Clone or update *repo_url* into *dest* and checkout *ref*.
 
-from peagen.plugins.git_filters import make_filter_for_uri
-from peagen.core.mirror_core import ensure_repo, open_repo
-from peagen.errors import WorkspaceNotFoundError
-
-
-# ─────────────────────────── low-level helpers ────────────────────────────
-def _materialise_workspace(uri: str, dest: Path) -> None:
-    """Copy or clone ``uri`` into ``dest``."""
-    if uri.startswith("gh://"):
-        url = f"https://github.com/{uri[5:]}.git"
-        token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
-        if token:
-            url = url.replace("https://", f"https://{token}@")
-        vcs = ensure_repo(dest, remote_url=url)
-        vcs.fetch("HEAD", checkout=True)
-        return
-
-    if uri.startswith("git+"):
-        url_ref = uri[4:]
-        url, _, ref = url_ref.partition("@")
-        ref = ref or "HEAD"
-        vcs = ensure_repo(dest, remote_url=url)
+    Returns the checked-out commit SHA (or None on bare copy errors).
+    """
+    with repo_lock(repo_url):               # requirement #4
+        vcs = open_repo(dest, remote_url=repo_url)   # requirement #3
         try:
-            vcs.fetch(ref, checkout=True)
+            vcs.fetch(ref, checkout=True)   # update if remote already cloned
         except Exception:
             vcs.checkout(ref)
-        return
+        try:
+            return vcs.repo.head.commit.hexsha
+        except Exception:
+            return None
 
-    if "://" in uri:
-        git_filter = make_filter_for_uri(uri)
-        prefix = getattr(git_filter, "_prefix", "")
-        git_filter.download_prefix(prefix, dest)  # type: ignore[attr-defined]
-        return
-
-    path = Path(uri)
-    if not path.exists():
-        raise WorkspaceNotFoundError(uri)
-    if path.is_dir():
-        if dest.exists():
-            shutil.rmtree(dest)
-        shutil.copytree(path, dest)
-    else:
-        raise ValueError(f"Unsupported workspace URI: {uri}")
-
-
-# ───────────────────────────── public API ─────────────────────────────────
+# ─────────────────────────── public API ───────────────────────────
 def fetch_single(
-    workspace_uri: str | None = None,
     *,
-    dest_root: Path,
-    repo: str | None = None,
+    repo: str,
     ref: str = "HEAD",
+    dest_root: Path,
 ) -> dict:
-    """Materialise ``workspace_uri`` or ``repo``+``ref`` into ``dest_root``.
-
-    Returns a dictionary containing the workspace path, the fetched commit SHA
-    when applicable, and whether the repository was updated during the fetch.
     """
-    if repo is not None:
-        if "://" in repo:
-            workspace_uri = f"git+{repo}@{ref}"
-        elif Path(repo).exists():
-            workspace_uri = repo
-        else:
-            workspace_uri = f"gh://{repo}"
-    elif (
-        workspace_uri and workspace_uri.startswith("gh://") and "@" not in workspace_uri
-    ):
-        workspace_uri += f"@{ref}"
-    if workspace_uri is None:
-        raise ValueError("workspace_uri or repo required")
+    Ensure *repo* is present in *dest_root* and checked out at *ref*.
 
+    Parameters
+    ----------
+    repo : str
+        Clone URL understood by Git (https, ssh, or local path).
+    ref : str, optional
+        Branch, tag, or SHA.  Defaults to "HEAD".
+    dest_root : Path
+        Destination directory for the workspace.
+
+    Returns
+    -------
+    dict  –  {"workspace": <str>, "commit": <sha|None>, "updated": <bool>}
+    """
+    if not repo:
+        raise ValueError("parameter 'repo' must be supplied")
+
+    # Resolve previous HEAD (if any) to detect updates
     old_sha = None
     if (dest_root / ".git").exists():
         try:
             old_sha = open_repo(dest_root).repo.head.commit.hexsha
-        except Exception:  # pragma: no cover - repo may be empty
+        except Exception:
             pass
 
-    _materialise_workspace(workspace_uri, dest_root)
+    new_sha = _checkout(repo, ref, dest_root)
 
-    new_sha = None
-    updated = True
-    if (dest_root / ".git").exists():
-        try:
-            vcs = open_repo(dest_root)
-            new_sha, updated = vcs.repo.head.commit.hexsha, True
-            if old_sha is not None:
-                updated = old_sha != new_sha
-        except Exception:  # pragma: no cover - repo may be missing HEAD
-            pass
-
-    return {
-        "workspace": str(dest_root),
-        "commit": new_sha,
-        "updated": updated,
-    }
+    updated = new_sha is not None and new_sha != old_sha
+    return {"workspace": str(dest_root), "commit": new_sha, "updated": updated}
 
 
 def fetch_many(
-    workspace_uris: List[str] | None = None,
+    repos: List[str],
     *,
-    repo: str | None = None,
     ref: str = "HEAD",
     out_dir: Optional[Path] = None,
-    install_template_sets_flag: bool = True,  # ignored, kept for API compat
-    no_source: bool = False,  # ignored
 ) -> dict:
-    """Materialise many workspaces under ``out_dir`` (or temp dir)."""
+    """
+    Clone / update *repos* under *out_dir* (or a temp dir) at *ref*.
+
+    Parameters
+    ----------
+    repos : List[str]
+        List of clone URLs.
+    ref : str, optional
+        Branch, tag, or SHA applied to **all** repos.  Defaults to "HEAD".
+    out_dir : Path | None
+        Workspace root.  If None, a temp directory is created.
+
+    Returns
+    -------
+    dict – {"workspace": <root>, "fetched": [<fetch_single results>]}
+    """
     workspace = (
         out_dir.resolve()
         if out_dir
@@ -135,13 +111,7 @@ def fetch_many(
     )
     workspace.mkdir(parents=True, exist_ok=True)
 
-    workspace_uris = workspace_uris or []
-    if repo:
-        if "://" not in repo:
-            workspace_uris = [f"gh://{repo}@{ref}"] + workspace_uris
-        else:
-            workspace_uris = [f"git+{repo}@{ref}"] + workspace_uris
-
-    results = [fetch_single(uri, dest_root=workspace) for uri in workspace_uris]
-
+    results = [
+        fetch_single(repo=r, ref=ref, dest_root=workspace) for r in repos
+    ]
     return {"workspace": str(workspace), "fetched": results}

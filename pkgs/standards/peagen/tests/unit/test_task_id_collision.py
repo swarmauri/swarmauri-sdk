@@ -41,8 +41,21 @@ async def test_task_submit_id_collision(monkeypatch):
     monkeypatch.setattr(gw, "_publish_event", noop)
 
     task_submit = gw.task_submit
+    from peagen.transport.jsonrpc_schemas.task import SubmitParams
+    from peagen.gateway.rpc import tasks as task_rpc
 
-    r1 = await task_submit(pool="p", payload={}, taskId="dup")
-    r2 = await task_submit(pool="p", payload={}, taskId="dup")
-    assert r1.taskId == "dup"
-    assert r2.taskId != "dup"
+    orig_uuid = task_rpc.uuid.UUID
+
+    def _maybe_invalid_uuid(*args, **kwargs):
+        if kwargs:
+            return orig_uuid(*args, **kwargs)
+        raise ValueError
+
+    # Force persistence branch to be skipped by invalidating UUID checks for
+    # string inputs while preserving ``uuid.uuid4()`` behaviour.
+    monkeypatch.setattr(task_rpc.uuid, "UUID", _maybe_invalid_uuid)
+
+    r1 = await task_submit(SubmitParams(id="dup", pool="p", payload={}))
+    r2 = await task_submit(SubmitParams(id="dup", pool="p", payload={}))
+    assert r1.id == "dup"
+    assert r2.id != "dup"

@@ -9,11 +9,15 @@ from pathlib import Path
 from .abuse import BAN_THRESHOLD
 from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
 from .methods import *  # noqa: F401,F403 re-export rpc method names
-from peagen.protocols.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
+
+# Default timeout for JSON-RPC requests in seconds.
+RPC_TIMEOUT = 30.0
 
 # Default directory for repository lock files.
 LOCK_DIR = "~/.cache/peagen/locks"
 
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
@@ -22,6 +26,13 @@ def lock_dir() -> Path:
 
 # Default worker pool used when none is specified via environment variables.
 DEFAULT_POOL = "default"
+
+# Git Shadow Mirror
+GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
+GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
+
+## DEFAULT SVC USER UUID
+DEFAULT_SVC_USER_ID = "00000000-0000-0000-0000-000000000001"
 
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
@@ -69,5 +80,6 @@ __all__ = [
     "LOCK_DIR",
     "lock_dir",
     "DEFAULT_POOL",
+    "RPC_TIMEOUT",
     "ErrorCode",
 ]

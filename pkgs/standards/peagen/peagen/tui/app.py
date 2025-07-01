@@ -250,8 +250,8 @@ class QueueDashboardApp(App):
         "label",
         "duration",
         "id",
-        "started_at",
-        "finished_at",
+        "date_created",
+        "last_modified",
         "error",
     ]
 
@@ -263,8 +263,8 @@ class QueueDashboardApp(App):
         "Status": "status",
         "Action": "action",
         "Labels": "label",
-        "Started": "started_at",
-        "Finished": "finished_at",
+        "Started": "date_created",
+        "Finished": "last_modified",
         "Duration (s)": "duration",
         "Error": "error",
     }
@@ -489,7 +489,7 @@ class QueueDashboardApp(App):
         for t in tasks:
             if t.get("duration") is None:
                 t["duration"] = _calc_duration(
-                    t.get("started_at"), t.get("finished_at")
+                    t.get("date_created"), t.get("last_modified")
                 )
 
         sort_key = criteria.get("sort_key")
@@ -505,10 +505,12 @@ class QueueDashboardApp(App):
                     return task_item.get("duration") or 0
                 if sort_key == "time":
                     return (
-                        task_item.get("started_at") or task_item.get("finished_at") or 0
+                        task_item.get("date_created")
+                        or task_item.get("last_modified")
+                        or 0
                     )
                 if sort_key == "status":
-                    from peagen.orm.status import Status
+                    from peagen.transport.jsonrpc_schemas import Status
 
                     status_value = task_item.get("status")
                     try:
@@ -622,8 +624,8 @@ class QueueDashboardApp(App):
                     t_data.get("status", ""),
                     t_data.get("payload", {}).get("action", ""),
                     ",".join(t_data.get("labels", [])),
-                    _format_ts(t_data.get("started_at")),
-                    _format_ts(t_data.get("finished_at")),
+                    _format_ts(t_data.get("date_created")),
+                    _format_ts(t_data.get("last_modified")),
                     str(t_data.get("duration", ""))
                     if t_data.get("duration") is not None
                     else "",
@@ -648,8 +650,8 @@ class QueueDashboardApp(App):
                                 child_task.get("status", ""),
                                 child_task.get("payload", {}).get("action", ""),
                                 ",".join(child_task.get("labels", [])),
-                                _format_ts(child_task.get("started_at")),
-                                _format_ts(child_task.get("finished_at")),
+                                _format_ts(child_task.get("date_created")),
+                                _format_ts(child_task.get("last_modified")),
                                 str(child_task.get("duration", ""))
                                 if child_task.get("duration") is not None
                                 else "",
@@ -695,8 +697,8 @@ class QueueDashboardApp(App):
                         t_data.get("status", ""),
                         t_data.get("payload", {}).get("action", ""),
                         ",".join(t_data.get("labels", [])),
-                        _format_ts(t_data.get("started_at")),
-                        _format_ts(t_data.get("finished_at")),
+                        _format_ts(t_data.get("date_created")),
+                        _format_ts(t_data.get("last_modified")),
                         str(t_data.get("duration", ""))
                         if t_data.get("duration") is not None
                         else "",

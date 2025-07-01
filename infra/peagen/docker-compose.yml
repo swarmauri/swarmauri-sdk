@@ -95,11 +95,6 @@ services:
     restart: unless-stopped
     networks: [app_net]
 
-
-
-
-
-
   # Nginx Proxy Manager
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
@@ -155,7 +150,6 @@ services:
       GITEA__database__USER:         ${POSTGRES_USER}
       GITEA__database__PASSWD:       ${POSTGRES_PASSWORD}
 
-
       # (good defaults) disable open-registration, enable LFS, etc.
       GITEA__service__REGISTER_EMAIL_CONFIRM: "false"
       GITEA__service__DISABLE_REGISTRATION:  "true"
@@ -169,8 +163,6 @@ services:
     networks: [app_net]
 
   ## ───────────────────────────── Peagen ────────────────────────────
-
-
   croutondb:
     build:
       context: ../
@@ -192,11 +184,11 @@ services:
       timeout: "10s"
       retries: 3
     networks: [app_net]
-
+    
   gateway:
     build:
-      context: ../
-      dockerfile: ./infra/Dockerfile.gw
+      context: ../../           # repo root ⬅️
+      dockerfile: infra/peagen/Dockerfile.gw
     depends_on:
       postgres:
         condition: service_healthy
@@ -207,15 +199,16 @@ services:
     ports:
       - 8000
     environment:
-      PG_HOST:              postgres
-      PG_PORT:              5432
-      PG_DB:                ${PEAGEN_DB}
-      PG_USER:              ${POSTGRES_USER}
-      PG_PASS:              ${POSTGRES_PASSWORD}
-      PG_DSN:               postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
-      REDIS_HOST:           redis
-      REDIS_PASSWORD:       ${REDIS_PASSWORD}
-      REDIS_URL:            redis://:${REDIS_PASSWORD}@redis:6379/0
+      PG_HOST:                postgres
+      PG_PORT:                5432
+      PG_DB:                  ${PEAGEN_DB}
+      PG_USER:                ${POSTGRES_USER}
+      PG_PASS:                ${POSTGRES_PASSWORD}
+      PG_DSN:                 postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
+      REDIS_HOST:             redis
+      REDIS_PASSWORD:         ${REDIS_PASSWORD}
+      REDIS_URL:              redis://:${REDIS_PASSWORD}@redis:6379/0
+      PEAGEN_GIT_SHADOW_PAT:  ${PEAGEN_GIT_SHADOW_PAT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 10s
@@ -226,8 +219,8 @@ services:
 
   worker:
     build:
-      context: ../
-      dockerfile: ./infra/Dockerfile.worker
+      context: ../../
+      dockerfile: infra/peagen/Dockerfile.worker
     depends_on:
       postgres:
         condition: service_healthy

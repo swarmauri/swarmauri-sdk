@@ -1,9 +1,9 @@
 # peagen/handlers/eval_handler.py
 """
-Async task-handler for “eval” jobs.
+Async task-handler for "eval" jobs.
 
-The worker runtime (or a local CLI run) calls this coroutine with
-either a plain dict (decoded JSON-RPC) or a peagen.protocols.methods.task.PatchResult object.
+The worker runtime or a local CLI run calls this coroutine with a
+``SubmitParams`` instance.
 
 Returns a JSON-serialisable mapping:
   { "report": {…}, "strict_failed": bool }
@@ -19,19 +19,15 @@ import os
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from . import ensure_task
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
-async def eval_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def eval_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     cfg_override: Dict[str, Any] = payload.get("cfg_override", {})
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    if repo:
-        args["workspace_uri"] = f"git+{repo}@{ref}"
+    repo = task.repo or args.get("repo")
+    ref = task.ref or args.get("ref", "HEAD")
 
     cfg_path = Path(args["config"]) if args.get("config") else None
     tmp: NamedTemporaryFile | None = None
@@ -43,7 +39,8 @@ async def eval_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitRes
         cfg_path = Path(tmp.name)
 
     report = evaluate_workspace(
-        workspace_uri=args["workspace_uri"],
+        repo=repo,
+        ref=ref,
         program_glob=args.get("program_glob", "**/*.*"),
         pool_ref=args.get("pool"),
         cfg_path=cfg_path,

@@ -1,18 +1,19 @@
-"""Login and bootstrap keys."""
+"""Login CLI command: create/verify key-pair locally and upload the public key."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
+from httpx import HTTPError
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.protocols import KEYS_UPLOAD
-from peagen.protocols.methods.keys import UploadParams, UploadResult
+from peagen.core.login_core import login as core_login
 
-
+# ---------------------------------------------------------------------------#
+# Typer application
+# ---------------------------------------------------------------------------#
 login_app = typer.Typer(help="Authenticate and upload your public key.")
 
 
@@ -23,29 +24,40 @@ def login(
         None,
         "--passphrase",
         hide_input=True,
+        help="Passphrase for the private key, if any.",
     ),
-    key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
-    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
+    key_dir: Path = typer.Option(
+        Path.home() / ".peagen" / "keys",
+        "--key-dir",
+        help="Directory containing the GPG key-pair.",
+    ),
+    gateway_url: str = typer.Option(
+        "http://localhost:8000/rpc",
+        "--gateway-url",
+        help="JSON-RPC endpoint for the Peagen gateway.",
+    ),
 ) -> None:
-    """Ensure keys exist and upload the public key."""
+    """Ensure keys exist locally and send the public key to the gateway."""
+    # Normalise URL to …/rpc
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
-    pubkey = drv.pub_path.read_text()
+
+    # Fail fast if the key-pair is missing or unreadable.
+    AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+
     try:
-        params = UploadParams(public_key=pubkey).model_dump()
-        reply = rpc_post(
-            gateway_url,
-            KEYS_UPLOAD,
-            params,
-            timeout=10.0,
-            result_model=UploadResult,
+        reply = core_login(
+            key_dir=key_dir,
+            passphrase=passphrase,
+            gateway_url=gateway_url,
         )
-    except Exception as e:  # pragma: no cover - network errors
-        typer.echo(f"HTTP error: {e}", err=True)
+    except HTTPError as exc:  # pragma: no cover – network / HTTP errors
+        typer.echo(f"HTTP error: {exc}", err=True)
         raise typer.Exit(1)
-    if reply.error:
-        typer.echo(f"Failed to upload key: {reply.error}", err=True)
+
+    if "error" in reply:  # JSON-RPC error object
+        typer.echo(f"Failed to upload key: {reply['error']}", err=True)
         raise typer.Exit(1)
+
     typer.echo("Logged in and uploaded public key")

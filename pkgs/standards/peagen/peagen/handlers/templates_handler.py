@@ -16,13 +16,11 @@ from peagen.core.templates_core import (
     add_template_set,
     remove_template_set,
 )
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from . import ensure_task
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
 
-async def templates_handler(task: Dict[str, Any] | SubmitParams) -> SubmitResult:
+async def templates_handler(task: SubmitParams) -> SubmitResult:
     """Dispatch template-set operations based on ``args.operation``."""
-    task = ensure_task(task)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")

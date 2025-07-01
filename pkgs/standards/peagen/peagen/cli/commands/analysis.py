@@ -5,21 +5,13 @@ import json
 from pathlib import Path
 from typing import List
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
-from functools import partial
-
 from peagen.handlers.analysis_handler import analysis_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
-
-
-_build_task = partial(_generic_build_task, "analysis")
 
 
 @local_analysis_app.command("analysis")
@@ -34,7 +26,7 @@ def run(
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("analysis", args, pool=ctx.obj.get("pool", "default"))
     result = asyncio.run(analysis_handler(task))
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -52,19 +44,14 @@ def submit(
     args = {"run_dirs": [str(p) for p in run_dirs], "spec_name": spec_name}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
-        result_model=SubmitResult,
-    )
-    if reply.error:
+    task = build_task("analysis", args, pool=ctx.obj.get("pool", "default"))
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    if "error" in reply:
         typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    typer.echo(json.dumps(reply.result.model_dump() if reply.result else {}, indent=2))
+    typer.echo(json.dumps(reply.get("result", {}), indent=2))

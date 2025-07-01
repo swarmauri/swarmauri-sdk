@@ -6,28 +6,15 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Optional
-
-from peagen.cli.rpc_utils import rpc_post
 import typer
-from functools import partial
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.protocols import TASK_SUBMIT, TASK_GET
-from peagen.protocols.methods.task import (
-    SubmitParams,
-    SubmitResult,
-    GetParams,
-    GetResult,
-)
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 
 local_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
 remote_evolve_app = typer.Typer(help="Expand evolve spec and run mutate tasks")
-
-
-_build_task = partial(_generic_build_task, "evolve")
 
 
 @local_evolve_app.command("evolve")
@@ -36,7 +23,7 @@ def run(
     spec: Path = typer.Argument(..., exists=True),
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out", help="Write results to file"),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    repo: str | None = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     result = validate_evolve_spec(spec)
@@ -62,7 +49,7 @@ def run(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("evolve", args, pool=ctx.obj.get("pool", "default"))
     result = asyncio.run(evolve_handler(task))
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -80,7 +67,7 @@ def submit(
     interval: float = typer.Option(
         2.0, "--interval", "-i", help="Seconds between polls"
     ),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
+    repo: str | None = typer.Option(None, "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
 ):
     result = validate_evolve_spec(spec)
@@ -106,38 +93,23 @@ def submit(
     args = {"evolve_spec": _canonical(spec)}
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
-        result_model=SubmitResult,
-    )
-    if reply.error:
+    task = build_task("evolve", args, pool=ctx.obj.get("pool", "default"))
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    if "error" in reply:
         typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
     typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.result:
-        typer.echo(json.dumps(reply.result.model_dump(), indent=2))
+    if reply.get("result"):
+        typer.echo(json.dumps(reply["result"], indent=2))
     if watch:
-
-        def _rpc_call() -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=task.id).model_dump(),
-                result_model=GetResult,
-            )
-            return res.result  # type: ignore[return-value]
-
         import time
 
         while True:
-            task_reply = _rpc_call()
+            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             typer.echo(json.dumps(task_reply.model_dump(), indent=2))
             if Status.is_terminal(task_reply.status):
                 break

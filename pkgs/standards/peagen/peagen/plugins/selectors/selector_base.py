@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.plugins.result_backends import ResultBackendBase
 
 
@@ -28,7 +28,7 @@ class SelectorBase:
         self, tasks: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         running = [t for t in tasks if t.get("status") == Status.running.value]
-        running.sort(key=lambda d: str(d.get("started_at") or ""))
+        running.sort(key=lambda d: str(d.get("date_created") or ""))
         return running[: self.num_candidates]
 
     async def select(self) -> Dict[str, Any]:

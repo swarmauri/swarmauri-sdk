@@ -13,7 +13,8 @@ from typing import Any, Dict, Optional, List
 
 import typer
 
-from peagen._utils._init import _call_handler, _submit_task, _summary
+from peagen._utils._init import _call_handler, _summary
+from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
 from peagen._utils.git_filter import add_filter, init_git_filter
 from swarmauri_standard.loggers.Logger import Logger
@@ -223,7 +224,10 @@ def remote_init_project(
         "filter_uri": filter_uri,
     }
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init project")
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
@@ -246,7 +250,10 @@ def remote_init_repo_config(
         "remotes": _parse_remotes(git_remote),
     }
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init repo-config")
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
@@ -310,7 +317,10 @@ def remote_init_template_set(
         "force": force,
     }
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init template-set")
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
@@ -365,7 +375,10 @@ def remote_init_doe_spec(
         "force": force,
     }
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init doe-spec")
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
@@ -420,7 +433,10 @@ def remote_init_ci(
         "force": force,
     }
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init ci")
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)
@@ -455,7 +471,10 @@ def remote_init_repo(
             remotes["upstream"] = upstream
         args["remotes"] = remotes
     try:
-        _submit_task(args, ctx.obj.get("gateway_url"), "init repo", allow_pat=True)
+        task = build_task("init", args, pool="default")
+        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in reply:
+            raise PATNotAllowedError(reply["error"]["message"])
     except PATNotAllowedError as exc:
         typer.echo(f"[ERROR] {exc}")
         raise typer.Exit(1)

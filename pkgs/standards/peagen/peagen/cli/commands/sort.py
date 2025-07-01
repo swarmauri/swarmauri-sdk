@@ -9,10 +9,7 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
-from peagen.cli.rpc_utils import rpc_post
+from peagen.cli.task_helpers import build_task, submit_task
 
 local_sort_app = typer.Typer(help="Sort generated project files.")
 remote_sort_app = typer.Typer(help="Sort generated project files via JSON-RPC.")
@@ -53,14 +50,8 @@ def run_sort(  # ← now receives the Typer context
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = {
-        "pool": "default",
-        "payload": {
-            "action": "sort",
-            "args": args,
-            "cfg_override": cfg_override,
-        },
-    }
+    task = build_task("sort", args, pool="default")
+    task.payload["cfg_override"] = cfg_override
 
     # ─────────────────────── 3) call handler ────────────────────────────
     try:
@@ -130,24 +121,18 @@ def submit_sort(
         "repo": repo,
         "ref": ref,
     }
-    submit = build_submit_params(
-        "sort",
-        {**args, "cfg_override": cfg_override},
-        pool="default",
-    )
+    task = build_task("sort", args, pool="default")
+    task.payload["cfg_override"] = cfg_override
 
     try:
-        resp = rpc_post(
-            ctx.obj.get("gateway_url"),
-            TASK_SUBMIT,
-            submit.model_dump(),
-            timeout=10.0,
-            result_model=SubmitResult,
-        )
-        if resp.error:
-            typer.echo(f"[ERROR] {resp.error.message}")
+        resp = submit_task(ctx.obj.get("gateway_url"), task)
+        if "error" in resp:
+            typer.echo(f"[ERROR] {resp['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted sort → taskId={resp.result.taskId}")
+        task_id = resp.get("result", {}).get("taskId") or resp.get("result", {}).get(
+            "id"
+        )
+        typer.echo(f"Submitted sort → taskId={task_id}")
     except Exception as exc:
         typer.echo(
             f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"

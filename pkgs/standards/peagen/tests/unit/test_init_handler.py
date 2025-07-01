@@ -3,6 +3,7 @@ from pathlib import Path
 
 from peagen.handlers import init_handler as handler
 from peagen.core import init_core
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -25,7 +26,8 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 
     monkeypatch.setattr(init_core, func, fake)
     args = {"kind": kind, "path": "~/p"}
-    result = await handler.init_handler({"payload": {"args": args}})
+    task = build_task("init", args)
+    result = await handler.init_handler(task)
 
     assert result == {"kind": kind}
     assert called.get("path") == Path("~/p").expanduser()
@@ -35,7 +37,7 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 @pytest.mark.asyncio
 async def test_init_handler_errors(monkeypatch):
     with pytest.raises(ValueError):
-        await handler.init_handler({"payload": {"args": {}}})
+        await handler.init_handler(build_task("init", {}))
 
     with pytest.raises(ValueError):
-        await handler.init_handler({"payload": {"args": {"kind": "unknown"}}})
+        await handler.init_handler(build_task("init", {"kind": "unknown"}))

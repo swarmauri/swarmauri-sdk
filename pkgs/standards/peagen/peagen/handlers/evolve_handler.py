@@ -5,12 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
+import uuid
+
 import yaml
 
-from peagen.protocols.methods.task import PatchResult, SubmitParams, SubmitResult
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas import Status
 from .fanout import fan_out
-from . import ensure_task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
@@ -33,8 +34,7 @@ def _load_spec(path_or_text: str) -> tuple[Path | None, dict]:
     return None, yaml.safe_load(path_or_text)
 
 
-async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def evolve_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
 
@@ -75,7 +75,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitR
                 return str(resolved)
         return str(resolved)
 
-    children: List[PatchResult] = []
+    children: List[SubmitParams] = []
     for job in jobs:
         if mutations is not None:
             job.setdefault("mutations", mutations)
@@ -102,8 +102,9 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitR
                 mut["uri"] = _resolve_path(uri)
 
         children.append(
-            ensure_task(
+            SubmitParams.model_validate(
                 {
+                    "id": str(uuid.uuid4()),
                     "pool": pool,
                     "status": Status.waiting,
                     "payload": {"action": "mutate", "args": job},
@@ -119,7 +120,7 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitR
     )
     child_ids = fan_res["children"]
 
-    if vcs and spec_path:
+    if vcs and spec_path and repo:
         repo_root = Path(vcs.repo.working_tree_dir)
         try:
             rel_spec = spec_path.resolve().relative_to(repo_root)
@@ -130,9 +131,10 @@ async def evolve_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitR
             commit_sha = vcs.commit([str(rel_spec)], f"evolve {spec_path.stem}")
             branches = [pea_ref("run", cid) for cid in child_ids]
             vcs.fan_out("HEAD", branches)
-            for b in branches:
-                vcs.push(b)
-            fan_res["commit"] = commit_sha
+            if vcs.has_remote():
+                for b in branches:
+                    vcs.push(b)
+                fan_res["commit"] = commit_sha
     result = {"children": child_ids, "jobs": len(jobs), **fan_res}
     if tmp_dir:
         import shutil

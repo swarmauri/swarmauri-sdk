@@ -5,6 +5,7 @@ import datetime
 import httpx
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.orm.schemas import TaskRead
 
 
 @pytest.mark.unit
@@ -43,7 +44,7 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_task", noop)
 
-    from peagen.protocols.methods.worker import RegisterParams
+    from peagen.transport.jsonrpc_schemas.worker import RegisterParams
 
     await gw.worker_register(
         RegisterParams(
@@ -56,7 +57,7 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
     )
 
     await q.sadd("pools", "p")
-    task = gw.TaskRead(
+    task = TaskRead(
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
@@ -65,6 +66,7 @@ async def test_scheduler_removes_bad_worker(monkeypatch):
         status=gw.Status.queued,
         note="",
         spec_hash=uuid.uuid4().hex,
+        labels={},
         date_created=datetime.datetime.now(datetime.timezone.utc),
         last_modified=datetime.datetime.now(datetime.timezone.utc),
     )

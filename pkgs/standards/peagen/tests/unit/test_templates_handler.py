@@ -1,6 +1,7 @@
 import pytest
 
 from peagen.handlers import templates_handler as handler
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
@@ -28,9 +29,8 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
-    result = await handler.templates_handler(
-        {"payload": {"args": {"operation": op, **args}}}
-    )
+    task = build_task("templates", {"operation": op, **args})
+    result = await handler.templates_handler(task)
 
     assert result == {"op": op}
     assert called

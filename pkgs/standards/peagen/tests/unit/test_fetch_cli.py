@@ -6,12 +6,13 @@ import typer
 
 from peagen.cli.commands import fetch
 from peagen.orm.status import Status
+from peagen.cli.task_helpers import build_task
 
 
 @pytest.mark.unit
 def test_build_task_embeds_action_and_args():
     args = {"workspaces": ["w"]}
-    task = fetch._build_task(args)
+    task = build_task("fetch", args)
     assert task.payload == {"action": "fetch", "args": args}
     assert task.pool == "default"
     assert task.status == Status.waiting

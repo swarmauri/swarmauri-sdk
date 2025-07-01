@@ -3,46 +3,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TypeVar
-
-import uuid
-import httpx
+from typing import Any, Dict, Optional
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
-from pydantic import TypeAdapter
-
-from peagen.protocols import Request, Response
-from peagen.protocols.methods.keys import (
-    KEYS_UPLOAD,
+from peagen.transport.client import send_jsonrpc_request
+from peagen.transport.jsonrpc_schemas.keys import (
     KEYS_DELETE,
     KEYS_FETCH,
-    UploadParams,
-    UploadResult,
+    KEYS_UPLOAD,
     DeleteParams,
     DeleteResult,
     FetchParams,
     FetchResult,
+    UploadParams,
+    UploadResult,
 )
-
-R = TypeVar("R")
-
-
-def _rpc_post(
-    url: str,
-    method: str,
-    params: Dict[str, Any],
-    *,
-    result_model: Type[R],
-    timeout: float = 10.0,
-) -> Response[R]:
-    """Send a JSON-RPC request and return the typed response."""
-    envelope = Request(id=str(uuid.uuid4()), method=method, params=params)
-    resp = httpx.post(url, json=envelope.model_dump(), timeout=timeout)
-    resp.raise_for_status()
-    adapter = TypeAdapter(Response[result_model])  # type: ignore[index]
-    return adapter.validate_python(resp.json())
-
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
@@ -98,11 +74,11 @@ def upload_public_key(
     drv = _get_driver(key_dir=key_dir)
     pubkey = drv.pub_path.read_text()
     params = UploadParams(public_key=pubkey).model_dump()
-    res = _rpc_post(
+    res = send_jsonrpc_request(
         gateway_url,
         KEYS_UPLOAD,
         params,
-        result_model=UploadResult,
+        expect=UploadResult,
     )
     return res.model_dump()
 
@@ -110,11 +86,11 @@ def upload_public_key(
 def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Remove a stored public key on the gateway."""
     params = DeleteParams(fingerprint=fingerprint).model_dump()
-    res = _rpc_post(
+    res = send_jsonrpc_request(
         gateway_url,
         KEYS_DELETE,
         params,
-        result_model=DeleteResult,
+        expect=DeleteResult,
     )
     return res.model_dump()
 
@@ -122,11 +98,11 @@ def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> d
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     """Fetch trusted keys from the gateway."""
     params = FetchParams().model_dump()
-    res = _rpc_post(
+    res = send_jsonrpc_request(
         gateway_url,
         KEYS_FETCH,
         params,
-        result_model=FetchResult,
+        expect=FetchResult,
     )
     return res.result.model_dump() if res.result else {}
 

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 import uuid
-import typing as t
 from peagen.transport.jsonrpc import RPCException
-from peagen.protocols.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
 
-from peagen.protocols import (
+from peagen.transport import (
     TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
@@ -16,7 +15,7 @@ from peagen.protocols import (
     TASK_PATCH,
     TASK_GET,
 )
-from peagen.protocols.methods.task import (
+from peagen.transport.jsonrpc_schemas.task import (
     SubmitParams,
     SubmitResult,
     PatchParams,
@@ -26,7 +25,7 @@ from peagen.protocols.methods.task import (
     GetParams,
     GetResult,
 )
-from peagen.protocols.methods.guard import GUARD_SET
+from peagen.transport.jsonrpc_schemas.guard import GUARD_SET
 
 from .. import (
     READY_QUEUE,
@@ -44,27 +43,56 @@ from .. import (
     queue,
 )
 from peagen.errors import TaskNotFoundError
-from peagen.schemas import TaskCreate, TaskUpdate, TaskRead
-from peagen.services.tasks import _to_schema
+from typing import Any, Dict
 from peagen.orm.task.task import TaskModel
 from peagen.orm.task.task_run import TaskRunModel
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas import Status
 
 # Use the Session factory configured by the gateway
 from .. import Session, engine, Base
 
 
+# NEW — shadow-repo helpers
+from peagen.core.git_shadow_core import (
+    ensure_org,
+    ensure_mirror,
+    attach_deploy_key,
+)
+from peagen._utils._split_github import _split_github
+
+# -----------------TaskBlob ------------------------------------
+
+TaskBlob = Dict[str, Any]  # canonical on-wire / in-Redis structure
+
+
 # -----------------Helper---------------------------------------
 
 
-def _parse_task_create(task: t.Any) -> TaskCreate:
-    """Return ``task`` if it is a :class:`TaskCreate` instance."""
+def _normalise_submit_payload(raw: dict) -> TaskBlob:
+    """
+    Ensure required fields exist and assign sensible defaults.
+    This is the only validation performed at the RPC layer.
+    """
+    tenant_id = raw.get("tenant_id") or "default"
+    try:
+        uuid.UUID(str(tenant_id))
+        tenant_uuid = str(tenant_id)
+    except (ValueError, TypeError):
+        tenant_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(tenant_id)).hex
 
-    if isinstance(task, TaskCreate):
-        return task
-    if isinstance(task, dict):
-        return TaskCreate.model_validate(task)
-    raise TypeError("TaskCreate required")
+    blob: TaskBlob = {
+        "id": raw.get("id") or uuid.uuid4().hex,
+        "tenant_id": tenant_uuid,
+        "git_reference_id": raw.get("git_reference_id"),
+        "pool": raw.get("pool", "default"),
+        "payload": raw.get("payload", {}),
+        "status": raw.get("status", Status.queued),
+        "note": raw.get("note", ""),
+        "labels": raw.get("labels", []),
+        "spec_hash": raw.get("spec_hash") or "",
+        "last_modified": raw.get("last_modified"),
+    }
+    return blob
 
 
 # --------------Basic Task Methods ---------------------------------
@@ -72,126 +100,186 @@ def _parse_task_create(task: t.Any) -> TaskCreate:
 
 @dispatcher.method(TASK_SUBMIT)
 async def task_submit(params: SubmitParams) -> SubmitResult:
-    """Persist *task* and enqueue it."""
-    dto = _parse_task_create(params.task)
-    await queue.sadd("pools", dto.pool)
+    """
+    Persist the task definition, ensure Gitea shadow state, enqueue, broadcast.
+    """
+    # 1. Build TaskBlob (unchanged) ────────────────────────────────────────
+    raw_task = getattr(params, "task", None)
+    if raw_task is not None:
+        task_blob = _normalise_submit_payload(dict(raw_task))
+    else:
+        extra = getattr(params, "__pydantic_extra__", {}) or {}
+        base = {
+            "id": params.id,
+            "tenant_id": extra.get("tenant_id"),
+            "git_reference_id": extra.get("git_reference_id"),
+            "pool": params.pool,
+            "payload": params.payload,
+            "status": params.status,
+            "note": params.note or "",
+            "labels": params.labels or [],
+            "spec_hash": extra.get("spec_hash"),
+            "last_modified": extra.get("last_modified"),
+        }
+        task_blob = _normalise_submit_payload(base)
 
-    action = (dto.payload or {}).get("action")
-    handlers: set[str] = set()
-    for w in await _live_workers_by_pool(dto.pool):
-        raw = w.get("handlers", [])
-        if isinstance(raw, str):
-            try:
-                raw = json.loads(raw)
-            except Exception:  # noqa: BLE001
-                raw = []
-        handlers.update(raw)
-    if action is not None and action not in handlers:
-        raise RPCException(
-            code=-32601, message="Method not found", data={"method": str(action)}
-        )
+    await queue.sadd("pools", task_blob["pool"])
 
-    task_id = dto.id
-    if task_id and await _load_task(task_id):
-        new_id = str(uuid.uuid4())
-        log.warning("task id collision: %s → %s", task_id, new_id)
-        task_id = new_id
+    # 2. Shadow-repo guarantees ───────────────────────────────────────────
+    # Expect these keys in payload (client responsibility)
+    payload = task_blob["payload"] or {}
+    repo_url = payload.get("repo")  # GitHub URL
+    deploy_key = payload.get("deploy_key")  # public key (str)
 
-    # Determine whether the provided task ID is a valid UUID. If not, we
-    # still accept it for in-memory tracking but skip persistence to the
-    # relational database to avoid driver errors.
-    persist_to_db = True
-    if task_id is not None:
+    if repo_url and deploy_key:
         try:
-            uuid.UUID(str(task_id))
-        except ValueError:
-            persist_to_db = False
+            org, repo = _split_github(repo_url)
+            slug = org.lower()
 
-    task_rd: TaskRead | None = None
-    if persist_to_db:
-        # Ensure the database schema exists for test environments that
-        # do not run migrations.
+            await ensure_org(slug)
+            await ensure_mirror(slug, repo, repo_url)
+            key_id = await attach_deploy_key(slug, repo, deploy_key, rw=True)
+
+            # Hand the key-id to the worker (private half lives in Vault)
+            payload["deploy_key_id"] = key_id
+            task_blob["payload"] = payload
+        except Exception as exc:
+            log.error("shadow-repo setup failed: %s", exc, exc_info=True)
+            raise RPCException(code=-32011, message="shadow-repo setup error")
+
+    # 3. Verify a worker advertises the action (unchanged) ────────────────
+    action = payload.get("action")
+    if action:
+        advertised = {
+            h
+            for w in await _live_workers_by_pool(task_blob["pool"])
+            for h in (
+                json.loads(w.get("handlers", "[]"))
+                if isinstance(w.get("handlers"), str)
+                else w.get("handlers", [])
+            )
+        }
+        if action not in advertised:
+            log.warning("no worker advertising '%s' found", action)
+
+    # 4. Avoid id collision in Redis (unchanged) ──────────────────────────
+    if await _load_task(task_blob["id"]):
+        task_blob["id"] = uuid.uuid4().hex
+        log.warning("task id collision – generated new id %s", task_blob["id"])
+
+    # 5. Optional Postgres persistence (unchanged) ────────────────────────
+    try:
+        uuid.UUID(task_blob["id"])
+        persist = task_blob.get("tenant_id") is not None
+    except ValueError:
+        persist = False
+
+    if persist:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
         async with Session() as ses:
-            # 1. create definition-of-task row
-            payload = dto.model_dump()
-            if task_id:
-                payload["id"] = uuid.UUID(str(task_id))
-            task_db = TaskModel(**payload)
-            ses.add(task_db)
-            await ses.flush()  # gets task_db.id
-
-            # 2. create first execution attempt
-            run_db = TaskRunModel(task_id=task_db.id, status=Status.queued)
-            ses.add(run_db)
+            orm_fields = {
+                k: task_blob[k]
+                for k in _ORM_COLUMNS
+                if k in task_blob and task_blob[k] is not None
+            }
+            for col in ("id", "tenant_id", "git_reference_id"):
+                if col in orm_fields and isinstance(orm_fields[col], str):
+                    try:
+                        orm_fields[col] = uuid.UUID(str(orm_fields[col]))
+                    except ValueError:
+                        pass
+            model = TaskModel(**orm_fields)
+            ses.merge(model)
+            ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
             await ses.commit()
 
-        # 3. make the object that will travel over Redis / websockets
-        task_rd = _to_schema(task_db)
-    else:
-        # Build a ``TaskRead`` instance directly from the provided data without
-        # validation to accommodate non-UUID identifiers used in older tests.
-        data = dto.model_dump()
-        if task_id:
-            data["id"] = task_id
-        task_rd = TaskRead.model_construct(**data)
+    # 6. Enqueue & broadcast (unchanged) ──────────────────────────────────
+    await queue.rpush(
+        f"{READY_QUEUE}:{task_blob['pool']}", json.dumps(task_blob, default=str)
+    )
+    await _publish_queue_length(task_blob["pool"])
+    await _save_task(task_blob)
+    await _publish_task(task_blob)
 
-    await queue.rpush(f"{READY_QUEUE}:{task_rd.pool}", task_rd.model_dump_json())
-    await _publish_queue_length(task_rd.pool)
-    await _save_task(task_rd)
-    await _publish_task(task_rd)
-    log.info("task %s queued in %s (ttl=%ss)", task_rd.id, task_rd.pool, TASK_TTL)
-    return SubmitResult(taskId=str(task_rd.id))
+    log.info(
+        "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
+    )
+
+    return SubmitResult(id=str(task_blob["id"]))
+
+
+# ------------------------------------------------------------------
+# PATCH  ▸  update in-cache blob  ▸  persist  ▸  broadcast
+# ------------------------------------------------------------------
+
+# helper: canonical field set that can be patched
+_ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
+_ALLOWED_PATCH_EXTRAS = {"labels", "result"}
 
 
 @dispatcher.method(TASK_PATCH)
 async def task_patch(params: PatchParams) -> PatchResult:
-    """Update persisted metadata for an existing task."""
-    taskId = params.taskId
+    task_id = params.taskId
     changes = params.changes
-    task = await _load_task(taskId)
+
+    task = await _load_task(task_id)  # TaskBlob | None
     if not task:
-        raise TaskNotFoundError(taskId)
+        raise TaskNotFoundError(task_id)
 
     for field, value in changes.items():
-        if field not in TaskUpdate.model_fields and field not in {"labels", "result"}:
+        # skip unknown columns
+        if field not in _ORM_COLUMNS and field not in _ALLOWED_PATCH_EXTRAS:
             continue
+        # coerce status enum
         if field == "status":
             value = Status(value)
-        setattr(task, field, value)
+        task[field] = value  # apply in-memory
 
-    await _save_task(task)
-    await _persist(task)
-    await _publish_task(task)
-    if "result" in changes and isinstance(changes["result"], dict):
-        children = changes["result"].get("children")
-        if children:
-            for cid in children:
-                await _finalize_parent_tasks(cid)
-    log.info("task %s patched with %s", taskId, ",".join(changes.keys()))
-    return PatchResult(**task.model_dump(mode="json"))
+    await _save_task(task)  # Redis cache
+    await _persist(task)  # Postgres + result backend
+    await _publish_task(task)  # WebSocket event
+
+    # cascade completion checks for parent tasks, if needed
+    if isinstance(changes.get("result"), dict):
+        for cid in changes["result"].get("children", []):
+            await _finalize_parent_tasks(cid)
+
+    log.info("task %s patched with %s", task_id, ",".join(changes.keys()))
+
+    # Return only fields declared by PatchResult schema
+    filtered = {k: v for k, v in task.items() if k in PatchResult.model_fields}
+    return PatchResult(**filtered)
 
 
+# ------------------------------------------------------------------
+# GET  ▸  fetch from cache or DB fall-back
+# ------------------------------------------------------------------
 @dispatcher.method(TASK_GET)
 async def task_get(params: GetParams) -> GetResult | dict:
-    taskId = params.taskId
+    task_id = params.taskId
+
+    # quick sanity check – client ought to supply a UUID-ish id
     try:
-        uuid.UUID(taskId)
+        uuid.UUID(task_id)
     except ValueError:
         raise RPCException(code=-32602, message="Invalid task id")
-    if t := await _load_task(taskId):
-        data = t.model_dump(mode="json")
-        duration = getattr(t, "duration", None)
-        if duration is not None:
-            data["duration"] = duration
+
+    task = await _load_task(task_id)
+    if task:
+        # optional duration passthrough
+        data = dict(task)
+        if "duration" in task and task["duration"] is not None:
+            data["duration"] = task["duration"]
         filtered = {k: v for k, v in data.items() if k in GetResult.model_fields}
         return GetResult(**filtered)
+
+    # fall-back to slower path (possibly worker-side DB)
     try:
         from ..core.task_core import get_task_result
 
-        return await get_task_result(taskId)
+        return await get_task_result(task_id)
     except TaskNotFoundError as exc:
         raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
 

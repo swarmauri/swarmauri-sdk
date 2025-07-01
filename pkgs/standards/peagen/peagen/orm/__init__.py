@@ -84,9 +84,6 @@ from .result.analysis_result import AnalysisResultModel  # noqa: F401
 from .abuse_record import AbuseRecordModel  # noqa: F401
 from .security.public_key import PublicKeyModel  # noqa: F401
 
-# ----------------------------------------------------------------------
-# Public re-exports
-# ----------------------------------------------------------------------
 __all__: list[str] = [
     # base
     "Base",
@@ -124,12 +121,38 @@ __all__: list[str] = [
     # misc
     "AbuseRecordModel",
     "PublicKeyModel",
+    "task_schema_to_orm",
+    "task_orm_to_schema",
 ]
 
-# Trigger Pydantic schema generation at import time
-try:  # pragma: no cover - best effort
-    import importlib
+from typing import TYPE_CHECKING
 
-    importlib.import_module("peagen.schemas")
-except Exception:  # noqa: BLE001
-    pass
+if TYPE_CHECKING:  # pragma: no cover - lint/static type hinting only
+    from .schemas import TaskCreate, TaskUpdate, TaskRead
+
+
+def __getattr__(name: str):
+    if name in {"TaskCreate", "TaskUpdate", "TaskRead"}:
+        from . import schemas as _schemas
+
+        value = getattr(_schemas, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(name)
+
+
+def task_schema_to_orm(data: "TaskCreate | TaskUpdate") -> TaskModel:
+    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
+
+    from .schemas import TaskCreate, TaskUpdate  # avoid circular import
+
+    assert isinstance(data, (TaskCreate, TaskUpdate))
+    return TaskModel(**data.model_dump())
+
+
+def task_orm_to_schema(row: TaskModel) -> "TaskRead":
+    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
+
+    from .schemas import TaskRead  # avoid circular import
+
+    return TaskRead.from_orm(row)

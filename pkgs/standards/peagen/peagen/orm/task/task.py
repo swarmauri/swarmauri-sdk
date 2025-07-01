@@ -64,6 +64,13 @@ class TaskModel(BaseModel):
         JSON, nullable=False, default=dict, doc="Arbitrary task payload"
     )
 
+    labels: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=list,
+        doc="Optional labels for filtering/grouping",
+    )
+
     status: Mapped[Status] = mapped_column(
         Enum(Status, name="task_status_enum"),
         nullable=False,

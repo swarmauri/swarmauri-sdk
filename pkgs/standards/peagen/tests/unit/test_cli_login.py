@@ -4,7 +4,6 @@ import pytest
 
 from peagen.cli import app
 import peagen.cli.commands.login as login_mod
-from peagen.protocols import Response, Error
 
 
 class DummyDriver:
@@ -18,12 +17,14 @@ class DummyDriver:
 def test_login_success(monkeypatch, tmp_path):
     captured = {}
 
-    def fake_rpc_post(url, method, params, *, timeout, result_model=None):
-        captured.update({"url": url, "method": method, "params": params})
-        return Response.ok(id="1", result=None)
+    def fake_login(*, key_dir, passphrase, gateway_url):
+        captured.update(
+            {"key_dir": key_dir, "passphrase": passphrase, "gateway_url": gateway_url}
+        )
+        return {}
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(login_mod, "core_login", fake_login)
 
     runner = CliRunner()
     result = runner.invoke(
@@ -33,18 +34,18 @@ def test_login_success(monkeypatch, tmp_path):
 
     assert result.exit_code == 0
     assert "Logged in and uploaded public key" in result.output
-    assert captured["url"] == "http://gw/rpc"
-    assert captured["params"]["public_key"] == "PUB"
+    assert captured["gateway_url"] == "http://gw/rpc"
+    assert captured["key_dir"] == tmp_path
 
 
 @pytest.mark.unit
 def test_login_http_error(monkeypatch, tmp_path):
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
 
-    def fake_rpc_post(*_a, **_k):
-        return Response.fail(id="1", err=Error(code=-1, message="fail"))
+    def fake_login(*_a, **_k):
+        return {"error": {"code": -1, "message": "fail"}}
 
-    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(login_mod, "core_login", fake_login)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -55,11 +56,11 @@ def test_login_http_error(monkeypatch, tmp_path):
 
 @pytest.mark.unit
 def test_login_request_error(monkeypatch, tmp_path):
-    def fake_rpc_post(*_a, **_k):
+    def fake_login(*_a, **_k):
         raise RequestError("oops")
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", DummyDriver)
-    monkeypatch.setattr(login_mod, "rpc_post", fake_rpc_post)
+    monkeypatch.setattr(login_mod, "core_login", fake_login)
 
     runner = CliRunner()
     result = runner.invoke(app, ["login", "--key-dir", str(tmp_path)])
@@ -78,9 +79,7 @@ def test_login_passphrase(monkeypatch, tmp_path):
             captured.update(self.called)
 
     monkeypatch.setattr(login_mod, "AutoGpgDriver", CaptureDriver)
-    monkeypatch.setattr(
-        login_mod, "rpc_post", lambda *a, **k: Response.ok(id="1", result=None)
-    )
+    monkeypatch.setattr(login_mod, "core_login", lambda **_k: {})
 
     runner = CliRunner()
     result = runner.invoke(

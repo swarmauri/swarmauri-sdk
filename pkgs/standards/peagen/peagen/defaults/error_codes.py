@@ -1,5 +1,5 @@
 """Backward compatible re-export of the canonical error codes."""
 
-from peagen.protocols.error_codes import Code as ErrorCode
+from peagen.transport.error_codes import ErrorCode
 
 __all__ = ["ErrorCode"]

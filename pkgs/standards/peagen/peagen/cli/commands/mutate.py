@@ -7,22 +7,14 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from peagen.cli.rpc_utils import rpc_post
-
 import typer
-from functools import partial
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_mutate_app = typer.Typer(help="Run the mutate workflow")
 remote_mutate_app = typer.Typer(help="Run the mutate workflow")
-
-
-_build_task = partial(_generic_build_task, "mutate")
 
 
 @local_mutate_app.command("mutate")
@@ -64,7 +56,7 @@ def run(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("mutate", args, pool=ctx.obj.get("pool", "default"))
     result = asyncio.run(mutate_handler(task))
 
     if json_out:
@@ -108,14 +100,9 @@ def submit(
         "evaluator_ref": fitness,
         "mutations": [{"kind": mutator}],
     }
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("mutate", args, pool=ctx.obj.get("pool", "default"))
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
     if "error" in reply:
         typer.secho(

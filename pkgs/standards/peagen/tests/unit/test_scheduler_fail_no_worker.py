@@ -2,8 +2,10 @@ import asyncio
 import importlib
 import uuid
 import datetime
+import json
 import pytest
 from peagen.plugins.queues.in_memory_queue import InMemoryQueue
+from peagen.orm.schemas import TaskRead
 
 
 @pytest.mark.unit
@@ -45,10 +47,25 @@ async def test_scheduler_fails_task_without_worker(monkeypatch):
     called = {}
 
     async def record_save(task):
-        called["status"] = task.status
-        called["id"] = task.id
+        if hasattr(task, "status"):
+            called["status"] = task.status
+            called["id"] = task.id
+        else:
+            called["status"] = task.get("status")
+            tid = task.get("id")
+            called["id"] = uuid.UUID(tid) if isinstance(tid, str) else tid
 
     monkeypatch.setattr(gw, "_save_task", record_save)
+
+    async def stub_fail_task(task, exc):
+        if isinstance(task, dict):
+            blob = task
+        else:
+            blob = task.model_dump()
+        blob["status"] = gw.Status.failed
+        await gw._save_task(blob)
+
+    monkeypatch.setattr(gw, "_fail_task", stub_fail_task)
 
     async def empty_workers(_pool):
         return []
@@ -56,7 +73,7 @@ async def test_scheduler_fails_task_without_worker(monkeypatch):
     monkeypatch.setattr(gw, "_live_workers_by_pool", empty_workers)
 
     await q.sadd("pools", "p")
-    task = gw.TaskRead(
+    task = TaskRead(
         id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
         git_reference_id=uuid.uuid4(),
@@ -65,10 +82,13 @@ async def test_scheduler_fails_task_without_worker(monkeypatch):
         status=gw.Status.queued,
         note="",
         spec_hash=uuid.uuid4().hex,
+        labels={},
         date_created=datetime.datetime.now(datetime.timezone.utc),
         last_modified=datetime.datetime.now(datetime.timezone.utc),
     )
-    await q.rpush(f"{gw.READY_QUEUE}:p", task.model_dump_json())
+    blob = task.model_dump()
+    blob["labels"] = []
+    await q.rpush(f"{gw.READY_QUEUE}:p", json.dumps(blob, default=str))
 
     orig_blpop = q.blpop
     first = True

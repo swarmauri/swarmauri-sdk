@@ -6,16 +6,14 @@ from typing import Any, Dict
 from peagen._utils import maybe_clone_repo
 
 from peagen.core.analysis_core import analyze_runs
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from . import ensure_task
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 from .repo_utils import fetch_repo, cleanup_repo
 
 
-async def analysis_handler(task_or_dict: Dict[str, Any] | SubmitParams) -> SubmitResult:
-    task = ensure_task(task_or_dict)
+async def analysis_handler(task: SubmitParams) -> SubmitResult:
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")

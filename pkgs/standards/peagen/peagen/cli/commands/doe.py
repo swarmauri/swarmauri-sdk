@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from peagen.cli.rpc_utils import rpc_post
 import time
 from pathlib import Path
 from typing import Optional
@@ -16,25 +15,12 @@ import typer
 
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.protocols import TASK_SUBMIT, TASK_GET
-from peagen.protocols.methods.task import (
-    SubmitParams,
-    SubmitResult,
-    GetParams,
-    GetResult,
-)
-from peagen.cli.task_builder import build_submit_params
-from peagen.orm.status import Status
+from peagen.cli.task_helpers import build_task, submit_task, get_task
+from peagen.transport.jsonrpc_schemas import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
 remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
-
-
-def _make_task(args: dict, action: str = "doe") -> SubmitParams:
-    """Construct :class:`SubmitParams` for *action* using *args*."""
-
-    return build_submit_params(action, args)
 
 
 # ───────────────────────────── local run ───────────────────────────────────
@@ -92,8 +78,8 @@ def run_gen(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    submit = _make_task(args, action="doe")
-    result = asyncio.run(doe_handler(submit.task))
+    task = build_task("doe", args, pool="default")
+    result = asyncio.run(doe_handler(task))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
@@ -147,14 +133,9 @@ def submit_gen(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    submit = _make_task(args, action="doe")
+    task = build_task("doe", args, pool="default")
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        submit.model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
     if "error" in reply:
         typer.secho(
@@ -164,7 +145,8 @@ def submit_gen(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
+    task_id = reply.get("result", {}).get("taskId", task.id)
+    typer.secho(f"Submitted task {task_id}", fg=typer.colors.GREEN)
 
 
 # ───────────────────────────── local process ─────────────────────────────
@@ -222,8 +204,8 @@ def run_process(  # noqa: PLR0913
     if repo:
         args.update({"repo": repo, "ref": ref})
 
-    submit = _make_task(args, action="doe_process")
-    result = asyncio.run(doe_process_handler(submit.task))
+    task = build_task("doe_process", args, pool="default")
+    result = asyncio.run(doe_process_handler(task))
 
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
@@ -295,50 +277,42 @@ def submit_process(  # noqa: PLR0913
         "evaluate_runs": evaluate_runs,
     }
     args.update({"repo": repo, "ref": ref})
-    submit = _make_task(args, action="doe_process")
+    task = build_task("doe_process", args, pool="default")
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        submit.model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
-    if reply.error:
+    if "error" in reply:
         typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
 
-    typer.secho(f"Submitted task {submit.task.id}", fg=typer.colors.GREEN)
+    typer.secho(
+        f"Submitted task {reply.get('result', {}).get('taskId', task.id)}",
+        fg=typer.colors.GREEN,
+    )
     if watch:
-
-        def _rpc_call(tid: str) -> GetResult:
-            res = rpc_post(
-                ctx.obj.get("gateway_url"),
-                TASK_GET,
-                GetParams(taskId=tid).model_dump(),
-                result_model=GetResult,
-            )
-            return res.result  # type: ignore[return-value]
-
         while True:
-            task_reply = _rpc_call(submit.task.id)
-            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
+            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
             if Status.is_terminal(task_reply.status):
                 break
             time.sleep(interval)
 
+        typer.echo(json.dumps(task_reply.model_dump(), indent=2))
         children = task_reply.result.get("children", []) if task_reply.result else []
         for cid in children:
             while True:
-                child_reply = _rpc_call(cid)
-                typer.echo(json.dumps(child_reply.model_dump(), indent=2))
+                child_reply = get_task(ctx.obj.get("gateway_url"), cid)
                 if Status.is_terminal(child_reply.status):
                     break
                 time.sleep(interval)
+            typer.echo(json.dumps(child_reply.model_dump(), indent=2))
             if child_reply.status != "success":
-                typer.secho(f"Child task {cid} failed", fg=typer.colors.RED, err=True)
+                typer.secho(
+                    f"Child task {cid} failed",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
                 raise typer.Exit(1)

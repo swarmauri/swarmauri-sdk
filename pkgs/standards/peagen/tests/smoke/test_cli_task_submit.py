@@ -6,7 +6,7 @@ from typer.testing import CliRunner
 
 from peagen.cli import app
 from peagen.cli.commands import process as process_mod
-from peagen.protocols.methods import TASK_SUBMIT
+from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
 
 
 @pytest.mark.smoke
@@ -51,9 +51,9 @@ def test_cli_task_submit_local(monkeypatch, tmp_path: Path) -> None:
 
     monkeypatch.setattr(
         process_mod,
-        "_build_task",
-        lambda args, pool: DummyTask(
-            pool=pool, payload={"action": "process", "args": args}
+        "build_task",
+        lambda action, args, pool="default", **k: DummyTask(
+            pool=pool, payload={"action": action, "args": args}
         ),
     )
 

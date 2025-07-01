@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from .. import READY_QUEUE, dispatcher, log, queue
-from peagen.protocols.methods.pool import (
+from peagen.transport.jsonrpc_schemas.pool import (
     POOL_CREATE,
     POOL_JOIN,
     POOL_LIST_TASKS,
@@ -43,7 +43,7 @@ async def pool_list(params: ListParams) -> dict:
     end = -1 if limit is None else start + limit - 1
     ids = await queue.lrange(f"{READY_QUEUE}:{poolName}", start, end)
     tasks = []
-    from peagen.schemas import TaskRead  # dynamic import to avoid circular
+    from peagen.orm.schemas import TaskRead  # dynamic import to avoid circular
 
     for r in ids:
         t = TaskRead.model_validate_json(r)

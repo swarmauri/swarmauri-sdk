@@ -7,20 +7,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
-from functools import partial
 
 from peagen.handlers.extras_handler import extras_handler
 from swarmauri_standard.loggers.Logger import Logger
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from peagen.cli.rpc_utils import rpc_post
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 local_extras_app = typer.Typer(help="Manage EXTRAS schemas.")
 remote_extras_app = typer.Typer(help="Manage EXTRAS schemas remotely.")
-
-
-_build_task = partial(_generic_build_task, "extras")
 
 
 @local_extras_app.command("extras")
@@ -45,7 +38,7 @@ def run_extras(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("extras", args, pool=ctx.obj.get("pool", "default"))
 
     try:
         result: Dict[str, Any] = asyncio.run(extras_handler(task))
@@ -81,20 +74,14 @@ def submit_extras(
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("extras", args, pool=ctx.obj.get("pool", "default"))
 
     try:
-        reply = rpc_post(
-            gateway_url,
-            TASK_SUBMIT,
-            SubmitParams(task=task).model_dump(),
-            timeout=10.0,
-            result_model=SubmitResult,
-        )
-        if reply.error:
-            typer.echo(f"[ERROR] {reply.error.message}")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
-        typer.echo(f"Submitted extras generation → taskId={reply.result.taskId}")
+        typer.echo(f"Submitted extras generation → taskId={reply['result']['taskId']}")
     except Exception as exc:
         typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
         raise typer.Exit(1)

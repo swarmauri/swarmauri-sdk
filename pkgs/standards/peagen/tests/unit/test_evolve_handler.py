@@ -36,17 +36,15 @@ async def test_evolve_handler_fanout(monkeypatch, tmp_path):
         "JOBS:\n- workspace_uri: ws\n  target_file: t.py\n  import_path: mod\n  entry_fn: f\noperators:\n  mutation:\n    - kind: echo_mutator\n      probability: 1\n      uri: patch.p\n"
     )
 
-    task = {
-        "id": "P1",
-        "pool": "default",
-        "payload": {"args": {"evolve_spec": str(spec)}},
-    }
+    from peagen.cli.task_helpers import build_task
+
+    task = build_task("evolve", {"evolve_spec": str(spec)})
     result = await handler.evolve_handler(task)
 
     assert result["jobs"] == 1
     assert sent and sent[-1]["method"] == "Work.finished"
     submit = sent[0]
-    from peagen.protocols.methods import TASK_SUBMIT
+    from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
 
     assert submit["method"] == TASK_SUBMIT
     assert submit["params"]["payload"]["action"] == "mutate"

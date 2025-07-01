@@ -22,8 +22,8 @@ class ResultBackendBase:
             for t in getattr(self, "tasks").values():
                 data = t.to_dict() if hasattr(t, "to_dict") else t
                 data["id"] = str(data.get("id"))
-                if data.get("started_at") is not None:
-                    data["started_at"] = str(data["started_at"])
+                if data.get("date_created") is not None:
+                    data["date_created"] = str(data["date_created"])
                 out.append(data)
             return out
         if hasattr(self, "root"):

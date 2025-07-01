@@ -15,15 +15,11 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
-from functools import partial
 from peagen._utils.config_loader import load_peagen_toml
 
 from peagen.handlers.eval_handler import eval_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitParams, SubmitResult
-from peagen.cli.task_builder import _build_task as _generic_build_task
+from peagen.cli.task_helpers import build_task, submit_task
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_eval_app = typer.Typer(
@@ -35,7 +31,6 @@ remote_eval_app = typer.Typer(
 
 
 # ───────────────────────── helpers ─────────────────────────────────────────
-_build_task = partial(_generic_build_task, "eval")
 
 
 # ───────────────────────── local run ───────────────────────────────────────
@@ -64,7 +59,7 @@ def run(  # noqa: PLR0913 – CLI needs many options
     }
     if repo:
         args.update({"repo": repo, "ref": ref})
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("eval", args, pool=ctx.obj.get("pool", "default"))
     result = asyncio.run(eval_handler(task))
     report = result["report"]
 
@@ -113,7 +108,7 @@ def submit(  # noqa: PLR0913
         "strict": strict,
         "skip_failed": skip_failed,
     }
-    task = _build_task(args, ctx.obj.get("pool", "default"))
+    task = build_task("eval", args, pool=ctx.obj.get("pool", "default"))
 
     # ─────────────────────── cfg override  ──────────────────────────────
     inline = ctx.obj.get("task_override_inline")
@@ -125,16 +120,11 @@ def submit(  # noqa: PLR0913
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
     task.payload["cfg_override"] = cfg_override
 
-    reply = rpc_post(
-        ctx.obj.get("gateway_url"),
-        TASK_SUBMIT,
-        SubmitParams(task=task).model_dump(),
-        result_model=SubmitResult,
-    )
+    reply = submit_task(ctx.obj.get("gateway_url"), task)
 
-    if reply.error:
+    if "error" in reply:
         typer.secho(
-            f"Remote error {reply.error.code}: {reply.error.message}",
+            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
             fg=typer.colors.RED,
             err=True,
         )

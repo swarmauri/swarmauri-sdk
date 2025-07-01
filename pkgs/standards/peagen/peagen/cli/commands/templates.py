@@ -4,13 +4,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Dict, Optional
 
-from peagen.cli.rpc_utils import rpc_post
 import typer
 
 from peagen.handlers.templates_handler import templates_handler
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 
 # ──────────────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
@@ -27,23 +24,8 @@ remote_template_sets_app = typer.Typer(
 
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
-    submit = build_submit_params("templates", args)
-    return asyncio.run(templates_handler(submit.task))
-
-
-def _submit_task(args: Dict[str, Any], gateway_url: str) -> str:
-    """Submit a templates task via JSON-RPC."""
-    submit = build_submit_params("templates", args)
-    reply = rpc_post(
-        gateway_url,
-        TASK_SUBMIT,
-        submit.model_dump(),
-        timeout=10.0,
-        result_model=SubmitResult,
-    )
-    if reply.error:
-        raise RuntimeError(reply.error.message)
-    return str(reply.result.taskId if reply.result else submit.task.id)
+    task = build_task("templates", args, pool="default")
+    return asyncio.run(templates_handler(task))
 
 
 # ─── list ──────────────────────────────
@@ -73,7 +55,11 @@ def submit_list(
     """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list", "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted list → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -118,7 +104,11 @@ def submit_show(
     """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name, "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted show → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -215,7 +205,11 @@ def submit_add(
         "ref": ref,
     }
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted add → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -268,7 +262,11 @@ def submit_remove(
 
     args = {"operation": "remove", "name": name, "repo": repo, "ref": ref}
     try:
-        task_id = _submit_task(args, gateway_url)
+        task = build_task("templates", args, pool="default")
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted remove → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import asyncio
 
-from peagen.cli.rpc_utils import rpc_post
-
 
 from pathlib import Path
 
@@ -13,9 +11,7 @@ import typer
 
 from peagen.handlers.migrate_handler import migrate_handler
 
-from peagen.protocols import TASK_SUBMIT
-from peagen.protocols.methods.task import SubmitResult
-from peagen.cli.task_builder import build_submit_params
+from peagen.cli.task_helpers import build_task, submit_task
 
 
 # ``alembic.ini`` lives in the package root next to ``migrations``.
@@ -34,28 +30,6 @@ DEFAULT_GATEWAY = (
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
-
-
-def _submit_task(op: str, gateway_url: str, message: str | None = None) -> str:
-    """Submit a migration *op* via JSON-RPC and return the task id."""
-    args = {"op": op, "alembic_ini": str(ALEMBIC_CFG)}
-    if message:
-        args["message"] = message
-    submit = build_submit_params(
-        "migrate",
-        args,
-        pool="default",
-    )
-    reply = rpc_post(
-        gateway_url,
-        TASK_SUBMIT,
-        submit.model_dump(),
-        timeout=10.0,
-        result_model=SubmitResult,
-    )
-    if reply.error:
-        raise RuntimeError(reply.error.message)
-    return str(reply.result.taskId if reply.result else submit.task.id)
 
 
 @local_db_app.command("upgrade")
@@ -142,7 +116,15 @@ def remote_upgrade(
 ) -> None:
     """Submit an upgrade task via JSON-RPC."""
     try:
-        task_id = _submit_task("upgrade", gateway_url)
+        task = build_task(
+            "migrate",
+            {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
+            pool="default",
+        )
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted upgrade → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -160,7 +142,19 @@ def remote_revision(
 ) -> None:
     """Submit a revision task via JSON-RPC."""
     try:
-        task_id = _submit_task("revision", gateway_url, message)
+        task = build_task(
+            "migrate",
+            {
+                "op": "revision",
+                "message": message,
+                "alembic_ini": str(ALEMBIC_CFG),
+            },
+            pool="default",
+        )
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted revision → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")
@@ -175,7 +169,15 @@ def remote_downgrade(
 ) -> None:
     """Submit a downgrade task via JSON-RPC."""
     try:
-        task_id = _submit_task("downgrade", gateway_url)
+        task = build_task(
+            "migrate",
+            {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
+            pool="default",
+        )
+        reply = submit_task(gateway_url, task)
+        if "error" in reply:
+            raise RuntimeError(reply["error"]["message"])
+        task_id = reply.get("result", {}).get("taskId", task.id)
         typer.echo(f"Submitted downgrade → taskId={task_id}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}")

@@ -43,7 +43,7 @@ async def test_worker_list(monkeypatch):
     monkeypatch.setattr(gw, "_persist", noop)
     monkeypatch.setattr(gw, "_publish_event", noop)
 
-    from peagen.protocols.methods.worker import RegisterParams, ListParams
+    from peagen.transport.jsonrpc_schemas.worker import RegisterParams, ListParams
 
     await gw.worker_register(
         RegisterParams(

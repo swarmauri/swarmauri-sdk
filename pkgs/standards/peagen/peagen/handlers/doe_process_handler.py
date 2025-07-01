@@ -8,21 +8,19 @@ from typing import Any, Dict, List, Tuple
 
 import yaml
 
+import uuid
+
 from peagen.core.doe_core import generate_payload
-from peagen.protocols.methods.task import PatchResult, SubmitParams, SubmitResult
-from peagen.orm.status import Status
+from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
+from peagen.transport.jsonrpc_schemas import Status
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 from .fanout import fan_out
-from . import ensure_task
 
 
-async def doe_process_handler(
-    task_or_dict: Dict[str, Any] | SubmitParams,
-) -> SubmitResult:
+async def doe_process_handler(task: SubmitParams) -> SubmitResult:
     """Expand the DOE spec and spawn a process task for each project."""
-    task = ensure_task(task_or_dict)
     payload = task.payload
     args: Dict[str, Any] = payload.get("args", {})
     repo = args.get("repo")
@@ -122,11 +120,12 @@ async def doe_process_handler(
     result["outputs"] = uploaded
 
     pool = task.pool
-    children: List[PatchResult] = []
+    children: List[SubmitParams] = []
     for path, proj in projects:
         children.append(
-            ensure_task(
+            SubmitParams.model_validate(
                 {
+                    "id": str(uuid.uuid4()),
                     "pool": pool,
                     "status": Status.waiting,
                     "payload": {
