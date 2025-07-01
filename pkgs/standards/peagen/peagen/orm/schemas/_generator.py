@@ -40,7 +40,7 @@ for _name in model_names:
     id_type = _python_type(id_col)
 
     # CREATE: all required fields except 'date_created'
-    cfg = ConfigDict(extra="allow", from_attributes=True)
+    cfg = ConfigDict(extra="forbid", from_attributes=True)
     create_fields = {
         c_name: (_python_type(c), ...)
         for c_name, c in columns.items()
