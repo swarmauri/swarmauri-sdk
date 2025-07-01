@@ -3,8 +3,8 @@ from __future__ import annotations
 import os, httpx, asyncio
 
 from peagen.defaults import (
-    GIT_SHADOW_GIT_SHADOW_BASE, 
-    GIT_SHADOW_GIT_SHADOW_TOKEN,
+    GIT_SHADOW_BASE, 
+    GIT_SHADOW_TOKEN,
     )
 
 def _split_github(url: str) -> tuple[str, str]:
