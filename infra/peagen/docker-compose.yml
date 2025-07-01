@@ -165,7 +165,7 @@ services:
   ## ───────────────────────────── Peagen ────────────────────────────
   croutondb:
     build:
-      context: ../
+      context: ../../
       dockerfile: infra/peagen/Dockerfile.crud
     depends_on:
       postgres:
