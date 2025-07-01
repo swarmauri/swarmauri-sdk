@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     """
 
     database_url: str = "sqlite:///./dev.db"
+    api_key_1: str = ""
+    api_key_2: str = ""
+    api_key_3: str = ""
 
     class Config:
         """

@@ -10,53 +10,51 @@ and restart `scripts.dev_gateway`.
 from __future__ import annotations
 
 import asyncio
-import logging
-from swarmauri_standard.loggers.Logger import Logger
-import os
-import uuid
 import json
-import httpx
+import logging
+import os
 import time
+import uuid
+from importlib import reload
 from json.decoder import JSONDecodeError
-
-
-from fastapi import FastAPI, Request, Response, HTTPException
-from peagen.plugins.queues import QueueBase
-
-from peagen.transport import RPCDispatcher
-from peagen.transport import (
-    Request as RPCRequest,
-    Request as RPCEnvelope,
-    parse_request,
-    _registry,
-)
-from peagen.transport.jsonrpc import RPCException as RPCException
-from peagen.orm import Base
-from peagen.transport.jsonrpc_schemas import Status
-from peagen.transport.jsonrpc_schemas.work import WORK_START
 from typing import Any, Dict
 
-from peagen.orm import TaskModel, TaskRunModel
+import httpx
+from fastapi import FastAPI, HTTPException, Request, Response
 
-from peagen.gateway.ws_server import router as ws_router
-
-from importlib import reload
-from peagen.gateway import db as _db
-from peagen.plugins import PluginManager
+import peagen.defaults as defaults
 from peagen._utils.config_loader import resolve_cfg
-from peagen.gateway import db_helpers
-from peagen.gateway.db_helpers import record_unknown_handler, mark_ip_banned
+from peagen.core import migrate_core
+from peagen.defaults import BAN_THRESHOLD
 from peagen.errors import (
     DispatchHTTPError,
-    MissingActionError,
     MigrationFailureError,
+    MissingActionError,
     NoWorkerAvailableError,
 )
-import peagen.defaults as defaults
-from peagen.defaults import BAN_THRESHOLD
+from peagen.gateway import db as _db
+from peagen.gateway import db_helpers
+from peagen.gateway.db_helpers import mark_ip_banned, record_unknown_handler
+from peagen.gateway.ws_server import router as ws_router
+from peagen.orm import Base, TaskModel, TaskRunModel
+from peagen.plugins import PluginManager
+from peagen.plugins.queues import QueueBase
+from peagen.transport import (
+    Request as RPCEnvelope,
+)
+from peagen.transport import (
+    Request as RPCRequest,
+)
+from peagen.transport import (
+    RPCDispatcher,
+    _registry,
+    parse_request,
+)
 from peagen.transport.error_codes import ErrorCode
-from peagen.core import migrate_core
-
+from peagen.transport.jsonrpc import RPCException as RPCException
+from peagen.transport.jsonrpc_schemas import Status
+from peagen.transport.jsonrpc_schemas.work import WORK_START
+from swarmauri_standard.loggers.Logger import Logger
 
 _db = reload(_db)
 engine = _db.engine
@@ -837,7 +835,7 @@ __all__ = [
 
 def __getattr__(name: str):
     if name in __all__:
-        from .rpc import keys, pool, tasks, workers, secrets
+        from .rpc import keys, pool, secrets, tasks, workers
 
         modules = {
             "keys_upload": keys,
