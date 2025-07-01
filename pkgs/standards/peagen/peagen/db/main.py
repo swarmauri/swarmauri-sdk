@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI()
 
-@app.get("/health")
+@app.get("/healthz")
 def health_check():
     """
     Health check endpoint.
@@ -25,7 +25,7 @@ def health_check():
     Returns:
         dict: A dictionary containing the health status of the core application.
     """
-    return {"status": "core healthy"}
+    return {"status": "ok"}
 
 
 # Include API routers
