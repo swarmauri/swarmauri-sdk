@@ -79,7 +79,8 @@ dependencies = [
     "filelock",
 
     # db api support
-    "crouton>=0.1.6"
+    "crouton>=0.1.6",
+    "crouton-client>=0.1.6"
 
 ]
 
