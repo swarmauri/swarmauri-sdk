@@ -4,6 +4,7 @@ Revision ID: 69f4d7c302fa
 Revises: dc70c8bef823
 Create Date: 2025-07-01 00:00:00
 """
+
 from __future__ import annotations
 
 import uuid
@@ -11,6 +12,7 @@ from datetime import datetime, timezone
 from typing import Sequence, Union
 
 import sqlalchemy as sa
+from sqlalchemy import text
 from alembic import op
 
 revision: str = "69f4d7c302fa"
@@ -20,7 +22,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 # ───────────────────────── helpers ──────────────────────────
-UTC_NOW = text("(now() AT TIME ZONE 'UTC')")
+# Use CURRENT_TIMESTAMP for compatibility across different databases
+UTC_NOW = text("CURRENT_TIMESTAMP")
+
+
+def utc_now_naive() -> datetime:
+    """Return the current UTC time without tzinfo."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # ───────────────────────── migration ─────────────────────────
@@ -59,9 +67,12 @@ def upgrade() -> None:
 
     # ---------- default user ----------
     user_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
-    if bind.execute(
-        sa.text("SELECT 1 FROM users WHERE id = :id"), {"id": str(user_id)}
-    ).fetchone() is None:
+    if (
+        bind.execute(
+            sa.text("SELECT 1 FROM users WHERE id = :id"), {"id": str(user_id)}
+        ).fetchone()
+        is None
+    ):
         users = sa.table(
             "users",
             sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),

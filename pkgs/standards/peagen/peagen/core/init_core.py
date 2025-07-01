@@ -16,7 +16,11 @@ from typing import Any, Dict, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from github import Github
 
-from peagen.plugins import registry, discover_and_register_plugins
+from peagen.plugins import (
+    PluginManager,
+    discover_and_register_plugins,
+    registry,
+)
 from peagen.core.doe_core import _sha256
 
 
@@ -102,7 +106,13 @@ def init_project(
 
     _render_scaffold(src_root, path, context, force)
 
-    vcs.commit(["."], "initial commit")
+    pm = PluginManager({})
+    try:
+        vcs = pm.get("vcs")
+    except Exception:  # pragma: no cover - optional
+        vcs = None
+    if vcs:
+        vcs.commit(["."], "initial commit")
 
     if filter_uri:
         from peagen._utils.git_filter import add_filter, init_git_filter
