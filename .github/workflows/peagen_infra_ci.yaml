@@ -1,12 +1,8 @@
-# .github/workflows/peagen_ci.yaml
-name: Peagen CI Deploy
+# .github/workflows/peagen_infra_ci.yaml
+# Redeploys all peagen infra
+name: PeaInfr CI Deploy In
 
 on:
-  push:
-    branches: [ "master", "mono/dev", "coby/peagenv2" ]
-    paths:
-      - "pkgs/standards/peagen/**"
-      - "infra/peagen/**"
   workflow_dispatch:
 
 concurrency:
@@ -43,14 +39,12 @@ jobs:
     - name: Deploy with Docker Compose
       id: deploy
       run: |
-        sudo -E docker compose \
-          -f infra/peagen/docker-compose.yml \
-          up -d --build --force-recreate --no-deps croutondb gateway worker
-
-        # post build prune
+        # sudo -E docker compose -f infra/peagen/docker-compose.yml pull   # optional
         sudo docker system prune -f
+        sudo -E docker compose -f infra/peagen/docker-compose.yml down --remove-orphans
 
-
+        
+        sudo -E docker compose -f infra/peagen/docker-compose.yml up -d --force-recreate --build 
 
 
     # Collect logs only when *any* previous step failed (deploy or later)

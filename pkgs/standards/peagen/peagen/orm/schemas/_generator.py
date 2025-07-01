@@ -84,7 +84,3 @@ for _name in model_names:
         child_cls.__name__,
         delete_cls.__name__,
     ]
-
-# Explicit exports for common task schemas
-if "TaskRead" in globals():
-    __all__.extend(["TaskRead", "TaskCreate", "TaskUpdate"])
