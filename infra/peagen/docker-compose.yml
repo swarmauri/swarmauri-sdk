@@ -95,7 +95,6 @@ services:
     restart: unless-stopped
     networks: [app_net]
 
-
   # Nginx Proxy Manager
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
@@ -164,7 +163,28 @@ services:
     networks: [app_net]
 
   ## ───────────────────────────── Peagen ────────────────────────────
-
+  croutondb:
+    build:
+      context: ../
+      dockerfile: ./infra/Dockerfile.crud
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
+    volumes:
+      - /mnt/data/croutondb:/app
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: "30s"
+      timeout: "10s"
+      retries: 3
+    networks: [app_net]
+    
   gateway:
     build:
       context: ../../           # repo root ⬅️
