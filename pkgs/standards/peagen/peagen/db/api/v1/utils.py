@@ -1,101 +1,55 @@
-"""This module provides utility functions and classes for creating and attaching.
-
-CRUD routers to a FastAPI application.
-"""
-
+# utils.py
 from enum import Enum
 from typing import List
-from crouton import MemoryCRUDRouter, SQLAlchemyCRUDRouter  # type: ignore
-
-from peagen.orm import __all__ as models
-from peagen.orm.schemas import __all__ as schemas
-from peagen.db.session import get_db
 import inflect
+
+import peagen.orm as orm                       # ← import the *module*
+import peagen.orm.schemas as orm_schemas       # ← import the *module*
+from crouton import MemoryCRUDRouter, SQLAlchemyCRUDRouter  # type: ignore
+from peagen.db.session import get_db
 
 
 class RouterType(Enum):
-    """Enumeration for router types."""
-
     SQLALCHEMY = "sqlalchemy"
     MEMORY = "memory"
 
 
 def create_route_objects(components: List[str]) -> List[dict]:
-    """
-    Create route objects from the given components.
+    p = inflect.engine()
+    routes: List[dict] = []
 
-    Args:
-        components (List[str]): List of component names.
-
-    Returns:
-        List[dict]: List of route objects.
-    """
-    routes_to_create = []
     for component in components:
-        schema = getattr(schemas, component)
-        create_schema = getattr(schemas, component + "Create")
-        update_schema = getattr(schemas, component + "Update")
-        db_model = getattr(models, component + "Model")
+        # Skip umbrella / abstract symbols inadvertently listed in __all__
+        if not hasattr(orm_schemas, component) or not hasattr(orm, f"{component}Model"):
+            continue
 
-        p = inflect.engine()
-
-        obj = {
-            "schema": schema,
-            "create_schema": create_schema,
-            "update_schema": update_schema,
-            "db_model": db_model,
-            "prefix": p.plural(component.lower()),
-        }
-
-        routes_to_create.append(obj)
-
-    return routes_to_create
+        routes.append(
+            {
+                "schema":        getattr(orm_schemas, component),
+                "create_schema": getattr(orm_schemas, component + "Create"),
+                "update_schema": getattr(orm_schemas, component + "Update"),
+                "db_model":      getattr(orm,        component + "Model"),
+                "prefix":        p.plural(component.lower()),
+            }
+        )
+    return routes
 
 
 def create_routers(
     routes_to_create: List[dict],
     router_type: RouterType = RouterType.SQLALCHEMY,
 ) -> List:
-    """
-    Create routers based on the given route objects and router type.
-
-    Args:
-        routes_to_create (List[dict]): List of route objects.
-        router_type (RouterType): Type of router to create.
-
-    Returns:
-        List: List of created routers.
-    """
-    routers = []
+    routers: List = []
     for route in routes_to_create:
-        common_params = {
-            "schema": route["schema"],
-            "create_schema": route["create_schema"],
-            "update_schema": route["update_schema"],
-            "prefix": route["prefix"],
-        }
-
-        if router_type == RouterType.SQLALCHEMY:
-            router = SQLAlchemyCRUDRouter(
-                db_model=route["db_model"],
-                db=get_db,  # type: ignore
-                **common_params,
-            )
-        elif router_type == RouterType.MEMORY:
-            router = MemoryCRUDRouter(**common_params)  # type: ignore
-        routers.append(router)
-
+        common = dict(
+            schema=route["schema"],
+            create_schema=route["create_schema"],
+            update_schema=route["update_schema"],
+            prefix=route["prefix"],
+        )
+        if router_type is RouterType.SQLALCHEMY:
+            router = SQLAlchemyCRUDRouter(db_model=route["db_model"], db=get_db, **common)  # type: ignore[arg-type]
+        else:
+            router = MemoryCRUDRouter(**common)  # type: ignore[arg-type]
         routers.append(router)
     return routers
-
-
-def attach_list_of_routers(app, list_of_routers: List) -> None:
-    """
-    Attach a list of routers to the given FastAPI app.
-
-    Args:
-        app: FastAPI application instance.
-        list_of_routers (List): List of routers to attach.
-    """
-    for router in list_of_routers:
-        app.include_router(router)
