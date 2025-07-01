@@ -35,6 +35,7 @@ jobs:
       POSTGRES_PASSWORD:        ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
       PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
       PGADMIN_DEFAULT_EMAIL:    ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
+      PEAGEN_GIT_SHADOW_PAT:    ${{ secrets.PEAGEN_GIT_SHADOW_PAT }}
 
     steps:
     - uses: actions/checkout@v4
