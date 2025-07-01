@@ -39,7 +39,7 @@ def _discover_components() -> list[str]:
         base = attr[:-5]  # strip 'Model'
         if all(
             hasattr(orm_schemas, f"{base}{suffix}")
-            for suffix in ("", "Create", "Update")
+            for suffix in ("Read", "Create", "Update")
         ):
             components.append(base)
 
