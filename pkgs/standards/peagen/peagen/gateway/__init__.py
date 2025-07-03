@@ -34,6 +34,7 @@ from peagen.errors import (
 )
 from peagen.gateway import db as _db
 from peagen.gateway import db_helpers
+from peagen.gateway.autoapi import router as autoapi_router
 from peagen.gateway.db_helpers import mark_ip_banned, record_unknown_handler
 from peagen.gateway.ws_server import router as ws_router
 from peagen.orm import Base, TaskModel, TaskRunModel
@@ -88,7 +89,8 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 # ─────────────────────────── FastAPI / state ────────────────────
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
-app.include_router(ws_router)  # 1-liner, no prefix
+app.include_router(ws_router)
+app.include_router(autoapi_router)
 READY = False
 
 cfg = resolve_cfg()
