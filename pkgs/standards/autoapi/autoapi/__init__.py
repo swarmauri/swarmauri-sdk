@@ -365,4 +365,4 @@ class AutoAPI:
         self._rpc[f"{tab}.update"]     = _wrap(_update,     SUpdate,  SRead)
         self._rpc[f"{tab}.delete"]     = _wrap(_delete,     SDel,     SDel)
         self._rpc[f"{tab}.list"]       = _wrap(_list,       SListIn,  list[SRead])
-        self._rpc[f"{tab}.clear"] = _wrap(_clear, dict,     dict)
+        self._rpc[f"{tab}.clear"]      = _wrap(_clear, dict,     dict)
