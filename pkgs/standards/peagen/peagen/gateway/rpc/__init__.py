@@ -22,7 +22,6 @@ api = AutoAPI(
     base=Base,
     include={TaskModel, WorkerModel, PoolModel, SecretModel, DeployKeyModel},
     get_db=lambda: get_db(),
-    prefix="/api/v1",
 )
 
 # Common ORM columns for TaskModel
@@ -118,7 +117,7 @@ def initialize():
     global dispatcher
     dispatcher = gateway_dispatcher
 
-    # Register RPC methods
+    # # Register RPC methods
     def _register_rpc_methods():
         """Register AutoAPI operations with the dispatcher using auto-generated method names."""
         from ..db import Session
