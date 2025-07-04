@@ -21,7 +21,7 @@ from ..db import get_db
 api = AutoAPI(
     base=Base,
     include={TaskModel, WorkerModel, PoolModel, SecretModel, DeployKeyModel},
-    get_db=lambda: get_db(),
+    get_db=get_db,
 )
 
 # Common ORM columns for TaskModel
