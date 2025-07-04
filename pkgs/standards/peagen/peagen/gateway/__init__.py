@@ -34,6 +34,7 @@ from peagen.errors import (
 )
 from peagen.gateway import db as _db
 from peagen.gateway import db_helpers
+from peagen.gateway.rpc import api_router
 from peagen.gateway.db_helpers import mark_ip_banned, record_unknown_handler
 from peagen.gateway.ws_server import router as ws_router
 from peagen.orm import Base, TaskModel, TaskRunModel
@@ -88,7 +89,8 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 # ─────────────────────────── FastAPI / state ────────────────────
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
-app.include_router(ws_router)  # 1-liner, no prefix
+app.include_router(ws_router)
+app.include_router(api_router)
 READY = False
 
 cfg = resolve_cfg()
@@ -782,7 +784,8 @@ async def _on_start() -> None:
     BANNED_IPS.update(banned)
 
     # Load RPC handlers now that dependencies are ready
-    from .rpc import keys, pool, secrets, tasks, workers  # noqa: F401
+    from .rpc import initialize
+    rpc_modules = initialize()
 
     log.info("database migrations complete")
     asyncio.create_task(scheduler())

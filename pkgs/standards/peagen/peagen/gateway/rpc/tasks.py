@@ -1,31 +1,25 @@
 from __future__ import annotations
 
 import json
-import uuid
-from peagen.transport.jsonrpc import RPCException
-from peagen.transport.error_codes import ErrorCode
+from typing import Any, Dict
 
+from autoapi.v2 import Phase
+
+from peagen.errors import TaskNotFoundError
+from peagen.handlers import control_handler
 from peagen.transport import (
-    TASK_SUBMIT,
     TASK_CANCEL,
     TASK_PAUSE,
     TASK_RESUME,
     TASK_RETRY,
     TASK_RETRY_FROM,
-    TASK_PATCH,
-    TASK_GET,
 )
+from peagen.transport.jsonrpc import RPCException
+from peagen.transport.jsonrpc_schemas import Status
 from peagen.transport.jsonrpc_schemas.task import (
-    SubmitParams,
-    SubmitResult,
-    PatchParams,
-    PatchResult,
-    SimpleSelectorParams,
     CountResult,
-    GetParams,
-    GetResult,
+    SimpleSelectorParams,
 )
-from peagen.transport.jsonrpc_schemas.guard import GUARD_SET
 
 from .. import (
     READY_QUEUE,
@@ -33,83 +27,31 @@ from .. import (
     _finalize_parent_tasks,
     _live_workers_by_pool,
     _load_task,
-    _persist,
     _publish_queue_length,
     _publish_task,
     _save_task,
     _select_tasks,
-    dispatcher,
     log,
     queue,
 )
-from peagen.errors import TaskNotFoundError
-from typing import Any, Dict
-from peagen.orm.task.task import TaskModel
-from peagen.orm.task.task_run import TaskRunModel
-from peagen.transport.jsonrpc_schemas import Status
+from . import _normalise_submit_payload, _prepare_orm_task, api, dispatcher
 
-# Use the Session factory configured by the gateway
-from .. import Session, engine, Base
+# ------------------------------------------------------------------------
+# Task CRUD operation hooks
+# ------------------------------------------------------------------------
 
 
-# NEW — shadow-repo helpers
-from peagen.core.git_shadow_core import (
-    ensure_org,
-    ensure_mirror,
-    attach_deploy_key,
-)
-from peagen._utils._split_github import _split_github
+@api.hook(Phase.PRE_TX_BEGIN, method="tasks.create")
+async def pre_task_create(ctx: Dict[str, Any]) -> None:
+    """Pre-hook for task creation: Normalize payload and check worker availability."""
+    params = ctx["env"].params
 
-# -----------------TaskBlob ------------------------------------
-
-TaskBlob = Dict[str, Any]  # canonical on-wire / in-Redis structure
-
-
-# -----------------Helper---------------------------------------
-
-
-def _normalise_submit_payload(raw: dict) -> TaskBlob:
-    """
-    Ensure required fields exist and assign sensible defaults.
-    This is the only validation performed at the RPC layer.
-    """
-    tenant_id = raw.get("tenant_id") or "default"
-    try:
-        uuid.UUID(str(tenant_id))
-        tenant_uuid = str(tenant_id)
-    except (ValueError, TypeError):
-        tenant_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(tenant_id)).hex
-
-    blob: TaskBlob = {
-        "id": raw.get("id") or uuid.uuid4().hex,
-        "tenant_id": tenant_uuid,
-        "git_reference_id": raw.get("git_reference_id"),
-        "pool": raw.get("pool", "default"),
-        "payload": raw.get("payload", {}),
-        "status": raw.get("status", Status.queued),
-        "note": raw.get("note", ""),
-        "labels": raw.get("labels", []),
-        "spec_hash": raw.get("spec_hash") or "",
-        "last_modified": raw.get("last_modified"),
-    }
-    return blob
-
-
-# --------------Basic Task Methods ---------------------------------
-
-
-@dispatcher.method(TASK_SUBMIT)
-async def task_submit(params: SubmitParams) -> SubmitResult:
-    """
-    Persist the task definition, ensure Gitea shadow state, enqueue, broadcast.
-    """
-    # 1. Build TaskBlob (unchanged) ────────────────────────────────────────
-    raw_task = getattr(params, "task", None)
-    if raw_task is not None:
-        task_blob = _normalise_submit_payload(dict(raw_task))
+    # Normalize task payload
+    if hasattr(params, "task"):
+        task_data = dict(params.task)
     else:
         extra = getattr(params, "__pydantic_extra__", {}) or {}
-        base = {
+        task_data = {
             "id": params.id,
             "tenant_id": extra.get("tenant_id"),
             "git_reference_id": extra.get("git_reference_id"),
@@ -121,18 +63,24 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
             "spec_hash": extra.get("spec_hash"),
             "last_modified": extra.get("last_modified"),
         }
-        task_blob = _normalise_submit_payload(base)
 
-    await queue.sadd("pools", task_blob["pool"])
+    # Normalize the task data
+    task_blob = _normalise_submit_payload(task_data)
 
-    # 2. Shadow-repo guarantees ───────────────────────────────────────────
-    # Expect these keys in payload (client responsibility)
+    # Shadow-repo guarantees
     payload = task_blob["payload"] or {}
-    repo_url = payload.get("repo")  # GitHub URL
-    deploy_key = payload.get("deploy_key")  # public key (str)
+    repo_url = payload.get("repo")
+    deploy_key = payload.get("deploy_key")
 
     if repo_url and deploy_key:
         try:
+            from peagen._utils._split_github import _split_github
+            from peagen.core.git_shadow_core import (
+                attach_deploy_key,
+                ensure_mirror,
+                ensure_org,
+            )
+
             org, repo = _split_github(repo_url)
             slug = org.lower()
 
@@ -140,14 +88,13 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
             await ensure_mirror(slug, repo, repo_url)
             key_id = await attach_deploy_key(slug, repo, deploy_key, rw=True)
 
-            # Hand the key-id to the worker (private half lives in Vault)
             payload["deploy_key_id"] = key_id
             task_blob["payload"] = payload
         except Exception as exc:
             log.error("shadow-repo setup failed: %s", exc, exc_info=True)
             raise RPCException(code=-32011, message="shadow-repo setup error")
 
-    # 3. Verify a worker advertises the action (unchanged) ────────────────
+    # Verify worker availability
     action = payload.get("action")
     if action:
         advertised = {
@@ -162,43 +109,27 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         if action not in advertised:
             log.warning("no worker advertising '%s' found", action)
 
-    # 4. Avoid id collision in Redis (unchanged) ──────────────────────────
-    if await _load_task(task_blob["id"]):
-        task_blob["id"] = uuid.uuid4().hex
-        log.warning("task id collision – generated new id %s", task_blob["id"])
+    # Store in context for post-hook
+    ctx["task_blob"] = task_blob
+    ctx["db_task"] = _prepare_orm_task(task_blob)
 
-    # 5. Optional Postgres persistence (unchanged) ────────────────────────
-    try:
-        uuid.UUID(task_blob["id"])
-        persist = task_blob.get("tenant_id") is not None
-    except ValueError:
-        persist = False
 
-    if persist:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+@api.hook(Phase.POST_COMMIT, method="tasks.create")
+async def post_task_create(ctx: Dict[str, Any]) -> None:
+    """Post-hook for task creation: Enqueue task and publish events."""
+    task_blob = ctx["task_blob"]
+    result = ctx["result"]
 
-        async with Session() as ses:
-            orm_fields = {
-                k: task_blob[k]
-                for k in _ORM_COLUMNS
-                if k in task_blob and task_blob[k] is not None
-            }
-            for col in ("id", "tenant_id", "git_reference_id"):
-                if col in orm_fields and isinstance(orm_fields[col], str):
-                    try:
-                        orm_fields[col] = uuid.UUID(str(orm_fields[col]))
-                    except ValueError:
-                        pass
-            model = TaskModel(**orm_fields)
-            ses.merge(model)
-            ses.add(TaskRunModel(task_id=model.id, status=Status.queued))
-            await ses.commit()
+    # Ensure task ID is correct (may have been generated during persistence)
+    task_blob["id"] = result["id"]
 
-    # 6. Enqueue & broadcast (unchanged) ──────────────────────────────────
+    # Enqueue in Redis for processing
     await queue.rpush(
         f"{READY_QUEUE}:{task_blob['pool']}", json.dumps(task_blob, default=str)
     )
+
+    # Update cache and publish events
+    await queue.sadd("pools", task_blob["pool"])
     await _publish_queue_length(task_blob["pool"])
     await _save_task(task_blob)
     await _publish_task(task_blob)
@@ -207,92 +138,77 @@ async def task_submit(params: SubmitParams) -> SubmitResult:
         "task %s queued in %s (ttl=%ss)", task_blob["id"], task_blob["pool"], TASK_TTL
     )
 
-    return SubmitResult(id=str(task_blob["id"]))
 
+@api.hook(Phase.PRE_TX_BEGIN, method="tasks.update")
+async def pre_task_update(ctx: Dict[str, Any]) -> None:
+    """Pre-hook for task updates: Load existing task from cache."""
+    params = ctx["env"].params
+    task_id = params.get("id") or params.get("item_id")
+    changes = params.get("changes", {})
 
-# ------------------------------------------------------------------
-# PATCH  ▸  update in-cache blob  ▸  persist  ▸  broadcast
-# ------------------------------------------------------------------
-
-# helper: canonical field set that can be patched
-_ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
-_ALLOWED_PATCH_EXTRAS = {"labels", "result"}
-
-
-@dispatcher.method(TASK_PATCH)
-async def task_patch(params: PatchParams) -> PatchResult:
-    task_id = params.taskId
-    changes = params.changes
-
-    task = await _load_task(task_id)  # TaskBlob | None
+    task = await _load_task(task_id)
     if not task:
         raise TaskNotFoundError(task_id)
 
+    # Store the current task in context
+    ctx["current_task"] = task
+    ctx["changes"] = changes
+
+
+@api.hook(Phase.POST_COMMIT, method="tasks.update")
+async def post_task_update(ctx: Dict[str, Any]) -> None:
+    """Post-hook for task updates: Update cache and publish events."""
+    task = ctx["current_task"]
+    changes = ctx["changes"]
+
+    # Apply changes to the task
     for field, value in changes.items():
-        # skip unknown columns
-        if field not in _ORM_COLUMNS and field not in _ALLOWED_PATCH_EXTRAS:
-            continue
-        # coerce status enum
         if field == "status":
             value = Status(value)
-        task[field] = value  # apply in-memory
+        task[field] = value
 
-    await _save_task(task)  # Redis cache
-    await _persist(task)  # Postgres + result backend
-    await _publish_task(task)  # WebSocket event
+    # Update cache and publish
+    await _save_task(task)
+    await _publish_task(task)
 
-    # cascade completion checks for parent tasks, if needed
+    # Check if we need to finalize parent tasks
     if isinstance(changes.get("result"), dict):
         for cid in changes["result"].get("children", []):
             await _finalize_parent_tasks(cid)
 
-    log.info("task %s patched with %s", task_id, ",".join(changes.keys()))
-
-    # Return only fields declared by PatchResult schema
-    filtered = {k: v for k, v in task.items() if k in PatchResult.model_fields}
-    return PatchResult(**filtered)
+    log.info("task %s updated with %s", task["id"], ",".join(changes.keys()))
 
 
-# ------------------------------------------------------------------
-# GET  ▸  fetch from cache or DB fall-back
-# ------------------------------------------------------------------
-@dispatcher.method(TASK_GET)
-async def task_get(params: GetParams) -> GetResult | dict:
-    task_id = params.taskId
-
-    # quick sanity check – client ought to supply a UUID-ish id
-    try:
-        uuid.UUID(task_id)
-    except ValueError:
-        raise RPCException(code=-32602, message="Invalid task id")
+@api.hook(Phase.PRE_TX_BEGIN, method="tasks.read")
+async def pre_task_read(ctx: Dict[str, Any]) -> None:
+    """Pre-hook for task read: Check cache before database."""
+    params = ctx["env"].params
+    task_id = params.get("id") or params.get("item_id")
 
     task = await _load_task(task_id)
     if task:
-        # optional duration passthrough
-        data = dict(task)
-        if "duration" in task and task["duration"] is not None:
-            data["duration"] = task["duration"]
-        filtered = {k: v for k, v in data.items() if k in GetResult.model_fields}
-        return GetResult(**filtered)
-
-    # fall-back to slower path (possibly worker-side DB)
-    try:
-        from ..core.task_core import get_task_result
-
-        return await get_task_result(task_id)
-    except TaskNotFoundError as exc:
-        raise RPCException(code=ErrorCode.TASK_NOT_FOUND, message=str(exc))
+        # If we found it in cache, store it in context
+        ctx["cached_task"] = task
+        ctx["skip_db"] = True  # Signal to skip database lookup
 
 
-# ----------- Extended Task Methods --------------------------------
+@api.hook(Phase.POST_HANDLER, method="tasks:read")
+async def post_task_read(ctx: Dict[str, Any]) -> None:
+    """Post-hook for task read: Use cached task if available."""
+    if ctx.get("skip_db") and ctx.get("cached_task"):
+        # Replace result with cached task
+        ctx["result"] = ctx["cached_task"]
+
+
+# ------------------------------------------------------------------------
+# Custom operations that don't map directly to CRUD
+# ------------------------------------------------------------------------
 
 
 @dispatcher.method(TASK_CANCEL)
 async def task_cancel(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
     count = await control_handler.apply("cancel", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("cancel %s -> %d tasks", selector, count)
     return CountResult(count=count)
@@ -302,8 +218,6 @@ async def task_cancel(params: SimpleSelectorParams) -> CountResult:
 async def task_pause(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
     count = await control_handler.apply("pause", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("pause %s -> %d tasks", selector, count)
     return CountResult(count=count)
@@ -313,8 +227,6 @@ async def task_pause(params: SimpleSelectorParams) -> CountResult:
 async def task_resume(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
     count = await control_handler.apply("resume", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("resume %s -> %d tasks", selector, count)
     return CountResult(count=count)
@@ -324,8 +236,6 @@ async def task_resume(params: SimpleSelectorParams) -> CountResult:
 async def task_retry(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
     count = await control_handler.apply("retry", queue, targets, READY_QUEUE, TASK_TTL)
     log.info("retry %s -> %d tasks", selector, count)
     return CountResult(count=count)
@@ -335,20 +245,8 @@ async def task_retry(params: SimpleSelectorParams) -> CountResult:
 async def task_retry_from(params: SimpleSelectorParams) -> CountResult:
     selector = params.selector
     targets = await _select_tasks(selector)
-    from peagen.handlers import control_handler
-
     count = await control_handler.apply(
         "retry_from", queue, targets, READY_QUEUE, TASK_TTL
     )
     log.info("retry_from %s -> %d tasks", selector, count)
     return CountResult(count=count)
-
-
-# --------Guard Rail Support --------------------------------------
-
-
-@dispatcher.method(GUARD_SET)
-async def guard_set(label: str, spec: dict) -> dict:
-    await queue.hset(f"guard:{label}", mapping=spec)
-    log.info("guard set %s", label)
-    return {"ok": True}
