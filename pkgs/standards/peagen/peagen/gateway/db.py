@@ -1,5 +1,6 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+
 from .runtime_cfg import settings
 
 if settings.pg_dsn_env or (settings.pg_host and settings.pg_db and settings.pg_user):
@@ -15,3 +16,12 @@ engine = create_async_engine(
     echo=False,
 )
 Session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+
+def get_db() -> AsyncSession:
+    db = Session()
+    try:
+        yield db
+    finally:
+        if db:
+            db.close()

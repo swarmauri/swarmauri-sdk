@@ -4,32 +4,32 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from peagen.orm import Task
+from peagen.orm import TaskModel
 from peagen.transport.jsonrpc_schemas import Status
 
 
-def pause(tasks: Iterable[Task]) -> int:
+def pause(tasks: Iterable[TaskModel]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.paused
     return len(selected)
 
 
-def resume(tasks: Iterable[Task]) -> int:
+def resume(tasks: Iterable[TaskModel]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.waiting
     return len(selected)
 
 
-def cancel(tasks: Iterable[Task]) -> int:
+def cancel(tasks: Iterable[TaskModel]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.cancelled
     return len(selected)
 
 
-def retry(tasks: Iterable[Task]) -> int:
+def retry(tasks: Iterable[TaskModel]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.queued
