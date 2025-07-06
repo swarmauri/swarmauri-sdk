@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing     import Any, Dict
-from .autoapi_hooks import Phase
+from .hooks import Phase
 from .jsonrpc_models import _RPCReq, _RPCRes, _ok, _err  # tiny utility file
 
 def build_gateway(api) -> APIRouter:

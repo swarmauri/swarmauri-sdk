@@ -7,12 +7,17 @@ import uuid
 from inspect import signature
 from typing  import Any, get_origin, get_args, Type
 
-from fastapi         import HTTPException
+from fastapi         import HTTPException, APIRouter, Depends, Request
 from pydantic        import BaseModel, Field, create_model, ConfigDict
 from sqlalchemy.orm  import Session
 from .mixins            import Replaceable, BulkCapable
 
-from fastapi import APIRouter, Depends, Request
+
+def _canonical(table: str, verb: str) -> str:
+    """PascalCase table + '.' + lowerCamel verb."""
+    to_pascal = ''.join(w.title() for w in table.split('_'))
+    return f"{to_pascal}.{verb}"
+
 # ---------------------------------------------------------------------------
 def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
     self,
@@ -48,7 +53,13 @@ def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
 
     # ---------- routers ----------------------------------------------
     flat   = APIRouter(prefix=f"/{tab}",              tags=[tab])
-    nested = APIRouter(prefix=self._nested_prefix(model), tags=[f"nested-{tab}"])
+    nested_prefix = self._nested_prefix(model)
+    routers = (flat,) if nested_prefix is None else (
+           flat,
+           APIRouter(prefix=nested_prefix, tags=[f"nested-{tab}"])
+    )
+
+    # ---------- guard_factory ----------------------------------------
 
     def _guard_factory(scope: str):
         async def _guard(request: Request):
@@ -58,7 +69,7 @@ def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
 
     # ---------- single registration loop -----------------------------
     for verb, http, path, In, Out, core in spec:
-        scope, rpc_id = f"{tab}:{verb}", f"{tab}.{verb}"
+        scope = rpc_id = _canonical(tab, verb)
 
         # REST handler factory
         def ep_factory(verb=verb, http=http, path=path, In=In, core=core):
@@ -80,7 +91,7 @@ def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
             ep.__name__ = f"{verb}_{tab}"
             return ep
 
-        for router in (flat, nested):
+        for router in routers:
             router.add_api_route(
                 path,
                 ep_factory(),
@@ -93,12 +104,12 @@ def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
         self.rpc[rpc_id] = self._wrap_rpc(core, In or dict, Out, pk, model)
 
         # ordered set of method names
-        self._method_ids.setdefault(scope, None)
         self._method_ids.setdefault(rpc_id, None)
 
     # finally mount routers on parent
     self.router.include_router(flat)
-    self.router.include_router(nested)
+    if nested_prefix:
+        self.router.include_router(routers[1])
 
 
 # ────────────────────────── _schema ──────────────────────────

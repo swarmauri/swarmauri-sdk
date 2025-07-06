@@ -17,13 +17,13 @@ from fastapi           import APIRouter, Depends
 from sqlalchemy.orm    import Session, declarative_base
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
-from .autoapi_types     import _Op                                 # pure metadata
-from .autoapi_impl      import _schema, _crud, _wrap_rpc, commit_or_flush, _register_routes_and_rpcs
-from .autoapi_hooks     import Phase, _Hook, _init_hooks, _run
-from .autoapi_endpoints import attach_health_and_methodz
-from .autoapi_gateway   import build_gateway
-from .autoapi_routes    import _nested_prefix                      # path builder
-
+from .types     import _Op                                 # pure metadata
+from .impl      import _schema, _crud, _wrap_rpc, commit_or_flush, _register_routes_and_rpcs
+from .hooks     import Phase, _Hook, _init_hooks, _run
+from .endpoints import attach_health_and_methodz
+from .gateway   import build_gateway
+from .routes    import _nested_prefix                      # path builder
+from .tables    import Base, metadata
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -59,7 +59,8 @@ class AutoAPI:
         # initialise hook subsystem
         _init_hooks(self)
 
-        # attach tiny, stateless GET endpoints
+        with next(get_db()) as _db:
+            base.metadata.create_all(_db.get_bind(), checkfirst=True)
         attach_health_and_methodz(self, self.get_db)
 
 
@@ -88,4 +89,6 @@ class AutoAPI:
         "AutoAPI",
         "Phase",
         "_Hook",
+        "Base",
+        "MetaData"
     ]

@@ -11,7 +11,8 @@ def attach_health_and_methodz(api, get_db):
 
     @r.get("/methodz")
     def _methodz() -> list[str]:
-        return sorted(api._method_ids)
+        """Ordered, canonical operation list."""
+        return list(api._method_ids.keys())
 
     @r.get("/healthz")
     def _health(db: Session = Depends(get_db)):
