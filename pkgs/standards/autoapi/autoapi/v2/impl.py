@@ -5,13 +5,20 @@ and receive `self` explicitly, so we can bind them onto AutoAPI later.
 """
 import uuid
 from inspect import signature
-from typing  import Any, get_origin, get_args, Type
+from typing  import Any, get_origin, get_args, Type, Any, List
 
-from fastapi         import HTTPException, APIRouter, Depends, Request
-from pydantic        import BaseModel, Field, create_model, ConfigDict
-from sqlalchemy.orm  import Session
-from .mixins            import Replaceable, BulkCapable
 
+from fastapi                import HTTPException, APIRouter, Depends, Request
+from pydantic               import BaseModel, Field, create_model, ConfigDict
+from sqlalchemy.orm         import Session
+from inspect                import isawaitable
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .mixins                import Replaceable, BulkCapable, AsyncCapable
+
+async def _run(core, *args):
+    rv = core(*args)
+    return await rv if isawaitable(rv) else rv
 
 def _canonical(table: str, verb: str) -> str:
     """PascalCase table + '.' + lowerCamel verb."""
@@ -21,46 +28,48 @@ def _canonical(table: str, verb: str) -> str:
 # ---------------------------------------------------------------------------
 def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
     self,
-    model:      Type,
+    model:      type,
     tab:        str,
     pk:         str,
     SCreate, SRead, SDel, SUpdate, SListIn,
     _create, _read, _update, _delete, _list, _clear,
 ) -> None:
     """
-    Build the verb-spec table, REST routers, and RPC adapters
-    for a single SQLAlchemy model.  Extracted intact from the
-    original monolithic _crud() implementation.
+    Build verb-spec table, REST routers, and RPC adapters for *one*
+    SQLAlchemy model.
     """
 
+    # ── choose sync or async provider per model ──────────────────────
+    is_async_model = issubclass(model, AsyncCapable)
+    provider       = self.get_async_db if is_async_model else self.get_db
+
     # ---------- verb specification -----------------------------------
-    spec: list[tuple] = [
+    spec: List[tuple] = [
         ("create",  "POST",    "",            SCreate,           SRead,        _create),
-        ("list",    "GET",     "",            SListIn,           list[SRead],  _list),
+        ("list",    "GET",     "",            SListIn,           List[SRead],  _list),
         ("clear",   "DELETE",  "",            None,              dict,         _clear),
         ("read",    "GET",     "/{item_id}",  SDel,              SRead,        _read),
         ("update",  "PATCH",   "/{item_id}",  SUpdate,           SRead,        _update),
         ("delete",  "DELETE",  "/{item_id}",  SDel,              SDel,         _delete),
     ]
-    if issubclass(model, Replaceable):   # PUT full-object replacement
+    if issubclass(model, Replaceable):
         spec.append(("replace", "PUT", "/{item_id}", SCreate, SRead,
                      lambda i, p, db: _update(i, p, db, full=True)))
-    if issubclass(model, BulkCapable):   # bulk ops
+    if issubclass(model, BulkCapable):
         spec += [
-            ("bulk_create", "POST",  "/bulk", list[SCreate], list[SRead], _create),
-            ("bulk_delete", "DELETE","/bulk", list[SDel],    dict,        _delete),
+            ("bulk_create", "POST",  "/bulk", List[SCreate], List[SRead], _create),
+            ("bulk_delete", "DELETE","/bulk", List[SDel],    dict,        _delete),
         ]
 
     # ---------- routers ----------------------------------------------
-    flat   = APIRouter(prefix=f"/{tab}",              tags=[tab])
+    flat   = APIRouter(prefix=f"/{tab}", tags=[tab])
     nested_prefix = self._nested_prefix(model)
     routers = (flat,) if nested_prefix is None else (
-           flat,
-           APIRouter(prefix=nested_prefix, tags=[f"nested-{tab}"])
+        flat,
+        APIRouter(prefix=nested_prefix, tags=[f"nested-{tab}"])
     )
 
-    # ---------- guard_factory ----------------------------------------
-
+    # ---------- guard factory ----------------------------------------
     def _guard_factory(scope: str):
         async def _guard(request: Request):
             if self.authorize and not self.authorize(scope, request):
@@ -69,47 +78,58 @@ def _register_routes_and_rpcs(      # noqa: N802 (keep camel to match caller)
 
     # ---------- single registration loop -----------------------------
     for verb, http, path, In, Out, core in spec:
-        scope = rpc_id = _canonical(tab, verb)
+        method_id = _canonical(tab, verb)
 
-        # REST handler factory
+        # REST handler factory (always async def − works for both modes)
         def ep_factory(verb=verb, http=http, path=path, In=In, core=core):
             if verb == "list":
-                async def ep(p: In = Depends(), db: Session = Depends(self.get_db)):
-                    return core(p, db)
+                async def ep(p: In = Depends(),
+                             db = Depends(provider)):
+                    return await _run(core, p, db)
+
             elif "{item_id}" in path and http in ("GET", "DELETE"):
-                async def ep(item_id: Any, db: Session = Depends(self.get_db)):
-                    return core(item_id, db)
+                async def ep(item_id: Any,
+                             db = Depends(provider)):
+                    return await _run(core, item_id, db)
+
             elif http in ("PATCH", "PUT"):
-                async def ep(item_id: Any, p: In, db: Session = Depends(self.get_db)):
-                    return core(item_id, p, db)
+                async def ep(item_id: Any, p: In,
+                             db = Depends(provider)):
+                    return await _run(core, item_id, p, db)
+
             elif In is not None:  # create & bulk ops
-                async def ep(p: In, db: Session = Depends(self.get_db)):
-                    return core(p, db)
+                async def ep(p: In,
+                             db = Depends(provider)):
+                    return await _run(core, p, db)
+
             else:                 # clear
-                async def ep(db: Session = Depends(self.get_db)):
-                    return core(db)
+                async def ep(db = Depends(provider)):
+                    return await _run(core, db)
+
             ep.__name__ = f"{verb}_{tab}"
             return ep
 
+        # register on each router (flat and optional nested)
         for router in routers:
             router.add_api_route(
                 path,
                 ep_factory(),
                 methods=[http],
                 response_model=Out,
-                dependencies=[self._authn_dep, _guard_factory(scope)],
+                dependencies=[self._authn_dep, _guard_factory(method_id)],
             )
 
-        # RPC binding
-        self.rpc[rpc_id] = self._wrap_rpc(core, In or dict, Out, pk, model)
+        # RPC binding (wrap_rpc already async-aware)
+        self.rpc[method_id] = self._wrap_rpc(core, In or dict, Out, pk, model)
 
-        # ordered set of method names
-        self._method_ids.setdefault(rpc_id, None)
+        # ordered set of canonical method names
+        self._method_ids.setdefault(method_id, None)
 
-    # finally mount routers on parent
+    # ---------- mount routers on parent ------------------------------
     self.router.include_router(flat)
     if nested_prefix:
         self.router.include_router(routers[1])
+
 
 
 # ────────────────────────── _schema ──────────────────────────

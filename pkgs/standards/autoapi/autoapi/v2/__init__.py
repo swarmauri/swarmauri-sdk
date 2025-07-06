@@ -13,8 +13,9 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing      import Any, Callable, Dict, Optional, Type
 
-from fastapi           import APIRouter, Depends
-from sqlalchemy.orm    import Session, declarative_base
+from fastapi                import APIRouter, Depends
+from sqlalchemy.orm         import Session, declarative_base
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
 from .types     import _Op                                 # pure metadata
@@ -36,9 +37,10 @@ class AutoAPI:
     # ───────── constructor ─────────────────────────────────────────
     def __init__(
         self,
-        base: declarative_base,
-        get_db: Callable[[], Session],
         *,
+        base,
+        get_db: Callable[..., Iterator[Session]] | None = None,
+        get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
         include: set[Type] | None = None,
         authorize: Callable[[str, Any], bool] | None = None,
         prefix: str = "",
@@ -46,12 +48,32 @@ class AutoAPI:
     ):
         # lightweight state
         self.base        = base
-        self.get_db      = get_db
         self.include     = include
         self.authorize   = authorize
         self.router      = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
         self._method_ids: OrderedDict[str, None] = OrderedDict()
+
+        # ---------- choose providers -----------------------------
+        if (get_db is None) and (get_async_db is None):
+            raise ValueError("provide get_db or get_async_db")
+
+        self.get_db  = get_db
+        self.get_async_db = get_async_db
+
+        # ---------- create schema once ---------------------------
+        if self.get_db:
+            with next(self.get_db()) as db:
+                base.metadata.create_all(db.get_bind(), checkfirst=True)
+        else:                                       # async path
+            import asyncio
+            async def _ddl():
+                async with self.get_async_db() as adb:
+                    await adb.run_sync(base.metadata.create_all, checkfirst=True)
+            asyncio.run(_ddl())
+
+
+        # ---------- collect models, build routes, etc. -----------
 
         # auth dependency (e.g. OAuth2PasswordBearer() or None)
         self._authn_dep = authn_dep or Depends(lambda: None)
@@ -59,7 +81,7 @@ class AutoAPI:
         # initialise hook subsystem
         _init_hooks(self)
 
-        with next(get_db()) as _db:
+        with next(self.get_db()) as _db:
             base.metadata.create_all(_db.get_bind(), checkfirst=True)
         attach_health_and_methodz(self, self.get_db)
 
