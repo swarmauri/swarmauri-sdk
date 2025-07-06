@@ -1,6 +1,5 @@
 from .mixins import Base, GUIDPk, Timestamped, TenantBound, Principal, RelationEdge, Timestamped, MaskableEdge
 
-
 # ───────── tenancy core ──────────────────────────────────────────────────
 class User(Base, GUIDPk, Timestamped, TenantBound, Principal):
     __tablename__ = "users"

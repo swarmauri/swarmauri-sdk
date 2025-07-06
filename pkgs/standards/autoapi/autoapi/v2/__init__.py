@@ -74,13 +74,13 @@ class AutoAPI:
             self._crud(cls)
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
+    _Op               = _Op
     _schema           = _schema
     _crud             = _crud
     _wrap_rpc         = _wrap_rpc
     _run              = _run
     commit_or_flush   = commit_or_flush
     _nested_prefix    = _nested_prefix
-    _Op               = _Op
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
     # keep __all__ tidy for `from autoapi import *` users
