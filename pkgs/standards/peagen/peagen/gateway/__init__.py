@@ -75,21 +75,25 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 
 
 # ─────────────────────────── FastAPI / state ────────────────────
+READY = False
 
 app = FastAPI(title="Peagen Pool Manager Gateway")
+
+# Initialize AutoAPI with our models
+api = AutoAPI(
+    base=Base,
+    include={TaskModel, WorkerModel, PoolModel, SecretModel, DeployKeyModel},
+    get_db=get_db,
+)
+
+app.include_router(api.router)
 app.include_router(ws_router)
-app.include_router(api_router)
-READY = False
 
 cfg = resolve_cfg()
 CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
 READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
-
-# 🚧 ---------------------------------------------------------------
-dispatcher = RPCDispatcher()
-# 🚧 ---------------------------------------------------------------
 
 try:
     queue_plugin = pm.get("queues")

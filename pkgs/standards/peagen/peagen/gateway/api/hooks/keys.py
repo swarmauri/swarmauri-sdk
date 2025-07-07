@@ -1,13 +1,7 @@
 """
-peagen.gateway.rpc.keys
------------------------
-
-JSON-RPC interface for managing trusted public keys.
-
-Public contract (unchanged)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* Params  : UploadParams · FetchParams · DeleteParams
-* Results : UploadResult · FetchResult · DeleteResult
+gateway.api.hooks.keys
+──────────────────────
+AutoAPI-native JSON-RPC hooks for trusted-public-key management.
 """
 
 from __future__ import annotations
@@ -15,99 +9,77 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict
 
-from autoapi.v2 import Phase
 from pgpy import PGPKey
-
-from peagen.transport.jsonrpc_schemas.keys import (
-    DeleteResult,
-    FetchResult,
-    UploadResult,
-)
+from autoapi.v2 import Phase
+from autoapi          import AutoAPI
+from autoapi.v2.tables.keys import PublicKey
 
 from .. import TRUSTED_USERS, log
-from . import api
+from .  import api
 
-# ------------------------------------------------------------------------
-# Key operation hooks
-# ------------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Resolve the exact server-side schemas once (lru_cached inside AutoAPI)
+SCreate = AutoAPI.get_schema(PublicKey, "create")   # body for deploy_keys.create
+SRead   = AutoAPI.get_schema(PublicKey, "read")     # single-row read
+SDelete = AutoAPI.get_schema(PublicKey, "delete")   # pk-only schema
+SListIn = AutoAPI.get_schema(PublicKey, "list")     # fetch all keys
+# -------------------------------------------------------------------
 
 
 @api.hook(Phase.PRE_TX_BEGIN, method="deploy_keys.create")
 async def pre_key_upload(ctx: Dict[str, Any]) -> None:
-    """Pre-hook for key upload: Parse key and prepare data for persistence."""
-    params = ctx["env"].params
+    """Validate the uploaded key and prepare DB row."""
+    params: SCreate = ctx["env"].params          # ← validated by AutoAPI
+    pgp = PGPKey(); pgp.parse(params.public_key)
 
-    # Parse the key to validate and get fingerprint
-    pgp = PGPKey()
-    pgp.parse(params.public_key)
-
-    # Prepare data for database
     ctx["key_data"] = {
-        "id": str(uuid.uuid4()),
-        "user_id": None,  # server will resolve to caller
-        "name": f"{pgp.fingerprint[:16]}-key",
-        "public_key": params.public_key,
-        "secret_id": None,
-        "read_only": True,
+        "id":          str(uuid.uuid4()),
+        "user_id":     None,                    # resolved by service layer
+        "name":        f"{pgp.fingerprint[:16]}-key",
+        "public_key":  params.public_key,
+        "secret_id":   None,
+        "read_only":   True,
     }
     ctx["fingerprint"] = pgp.fingerprint
 
 
 @api.hook(Phase.POST_COMMIT, method="deploy_keys.create")
 async def post_key_upload(ctx: Dict[str, Any]) -> None:
-    """Post-hook for key upload: Store in memory cache and format response."""
-    params = ctx["env"].params
-    fingerprint = ctx["fingerprint"]
+    """Cache the key in memory and shape the RPC result."""
+    params: SCreate = ctx["env"].params
+    fp: str         = ctx["fingerprint"]
 
-    # Store in memory
-    TRUSTED_USERS[fingerprint] = params.public_key
+    log.info("key persisted (fingerprint=%s)", fp)
 
-    log.info("key persisted (fingerprint = %s)", fingerprint)
-
-    # Set response format
-    ctx["result"] = UploadResult(fingerprint=fingerprint).model_dump()
+    # Use the server's *read* schema for the success envelope
+    ctx["result"] = SRead(public_key=params.public_key,
+                          fingerprint=fp).model_dump()
 
 
 @api.hook(Phase.POST_HANDLER, method="deploy_keys.read")
 async def post_key_fetch(ctx: Dict[str, Any]) -> None:
-    """Post-hook for key fetch: Format keys into response."""
-    # Get keys from database result
-    raw = ctx.get("result", [])
+    """Convert the raw DB rows into a {fingerprint: key} mapping."""
+    rows = ctx.get("result", [])
+    mapping: Dict[str, str] = {}
 
-    # Convert to fingerprint mapping
-    mapping = {
-        PGPKey().parse(row["public_key"]).fingerprint: row["public_key"] for row in raw
-    }
+    for row in rows:
+        pub = row["public_key"] if isinstance(row, dict) else row.public_key
+        pgp = PGPKey(); pgp.parse(pub)
+        mapping[pgp.fingerprint] = pub
 
-    # Update memory cache
-    TRUSTED_USERS.clear()
-    TRUSTED_USERS.update(mapping)
-
-    # Set response format
-    ctx["result"] = FetchResult(keys=mapping).model_dump()
+    ctx["result"] = {"keys": mapping}            # simple dict for clients
 
 
 @api.hook(Phase.PRE_TX_BEGIN, method="deploy_keys.delete")
 async def pre_key_delete(ctx: Dict[str, Any]) -> None:
-    """Pre-hook for key deletion: Find the key by fingerprint."""
-    params = ctx["env"].params
-    fingerprint = params.fingerprint
-
-    # We need to find the key ID from the fingerprint
-    # This will be used for database operations
-    # Store fingerprint for post-hook
-    ctx["fingerprint"] = fingerprint
+    """Extract the fingerprint so the post-hook can update the cache."""
+    params: SDelete = ctx["env"].params
+    ctx["fingerprint"] = params.fingerprint
 
 
 @api.hook(Phase.POST_COMMIT, method="deploy_keys.delete")
 async def post_key_delete(ctx: Dict[str, Any]) -> None:
-    """Post-hook for key deletion: Remove from memory and format response."""
-    fingerprint = ctx["fingerprint"]
-
-    # Remove from memory
-    TRUSTED_USERS.pop(fingerprint, None)
-
-    log.info("key removed: %s", fingerprint)
-
-    # Set response format
-    ctx["result"] = DeleteResult(ok=True).model_dump()
+    """Purge the key from memory and return an OK payload."""
+    fp = ctx["fingerprint"]
+    log.info("key removed: %s", fp)
+    ctx["result"] = {"ok": True}
