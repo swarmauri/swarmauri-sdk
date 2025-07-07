@@ -212,3 +212,88 @@ async def work_finished(params: FinishedParams) -> dict:
 
     log.info("task %s completed: %s", taskId, status)
     return FinishedResult(ok=True).model_dump()
+
+
+# ─────────────────────────── Workers ────────────────────────────
+# workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
+WORKER_KEY = "worker:{}"  # format with workerId
+WORKER_TTL = 15  # seconds before a worker is considered dead
+TASK_TTL = 24 * 3600  # 24 h, adjust as needed
+
+
+# ─────────────────────────── IP tracking ─────────────────────────
+
+async def _upsert_worker(workerId: str, data: dict) -> None:
+    """
+    Persist worker metadata in Redis hash `worker:<id>`.
+    • Any value that isn't bytes/str/int/float is json-encoded.
+    • last_seen is stored as Unix epoch seconds.
+    """
+    key = WORKER_KEY.format(workerId)
+    existing = await queue.hgetall(key)
+    for field in ("advertises", "handlers"):
+        if field not in data and field in existing:
+            try:
+                data[field] = json.loads(existing[field])
+            except Exception:  # noqa: BLE001
+                data[field] = existing[field]
+
+    coerced = {}
+    for k, v in data.items():
+        if isinstance(v, (bytes, str, int, float)):
+            coerced[k] = v
+        else:
+            coerced[k] = json.dumps(v)  # serialize nested dicts, lists, etc.
+
+    coerced["last_seen"] = int(time.time())  # heartbeat timestamp
+    await queue.hset(key, mapping=coerced)
+    await queue.expire(key, WORKER_TTL)  # <<—— TTL refresh
+    # ensure the worker's pool is tracked so WebSocket clients
+    # receive queue length updates even before a task is submitted
+    pool = data.get("pool")
+    if pool:
+        await queue.sadd("pools", pool)
+    await _publish_event("worker.update", {"id": workerId, **data})
+
+
+async def _publish_queue_length(pool: str) -> None:
+    qlen = len(await queue.lrange(f"{READY_QUEUE}:{pool}", 0, -1))
+    await _publish_event("queue.update", {"pool": pool, "length": qlen})
+
+
+async def _remove_worker(workerId: str) -> None:
+    """Expire the worker's registry entry immediately."""
+    await queue.expire(WORKER_KEY.format(workerId), 0)
+    await _publish_event("worker.update", {"id": workerId, "removed": True})
+
+
+async def _live_workers_by_pool(pool: str) -> list[dict]:
+    keys = await queue.keys("worker:*")
+    workers = []
+    now = int(time.time())
+    for k in keys:
+        w = await queue.hgetall(k)
+        if not w:  # TTL expired or never registered
+            continue
+        if now - int(w["last_seen"]) > WORKER_TTL:
+            continue  # stale
+        if w["pool"] == pool:
+            wid = k.split(":", 1)[1]
+            workers.append({"id": wid, **w})
+    return workers
+
+
+def _pick_worker(workers: list[dict], action: str | None) -> dict | None:
+    """Return the first worker that advertises *action*."""
+    if action is None:
+        return None
+    for w in workers:
+        raw = w.get("handlers", [])
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                raw = []
+        if action in raw:
+            return w
+    return None

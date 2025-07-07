@@ -9,12 +9,12 @@ def attach_health_and_methodz(api, get_db):
     """
     r = APIRouter()
 
-    @r.get("/methodz")
+    @r.get("/methodz", tags="rpc")
     def _methodz() -> list[str]:
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
 
-    @r.get("/healthz")
+    @r.get("/healthz", "health")
     def _health(db: Session = Depends(get_db)):
         try:
             db.execute("SELECT 1")

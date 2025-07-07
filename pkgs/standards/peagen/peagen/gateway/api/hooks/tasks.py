@@ -250,3 +250,134 @@ async def task_retry_from(params: SimpleSelectorParams) -> CountResult:
     )
     log.info("retry_from %s -> %d tasks", selector, count)
     return CountResult(count=count)
+
+
+# ───────── task helpers (hash + ttl) ────────────────────────────
+
+
+def _task_key(tid: str) -> str:
+    return TASK_KEY.format(tid)
+
+
+
+
+async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
+    """
+    Mark *task* as failed and propagate the update everywhere.
+
+    Accepts either:
+      • an ORM TaskModel instance (worker / DB paths), or
+      • the raw TaskBlob dict (gateway / scheduler paths).
+    """
+    finished = time.time()
+
+    # ── normalise to ORM row ─────────────────────────────────────────
+    if isinstance(task, TaskModel):
+        orm_task = task
+    else:  # raw JSON → ORM
+        orm_task = TaskModel(**task)
+
+    orm_task.status = Status.failed
+    orm_task.result = {"error": str(error)}
+    orm_task.last_modified = finished
+
+    # ── build the wire-level dict ───────────────────────────────────
+    blob: TaskBlob = {
+        "id": str(orm_task.id),
+        "pool": orm_task.pool,
+        "payload": orm_task.payload or {},
+        "labels": orm_task.labels or [],
+        "status": orm_task.status,
+        "result": orm_task.result,
+        "last_modified": orm_task.last_modified,
+    }
+
+    # ── fan-out: Redis cache ▸ Postgres ▸ WS subscribers ────────────
+    await _save_task(blob)
+    await _persist(orm_task)
+    await _publish_task(blob)
+
+
+async def _save_task(task: TaskBlob) -> None:
+    """
+    Upsert *task* into Redis and refresh its TTL.
+
+    The hash stores:
+      • "blob"   – the canonical JSON-encoded task dictionary
+      • "status" – lightweight index for quick status look-ups
+    """
+    key = _task_key(task["id"])
+    # Serialise once; no model_dump / extra handling required
+    blob = json.dumps(task, default=str)
+    status_val = str(task.get("status", ""))  # tolerate absent status
+    await queue.hset(key, mapping={"blob": blob, "status": status_val})
+    await queue.expire(key, TASK_TTL)
+
+
+async def _load_task(tid: str) -> TaskBlob | None:
+    """
+    Fetch a single task from Redis by id.
+
+    Returns:
+        • dict  – if the task hash exists
+        • None  – if the key is missing or blob field absent
+    """
+    data = await queue.hget(_task_key(tid), "blob")
+    return json.loads(data) if data else None
+
+
+async def _select_tasks(selector: str) -> list[TaskBlob]:
+    """
+    Resolve *selector* into concrete task dictionaries.
+
+    Selector formats:
+      • task-id            – exact match
+      • label:<labelname>  – all tasks whose `labels` contain <labelname>
+    """
+    if selector.startswith("label:"):
+        label = selector.split(":", 1)[1]
+        tasks: list[TaskBlob] = []
+        for key in await queue.keys("task:*"):
+            blob = await queue.hget(key, "blob")
+            if not blob:
+                continue
+            task = json.loads(blob)
+            if label in task.get("labels", []):
+                tasks.append(task)
+        return tasks
+
+    single = await _load_task(selector)
+    return [single] if single else []
+
+
+async def _finalize_parent_tasks(child_id: str) -> None:
+    keys = await queue.keys("task:*")
+    for key in keys:
+        blob = await queue.hget(key, "blob")
+        if not blob:
+            continue
+
+        parent = json.loads(blob)
+        result_block = parent.get("result") or {}
+        children = result_block.get("children") or []
+
+        if child_id not in children:
+            continue
+
+        # Check every child’s terminal status
+        all_done = True
+        for cid in children:
+            child = await _load_task(cid)
+            if not child:
+                all_done = False
+                break
+            if not Status.is_terminal(Status(child.get("status"))):
+                all_done = False
+                break
+
+        if all_done and parent.get("status") != Status.success:
+            parent["status"] = Status.success
+            parent["last_modified"] = time.time()
+            await _save_task(parent)
+            await _persist(parent)
+            await _publish_task(parent)
