@@ -1,57 +1,68 @@
-"""Async entry point for secret management."""
+# peagen/handlers/sort_handler.py
+"""
+Async entry-point for “sort” tasks.
+
+Input : TaskRead  – AutoAPI schema mapped to the Task ORM table
+Output: dict      – result returned by sort_core helpers
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict
 
-from peagen.core import secrets_core
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
+from autoapi import AutoAPI
+from autoapi.v2.tables.task import Task                       # ORM class
+
+from peagen._utils                 import maybe_clone_repo
+from peagen._utils.config_loader   import resolve_cfg
+from peagen.core.sort_core         import sort_single_project, sort_all_projects
+
+# ─────────────────────────── AutoAPI schema ───────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")                   # incoming model
 
 
-async def secrets_handler(task: SubmitParams) -> SubmitResult:
-    """Dispatch secret management actions."""
-    payload = task.payload
-    action = payload.get("action")
-    args: Dict[str, Any] = payload.get("args", {})
+# ─────────────────────────── main coroutine ───────────────────────────
+async def sort_handler(task: TaskRead) -> Dict[str, Any]:
+    """
+    Expected task.payload
+    ---------------------
+    {
+        "args": {
+            "projects_payload": <str | bytes>,
+            "project_name"    : <str | None>,
+            "start_idx"       : 0,
+            "start_file"      : "...",
+            "transitive"      : False,
+            "show_dependencies": False,
+            "cfg_override"    : {...}          # optional TOML fragments
+            "repo"            : "<git-url>",
+            "ref"             : "HEAD"
+        }
+    }
+    """
+    payload: Dict[str, Any] = task.payload or {}
+    args:    Dict[str, Any] = payload.get("args", {})
+    cfg_override            = payload.get("cfg_override", {})
 
-    if action == "local-add":
-        recipients = [Path(p) for p in args.get("recipients", [])]
-        secrets_core.add_local_secret(args["name"], args["value"], recipients)
-        return {"ok": True}
+    # ----- effective configuration ------------------------------------
+    cfg = resolve_cfg(toml_text=cfg_override)
 
-    if action == "local-get":
-        return {"secret": secrets_core.get_local_secret(args["name"])}
+    params: Dict[str, Any] = {
+        "projects_payload": args["projects_payload"],
+        "project_name"    : args.get("project_name"),
+        "start_idx"       : args.get("start_idx", 0),
+        "start_file"      : args.get("start_file"),
+        "transitive"      : args.get("transitive", False),
+        "show_dependencies": args.get("show_dependencies", False),
+        "cfg"             : cfg,
+    }
 
-    if action == "local-remove":
-        secrets_core.remove_local_secret(args["name"])
-        return {"ok": True}
+    repo = args.get("repo")
+    ref  = args.get("ref", "HEAD")
 
-    if action == "remote-add":
-        recipients = [Path(p) for p in args.get("recipient", [])]
-        return secrets_core.add_remote_secret(
-            args["secret_id"],
-            args["value"],
-            gateway_url=args.get("gateway_url", secrets_core.DEFAULT_GATEWAY),
-            version=int(args.get("version", 0)),
-            recipients=recipients,
-            pool=args.get("pool", "default"),
-        )
-
-    if action == "remote-get":
-        secret = secrets_core.get_remote_secret(
-            args["secret_id"],
-            gateway_url=args.get("gateway_url", secrets_core.DEFAULT_GATEWAY),
-            pool=args.get("pool", "default"),
-        )
-        return {"secret": secret}
-
-    if action == "remote-remove":
-        return secrets_core.remove_remote_secret(
-            args["secret_id"],
-            gateway_url=args.get("gateway_url", secrets_core.DEFAULT_GATEWAY),
-            version=args.get("version"),
-            pool=args.get("pool", "default"),
-        )
-
-    raise ValueError(f"Unknown action '{action}'")
+    # ----- delegate to core business logic ----------------------------
+    with maybe_clone_repo(repo, ref):                      # no-op when repo is None
+        if params["project_name"]:
+            return sort_single_project(params)
+        return sort_all_projects(params)
