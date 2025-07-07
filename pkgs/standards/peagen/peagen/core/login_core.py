@@ -1,36 +1,34 @@
 """Helpers for authenticating a user and uploading their public key to a Peagen
-gateway.
+gateway – refactored for AutoAPIClient.
 
-This module is intentionally free of any task-queue or database logic: it runs
-entirely on the *client* side.
+The function still:
 
-Typical usage
--------------
->>> from pathlib import Path
->>> from peagen.core.login_core import login
->>> login(key_dir=Path("~/.peagen/keys").expanduser(),
-...       passphrase=None,
-...       gateway_url="https://gw.peagen.com/rpc")
-{'result': 'ok'}
-
-The caller (CLI, GUI, or test) is responsible for interpreting the returned JSON-
-RPC envelope.
+1. Ensures a local GPG key-pair exists (generating one if absent).
+2. Uploads the *public* key to the JSON-RPC gateway.
+3. Returns the validated success envelope or raises for any error.
 """
-
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+
+from autoapi_client import AutoAPIClient           # ← new client
+from autoapi          import AutoAPI               # ← for .get_schema()
+from autoapi.v2.tables.keys import PublicKey       # ORM resource
+
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.plugins.secret_drivers import AutoGpgDriver
-from peagen.transport.client import send_jsonrpc_request
-from peagen.transport.jsonrpc_schemas import KEYS_UPLOAD
-from peagen.transport.jsonrpc_schemas.keys import UploadParams, UploadResult
 
 __all__ = ["login"]
+
+
+# ----------------------------------------------------------------------
+def _schema(tag: str):
+    """Shortcut to the server-generated schema for the PublicKey resource."""
+    return AutoAPI.get_schema(PublicKey, tag)
+
 
 def login(
     *,
@@ -39,52 +37,34 @@ def login(
     gateway_url: str = DEFAULT_GATEWAY,
     timeout_s: float = 10.0,
 ) -> dict[str, Any]:
-    """Ensure a GPG key-pair exists and upload the public key to *gateway_url*.
-
-    Parameters
-    ----------
-    key_dir
-        Directory that should contain (or will receive) the key-pair.
-        If *None*, the AutoGpgDriver default (~/.peagen/keys) is used.
-    passphrase
-        Optional passphrase for unlocking an encrypted private key.
-    gateway_url
-        Fully-qualified URL of the Peagen gateway JSON-RPC endpoint.
-        Defaults to ``http://localhost:8000/rpc``.
-    timeout_s
-        HTTP timeout in seconds for the upload call.
-
-    Returns
-    -------
-    dict
-        The parsed JSON response envelope from the gateway.
+    """Ensure a key-pair exists and upload the public key to *gateway_url*.
 
     Raises
     ------
     httpx.HTTPError
-        For transport-level problems (DNS, TLS, etc.) or a non-2xx HTTP status.
-    json.JSONDecodeError
-        If the gateway returns invalid JSON.
+        Network or non-2xx HTTP error from the gateway.
     RuntimeError
-        If the gateway responds with a JSON-RPC *error* object.
+        JSON-RPC error returned by the gateway.
     """
-    # 1. Ensure key-pair exists locally (generates if absent)
+    # 1 ─ ensure local key-pair
     drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
-
     public_key = drv.pub_path.read_text(encoding="utf-8")
 
-    # 2. Assemble JSON-RPC request
-    result = send_jsonrpc_request(
-        gateway_url=gateway_url,
-        method=KEYS_UPLOAD,
-        params=UploadParams(public_key=public_key),
-        expect=UploadResult,
-    )
+    # 2 ─ build request/response schemas dynamically
+    SCreate = _schema("create")
+    SRead   = _schema("read")
 
-    # 4. Surface gateway-level errors as Python exceptions
-    if "error" in result:
-        raise RuntimeError(
-            f"Gateway returned JSON-RPC error: {result['error']}"
-        )
+    params  = SCreate(public_key=public_key)
 
-    return result
+    # 3 ─ JSON-RPC call via AutoAPIClient
+    with AutoAPIClient(gateway_url,
+                       client=httpx.Client(timeout=timeout_s)) as rpc:
+        try:
+            result = rpc.call("PublicKeys.create",
+                              params=params,
+                              out_schema=SRead)
+        except (httpx.HTTPError, RuntimeError) as exc:
+            raise
+
+    # 4 ─ return success as plain dict for callers that expect JSON
+    return result.model_dump()
