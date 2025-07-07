@@ -1,9 +1,9 @@
-# peagen/handlers/sort_handler.py
+# peagen/handlers/secrets_handler.py
 """
-Async entry-point for “sort” tasks.
+Async entry-point for secret-management tasks.
 
-Input : TaskRead  – AutoAPI schema mapped to the Task ORM table
-Output: dict      – result returned by sort_core helpers
+Input : TaskRead  – AutoAPI schema for the Task ORM table
+Output: dict      – result from secrets_core helpers
 """
 
 from __future__ import annotations
@@ -11,58 +11,74 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi import AutoAPI
-from autoapi.v2.tables.task import Task                       # ORM class
+from autoapi.v2          import AutoAPI
+from peagen.orm          import Task
 
-from peagen._utils                 import maybe_clone_repo
-from peagen._utils.config_loader   import resolve_cfg
-from peagen.core.sort_core         import sort_single_project, sort_all_projects
+from peagen.core import secrets_core
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")                   # incoming model
 
 
 # ─────────────────────────── main coroutine ───────────────────────────
-async def sort_handler(task: TaskRead) -> Dict[str, Any]:
+async def secrets_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    Expected task.payload
-    ---------------------
+    Expected *task.payload* structure
+    ---------------------------------
     {
-        "args": {
-            "projects_payload": <str | bytes>,
-            "project_name"    : <str | None>,
-            "start_idx"       : 0,
-            "start_file"      : "...",
-            "transitive"      : False,
-            "show_dependencies": False,
-            "cfg_override"    : {...}          # optional TOML fragments
-            "repo"            : "<git-url>",
-            "ref"             : "HEAD"
-        }
+        "action": "local-add" | "local-get" | "local-remove"
+                | "remote-add" | "remote-get" | "remote-remove",
+        "args":   { ... }
     }
     """
     payload: Dict[str, Any] = task.payload or {}
+    action:  str | None     = payload.get("action")
     args:    Dict[str, Any] = payload.get("args", {})
-    cfg_override            = payload.get("cfg_override", {})
 
-    # ----- effective configuration ------------------------------------
-    cfg = resolve_cfg(toml_text=cfg_override)
+    # ─────── local store operations ───────────────────────────────────
+    if action == "local-add":
+        recipients = [Path(p).expanduser() for p in args.get("recipients", [])]
+        secrets_core.add_local_secret(args["name"], args["value"], recipients)
+        return {"ok": True}
 
-    params: Dict[str, Any] = {
-        "projects_payload": args["projects_payload"],
-        "project_name"    : args.get("project_name"),
-        "start_idx"       : args.get("start_idx", 0),
-        "start_file"      : args.get("start_file"),
-        "transitive"      : args.get("transitive", False),
-        "show_dependencies": args.get("show_dependencies", False),
-        "cfg"             : cfg,
-    }
+    if action == "local-get":
+        secret = secrets_core.get_local_secret(args["name"])
+        return {"secret": secret}
 
-    repo = args.get("repo")
-    ref  = args.get("ref", "HEAD")
+    if action == "local-remove":
+        secrets_core.remove_local_secret(args["name"])
+        return {"ok": True}
 
-    # ----- delegate to core business logic ----------------------------
-    with maybe_clone_repo(repo, ref):                      # no-op when repo is None
-        if params["project_name"]:
-            return sort_single_project(params)
-        return sort_all_projects(params)
+    # ─────── remote (gateway) operations ──────────────────────────────
+    gw_url  = args.get("gateway_url", secrets_core.DEFAULT_GATEWAY)
+    pool    = args.get("pool", "default")
+
+    if action == "remote-add":
+        recipients = [Path(p).expanduser() for p in args.get("recipient", [])]
+        return secrets_core.add_remote_secret(
+            secret_id = args["secret_id"],
+            value     = args["value"],
+            gateway_url = gw_url,
+            version   = int(args.get("version", 0)),
+            recipients= recipients,
+            pool      = pool,
+        )
+
+    if action == "remote-get":
+        secret = secrets_core.get_remote_secret(
+            secret_id  = args["secret_id"],
+            gateway_url= gw_url,
+            pool       = pool,
+        )
+        return {"secret": secret}
+
+    if action == "remote-remove":
+        return secrets_core.remove_remote_secret(
+            secret_id  = args["secret_id"],
+            gateway_url= gw_url,
+            version    = args.get("version"),
+            pool       = pool,
+        )
+
+    # ─────── unknown action → explicit error ──────────────────────────
+    raise ValueError(f"Unknown secret-management action '{action}'")
