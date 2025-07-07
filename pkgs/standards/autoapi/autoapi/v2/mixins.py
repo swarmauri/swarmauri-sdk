@@ -161,7 +161,7 @@ class Slugged:
 class StatusEnum:
     status = Column(
         SAEnum("queued", "waiting", "input_required", "auth_required", "approved", "rejected",
-            "rejected", "dispatched", "running", "paused", "success", "failed", "cancelled"
+            "rejected", "dispatched", "running", "paused", "success", "failed", "cancelled",
             name="status_enum"),
         default="waiting",
         nullable=False,

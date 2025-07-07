@@ -103,8 +103,11 @@ class AutoAPI:
         # initialise hook subsystem
         _init_hooks(self)
 
+        attach_health_and_methodz(self, self.get_db)
+
         # attach JSON-RPC gateway
         self.router.include_router(build_gateway(self))
+        
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
