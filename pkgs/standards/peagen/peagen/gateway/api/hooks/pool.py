@@ -1,48 +1,34 @@
+"""
+gateway.api.hooks.pool
+──────────────────────
+Only CRUD hooks remain – no ad-hoc RPC methods.
+"""
 from __future__ import annotations
-
-import uuid
 from typing import Any, Dict
 
 from autoapi.v2 import Phase
+from autoapi          import AutoAPI
+from autoapi.v2.tables.pool import Pool
 
-from peagen.transport.jsonrpc_schemas.pool import (
-    POOL_JOIN,
-    POOL_LIST_TASKS,
-    CreateResult,
-    JoinParams,
-    JoinResult,
-    ListParams,
-    ListResult,
-)
+from .. import queue, log
+from .  import api
 
-from .. import READY_QUEUE, dispatcher, log, queue
-from . import api
+# Fast, cacheable access to the generated Pool schemas
+PoolRead = AutoAPI.get_schema(Pool, "read")
 
-# ------------------------------------------------------------------------
-# Pool CRUD operation hooks
-# ------------------------------------------------------------------------
-
-
+# ─────────────────────────── CRUD hooks ────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="pools.create")
 async def pre_pool_create(ctx: Dict[str, Any]) -> None:
-    """Pre-hook for pool creation: Extract and validate name."""
-    params = ctx["env"].params
-    name = params.name
-
-    # Store pool name for post-commit hook
-    ctx["pool_name"] = name
+    """Stash the pool name so the post-hook can use it."""
+    ctx["pool_name"] = ctx["env"].params.name
 
 
 @api.hook(Phase.POST_COMMIT, method="pools.create")
 async def post_pool_create(ctx: Dict[str, Any]) -> None:
-    """Post-hook for pool creation: Register in Redis."""
+    """Register the new pool in Redis and shape the response."""
     name = ctx["pool_name"]
-
-    # Register the pool in Redis
     await queue.sadd("pools", name)
-
     log.info("pool created: %s", name)
 
-    # Set response format
-    ctx["result"] = CreateResult(name=name).model_dump()
-
+    # Ensure the RPC result schema is exactly what AutoAPI advertises
+    ctx["result"] = PoolRead(name=name).model_dump()

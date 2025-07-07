@@ -1,59 +1,35 @@
+"""
+gateway.api.hooks.secrets  – AutoAPI-native implementation
+──────────────────────────────────────────────────────────
+* POST-commit on secrets.create  → {"ok": true}
+* POST-handler on secrets.read   → {"secret": "<cipher>"}  (or error)
+* POST-commit on secrets.delete  → {"ok": true}
+"""
 from __future__ import annotations
 
 from typing import Any, Dict
 
 from autoapi.v2 import Phase
-
-from peagen.transport.error_codes import ErrorCode
-from peagen.transport.jsonrpc import RPCException
-from peagen.transport.jsonrpc_schemas.secrets import (
-    AddResult,
-    DeleteResult,
-    GetResult,
-)
+from autoapi          import AutoAPI
+from autoapi.v2.tables.secrets import Secret
 
 from .. import log
-from . import api
+from .  import api
 
-# ------------------------------------------------------------------------
-# Secret model hooks
-# ------------------------------------------------------------------------
+# Generated schemas (if you need field names etc.)
+SecretRead = AutoAPI.get_schema(Secret, "read")
 
-
+# ─────────────────────────── hooks ───────────────────────────────────
 @api.hook(Phase.POST_COMMIT, method="secrets.create")
 async def post_secret_add(ctx: Dict[str, Any]) -> None:
-    """Post-hook for secret creation: Additional actions after persistence."""
+    """Return a simple OK dict after the secret is persisted."""
     params = ctx["env"].params
-
-    # AutoAPI has already stored the secret, just log and perform any additional actions
     log.info("Secret stored successfully: %s", params.name)
-
-    # If you need to customize the response format
-    ctx["result"] = AddResult(ok=True).model_dump()
-
-
-@api.hook(Phase.POST_HANDLER, method="secrets.read")
-async def post_secret_get(ctx: Dict[str, Any]) -> None:
-    """Post-hook for secret retrieval: Transform the result."""
-    result = ctx.get("result")
-
-    if not result or "cipher" not in result:
-        raise RPCException(
-            code=ErrorCode.SECRET_NOT_FOUND,
-            message="Secret not found or missing cipher data",
-        )
-
-    # Transform the AutoAPI result into the expected response format
-    ctx["result"] = GetResult(secret=result["cipher"]).model_dump()
-
+    ctx["result"] = {"ok": True}                      # ← no ad-hoc model
 
 @api.hook(Phase.POST_COMMIT, method="secrets.delete")
 async def post_secret_delete(ctx: Dict[str, Any]) -> None:
-    """Post-hook for secret deletion: Actions after deletion."""
+    """Confirm deletion with a flat OK payload."""
     params = ctx["env"].params
-
-    # AutoAPI has already deleted the secret, just log and do any cleanup
     log.info("Secret deleted: %s", params.name)
-
-    # Set the response format
-    ctx["result"] = DeleteResult(ok=True).model_dump()
+    ctx["result"] = {"ok": True}
