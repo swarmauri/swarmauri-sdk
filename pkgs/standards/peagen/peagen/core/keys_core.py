@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, List
 import httpx
 from autoapi_client      import AutoAPIClient
 from autoapi.v2          import AutoAPI
-from peagen.orm          import PublicKey        # ORM resource
+from peagen.orm          import DeployKey        # ORM resource
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
@@ -75,7 +75,7 @@ def _rpc(gateway_url: str) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(PublicKey, tag)        # classmethod
+    return AutoAPI.get_schema(DeployKey, tag)        # classmethod
 
 
 def upload_public_key(

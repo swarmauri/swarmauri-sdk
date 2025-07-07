@@ -7,7 +7,7 @@ from typing import Optional
 
 from autoapi_client import AutoAPIClient          # ← new import
 from autoapi.v2     import AutoAPI                   # ← get_schema lives here
-from peagen.orm     import PublicKey      # ORM class for the resource
+from peagen.orm     import DeployKey      # ORM class for the resource
 from peagen.core    import keys_core                 # unchanged
 
 keys_app = typer.Typer(help="Manage local and remote public keys.")
@@ -21,7 +21,7 @@ def _rpc(ctx: typer.Context) -> AutoAPIClient:
 
 def _schema(tag: str):
     """Shorthand to fetch the correct Pydantic model once."""
-    return AutoAPI.get_schema(PublicKey, tag)     # classmethod now
+    return AutoAPI.get_schema(DeployKey, tag)     # classmethod now
 
 
 # ---------------- create (local-only) --------------------------------- #
