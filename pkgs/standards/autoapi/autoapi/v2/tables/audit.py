@@ -14,3 +14,13 @@ class Change(Base, GUIDPk, Timestamped):
     table_name = Column(String)
     row_id     = Column(UUID)
     action     = Column(String)
+
+__all__ = ["Change"]
+
+for _name in list(globals()):
+    if _name not in __all__ and not _name.startswith("__"):
+        del globals()[_name]
+
+def __dir__():
+    # optional, keeps IPython completion tight
+    return sorted(__all__)
