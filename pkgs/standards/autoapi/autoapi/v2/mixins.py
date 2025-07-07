@@ -216,3 +216,4 @@ class SearchVector:
         return (
             Index(f"ix_{cls.__tablename__}_tsv", "tsv", postgresql_using="gin"),
         )
+
