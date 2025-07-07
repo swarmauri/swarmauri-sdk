@@ -72,8 +72,8 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
     name       = Column(String, nullable=False)
     url        = Column(String, unique=True, nullable=False)
     default_branch = Column(String, default="main")
-    commit_sha: = Column(String(length=40), nullable=True)
-    remote_name: Column(String, nullable=False, default="origin")
+    commit_sha = Column(String(length=40), nullable=True)
+    remote_name = Column(String, nullable=False, default="origin")
 
     # relationships
     secrets     = relationship("Secret",     back_populates="repository", cascade="all, delete-orphan")
