@@ -1,18 +1,17 @@
+# task_helpers.py  – new, client-based implementation
 from __future__ import annotations
 
-import uuid
+import json, uuid, httpx
 from typing import Any, Dict
 
-import httpx
-
+from autoapi_client import AutoAPIClient
+from autoapi.v2      import AutoAPI
+from peagen.orm.task import Task                      # ORM
 from peagen.defaults import RPC_TIMEOUT
 from peagen.orm.task.status import Status
 
-from peagen.transport import Request, Response, TASK_GET
-from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
-from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult, SubmitParams
-
-
+# ------------------------------------------------------------------ #
+# local factories  – stay unchanged
 def build_task(
     action: str,
     args: Dict[str, Any],
@@ -26,13 +25,13 @@ def build_task(
     labels: list[str] | None = None,
     tenant_id: str = "default",
     spec_hash: str | None = None,
-) -> SubmitParams:
-    """Return a :class:`SubmitParams` instance for *action* and *args*."""
-
-    uid = uuid.uuid4()
-    uid_str = str(uid)
-    return SubmitParams(
-        id=uid_str,
+) -> Any:
+    """
+    Return a validated *Create* schema instance for the Task resource.
+    """
+    SCreate = AutoAPI.get_schema(Task, "create")            # dynamic schema
+    return SCreate(
+        id=str(uuid.uuid4()),
         pool=pool,
         repo=repo,
         ref=ref,
@@ -42,39 +41,47 @@ def build_task(
         config_toml=config_toml,
         labels=labels,
         tenant_id=tenant_id,
-        spec_hash=uuid.uuid4().hex,
+        spec_hash=spec_hash or uuid.uuid4().hex,
     )
 
 
-def submit_task(gateway_url: str, task: SubmitParams, *, timeout: float = 30.0) -> dict:
-    """Submit *task* to *gateway_url* via JSON-RPC and return the response dictionary."""
+# ------------------------------------------------------------------ #
+def submit_task(
+    gateway_url: str,
+    task: Any,                       # instance returned by build_task
+    *,
+    timeout: float = RPC_TIMEOUT,
+) -> Dict[str, Any]:
+    """
+    Submit *task* to *gateway_url* via JSON-RPC and return the raw result dict.
+    """
+    SRead = AutoAPI.get_schema(Task, "read")      # success schema
 
-    envelope = Request(
-        id=str(uuid.uuid4()), method=TASK_SUBMIT, params=task.model_dump()
-    )
-    resp = httpx.post(
-        gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
-    )
-    resp.raise_for_status()
-    return resp.json()
+    try:
+        with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+            res = rpc.call("Tasks.create", params=task, out_schema=SRead)
+        return res.model_dump()
+    except (httpx.HTTPError, RuntimeError) as exc:
+        raise RuntimeError(f"submit_task RPC failed: {exc}") from exc
 
 
+# ------------------------------------------------------------------ #
 def get_task(
     gateway_url: str,
     task_id: str,
     *,
     timeout: float = RPC_TIMEOUT,
-) -> GetResult:
-    """Return task information from *gateway_url* via JSON-RPC."""
+):
+    """
+    Return a validated *Read* model for the task with *task_id*.
+    """
+    SRead = AutoAPI.get_schema(Task, "read")
+    SDel  = AutoAPI.get_schema(Task, "delete")    # only contains primary key
 
-    envelope = Request(
-        id=str(uuid.uuid4()),
-        method=TASK_GET,
-        params=GetParams(taskId=task_id).model_dump(),
-    )
-    resp = httpx.post(
-        gateway_url, json=envelope.model_dump(mode="json"), timeout=timeout
-    )
-    resp.raise_for_status()
-    parsed = Response[GetResult].model_validate(resp.json())
-    return parsed.result  # type: ignore[return-value]
+    params = SDel(id=task_id)                     # validate id shape first
+    try:
+        with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+            result = rpc.call("Tasks.read", params=params, out_schema=SRead)
+        return result
+    except (httpx.HTTPError, RuntimeError) as exc:
+        raise RuntimeError(f"get_task RPC failed: {exc}") from exc
