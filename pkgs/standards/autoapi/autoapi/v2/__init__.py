@@ -127,7 +127,7 @@ class AutoAPI:
     _nested_prefix    = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
-    @classmethod
+    @staticmethod
     def get_schema(orm_cls: type, tag: _SchemaVerb):
         from .get_schema import get_autoapi_schema
         return get_autoapi_schema(orm_cls, tag)

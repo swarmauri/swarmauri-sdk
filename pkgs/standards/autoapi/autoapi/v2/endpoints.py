@@ -14,10 +14,10 @@ def attach_health_and_methodz(api, get_db):
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
 
-    @r.get("/healthz", "health")
+    @r.get("/healthz", tags="health")
     def _health(db: Session = Depends(get_db)):
         try:
-            db.execute("SELECT 1")
+            db.execute("text(SELECT 1)")
             return {"ok": True}
         finally:
             db.close()
