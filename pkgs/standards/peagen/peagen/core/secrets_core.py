@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import List, Optional, Any, Dict
 
 from autoapi_client import AutoAPIClient
-from autoapi          import AutoAPI
-from autoapi.v2.tables.secrets import Secret         # ORM resource
-from autoapi.v2.tables.worker  import Worker         # to fetch worker adverts
+from autoapi.v2          import AutoAPI
+from peagen.orm.secrets import Secret         # ORM resource
+from peagen.orm.worker  import Worker         # to fetch worker adverts
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 
