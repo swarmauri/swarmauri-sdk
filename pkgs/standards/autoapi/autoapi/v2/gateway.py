@@ -46,9 +46,15 @@ def build_gateway(api) -> APIRouter:
 
         except Exception as exc:
             db.rollback()
+
+            # ------------------ HTTPException → JSON-RPC ----------------------
+            if isinstance(exc, HTTPException):
+                rpc_code, rpc_data = _http_exc_to_rpc(exc)
+                return _err(rpc_code, exc.detail, env, rpc_data)
+
+            # ------------------ generic fallback ------------------------------
             await api._run(Phase.ON_ERROR, ctx | {"error": exc})
-            code = exc.status_code if isinstance(exc, HTTPException) else -32000
-            return _err(code, str(exc), env)
+            return _err(-32000, str(exc), env)
 
         finally:
             db.close()

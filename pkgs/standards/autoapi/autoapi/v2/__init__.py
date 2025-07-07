@@ -22,7 +22,7 @@ from .impl      import (
                     _schema,
                     _crud, 
                     _wrap_rpc, 
-                    commit_or_flush, 
+                    _commit_or_flush, 
                     _register_routes_and_rpcs,
                 )
 from .hooks     import Phase, _Hook, _init_hooks, _run
@@ -97,13 +97,14 @@ class AutoAPI:
                 continue
             self._crud(cls)
 
+
     # ───────── bound helpers (delegated to sub-modules) ────────────
+    schema            = _schema = _schema
     _Op               = _Op
-    _schema           = _schema
     _crud             = _crud
     _wrap_rpc         = _wrap_rpc
     _run              = _run
-    commit_or_flush   = commit_or_flush
+    _commit_or_flush   = _commit_or_flush
     _nested_prefix    = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 

@@ -7,7 +7,7 @@ from inspect import signature, isawaitable
 from typing import get_origin, get_args, List, Any, ForwardRef
 from pydantic import BaseModel, create_model, ConfigDict
 
-
+from sqlalchemy.exc          import IntegrityError, SQLAlchemyError
 from fastapi                 import APIRouter, Body, Depends, HTTPException, Request
 from pydantic                import BaseModel, Field, create_model, ConfigDict
 from sqlalchemy.orm          import Session
@@ -18,6 +18,31 @@ import re
 
 from .mixins import Replaceable, BulkCapable, AsyncCapable
 
+
+# ---------------------------------------------------------------------
+def _not_found() -> None:
+    raise HTTPException(404, "Item not found")
+
+# ---------------------------------------------------------------------
+_DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
+
+def _commit_or_http(db: Session) -> None:
+    try:
+        db.flush() if db.in_nested_transaction() else db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raw = str(exc.orig)
+        if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
+            m = _DUP_RE.search(raw)
+            msg = f"Duplicate value '{m['val']}' for field '{m['col']}'." if m else \
+                  "Duplicate key value violates a unique constraint."
+            raise HTTPException(409, msg) from exc
+        if getattr(exc.orig, "pgcode", None) in ("23503",) or "foreign key" in raw:
+            raise HTTPException(422, "Foreign-key constraint failed.") from exc
+        raise HTTPException(422, raw) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(500, f"Database error: {exc}") from exc
 
 
 # ---------------------------------------------------------------------
@@ -88,6 +113,18 @@ def _nested_prefix_clean(raw: str) -> str | None:
     # 4 – root-only → disable nested router
     return pref or None
 
+
+# ---------------------------------------------------------------------
+COMMON_ERRORS = {
+    400: {"description": "Bad Request: malformed input"},
+    404: {"description": "Not Found"},
+    409: {"description": "Conflict: duplicate key"},
+    422: {"description": "Unprocessable Entity: constraint failed"},
+    500: {"description": "Internal Server Error"},
+}
+
+# ---------------------------------------------------------------------
+
 # ───────────────────── register one model’s REST/RPC ────────────────────
 def _register_routes_and_rpcs(      # noqa: N802
     self,
@@ -108,22 +145,24 @@ def _register_routes_and_rpcs(      # noqa: N802
     pk_col   = next(iter(model.__table__.primary_key.columns))
     pk_type  = getattr(pk_col.type, "python_type", str)
 
+    # ─── helpers & preliminaries ───────────────────────────────────────────
     spec: List[tuple] = [
-        ("create",  "POST",    "",            SCreate,           SRead,        _create),
-        ("list",    "GET",     "",            SListIn,           List[SRead],  _list),
-        ("clear",   "DELETE",  "",            None,              dict,         _clear),
-        ("read",    "GET",     "/{item_id}",  SDel,              SRead,        _read),
-        ("update",  "PATCH",   "/{item_id}",  SUpdate,           SRead,        _update),
-        ("delete",  "DELETE",  "/{item_id}",  SDel,              SDel,         _delete),
+        # verb       http   path          status  In-model            Out-model      core-fn
+        ("create",   "POST",  "",          201,    SCreate,            SRead,         _create),
+        ("list",     "GET",   "",          200,    SListIn,            List[SRead],   _list),
+        ("clear",    "DELETE","",          204,    None,               None,          _clear),
+        ("read",     "GET",   "/{item_id}",200,    SDel,               SRead,         _read),
+        ("update",   "PATCH", "/{item_id}",200,    SUpdate,            SRead,         _update),
+        ("delete",   "DELETE","/{item_id}",204,    SDel,               None,          _delete),
     ]
     if issubclass(model, Replaceable):
         spec.append(("replace", "PUT", "/{item_id}",
-                     SCreate, SRead,
+                     200,  SCreate,  SRead,
                      lambda i, p, db: _update(i, p, db, full=True)))
     if issubclass(model, BulkCapable):
         spec += [
-            ("bulk_create", "POST",   "/bulk", List[SCreate], List[SRead], _create),
-            ("bulk_delete", "DELETE", "/bulk", List[SDel],    dict,        _delete),
+            ("bulk_create", "POST",   "/bulk", 201, List[SCreate], List[SRead], _create),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDel],    None,        _delete),
         ]
 
     # ─── nested prefix → path parameters (NOT query) ───────────────────────
@@ -149,7 +188,7 @@ def _register_routes_and_rpcs(      # noqa: N802
         return Depends(inner)
 
     # ─── endpoint factory ──────────────────────────────────────────────
-    for verb, http, path, In, Out, core in spec:
+    for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
 
         def _factory(is_nested_router, *, verb=verb, path=path, In=In, core=core):
@@ -186,7 +225,7 @@ def _register_routes_and_rpcs(      # noqa: N802
                 params.append(
                     inspect.Parameter(
                         "p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Body(embed=False)]
+                        annotation=Annotated[_visible(In), Depends()]   # ← query params
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
@@ -243,7 +282,9 @@ def _register_routes_and_rpcs(      # noqa: N802
                 path,
                 _factory(is_nested_router),                  # ← pass the flag
                 methods=[http],
+                status_code=status,
                 response_model=Out,
+                responses=COMMON_ERRORS,
                 dependencies=[self._authn_dep, _guard(m_id)],
             )
 
@@ -295,7 +336,7 @@ def _crud(self, model: type) -> None:                         # noqa: N802
 
     def _SList():
         base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=1)))
+                    limit=(int | None, Field(None, ge=10)))
         def _safe_py(col):
             try:
                 t = col.type.python_type                       # may raise
@@ -313,17 +354,19 @@ def _crud(self, model: type) -> None:                         # noqa: N802
     SListIn = _SList()
     SListIn.model_rebuild(force=True)      # ✱ resolve any forward refs
 
-    safe = lambda db: (db.flush() if db.in_nested_transaction() else db.commit())
-    _404 = lambda: HTTPException(404)
-
     def _create(p, db):
-        o = model(**p.model_dump()); db.add(o); safe(db); db.refresh(o); return o
+        o = model(**p.model_dump()); db.add(o); _commit_or_http(db); db.refresh(o); return o
 
     def _read(i, db):
-        return (o := db.get(model, i)) or _404()
+        obj = db.get(model, i)
+        if obj is None:
+            _not_found()
+        return obj
 
     def _update(i, p, db, *, full=False):
-        o = db.get(model, i) or _404()
+        obj = db.get(model, i)
+        if obj is None:
+            _not_found()
         if full:
             for c in model.__table__.columns:
                 if c.name != pk:
@@ -331,10 +374,14 @@ def _crud(self, model: type) -> None:                         # noqa: N802
         else:
             for k, v in p.model_dump(exclude_unset=True).items():
                 setattr(o, k, v)
-        safe(db); db.refresh(o); return o
+        _commit_or_http(db); db.refresh(o); return o
 
-    _delete = lambda i, db: (db.delete(db.get(model, i) or _404()),
-                             safe(db), {pk: i})[-1]
+    _delete = lambda i, db: (
+        (o := db.get(model, i)) or _not_found(),
+        db.delete(o),
+        _commit_or_http(db),
+        {pk: i},
+    )[-1]
 
     def _list(p, db):
         d = p.model_dump(exclude_defaults=True, exclude_none=True)
@@ -345,7 +392,7 @@ def _crud(self, model: type) -> None:                         # noqa: N802
             q = q.limit(lim)
         return q.all()
 
-    _clear = lambda db: {"deleted": db.query(model).delete() or safe(db)}
+    _clear = lambda db: {"deleted": db.query(model).delete() or _commit_or_http(db)}
 
     self._register_routes_and_rpcs(
         model, tab, pk,
@@ -392,5 +439,5 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):           # noqa: N802
     return h
 
 
-def commit_or_flush(self, db: Session):
+def _commit_or_flush(self, db: Session):
     db.flush() if db.in_nested_transaction() else db.commit()
