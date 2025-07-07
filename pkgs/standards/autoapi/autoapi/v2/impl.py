@@ -4,7 +4,9 @@ Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 """
 import uuid
 from inspect import signature, isawaitable
-from typing  import Any, List, get_origin, get_args, Annotated, ForwardRef
+from typing import get_origin, get_args, List, Any, ForwardRef
+from pydantic import BaseModel, create_model, ConfigDict
+
 
 from fastapi                 import APIRouter, Body, Depends, HTTPException, Request
 from pydantic                import BaseModel, Field, create_model, ConfigDict
@@ -16,6 +18,44 @@ import re
 
 from .mixins import Replaceable, BulkCapable, AsyncCapable
 
+
+
+# ---------------------------------------------------------------------
+
+def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
+    """
+    Return a shallow clone in which every field named in *drop* is removed
+    from the **schema** that FastAPI shows.  For non-Pydantic types the
+    function is a no-op.
+    """
+    if not drop:
+        return base                              # nothing to strip
+
+    # ── Case 1: List[Model]  → make List[StrippedModel] ───────────────
+    if get_origin(base) in (list, List):
+        elem = get_args(base)[0]
+        stripped = _strip_parent_fields(elem, drop=drop)
+        return list[stripped]                    # Py ≥3.9 generics
+
+    # ── Case 2: plain Pydantic model ──────────────────────────────────
+    if isinstance(base, type) and issubclass(base, BaseModel):
+        fld_spec = {
+            name: (fld.annotation, fld)
+            for name, fld in base.model_fields.items()
+            if name not in drop
+        }
+        cfg = getattr(base, "model_config", ConfigDict())
+        cls = create_model(f"{base.__name__}SansParents",
+                           __config__=cfg, **fld_spec)
+        cls.model_rebuild(force=True)
+        return cls
+
+    # ── Fallback: leave untouched (e.g. dict, str, int …) ────────────
+    return base
+# ---------------------------------------------------------------------
+
+
+
 # ───────────────────────── small utils ───────────────────────────────────
 async def _run(core, *a):
     rv = core(*a)
@@ -25,6 +65,28 @@ async def _run(core, *a):
 def _canonical(table: str, verb: str) -> str:
     return f"{''.join(w.title() for w in table.split('_'))}.{verb}"
 
+
+def _nested_prefix_clean(raw: str) -> str | None:
+    """
+    1. Drop every '{var}' placeholder.
+    2. Collapse duplicate slashes.
+    3. Trim a *trailing* slash.
+    4. Return None if nothing but '/' would remain.
+    """
+    if not raw:
+        return None                         # no nesting
+
+    # 1 – strip placeholders
+    pref = re.sub(r"{[^}/]+}", "", raw)
+
+    # 2 – squeeze multiple slashes   ("/foo//bar/" -> "/foo/bar/")
+    pref = re.sub(r"/{2,}", "/", pref)
+
+    # 3 – remove trailing slash      (but keep the leading one)
+    pref = pref.rstrip("/")
+
+    # 4 – root-only → disable nested router
+    return pref or None
 
 # ───────────────────── register one model’s REST/RPC ────────────────────
 def _register_routes_and_rpcs(      # noqa: N802
@@ -64,15 +126,20 @@ def _register_routes_and_rpcs(      # noqa: N802
             ("bulk_delete", "DELETE", "/bulk", List[SDel],    dict,        _delete),
         ]
 
-    # ─── nested prefix → query parameters only ─────────────────────────
-    raw_pref    = self._nested_prefix(model) or ""          # e.g. "/tenants/{tenant_id}"
-    nested_vars = re.findall(r"{(\w+)}", raw_pref)          # ["tenant_id"]
-    clean_pref  = re.sub(r"{\w+}", "", raw_pref).rstrip("/")  # "/tenants"
+    # ─── nested prefix → path parameters (NOT query) ───────────────────────
+    raw_pref = self._nested_prefix(model) or ""        # e.g. "/tenants/{tenant_id}"
+    # collapse any accidental "//", then trim a trailing "/" (FastAPI asserts)
+    nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
+
+    # keep the placeholders → parent ids are path variables
+    nested_vars = re.findall(r"{(\w+)}", raw_pref)     # ["tenant_id", ...]
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
-    routers: tuple[APIRouter, ...] = (flat_router,)
-    if clean_pref:
-        routers += (APIRouter(prefix=clean_pref, tags=[f"{tab}"]),)
+    routers     = (flat_router,) if nested_pref is None else (
+                  flat_router,
+                  APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
+                 )
+
 
     # ─── RBAC guard (unchanged) ────────────────────────────────────────
     def _guard(scope: str):
@@ -85,18 +152,19 @@ def _register_routes_and_rpcs(      # noqa: N802
     for verb, http, path, In, Out, core in spec:
         m_id = _canonical(tab, verb)
 
-        def _factory(verb=verb, path=path, In=In, core=core):
+        def _factory(is_nested_router, *, verb=verb, path=path, In=In, core=core):
             params: list[inspect.Parameter] = []
 
             # parent keys → query parameters
-            for nv in nested_vars:
-                params.append(
-                    inspect.Parameter(
-                        nv,
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[str, Query(...)]
+            if is_nested_router:
+                for nv in nested_vars:
+                    params.append(
+                        inspect.Parameter(
+                            nv,
+                            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                            annotation=Annotated[str, Path(...)]
+                        )
                     )
-                )
 
             # primary-key path variable
             if "{item_id}" in path:
@@ -108,21 +176,24 @@ def _register_routes_and_rpcs(      # noqa: N802
                     )
                 )
 
+            def _visible(t: type) -> type:
+                return _strip_parent_fields(t, drop=set(nested_vars)) \
+                       if is_nested_router else t
+
+
             # payloads — *always* body (CREATE/LIST/UPDATE/BULK…)
             if verb == "list":
                 params.append(
                     inspect.Parameter(
-                        "p",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[In, Body(embed=False)]
+                        "p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[_visible(In), Body(embed=False)]
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
                 params.append(
                     inspect.Parameter(
-                        "p",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[In, Body(embed=False)]
+                        "p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[_visible(In), Body(embed=False)]
                     )
                 )
 
@@ -137,23 +208,29 @@ def _register_routes_and_rpcs(      # noqa: N802
 
             # ---- callable body -------------------------------------------------------
             async def _impl(**kw):
-                db        = kw.pop("db")
-                p         = kw.pop("p", None)
-                item_id   = kw.pop("item_id", None)
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                db        = kw.pop("db")                 # always present
+                p         = kw.pop("p", None)            # body payload or None
+                item_id   = kw.pop("item_id", None)      # single-row CRUD or None
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}  # path vars
 
+                # ── inject path vars into the body model when it exists ───────────
+                if p is not None and parent_kw:
+                    # update() is available on every Pydantic-v2 model
+                    p = p.model_copy(update=parent_kw)
+
+                # ── delegate to the core helper WITHOUT extra **kwargs ────────────
                 match verb:
                     case "list":
-                        return await _run(core, p, db, **parent_kw)
+                        return await _run(core, p, db)
                     case "read" | "delete":
-                        return await _run(core, item_id, db, **parent_kw)
+                        return await _run(core, item_id, db)
                     case "update" | "replace":
-                        return await _run(core, item_id, p, db, **parent_kw)
+                        return await _run(core, item_id, p, db)
                     case "clear":
-                        return await _run(core, db, **parent_kw)
+                        return await _run(core, db)
                     case _:
                         # create / bulk_create / bulk_delete
-                        return await _run(core, p, db, **parent_kw)
+                        return await _run(core, p, db)
 
             _impl.__name__       = f"{verb}_{tab}"
             _impl.__signature__  = inspect.Signature(parameters=params)
@@ -161,9 +238,10 @@ def _register_routes_and_rpcs(      # noqa: N802
 
         # mount on every relevant router
         for r in routers:
+            is_nested_router = r is not flat_router          # ← NEW
             r.add_api_route(
                 path,
-                _factory(),
+                _factory(is_nested_router),                  # ← pass the flag
                 methods=[http],
                 response_model=Out,
                 dependencies=[self._authn_dep, _guard(m_id)],
