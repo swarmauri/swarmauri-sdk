@@ -77,7 +77,16 @@ async def pre_worker_register(ctx: Dict[str, Any]) -> None:
         "handlers": handler_list,
     }
 
+# 🚧 
+@api.hook(Phase.POST_COMMIT, method="workers.create")
+async def post_worker_create(ctx: Dict[str, Any]) -> None:
+    """Add the worker to the Redis member set of its pool."""
+    w = ctx["result"]                    # validated WorkerRead dict
+    await queue.sadd(f"pool:{w['pool']}:members", w["id"])
+    log.info("worker %s joined pool %s", w["id"], w["pool"])
 
+
+# 🚧 should handle pool join methods, does not require worker upsert, but does require queue/pubsub hooks
 @api.hook(Phase.POST_COMMIT, method="workers.create")
 async def post_worker_register(ctx: Dict[str, Any]) -> None:
     """Post-hook for worker registration: Register in Redis."""
@@ -105,6 +114,7 @@ async def post_worker_register(ctx: Dict[str, Any]) -> None:
     ctx["result"] = RegisterResult(ok=True).model_dump()
 
 
+# 🚧 should handle pool list, does not require worker upsert, but does require queue/pubsub hooks
 @api.hook(Phase.POST_HANDLER, method="workers.list")
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
     """Post-hook for worker list: Return filtered list of workers."""

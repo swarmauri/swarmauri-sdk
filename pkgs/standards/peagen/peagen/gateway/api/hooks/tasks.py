@@ -258,9 +258,6 @@ async def task_retry_from(params: SimpleSelectorParams) -> CountResult:
 def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
-
-
-
 async def _fail_task(task: TaskModel | TaskBlob, error: Exception) -> None:
     """
     Mark *task* as failed and propagate the update everywhere.
