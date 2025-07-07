@@ -1,56 +1,59 @@
 from __future__ import annotations
 
-from .. import Session, dispatcher, log
-from peagen.transport.jsonrpc_schemas.secrets import (
-    SECRETS_ADD,
-    SECRETS_GET,
-    SECRETS_DELETE,
-    AddParams,
-    AddResult,
-    GetParams,
-    GetResult,
-    DeleteParams,
-    DeleteResult,
-)
-from ..db_helpers import delete_secret, fetch_secret, upsert_secret
+from typing import Any, Dict
+
+from autoapi.v2 import Phase
+
 from peagen.transport.error_codes import ErrorCode
 from peagen.transport.jsonrpc import RPCException
+from peagen.transport.jsonrpc_schemas.secrets import (
+    AddResult,
+    DeleteResult,
+    GetResult,
+)
+
+from .. import log
+from . import api
+
+# ------------------------------------------------------------------------
+# Secret model hooks
+# ------------------------------------------------------------------------
 
 
-@dispatcher.method(SECRETS_ADD)
-async def secrets_add(params: AddParams) -> dict:
-    """Store an encrypted secret."""
-    async with Session() as session:
-        await upsert_secret(
-            session,
-            params.tenant_id,
-            params.owner_user_id or "unknown",
-            params.name,
-            params.cipher,
-        )
-        await session.commit()
-    log.info("secret stored: %s", params.name)
-    return AddResult(ok=True).model_dump()
+@api.hook(Phase.POST_COMMIT, method="secrets.create")
+async def post_secret_add(ctx: Dict[str, Any]) -> None:
+    """Post-hook for secret creation: Additional actions after persistence."""
+    params = ctx["env"].params
+
+    # AutoAPI has already stored the secret, just log and perform any additional actions
+    log.info("Secret stored successfully: %s", params.name)
+
+    # If you need to customize the response format
+    ctx["result"] = AddResult(ok=True).model_dump()
 
 
-@dispatcher.method(SECRETS_GET)
-async def secrets_get(params: GetParams) -> dict:
-    """Retrieve an encrypted secret."""
-    async with Session() as session:
-        row = await fetch_secret(session, params.tenant_id, params.name)
-    if not row:
+@api.hook(Phase.POST_HANDLER, method="secrets.read")
+async def post_secret_get(ctx: Dict[str, Any]) -> None:
+    """Post-hook for secret retrieval: Transform the result."""
+    result = ctx.get("result")
+
+    if not result or "cipher" not in result:
         raise RPCException(
             code=ErrorCode.SECRET_NOT_FOUND,
-            message="secret not found",
+            message="Secret not found or missing cipher data",
         )
-    return GetResult(secret=row.cipher).model_dump()
+
+    # Transform the AutoAPI result into the expected response format
+    ctx["result"] = GetResult(secret=result["cipher"]).model_dump()
 
 
-@dispatcher.method(SECRETS_DELETE)
-async def secrets_delete(params: DeleteParams) -> dict:
-    """Remove a secret by name."""
-    async with Session() as session:
-        await delete_secret(session, params.tenant_id, params.name)
-        await session.commit()
-    log.info("secret removed: %s", params.name)
-    return DeleteResult(ok=True).model_dump()
+@api.hook(Phase.POST_COMMIT, method="secrets.delete")
+async def post_secret_delete(ctx: Dict[str, Any]) -> None:
+    """Post-hook for secret deletion: Actions after deletion."""
+    params = ctx["env"].params
+
+    # AutoAPI has already deleted the secret, just log and do any cleanup
+    log.info("Secret deleted: %s", params.name)
+
+    # Set the response format
+    ctx["result"] = DeleteResult(ok=True).model_dump()
