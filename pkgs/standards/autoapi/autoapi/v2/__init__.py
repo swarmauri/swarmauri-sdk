@@ -30,6 +30,7 @@ from .endpoints import attach_health_and_methodz
 from .gateway   import build_gateway
 from .routes    import _nested_prefix                      # path builder
 from .tables    import Base, metadata
+from .types     import _SchemaVerb
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -107,6 +108,11 @@ class AutoAPI:
     _commit_or_flush   = _commit_or_flush
     _nested_prefix    = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
+
+    @staticmethod
+    def get_schema(orm_cls: type, tag: _SchemaVerb):
+        from .get_schema import get_autoapi_schema
+        return get_autoapi_schema(orm_cls, tag)
 
     # keep __all__ tidy for `from autoapi import *` users
     __all__ = [

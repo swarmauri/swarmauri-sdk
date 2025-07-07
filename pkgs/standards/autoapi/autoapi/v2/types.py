@@ -3,8 +3,9 @@ autoapi_types.py
 Pure structural helpers (no FastAPI / DB imports).
 """
 
-from typing import Any, Callable, NamedTuple, Type
+from typing import Any, Callable, NamedTuple, Type, Literal, TypeAlias
 
+_SchemaVerb: TypeAlias = Literal["create", "read", "update", "delete", "list"]
 
 class _Op(NamedTuple):
     """

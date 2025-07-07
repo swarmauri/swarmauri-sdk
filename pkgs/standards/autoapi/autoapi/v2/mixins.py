@@ -170,8 +170,8 @@ class StatusEnum:
 @declarative_mixin
 class ValidityWindow:
     valid_from = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
-    valid_to   = Column(DateTime)               # NULL → open-ended
-
+    valid_to   = Column(DateTime)
+    
 # ----------------------------------------------------------------------
 # Monetary ── precise currency values (≥ 10^16, 2 decimals)
 @declarative_mixin

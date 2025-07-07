@@ -17,7 +17,7 @@ from inspect import signature
 import re
 
 from .mixins import Replaceable, BulkCapable, AsyncCapable
-
+from .types import _SchemaVerb
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
@@ -306,7 +306,7 @@ def _schema(
     name: str | None = None,              # ← now optional
     include: set[str] | None = None,
     exclude: set[str] | None = None,
-    verb: Literal["read", "create", "update", "delete", "list-in"] = "read",
+    verb: _SchemaVerb = "create",
 ):
     """
     Build a throw-away Pydantic model mirroring the SQLAlchemy table.
