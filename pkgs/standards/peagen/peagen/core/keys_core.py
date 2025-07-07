@@ -11,8 +11,7 @@ from peagen.orm          import PublicKey        # ORM resource
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+from peagen.defaults import DEFAULT_GATEWAY
 
 
 # ───────────────────────── secrets-driver glue (unchanged) ────────────

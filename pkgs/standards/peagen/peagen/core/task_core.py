@@ -14,8 +14,7 @@ from peagen.orm       import Task               # ORM resource
 
 from peagen.orm.task.status import Status
 from peagen.defaults        import RPC_TIMEOUT
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+from peagen.defaults import DEFAULT_GATEWAY
 
 
 # ────────────────────────── internal helpers ───────────────────────── #

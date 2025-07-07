@@ -12,8 +12,8 @@ from peagen.orm.secrets import Secret         # ORM resource
 from peagen.orm.worker  import Worker         # to fetch worker adverts
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.defaults import DEFAULT_GATEWAY
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 STORE_FILE      = Path.home() / ".peagen" / "secret_store.json"
 
 
