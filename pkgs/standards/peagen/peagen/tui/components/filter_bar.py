@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Input, Select
 
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm import Status
 
 
 class FilterBar(Horizontal):
