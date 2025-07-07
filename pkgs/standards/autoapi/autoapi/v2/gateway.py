@@ -1,9 +1,11 @@
 # autoapi_gateway.py
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from sqlalchemy.orm import Session
-from typing     import Any, Dict
-from .hooks import Phase
-from .jsonrpc_models import _RPCReq, _RPCRes, _ok, _err  # tiny utility file
+from typing import Any, Dict
+
+from .hooks           import Phase
+from .jsonrpc_models  import _RPCReq, _RPCRes, _ok, _err   # tiny utility file
+
 
 def build_gateway(api) -> APIRouter:
     """
@@ -12,14 +14,13 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
-    @r.post("/rpc", response_model=_RPCRes)
-    async def _gateway(req: Request, db: Session = Depends(api.get_db)):
-        ctx: Dict[str, Any] = {"request": req, "db": db}
-        try:
-            env = _RPCReq.model_validate(await req.json()); ctx["env"] = env
-        except Exception as exc:
-            await api._run(Phase.ON_ERROR, ctx | {"error": exc})
-            return _err(-32700, f"Parse error: {exc}", _RPCReq(method="", params={}, id=None))
+    @r.post("/rpc", response_model=_RPCRes, tags=['rpc'])
+    async def _gateway(                                   # ← signature updated
+        req: Request,
+        env: _RPCReq = Body(..., embed=False),            # ① JSON-RPC envelope
+        db: Session = Depends(api.get_db),
+    ):
+        ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
 
         if api.authorize and not api.authorize(env.method, req):
             return _err(403, "Forbidden", env)
@@ -33,10 +34,12 @@ def build_gateway(api) -> APIRouter:
             res = fn(env.params, db)
             ctx["result"] = res
             await api._run(Phase.POST_HANDLER, ctx)
+
             if db.in_transaction():
                 await api._run(Phase.PRE_COMMIT, ctx)
                 db.commit()
                 await api._run(Phase.POST_COMMIT, ctx)
+
             out = _ok(res, env)
             await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
             return out
