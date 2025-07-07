@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.orm import TaskModel
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm.task.status import Status
+
 
 
 def pause(tasks: Iterable[TaskModel]) -> int:
