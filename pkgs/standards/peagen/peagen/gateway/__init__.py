@@ -25,14 +25,12 @@ from fastapi import FastAPI, HTTPException, Request, Response
 import peagen.defaults as defaults
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
-from peagen.defaults import BAN_THRESHOLD
 from peagen.errors import (
     DispatchHTTPError,
     MigrationFailureError,
     MissingActionError,
     NoWorkerAvailableError,
 )
-from peagen.gateway.db_helpers import mark_ip_banned, record_unknown_handler
 from peagen.plugins import PluginManager
 from peagen.plugins.queues import QueueBase
 from swarmauri_standard.loggers.Logger import Logger
@@ -40,7 +38,6 @@ from swarmauri_standard.loggers.Logger import Logger
 
 from autoapi.v2 import AutoAPI
 from peagen.gateway import db as _db
-from peagen.gateway import db_helpers
 
 from peagen.gateway.ws_server import router as ws_router
 
@@ -53,6 +50,7 @@ Session = _db.Session
 # incoming task dictionaries before persistence.
 _ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
 
+# 
 TASK_KEY = defaults.CONFIG["task_key"]
 TaskBlob = Dict[str, Any]  # id / pool / payload / … as plain JSON
 
