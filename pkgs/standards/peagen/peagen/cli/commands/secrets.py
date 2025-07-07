@@ -1,54 +1,65 @@
 """Manage encrypted secrets."""
-
 from __future__ import annotations
 
+import json, uuid, httpx, typer
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-import typer
+from peagen.core      import secrets_core
+from autoapi_client   import AutoAPIClient                   # ← new
+from autoapi.v2       import AutoAPI                       # ← for get_schema
+from peagen.orm       import Secret               # ← ORM resource
 
-from peagen.core import secrets_core
-from peagen.transport.client import RPCResponseError, RPCTransportError
-
-local_secrets_app = typer.Typer(help="Manage local secret store.")
+# CLI root groups
+local_secrets_app  = typer.Typer(help="Manage local secret store.")
 remote_secrets_app = typer.Typer(help="Manage secrets via gateway.")
 
 
+# ───────────────────────── helper shortcuts ──────────────────────────
+def _rpc(ctx: typer.Context) -> AutoAPIClient:
+    """Return a ready JSON-RPC client bound to ctx.obj['gateway_url']."""
+    return AutoAPIClient(ctx.obj["gateway_url"])
+
+def _schema(tag: str):
+    """Fetch the exact Pydantic model AutoAPI generated for <Secret, tag>."""
+    return AutoAPI.get_schema(Secret, tag)
+
+
+# ───────────────────────── local commands (unchanged) ────────────────
 @local_secrets_app.command("add")
 def add_local_secret(
-    name: str, value: str, recipients: List[Path] = typer.Option([], "--recipient")
+    name: str,
+    value: str,
+    recipients: List[Path] = typer.Option([], "--recipient"),
 ) -> None:
-    """Encrypt and store a secret locally."""
     try:
         secrets_core.add_local_secret(name, value, recipients=recipients)
         typer.echo(f"Stored secret '{name}' locally.")
-    except Exception as e:
-        typer.echo(f"Error: {e}", err=True)
+    except Exception as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
 
 
 @local_secrets_app.command("get")
 def get_local_secret(name: str) -> None:
-    """Decrypt and print a secret."""
     try:
-        plain_text = secrets_core.get_local_secret(name)
-        typer.echo(plain_text)
-    except (KeyError, Exception) as e:
-        typer.echo(f"Error: {e}", err=True)
+        typer.echo(secrets_core.get_local_secret(name))
+    except Exception as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
 
 
 @local_secrets_app.command("remove")
 def remove_local_secret(name: str) -> None:
-    """Delete a secret from local store."""
     try:
         secrets_core.remove_local_secret(name)
         typer.echo(f"Removed secret '{name}' from local store.")
-    except Exception as e:
-        typer.echo(f"Error: {e}", err=True)
+    except Exception as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
 
 
+# ───────────────────────── remote commands (RPC) ─────────────────────
 @remote_secrets_app.command("add")
 def add_remote_secret(
     ctx: typer.Context,
@@ -57,21 +68,25 @@ def add_remote_secret(
     version: int = typer.Option(0, "--version"),
     recipient: List[Path] = typer.Option([], "--recipient"),
     pool: str = typer.Option("default", "--pool"),
+    gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
-    """Upload an encrypted secret to the gateway."""
-    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
+    ctx.obj = {"gateway_url": gateway_url}   # make URL visible to helpers
+
+    SCreate = _schema("create")
+    SRead   = _schema("read")
+
+    params  = SCreate(secretId=secret_id,
+                      value=value,
+                      version=version,
+                      recipients=[str(p) for p in recipient],
+                      pool=pool)
+
     try:
-        secrets_core.add_remote_secret(
-            secret_id=secret_id,
-            value=value,
-            gateway_url=gateway_url,
-            version=version,
-            recipients=recipient,
-            pool=pool,
-        )
-        typer.echo(f"Uploaded secret '{secret_id}' to gateway.")
-    except (RPCTransportError, RPCResponseError) as e:
-        typer.echo(f"Error: {e}", err=True)
+        with _rpc(ctx) as rpc:
+            res = rpc.call("Secrets.create", params=params, out_schema=SRead)
+        typer.echo(f"Uploaded secret '{res.secretId}' to gateway.")
+    except (httpx.HTTPError, RuntimeError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
 
 
@@ -79,17 +94,21 @@ def add_remote_secret(
 def get_remote_secret(
     ctx: typer.Context,
     secret_id: str,
+    version: int = typer.Option(0, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
-    """Retrieve and decrypt a secret from the gateway."""
-    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
+    ctx.obj = {"gateway_url": gateway_url}
+
+    SRead = _schema("read")
+
     try:
-        plain_text = secrets_core.get_remote_secret(
-            secret_id=secret_id, gateway_url=gateway_url
-        )
-        typer.echo(plain_text)
-    except (RPCTransportError, RPCResponseError, ValueError) as e:
-        typer.echo(f"Error: {e}", err=True)
+        with _rpc(ctx) as rpc:
+            res = rpc.call("Secrets.read",
+                           params={"secretId": secret_id, "version": version},
+                           out_schema=SRead)
+        typer.echo(res.plainValue)                 # assuming field name
+    except (httpx.HTTPError, RuntimeError, ValueError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
 
 
@@ -100,16 +119,19 @@ def remove_remote_secret(
     version: int = typer.Option(None, "--version"),
     gateway_url: str = typer.Option("http://localhost:8000/rpc", "--gateway-url"),
 ) -> None:
-    """Delete a secret on the gateway."""
-    gateway_url = ctx.obj.get("gateway_url", "http://localhost:8000/rpc")
+    ctx.obj = {"gateway_url": gateway_url}
+
+    SDel = _schema("delete")
+
     try:
-        result = secrets_core.remove_remote_secret(
-            secret_id=secret_id, gateway_url=gateway_url, version=version
-        )
-        if result.get("ok"):
+        params = SDel(secretId=secret_id, version=version)
+        with _rpc(ctx) as rpc:
+            res: dict = rpc.call("Secrets.delete", params=params, out_schema=dict)
+        if res.get("ok"):
             typer.echo(f"Removed secret '{secret_id}' from gateway.")
         else:
-            typer.echo(f"Failed to remove secret '{secret_id}' from gateway.", err=True)
+            typer.echo(f"Failed to remove secret '{secret_id}'.", err=True)
             raise typer.Exit(1)
-    except (RPCTransportError, RPCResponseError) as e:
-        typer.echo(f"Error: {e}", err=True)
+    except (httpx.HTTPError, RuntimeError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1)

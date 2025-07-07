@@ -97,3 +97,4 @@ class AutoAPIClient:
     def __enter__(self):  return self
     def __exit__(self, *a):  self.close()
     def close(self):  self._client.close() if self._own else None
+
