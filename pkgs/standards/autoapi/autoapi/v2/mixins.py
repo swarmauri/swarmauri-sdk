@@ -58,9 +58,11 @@ class TenantBound:
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin
 class Timestamped:
-    created_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False,  
+                        info=dict(no_create=True, no_update=True))
     updated_at = Column(DateTime, default=dt.datetime.utcnow,
-                        onupdate=dt.datetime.utcnow, nullable=False)
+                        onupdate=dt.datetime.utcnow, nullable=False,
+                        info=dict(no_create=True, no_update=True))
 
 @declarative_mixin 
 class SoftDelete:

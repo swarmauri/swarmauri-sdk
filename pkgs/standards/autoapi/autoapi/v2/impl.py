@@ -4,7 +4,7 @@ Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 """
 import uuid
 from inspect import signature, isawaitable
-from typing import get_origin, get_args, List, Any, ForwardRef
+from typing import get_origin, get_args, List, Any, Literal
 from pydantic import BaseModel, create_model, ConfigDict
 
 from sqlalchemy.exc          import IntegrityError, SQLAlchemyError
@@ -299,63 +299,99 @@ def _register_routes_and_rpcs(      # noqa: N802
 
 
 # ───────────────────────── schema helper ────────────────────────────────
-def _schema(self, orm_cls: type, *, name: str,
-            include: set[str] | None = None,
-            exclude: set[str] | None = None):
+def _schema(
+    self,
+    orm_cls: type,
+    *,
+    name: str | None = None,              # ← now optional
+    include: set[str] | None = None,
+    exclude: set[str] | None = None,
+    verb: Literal["read", "create", "update", "delete", "list-in"] = "read",
+):
+    """
+    Build a throw-away Pydantic model mirroring the SQLAlchemy table.
+
+    • If *name* is omitted or None → use "<OrmClass>Schema".
+    • *include* and *exclude* work as before.
+    """
+
+    model_name = name or f"{orm_cls.__name__}{verb.title()}"
+
+    # filter predicate --------------------------------------------------
+    def _should_use(col) -> bool:
+        if include is not None and col.name not in include:
+            return False
+        if exclude is not None and col.name in exclude:
+            return False
+
+        # ---- automatic PK exclusion on write verbs -------------------
+        if verb in {"create", "update"} and col.name == "pk":
+            return False
+
+        # ---- honour selective flags ----------------------------------
+        if verb == "create" and col.info.get("no_create"):
+            return False
+        if verb == "update" and col.info.get("no_update"):
+            return False
+        return True
+
+    # ---------- gather fields -----------------------------------------
     flds = {
         c.name: (
             getattr(c.type, "python_type", Any),
             Field(None if c.nullable or c.default is not None else ...),
         )
-        for c in orm_cls.__table__.columns
-        if (include is None or c.name in include)
-           and (exclude is None or c.name not in exclude)
+        for c in orm_cls.__table__.columns if _should_use(c)
     }
+
     cfg = ConfigDict(from_attributes=True)
-    M   = create_model(name, __config__=cfg, **flds)  # type: ignore[arg-type]
+    M   = create_model(model_name, __config__=cfg, **flds)  # type: ignore[arg-type]
     M.model_rebuild(force=True)
     return M
 
 
 # ───────────────────────── CRUD builder ────────────────────────────────
-def _crud(self, model: type) -> None:                         # noqa: N802
+def _crud(self, model: type) -> None:                       # noqa: N802
     tab = model.__tablename__
-    # ─── duplicate-registration guard ────────────────────────────────
-    if tab in self._registered_tables:          # ❷ fast-exit if already done
+
+    # fast-exit if already registered
+    if tab in self._registered_tables:
         return
     self._registered_tables.add(tab)
-    # ----------------------------------------------------------------
 
-    pk  = next(iter(model.__table__.primary_key.columns)).name
+    pk = next(iter(model.__table__.primary_key.columns)).name
 
-    _S      = lambda n, **kw: self._schema(model, name=n, **kw)
-    SCreate = _S(f"{tab}Create", exclude={pk})
-    SRead   = _S(f"{tab}Read")
-    SDel    = _S(f"{tab}Delete", include={pk})
-    SUpdate = _S(f"{tab}Update", include=set(SCreate.model_fields))
+    # ----- generate the five canonical schemas ------------------------
+    _S = lambda verb, **kw: self._schema(model, verb=verb, **kw)
+
+    SCreate  = _S("create")                                 # PK excluded
+    SRead    = _S("read")                                   # full set
+    SDel     = _S("delete", include={pk})                   # only PK
+    SUpdate  = _S("update", exclude={pk})                                 # optional/no_update cols gone
 
     def _SList():
         base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=10)))
-        def _safe_py(col):
-            try:
-                t = col.type.python_type                       # may raise
-            except Exception:
-                return Any
-            # Filter out internal / undefined SQLAlchemy artifacts
-            if isinstance(t, ForwardRef) or getattr(t, "__module__", "").startswith("sqlalchemy."):
-                return Any
-            return t
-        cols = {c.name: (_safe_py(c) | None, Field(None))
-                for c in model.__table__.columns}
+                    limit=(int | None, Field(None, ge=1)))
+        cols = {
+            c.name: (getattr(c.type, "python_type", Any) | None, Field(None))
+            for c in model.__table__.columns
+        }
         return create_model(f"{tab}ListParams",
                             __config__=ConfigDict(extra="forbid"),
                             **base, **cols)
+
     SListIn = _SList()
-    SListIn.model_rebuild(force=True)      # ✱ resolve any forward refs
+
+    # ----- helpers ----------------------------------------------------
+    def _not_found():
+        raise HTTPException(404, "Item not found")
 
     def _create(p, db):
-        o = model(**p.model_dump()); db.add(o); _commit_or_http(db); db.refresh(o); return o
+        obj = model(**p.model_dump())
+        db.add(obj)
+        _commit_or_http(db)
+        db.refresh(obj)
+        return obj
 
     def _read(i, db):
         obj = db.get(model, i)
@@ -367,40 +403,49 @@ def _crud(self, model: type) -> None:                         # noqa: N802
         obj = db.get(model, i)
         if obj is None:
             _not_found()
+
         if full:
-            for c in model.__table__.columns:
-                if c.name != pk:
-                    setattr(o, c.name, getattr(p, c.name, None))
+            for col in model.__table__.columns:
+                if col.name != pk and not col.info.get("no_update"):
+                    setattr(obj, col.name, getattr(p, col.name, None))
         else:
             for k, v in p.model_dump(exclude_unset=True).items():
-                setattr(o, k, v)
-        _commit_or_http(db); db.refresh(o); return o
+                setattr(obj, k, v)
 
-    _delete = lambda i, db: (
-        (o := db.get(model, i)) or _not_found(),
-        db.delete(o),
-        _commit_or_http(db),
-        {pk: i},
-    )[-1]
+        _commit_or_http(db)
+        db.refresh(obj)
+        return obj
+
+    def _delete(i, db):
+        obj = db.get(model, i)
+        if obj is None:
+            _not_found()
+        db.delete(obj)
+        _commit_or_http(db)
+        return {pk: i}
 
     def _list(p, db):
         d = p.model_dump(exclude_defaults=True, exclude_none=True)
-        q = (db.query(model)
-               .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
-               .offset(d.get("skip", 0)))
+        qry = (
+            db.query(model)
+              .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
+              .offset(d.get("skip", 0))
+        )
         if lim := d.get("limit"):
-            q = q.limit(lim)
-        return q.all()
+            qry = qry.limit(lim)
+        return qry.all()
 
-    _clear = lambda db: {"deleted": db.query(model).delete() or _commit_or_http(db)}
+    def _clear(db):
+        deleted = db.query(model).delete()
+        _commit_or_http(db)
+        return {"deleted": deleted}
 
+    # ----- register with the route builder ----------------------------
     self._register_routes_and_rpcs(
         model, tab, pk,
         SCreate, SRead, SDel, SUpdate, SListIn,
         _create, _read, _update, _delete, _list, _clear
     )
-
-
 # ───────────────────────── RPC adapter (unchanged) ──────────────────────
 def _wrap_rpc(self, core, IN, OUT, pk_name, model):           # noqa: N802
     p       = iter(signature(core).parameters.values())
