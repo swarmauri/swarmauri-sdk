@@ -29,7 +29,7 @@ from .hooks     import Phase, _Hook, _init_hooks, _run
 from .endpoints import attach_health_and_methodz
 from .gateway   import build_gateway
 from .routes    import _nested_prefix                      # path builder
-from .tables    import Base
+from .tables._base    import Base
 from .types     import _SchemaVerb
 
 # ────────────────────────────────────────────────────────────────────
@@ -135,5 +135,4 @@ class AutoAPI:
         "Phase",
         "_Hook",
         "Base",
-        "MetaData"
     ]
