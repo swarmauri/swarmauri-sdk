@@ -83,7 +83,7 @@ app = FastAPI(title="Peagen Pool Manager Gateway")
 api = AutoAPI(
     base=Base,
     include={TaskModel, WorkerModel, PoolModel, SecretModel, DeployKeyModel},
-    get_db=get_db,
+    get_async_db=get_async_db,
 )
 
 app.include_router(api.router)

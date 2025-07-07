@@ -18,7 +18,7 @@ engine = create_async_engine(
 Session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-def get_db() -> AsyncSession:
+def get_async_db() -> AsyncSession:
     db = Session()
     try:
         yield db
