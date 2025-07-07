@@ -10,6 +10,9 @@ from fastapi                 import APIRouter, Body, Depends, HTTPException, Req
 from pydantic                import BaseModel, Field, create_model, ConfigDict
 from sqlalchemy.orm          import Session
 from sqlalchemy.ext.asyncio  import AsyncSession
+from fastapi import Path, Query
+from inspect import signature
+import re
 
 from .mixins import Replaceable, BulkCapable, AsyncCapable
 
@@ -32,9 +35,14 @@ def _register_routes_and_rpcs(      # noqa: N802
     SCreate, SRead, SDel, SUpdate, SListIn,
     _create, _read, _update, _delete, _list, _clear,
 ) -> None:
+    import re, inspect, functools
+    from typing  import Annotated, Any, List
+    from fastapi import APIRouter, Body, Depends, Query, HTTPException, Request
 
-    is_async   = issubclass(model, AsyncCapable)
-    provider   = self.get_async_db if is_async else self.get_db
+    # ─── helpers & preliminaries ────────────────────────────────────────
+    is_async = issubclass(model, AsyncCapable)
+    provider = self.get_async_db if is_async else self.get_db
+
     pk_col   = next(iter(model.__table__.primary_key.columns))
     pk_type  = getattr(pk_col.type, "python_type", str)
 
@@ -56,74 +64,118 @@ def _register_routes_and_rpcs(      # noqa: N802
             ("bulk_delete", "DELETE", "/bulk", List[SDel],    dict,        _delete),
         ]
 
-    flat        = APIRouter(prefix=f"/{tab}", tags=[tab])
-    nested_pref = self._nested_prefix(model)
-    routers     = (flat,) if nested_pref is None else (
-                  flat,
-                  APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
-                 )
+    # ─── nested prefix → query parameters only ─────────────────────────
+    raw_pref    = self._nested_prefix(model) or ""          # e.g. "/tenants/{tenant_id}"
+    nested_vars = re.findall(r"{(\w+)}", raw_pref)          # ["tenant_id"]
+    clean_pref  = re.sub(r"{\w+}", "", raw_pref).rstrip("/")  # "/tenants"
 
+    flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
+    routers: tuple[APIRouter, ...] = (flat_router,)
+    if clean_pref:
+        routers += (APIRouter(prefix=clean_pref, tags=[f"{tab}"]),)
+
+    # ─── RBAC guard (unchanged) ────────────────────────────────────────
     def _guard(scope: str):
-        async def g(request: Request):
+        async def inner(request: Request):
             if self.authorize and not self.authorize(scope, request):
                 raise HTTPException(403, "RBAC")
-        return Depends(g)
+        return Depends(inner)
 
+    # ─── endpoint factory ──────────────────────────────────────────────
     for verb, http, path, In, Out, core in spec:
         m_id = _canonical(tab, verb)
 
-        # -------- endpoint factory --------------------------------------
-        def _ep_factory(verb=verb, path=path, In=In, core=core):
+        def _factory(verb=verb, path=path, In=In, core=core):
+            params: list[inspect.Parameter] = []
+
+            # parent keys → query parameters
+            for nv in nested_vars:
+                params.append(
+                    inspect.Parameter(
+                        nv,
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[str, Query(...)]
+                    )
+                )
+
+            # primary-key path variable
+            if "{item_id}" in path:
+                params.append(
+                    inspect.Parameter(
+                        "item_id",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=pk_type
+                    )
+                )
+
+            # payloads — *always* body (CREATE/LIST/UPDATE/BULK…)
             if verb == "list":
-                async def ep(
-                    db: Annotated[Any, Depends(provider)],
-                    p: Annotated[In, Body(embeds=False)]
-                ):
-                    return await _run(core, p, db)
+                params.append(
+                    inspect.Parameter(
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[In, Body(embed=False)]
+                    )
+                )
+            elif In is not None and verb not in ("read", "delete", "clear"):
+                params.append(
+                    inspect.Parameter(
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[In, Body(embed=False)]
+                    )
+                )
 
-            elif "{item_id}" in path and http in ("GET", "DELETE"):
-                async def ep(
-                    item_id: pk_type,
-                    db: Annotated[Any, Depends(provider)]
-                ):
-                    return await _run(core, item_id, db)
+            # DB session
+            params.append(
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(provider)]
+                )
+            )
 
-            elif http in ("PATCH", "PUT"):
-                async def ep(
-                    item_id: pk_type,
-                    p: Annotated[In, Body(embeds=False)],
-                    db: Annotated[Any, Depends(provider)]
-                ):
-                    return await _run(core, item_id, p, db)
+            # ---- callable body -------------------------------------------------------
+            async def _impl(**kw):
+                db        = kw.pop("db")
+                p         = kw.pop("p", None)
+                item_id   = kw.pop("item_id", None)
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
 
-            elif In is not None:  # create & bulk
-                async def ep(
-                    p: Annotated[In, Body(embeds=False)],
-                    db: Annotated[Any, Depends(provider)]
-                ):
-                    return await _run(core, p, db)
+                match verb:
+                    case "list":
+                        return await _run(core, p, db, **parent_kw)
+                    case "read" | "delete":
+                        return await _run(core, item_id, db, **parent_kw)
+                    case "update" | "replace":
+                        return await _run(core, item_id, p, db, **parent_kw)
+                    case "clear":
+                        return await _run(core, db, **parent_kw)
+                    case _:
+                        # create / bulk_create / bulk_delete
+                        return await _run(core, p, db, **parent_kw)
 
-            else:                 # clear
-                async def ep(db: Annotated[Any, Depends(provider)]):
-                    return await _run(core, db)
+            _impl.__name__       = f"{verb}_{tab}"
+            _impl.__signature__  = inspect.Signature(parameters=params)
+            return functools.wraps(_impl)(_impl)
 
-            ep.__name__ = f"{verb}_{tab}"
-            return ep
-
+        # mount on every relevant router
         for r in routers:
             r.add_api_route(
                 path,
-                _ep_factory(),
+                _factory(),
                 methods=[http],
                 response_model=Out,
                 dependencies=[self._authn_dep, _guard(m_id)],
             )
 
+        # JSON-RPC shim
         self.rpc[m_id] = self._wrap_rpc(core, In or dict, Out, pk, model)
         self._method_ids.setdefault(m_id, None)
 
-    self.router.include_router(flat)
-    if nested_pref:
+    # final router inclusion
+    self.router.include_router(flat_router)
+    if len(routers) > 1:
         self.router.include_router(routers[1])
 
 
