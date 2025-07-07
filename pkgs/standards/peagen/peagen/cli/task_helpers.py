@@ -6,9 +6,10 @@ from typing import Any, Dict
 import httpx
 
 from peagen.defaults import RPC_TIMEOUT
+from peagen.orm.task.status import Status
+
 from peagen.transport import Request, Response, TASK_GET
 from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
-from peagen.orm.task.status import Status
 from peagen.transport.jsonrpc_schemas.task import GetParams, GetResult, SubmitParams
 
 
