@@ -9,18 +9,11 @@ and restart `scripts.dev_gateway`.
 
 from __future__ import annotations
 
-import asyncio
-import json
-import logging
-import os
-import time
-import uuid
+import asyncio, json, logging, os, time, uuid, httpx
 from importlib import reload
-from json.decoder import JSONDecodeError
 from typing import Any, Dict
 
-import httpx
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, Request
 
 import peagen.defaults as defaults
 from peagen._utils.config_loader import resolve_cfg
@@ -40,6 +33,9 @@ from autoapi.v2 import AutoAPI
 from peagen.gateway.db import get_async_db
 
 from peagen.gateway.ws_server import router as ws_router
+
+from peagen.gateway.api.hooks.tasks import _finalize_parent_tasks, _fail_task, _save_task
+from peagen.gateway.api.hooks.workers import _remove_worker
 
 
 TaskBlob = Dict[str, Any]
@@ -112,13 +108,14 @@ async def _flush_state() -> None:
 
         task_dict = json.loads(blob)
 
-        # Forward to configured result-backend (if any)
-        if result_backend:
-            try:
-                orm_row = TaskModel(**task_dict)
-                await result_backend.store(TaskRunModel.from_task(orm_row))
-            except Exception as exc:  # noqa: BLE001
-                log.warning("result-backend store failed: %s", exc)
+        # @dev: no more rsb
+        # # Forward to configured result-backend (if any)
+        # if result_backend:
+        #     try:
+        #         orm_row = TaskModel(**task_dict)
+        #         await result_backend.store(TaskRunModel.from_task(orm_row))
+        #     except Exception as exc:  # noqa: BLE001
+        #         log.warning("result-backend store failed: %s", exc)
 
     # Gracefully close the Redis/queue client
     if hasattr(queue, "client"):
@@ -127,6 +124,7 @@ async def _flush_state() -> None:
 # ------------------------------------------------------------------
 # 5. periodic backlog scanner
 # ------------------------------------------------------------------
+
 async def _backlog_scanner(interval: float = 5.0) -> None:
     """Background task: walk the cache and close any dangling parent tasks."""
     log.info("backlog scanner started")
@@ -266,23 +264,6 @@ async def _on_start() -> None:
             )
             raise MigrationFailureError(str(error_msg))
         log.info("migrations applied; verifying database schema")
-        await db_helpers.ensure_status_enum(engine)
-        async with engine.begin() as conn:
-            # create missing tables if migrations provided none
-            await conn.run_sync(Base.metadata.create_all)
-    else:
-        async with engine.begin() as conn:
-            # run once – creates task_runs if it doesn't exist
-            await conn.run_sync(Base.metadata.create_all)
-        log.info("SQLite metadata initialized (migrations skipped)")
-
-    async with Session() as session:
-        banned = await db_helpers.fetch_banned_ips(session)
-    BANNED_IPS.update(banned)
-
-    # Load RPC handlers now that dependencies are ready
-    from .rpc import initialize
-    rpc_modules = initialize()
 
     log.info("database migrations complete")
     asyncio.create_task(scheduler())
