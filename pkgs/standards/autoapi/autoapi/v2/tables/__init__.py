@@ -11,6 +11,9 @@ _table_map = {
     "audit":   "autoapi.v2.tables.audit",
     "rbac":    "autoapi.v2.tables.rbac",
     "tenancy": "autoapi.v2.tables.tenancy",
+    "Tenant": "autoapi.v2.tables.tenancy.tenant",
+    "User":   "autoapi.v2.tables.tenancy.user",
+    "Group":  "autoapi.v2.tables.tenancy.group",
 }
 
 def __getattr__(name: str) -> ModuleType:          # PEP-562 lazy import hook
@@ -20,7 +23,5 @@ def __getattr__(name: str) -> ModuleType:          # PEP-562 lazy import hook
         return mod
     raise AttributeError(name)
 
-
-metadata = sa.MetaData(schema=None)           # shared across package & user
 class Base(DeclarativeBase):
-    metadata = metadata
+    metadata = sa.MetaData(schema=None) 

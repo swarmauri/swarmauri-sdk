@@ -29,7 +29,7 @@ from .hooks     import Phase, _Hook, _init_hooks, _run
 from .endpoints import attach_health_and_methodz
 from .gateway   import build_gateway
 from .routes    import _nested_prefix                      # path builder
-from .tables    import Base, metadata
+from .tables    import Base
 from .types     import _SchemaVerb
 
 # ────────────────────────────────────────────────────────────────────
@@ -45,9 +45,9 @@ class AutoAPI:
         self,
         *,
         base,
+        include: set[Type],
         get_db: Callable[..., Iterator[Session]] | None = None,
         get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
-        include: set[Type] | None = None,
         authorize: Callable[[str, Any], bool] | None = None,
         prefix: str = "",
         authn_dep: Optional[Any] = None,
@@ -69,17 +69,32 @@ class AutoAPI:
         self.get_async_db = get_async_db
 
         # ---------- create schema once ---------------------------
+        if include:
+            tables = {cls.__table__ for cls in include}     # deduplicate via set
+        else:
+            raise ValueError("must declare tables to be created")
+            tables = set(self.base.metadata.tables.values())
+
+        # run DDL for sync or async provider
         if self.get_db:
             with next(self.get_db()) as db:
-                base.metadata.create_all(db.get_bind(), checkfirst=True)
-        else:                                       # async path
+                self.base.metadata.create_all(
+                    db.get_bind(),
+                    checkfirst=True,
+                    tables=tables,
+                )
+        else:  # async path
             import asyncio
+
             async def _ddl():
                 async with self.get_async_db() as adb:
-                    await adb.run_sync(base.metadata.create_all, checkfirst=True)
+                    await adb.run_sync(
+                        self.base.metadata.create_all,
+                        checkfirst=True,
+                        tables=tables,
+                    )
+
             asyncio.run(_ddl())
-
-
         # ---------- collect models, build routes, etc. -----------
 
         # auth dependency (e.g. OAuth2PasswordBearer() or None)
