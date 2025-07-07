@@ -156,9 +156,9 @@ class Slugged:
     slug = Column(String, unique=True, index=True, nullable=False)
 
 # ----------------------------------------------------------------------
-# StatusEnum ── finite workflow states
+# StatusMixin ── finite workflow states
 @declarative_mixin
-class StatusEnum:
+class StatusMixin:
     status = Column(
         SAEnum("queued", "waiting", "input_required", "auth_required", "approved", "rejected",
             "rejected", "dispatched", "running", "paused", "success", "failed", "cancelled",
