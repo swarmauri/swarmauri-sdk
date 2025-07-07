@@ -10,7 +10,7 @@ import uuid
 import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm.task.status import Status
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``

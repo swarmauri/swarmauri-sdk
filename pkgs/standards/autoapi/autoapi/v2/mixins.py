@@ -160,8 +160,10 @@ class Slugged:
 @declarative_mixin
 class StatusEnum:
     status = Column(
-        SAEnum("draft", "active", "archived", name="status_enum"),
-        default="draft",
+        SAEnum("queued", "waiting", "input_required", "auth_required", "approved", "rejected",
+            "rejected", "dispatched", "running", "paused", "success", "failed", "cancelled"
+            name="status_enum"),
+        default="waiting",
         nullable=False,
     )
 

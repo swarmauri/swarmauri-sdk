@@ -16,7 +16,7 @@ import typer
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.cli.task_helpers import build_task, submit_task, get_task
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm.task.status import Status
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
