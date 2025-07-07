@@ -30,7 +30,9 @@ from peagen.transport.jsonrpc_schemas.task import (
 from peagen.cli.task_helpers import get_task
 from peagen.transport import Request, Response
 
-from peagen.orm.task.status import Status
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI
+from peagen.orm.task import TaskModel
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
@@ -59,37 +61,24 @@ def get(  # noqa: D401
 def patch_task(
     ctx: typer.Context,
     task_id: str = typer.Argument(..., help="UUID of the task to update"),
-    changes: str = typer.Argument(..., help="JSON string of fields to modify"),
+    changes: str = typer.Argument(..., help="JSON dict of fields to modify"),
 ):
-    """Send a Task.patch RPC call."""
+    """PATCH a Task via JSON-RPC using dynamic schemas."""
 
-    payload = json.loads(changes)
-    envelope = Request(
-        id=str(uuid.uuid4()),
-        method=TASK_PATCH,
-        params=PatchParams(taskId=task_id, changes=payload).model_dump(),
-    )
-    resp = httpx.post(
-        ctx.obj.get("gateway_url"),
-        json=envelope.model_dump(mode="json"),
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    res = Response[PatchResult].model_validate(resp.json())
-    typer.echo(json.dumps(res.result, indent=2))
+    # auto-discover the exact schemas AutoAPI generated
+    SUpdate = AutoAPI.get_schema(TaskModel, "update")   # body (id excluded)
+    SRead   = AutoAPI.get_schema(TaskModel, "read")     # success result
 
+    # validate & coerce the payload
+    changes_obj = SUpdate.model_validate(json.loads(changes))
 
-def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    envelope = Request(
-        id=str(uuid.uuid4()),
-        method=method,
-        params=SimpleSelectorParams(selector=selector).model_dump(),
-    )
-    resp = httpx.post(
-        ctx.obj.get("gateway_url"),
-        json=envelope.model_dump(mode="json"),
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    res = Response[CountResult].model_validate(resp.json())
-    typer.echo(json.dumps(res.result, indent=2))
+    # build the RPC params: primary key + validated changes
+    params = {"id": task_id, **changes_obj.model_dump(exclude_unset=True)}
+
+    with AutoAPIClient(ctx.obj["gateway_url"]) as rpc:
+        result = rpc.call(
+            "Tasks.update",                    # method string inline
+            params=params,
+            out_schema=SRead,
+        )
+    typer.echo(json.dumps(result.model_dump(), indent=2))

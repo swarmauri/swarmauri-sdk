@@ -72,6 +72,7 @@ members = [
     "standards/swarmauri_middleware_jsonrpc",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/autoapi",
+    "standards/autoapi_client",
     "standards/peagen",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
@@ -186,6 +187,7 @@ swarmauri_middleware_jsonrpc = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 autoapi = { workspace = true }
+autoapi_client = { workspace = true }
 peagen = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }

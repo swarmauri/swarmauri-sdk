@@ -386,7 +386,7 @@ def _crud(self, model: type) -> None:                       # noqa: N802
     def _not_found():
         raise HTTPException(404, "Item not found")
 
-    def _create(p, db):
+    def _create(p: SCreate, db):
         obj = model(**p.model_dump())
         db.add(obj)
         _commit_or_http(db)
@@ -399,7 +399,7 @@ def _crud(self, model: type) -> None:                       # noqa: N802
             _not_found()
         return obj
 
-    def _update(i, p, db, *, full=False):
+    def _update(i, p: SUpdate, db, *, full=False):
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -424,7 +424,7 @@ def _crud(self, model: type) -> None:                       # noqa: N802
         _commit_or_http(db)
         return {pk: i}
 
-    def _list(p, db):
+    def _list(p: SListIn, db):
         d = p.model_dump(exclude_defaults=True, exclude_none=True)
         qry = (
             db.query(model)
