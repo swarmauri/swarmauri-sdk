@@ -12,7 +12,7 @@ from typing import Any, Dict
 from pgpy import PGPKey
 from autoapi.v2 import Phase
 from autoapi          import AutoAPI
-from autoapi.v2.tables.keys import PublicKey
+from peagen.orm import PublicKey
 
 from .. import TRUSTED_USERS, log
 from .  import api

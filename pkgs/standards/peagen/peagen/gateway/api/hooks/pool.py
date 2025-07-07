@@ -7,8 +7,8 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from autoapi.v2 import Phase
-from autoapi          import AutoAPI
-from autoapi.v2.tables.pool import Pool
+from autoapi.v2          import AutoAPI
+from peagen.orm import Pool
 
 from .. import queue, log
 from .  import api

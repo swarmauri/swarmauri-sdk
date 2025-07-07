@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from autoapi.v2 import Phase
-from autoapi          import AutoAPI
-from autoapi.v2.tables.secrets import Secret
+from autoapi.v2          import AutoAPI
+from peagen.orm import Secret
 
 from .. import log
 from .  import api
