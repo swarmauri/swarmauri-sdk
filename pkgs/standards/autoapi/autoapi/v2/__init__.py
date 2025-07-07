@@ -7,11 +7,10 @@ Public façade for the AutoAPI framework.
 •  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
 """
 
-from __future__ import annotations
 
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
-from typing      import Any, Callable, Dict, Optional, Type
+from typing      import Any, Callable, Dict, Optional, Type, Iterator, AsyncIterator
 
 from fastapi                import APIRouter, Depends
 from sqlalchemy.orm         import Session, declarative_base
@@ -19,7 +18,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
 from .types     import _Op                                 # pure metadata
-from .impl      import _schema, _crud, _wrap_rpc, commit_or_flush, _register_routes_and_rpcs
+from .impl      import (
+                    _schema,
+                    _crud, 
+                    _wrap_rpc, 
+                    commit_or_flush, 
+                    _register_routes_and_rpcs,
+                )
 from .hooks     import Phase, _Hook, _init_hooks, _run
 from .endpoints import attach_health_and_methodz
 from .gateway   import build_gateway
@@ -52,6 +57,7 @@ class AutoAPI:
         self.authorize   = authorize
         self.router      = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
+        self._registered_tables: set[str] = set()     # ❶ guard against re-adds
         self._method_ids: OrderedDict[str, None] = OrderedDict()
 
         # ---------- choose providers -----------------------------
@@ -80,11 +86,6 @@ class AutoAPI:
 
         # initialise hook subsystem
         _init_hooks(self)
-
-        with next(self.get_db()) as _db:
-            base.metadata.create_all(_db.get_bind(), checkfirst=True)
-        attach_health_and_methodz(self, self.get_db)
-
 
         # attach JSON-RPC gateway
         self.router.include_router(build_gateway(self))

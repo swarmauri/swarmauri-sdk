@@ -3,7 +3,6 @@ autoapi_hooks.py
 Hook subsystem for AutoAPI – now includes the Phase enum and the
 _Hook typing protocol, so nothing is missing.
 """
-from __future__ import annotations
 
 from enum        import Enum, auto
 from collections import defaultdict
