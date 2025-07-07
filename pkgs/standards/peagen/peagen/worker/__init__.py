@@ -51,9 +51,3 @@ class PeagenWorker(WorkerBase):
 # ──────────────────────────────────────────────────────────────────────────────
 worker = PeagenWorker()
 app = worker.app
-
-
-# (Optionally) if you need to add more FastAPI routes, you can do so here, e.g.:
-# @app.get("/some-other-endpoint")
-# async def custom_endpoint() -> Dict[str, Any]:
-#     return {"message": "hello from PeagenWorker"}
