@@ -6,7 +6,7 @@ import uuid
 from inspect import signature, isawaitable
 from typing  import Any, List, get_origin, get_args, Annotated, ForwardRef
 
-from fastapi                 import APIRouter, Depends, HTTPException, Request
+from fastapi                 import APIRouter, Body, Depends, HTTPException, Request
 from pydantic                import BaseModel, Field, create_model, ConfigDict
 from sqlalchemy.orm          import Session
 from sqlalchemy.ext.asyncio  import AsyncSession
@@ -35,6 +35,8 @@ def _register_routes_and_rpcs(      # noqa: N802
 
     is_async   = issubclass(model, AsyncCapable)
     provider   = self.get_async_db if is_async else self.get_db
+    pk_col   = next(iter(model.__table__.primary_key.columns))
+    pk_type  = getattr(pk_col.type, "python_type", str)
 
     spec: List[tuple] = [
         ("create",  "POST",    "",            SCreate,           SRead,        _create),
@@ -75,28 +77,28 @@ def _register_routes_and_rpcs(      # noqa: N802
             if verb == "list":
                 async def ep(
                     db: Annotated[Any, Depends(provider)],
-                    p: Annotated[In, Depends()]
+                    p: Annotated[In, Body(embeds=False)]
                 ):
                     return await _run(core, p, db)
 
             elif "{item_id}" in path and http in ("GET", "DELETE"):
                 async def ep(
-                    item_id: Any,
+                    item_id: pk_type,
                     db: Annotated[Any, Depends(provider)]
                 ):
                     return await _run(core, item_id, db)
 
             elif http in ("PATCH", "PUT"):
                 async def ep(
-                    item_id: Any,
-                    p: Annotated[In, Depends()],
+                    item_id: pk_type,
+                    p: Annotated[In, Body(embeds=False)],
                     db: Annotated[Any, Depends(provider)]
                 ):
                     return await _run(core, item_id, p, db)
 
             elif In is not None:  # create & bulk
                 async def ep(
-                    p: Annotated[In, Depends()],
+                    p: Annotated[In, Body(embeds=False)],
                     db: Annotated[Any, Depends(provider)]
                 ):
                     return await _run(core, p, db)
