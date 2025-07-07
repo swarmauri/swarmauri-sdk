@@ -14,6 +14,7 @@ from autoapi.v2 import Phase, AutoAPI
 from peagen.orm import Status, Task
 from peagen.transport.jsonrpc import RPCException
 from peagen.errors import TaskNotFoundError
+import peagen.defaults as defaults
 
 from .. import (
     READY_QUEUE,
@@ -33,6 +34,13 @@ from . import api
 TaskCreate = AutoAPI.get_schema(Task, "create")
 TaskRead   = AutoAPI.get_schema(Task, "read")
 TaskUpdate = AutoAPI.get_schema(Task, "update")
+
+
+# ─────────────────────────── For Queues ───────────────────────────────
+TASK_KEY = defaults.CONFIG["task_key"]
+
+def _task_key(tid: str) -> str:
+    return TASK_KEY.format(tid)
 
 # ─────────────────────────── CREATE hooks ─────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="tasks.create")
