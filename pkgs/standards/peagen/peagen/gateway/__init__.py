@@ -37,22 +37,12 @@ from swarmauri_standard.loggers.Logger import Logger
 
 
 from autoapi.v2 import AutoAPI
-from peagen.gateway import db as _db
+from peagen.gateway.db import get_async_db
 
 from peagen.gateway.ws_server import router as ws_router
 
 
-_db = reload(_db)
-engine = _db.engine
-Session = _db.Session
-
-# Columns available on the TaskModel ORM table. Used to filter
-# incoming task dictionaries before persistence.
-_ORM_COLUMNS = {c.name for c in TaskModel.__table__.columns}
-
-# 
-TASK_KEY = defaults.CONFIG["task_key"]
-TaskBlob = Dict[str, Any]  # id / pool / payload / … as plain JSON
+TaskBlob = Dict[str, Any]
 
 # ─────────────────────────── logging ────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
