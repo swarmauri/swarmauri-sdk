@@ -99,7 +99,10 @@ READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
 PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
+# 🚧 ---------------------------------------------------------------
 dispatcher = RPCDispatcher()
+# 🚧 ---------------------------------------------------------------
+
 try:
     queue_plugin = pm.get("queues")
 except KeyError:
@@ -125,74 +128,6 @@ TASK_TTL = 24 * 3600  # 24 h, adjust as needed
 
 
 # ─────────────────────────── IP tracking ─────────────────────────
-
-KNOWN_IPS: set[str] = set()
-BANNED_IPS: set[str] = set()
-
-
-# ───────────────────────── Work Capabiility ──────────────────────
-def _supports(method: str | None) -> bool:
-    """Return ``True`` if *method* is registered."""
-    return method in dispatcher._methods
-
-
-async def _reject(
-    ip: str,
-    req_id: str | None,
-    method: str | None,
-    *,
-    code: int = -32601,
-    message: str = "Method not found",
-) -> dict:
-    """Return an error response and track abuse."""
-
-    async with Session() as session:
-        count = await record_unknown_handler(session, ip)
-    if count >= BAN_THRESHOLD:
-        BANNED_IPS.add(ip)
-        async with Session() as session:
-            await mark_ip_banned(session, ip)
-        log.warning("banned ip %s", ip)
-    return {
-        "jsonrpc": "2.0",
-        "error": {
-            "code": code,
-            "message": message,
-            "data": {"method": str(method)},
-        },
-        "id": req_id,
-    }
-
-
-async def _prevalidate(payload: dict | list, ip: str) -> dict | None:
-    """Validate incoming JSON-RPC payload."""
-
-    if isinstance(payload, list):
-        for item in payload:
-            if item.get("jsonrpc") and item.get("jsonrpc") != "2.0":
-                return await _reject(
-                    ip,
-                    item.get("id"),
-                    item.get("method"),
-                    code=-32600,
-                    message="Invalid Request",
-                )
-            if item.get("method") is None or not _supports(item.get("method")):
-                return await _reject(ip, item.get("id"), item.get("method"))
-        return None
-
-    if payload.get("jsonrpc") and payload.get("jsonrpc") != "2.0":
-        return await _reject(
-            ip,
-            payload.get("id"),
-            payload.get("method"),
-            code=-32600,
-            message="Invalid Request",
-        )
-    if payload.get("method") is None or not _supports(payload.get("method")):
-        return await _reject(ip, payload.get("id"), payload.get("method"))
-    return None
-
 
 async def _upsert_worker(workerId: str, data: dict) -> None:
     """
@@ -577,86 +512,6 @@ def _get_client_ip(request: Request) -> str:
         return forwarded.split(",")[0].strip()
     real_ip = request.headers.get("x-real-ip")
     return real_ip if real_ip else request.client.host
-
-
-# ─────────────────────────── RPC endpoint ───────────────────────
-@app.post("/rpc", summary="JSON-RPC 2.0 endpoint")
-async def rpc_endpoint(request: Request):
-    ip = _get_client_ip(request)
-    KNOWN_IPS.add(ip)
-    if ip in BANNED_IPS:
-        log.warning("blocked request from banned ip %s", ip)
-        return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32098,"message":"Banned"},"id":null}',
-            status_code=403,
-            media_type="application/json",
-        )
-    try:
-        raw = await request.json()
-    except JSONDecodeError:
-        log.warning("parse error from %s", request.client.host)
-        return Response(
-            content='{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}',
-            status_code=400,
-            media_type="application/json",
-        )
-
-    def _validate(obj: dict) -> dict:
-        if obj.get("id") is None:
-            obj["id"] = str(uuid.uuid4())
-        req = parse_request(obj)
-        PModel = _registry.params_model(req.method)
-        if PModel is not None:
-            PModel.model_validate(req.params)
-        return RPCRequest.model_validate(req.model_dump()).model_dump()
-
-    if isinstance(raw, list):
-        payload = [_validate(item) for item in raw]
-    else:
-        payload = _validate(raw)
-
-    log.debug("RPC in  <- %s", payload)
-    pre = await _prevalidate(payload, ip)
-    if pre is not None:
-        return pre
-    resp = await dispatcher.dispatch(payload)
-
-    async def _check_unknown(r: dict, method: str) -> None:
-        code = r.get("error", {}).get("code")
-        if code in (-32601, -32600):
-            if code == -32601:
-                r["error"]["data"] = {"method": method}
-            async with Session() as session:
-                count = await db_helpers.record_unknown_handler(session, ip)
-            if count >= BAN_THRESHOLD:
-                BANNED_IPS.add(ip)
-                async with Session() as session:
-                    await db_helpers.mark_ip_banned(session, ip)
-                log.warning("banned ip %s", ip)
-
-    status = 200
-
-    def _not_found(r: dict) -> bool:
-        return r.get("error", {}).get("code") == ErrorCode.SECRET_NOT_FOUND
-
-    if isinstance(resp, dict) and "error" in resp:
-        method = payload.get("method") if isinstance(payload, dict) else "batch"
-        log.warning(f"{method} '{resp['error']}'")
-        await _check_unknown(resp, method)
-        if _not_found(resp):
-            status = 404
-    elif isinstance(resp, list):
-        for r in resp:
-            if isinstance(r, dict) and "error" in r:
-                await _check_unknown(r, "batch")
-                if _not_found(r):
-                    status = 404
-    log.debug("RPC out -> %s", resp)
-    return Response(
-        content=json.dumps(resp, default=str),
-        status_code=status,
-        media_type="application/json",
-    )
 
 
 # ─────────────────────────── Scheduler loop ─────────────────────
