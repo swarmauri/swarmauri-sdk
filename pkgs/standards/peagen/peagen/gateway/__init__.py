@@ -67,7 +67,7 @@ api = AutoAPI(
         Tenant, User, Role, RoleGrant, RolePerm,
         Repository, UserTenant, UserRepository,
         Secret, DeployKey, Pool, Worker,
-        Action, Task, Work, RawBlob,
+        Task, Work, RawBlob,
     },
     get_async_db=get_async_db,
 )
