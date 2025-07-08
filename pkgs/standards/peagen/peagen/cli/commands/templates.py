@@ -21,12 +21,10 @@ remote_template_sets_app = typer.Typer(
     add_completion=False,
 )
 
-
 # ─── helpers ───────────────────────────
 def _run_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     task = build_task("templates", args, pool="default")
     return asyncio.run(templates_handler(task))
-
 
 # ─── list ──────────────────────────────
 @local_template_sets_app.command("list", help="List all discovered template-sets.")
