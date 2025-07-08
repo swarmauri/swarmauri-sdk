@@ -22,6 +22,7 @@ __all__ = [
     "Role",
     "RolePerm",
     "RoleGrant",
+    "Status",
     "StatusEnum",
     "Change",
     "Base",
@@ -38,6 +39,7 @@ _module_map = {
     "Role": f"{__name__}.rbac",
     "RolePerm": f"{__name__}.rbac",
     "RoleGrant": f"{__name__}.rbac",
+    "Status": f"{__name__}.status",
     "StatusEnum": f"{__name__}.status",
     "Change": f"{__name__}.audit",
 }
@@ -62,5 +64,5 @@ if TYPE_CHECKING:  # pragma: no cover
     from .group import Group
     from .org import Org
     from .rbac import Role, RoleGrant, RolePerm
-    from .status import StatusEnum
+    from .status import Status, StatusEnum
     from .audit import Change
