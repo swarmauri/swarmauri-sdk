@@ -9,16 +9,19 @@ Changes:
 """
 
 from __future__ import annotations
-import json, time
+
+import json
+import time
 from typing import Any, Mapping
 
-from .. import queue, log                           # queue is an aioredis wrapper
+# from . import queue, log                           # queue is an aioredis wrapper
 from peagen.defaults import PUBSUB_CHANNEL, READY_QUEUE
+
 
 # ------------------------------------------------------------------ #
 # 1. low-level publish helper (unchanged)
 # ------------------------------------------------------------------ #
-async def _publish_event(event_type: str, data: Mapping[str, Any]) -> None:
+async def _publish_event(queue, event_type: str, data: Mapping[str, Any]) -> None:
     event = {
         "type": event_type,
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -65,6 +68,6 @@ async def _publish_task(task_obj: Any) -> None:
 # ------------------------------------------------------------------ #
 # 3. queue length helper (unchanged)
 # ------------------------------------------------------------------ #
-async def _publish_queue_length(pool: str) -> None:
+async def _publish_queue_length(queue, pool: str) -> None:
     qlen = await queue.llen(f"{READY_QUEUE}:{pool}")
     await _publish_event("queue.update", {"pool": pool, "length": qlen})

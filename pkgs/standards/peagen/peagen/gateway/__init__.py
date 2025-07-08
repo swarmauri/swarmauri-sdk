@@ -10,50 +10,63 @@ This file assumes:
 """
 
 from __future__ import annotations
-import asyncio, json, os, logging, time, uuid, httpx
+
+import asyncio
+import json
+import logging
+import os
+import time
+import uuid
 from typing import Any, Dict, Optional
 
-from fastapi import FastAPI, Request
-from swarmauri_standard.loggers.Logger import Logger
+import httpx
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v2             import AutoAPI
+from autoapi.v2 import AutoAPI
+from fastapi import FastAPI, Request
+
 from peagen._utils.config_loader import resolve_cfg
-from peagen.core            import migrate_core
-from peagen.defaults        import READY_QUEUE
-from peagen.errors          import (
+from peagen.core import migrate_core
+from peagen.defaults import READY_QUEUE
+from peagen.errors import (
     DispatchHTTPError,
     MigrationFailureError,
     MissingActionError,
     NoWorkerAvailableError,
 )
-from peagen.plugins         import PluginManager
-from peagen.plugins.queues  import QueueBase
-from peagen.orm             import (
-    Base, Tenant, User, Role, RoleGrant, RolePerm,
-    Repository, UserTenant, UserRepository,
-    Secret, DeployKey, Pool, Worker, 
-    Task, Work, RawBlob, Status,
+from peagen.orm import (
+    Base,
+    DeployKey,
+    Pool,
+    RawBlob,
+    Repository,
+    Role,
+    RoleGrant,
+    RolePerm,
+    Secret,
+    Task,
+    Tenant,
+    User,
+    UserRepository,
+    UserTenant,
+    Work,
+    Worker,
 )
+from peagen.orm import Status as StatusEnum  # noqa: F401
+from peagen.plugins import PluginManager
+from peagen.plugins.queues import QueueBase
+from swarmauri_standard.loggers.Logger import Logger
 
-from .db        import get_async_db, engine           # same module as before
+from . import _publish, schedule_helpers
+from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
-from ._publish  import _publish_queue_length, _publish_task
-from .scheduler_helper import (
-    pop_next_task,
-    get_live_workers_by_pool,
-    pick_worker,
-    dispatch_work,
-    remove_worker,
-    finalize_parent_tasks, 
-    _fail_task, 
-    _save_task
-)
 
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
-log        = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
-sched_log  = Logger(name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
+log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
+sched_log = Logger(
+    name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)
+)
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
@@ -64,10 +77,21 @@ app = FastAPI(title="Peagen Pool-Manager Gateway")
 api = AutoAPI(
     base=Base,
     include={
-        Tenant, User, Role, RoleGrant, RolePerm,
-        Repository, UserTenant, UserRepository,
-        Secret, DeployKey, Pool, Worker,
-        Action, Task, Work, RawBlob,
+        Tenant,
+        User,
+        Role,
+        RoleGrant,
+        RolePerm,
+        Repository,
+        UserTenant,
+        UserRepository,
+        Secret,
+        DeployKey,
+        Pool,
+        Worker,
+        Task,
+        Work,
+        RawBlob,
     },
     get_async_db=get_async_db,
 )
@@ -76,10 +100,13 @@ app.include_router(api.router)
 app.include_router(ws_router)
 
 # ─────────── Plugin-driven queue / result backend ─────────────────────
-cfg          = resolve_cfg()
-plugins      = PluginManager(cfg)
+cfg = resolve_cfg()
+plugins = PluginManager(cfg)
 queue_plugin = plugins.get("queues", None)
-queue: QueueBase = queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
+queue: QueueBase = (
+    queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
+)
+
 
 # ─────────── flush Redis state on shutdown ────────────────────────────
 async def _flush_state() -> None:
@@ -91,6 +118,7 @@ async def _flush_state() -> None:
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
+
 # ─────────── backlog scanner (parent-completion) ──────────────────────
 async def _backlog_scanner(interval: float = 5.0) -> None:
     log.info("backlog-scanner started")
@@ -101,8 +129,9 @@ async def _backlog_scanner(interval: float = 5.0) -> None:
                 continue
             task = json.loads(blob)
             for cid in task.get("result", {}).get("children", []):
-                await _finalize_parent_tasks(cid)
+                await schedule_helpers._finalize_parent_tasks(queue, cid)
         await asyncio.sleep(interval)
+
 
 # ─────────── client IP helper (unchanged) ─────────────────────────────
 def _client_ip(request: Request) -> str:
@@ -110,6 +139,7 @@ def _client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.headers.get("x-real-ip") or request.client.host
+
 
 # ─────────── scheduler loop ───────────────────────────────────────────
 async def scheduler() -> None:
@@ -128,31 +158,37 @@ async def scheduler() -> None:
                 continue
             queue_key, raw_json = res
             pool = queue_key.split(":", 1)[1]
-            await _publish_queue_length(pool)
+            await _publish._publish_queue_length(queue, pool)
 
             try:
                 task = Task.model_validate_json(raw_json)
-            except Exception as exc:          # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
                 sched_log.warning("invalid task JSON; %s", exc)
                 continue
 
             # — 3. find available worker
-            workers = await get_live_workers_by_pool(pool)
-            target  = pick_worker(workers, task.action)
+            workers = await schedule_helpers.get_live_workers_by_pool(queue, pool)
+            target = schedule_helpers.pick_worker(workers, task.action)
+
             if target is None:
                 sched_log.warning("no worker for %s:%s", pool, task.action)
-                await _fail_task(task, NoWorkerAvailableError(pool, task.action))
+                await schedule_helpers._fail_task(
+                    task, NoWorkerAvailableError(pool, task.action), sched_log
+                )
                 continue
 
             # — 4. dispatch
-            ok = await dispatch_work(task, target)
+            ok = await schedule_helpers.dispatch_work(task, target, sched_log)
             if ok:
-                await _save_task(task.model_copy(update={"status": Status.DISPATCHED}))
-                await _publish_task(task)
+                await schedule_helpers._save_task(
+                    task.model_copy(update={"status": StatusEnum.DISPATCHED})
+                )
+                await _publish._publish_task(queue, task)
             else:
-                await remove_worker(target["id"])
+                await schedule_helpers.remove_worker(queue, target["id"])
                 await queue.rpush(queue_key, raw_json)  # re-queue
-                await asyncio.sleep(1)                 # back-off
+                await asyncio.sleep(1)  # back-off
+
 
 # ─────────── FastAPI startup / shutdown handlers ──────────────────────
 async def _startup() -> None:
@@ -167,10 +203,12 @@ async def _startup() -> None:
     READY = True
     log.info("gateway ready")
 
+
 async def _shutdown() -> None:
     log.info("gateway shutdown …")
     await _flush_state()
     await engine.dispose()
+
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
