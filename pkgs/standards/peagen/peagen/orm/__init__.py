@@ -103,7 +103,7 @@ class RepositoryRefMixin:
 # ---------------------------------------------------------------------
 
 
-class UserTenant(Base, TenantMixin, UserMixin):
+class UserTenant(Base, GUIDPk, TenantMixin, UserMixin):
     """
     Many-to-many edge between users and tenants.
     A user may be invited to / removed from any number of tenants.
@@ -113,7 +113,7 @@ class UserTenant(Base, TenantMixin, UserMixin):
     joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
 
 
-class UserRepository(Base, RepositoryMixin, UserMixin):
+class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
     """
     Edge capturing *any* per-repository permission or ownership
     the user may have.  `perm` can be "owner", "push", "pull", etc.
