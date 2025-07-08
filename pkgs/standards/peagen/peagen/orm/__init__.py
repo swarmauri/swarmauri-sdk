@@ -6,7 +6,7 @@ condensed_orm.py  –  all Peagen domain tables in one place
 from __future__ import annotations
 import uuid
 import datetime as dt
-from typing import Any, Dict
+from typing import Any, Dict, FrozenSet
 from enum import Enum, auto
 
 from sqlalchemy import (
@@ -49,6 +49,16 @@ from autoapi.v2.mixins import (
 )
 
 from sqlalchemy.orm import declarative_mixin
+
+
+def _is_terminal(cls, state: str | Status) -> bool:
+    """Return True if *state* represents completion."""
+    terminal: FrozenSet[str] = frozenset({"success", "failed", "cancelled", "rejected"})
+    value = state.value if isinstance(state, Status) else state
+    return value in terminal
+
+
+Status.is_terminal = classmethod(_is_terminal)
 
 
 # ---------------------------------------------------------------------
@@ -262,6 +272,7 @@ class RawBlob(Base, GUIDPk, Timestamped, BlobRef):
     mime_type = Column(String, nullable=False)
     size = Column(Integer, nullable=False)
 
+
 __all__ = [
     "Tenant",
     "User",
@@ -282,4 +293,4 @@ __all__ = [
     "Task",
     "Work",
     "RawBlob",
-    ]
+]
