@@ -20,7 +20,6 @@ from peagen.cli.task_helpers import build_task
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
 
-
 # ───────────────────────── helpers ─────────────────────────
 
 

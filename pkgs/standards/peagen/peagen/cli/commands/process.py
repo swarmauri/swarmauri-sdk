@@ -1,36 +1,38 @@
 # peagen/commands/process.py
 """
-CLI front-end for the processing pipeline.
+CLI front-end for the “process” pipeline.
 
-Two sub-commands are exposed:
-
-  • ``peagen process run``     – local, blocking execution
-  • ``peagen process submit``  – JSON-RPC submission to worker farm
+Sub-commands
+------------
+• peagen process run     – local, blocking execution
+• peagen process submit  – JSON-RPC submission to the gateway
 """
 
 from __future__ import annotations
 
-import asyncio
-import json
-import time
+import asyncio, json, tempfile, time, uuid
 from pathlib import Path
-import tempfile
 from typing import Any, Dict, Optional
 
-
 import typer
+
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
+from peagen.cli.task_helpers     import build_task, submit_task, get_task
 from peagen.handlers.process_handler import process_handler
-from peagen.orm import Status
-from peagen.cli.task_helpers import build_task, submit_task, get_task
+from peagen.orm                   import Status
 
-local_process_app = typer.Typer(help="Render / generate project files.")
-remote_process_app = typer.Typer(help="Render / generate project files.")
+# ────────────────────────── constants ────────────────────────────────
+DEFAULT_GATEWAY   = "http://localhost:8000/rpc"
+DEFAULT_POOL_ID   = uuid.UUID(int=0)
+DEFAULT_TENANT_ID = uuid.UUID(int=1)
+
+local_process_app  = typer.Typer(help="Render / generate project files locally.")
+remote_process_app = typer.Typer(help="Submit processing tasks to the gateway.")
 
 
-# ────────────────────────── helpers ──────────────────────────────────────────
-def _collect_args(  # noqa: C901 – straight-through mapper
-    projects_payload: Any,
+# ────────────────────────── helpers ──────────────────────────────────
+def _collect_args(  # noqa: C901 – param mapper
+    projects_payload: str,
     project_name: Optional[str],
     start_idx: int,
     start_file: Optional[str],
@@ -38,12 +40,6 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     agent_env: Optional[str],
     output_base: Optional[Path],
 ) -> Dict[str, Any]:
-    """Package CLI options into a payload dictionary.
-
-    ``projects_payload`` may be a path, YAML text or a pre-parsed mapping. The
-    remote submission command converts YAML to a Python object so workers don't
-    need to read local files.
-    """
     args: Dict[str, Any] = {
         "projects_payload": projects_payload,
         "project_name": project_name,
@@ -60,138 +56,107 @@ def _collect_args(  # noqa: C901 – straight-through mapper
     return args
 
 
-# ────────────────────────── local run ────────────────────────────────────────
-@local_process_app.command("process")
-def run(  # noqa: PLR0913 – CLI signature needs many options
-    ctx: typer.Context,
-    projects_payload: str = typer.Argument(
-        ..., help="Path to YAML file containing a top-level PROJECTS list."
-    ),
-    project_name: Optional[str] = typer.Option(
-        None, help="Process only a single project by its NAME."
-    ),
-    start_idx: int = typer.Option(
-        0, "--start-idx", help="Index offset for rendered filenames."
-    ),
-    start_file: Optional[str] = typer.Option(
-        None, help="Skip files until this RENDERED_FILE_NAME is reached."
-    ),
-    transitive: bool = typer.Option(
-        False, "--transitive/--no-transitive", help="Include transitive deps."
-    ),
-    agent_env: Optional[str] = typer.Option(
-        None,
-        help=(
-            "JSON for LLM driver, e.g. "
-            '\'{"provider":"openai","model_name":"gpt-4o","api_key":"sk-..."}\''
-        ),
-    ),
-    output_base: Optional[Path] = typer.Option(
-        None,
-        "--output-base",
-        help="Root dir for materialised artifacts (default ./out).",
-    ),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-):
-    """Execute the processing pipeline synchronously on this machine."""
-    cfg_path: Optional[Path] = ctx.obj.get("config_path") if ctx.obj else None
-    cfg_override = _effective_cfg(cfg_path)
+def _determine_pool_id(ctx: typer.Context) -> str:
+    """Return pool_id to embed in TaskCreate."""
+    return str(ctx.obj.get("pool_id", DEFAULT_POOL_ID))
 
+
+# ────────────────────────── LOCAL RUN ────────────────────────────────
+@local_process_app.command("process")
+def run(  # noqa: PLR0913
+    ctx: typer.Context,
+    projects_payload: str = typer.Argument(..., help="Path to PROJECTS YAML"),
+    project_name: Optional[str] = typer.Option(None, "--project-name"),
+    start_idx: int = typer.Option(0, "--start-idx"),
+    start_file: Optional[str] = typer.Option(None, "--start-file"),
+    transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
+    agent_env: Optional[str] = typer.Option(None, "--agent-env"),
+    output_base: Optional[Path] = typer.Option(None, "--output-base"),
+    repo: str = typer.Option(..., "--repo"),
+    ref:  str = typer.Option("HEAD", "--ref"),
+) -> None:
+    """Run the processing pipeline locally."""
+    cfg_override = _effective_cfg(ctx.obj.get("config_path"))
     args = _collect_args(
-        projects_payload,
-        project_name,
-        start_idx,
-        start_file,
-        transitive,
-        agent_env,
-        output_base,
+        projects_payload, project_name, start_idx, start_file,
+        transitive, agent_env, output_base,
+    ) | {"repo": repo, "ref": ref, "cfg_override": cfg_override}
+
+    task = build_task(
+        action="process",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=_determine_pool_id(ctx),
+        repo=repo,
+        ref=ref,
     )
-    if repo:
-        args.update({"repo": repo, "ref": ref})
-    task = build_task("process", args, pool=ctx.obj.get("pool", "default"))
-    task.payload["cfg_override"] = cfg_override
 
     result = asyncio.run(process_handler(task))
     typer.echo(json.dumps(result, indent=2))
 
 
-# ────────────────────────── remote submit ────────────────────────────────────
+# ────────────────────────── REMOTE SUBMIT ────────────────────────────
 @remote_process_app.command("process")
-def submit(  # noqa: PLR0913 – CLI signature needs many options
+def submit(  # noqa: PLR0913
     ctx: typer.Context,
-    projects_payload: str = typer.Argument(
-        ..., help="Path to YAML file or inline text for PROJECTS"
-    ),
-    project_name: Optional[str] = typer.Option(
-        None, help="Process only a single project by its NAME"
-    ),
-    start_idx: int = typer.Option(0, help="Index offset for rendered filenames"),
-    start_file: Optional[str] = typer.Option(
-        None, help="Skip files until this RENDERED_FILE_NAME is reached"
-    ),
-    transitive: bool = typer.Option(
-        False, "--transitive/--no-transitive", help="Include transitive deps"
-    ),
-    agent_env: Optional[str] = typer.Option(
-        None, help="JSON settings for the LLM agent environment"
-    ),
-    output_base: Optional[Path] = typer.Option(
-        None, "--output-base", help="Root dir for materialised artifacts"
-    ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-    watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(
-        2.0, "--interval", "-i", help="Seconds between polls"
-    ),
-):
-    """Enqueue a processing task via JSON-RPC and return immediately."""
-    # Pass a pointer to the YAML file rather than embedding the text
-    path = Path(projects_payload)
-    if path.is_file():
-        payload_pointer = str(path.resolve())
-    else:
-        if path.suffix in {".yml", ".yaml"}:
+    projects_payload: str = typer.Argument(..., help="Path to YAML file or inline text"),
+    project_name: Optional[str] = typer.Option(None, "--project-name"),
+    start_idx: int = typer.Option(0, "--start-idx"),
+    start_file: Optional[str] = typer.Option(None, "--start-file"),
+    transitive: bool = typer.Option(False, "--transitive/--no-transitive"),
+    agent_env: Optional[str] = typer.Option(None, "--agent-env"),
+    output_base: Optional[Path] = typer.Option(None, "--output-base"),
+    repo: str = typer.Option(..., "--repo"),
+    ref:  str = typer.Option("HEAD", "--ref"),
+    watch: bool = typer.Option(False, "--watch", "-w"),
+    interval: float = typer.Option(2.0, "--interval", "-i"),
+) -> None:
+    """Submit a processing task via JSON-RPC."""
+    # If inline YAML provided, write to temp file so worker can fetch.
+    payload_path = Path(projects_payload)
+    if not payload_path.is_file():
+        if payload_path.suffix in {".yml", ".yaml"}:
             raise typer.BadParameter(f"File not found: {projects_payload}")
-        tmp = Path(tempfile.mkdtemp(prefix="peagen_pp_")) / "projects_payload.yaml"
-        tmp.write_text(projects_payload, encoding="utf-8")
-        payload_pointer = str(tmp)
+        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_pp_"))
+        payload_path = tmp_dir / "projects_payload.yaml"
+        payload_path.write_text(projects_payload, encoding="utf-8")
 
     args = _collect_args(
-        payload_pointer,
+        str(payload_path),
         project_name,
         start_idx,
         start_file,
         transitive,
         agent_env,
         output_base,
-    )
-    if repo:
-        args.update({"repo": repo, "ref": ref})
-    task = build_task("process", args, pool=ctx.obj.get("pool", "default"))
+    ) | {"repo": repo, "ref": ref}
 
-    # ─────────────────────── cfg override  ──────────────────────────────
-    inline = ctx.obj.get("task_override_inline")  # JSON string or None
-    file_ = ctx.obj.get("task_override_file")  # Path or None
+    # cfg overrides – inline JSON / TOML file
     cfg_override: Dict[str, Any] = {}
-    if inline:
+    if inline := ctx.obj.get("task_override_inline"):
         cfg_override = json.loads(inline)
-    if file_:
+    if file_ := ctx.obj.get("task_override_file"):
         cfg_override.update(load_peagen_toml(Path(file_), required=True))
-    task.payload["cfg_override"] = cfg_override
+    if cfg_override:
+        args["cfg_override"] = cfg_override
 
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
-    data = reply
+    task = build_task(
+        action="process",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=_determine_pool_id(ctx),
+        repo=repo,
+        ref=ref,
+    )
 
-    tid = task.id
-    typer.secho(f"Submitted task {tid}", fg=typer.colors.GREEN)
-    if data.get("result") is not None:
-        typer.echo(json.dumps(data["result"], indent=2))
+    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
+    created = submit_task(gw, task)
+    typer.secho(f"Submitted task {created['id']}", fg=typer.colors.GREEN)
+
     if watch:
         while True:
-            task_reply = get_task(ctx.obj.get("gateway_url"), tid)
-            typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-            if Status.is_terminal(task_reply.status):
+            cur = get_task(gw, created["id"])
+            if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)
+        typer.echo(json.dumps(cur.model_dump(), indent=2))

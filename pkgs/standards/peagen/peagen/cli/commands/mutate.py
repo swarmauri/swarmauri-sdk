@@ -1,117 +1,139 @@
-"""CLI for the mutate workflow."""
+# peagen/cli/commands/mutate.py
+"""
+CLI for the *mutate* workflow.
+
+Sub-commands
+------------
+• peagen mutate run       – local, blocking execution
+• peagen mutate submit    – enqueue via gateway
+"""
 
 from __future__ import annotations
 
-import asyncio
-import json
+import asyncio, json, time, uuid
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.cli.task_helpers import build_task, submit_task
+from peagen.cli.task_helpers        import build_task, submit_task, get_task
+from peagen.orm                     import Status
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-local_mutate_app = typer.Typer(help="Run the mutate workflow")
-remote_mutate_app = typer.Typer(help="Run the mutate workflow")
+# demo UUIDs – replace with real IDs in production
+DEFAULT_POOL_ID   = uuid.UUID(int=0)
+DEFAULT_TENANT_ID = uuid.UUID(int=1)
+
+local_mutate_app  = typer.Typer(help="Run mutate workflow locally.")
+remote_mutate_app = typer.Typer(help="Submit mutate workflow to gateway.")
 
 
+# ───────────────────── helper to assemble args ────────────────────────
+def _args_dict(
+    target_file: str,
+    import_path: str,
+    entry_fn: str,
+    profile_mod: Optional[str],
+    fitness: str,
+    mutator: str,
+    gens: int,
+) -> Dict[str, Any]:
+    return {
+        "target_file":  target_file,
+        "import_path":  import_path,
+        "entry_fn":     entry_fn,
+        "profile_mod":  profile_mod,
+        "gens":         gens,
+        "evaluator_ref": fitness,
+        "mutations":    [{"kind": mutator}],
+    }
+
+
+# ─────────────────────── LOCAL RUN ────────────────────────────────────
 @local_mutate_app.command("mutate")
-def run(
+def run(  # noqa: PLR0913
     ctx: typer.Context,
-    workspace_uri: str = typer.Argument(..., help="Workspace path"),
-    target_file: str = typer.Option(..., help="File to mutate"),
-    import_path: str = typer.Option(..., help="Module import path"),
-    entry_fn: str = typer.Option(..., help="Benchmark function"),
-    profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
+    target_file: str,
+    import_path: str,
+    entry_fn: str,
+    profile_mod: Optional[str] = None,
     fitness: str = typer.Option(
         "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
         "--fitness",
-        help="Evaluator plugin reference",
     ),
-    mutator: str = typer.Option(
-        "default_mutator",
-        "--mutator",
-        help="Mutator plugin name",
-    ),
-    gens: int = typer.Option(1, help="Number of generations"),
-    json_out: bool = typer.Option(
-        False, "--json", help="Print results to stdout instead of a file"
-    ),
-    out: Optional[Path] = typer.Option(
-        None, "--out", help="Write JSON results to this path"
-    ),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    mutator: str = typer.Option("default_mutator", "--mutator"),
+    gens: int = typer.Option(1, "--gens"),
+    json_out: bool = typer.Option(False, "--json"),
+    out: Optional[Path] = typer.Option(None, "--out"),
+    repo: str = typer.Option(..., "--repo"),
+    ref:  str = typer.Option("HEAD", "--ref"),
 ) -> None:
-    """Run the mutate workflow locally."""
-    args = {
-        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
-        "target_file": target_file,
-        "import_path": import_path,
-        "entry_fn": entry_fn,
-        "profile_mod": profile_mod,
-        "gens": gens,
-        "evaluator_ref": fitness,
-        "mutations": [{"kind": mutator}],
-    }
-    task = build_task("mutate", args, pool=ctx.obj.get("pool", "default"))
+    """Run the mutate workflow synchronously on this machine."""
+    args = _args_dict(
+        target_file, import_path, entry_fn, profile_mod, fitness, mutator, gens
+    ) | {"repo": repo, "ref": ref}
+
+    task = build_task(
+        action="mutate",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
+
     result = asyncio.run(mutate_handler(task))
 
     if json_out:
         typer.echo(json.dumps(result, indent=2))
     else:
-        out_file = out or Path(workspace_uri) / "mutate_result.json"
-        out_file.write_text(json.dumps(result, indent=2))
-        typer.echo(str(out_file))
+        outfile = out or Path(".") / "mutate_result.json"
+        outfile.write_text(json.dumps(result, indent=2))
+        typer.echo(str(outfile))
 
 
+# ─────────────────────── REMOTE SUBMIT ─────────────────────────────────
 @remote_mutate_app.command("mutate")
-def submit(
+def submit(  # noqa: PLR0913
     ctx: typer.Context,
-    workspace_uri: str = typer.Argument(..., help="Workspace path"),
-    target_file: str = typer.Option(..., help="File to mutate"),
-    import_path: str = typer.Option(..., help="Module import path"),
-    entry_fn: str = typer.Option(..., help="Benchmark function"),
-    profile_mod: Optional[str] = typer.Option(None, help="Profile helper module"),
+    target_file: str,
+    import_path: str,
+    entry_fn: str,
+    profile_mod: Optional[str] = None,
     fitness: str = typer.Option(
         "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
         "--fitness",
-        help="Evaluator plugin reference",
     ),
-    mutator: str = typer.Option(
-        "default_mutator",
-        "--mutator",
-        help="Mutator plugin name",
-    ),
-    gens: int = typer.Option(1, help="Number of generations"),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    mutator: str = typer.Option("default_mutator", "--mutator"),
+    gens: int = typer.Option(1, "--gens"),
+    repo: str = typer.Option(..., "--repo"),
+    ref:  str = typer.Option("HEAD", "--ref"),
+    watch: bool = typer.Option(False, "--watch", "-w"),
+    interval: float = typer.Option(2.0, "--interval", "-i"),
 ) -> None:
-    """Submit a mutate task to the gateway."""
-    args = {
-        "workspace_uri": workspace_uri if not repo else f"git+{repo}@{ref}",
-        "target_file": target_file,
-        "import_path": import_path,
-        "entry_fn": entry_fn,
-        "profile_mod": profile_mod,
-        "gens": gens,
-        "evaluator_ref": fitness,
-        "mutations": [{"kind": mutator}],
-    }
-    task = build_task("mutate", args, pool=ctx.obj.get("pool", "default"))
+    """Submit a mutate task to the gateway (optionally watch progress)."""
+    gw = ctx.obj.get("gateway_url")
 
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    args = _args_dict(
+        target_file, import_path, entry_fn, profile_mod, fitness, mutator, gens
+    ) | {"repo": repo, "ref": ref}
 
-    if "error" in reply:
-        typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
+    task = build_task(
+        action="mutate",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
 
-    typer.secho(f"Submitted task {task.id}", fg=typer.colors.GREEN)
-    if reply.get("result"):
-        typer.echo(json.dumps(reply["result"], indent=2))
+    created = submit_task(gw, task)
+    typer.echo(f"Submitted task {created['id']}")
+
+    if watch:
+        while True:
+            cur = get_task(gw, created["id"])
+            if Status.is_terminal(cur.status):
+                break
+            time.sleep(interval)
+        typer.echo(json.dumps(cur.model_dump(), indent=2))

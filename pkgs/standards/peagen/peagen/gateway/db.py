@@ -1,5 +1,10 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from contextlib import asynccontextmanager
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from .runtime_cfg import settings
 
@@ -15,13 +20,10 @@ engine = create_async_engine(
     max_overflow=20,
     echo=False,
 )
-Session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+Session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-def get_async_db() -> AsyncSession:
-    db = Session()
-    try:
+@asynccontextmanager
+async def get_async_db() -> AsyncSession:
+    async with Session() as db:
         yield db
-    finally:
-        if db:
-            db.close()

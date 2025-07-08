@@ -6,28 +6,9 @@ condensed_orm.py  –  all Peagen domain tables in one place
 from __future__ import annotations
 
 import datetime as dt
-import uuid
+from typing import Any, Dict, FrozenSet
 from enum import Enum, auto
-from typing import Any, Dict
 
-from autoapi.v2.mixins import (
-    AsyncCapable,
-    BlobRef,
-    BulkCapable,
-    GUIDPk,
-    Ownable,
-    Replaceable,
-    StatusMixin,
-    TenantBound,
-    TenantMixin,
-    Timestamped,
-    UserMixin,
-)
-
-# ---------------------------------------------------------------------
-# bring in the baseline tables that AutoAPI already owns
-# ---------------------------------------------------------------------
-from autoapi.v2.tables import Base, Role, RoleGrant, RolePerm, Status, Tenant, User
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -42,12 +23,42 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy import (
-    Enum as SAEnum,
+from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
+from sqlalchemy.orm import relationship, foreign, remote
+
+# ---------------------------------------------------------------------
+# bring in the baseline tables that AutoAPI already owns
+# ---------------------------------------------------------------------
+from autoapi.v2.tables import Tenant, User
+from autoapi.v2.tables import Role, RoleGrant, RolePerm
+from autoapi.v2.tables import Status
+from autoapi.v2.tables import Base
+from autoapi.v2.mixins import (
+    GUIDPk,
+    UserMixin,
+    TenantMixin,
+    Ownable,
+    Timestamped,
+    TenantBound,
+    AsyncCapable,
+    Replaceable,
+    BulkCapable,
+    StatusMixin,
+    BlobRef,
 )
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_mixin, foreign, relationship, remote
+
+from sqlalchemy.orm import declarative_mixin
+
+
+def _is_terminal(cls, state: str | Status) -> bool:
+    """Return True if *state* represents completion."""
+    terminal: FrozenSet[str] = frozenset({"success", "failed", "cancelled", "rejected"})
+    value = state.value if isinstance(state, Status) else state
+    return value in terminal
+
+
+Status.is_terminal = classmethod(_is_terminal)
+
 
 # ---------------------------------------------------------------------
 # Repository hierarchy
