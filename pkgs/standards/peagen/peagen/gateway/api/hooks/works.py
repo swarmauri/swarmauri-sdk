@@ -4,10 +4,9 @@ from typing import Dict, Any
 from autoapi.v2 import Phase, AutoAPI
 from peagen.orm import Status, Work, Task
 
-from .. import (_load_task, _save_task, _publish_task, 
-    #_persist, 
-    _finalize_parent_tasks, queue, log)
-from .  import api    # the AutoAPI instance bound to your gateway
+from .. import queue, log, api
+from .task import _load_task, _save_task, _finalize_parent_tasks
+from .._publish import _publish_task
 
 WorkUpdate = AutoAPI.get_schema(Work, "update")
 WorkRead   = AutoAPI.get_schema(Work, "read")

@@ -10,11 +10,9 @@ from typing import Any, Dict, List
 
 from autoapi_client   import AutoAPIClient
 from autoapi.v2       import AutoAPI
-from peagen.orm       import Task               # ORM resource
+from peagen.orm       import Task, Status
 
-from peagen.orm.task.status import Status
-from peagen.defaults        import RPC_TIMEOUT
-from peagen.defaults import DEFAULT_GATEWAY
+from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
 
 
 # ────────────────────────── internal helpers ───────────────────────── #

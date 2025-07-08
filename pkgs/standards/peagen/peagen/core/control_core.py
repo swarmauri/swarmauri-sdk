@@ -4,33 +4,32 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from peagen.orm import TaskModel
-from peagen.orm.task.status import Status
+from peagen.orm import Status, Task
 
+SUpdate = AutoAPI.get_schema(Task, "update")
 
-
-def pause(tasks: Iterable[TaskModel]) -> int:
+def pause(tasks: Iterable[SUpdate]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.paused
     return len(selected)
 
 
-def resume(tasks: Iterable[TaskModel]) -> int:
+def resume(tasks: Iterable[SUpdate]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.waiting
     return len(selected)
 
 
-def cancel(tasks: Iterable[TaskModel]) -> int:
+def cancel(tasks: Iterable[SUpdate]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.cancelled
     return len(selected)
 
 
-def retry(tasks: Iterable[TaskModel]) -> int:
+def retry(tasks: Iterable[SUpdate]) -> int:
     selected = list(tasks)
     for t in selected:
         t.status = Status.queued

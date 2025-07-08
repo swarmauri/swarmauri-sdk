@@ -1,87 +1,88 @@
-# task_helpers.py  – new, client-based implementation
+# task_helpers.py  – aligned with Task v3
 from __future__ import annotations
 
-import json, uuid, httpx
-from typing import Any, Dict
+import uuid, httpx
+from typing import Any, Dict, Optional
 
 from autoapi_client import AutoAPIClient
 from autoapi.v2      import AutoAPI
-from peagen.orm.task import Task                      # ORM
 from peagen.defaults import RPC_TIMEOUT
-from peagen.orm.task.status import Status
+from peagen.orm import Status, Task, Action, SpecKind
 
-# ------------------------------------------------------------------ #
-# local factories  – stay unchanged
+# ─────────────────── local factory ──────────────────────────────────────
 def build_task(
-    action: str,
-    args: Dict[str, Any],
     *,
-    pool: str = "default",
-    repo: str | None = None,
-    ref: str | None = None,
-    status: Status = Status.waiting,
-    note: str | None = None,
-    config_toml: str | None = None,
-    labels: list[str] | None = None,
-    tenant_id: str = "default",
-    spec_hash: str | None = None,
-) -> Any:
+    tenant_id: str,
+    pool_id:   str,
+    action:    Action | str,
+    repo:      str,
+    ref:       str,
+    args:      Dict[str, Any] | None = None,
+    # Optional columns
+    repository_id: Optional[str] = None,          # slug-only flow leaves this None
+    config_toml:   Optional[str] = None,
+    spec_kind:     Optional[SpecKind | str] = None,
+    spec_uuid:     Optional[str] = None,
+    note:          Optional[str] = None,
+    labels:        Optional[Dict[str, Any]] = None,
+    status:        Status = Status.waiting,
+):
     """
-    Return a validated *Create* schema instance for the Task resource.
+    Return a TaskCreate Pydantic instance that matches AutoAPI's
+    current schema (no 'payload' column any more).
     """
-    SCreate = AutoAPI.get_schema(Task, "create")            # dynamic schema
+    SCreate = AutoAPI.get_schema(Task, "create")
+
     return SCreate(
-        id=str(uuid.uuid4()),
-        pool=pool,
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        pool_id=pool_id,
+        action=action,
+        repository_id=repository_id,   # may be None → pre-hook resolves it
         repo=repo,
         ref=ref,
-        payload={"action": action, "args": args},
-        status=status,
-        note=note,
         config_toml=config_toml,
-        labels=labels,
-        tenant_id=tenant_id,
-        spec_hash=spec_hash or uuid.uuid4().hex,
+        spec_kind=spec_kind,
+        spec_uuid=spec_uuid,
+        args=args or {},
+        labels=labels or {},
+        note=note,
+        status=status,
     )
 
 
-# ------------------------------------------------------------------ #
+# ─────────────────── RPC helpers ────────────────────────────────────────
 def submit_task(
     gateway_url: str,
-    task: Any,                       # instance returned by build_task
+    task_model: Any,                         # instance from build_task()
     *,
     timeout: float = RPC_TIMEOUT,
 ) -> Dict[str, Any]:
-    """
-    Submit *task* to *gateway_url* via JSON-RPC and return the raw result dict.
-    """
-    SRead = AutoAPI.get_schema(Task, "read")      # success schema
+    """POST tasks.create and return the validated TaskRead dict."""
+    SRead = AutoAPI.get_schema(Task, "read")
 
-    try:
-        with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
-            res = rpc.call("Tasks.create", params=task, out_schema=SRead)
-        return res.model_dump()
-    except (httpx.HTTPError, RuntimeError) as exc:
-        raise RuntimeError(f"submit_task RPC failed: {exc}") from exc
+    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+        res = rpc.call(
+            "tasks.create",
+            params=task_model.model_dump(),   # AutoAPIClient expects dict
+            out_schema=SRead,
+        )
+    return res.model_dump()
 
 
-# ------------------------------------------------------------------ #
 def get_task(
     gateway_url: str,
     task_id: str,
     *,
     timeout: float = RPC_TIMEOUT,
 ):
-    """
-    Return a validated *Read* model for the task with *task_id*.
-    """
+    """Return a validated TaskRead Pydantic object for *task_id*."""
     SRead = AutoAPI.get_schema(Task, "read")
-    SDel  = AutoAPI.get_schema(Task, "delete")    # only contains primary key
 
-    params = SDel(id=task_id)                     # validate id shape first
-    try:
-        with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
-            result = rpc.call("Tasks.read", params=params, out_schema=SRead)
-        return result
-    except (httpx.HTTPError, RuntimeError) as exc:
-        raise RuntimeError(f"get_task RPC failed: {exc}") from exc
+    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+        result = rpc.call(
+            "tasks.read",
+            params={"id": task_id},
+            out_schema=SRead,
+        )
+    return result

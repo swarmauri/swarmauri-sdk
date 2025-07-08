@@ -15,20 +15,11 @@ from peagen.orm import Status, Task
 from peagen.transport.jsonrpc import RPCException
 from peagen.errors import TaskNotFoundError
 import peagen.defaults as defaults
+from peagen.defaults import READY_QUEUE, TASK_TTL
 
-from .. import (
-    READY_QUEUE,
-    TASK_TTL,
-    _finalize_parent_tasks,
-    _live_workers_by_pool,
-    _load_task,
-    _publish_queue_length,
-    _publish_task,
-    _save_task,
-    log,
-    queue,
-)
-from . import api
+from .. import log, queue, api
+from .workers import _live_workers_by_pool
+from .._publish import _publish_task, _publish_event, _publish_queue_length
 
 # ─────────────────────────── Schema handles ───────────────────────────
 TaskCreate = AutoAPI.get_schema(Task, "create")

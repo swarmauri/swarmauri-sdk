@@ -9,7 +9,7 @@ from typing import Optional
 import typer
 
 from peagen.handlers.evolve_handler import evolve_handler
-from peagen.orm.task.status import Status
+from peagen.orm import Status
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 

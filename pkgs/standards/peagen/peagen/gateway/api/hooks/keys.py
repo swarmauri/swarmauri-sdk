@@ -10,12 +10,10 @@ import uuid
 from typing import Any, Dict
 
 from pgpy import PGPKey
-from autoapi.v2 import Phase
-from autoapi          import AutoAPI
+from autoapi.v2 import Phase, AutoAPI
 from peagen.orm import PublicKey
 
-from .. import TRUSTED_USERS, log
-from .  import api
+from .. import log, api
 
 # -------------------------------------------------------------------
 # Resolve the exact server-side schemas once (lru_cached inside AutoAPI)

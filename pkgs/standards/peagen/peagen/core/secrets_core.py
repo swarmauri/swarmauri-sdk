@@ -8,8 +8,7 @@ from typing import List, Optional, Any, Dict
 
 from autoapi_client import AutoAPIClient
 from autoapi.v2          import AutoAPI
-from peagen.orm.secrets import Secret         # ORM resource
-from peagen.orm.worker  import Worker         # to fetch worker adverts
+from peagen.orm import Secret, Worker
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.defaults import DEFAULT_GATEWAY

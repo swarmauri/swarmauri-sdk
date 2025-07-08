@@ -9,12 +9,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from autoapi.v2 import Phase
-from autoapi.v2          import AutoAPI
+from autoapi.v2 import Phase, AutoAPI
 from peagen.orm import Secret
 
-from .. import log
-from .  import api
+from .. import log, api
 
 # Generated schemas (if you need field names etc.)
 SecretRead = AutoAPI.get_schema(Secret, "read")

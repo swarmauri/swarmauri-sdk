@@ -15,7 +15,7 @@ from typing import List, Optional
 import typer
 
 from peagen.handlers.fetch_handler import fetch_handler
-from peagen.orm.task.status import Status
+from peagen.orm import Status
 from peagen.cli.task_helpers import build_task
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")

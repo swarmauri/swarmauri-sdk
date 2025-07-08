@@ -9,8 +9,7 @@ from typing import Any
 
 from autoapi_client import AutoAPIClient
 from autoapi          import AutoAPI
-from autoapi.v2.tables.task import Task                      # ORM class
-from peagen.orm.task.status import Status
+from peagen.orm import Status, Task
 from peagen.cli.task_helpers import get_task_result, build_task, submit_task
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")

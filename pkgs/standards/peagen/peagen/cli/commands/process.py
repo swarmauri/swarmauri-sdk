@@ -21,7 +21,7 @@ from typing import Any, Dict, Optional
 import typer
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.process_handler import process_handler
-from peagen.orm.task.status import Status
+from peagen.orm import Status
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 
 local_process_app = typer.Typer(help="Render / generate project files.")
