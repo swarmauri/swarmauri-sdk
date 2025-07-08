@@ -15,12 +15,7 @@ from typing import Any, Dict
 
 from fastapi import FastAPI, Request
 
-import peagen.defaults as defaults
-from peagen.defaults import (
-    CONTROL_QUEUE,
-    READY_QUEUE,
-    PUBSUB_TOPIC,
-)
+from peagen.defaults import READY_QUEUE
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
 from peagen.errors import (
