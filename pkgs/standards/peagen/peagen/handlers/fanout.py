@@ -11,7 +11,7 @@ JSON-RPC gateway.
 
 from __future__ import annotations
 
-import os, uuid, json
+import uuid
 from typing import Iterable, Dict, Any, List
 
 import httpx
@@ -20,12 +20,12 @@ from peagen.orm import Status
 from peagen.defaults import GATEWAY_URL
 
 
-async def fan_out(                        # noqa: C901 for clarity
-    parent: Dict[str, Any] | Any,         # TaskRead or a dict with .id attribute
+async def fan_out(  # noqa: C901 for clarity
+    parent: Dict[str, Any] | Any,  # TaskRead or a dict with .id attribute
     children: Iterable[Dict[str, Any]],
     *,
     result: Dict[str, Any] | None = None,
-    final_status: Status = Status.waiting,
+    final_status: Status = Status.WAITING,
 ) -> Dict[str, Any]:
     """
     Submit *children*, patch *parent* with their ids, and mark the parent
@@ -44,18 +44,18 @@ async def fan_out(                        # noqa: C901 for clarity
             child_ids.append(str(child["id"]))
             req = {
                 "jsonrpc": "2.0",
-                "method":  "Tasks.create",
-                "params":  child,
-                "id":      str(uuid.uuid4()),
+                "method": "Tasks.create",
+                "params": child,
+                "id": str(uuid.uuid4()),
             }
             await client.post(GATEWAY_URL, json=req)
 
         # ────────────────────── 2. update parent ─────────────────────
         patch_req = {
             "jsonrpc": "2.0",
-            "method":  "Tasks.update",
-            "params":  {
-                "id":     parent_id,
+            "method": "Tasks.update",
+            "params": {
+                "id": parent_id,
                 # any additional updates can be embedded here
                 "result": {"children": child_ids},
             },
@@ -66,8 +66,8 @@ async def fan_out(                        # noqa: C901 for clarity
         # ────────────────────── 3. finish parent ─────────────────────
         finished_req = {
             "jsonrpc": "2.0",
-            "method":  "Work.finished",
-            "params":  {
+            "method": "Work.finished",
+            "params": {
                 "taskId": parent_id,
                 "status": final_status.value,
                 "result": result,

@@ -1,8 +1,9 @@
 import os
 import httpx
 import pytest
-from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
 from peagen.cli.task_helpers import build_task, submit_task
+
+WORKER_LIST = "Workers.list"
 
 pytestmark = pytest.mark.smoke
 
