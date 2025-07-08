@@ -10,7 +10,7 @@ from typing import Any
 from autoapi_client import AutoAPIClient
 from autoapi          import AutoAPI
 from peagen.orm import Status, Task
-from peagen.cli.task_helpers import get_task_result, build_task, submit_task
+from peagen.cli.task_helpers import get_task, build_task, submit_task
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
@@ -34,7 +34,7 @@ def get(                                          # noqa: D401
 ):
     """Fetch status/result for TASK_ID (optionally watch until done)."""
     while True:
-        reply = get_task_result(task_id, gateway_url=ctx.obj["gateway_url"])
+        reply = get_task(task_id, gateway_url=ctx.obj["gateway_url"])
         typer.echo(json.dumps(reply, indent=2))
 
         if not watch or Status.is_terminal(reply["status"]):
@@ -102,7 +102,7 @@ def retry_from(
 ):
     """Create a **new** task by cloning *source_task_id* and submitting it."""
     # 1. fetch original
-    original = get_task_result(source_task_id, gateway_url=ctx.obj["gateway_url"])
+    original = get_task(source_task_id, gateway_url=ctx.obj["gateway_url"])
     if not original["result"]:
         typer.echo("Source task has no payload/result to clone.", err=True)
         raise typer.Exit(1)
