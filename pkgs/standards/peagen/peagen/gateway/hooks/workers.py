@@ -18,7 +18,7 @@ from peagen.orm import Worker
 
 from peagen.defaults import WORKER_KEY, WORKER_TTL, READY_QUEUE
 from ..      import log, queue, api
-from .task   import _load_task, _save_task, _finalize_parent_tasks
+from ..schedule_helpers     import _load_task, _save_task, _finalize_parent_tasks
 from .._publish import _publish_task, _publish_event, _publish_queue_length
 
 # ─────────────────── schema handles ────────────────────────────────────

@@ -13,7 +13,7 @@ from autoapi.v2 import Phase, AutoAPI
 from peagen.orm import Status, Work, Task
 
 from ..        import queue, log, api
-from .task     import _load_task, _save_task, _finalize_parent_tasks
+from ..schedule_helpers     import _load_task, _save_task, _finalize_parent_tasks
 from .._publish import _publish_task
 
 # ─────────────────── schema handles ────────────────────────────────────

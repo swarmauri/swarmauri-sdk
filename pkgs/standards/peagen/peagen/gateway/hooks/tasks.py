@@ -16,18 +16,13 @@ import peagen.defaults as defaults
 from peagen.defaults       import READY_QUEUE, TASK_TTL, TASK_KEY
 
 from ..    import log, queue, api
-from ..schedule_helpers import _live_workers_by_pool
+from ..schedule_helpers     import get_live_workers_by_pool, _load_task, _save_task, _finalize_parent_tasks
 from .._publish import _publish_task, _publish_event, _publish_queue_length
 
 # ──────────────────────── Schema handles ──────────────────────────────
 TaskCreate = AutoAPI.get_schema(Task, "create")
 TaskRead   = AutoAPI.get_schema(Task, "read")
 TaskUpdate = AutoAPI.get_schema(Task, "update")
-
-
-# ───────────────────────── Queue helpers ──────────────────────────────
-def _task_key(tid: str) -> str:
-    return TASK_KEY.format(tid)
 
 
 # ─────────────────────────── CREATE hooks ─────────────────────────────
@@ -63,7 +58,7 @@ async def pre_task_create(ctx: Dict[str, Any]) -> None:
     if action:
         advertised = {
             h
-            for w in await _live_workers_by_pool(tc.pool_id)
+            for w in await get_live_workers_by_pool(tc.pool_id)
             for h in (
                 json.loads(w.get("handlers", "[]"))
                 if isinstance(w.get("handlers"), str)
@@ -141,48 +136,3 @@ async def post_task_read(ctx: Dict[str, Any]) -> None:
     if ctx.get("skip_db") and ctx.get("cached_task"):
         ctx["result"] = ctx["cached_task"]
 
-
-# ───────────────────────── Redis helpers ──────────────────────────────
-async def _save_task(task: TaskRead) -> None:
-    """Upsert *task* (TaskRead model) into Redis and refresh its TTL."""
-    key = _task_key(str(task.id))
-    blob_json = json.dumps(task.model_dump(mode="json"))
-    await queue.hset(
-        key,
-        mapping={"blob": blob_json, "status": str(task.status)},
-    )
-    await queue.expire(key, TASK_TTL)
-
-
-async def _load_task(tid: str) -> TaskRead | None:
-    data = await queue.hget(_task_key(tid), "blob")
-    return TaskRead.model_validate_json(data) if data else None
-
-
-# ───────────────────────── misc utilities ─────────────────────────────
-async def _finalize_parent_tasks(child_id: str) -> None:
-    keys = await queue.keys("task:*")
-    for key in keys:
-        blob = await queue.hget(key, "blob")
-        if not blob:
-            continue
-
-        parent = TaskRead.model_validate_json(blob)
-        children = parent.result.get("children", []) if parent.result else []
-
-        if child_id not in children:
-            continue
-
-        all_done = True
-        for cid in children:
-            child = await _load_task(cid)
-            if child is None or not Status.is_terminal(child.status):
-                all_done = False
-                break
-
-        if all_done and parent.status != Status.success:
-            parent = parent.model_copy(
-                update={"status": Status.success, "last_modified": time.time()}
-            )
-            await _save_task(parent)
-            await _publish_task(parent.model_dump())

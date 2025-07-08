@@ -14,16 +14,27 @@ from __future__ import annotations
 import json, time, uuid, httpx, asyncio
 from typing import Dict, Any, Optional, List
 
+from autoapi_client import AutoAPIClient
 from autoapi.v2   import AutoAPI
 from peagen.orm   import Task, Worker
-from peagen.defaults import READY_QUEUE, WORKER_KEY, WORKER_TTL
+from peagen.defaults import READY_QUEUE, WORKER_KEY, WORKER_TTL, TASK_KEY
 from .            import queue, log
 from ._publish    import _publish_event, _publish_queue_length
+
+
+
 
 # ───────────────── Pydantic schema handles ─────────────────────────────
 TaskCreate = AutoAPI.get_schema(Task, "create")
 TaskRead   = AutoAPI.get_schema(Task, "read")
 WorkerRead = AutoAPI.get_schema(Worker, "read")
+
+# ───────────────────────── Queue helpers ──────────────────────────────
+def _task_cache_key(tid: str) -> str:
+    return TASK_KEY.format(tid)
+
+async def _worker_cache_key(worker_id: str) -> str:
+    return WORKER_KEY.format(worker_id)
 
 # ─────────── Task queue helpers ────────────────────────────────────────
 async def pop_next_task(pool: str, timeout: int = 5) -> Optional[TaskCreate]:
@@ -45,11 +56,7 @@ async def pop_next_task(pool: str, timeout: int = 5) -> Optional[TaskCreate]:
 
 
 # ─────────── Worker registry helpers ───────────────────────────────────
-async def _cache_key(worker_id: str) -> str:
-    return WORKER_KEY.format(worker_id)
-
-
-async def live_workers_by_pool(pool: str) -> List[Dict[str, Any]]:
+async def get_live_workers_by_pool(pool: str) -> List[Dict[str, Any]]:
     """
     Return live worker hashes for *pool* (TTL-filtered).
     """
@@ -71,7 +78,7 @@ async def live_workers_by_pool(pool: str) -> List[Dict[str, Any]]:
     return workers
 
 
-def _pick_worker(workers: List[Dict[str, Any]], action: Optional[str]) -> Optional[Dict[str, Any]]:
+def pick_worker(workers: List[Dict[str, Any]], action: Optional[str]) -> Optional[Dict[str, Any]]:
     """
     Return the first worker advertising *action* (handler name), or None.
     """
@@ -93,44 +100,107 @@ async def remove_worker(worker_id: str) -> None:
     """
     Expire the worker's registry entry immediately and broadcast update.
     """
-    await queue.expire(await _cache_key(worker_id), 0)
+    await queue.expire(await _worker_cache_key(worker_id), 0)
     await _publish_event("worker.update", {"id": worker_id, "removed": True})
 
 
-# ─────────── Dispatch helper ───────────────────────────────────────────
+# ─────────── Dispatch helper (AutoAPI-native) ─────────────────────────
 async def dispatch_work(task: TaskCreate, worker: Dict[str, Any]) -> bool:
     """
-    Send `work.start` RPC to *worker*. Returns True on 200 OK JSON-RPC success,
-    False otherwise (network error, non-2xx, JSON-RPC error etc.).
+    Invoke *work.start* on the chosen worker using AutoAPIClient.
+
+    Returns:
+        True  – RPC returned without error
+        False – transport error or JSON-RPC error
     """
-    url = worker["url"]
-    if not url.endswith("/rpc"):
-        url = url.rstrip("/") + "/rpc"
+    # ensure we have the worker’s /rpc endpoint
+    endpoint = worker["url"].rstrip("/")
+    if not endpoint.endswith("/rpc"):
+        endpoint += "/rpc"
 
-    payload = {
-        "jsonrpc": "2.0",
-        "id": str(uuid.uuid4()),
-        "method": "work.start",
-        "params": {
-            "task_id": str(task.id),
-            # work_id is obtained in handler; send idempotent key here
-            "repository_id": str(task.repository_id) if task.repository_id else None,
-        },
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as cl:
-            resp = await cl.post(url, json=payload)
-        if resp.status_code != 200:
-            log.warning("dispatch failed %s → %s (HTTP %s)", task.id, worker["id"], resp.status_code)
+    # AutoAPIClient is synchronous; run it in a thread so we don’t block
+    def _sync_rpc() -> bool:
+        try:
+            with AutoAPIClient(endpoint) as rpc:
+                rpc.call(
+                    "Works.create",
+                    params={
+                        "task_id": str(task.id),
+                        "repository_id": str(task.repository_id)
+                        if task.repository_id else None,
+                    },
+                )
+            return True
+        except Exception as exc:                # includes HTTP & JSON-RPC errors
+            log.warning("dispatch to %s failed: %s", worker["id"], exc)
             return False
-        body = resp.json()
-        if "error" in body:
-            log.warning("worker %s error: %s", worker["id"], body["error"])
-            return False
-        log.info("task %s dispatched to worker %s", task.id, worker["id"])
-        return True
-    except Exception as exc:             # noqa: BLE001
-        log.warning("dispatch exception to %s: %s", worker["id"], exc)
-        return False
 
+    return await asyncio.to_thread(_sync_rpc)
+
+# ───────────────────────── Redis helpers ──────────────────────────────
+async def _save_task(task: TaskRead) -> None:
+    """Upsert *task* (TaskRead model) into Redis and refresh its TTL."""
+    key = _task_cache_key(str(task.id))
+    blob_json = json.dumps(task.model_dump(mode="json"))
+    await queue.hset(
+        key,
+        mapping={"blob": blob_json, "status": str(task.status)},
+    )
+    await queue.expire(key, TASK_TTL)
+
+
+async def _load_task(tid: str) -> TaskRead | None:
+    data = await queue.hget(_task_cache_key(tid), "blob")
+    return TaskRead.model_validate_json(data) if data else None
+
+
+# ───────────────────────── misc utilities ─────────────────────────────
+async def _finalize_parent_tasks(child_id: str) -> None:
+    keys = await queue.keys("task:*")
+    for key in keys:
+        blob = await queue.hget(key, "blob")
+        if not blob:
+            continue
+
+        parent = TaskRead.model_validate_json(blob)
+        children = parent.result.get("children", []) if parent.result else []
+
+        if child_id not in children:
+            continue
+
+        all_done = True
+        for cid in children:
+            child = await _load_task(cid)
+            if child is None or not Status.is_terminal(child.status):
+                all_done = False
+                break
+
+        if all_done and parent.status != Status.success:
+            parent = parent.model_copy(
+                update={"status": Status.success, "last_modified": time.time()}
+            )
+            await _save_task(parent)
+            await _publish_task(parent.model_dump())
+
+
+async def _fail_task(task: TaskRead, exc: Exception) -> None:
+    """
+    Mark *task* as failed, persist it to Redis, and fan-out an update.
+
+    Args:
+        task:     a TaskRead Pydantic instance (cached copy or DB fetch).
+        exc:      the exception that caused the failure.
+    """
+    failed = task.model_copy(
+        update={
+            "status":  Status.failed,
+            "result":  {"error": str(exc)},
+            "last_modified": time.time(),
+        }
+    )
+
+    await _save_task(failed)                      # reuse helper below
+    await _publish_task(failed.model_dump(mode="json"))
+    await _finalize_parent_tasks(str(failed.id))
+
+    log.info("task %s failed – %s", failed.id, exc)
