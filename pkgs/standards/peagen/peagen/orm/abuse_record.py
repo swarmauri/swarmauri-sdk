@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from autoapi.v2.tables import Base, User
 from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable
+from sqlalchemy.orm import relationship
 
 class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
     """
