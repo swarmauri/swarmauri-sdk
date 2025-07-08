@@ -30,8 +30,6 @@ from sqlalchemy.orm import relationship
 from autoapi.v2.tables import Tenant, User
 from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import StatusEnum
-from autoapi.v2.tables.status import Status
-
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import (
     GUIDPk,
@@ -181,7 +179,7 @@ class Task(Base, GUIDPk, Timestamped, TenantBound):
     labels = Column(JSON, nullable=True)
     note = Column(String, nullable=True)
     status = Column(
-        SAEnum(*StatusMixin.status.type.enums, name="status_enum"),
+        SAEnum(*StatusMixin.__annotations__["status"].type.enums, name="status_enum"),
         default="waiting",
     )
 
@@ -197,7 +195,7 @@ class Work(Base, GUIDPk, Timestamped):
     __tablename__ = "works"
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
     status = Column(
-        SAEnum(*StatusMixin.status.type.enums, name="status_enum"),
+        SAEnum(*StatusMixin.__annotations__["status"].type.enums, name="status_enum"),
         default="queued",
     )
     result = Column(JSON, nullable=True)

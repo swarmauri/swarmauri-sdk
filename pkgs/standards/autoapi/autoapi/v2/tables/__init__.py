@@ -1,9 +1,13 @@
-"""
-Public façade for all table classes.
+"""Public façade for all table classes.
 
 Usage
 -----
-    from autoapi.v2.tables import Tenant, User, Group
+    from autoapi.v2.tables import (
+        Tenant,
+        User,
+        Group,
+        Role,
+    )
 """
 
 import importlib
@@ -14,10 +18,12 @@ __all__ = [
     "Tenant",
     "User",
     "Group",
+    "Org",
     "Role",
-    "RoleGrant",
     "RolePerm",
+    "RoleGrant",
     "StatusEnum",
+    "Change",
     "Base",
 ]
 
@@ -28,12 +34,13 @@ _module_map = {
     "Tenant": f"{__name__}.tenant",
     "User": f"{__name__}.user",
     "Group": f"{__name__}.group",
+    "Org": f"{__name__}.org",
     "Role": f"{__name__}.rbac",
-    "RoleGrant": f"{__name__}.rbac",
     "RolePerm": f"{__name__}.rbac",
+    "RoleGrant": f"{__name__}.rbac",
     "StatusEnum": f"{__name__}.status",
+    "Change": f"{__name__}.audit",
 }
-
 
 def __getattr__(name: str) -> Any:  # noqa: D401
     """Dynamically import `tenant`, `user`, or `group` on first use."""
@@ -53,5 +60,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .tenant import Tenant
     from .user import User
     from .group import Group
+    from .org import Org
     from .rbac import Role, RoleGrant, RolePerm
     from .status import StatusEnum
+    from .audit import Change
