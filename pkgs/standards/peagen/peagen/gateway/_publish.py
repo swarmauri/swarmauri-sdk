@@ -12,7 +12,7 @@ from __future__ import annotations
 import json, time
 from typing import Any, Mapping
 
-from .. import queue, log                           # queue is an aioredis wrapper
+from . import queue, log                           # queue is an aioredis wrapper
 from peagen.defaults import PUBSUB_CHANNEL, READY_QUEUE
 
 # ------------------------------------------------------------------ #
