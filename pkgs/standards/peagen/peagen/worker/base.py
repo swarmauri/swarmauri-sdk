@@ -90,7 +90,7 @@ class WorkerBase:
             resp = await self.rpc.dispatch(body)
             return resp
 
-        @self.app.get("/healthy")
+        @self.app.get("/healthz")
         async def _health():
             if self.ready:
                 return {"status": "ok"}
