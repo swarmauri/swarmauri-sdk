@@ -168,7 +168,7 @@ class Worker(Base, GUIDPk, Timestamped):
     pool = relationship(Pool, backref="workers")
 
 
-class Task(Base, GUIDPk, Timestamped, TenantBound):
+class Task(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
     """
     *Definition* of a task (immutable intent + metadata).
     """
@@ -178,26 +178,18 @@ class Task(Base, GUIDPk, Timestamped, TenantBound):
     payload = Column(JSON, nullable=True)
     labels = Column(JSON, nullable=True)
     note = Column(String, nullable=True)
-    status = Column(
-        SAEnum(*StatusMixin.__annotations__["status"].type.enums, name="status_enum"),
-        default="waiting",
-    )
 
     pool = relationship(Pool, backref="tasks")
     works = relationship("Work", back_populates="task", cascade="all, delete-orphan")
 
 
-class Work(Base, GUIDPk, Timestamped):
+class Work(Base, GUIDPk, Timestamped, StatusMixin):
     """
     One execution attempt of a Task (retries generate multiple Work rows).
     """
 
     __tablename__ = "works"
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
-    status = Column(
-        SAEnum(*StatusMixin.__annotations__["status"].type.enums, name="status_enum"),
-        default="queued",
-    )
     result = Column(JSON, nullable=True)
     duration_s = Column(Integer)
 
