@@ -7,6 +7,7 @@ from __future__ import annotations
 import uuid
 import datetime as dt
 from typing import Any, Dict
+from enum import Enum, auto
 
 from sqlalchemy import (
     Column,
@@ -20,8 +21,10 @@ from sqlalchemy import (
     Numeric,
     Table,
     UniqueConstraint,
+    Index,
+    text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
 from sqlalchemy.orm import relationship, foreign, remote
 
 # ---------------------------------------------------------------------
@@ -216,7 +219,7 @@ class Task(
     repository = relationship(
         "Repository",
         back_populates="tasks",
-        primaryjoin=foreign(repository_id) == remote(Repository.id),
+        primaryjoin=foreign(RepositoryRefMixin.repository_id) == remote(Repository.id),
     )
 
     config_toml = Column(String)
