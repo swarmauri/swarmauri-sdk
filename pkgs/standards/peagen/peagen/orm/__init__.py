@@ -23,6 +23,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, foreign, remote
+
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
 # ---------------------------------------------------------------------
@@ -82,20 +83,19 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
 @declarative_mixin
 class RepositoryMixin:
     repository_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("repositories.id"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False
     )
+
 
 @declarative_mixin
 class RepositoryRefMixin:
     repository_id = Column(
         UUID(as_uuid=True),
         ForeignKey("repositories.id", ondelete="CASCADE"),
-        nullable=True            # ← changed
+        nullable=True,  # ← changed
     )
-    repo = Column(String, nullable=False)    # e.g. "github.com/acme/app"
-    ref  = Column(String, nullable=False)    # e.g. "main" / SHA / tag
+    repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
+    ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
 
 
 # ---------------------------------------------------------------------
@@ -103,11 +103,12 @@ class RepositoryRefMixin:
 # ---------------------------------------------------------------------
 
 
-class UserTenant(Base, Tenant, UserMixin):
+class UserTenant(Base, TenantMixin, UserMixin):
     """
     Many-to-many edge between users and tenants.
     A user may be invited to / removed from any number of tenants.
     """
+
     __tablename__ = "user_tenants"
     joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
 
@@ -117,6 +118,7 @@ class UserRepository(Base, RepositoryMixin, UserMixin):
     Edge capturing *any* per-repository permission or ownership
     the user may have.  `perm` can be "owner", "push", "pull", etc.
     """
+
     __tablename__ = "user_repositories"
 
 
@@ -173,32 +175,42 @@ class Worker(Base, GUIDPk, Timestamped):
 
 
 class Action(str, Enum):
-    SORT     = auto()
-    PROCESS  = auto()
-    MUTATE   = auto()
-    EVOLVE   = auto()
-    FETCH    = auto()
+    SORT = auto()
+    PROCESS = auto()
+    MUTATE = auto()
+    EVOLVE = auto()
+    FETCH = auto()
     VALIDATE = auto()
 
-class SpecKind(str, Enum):
-    DOE     = "doe"       # ↦ doe_specs.id
-    EVOLVE  = "evolve"    # ↦ evolve_specs.id
-    PAYLOAD = "payload"   # ↦ project_payloads.id
 
-class Task(Base, GUIDPk, Timestamped, TenantBound, Ownable, RepositoryRefMixin, StatusMixin):
+class SpecKind(str, Enum):
+    DOE = "doe"  # ↦ doe_specs.id
+    EVOLVE = "evolve"  # ↦ evolve_specs.id
+    PAYLOAD = "payload"  # ↦ project_payloads.id
+
+
+class Task(
+    Base, GUIDPk, Timestamped, TenantBound, Ownable, RepositoryRefMixin, StatusMixin
+):
     """Task table — explicit columns, polymorphic spec ref."""
+
     __tablename__ = "tasks"
     __table_args__ = (
         Index("ix_tasks_action_status", "action", "status"),
         Index(
             "uq_tasks_dedup",
-            "action", "repo", "ref", "spec_kind", "spec_uuid",
-            unique=True, postgresql_where=text("status != 'error'")
+            "action",
+            "repo",
+            "ref",
+            "spec_kind",
+            "spec_uuid",
+            unique=True,
+            postgresql_where=text("status != 'error'"),
         ),
     )
     # ───────── routing & ownership ──────────────────────────
-    action          = Column(PgEnum(Action,   name="task_action"), nullable=False)
-    pool_id         = Column(UUID(as_uuid=True), ForeignKey("pools.id"),  nullable=False)
+    action = Column(PgEnum(Action, name="task_action"), nullable=False)
+    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
 
     # ───────── workspace reference ──────────────────────────
     repository = relationship(
@@ -210,18 +222,19 @@ class Task(Base, GUIDPk, Timestamped, TenantBound, Ownable, RepositoryRefMixin, 
     config_toml = Column(String)
 
     # ───────── polymorphic spec reference ───────────────────
-    spec_kind   = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
-    spec_uuid   = Column(UUID(as_uuid=True), nullable=True)
+    spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
+    spec_uuid = Column(UUID(as_uuid=True), nullable=True)
 
     # (DB-level FK can’t point to multiple tables; enforce in application code.)
 
     # ───────── flexible metadata & labels ───────────────────
-    args        = Column(JSON, nullable=False, default=dict)
-    labels      = Column(JSON, nullable=False, default=dict)
-    note        = Column(String)
+    args = Column(JSON, nullable=False, default=dict)
+    labels = Column(JSON, nullable=False, default=dict)
+    note = Column(String)
     schema_version = Column(Integer, nullable=False, default=3)
 
     works = relationship("Work", back_populates="task")  # unchanged
+
 
 class Work(Base, GUIDPk, Timestamped, StatusMixin):
     """
