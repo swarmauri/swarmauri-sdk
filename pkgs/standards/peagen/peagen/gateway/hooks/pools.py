@@ -1,5 +1,5 @@
 """
-gateway.api.hooks.pool
+gateway.hooks.pool
 ──────────────────────
 Only CRUD hooks remain – no ad-hoc RPC methods.
 """

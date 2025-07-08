@@ -1,5 +1,5 @@
 """
-gateway.api.hooks.secrets  – AutoAPI-native implementation
+gateway.hooks.secrets  – AutoAPI-native implementation
 ──────────────────────────────────────────────────────────
 * POST-commit on Secrets.create  → {"ok": true}
 * POST-handler on Secrets.read   → {"secret": "<cipher>"}  (or error)

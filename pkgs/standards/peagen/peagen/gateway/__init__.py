@@ -39,8 +39,8 @@ from peagen.gateway.db import get_async_db
 
 from peagen.gateway.ws_server import router as ws_router
 
-from peagen.gateway.api.hooks.tasks import _finalize_parent_tasks, _fail_task, _save_task
-from peagen.gateway.api.hooks.workers import _remove_worker
+from peagen.gateway.hooks.tasks import _finalize_parent_tasks, _fail_task, _save_task
+from peagen.gateway.schedule_helpers import _remove_worker
 from peagen.orm import Base
 
 

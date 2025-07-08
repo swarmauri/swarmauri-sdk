@@ -20,3 +20,8 @@ async def _publish_task(task: TaskBlob) -> None:
     if "duration" in task and task["duration"] is not None:
         data["duration"] = task["duration"]
     await _publish_event("task.update", data)
+
+
+async def _publish_queue_length(pool: str) -> None:
+    qlen = len(await queue.lrange(f"{READY_QUEUE}:{pool}", 0, -1))
+    await _publish_event("queue.update", {"pool": pool, "length": qlen})

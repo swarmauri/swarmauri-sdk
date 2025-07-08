@@ -1,5 +1,5 @@
 """
-gateway.api.hooks.keys
+gateway.hooks.keys
 ──────────────────────
 AutoAPI-native JSON-RPC hooks for trusted-public-key management.
 """
