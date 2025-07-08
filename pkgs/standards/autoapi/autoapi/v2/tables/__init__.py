@@ -11,7 +11,16 @@ import sys
 from typing import TYPE_CHECKING, Any
 from ._base import Base
 
-__all__ = ["Tenant", "User", "Group", "Base"]
+__all__ = [
+    "Tenant",
+    "User",
+    "Group",
+    "Role",
+    "RoleGrant",
+    "RolePerm",
+    "StatusEnum",
+    "Base",
+]
 
 # ------------------------------------------------------------------ #
 # Lazy attribute loader (PEP 562). Keeps import graphs light-weight.
@@ -30,8 +39,10 @@ def __getattr__(name: str) -> Any:                # noqa: D401
 # ------------------------------------------------------------------ #
 # Static typing support – imported eagerly only during type checking.
 # ------------------------------------------------------------------ #
-if TYPE_CHECKING:                           # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from ._base import Base
     from .tenant import Tenant
     from .user import User
     from .group import Group
+    from .rbac import Role, RoleGrant, RolePerm
+    from .status import StatusEnum
