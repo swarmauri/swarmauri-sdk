@@ -170,7 +170,7 @@ async def scheduler() -> None:
             ok = await schedule_helpers.dispatch_work(task, target, sched_log)
             if ok:
                 await schedule_helpers._save_task(
-                    task.model_copy(update={"status": StatusEnum.DISPATCHED})
+                    queue, task.model_copy(update={"status": StatusEnum.DISPATCHED})
                 )
                 await _publish._publish_task(queue, task)
             else:
@@ -182,6 +182,7 @@ async def scheduler() -> None:
 # ─────────── FastAPI startup / shutdown handlers ──────────────────────
 async def _startup() -> None:
     log.info("gateway startup …")
+    await api.initialize_async()
     if engine.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade()
         if not mig.get("ok"):
