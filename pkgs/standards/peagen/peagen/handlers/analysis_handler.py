@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 from autoapi.v2        import AutoAPI
-from peagen.orm.task import TaskModel            # your ORM class
+from peagen.orm        import TaskModel            # your ORM class
 
 from peagen._utils              import maybe_clone_repo
 from peagen._utils.config_loader import resolve_cfg
