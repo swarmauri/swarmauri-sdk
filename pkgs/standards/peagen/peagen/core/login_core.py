@@ -15,8 +15,8 @@ from typing import Any, Optional
 import httpx
 
 from autoapi_client import AutoAPIClient           # ← new client
-from autoapi          import AutoAPI               # ← for .get_schema()
-from autoapi.v2.tables.keys import PublicKey       # ORM resource
+from autoapi.v2         import AutoAPI               # ← for .get_schema()
+from peagen.orm import PublicKey       # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.plugins.secret_drivers import AutoGpgDriver
