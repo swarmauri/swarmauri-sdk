@@ -261,3 +261,25 @@ class RawBlob(Base, GUIDPk, Timestamped, BlobRef):
     __tablename__ = "raw_blobs"
     mime_type = Column(String, nullable=False)
     size = Column(Integer, nullable=False)
+
+__all__ = [
+    "Tenant",
+    "User",
+    "Role",
+    "RoleGrant",
+    "RolePerm",
+    "Status",
+    "Base",
+    "Repository",
+    "UserTenant",
+    "UserRepository",
+    "Secret",
+    "DeployKey",
+    "Pool",
+    "Worker",
+    "Action",
+    "SpecKind",
+    "Task",
+    "Work",
+    "RawBlob",
+    ]
