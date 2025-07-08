@@ -9,7 +9,7 @@ import json, time, uuid
 from typing import Any, Dict, List
 
 from autoapi.v2 import Phase, AutoAPI
-from peagen.orm            import Status, Task
+from peagen.orm            import Task
 from peagen.transport.jsonrpc import RPCException
 from peagen.errors         import TaskNotFoundError
 import peagen.defaults as defaults

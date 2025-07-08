@@ -69,7 +69,7 @@ def run(
     pool = "default"
     if ctx is not None and getattr(ctx, "obj", None):
         pool = ctx.obj.get("pool", "default")
-    task = build_task("fetch", args, pool=pool, status=Status.waiting)
+    task = build_task("fetch", args, pool=pool, status=Status.WAITING)
 
     result = asyncio.run(fetch_handler(task))
     typer.echo(json.dumps(result, indent=2))

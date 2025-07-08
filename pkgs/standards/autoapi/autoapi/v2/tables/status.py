@@ -72,3 +72,13 @@ class StatusEnum(Base, Timestamped):
 
     def __repr__(self) -> str:          # noqa: D401
         return f"<StatusEnum {self.code}>"
+
+__all__ = ["Status", "StatusEnum"]
+
+for _name in list(globals()):
+    if _name not in __all__ and not _name.startswith("__"):
+        del globals()[_name]
+
+def __dir__():
+    # optional, keeps IPython completion tight
+    return sorted(__all__)

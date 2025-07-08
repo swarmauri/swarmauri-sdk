@@ -175,9 +175,9 @@ async def _finalize_parent_tasks(child_id: str) -> None:
                 all_done = False
                 break
 
-        if all_done and parent.status != Status.success:
+        if all_done and parent.status != Status.SUCCESS:
             parent = parent.model_copy(
-                update={"status": Status.success, "last_modified": time.time()}
+                update={"status": Status.SUCCESS, "last_modified": time.time()}
             )
             await _save_task(parent)
             await _publish_task(parent.model_dump())
@@ -193,7 +193,7 @@ async def _fail_task(task: TaskRead, exc: Exception) -> None:
     """
     failed = task.model_copy(
         update={
-            "status":  Status.failed,
+            "status":  Status.FAILED,
             "result":  {"error": str(exc)},
             "last_modified": time.time(),
         }

@@ -32,8 +32,8 @@ from peagen.plugins.queues  import QueueBase
 from peagen.orm             import (
     Base, Tenant, User, Role, RoleGrant, RolePerm,
     Repository, UserTenant, UserRepository,
-    Secret, DeployKey, Pool, Worker,
-    Action, SpecKind, Task, Work, RawBlob, Status,
+    Secret, DeployKey, Pool, Worker, 
+    Task, Work, RawBlob, Status,
 )
 
 from .db        import get_async_db, engine           # same module as before
@@ -147,7 +147,7 @@ async def scheduler() -> None:
             # — 4. dispatch
             ok = await dispatch_work(task, target)
             if ok:
-                await _save_task(task.model_copy(update={"status": Status.dispatched}))
+                await _save_task(task.model_copy(update={"status": Status.DISPATCHED}))
                 await _publish_task(task)
             else:
                 await remove_worker(target["id"])

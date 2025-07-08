@@ -25,7 +25,7 @@ def build_task(
     spec_uuid:     Optional[str] = None,
     note:          Optional[str] = None,
     labels:        Optional[Dict[str, Any]] = None,
-    status:        Status = Status.waiting,
+    status:        Status = Status.WAITING,
 ):
     """
     Return a TaskCreate Pydantic instance that matches AutoAPI's

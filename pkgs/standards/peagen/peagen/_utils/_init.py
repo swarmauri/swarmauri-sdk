@@ -10,7 +10,7 @@ import uuid
 import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
-from peagen.orm.task.status import Status
+from peagen.orm import Status
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
@@ -46,7 +46,7 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
         "init",
         args,
         pool="default",
-        status=Status.waiting,
+        status=Status.WAITING,
     )
     task.id = str(_uuid_alias.uuid4())
     return asyncio.run(init_handler(task))
