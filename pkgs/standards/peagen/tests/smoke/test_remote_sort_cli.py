@@ -4,7 +4,8 @@ from pathlib import Path
 
 import httpx
 import pytest
-from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+
+WORKER_LIST = "Workers.list"
 
 pytestmark = pytest.mark.smoke
 

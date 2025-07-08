@@ -6,7 +6,8 @@ from typer.testing import CliRunner
 
 from peagen.cli import app
 from peagen.cli.commands import process as process_mod
-from peagen.transport.jsonrpc_schemas import TASK_SUBMIT
+
+TASK_SUBMIT = "Tasks.submit"
 
 
 @pytest.mark.smoke

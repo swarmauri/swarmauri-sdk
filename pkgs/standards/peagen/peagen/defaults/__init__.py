@@ -16,6 +16,8 @@ RPC_TIMEOUT = 30.0
 LOCK_DIR = "~/.cache/peagen/locks"
 
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+GATEWAY_URL = DEFAULT_GATEWAY
+
 
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
