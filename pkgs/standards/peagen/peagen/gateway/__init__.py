@@ -16,6 +16,11 @@ from typing import Any, Dict
 from fastapi import FastAPI, Request
 
 import peagen.defaults as defaults
+from peagen.defaults import (
+    CONTROL_QUEUE,
+    READY_QUEUE,
+    PUBSUB_TOPIC,
+)
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
 from peagen.errors import (
@@ -75,9 +80,6 @@ app.include_router(api.router)
 app.include_router(ws_router)
 
 cfg = resolve_cfg()
-CONTROL_QUEUE = cfg.get("control_queue", defaults.CONFIG["control_queue"])
-READY_QUEUE = cfg.get("ready_queue", defaults.CONFIG["ready_queue"])
-PUBSUB_TOPIC = cfg.get("pubsub", defaults.CONFIG["pubsub"])
 pm = PluginManager(cfg)
 
 try:

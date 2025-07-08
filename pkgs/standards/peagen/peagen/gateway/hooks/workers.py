@@ -34,7 +34,7 @@ WorkerListIn = AutoAPI.get_schema(Worker, "list")
 
 
 # ──────────────────── 1. Worker CREATE hooks ──────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="workers.create")
+@api.hook(Phase.PRE_TX_BEGIN, method="Workers.create")
 async def pre_worker_create(ctx: Dict[str, Any]) -> None:
     wc: WorkerCreate = ctx["env"].params
 
@@ -57,7 +57,7 @@ async def pre_worker_create(ctx: Dict[str, Any]) -> None:
     ctx["worker_in"] = wc.model_copy(update={"handlers": handler_list})
 
 
-@api.hook(Phase.POST_COMMIT, method="workers.create")
+@api.hook(Phase.POST_COMMIT, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
     created: WorkerRead = ctx["result"]     # row persisted by AutoAPI
     wc: WorkerCreate    = ctx["worker_in"]
@@ -76,7 +76,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
 
 # ──────────────────── 2. Worker LIST post-hook ────────────────────────
-@api.hook(Phase.POST_HANDLER, method="workers.list")
+@api.hook(Phase.POST_HANDLER, method="Workers.list")
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
     """Replace the DB-only result with Redis-filtered live workers."""
     params  = ctx["env"].params

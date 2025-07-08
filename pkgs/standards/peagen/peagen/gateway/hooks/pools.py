@@ -15,13 +15,13 @@ from .. import queue, log, api
 PoolRead = AutoAPI.get_schema(Pool, "read")
 
 # ─────────────────────────── CRUD hooks ────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="pools.create")
+@api.hook(Phase.PRE_TX_BEGIN, method="Pools.create")
 async def pre_pool_create(ctx: Dict[str, Any]) -> None:
     """Stash the pool name so the post-hook can use it."""
     ctx["pool_name"] = ctx["env"].params.name
 
 
-@api.hook(Phase.POST_COMMIT, method="pools.create")
+@api.hook(Phase.POST_COMMIT, method="Pools.create")
 async def post_pool_create(ctx: Dict[str, Any]) -> None:
     """Register the new pool in Redis and shape the response."""
     name = ctx["pool_name"]

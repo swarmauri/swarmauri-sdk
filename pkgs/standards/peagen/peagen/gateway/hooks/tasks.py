@@ -34,7 +34,7 @@ def _task_key(tid: str) -> str:
     return TASK_KEY.format(tid)
 
 # ─────────────────────────── CREATE hooks ─────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="tasks.create")
+@api.hook(Phase.PRE_TX_BEGIN, method="Tasks.create")
 async def pre_task_create(ctx: Dict[str, Any]) -> None:
     tc: TaskCreate = ctx["env"].params                      # already validated
 
@@ -79,7 +79,7 @@ async def pre_task_create(ctx: Dict[str, Any]) -> None:
     ctx["task_in"]  = tc
 
 
-@api.hook(Phase.POST_COMMIT, method="tasks.create")
+@api.hook(Phase.POST_COMMIT, method="Tasks.create")
 async def post_task_create(ctx: Dict[str, Any]) -> None:
     created: TaskRead = ctx["result"]               # AutoAPI response model
     tc: TaskCreate    = ctx["task_in"]
@@ -99,7 +99,7 @@ async def post_task_create(ctx: Dict[str, Any]) -> None:
 
 
 # ─────────────────────────── UPDATE hooks ─────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="tasks.update")
+@api.hook(Phase.PRE_TX_BEGIN, method="Tasks.update")
 async def pre_task_update(ctx: Dict[str, Any]) -> None:
     upd: TaskUpdate = ctx["env"].params
     tid = upd.id or upd.item_id                         # PK may be in either
@@ -111,7 +111,7 @@ async def pre_task_update(ctx: Dict[str, Any]) -> None:
     ctx["changes"]     = upd.model_dump(exclude_unset=True)
 
 
-@api.hook(Phase.POST_COMMIT, method="tasks.update")
+@api.hook(Phase.POST_COMMIT, method="Tasks.update")
 async def post_task_update(ctx: Dict[str, Any]) -> None:
     task = ctx["cached_task"]
     changes: dict[str, Any] = ctx["changes"]
@@ -124,13 +124,13 @@ async def post_task_update(ctx: Dict[str, Any]) -> None:
 
     if isinstance(changes.get("result"), dict):
         for cid in changes["result"].get("children", []):
-            await _finalize_parent_tasks(cid)
+            await _finalize_parent_Tasks(cid)
 
     log.info("task %s updated (%s)", task["id"], ", ".join(changes))
 
 
 # ─────────────────────────── READ hooks ──────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="tasks.read")
+@api.hook(Phase.PRE_TX_BEGIN, method="Tasks.read")
 async def pre_task_read(ctx: Dict[str, Any]) -> None:
     tid = ctx["env"].params.get("id") or ctx["env"].params.get("item_id")
     hit = await _load_task(tid)
@@ -139,7 +139,7 @@ async def pre_task_read(ctx: Dict[str, Any]) -> None:
         ctx["skip_db"]     = True
 
 
-@api.hook(Phase.POST_HANDLER, method="tasks.read")
+@api.hook(Phase.POST_HANDLER, method="Tasks.read")
 async def post_task_read(ctx: Dict[str, Any]) -> None:
     if ctx.get("skip_db") and ctx.get("cached_task"):
         ctx["result"] = ctx["cached_task"]

@@ -17,14 +17,14 @@ from .. import log, api
 
 # -------------------------------------------------------------------
 # Resolve the exact server-side schemas once (lru_cached inside AutoAPI)
-SCreate = AutoAPI.get_schema(PublicKey, "create")   # body for deploy_keys.create
+SCreate = AutoAPI.get_schema(PublicKey, "create")   # body for DeployKeys.create
 SRead   = AutoAPI.get_schema(PublicKey, "read")     # single-row read
 SDelete = AutoAPI.get_schema(PublicKey, "delete")   # pk-only schema
 SListIn = AutoAPI.get_schema(PublicKey, "list")     # fetch all keys
 # -------------------------------------------------------------------
 
 
-@api.hook(Phase.PRE_TX_BEGIN, method="deploy_keys.create")
+@api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.create")
 async def pre_key_upload(ctx: Dict[str, Any]) -> None:
     """Validate the uploaded key and prepare DB row."""
     params: SCreate = ctx["env"].params          # ← validated by AutoAPI
@@ -41,7 +41,7 @@ async def pre_key_upload(ctx: Dict[str, Any]) -> None:
     ctx["fingerprint"] = pgp.fingerprint
 
 
-@api.hook(Phase.POST_COMMIT, method="deploy_keys.create")
+@api.hook(Phase.POST_COMMIT, method="DeployKeys.create")
 async def post_key_upload(ctx: Dict[str, Any]) -> None:
     """Cache the key in memory and shape the RPC result."""
     params: SCreate = ctx["env"].params
@@ -54,7 +54,7 @@ async def post_key_upload(ctx: Dict[str, Any]) -> None:
                           fingerprint=fp).model_dump()
 
 
-@api.hook(Phase.POST_HANDLER, method="deploy_keys.read")
+@api.hook(Phase.POST_HANDLER, method="DeployKeys.read")
 async def post_key_fetch(ctx: Dict[str, Any]) -> None:
     """Convert the raw DB rows into a {fingerprint: key} mapping."""
     rows = ctx.get("result", [])
@@ -68,14 +68,14 @@ async def post_key_fetch(ctx: Dict[str, Any]) -> None:
     ctx["result"] = {"keys": mapping}            # simple dict for clients
 
 
-@api.hook(Phase.PRE_TX_BEGIN, method="deploy_keys.delete")
+@api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.delete")
 async def pre_key_delete(ctx: Dict[str, Any]) -> None:
     """Extract the fingerprint so the post-hook can update the cache."""
     params: SDelete = ctx["env"].params
     ctx["fingerprint"] = params.fingerprint
 
 
-@api.hook(Phase.POST_COMMIT, method="deploy_keys.delete")
+@api.hook(Phase.POST_COMMIT, method="DeployKeys.delete")
 async def post_key_delete(ctx: Dict[str, Any]) -> None:
     """Purge the key from memory and return an OK payload."""
     fp = ctx["fingerprint"]
