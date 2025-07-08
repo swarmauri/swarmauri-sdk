@@ -29,7 +29,7 @@ from sqlalchemy.orm import relationship
 # ---------------------------------------------------------------------
 from autoapi.v2.tables import Tenant, User
 from autoapi.v2.tables import Role, RoleGrant, RolePerm
-from autoapi.v2.tables import StatusEnum
+from autoapi.v2.tables import StatusEnum as Status
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import (
     GUIDPk,
