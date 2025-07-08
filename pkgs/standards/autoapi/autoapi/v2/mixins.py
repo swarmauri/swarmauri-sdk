@@ -25,6 +25,14 @@ class Ownable:
     owner_id  = Column(UUID(as_uuid=True), ForeignKey("users.id"),
                        index=True, nullable=False)
 
+class TenantMixin:
+    tenant_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("tenants.id"))
+
+@declarative_mixin
+class UserMixin:
+    user_id  = Column(UUID(as_uuid=True), ForeignKey("users.id"),
+                       index=True, nullable=False)
+
 @declarative_mixin
 class Principal:          # concrete table marker
     __abstract__ = True
@@ -39,7 +47,7 @@ class OwnerBound:
         return q.filter(cls.owner_id == ctx.user_id)
 
 
-class MemberBound:                       # membership rows
+class UserBound:                       # membership rows
     user_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("users.id"))
 
     @classmethod
