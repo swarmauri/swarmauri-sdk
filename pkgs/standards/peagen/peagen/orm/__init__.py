@@ -40,7 +40,7 @@ from autoapi.v2.mixins import (
     AsyncCapable,
     Replaceable,
     BulkCapable,
-    StatusEnum as StatusMixin,
+    StatusMixin,
     BlobRef,
 )
 
