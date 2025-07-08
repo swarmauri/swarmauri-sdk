@@ -25,7 +25,7 @@ from ..mixins import Timestamped                     # created_at / updated_at
 # ────────────────────────────────────────────────────────────────────────
 # 1. In-memory application enum  (single source of truth)
 # ────────────────────────────────────────────────────────────────────────
-class StatusEnum(StrEnum):
+class Status(StrEnum):
     # queued / dispatching
     QUEUED          = "queued"
     WAITING         = "waiting"
@@ -57,7 +57,7 @@ class StatusEnum(StrEnum):
 # ────────────────────────────────────────────────────────────────────────
 # 2. Persistent lookup table
 # ────────────────────────────────────────────────────────────────────────
-class Status(Base, Timestamped):
+class StatusEnum(Base, Timestamped):
     """
     id       – surrogate PK (easy FK if needed elsewhere)
     code     – canonical string value from the Status enum
@@ -66,9 +66,9 @@ class Status(Base, Timestamped):
     __tablename__ = "status_enums"
 
     id    = Column(Integer, primary_key=True, autoincrement=True)
-    code  = Column(SAEnum(StatusEnum, name="status_code_enum"),
+    code  = Column(SAEnum(Status, name="status_code_enum"),
                    unique=True, nullable=False)
     label = Column(String, nullable=False)
 
     def __repr__(self) -> str:          # noqa: D401
-        return f"<Status {self.code}>"
+        return f"<StatusEnum {self.code}>"
