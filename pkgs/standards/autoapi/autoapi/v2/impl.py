@@ -2,29 +2,29 @@
 autoapi_impl.py  –  framework-agnostic helpers rebound onto AutoAPI.
 Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 """
-import uuid
-from inspect import signature, isawaitable
-from typing import get_origin, get_args, List, Any, Literal
-from pydantic import BaseModel, create_model, ConfigDict
 
-from sqlalchemy.exc          import IntegrityError, SQLAlchemyError
-from fastapi                 import APIRouter, Body, Depends, HTTPException, Request
-from pydantic                import BaseModel, Field, create_model, ConfigDict
-from sqlalchemy.orm          import Session
-from sqlalchemy.ext.asyncio  import AsyncSession
-from fastapi import Path, Query
-from inspect import signature
 import re
+from inspect import isawaitable, signature
+from typing import Any, List, Union, get_args, get_origin
 
-from .mixins import Replaceable, BulkCapable, AsyncCapable
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
+from pydantic import BaseModel, ConfigDict, Field, create_model
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+
+from .mixins import AsyncCapable, BulkCapable, Replaceable
 from .types import _SchemaVerb
+
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
     raise HTTPException(404, "Item not found")
 
+
 # ---------------------------------------------------------------------
 _DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
+
 
 def _commit_or_http(db: Session) -> None:
     try:
@@ -34,8 +34,11 @@ def _commit_or_http(db: Session) -> None:
         raw = str(exc.orig)
         if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
             m = _DUP_RE.search(raw)
-            msg = f"Duplicate value '{m['val']}' for field '{m['col']}'." if m else \
-                  "Duplicate key value violates a unique constraint."
+            msg = (
+                f"Duplicate value '{m['val']}' for field '{m['col']}'."
+                if m
+                else "Duplicate key value violates a unique constraint."
+            )
             raise HTTPException(409, msg) from exc
         if getattr(exc.orig, "pgcode", None) in ("23503",) or "foreign key" in raw:
             raise HTTPException(422, "Foreign-key constraint failed.") from exc
@@ -47,6 +50,7 @@ def _commit_or_http(db: Session) -> None:
 
 # ---------------------------------------------------------------------
 
+
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     """
     Return a shallow clone in which every field named in *drop* is removed
@@ -54,13 +58,13 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     function is a no-op.
     """
     if not drop:
-        return base                              # nothing to strip
+        return base  # nothing to strip
 
     # ── Case 1: List[Model]  → make List[StrippedModel] ───────────────
     if get_origin(base) in (list, List):
         elem = get_args(base)[0]
         stripped = _strip_parent_fields(elem, drop=drop)
-        return list[stripped]                    # Py ≥3.9 generics
+        return list[stripped]  # Py ≥3.9 generics
 
     # ── Case 2: plain Pydantic model ──────────────────────────────────
     if isinstance(base, type) and issubclass(base, BaseModel):
@@ -70,15 +74,15 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
             if name not in drop
         }
         cfg = getattr(base, "model_config", ConfigDict())
-        cls = create_model(f"{base.__name__}SansParents",
-                           __config__=cfg, **fld_spec)
+        cls = create_model(f"{base.__name__}SansParents", __config__=cfg, **fld_spec)
         cls.model_rebuild(force=True)
         return cls
 
     # ── Fallback: leave untouched (e.g. dict, str, int …) ────────────
     return base
-# ---------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------
 
 
 # ───────────────────────── small utils ───────────────────────────────────
@@ -99,7 +103,7 @@ def _nested_prefix_clean(raw: str) -> str | None:
     4. Return None if nothing but '/' would remain.
     """
     if not raw:
-        return None                         # no nesting
+        return None  # no nesting
 
     # 1 – strip placeholders
     pref = re.sub(r"{[^}/]+}", "", raw)
@@ -125,66 +129,91 @@ COMMON_ERRORS = {
 
 # ---------------------------------------------------------------------
 
+
 # ───────────────────── register one model’s REST/RPC ────────────────────
-def _register_routes_and_rpcs(      # noqa: N802
+def _register_routes_and_rpcs(  # noqa: N802
     self,
-    model:      type,
-    tab:        str,
-    pk:         str,
-    SCreate, SRead, SDel, SUpdate, SListIn,
-    _create, _read, _update, _delete, _list, _clear,
+    model: type,
+    tab: str,
+    pk: str,
+    SCreate,
+    SRead,
+    SDel,
+    SUpdate,
+    SListIn,
+    _create,
+    _read,
+    _update,
+    _delete,
+    _list,
+    _clear,
 ) -> None:
-    import re, inspect, functools
-    from typing  import Annotated, Any, List
-    from fastapi import APIRouter, Body, Depends, Query, HTTPException, Request
+    import functools
+    import inspect
+    import re
+    from typing import Annotated, List
+
+    from fastapi import HTTPException
 
     # ─── helpers & preliminaries ────────────────────────────────────────
     is_async = issubclass(model, AsyncCapable)
     provider = self.get_async_db if is_async else self.get_db
 
-    pk_col   = next(iter(model.__table__.primary_key.columns))
-    pk_type  = getattr(pk_col.type, "python_type", str)
+    pk_col = next(iter(model.__table__.primary_key.columns))
+    pk_type = getattr(pk_col.type, "python_type", str)
 
     # ─── helpers & preliminaries ───────────────────────────────────────────
     spec: List[tuple] = [
         # verb       http   path          status  In-model            Out-model      core-fn
-        ("create",   "POST",  "",          201,    SCreate,            SRead,         _create),
-        ("list",     "GET",   "",          200,    SListIn,            List[SRead],   _list),
-        ("clear",    "DELETE","",          204,    None,               None,          _clear),
-        ("read",     "GET",   "/{item_id}",200,    SDel,               SRead,         _read),
-        ("update",   "PATCH", "/{item_id}",200,    SUpdate,            SRead,         _update),
-        ("delete",   "DELETE","/{item_id}",204,    SDel,               None,          _delete),
+        ("create", "POST", "", 201, SCreate, SRead, _create),
+        ("list", "GET", "", 200, SListIn, List[SRead], _list),
+        ("clear", "DELETE", "", 204, None, None, _clear),
+        ("read", "GET", "/{item_id}", 200, SDel, SRead, _read),
+        ("update", "PATCH", "/{item_id}", 200, SUpdate, SRead, _update),
+        ("delete", "DELETE", "/{item_id}", 204, SDel, None, _delete),
     ]
     if issubclass(model, Replaceable):
-        spec.append(("replace", "PUT", "/{item_id}",
-                     200,  SCreate,  SRead,
-                     lambda i, p, db: _update(i, p, db, full=True)))
+        spec.append(
+            (
+                "replace",
+                "PUT",
+                "/{item_id}",
+                200,
+                SCreate,
+                SRead,
+                lambda i, p, db: _update(i, p, db, full=True),
+            )
+        )
     if issubclass(model, BulkCapable):
         spec += [
-            ("bulk_create", "POST",   "/bulk", 201, List[SCreate], List[SRead], _create),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDel],    None,        _delete),
+            ("bulk_create", "POST", "/bulk", 201, List[SCreate], List[SRead], _create),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDel], None, _delete),
         ]
 
     # ─── nested prefix → path parameters (NOT query) ───────────────────────
-    raw_pref = self._nested_prefix(model) or ""        # e.g. "/tenants/{tenant_id}"
+    raw_pref = self._nested_prefix(model) or ""  # e.g. "/tenants/{tenant_id}"
     # collapse any accidental "//", then trim a trailing "/" (FastAPI asserts)
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
 
     # keep the placeholders → parent ids are path variables
-    nested_vars = re.findall(r"{(\w+)}", raw_pref)     # ["tenant_id", ...]
+    nested_vars = re.findall(r"{(\w+)}", raw_pref)  # ["tenant_id", ...]
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
-    routers     = (flat_router,) if nested_pref is None else (
-                  flat_router,
-                  APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
-                 )
-
+    routers = (
+        (flat_router,)
+        if nested_pref is None
+        else (
+            flat_router,
+            APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
+        )
+    )
 
     # ─── RBAC guard (unchanged) ────────────────────────────────────────
     def _guard(scope: str):
         async def inner(request: Request):
             if self.authorize and not self.authorize(scope, request):
                 raise HTTPException(403, "RBAC")
+
         return Depends(inner)
 
     # ─── endpoint factory ──────────────────────────────────────────────
@@ -201,7 +230,7 @@ def _register_routes_and_rpcs(      # noqa: N802
                         inspect.Parameter(
                             nv,
                             inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                            annotation=Annotated[str, Path(...)]
+                            annotation=Annotated[str, Path(...)],
                         )
                     )
 
@@ -211,28 +240,32 @@ def _register_routes_and_rpcs(      # noqa: N802
                     inspect.Parameter(
                         "item_id",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=pk_type
+                        annotation=pk_type,
                     )
                 )
 
             def _visible(t: type) -> type:
-                return _strip_parent_fields(t, drop=set(nested_vars)) \
-                       if is_nested_router else t
-
+                return (
+                    _strip_parent_fields(t, drop=set(nested_vars))
+                    if is_nested_router
+                    else t
+                )
 
             # payloads — *always* body (CREATE/LIST/UPDATE/BULK…)
             if verb == "list":
                 params.append(
                     inspect.Parameter(
-                        "p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Depends()]   # ← query params
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[_visible(In), Depends()],  # ← query params
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
                 params.append(
                     inspect.Parameter(
-                        "p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Body(embed=False)]
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[_visible(In), Body(embed=False)],
                     )
                 )
 
@@ -241,15 +274,17 @@ def _register_routes_and_rpcs(      # noqa: N802
                 inspect.Parameter(
                     "db",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[Any, Depends(provider)]
+                    annotation=Annotated[
+                        Union[AsyncSession, Session], Depends(provider)
+                    ],
                 )
             )
 
             # ---- callable body -------------------------------------------------------
             async def _impl(**kw):
-                db        = kw.pop("db")                 # always present
-                p         = kw.pop("p", None)            # body payload or None
-                item_id   = kw.pop("item_id", None)      # single-row CRUD or None
+                db = kw.pop("db")  # always present
+                p = kw.pop("p", None)  # body payload or None
+                item_id = kw.pop("item_id", None)  # single-row CRUD or None
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}  # path vars
 
                 # ── inject path vars into the body model when it exists ───────────
@@ -271,16 +306,16 @@ def _register_routes_and_rpcs(      # noqa: N802
                         # create / bulk_create / bulk_delete
                         return await _run(core, p, db)
 
-            _impl.__name__       = f"{verb}_{tab}"
-            _impl.__signature__  = inspect.Signature(parameters=params)
+            _impl.__name__ = f"{verb}_{tab}"
+            _impl.__signature__ = inspect.Signature(parameters=params)
             return functools.wraps(_impl)(_impl)
 
         # mount on every relevant router
         for r in routers:
-            is_nested_router = r is not flat_router          # ← NEW
+            is_nested_router = r is not flat_router  # ← NEW
             r.add_api_route(
                 path,
-                _factory(is_nested_router),                  # ← pass the flag
+                _factory(is_nested_router),  # ← pass the flag
                 methods=[http],
                 status_code=status,
                 response_model=Out,
@@ -303,7 +338,7 @@ def _schema(
     self,
     orm_cls: type,
     *,
-    name: str | None = None,              # ← now optional
+    name: str | None = None,  # ← now optional
     include: set[str] | None = None,
     exclude: set[str] | None = None,
     verb: _SchemaVerb = "create",
@@ -341,17 +376,18 @@ def _schema(
             getattr(c.type, "python_type", Any),
             Field(None if c.nullable or c.default is not None else ...),
         )
-        for c in orm_cls.__table__.columns if _should_use(c)
+        for c in orm_cls.__table__.columns
+        if _should_use(c)
     }
 
     cfg = ConfigDict(from_attributes=True)
-    M   = create_model(model_name, __config__=cfg, **flds)  # type: ignore[arg-type]
+    M = create_model(model_name, __config__=cfg, **flds)  # type: ignore[arg-type]
     M.model_rebuild(force=True)
     return M
 
 
 # ───────────────────────── CRUD builder ────────────────────────────────
-def _crud(self, model: type) -> None:                       # noqa: N802
+def _crud(self, model: type) -> None:  # noqa: N802
     tab = model.__tablename__
 
     # fast-exit if already registered
@@ -364,21 +400,20 @@ def _crud(self, model: type) -> None:                       # noqa: N802
     # ----- generate the five canonical schemas ------------------------
     _S = lambda verb, **kw: self._schema(model, verb=verb, **kw)
 
-    SCreate  = _S("create")                                 # PK excluded
-    SRead    = _S("read")                                   # full set
-    SDel     = _S("delete", include={pk})                   # only PK
-    SUpdate  = _S("update", exclude={pk})                                 # optional/no_update cols gone
+    SCreate = _S("create")  # PK excluded
+    SRead = _S("read")  # full set
+    SDel = _S("delete", include={pk})  # only PK
+    SUpdate = _S("update", exclude={pk})  # optional/no_update cols gone
 
     def _SList():
-        base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=1)))
+        base = dict(skip=(int, Field(0, ge=0)), limit=(int | None, Field(None, ge=1)))
         cols = {
             c.name: (getattr(c.type, "python_type", Any) | None, Field(None))
             for c in model.__table__.columns
         }
-        return create_model(f"{tab}ListParams",
-                            __config__=ConfigDict(extra="forbid"),
-                            **base, **cols)
+        return create_model(
+            f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base, **cols
+        )
 
     SListIn = _SList()
 
@@ -428,8 +463,8 @@ def _crud(self, model: type) -> None:                       # noqa: N802
         d = p.model_dump(exclude_defaults=True, exclude_none=True)
         qry = (
             db.query(model)
-              .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
-              .offset(d.get("skip", 0))
+            .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
+            .offset(d.get("skip", 0))
         )
         if lim := d.get("limit"):
             qry = qry.limit(lim)
@@ -442,24 +477,40 @@ def _crud(self, model: type) -> None:                       # noqa: N802
 
     # ----- register with the route builder ----------------------------
     self._register_routes_and_rpcs(
-        model, tab, pk,
-        SCreate, SRead, SDel, SUpdate, SListIn,
-        _create, _read, _update, _delete, _list, _clear
+        model,
+        tab,
+        pk,
+        SCreate,
+        SRead,
+        SDel,
+        SUpdate,
+        SListIn,
+        _create,
+        _read,
+        _update,
+        _delete,
+        _list,
+        _clear,
     )
+
+
 # ───────────────────────── RPC adapter (unchanged) ──────────────────────
-def _wrap_rpc(self, core, IN, OUT, pk_name, model):           # noqa: N802
-    p       = iter(signature(core).parameters.values())
-    first   = next(p, None)
-    exp_pm  = bool(first) and isinstance(first.annotation, type) \
-              and issubclass(first.annotation, BaseModel)
+def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
+    p = iter(signature(core).parameters.values())
+    first = next(p, None)
+    exp_pm = (
+        bool(first)
+        and isinstance(first.annotation, type)
+        and issubclass(first.annotation, BaseModel)
+    )
     out_lst = get_origin(OUT) is list
-    elem    = get_args(OUT)[0] if out_lst else None
+    elem = get_args(OUT)[0] if out_lst else None
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
-    single  = callable(getattr(OUT, "model_validate", None))
+    single = callable(getattr(OUT, "model_validate", None))
 
     def h(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
-        data   = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
 
         if exp_pm:
             r = core(obj_in, db=db)
@@ -470,15 +521,20 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):           # noqa: N802
                 r = core(**data, db=db)
 
         if not out_lst:
-            if isinstance(r, BaseModel): return r.model_dump()
-            if single:                  return OUT.model_validate(r).model_dump()
+            if isinstance(r, BaseModel):
+                return r.model_dump()
+            if single:
+                return OUT.model_validate(r).model_dump()
             return r
 
         out: list[Any] = []
         for itm in r:
-            if isinstance(itm, BaseModel): out.append(itm.model_dump())
-            elif elem_md:                  out.append(elem.model_validate(itm).model_dump())
-            else:                          out.append(itm)
+            if isinstance(itm, BaseModel):
+                out.append(itm.model_dump())
+            elif elem_md:
+                out.append(elem.model_validate(itm).model_dump())
+            else:
+                out.append(itm)
         return out
 
     return h

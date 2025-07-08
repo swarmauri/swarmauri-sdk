@@ -89,7 +89,10 @@ class AutoAPI:
         # initialise hook subsystem
         _init_hooks(self)
 
-        attach_health_and_methodz(self, self.get_db)
+        if self.get_db:
+            attach_health_and_methodz(self, get_db=self.get_db)
+        else:
+            attach_health_and_methodz(self, get_async_db=self.get_async_db)
 
         # attach JSON-RPC gateway
         self.router.include_router(build_gateway(self))
