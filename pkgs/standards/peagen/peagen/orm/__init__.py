@@ -212,7 +212,7 @@ class Task(
             "spec_kind",
             "spec_uuid",
             unique=True,
-            postgresql_where=text("status != 'error'"),
+            postgresql_where=text("status != 'failed'"),
         ),
     )
     # ───────── routing & ownership ──────────────────────────
