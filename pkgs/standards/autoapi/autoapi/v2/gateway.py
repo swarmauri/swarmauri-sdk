@@ -1,5 +1,6 @@
 # autoapi_gateway.py
-from fastapi import APIRouter, Depends, HTTPException, Request, Body
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from typing import Any, Dict
 
@@ -14,49 +15,94 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
-    @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
-    async def _gateway(  # ← signature updated
-        req: Request,
-        env: _RPCReq = Body(..., embed=False),  # ① JSON-RPC envelope
-        db: Session = Depends(api.get_db),
-    ):
-        ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
+    if api.get_db:
 
-        if api.authorize and not api.authorize(env.method, req):
-            return _err(403, "Forbidden", env)
+        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
+        async def _gateway(
+            req: Request,
+            env: _RPCReq = Body(..., embed=False),
+            db: Session = Depends(api.get_db),
+        ):
+            ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
 
-        fn = api.rpc.get(env.method)
-        if not fn:
-            return _err(-32601, "Method not found", env)
+            if api.authorize and not api.authorize(env.method, req):
+                return _err(403, "Forbidden", env)
 
-        try:
-            await api._run(Phase.PRE_TX_BEGIN, ctx)
-            res = fn(env.params, db)
-            ctx["result"] = res
-            await api._run(Phase.POST_HANDLER, ctx)
+            fn = api.rpc.get(env.method)
+            if not fn:
+                return _err(-32601, "Method not found", env)
 
-            if db.in_transaction():
-                await api._run(Phase.PRE_COMMIT, ctx)
-                db.commit()
-                await api._run(Phase.POST_COMMIT, ctx)
+            try:
+                await api._run(Phase.PRE_TX_BEGIN, ctx)
+                res = fn(env.params, db)
+                ctx["result"] = res
+                await api._run(Phase.POST_HANDLER, ctx)
 
-            out = _ok(res, env)
-            await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
-            return out
+                if db.in_transaction():
+                    await api._run(Phase.PRE_COMMIT, ctx)
+                    db.commit()
+                    await api._run(Phase.POST_COMMIT, ctx)
 
-        except Exception as exc:
-            db.rollback()
+                out = _ok(res, env)
+                await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
+                return out
 
-            # ------------------ HTTPException → JSON-RPC ----------------------
-            if isinstance(exc, HTTPException):
-                rpc_code, rpc_data = _http_exc_to_rpc(exc)
-                return _err(rpc_code, exc.detail, env, rpc_data)
+            except Exception as exc:
+                db.rollback()
 
-            # ------------------ generic fallback ------------------------------
-            await api._run(Phase.ON_ERROR, ctx | {"error": exc})
-            return _err(-32000, str(exc), env)
+                if isinstance(exc, HTTPException):
+                    rpc_code, rpc_data = _http_exc_to_rpc(exc)
+                    return _err(rpc_code, exc.detail, env, rpc_data)
 
-        finally:
-            db.close()
+                await api._run(Phase.ON_ERROR, ctx | {"error": exc})
+                return _err(-32000, str(exc), env)
+
+            finally:
+                db.close()
+
+    else:
+
+        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
+        async def _gateway(
+            req: Request,
+            env: _RPCReq = Body(..., embed=False),
+            db: AsyncSession = Depends(api.get_async_db),
+        ):
+            ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
+
+            if api.authorize and not api.authorize(env.method, req):
+                return _err(403, "Forbidden", env)
+
+            fn = api.rpc.get(env.method)
+            if not fn:
+                return _err(-32601, "Method not found", env)
+
+            try:
+                await api._run(Phase.PRE_TX_BEGIN, ctx)
+                res = await db.run_sync(lambda s: fn(env.params, s))
+                ctx["result"] = res
+                await api._run(Phase.POST_HANDLER, ctx)
+
+                if db.in_transaction():
+                    await api._run(Phase.PRE_COMMIT, ctx)
+                    await db.commit()
+                    await api._run(Phase.POST_COMMIT, ctx)
+
+                out = _ok(res, env)
+                await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
+                return out
+
+            except Exception as exc:
+                await db.rollback()
+
+                if isinstance(exc, HTTPException):
+                    rpc_code, rpc_data = _http_exc_to_rpc(exc)
+                    return _err(rpc_code, exc.detail, env, rpc_data)
+
+                await api._run(Phase.ON_ERROR, ctx | {"error": exc})
+                return _err(-32000, str(exc), env)
+
+            finally:
+                await db.close()
 
     return r
