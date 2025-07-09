@@ -18,14 +18,13 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from autoapi.v2.tables import Base, Tenant, User, Repository
+from autoapi.v2.tables import Base, Tenant, User
 from autoapi.v2.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     Ownable,
 )
-
 
 # ────────────────────────────────────────────────────────────────────────
 class DoeSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
@@ -121,22 +120,15 @@ class PeagenTomlSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
 
     tenant = relationship(Tenant, lazy="selectin")
     owner = relationship(User, lazy="selectin")
-    repository = relationship(Repository, back_populates="toml_specs", lazy="selectin")
 
 
 class EvalResult(Base, GUIDPk, Timestamped, Ownable):
     __tablename__ = "eval_results"
-
-    task_run_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("task_runs.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    label = Column(String, nullable=True)
+    work_id = Column(UUID(as_uuid=True), ForeignKey("works.id", ondelete="CASCADE"))
+    label   = Column(String)
     metrics = Column(JSON, nullable=False)
-
-    owner = relationship(User, lazy="selectin")
-    task_run = relationship("Work", back_populates="eval_results", lazy="selectin")
+    owner   = relationship(User, lazy="selectin")
+    work    = relationship("Work", back_populates="eval_results", lazy="selectin")
     analyses = relationship(
         "AnalysisResult",
         back_populates="eval_result",
@@ -145,16 +137,14 @@ class EvalResult(Base, GUIDPk, Timestamped, Ownable):
     )
 
 
+
 class AnalysisResult(Base, GUIDPk, Timestamped, Ownable):
     __tablename__ = "analysis_results"
-
     eval_result_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("eval_results.id", ondelete="CASCADE"),
-        nullable=False,
+        UUID(as_uuid=True), ForeignKey("eval_results.id", ondelete="CASCADE")
     )
-    summary = Column(Text, nullable=True)
-    data = Column(JSON, nullable=False, default=dict)
-
-    owner = relationship(User, lazy="selectin")
+    summary = Column(Text)
+    data    = Column(JSON, default=dict, nullable=False)
+    owner   = relationship(User, lazy="selectin")
     eval_result = relationship("EvalResult", back_populates="analyses", lazy="selectin")
+

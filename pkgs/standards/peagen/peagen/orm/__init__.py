@@ -21,6 +21,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
 from sqlalchemy.orm import relationship, foreign, remote
+from sqlalchemy.orm import declarative_mixin, declared_attr
 
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
@@ -40,8 +41,8 @@ from autoapi.v2.mixins import (
     BlobRef,
 )
 
-from sqlalchemy.orm import declarative_mixin
 
+# ---------------------------------------------------------------------
 
 def _is_terminal(cls, state: str | Status) -> bool:
     """Return True if *state* represents completion."""
@@ -82,6 +83,11 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
     deploy_keys = relationship(
         "DeployKey", back_populates="repository", cascade="all, delete-orphan"
     )
+    tasks = relationship(
+        "Task",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+    )
     users = relationship(User, secondary="user_repositories", backref="repositories")
 
 
@@ -92,7 +98,6 @@ class RepositoryMixin:
     )
 
 
-@declarative_mixin
 class RepositoryRefMixin:
     repository_id = Column(
         UUID(as_uuid=True),
@@ -102,6 +107,15 @@ class RepositoryRefMixin:
     repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
     ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
 
+
+    @declared_attr
+    def repository(cls):
+        from peagen.orm import Repository               # late import
+        return relationship(
+            "Repository",
+            back_populates="tasks",
+            primaryjoin=foreign(cls.repository_id) == remote(Repository.id),
+        )
 
 # ---------------------------------------------------------------------
 # association edges
@@ -206,12 +220,6 @@ class Task(
     pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
 
     # ───────── workspace reference ──────────────────────────
-    repository = relationship(
-        "Repository",
-        back_populates="tasks",
-        primaryjoin=foreign(RepositoryRefMixin.repository_id) == remote(Repository.id),
-    )
-
     config_toml = Column(String)
 
     # ───────── polymorphic spec reference ───────────────────
@@ -240,9 +248,6 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin):
     duration_s = Column(Integer)
 
     task = relationship(Task, back_populates="works")
-    eval_results = relationship(
-        "EvalResult", back_populates="work", cascade="all, delete-orphan"
-    )
 
 
 # ---------------------------------------------------------------------
@@ -265,6 +270,8 @@ __all__ = [
     "Status",
     "Base",
     "Repository",
+    "RepositoryMixin",
+    "RepositoryRefMixin",
     "UserTenant",
     "UserRepository",
     "Secret",
