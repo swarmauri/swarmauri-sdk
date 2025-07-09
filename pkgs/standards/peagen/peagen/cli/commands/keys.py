@@ -25,12 +25,12 @@ from typing import Optional
 import httpx
 import typer
 from autoapi_client import AutoAPIClient
-from autoapi.v2     import AutoAPI
-from peagen.orm     import DeployKey      # ORM model → schema generator
-from peagen.core    import keys_core      # unchanged util helpers
+from autoapi.v2 import AutoAPI
+from peagen.orm import DeployKey  # ORM model → schema generator
+from peagen.core import keys_core  # unchanged util helpers
+from peagen.defaults import DEFAULT_GATEWAY
 
 # ---------------------------------------------------------------------
-DEFAULT_GATEWAY   = DEFAULT_GATEWAY
 
 keys_app = typer.Typer(help="Manage local and remote public-key material.")
 
@@ -61,7 +61,7 @@ def create(
     try:
         keys_core.create_keypair(key_dir=key_dir, passphrase=passphrase)
         typer.echo(f"✅  Created key-pair in {key_dir}")
-    except Exception as exc:                                            # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
         raise typer.Exit(1)
 
@@ -74,11 +74,13 @@ def upload(
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
     SCreate = _schema("create")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
     try:
-        payload = keys_core.export_public_key_as_dict(key_dir)  # {"fingerprint": …, "key": …}
-        params  = SCreate.model_validate(payload)
+        payload = keys_core.export_public_key_as_dict(
+            key_dir
+        )  # {"fingerprint": …, "key": …}
+        params = SCreate.model_validate(payload)
 
         with _rpc_client(gateway_url) as rpc:
             res = rpc.call("DeployKeys.create", params=params, out_schema=SRead)
@@ -102,7 +104,9 @@ def remove(
     try:
         params = SDel(fingerprint=fingerprint)
         with _rpc_client(gateway_url) as rpc:
-            rpc.call("DeployKeys.delete", params=params)  # returns empty dict on success
+            rpc.call(
+                "DeployKeys.delete", params=params
+            )  # returns empty dict on success
         typer.echo(f"🗑️  Removed key {fingerprint} from gateway.")
 
     except httpx.HTTPError as exc:
@@ -117,14 +121,14 @@ def fetch_server(
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
     SListIn = _schema("list")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
     try:
         with _rpc_client(gateway_url) as rpc:
             keys = rpc.call(
                 "DeployKeys.list",
-                params=SListIn(),                 # empty input model
-                out_schema=list[SRead],           # type: ignore[arg-type]
+                params=SListIn(),  # empty input model
+                out_schema=list[SRead],  # type: ignore[arg-type]
             )
 
         typer.echo(json.dumps([k.model_dump() for k in keys], indent=2))

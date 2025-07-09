@@ -15,9 +15,7 @@ import asyncio
 import json
 import logging
 import os
-import time
-import uuid
-from typing import Any, Dict, Optional
+
 
 import httpx
 
@@ -28,12 +26,7 @@ from fastapi import FastAPI, Request
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
 from peagen.defaults import READY_QUEUE
-from peagen.errors import (
-    DispatchHTTPError,
-    MigrationFailureError,
-    MissingActionError,
-    NoWorkerAvailableError,
-)
+from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 from peagen.orm import (
     Base,
     DeployKey,
@@ -114,7 +107,7 @@ async def _flush_state() -> None:
         return
     keys = await queue.keys("task:*")
     for key in keys:
-        blob = await queue.hget(key, "blob")
+        _ = await queue.hget(key, "blob")
     if hasattr(queue, "client"):
         await queue.client.aclose()
 
@@ -141,10 +134,16 @@ def _client_ip(request: Request) -> str:
     return request.headers.get("x-real-ip") or request.client.host
 
 
+# Backwards compatibility alias
+def _get_client_ip(request: Request) -> str:  # pragma: no cover - legacy
+    """Alias for ``_client_ip`` to support older imports."""
+    return _client_ip(request)
+
+
 # ─────────── scheduler loop ───────────────────────────────────────────
 async def scheduler() -> None:
     sched_log.info("scheduler loop started")
-    async with httpx.AsyncClient(timeout=10, http2=True) as client:
+    async with httpx.AsyncClient(timeout=10, http2=True):
         while True:
             # — 1. find pools with queued work
             pools = await queue.smembers("pools")
