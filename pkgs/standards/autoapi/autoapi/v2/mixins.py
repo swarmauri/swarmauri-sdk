@@ -189,7 +189,7 @@ class Streamable:
 # Slugged ── human-readable identifier
 @declarative_mixin
 class Slugged:
-    slug = Column(String, unique=True, index=True, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
 
 
 # ----------------------------------------------------------------------
@@ -237,7 +237,7 @@ class Monetary:
 # ExtRef ── link to an external provider object
 @declarative_mixin
 class ExtRef:
-    external_id = Column(String, index=True)  # e.g. Stripe customer ID
+    external_id = Column(String)  # e.g. Stripe customer ID
     provider = Column(String)  # 'stripe', 'hubspot', …
 
 
@@ -260,7 +260,7 @@ class SoftLock:
 # TaggableEdge ── free-form tag on an edge row (inherits RelationEdge)
 @declarative_mixin
 class TaggableEdge:
-    tag = Column(String, index=True, nullable=False)
+    tag = Column(String, nullable=False)
 
 
 # ----------------------------------------------------------------------
@@ -271,4 +271,4 @@ class SearchVector:
 
     @declared_attr
     def __table_args__(cls):
-        return (Index(f"ix_{cls.__tablename__}_tsv", "tsv", postgresql_using="gin"),)
+        return (Index(f"ix_{cls.__tablename__}_tsv", "tsv"),)
