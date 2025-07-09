@@ -10,7 +10,6 @@ import tempfile
 import shutil
 from filelock import FileLock
 from contextlib import contextmanager
-import httpx
 
 from git import Repo
 
@@ -23,6 +22,7 @@ if TYPE_CHECKING:  # pragma: no cover - import for typing only
 
 
 # ───────── git repo convenience      ────────────────────────────
+
 
 def open_repo(path: str | Path, remote_url: str | None = None, **kwargs: Any) -> GitVCS:
     """Open a repository at ``path``.
@@ -86,6 +86,7 @@ def repo_lock(repo_uri: str):
 
 # ───────── worker worktree   ────────────────────────────
 
+
 def add_git_worktree(repo: Repo, ref: str) -> Path:
     """Create a temporary worktree for ``ref`` and return its path."""
     path = Path(tempfile.mkdtemp())
@@ -101,7 +102,9 @@ def cleanup_git_worktree(worktree: Path) -> None:
         pass
     shutil.rmtree(worktree, ignore_errors=True)
 
+
 # ───────── worker ssh identity  ────────────────────────────
+
 
 @contextmanager
 def ssh_identity(priv_key: str):
@@ -119,4 +122,3 @@ def ssh_identity(priv_key: str):
 
 
 # ───────── exports  ────────────────────────────
-

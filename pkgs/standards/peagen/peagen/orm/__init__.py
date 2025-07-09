@@ -6,7 +6,7 @@ condensed_orm.py  –  all Peagen domain tables in one place
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any, Dict, FrozenSet
+from typing import FrozenSet
 from enum import Enum, auto
 
 from sqlalchemy import (
@@ -17,9 +17,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
-    Numeric,
     String,
-    Table,
     UniqueConstraint,
     text,
 )
@@ -40,9 +38,6 @@ from autoapi.v2.mixins import (
     Ownable,
     Timestamped,
     TenantBound,
-    AsyncCapable,
-    Replaceable,
-    BulkCapable,
     StatusMixin,
     BlobRef,
 )
@@ -262,6 +257,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin):
     eval_results = relationship(
         "EvalResult", back_populates="work", cascade="all, delete-orphan"
     )
+
 
 # ---------------------------------------------------------------------
 # 5) Raw blobs (stand-alone)

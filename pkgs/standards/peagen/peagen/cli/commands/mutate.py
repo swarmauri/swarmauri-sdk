@@ -10,21 +10,24 @@ Sub-commands
 
 from __future__ import annotations
 
-import asyncio, json, time, uuid
+import asyncio
+import json
+import time
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 
 import typer
 
 from peagen.handlers.mutate_handler import mutate_handler
-from peagen.cli.task_helpers        import build_task, submit_task, get_task
-from peagen.orm                     import Status
+from peagen.cli.task_helpers import build_task, submit_task, get_task
+from peagen.orm import Status
 
 # demo UUIDs – replace with real IDs in production
-DEFAULT_POOL_ID   = uuid.UUID(int=0)
+DEFAULT_POOL_ID = uuid.UUID(int=0)
 DEFAULT_TENANT_ID = uuid.UUID(int=1)
 
-local_mutate_app  = typer.Typer(help="Run mutate workflow locally.")
+local_mutate_app = typer.Typer(help="Run mutate workflow locally.")
 remote_mutate_app = typer.Typer(help="Submit mutate workflow to gateway.")
 
 
@@ -39,13 +42,13 @@ def _args_dict(
     gens: int,
 ) -> Dict[str, Any]:
     return {
-        "target_file":  target_file,
-        "import_path":  import_path,
-        "entry_fn":     entry_fn,
-        "profile_mod":  profile_mod,
-        "gens":         gens,
+        "target_file": target_file,
+        "import_path": import_path,
+        "entry_fn": entry_fn,
+        "profile_mod": profile_mod,
+        "gens": gens,
         "evaluator_ref": fitness,
-        "mutations":    [{"kind": mutator}],
+        "mutations": [{"kind": mutator}],
     }
 
 
@@ -66,7 +69,7 @@ def run(  # noqa: PLR0913
     json_out: bool = typer.Option(False, "--json"),
     out: Optional[Path] = typer.Option(None, "--out"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     """Run the mutate workflow synchronously on this machine."""
     args = _args_dict(
@@ -107,7 +110,7 @@ def submit(  # noqa: PLR0913
     mutator: str = typer.Option("default_mutator", "--mutator"),
     gens: int = typer.Option(1, "--gens"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
     watch: bool = typer.Option(False, "--watch", "-w"),
     interval: float = typer.Option(2.0, "--interval", "-i"),
 ) -> None:

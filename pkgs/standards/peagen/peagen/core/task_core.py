@@ -4,13 +4,12 @@ from an AutoAPI gateway.
 
 from __future__ import annotations
 
-import uuid, httpx, json
-from pathlib import Path
-from typing import Any, Dict, List
+import httpx
+from typing import Any, Dict
 
-from autoapi_client   import AutoAPIClient
-from autoapi.v2       import AutoAPI
-from peagen.orm       import Task, Status
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 
 from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
 
@@ -18,7 +17,7 @@ from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
 # ────────────────────────── internal helpers ───────────────────────── #
 def _schema(tag: str):
     """Return the server-generated schema for <Task, tag>."""
-    return AutoAPI.get_schema(Task, tag)              # classmethod
+    return AutoAPI.get_schema(Task, tag)  # classmethod
 
 
 def _rpc(url: str, *, timeout: float = RPC_TIMEOUT) -> AutoAPIClient:
@@ -26,6 +25,7 @@ def _rpc(url: str, *, timeout: float = RPC_TIMEOUT) -> AutoAPIClient:
 
 
 # ────────────────────────── public helpers ────────────────────────────
+
 
 def submit_task(
     gateway_url: str,
@@ -63,7 +63,7 @@ def get_task_result(
         }
     """
     SRead = _schema("read")
-    SKey  = _schema("delete")          # pk-only schema (id field)
+    SKey = _schema("delete")  # pk-only schema (id field)
 
     with _rpc(gateway_url, timeout=timeout) as rpc:
         task = rpc.call("Tasks.read", params=SKey(id=task_id), out_schema=SRead)
@@ -72,13 +72,11 @@ def get_task_result(
     dc = task.date_created
     lm = task.last_modified
     return {
-        "status":        task.status,
-        "result":        task.result,
-        "oids":          task.oids,
+        "status": task.status,
+        "result": task.result,
+        "oids": task.oids,
         "commit_hexsha": task.commit_hexsha,
-        "date_created":  dc.isoformat() if dc else None,
+        "date_created": dc.isoformat() if dc else None,
         "last_modified": lm.isoformat() if lm else None,
-        "duration": (
-            int((lm - dc).total_seconds()) if dc and lm else None
-        ),
+        "duration": (int((lm - dc).total_seconds()) if dc and lm else None),
     }

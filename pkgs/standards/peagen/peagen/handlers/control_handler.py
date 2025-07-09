@@ -11,15 +11,15 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from autoapi          import AutoAPI
-from autoapi.v2.tables.task import Task               # SQLAlchemy row
+from autoapi import AutoAPI
+from autoapi.v2.tables.task import Task  # SQLAlchemy row
 
-from peagen.core            import control_core
-from peagen.plugins.queues  import QueueBase
-from peagen                  import defaults
+from peagen.core import control_core
+from peagen.plugins.queues import QueueBase
+from peagen import defaults
 
 # ────────────────────────── AutoAPI schemas ───────────────────────────
-TaskUpdate = AutoAPI.get_schema(Task, "update")       # ← concrete type
+TaskUpdate = AutoAPI.get_schema(Task, "update")  # ← concrete type
 
 TASK_KEY = defaults.CONFIG["task_key"]
 
@@ -34,14 +34,14 @@ async def _save_task_redis(queue: QueueBase, t: TaskUpdate, ttl: int) -> None:
     await queue.hset(
         TASK_KEY.format(t.id),
         mapping={
-            "blob":   t.model_dump_json(),
+            "blob": t.model_dump_json(),
             "status": str(t.status.value if hasattr(t.status, "value") else t.status),
         },
     )
     await queue.expire(TASK_KEY.format(t.id), ttl)
 
 
-async def apply(                        # noqa: C901 complexity unchanged
+async def apply(  # noqa: C901 complexity unchanged
     op: str,
     queue: QueueBase,
     tasks: Iterable[TaskUpdate],

@@ -8,17 +8,19 @@ Output: dict      (serialisable result payload)
 
 from __future__ import annotations
 
-import shutil, uuid, yaml, tempfile
+import shutil
+import uuid
+import yaml
+import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional
 
-from autoapi.v2          import AutoAPI
-from peagen.orm      import Status, Task
+from autoapi.v2 import AutoAPI
+from peagen.orm import Status, Task
 
 from peagen._utils.config_loader import resolve_cfg
-from peagen.plugins          import PluginManager
-from peagen.plugins.vcs      import pea_ref
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.plugins import PluginManager
+from peagen.plugins.vcs import pea_ref
 from .fanout import fan_out
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
@@ -69,7 +71,7 @@ async def evolve_handler(task: TaskRead) -> Dict[str, Any]:
     mutations = doc.get("operators", {}).get("mutation")
 
     cfg = resolve_cfg()
-    pm  = PluginManager(cfg)
+    pm = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
     except Exception:
@@ -83,7 +85,7 @@ async def evolve_handler(task: TaskRead) -> Dict[str, Any]:
         if repo and tmp_repo:
             try:
                 return str(resolved.relative_to(tmp_repo))
-            except ValueError:     # outside cloned repo
+            except ValueError:  # outside cloned repo
                 return str(resolved)
         return str(resolved)
 
@@ -99,12 +101,14 @@ async def evolve_handler(task: TaskRead) -> Dict[str, Any]:
             job.setdefault("ref", ref)
 
         # resolve workspace / config / mutation URIs for local runs
-        if (ws := job.get("workspace_uri")) and not (repo and ws.startswith(("git+", "http", "/"))):
+        if (ws := job.get("workspace_uri")) and not (
+            repo and ws.startswith(("git+", "http", "/"))
+        ):
             job["workspace_uri"] = _resolve_path(ws)
-        if (cfg_path := job.get("config")):
+        if cfg_path := job.get("config"):
             job["config"] = _resolve_path(cfg_path)
         for mut in job.get("mutations", []):
-            if (uri := mut.get("uri")):
+            if uri := mut.get("uri"):
                 mut["uri"] = _resolve_path(uri)
 
         children.append(
@@ -135,7 +139,7 @@ async def evolve_handler(task: TaskRead) -> Dict[str, Any]:
 
         if rel_spec is not None:
             commit_sha = vcs.commit([str(rel_spec)], f"evolve {spec_path.stem}")
-            branches   = [pea_ref("run", cid) for cid in child_ids]
+            branches = [pea_ref("run", cid) for cid in child_ids]
             vcs.fan_out("HEAD", branches)
             if vcs.has_remote():
                 for b in branches:

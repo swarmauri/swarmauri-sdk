@@ -11,6 +11,7 @@ from httpx import HTTPError
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core.login_core import login as core_login
 from peagen.defaults import DEFAULT_GATEWAY
+
 # ---------------------------------------------------------------------------#
 # Typer application
 # ---------------------------------------------------------------------------#

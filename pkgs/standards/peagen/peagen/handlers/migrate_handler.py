@@ -11,8 +11,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2          import AutoAPI
-from peagen.orm          import Task
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 
 from peagen.core.migrate_core import (
     ALEMBIC_CFG,
@@ -22,7 +22,7 @@ from peagen.core.migrate_core import (
 )
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")                  # incoming model
+TaskRead = AutoAPI.get_schema(Task, "read")  # incoming model
 
 
 # ─────────────────────────── main handler ─────────────────────────────
@@ -39,7 +39,7 @@ async def migrate_handler(task: TaskRead) -> Dict[str, Any]:
     }
     """
     args: Dict[str, Any] = (task.payload or {}).get("args", {})
-    op:  str | None      = args.get("op")
+    op: str | None = args.get("op")
     if op not in {"upgrade", "downgrade", "revision"}:
         return {"ok": False, "error": f"unknown op: {op}"}
 

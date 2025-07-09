@@ -13,16 +13,15 @@ Key entry-points
 
 from __future__ import annotations
 
-import shutil
 import tempfile
-from contextlib import contextmanager
 from pathlib import Path
 from typing import List, Optional
 
 from peagen.core.git_repo_core import (
-    open_repo,       # pluggable VCS adapter
-    repo_lock,       # cross-process file lock
+    open_repo,  # pluggable VCS adapter
+    repo_lock,  # cross-process file lock
 )
+
 
 # ─────────────────────────── helpers ──────────────────────────────
 def _checkout(repo_url: str, ref: str, dest: Path) -> str | None:
@@ -31,16 +30,17 @@ def _checkout(repo_url: str, ref: str, dest: Path) -> str | None:
 
     Returns the checked-out commit SHA (or None on bare copy errors).
     """
-    with repo_lock(repo_url):               # requirement #4
-        vcs = open_repo(dest, remote_url=repo_url)   # requirement #3
+    with repo_lock(repo_url):  # requirement #4
+        vcs = open_repo(dest, remote_url=repo_url)  # requirement #3
         try:
-            vcs.fetch(ref, checkout=True)   # update if remote already cloned
+            vcs.fetch(ref, checkout=True)  # update if remote already cloned
         except Exception:
             vcs.checkout(ref)
         try:
             return vcs.repo.head.commit.hexsha
         except Exception:
             return None
+
 
 # ─────────────────────────── public API ───────────────────────────
 def fetch_single(
@@ -111,7 +111,5 @@ def fetch_many(
     )
     workspace.mkdir(parents=True, exist_ok=True)
 
-    results = [
-        fetch_single(repo=r, ref=ref, dest_root=workspace) for r in repos
-    ]
+    results = [fetch_single(repo=r, ref=ref, dest_root=workspace) for r in repos]
     return {"workspace": str(workspace), "fetched": results}

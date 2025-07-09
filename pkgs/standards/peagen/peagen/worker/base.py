@@ -1,27 +1,31 @@
 # peagen/worker/base.py
 from __future__ import annotations
 
-import asyncio, logging, os, socket, uuid, json
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Iterable
+import asyncio
+import logging
+import os
+import socket
+import uuid
+from typing import Awaitable, Callable
 
 import httpx
-from fastapi import Body, FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import Body, FastAPI, HTTPException
 from peagen.transport import RPCDispatcher
 from swarmauri_standard.loggers.Logger import Logger
 
 # ─── AutoAPI & client ────────────────────────────────────────────────
-from autoapi_client           import AutoAPIClient
-from autoapi.v2               import AutoAPI            # façade for get_schema
-from peagen.orm               import Worker, Work
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI  # façade for get_schema
+from peagen.orm import Worker, Work
 
 # Auto-generated schemas
 SWorkerCreate = AutoAPI.get_schema(Worker, "create")
-SWorkerRead   = AutoAPI.get_schema(Worker, "read")
+SWorkerRead = AutoAPI.get_schema(Worker, "read")
 SWorkerUpdate = AutoAPI.get_schema(Worker, "update")
 
-SWorkCreate   = AutoAPI.get_schema(Work,   "create")
-SWorkUpdate   = AutoAPI.get_schema(Work,   "update")
+SWorkCreate = AutoAPI.get_schema(Work, "create")
+SWorkUpdate = AutoAPI.get_schema(Work, "update")
+
 
 # --------------------------------------------------------------------
 def _local_ip() -> str:
@@ -54,27 +58,26 @@ class WorkerBase:
         log_level: str | None = None,
         heartbeat_interval: float = 5.0,
     ) -> None:
-
         # ----- env / defaults --------------------------------------
-        self.pool      = pool      or os.getenv("DQ_POOL", "default")
-        self.gateway   = gateway   or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+        self.pool = pool or os.getenv("DQ_POOL", "default")
+        self.gateway = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
         self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
-        self.port      = port      or int(os.getenv("PORT", 8001))
-        self.host      = host      or os.getenv("DQ_HOST") or _local_ip()
+        self.port = port or int(os.getenv("PORT", 8001))
+        self.host = host or os.getenv("DQ_HOST") or _local_ip()
         self.listen_at = f"http://{self.host}:{self.port}/rpc"
 
-        lvl   = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
+        lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
         level = getattr(logging, lvl, logging.INFO)
         self.log = Logger(name="worker", default_level=level)
 
         # ----- runtime objects -------------------------------------
-        self.app        = FastAPI(title="Peagen Worker")
+        self.app = FastAPI(title="Peagen Worker")
         self._handlers: dict[str, Callable[[dict], Awaitable[dict]]] = {}
-        self._client    = AutoAPIClient(self.gateway)
-        self._http      = httpx.AsyncClient(timeout=10.0)
+        self._client = AutoAPIClient(self.gateway)
+        self._http = httpx.AsyncClient(timeout=10.0)
         self._hb_task: asyncio.Task | None = None
-        self._hb_every  = heartbeat_interval
-        self.ready      = False
+        self._hb_every = heartbeat_interval
+        self.ready = False
 
         # ----- built-in JSON-RPC dispatcher ------------------------
         self.rpc = RPCDispatcher()
@@ -164,9 +167,9 @@ class WorkerBase:
         and report status back via Works.update.
         """
         try:
-            work_in  = SWorkCreate.model_validate(raw)
-            task_id  = work_in.id
-            action   = (work_in.payload or {}).get("action")
+            work_in = SWorkCreate.model_validate(raw)
+            task_id = work_in.id
+            action = (work_in.payload or {}).get("action")
 
             if action not in self._handlers:
                 raise RuntimeError(f"unsupported action '{action}'")
@@ -189,4 +192,4 @@ class WorkerBase:
             self._client.call("Works.update", params=upd)
             self.log.info("Works.update %s → %s", work_id, status)
         except Exception as exc:
-            self.log.error("notify failed: %s", exc) 
+            self.log.error("notify failed: %s", exc)

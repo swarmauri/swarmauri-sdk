@@ -1,13 +1,14 @@
 """Utility helpers for key-pair management — refactored for AutoAPIClient."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 
 import httpx
-from autoapi_client      import AutoAPIClient
-from autoapi.v2          import AutoAPI
-from peagen.orm          import DeployKey        # ORM resource
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI
+from peagen.orm import DeployKey  # ORM resource
 
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
@@ -22,16 +23,18 @@ def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> A
         drv = pm.get("secrets_drivers")
     except KeyError:
         from peagen.plugins.secret_drivers import AutoGpgDriver
+
         drv = AutoGpgDriver()
 
     if not hasattr(drv, "list_keys"):
         from peagen.plugins.secret_drivers import AutoGpgDriver
+
         drv = AutoGpgDriver()
 
     if key_dir is not None and hasattr(drv, "key_dir"):
-        drv.key_dir   = Path(key_dir)
+        drv.key_dir = Path(key_dir)
         drv.priv_path = drv.key_dir / "private.asc"
-        drv.pub_path  = drv.key_dir / "public.asc"
+        drv.pub_path = drv.key_dir / "public.asc"
 
     if passphrase is not None and hasattr(drv, "passphrase"):
         drv.passphrase = passphrase
@@ -43,7 +46,9 @@ def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> A
 
 
 # ─────────────────────────── local helpers (unchanged) ────────────────
-def create_keypair(key_dir: Path | None = None, passphrase: Optional[str] = None) -> dict:
+def create_keypair(
+    key_dir: Path | None = None, passphrase: Optional[str] = None
+) -> dict:
     drv = _get_driver(key_dir=key_dir, passphrase=passphrase)
     return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
 
@@ -75,18 +80,18 @@ def _rpc(gateway_url: str) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(DeployKey, tag)        # classmethod
+    return AutoAPI.get_schema(DeployKey, tag)  # classmethod
 
 
 def upload_public_key(
     key_dir: Path | None = None, gateway_url: str = DEFAULT_GATEWAY
 ) -> dict:
-    drv     = _get_driver(key_dir=key_dir)
-    pubkey  = drv.pub_path.read_text()
+    drv = _get_driver(key_dir=key_dir)
+    pubkey = drv.pub_path.read_text()
     SCreate = _schema("create")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
-    params  = SCreate(public_key=pubkey)
+    params = SCreate(public_key=pubkey)
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
@@ -94,9 +99,7 @@ def upload_public_key(
     return res.model_dump()
 
 
-def remove_public_key(
-    fingerprint: str, gateway_url: str = DEFAULT_GATEWAY
-) -> dict:
+def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
     SDel = _schema("delete")
     params = SDel(fingerprint=fingerprint)
 
@@ -108,7 +111,7 @@ def remove_public_key(
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     SListIn = _schema("list")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call("PublicKeys.list", params=SListIn(), out_schema=list[SRead])  # type: ignore

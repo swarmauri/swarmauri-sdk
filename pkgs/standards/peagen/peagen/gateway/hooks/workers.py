@@ -9,23 +9,24 @@ AutoAPI-native hooks for Worker CRUD.
 """
 
 from __future__ import annotations
-import json, time, httpx
+import json
+import time
+import httpx
 from typing import Any, Dict, List
 
 from autoapi.v2 import Phase, AutoAPI
 from peagen.transport.jsonrpc import RPCException
 from peagen.orm import Worker
 
-from peagen.defaults import WORKER_KEY, WORKER_TTL, READY_QUEUE
-from ..      import log, queue, api
-from ..schedule_helpers     import _load_task, _save_task, _finalize_parent_tasks
-from .._publish import _publish_task, _publish_event, _publish_queue_length
+from peagen.defaults import WORKER_KEY, WORKER_TTL
+from .. import log, queue, api
+from .._publish import _publish_event
 
 # ─────────────────── schema handles ────────────────────────────────────
 WorkerCreate = AutoAPI.get_schema(Worker, "create")
-WorkerRead   = AutoAPI.get_schema(Worker, "read")
-WorkerUpdate = AutoAPI.get_schema(Worker, "update")   # NEW
-WorkersListQ = AutoAPI.get_schema(Worker, "list")     # request model
+WorkerRead = AutoAPI.get_schema(Worker, "read")
+WorkerUpdate = AutoAPI.get_schema(Worker, "update")  # NEW
+WorkersListQ = AutoAPI.get_schema(Worker, "list")  # request model
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
@@ -42,7 +43,7 @@ async def pre_worker_create(ctx: Dict[str, Any]) -> None:
                 r = await cl.get(well_known)
                 if r.status_code == 200:
                     handlers = r.json().get("handlers", [])
-        except Exception as exc:    # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             log.warning("well-known fetch for %s failed – %s", wc.url, exc)
 
     if not handlers:
@@ -53,16 +54,16 @@ async def pre_worker_create(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_COMMIT, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
-    created: WorkerRead  = ctx["result"]
-    wc: WorkerCreate     = ctx["worker_in"]
+    created: WorkerRead = ctx["result"]
+    wc: WorkerCreate = ctx["worker_in"]
 
     await _cache_worker(
         created.id,
         {
-            "pool":       wc.pool,
-            "url":        wc.url,
+            "pool": wc.pool,
+            "url": wc.url,
             "advertises": wc.advertises or {},
-            "handlers":   wc.handlers,
+            "handlers": wc.handlers,
         },
     )
     await queue.sadd(f"pool:{wc.pool}:members", created.id)
@@ -82,19 +83,19 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
     # merge incoming changes
     mutated = {
-        "pool":       wu.pool      if wu.pool      is not None else cached.get("pool"),
-        "url":        wu.url       if wu.url       is not None else cached.get("url"),
+        "pool": wu.pool if wu.pool is not None else cached.get("pool"),
+        "url": wu.url if wu.url is not None else cached.get("url"),
         "advertises": wu.advertises or cached.get("advertises", {}),
-        "handlers":   wu.handlers   or cached.get("handlers", []),
+        "handlers": wu.handlers or cached.get("handlers", []),
     }
     ctx["worker_cache_upd"] = mutated
-    ctx["worker_id"]        = wid
+    ctx["worker_id"] = wid
 
 
 @api.hook(Phase.POST_COMMIT, method="Workers.update")
 async def post_worker_update(ctx: Dict[str, Any]) -> None:
-    wid   = ctx["worker_id"]
-    data  = ctx["worker_cache_upd"]
+    wid = ctx["worker_id"]
+    data = ctx["worker_cache_upd"]
 
     await _cache_worker(wid, data)
     log.debug("heartbeat stored for %s", wid)
@@ -103,11 +104,11 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
 @api.hook(Phase.POST_HANDLER, method="Workers.list")
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
-    params   = ctx["env"].params or {}
+    params = ctx["env"].params or {}
     filter_pool = params.get("pool")
 
-    keys   = await queue.keys("worker:*")
-    now    = int(time.time())
+    keys = await queue.keys("worker:*")
+    now = int(time.time())
     result: List[Dict[str, Any]] = []
 
     for k in keys:
@@ -119,17 +120,27 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
         if filter_pool and blob.get("pool") != filter_pool:
             continue
 
-        advert   = json.loads(blob["advertises"]) if isinstance(blob.get("advertises"), str) else blob.get("advertises", {})
-        handlers = json.loads(blob["handlers"])   if isinstance(blob.get("handlers"), str) else blob.get("handlers", [])
+        advert = (
+            json.loads(blob["advertises"])
+            if isinstance(blob.get("advertises"), str)
+            else blob.get("advertises", {})
+        )
+        handlers = (
+            json.loads(blob["handlers"])
+            if isinstance(blob.get("handlers"), str)
+            else blob.get("handlers", [])
+        )
 
-        result.append({
-            "id":        k.split(":", 1)[1],
-            "pool":      blob.get("pool"),
-            "url":       blob.get("url"),
-            "advertises": advert,
-            "handlers":   handlers,
-            "last_seen":  int(blob["last_seen"]),
-        })
+        result.append(
+            {
+                "id": k.split(":", 1)[1],
+                "pool": blob.get("pool"),
+                "url": blob.get("url"),
+                "advertises": advert,
+                "handlers": handlers,
+                "last_seen": int(blob["last_seen"]),
+            }
+        )
 
     ctx["result"] = result
 
@@ -139,16 +150,16 @@ async def _cache_worker(worker_id: str, data: dict) -> None:
     """
     Upsert worker metadata in `worker:<id>` hash and refresh TTL.
     """
-    key  = WORKER_KEY.format(worker_id)
-    now  = int(time.time())
+    key = WORKER_KEY.format(worker_id)
+    now = int(time.time())
 
     # serialise nested structures consistently
     mapping = {
-        "pool":       data.get("pool"),
-        "url":        data.get("url"),
+        "pool": data.get("pool"),
+        "url": data.get("url"),
         "advertises": json.dumps(data.get("advertises", {})),
-        "handlers":   json.dumps(data.get("handlers", [])),
-        "last_seen":  now,
+        "handlers": json.dumps(data.get("handlers", [])),
+        "last_seen": now,
     }
 
     await queue.hset(key, mapping=mapping)

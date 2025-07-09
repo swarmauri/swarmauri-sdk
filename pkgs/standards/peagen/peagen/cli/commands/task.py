@@ -4,11 +4,13 @@ CLI wrapper for querying and managing asynchronous Tasks via AutoAPI.
 
 from __future__ import annotations
 
-import json, time, uuid, typer, httpx
+import json
+import time
+import typer
 from typing import Any
 
 from autoapi_client import AutoAPIClient
-from autoapi          import AutoAPI
+from autoapi import AutoAPI
 from peagen.orm import Status, Task
 from peagen.cli.task_helpers import get_task, build_task, submit_task
 
@@ -21,16 +23,18 @@ def _rpc(ctx: typer.Context) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(Task, tag)          # classmethod
+    return AutoAPI.get_schema(Task, tag)  # classmethod
 
 
 # ───────────────────────── commands ───────────────────────────────────
 @remote_task_app.command("get")
-def get(                                          # noqa: D401
+def get(  # noqa: D401
     ctx: typer.Context,
     task_id: str = typer.Argument(..., help="UUID of the task to query"),
     watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(2.0, "--interval", "-i", help="Seconds between polls"),
+    interval: float = typer.Option(
+        2.0, "--interval", "-i", help="Seconds between polls"
+    ),
 ):
     """Fetch status/result for TASK_ID (optionally watch until done)."""
     while True:
@@ -50,10 +54,10 @@ def patch_task(
 ):
     """Apply partial update to a Task."""
     SUpdate = _schema("update")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
     changes_obj = SUpdate.model_validate(json.loads(changes))
-    params      = {"id": task_id, **changes_obj.model_dump(exclude_unset=True)}
+    params = {"id": task_id, **changes_obj.model_dump(exclude_unset=True)}
 
     with _rpc(ctx) as rpc:
         res = rpc.call("Tasks.update", params=params, out_schema=SRead)
@@ -63,8 +67,8 @@ def patch_task(
 # ── helper for one-shot status transitions ────────────────────────────
 def _simple_status_change(ctx: typer.Context, task_id: str, new_status: Status):
     SUpdate = _schema("update")
-    SRead   = _schema("read")
-    params  = {"id": task_id, "status": new_status}
+    SRead = _schema("read")
+    params = {"id": task_id, "status": new_status}
 
     with _rpc(ctx) as rpc:
         res = rpc.call("Tasks.update", params=SUpdate(**params), out_schema=SRead)
