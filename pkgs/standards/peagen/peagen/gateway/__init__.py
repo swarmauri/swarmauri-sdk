@@ -133,13 +133,6 @@ def _client_ip(request: Request) -> str:
         return forwarded.split(",")[0].strip()
     return request.headers.get("x-real-ip") or request.client.host
 
-
-# Backwards compatibility alias
-def _get_client_ip(request: Request) -> str:  # pragma: no cover - legacy
-    """Alias for ``_client_ip`` to support older imports."""
-    return _client_ip(request)
-
-
 # ─────────── scheduler loop ───────────────────────────────────────────
 async def scheduler() -> None:
     sched_log.info("scheduler loop started")
