@@ -29,7 +29,14 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
-    task = build_task("templates", {"operation": op, **args})
+    task = build_task(
+        action=op,
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.templates_handler(task)
 
     assert result == {"op": op}

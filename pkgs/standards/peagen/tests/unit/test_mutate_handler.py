@@ -15,6 +15,15 @@ async def test_mutate_handler_invokes_core(monkeypatch):
 
     monkeypatch.setattr(handler, "mutate_workspace", fake_mutate_workspace)
 
+    class DummyPM:
+        def __init__(self, cfg):
+            self.cfg = cfg
+
+        def get(self, name):
+            raise Exception
+
+    monkeypatch.setattr(handler, "PluginManager", DummyPM)
+
     args = {
         "workspace_uri": "ws",
         "target_file": "t.py",
@@ -27,7 +36,14 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    task = build_task("mutate", args, pool="default")
+    task = build_task(
+        action="mutate",
+        args=args,
+        tenant_id="t",
+        pool_id="default",
+        repo="repo",
+        ref="HEAD",
+    )
 
     result = await handler.mutate_handler(task)
 

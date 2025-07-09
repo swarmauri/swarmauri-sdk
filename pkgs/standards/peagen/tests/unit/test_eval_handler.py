@@ -14,8 +14,15 @@ async def test_eval_handler(monkeypatch):
 
     monkeypatch.setattr(handler, "evaluate_workspace", fake_evaluate_workspace)
 
-    args = {}
-    params = build_task("eval", args, repo="repo", ref="HEAD")
+    args = {"repo": "repo", "ref": "HEAD"}
+    params = build_task(
+        action="eval",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.eval_handler(params)
 
     assert result["report"]["results"][0]["score"] == 0
