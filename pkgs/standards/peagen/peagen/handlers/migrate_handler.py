@@ -1,9 +1,10 @@
-# peagen/handlers/migrate_handler.py
 """
-Async entry-point for Alembic ­migrations.
+peagen.handlers.migrate_handler
+───────────────────────────────
+Async entry-point for running Alembic migrations.
 
-Input : TaskRead  (AutoAPI schema for the Task ORM table)
-Output: dict      – result from peagen.core.migrate_core
+Input : TaskRead  – AutoAPI schema for the Task ORM table
+Output: dict      – result dict from peagen.core.migrate_core
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from autoapi.v2 import AutoAPI
-from peagen.orm import Task
+from peagen.orm  import Task
 
 from peagen.core.migrate_core import (
     ALEMBIC_CFG,
@@ -21,25 +22,24 @@ from peagen.core.migrate_core import (
     alembic_revision,
 )
 
-# ─────────────────────────── AutoAPI schema ───────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")  # incoming model
+# ───────────────────────── Schema handle ──────────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")        # incoming Pydantic model
 
 
-# ─────────────────────────── main handler ─────────────────────────────
+# ───────────────────────── Main coroutine ─────────────────────────────
 async def migrate_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    Expected payload structure
-    --------------------------
-    task.payload == {
-        "args": {
+    task.args must contain:
+
+        {
             "op"        : "upgrade" | "downgrade" | "revision",
             "alembic_ini": "<optional path>",
-            "message"    : "<rev-message for revision>"
+            "message"    : "<rev-message, for revision only>"
         }
-    }
     """
-    args: Dict[str, Any] = (task.payload or {}).get("args", {})
+    args: Dict[str, Any] = task.args or {}         # ← no more payload
     op: str | None = args.get("op")
+
     if op not in {"upgrade", "downgrade", "revision"}:
         return {"ok": False, "error": f"unknown op: {op}"}
 
@@ -48,11 +48,10 @@ async def migrate_handler(task: TaskRead) -> Dict[str, Any]:
 
     if op == "upgrade":
         return alembic_upgrade(cfg_path)
+
     if op == "downgrade":
         return alembic_downgrade(cfg_path)
-    if op == "revision":
-        msg = args.get("message", "init")
-        return alembic_revision(msg, cfg_path)
 
-    # should not reach here
-    return {"ok": False, "error": f"invalid op: {op}"}
+    # op == "revision"
+    message = args.get("message", "init")
+    return alembic_revision(message, cfg_path)

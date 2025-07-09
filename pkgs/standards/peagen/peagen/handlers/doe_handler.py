@@ -1,54 +1,63 @@
-# peagen/handlers/doe_handler.py
+"""
+peagen.handlers.doe_handler
+───────────────────────────
+Asynchronous Design-of-Experiments worker.
+
+Input  : TaskRead  – AutoAPI schema for the Task table
+Output : dict      – JSON-serialisable result from generate_payload(...)
+"""
+
 from __future__ import annotations
 
 import os
-import tempfile
 import shutil
-import yaml
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import yaml
 from autoapi.v2 import AutoAPI
-from peagen.orm import Task  # ORM class
+from peagen.orm  import Task
 
-from peagen.core.doe_core import (
+from peagen.core.doe_core          import (
     generate_payload,
     create_factor_branches,
     create_run_branches,
 )
-from peagen._utils.config_loader import resolve_cfg
-from peagen.plugins import PluginManager
+from peagen._utils.config_loader   import resolve_cfg
+from peagen.plugins                import PluginManager
 
 # ─────────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")  # ← used as input type
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-
-# ───────────────────────────  helper fns ──────────────────────────────
+# ─────────────────────────── helper fns ───────────────────────────────
 def _write_tmp(text: str, suffix: str, tmp_dir: Path) -> Path:
     p = tmp_dir / suffix
     p.write_text(text, encoding="utf-8")
     return p
 
-
-# ───────────────────────────  main handler  ───────────────────────────
+# ─────────────────────────── main coroutine ───────────────────────────
 async def doe_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    Design-of-Experiments (DoE) worker.
-
-    Parameters
-    ----------
-    task : TaskRead
-        The Task instance whose `payload.action == "doe"`.
-
-    Returns
-    -------
-    dict
-        Result payload to be stored back on the Work / Task row.
+    `task.args` MUST contain
+    ------------------------
+    {
+        "spec"           : "<path>|None",         # OR "spec_text"
+        "template"       : "<path>|None",         # OR "template_text"
+        "output"         : "<path>",
+        "config"         : "<path toml>",
+        "notify"         : "<url>",
+        "dry_run"        : bool,
+        "force"          : bool,
+        "skip_validate"  : bool,
+        "evaluate_runs"  : bool,
+        "repo"           : "<git url>",           # optional (for VCS ops)
+        "ref"            : "HEAD"                # optional
+    }
     """
-    payload = task.payload or {}
-    args: Dict[str, Any] = payload.get("args", {})
+    args: Dict[str, Any] = task.args or {}
 
-    # ---------- handle inline spec/template text ----------------------
+    # ---------- inline spec / template support -------------------------
     tmp_dir: Optional[Path] = None
     if "spec_text" in args or "template_text" in args:
         tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_doe_"))
@@ -59,32 +68,30 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:
                 _write_tmp(args["template_text"], "template.yaml", tmp_dir)
             )
 
-    # ---------- config & plugin manager --------------------------------
+    # ---------- configuration & plugin manager -------------------------
     cfg = resolve_cfg(toml_path=args.get("config") or ".peagen.toml")
-    pm = PluginManager(cfg)
+    pm  = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
-    except Exception:  # plugin optional
+    except Exception:
         vcs = None
 
-    # ---------- generate the DoE artefacts ------------------------------
+    # ---------- generate DoE artefacts ---------------------------------
     result = generate_payload(
-        spec_path=Path(args["spec"]).expanduser(),
-        template_path=Path(args["template"]).expanduser(),
-        output_path=Path(args["output"]).expanduser(),
-        cfg_path=Path(args["config"]).expanduser() if args.get("config") else None,
-        notify_uri=args.get("notify"),
-        dry_run=args.get("dry_run", False),
-        force=args.get("force", False),
-        skip_validate=args.get("skip_validate", False),
-        evaluate_runs=args.get("evaluate_runs", False),
+        spec_path     = Path(args["spec"]).expanduser(),
+        template_path = Path(args["template"]).expanduser(),
+        output_path   = Path(args["output"]).expanduser(),
+        cfg_path      = Path(args["config"]).expanduser() if args.get("config") else None,
+        notify_uri    = args.get("notify"),
+        dry_run       = args.get("dry_run", False),
+        force         = args.get("force", False),
+        skip_validate = args.get("skip_validate", False),
+        evaluate_runs = args.get("evaluate_runs", False),
     )
 
-    dry_run = result.get("dry_run", args.get("dry_run", False))
-
-    # ---------- optional VCS integration --------------------------------
-    if vcs and not dry_run:
-        repo_root = Path(vcs.repo.working_tree_dir)
+    # ---------- optional VCS integration -------------------------------
+    if vcs and not result.get("dry_run", False):
+        repo_root  = Path(vcs.repo.working_tree_dir)
         rel_paths: List[str] = [
             os.path.relpath(p, repo_root) for p in result.get("outputs", [])
         ]
@@ -93,14 +100,11 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:
             result["commit"] = commit_sha
             vcs.push(vcs.repo.active_branch.name)
 
+        # create factor / run branches if baseArtifact present
         spec_obj = yaml.safe_load(Path(args["spec"]).read_text())
         if spec_obj.get("baseArtifact"):
             spec_dir = Path(args["spec"]).expanduser().parent
             create_factor_branches(vcs, spec_obj, spec_dir)
             create_run_branches(vcs, spec_obj, spec_dir)
 
-    # ---------- cleanup -------------------------------------------------
-    if tmp_dir:
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-
-    return result
+    # ---------- cleanup -

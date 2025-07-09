@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import json
 import time
-import typer
 from typing import Any
 
+import typer
 from autoapi_client import AutoAPIClient
-from autoapi import AutoAPI
+from autoapi.v2 import AutoAPI
 from peagen.orm import Status, Task
 from peagen.cli.task_helpers import get_task, build_task, submit_task
 
@@ -23,7 +23,8 @@ def _rpc(ctx: typer.Context) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(Task, tag)  # classmethod
+    # shortcut to the Pydantic model generated for <Task, tag>
+    return AutoAPI.get_schema(Task, tag)
 
 
 # ───────────────────────── commands ───────────────────────────────────
@@ -36,7 +37,7 @@ def get(  # noqa: D401
         2.0, "--interval", "-i", help="Seconds between polls"
     ),
 ):
-    """Fetch status/result for TASK_ID (optionally watch until done)."""
+    """Fetch status/result for *TASK_ID* (optionally watch until done)."""
     while True:
         reply = get_task(task_id, gateway_url=ctx.obj["gateway_url"])
         typer.echo(json.dumps(reply, indent=2))
@@ -77,7 +78,7 @@ def _simple_status_change(ctx: typer.Context, task_id: str, new_status: Status):
 
 @remote_task_app.command("pause")
 def pause(ctx: typer.Context, task_id: str):
-    """Mark a running task as paused."""
+    """Mark a running task as *paused*."""
     _simple_status_change(ctx, task_id, Status.paused)
 
 
@@ -95,7 +96,7 @@ def cancel(ctx: typer.Context, task_id: str):
 
 @remote_task_app.command("retry")
 def retry(ctx: typer.Context, task_id: str):
-    """Retry a task (sets status=retry)."""
+    """Retry a task (sets status = retry)."""
     _simple_status_change(ctx, task_id, Status.retry)
 
 
@@ -104,20 +105,25 @@ def retry_from(
     ctx: typer.Context,
     source_task_id: str = typer.Argument(..., help="Existing task to clone"),
 ):
-    """Create a **new** task by cloning *source_task_id* and submitting it."""
-    # 1. fetch original
+    """
+    Create a **new** task by cloning *source_task_id* and submitting it.
+
+    Works with the new flat schema where `action` and `args` live directly
+    on the Task row (rather than inside `payload`).
+    """
+    # 1. fetch the original task
     original = get_task(source_task_id, gateway_url=ctx.obj["gateway_url"])
-    if not original["result"]:
-        typer.echo("Source task has no payload/result to clone.", err=True)
+    if not original.get("action"):
+        typer.echo("Source task has no action to clone.", err=True)
         raise typer.Exit(1)
 
-    # 2. build & submit new task
-    payload: dict[str, Any] = original["result"]["payload"]  # type: ignore[index]
+    # 2. build & submit a new task with the same action/args/pool
     new_task = build_task(
-        action=payload["action"],
-        args=payload["args"],
+        action=original["action"],
+        args=original.get("args", {}),
         pool=original.get("pool", "default"),
         tenant_id=original.get("tenant_id", "default"),
+        labels=original.get("labels") or [],
     )
     submitted = submit_task(ctx.obj["gateway_url"], new_task)
     typer.echo(json.dumps(submitted, indent=2))

@@ -1,9 +1,8 @@
-# peagen/handlers/extras_handler.py
 """
-Generate EXTRAS json-schema files from template-set ``EXTRAS.md`` files.
+Generate EXTRAS JSON-Schema files from template-set ``EXTRAS.md`` files.
 
-Input : TaskRead  (AutoAPI schema for the Task table)
-Output: dict      { "generated": [ ... ] }
+Input : TaskRead  – AutoAPI schema for the Task table
+Output: dict      – { "generated": [ <paths> ] }
 """
 
 from __future__ import annotations
@@ -12,34 +11,30 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from autoapi.v2 import AutoAPI
-from peagen.orm import Task
+from peagen.orm  import Task
 
-from peagen._utils import maybe_clone_repo
+from peagen._utils           import maybe_clone_repo
 from peagen.core.extras_core import generate_schemas
 
-# ─────────────────────────── AutoAPI schema ───────────────────────────
+# ─────────────────────────── schema handle ────────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")
 
-
-# ─────────────────────────── main handler ─────────────────────────────
+# ─────────────────────────── main coroutine ───────────────────────────
 async def extras_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    Generate JSON-Schema files for the “EXTRAS” feature set.
+    `task.args` MAY contain:
 
-    The handler honours optional arguments in *task.payload.args*:
-        • repo / ref               – git source to clone before generation
-        • templates_root           – directory containing EXTRAS.md files
-        • schemas_dir              – destination folder for generated schemas
+        repo            – optional git URL
+        ref             – optional ref/branch (default "HEAD")
+        templates_root  – dir with template-set EXTRAS.md files
+        schemas_dir     – destination for generated schema files
     """
-    payload = task.payload or {}
-    args: Dict[str, Any] = payload.get("args", {})
+    args: Dict[str, Any] = task.args or {}
 
     repo: Optional[str] = args.get("repo")
-    ref: str = args.get("ref", "HEAD")
+    ref:  str           = args.get("ref", "HEAD")
 
-    # ------------------------------------------------------------------
-    # 1. Clone repository when requested (context manager cleans up tmp)
-    # ------------------------------------------------------------------
+    # ───────── optional repo checkout (context manager cleans up) ─────
     with maybe_clone_repo(repo, ref) as tmp_checkout:
         project_root = tmp_checkout or Path(__file__).resolve().parents[1]
 
@@ -54,12 +49,7 @@ async def extras_handler(task: TaskRead) -> Dict[str, Any]:
             else project_root / "jsonschemas" / "extras"
         )
 
-        # ------------------------------------------------------------------
-        # 2. Generate schema files
-        # ------------------------------------------------------------------
         written: List[Path] = generate_schemas(templates_root, schemas_dir)
 
-    # ------------------------------------------------------------------
-    # 3. Return a simple serialisable mapping
-    # ------------------------------------------------------------------
+    # ───────── return serialisable mapping ────────────────────────────
     return {"generated": [str(p) for p in written]}
