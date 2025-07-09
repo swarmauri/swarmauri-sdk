@@ -82,7 +82,6 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:
         template_path = Path(args["template"]).expanduser(),
         output_path   = Path(args["output"]).expanduser(),
         cfg_path      = Path(args["config"]).expanduser() if args.get("config") else None,
-        notify_uri    = args.get("notify"),
         dry_run       = args.get("dry_run", False),
         force         = args.get("force", False),
         skip_validate = args.get("skip_validate", False),
