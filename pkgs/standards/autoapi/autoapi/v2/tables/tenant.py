@@ -1,11 +1,11 @@
 """Tenant model."""
 
 from ._base import Base
-from ..mixins import GUIDPk, Timestamped  # relative to autoapi/v2
+from ..mixins import GUIDPk, Slugged, Timestamped
 from sqlalchemy import Column, String
 
 
-class Tenant(Base, GUIDPk, Timestamped):
+class Tenant(Base, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
     email = Column(String, unique=True)
 
@@ -20,5 +20,4 @@ for _name in list(globals()):
 
 def __dir__():
     """Tighten ``dir()`` output for interactive sessions."""
-
     return sorted(__all__)
