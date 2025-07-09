@@ -7,14 +7,13 @@ from peagen.plugins import PluginManager
 from peagen.errors import InvalidPluginSpecError
 from peagen.plugin_manager import resolve_plugin_spec
 
-from .dummy_plugins import DummyQueue, DummyBackend
+from .dummy_plugins import DummyQueue
 
 
 @pytest.mark.unit
 def test_plugin_manager_instantiates_defaults(tmp_path, monkeypatch):
     cfg = {
         "queues": {"default_queue": "dummy_queue"},
-        "result_backends": {"default_backend": "dummy_backend", "adapters": {}},
     }
 
     _reset_plugins(monkeypatch)
@@ -22,12 +21,9 @@ def test_plugin_manager_instantiates_defaults(tmp_path, monkeypatch):
 
     pm = PluginManager(cfg)
     plugins.registry["queues"]["dummy_queue"] = DummyQueue
-    plugins.registry["result_backends"]["dummy_backend"] = DummyBackend
 
     queue = pm.get("queues")
-    backend = pm.get("result_backends")
     assert isinstance(queue, DummyQueue)
-    assert isinstance(backend, DummyBackend)
 
 
 @pytest.mark.unit
@@ -35,13 +31,6 @@ def test_plugin_manager_allows_null_default():
     cfg = {"queues": {"default_queue": None}}
     pm = PluginManager(cfg)
     assert pm.get("queues") is None
-
-
-@pytest.mark.unit
-def test_plugin_manager_allows_null_result_backend():
-    cfg = {"result_backends": {"default_backend": None}}
-    pm = PluginManager(cfg)
-    assert pm.get("result_backends") is None
 
 
 def _reset_plugins(monkeypatch):
