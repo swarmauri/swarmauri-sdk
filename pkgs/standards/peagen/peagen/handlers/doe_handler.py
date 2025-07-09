@@ -106,4 +106,8 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:
             create_factor_branches(vcs, spec_obj, spec_dir)
             create_run_branches(vcs, spec_obj, spec_dir)
 
-    # ---------- cleanup -
+    # ---------- cleanup ------------------------------------------------
+    if tmp_dir:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    return result
