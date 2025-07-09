@@ -26,4 +26,6 @@ __all__ = ["Base"]
 
 
 def __dir__():
-    """Tighten `dir()` output for interactive sessions."""    return sorted(__all__)
+    """Tighten ``dir()`` output for interactive sessions."""
+
+    return sorted(__all__)

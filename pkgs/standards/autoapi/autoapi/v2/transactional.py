@@ -1,3 +1,9 @@
+from functools import wraps
+from typing import Any, Callable
+
+from sqlalchemy.orm import Session
+
+
 def transactional(self, fn: Callable[..., Any]):
     """
     Decorator to wrap an RPC handler in an explicit DB transaction.
@@ -13,4 +19,5 @@ def transactional(self, fn: Callable[..., Any]):
         except Exception:
             db.rollback()
             raise
+
     return wrapper

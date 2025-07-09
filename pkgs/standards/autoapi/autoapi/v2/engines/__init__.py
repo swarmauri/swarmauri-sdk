@@ -3,9 +3,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool  # only for SQLite
 from sqlalchemy.orm import sessionmaker
 
-from contextlib import asynccontextmanager
-from sqlalchemy.orm import Session
-
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 

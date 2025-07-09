@@ -19,8 +19,6 @@ def get_autoapi_schema(
     """
     from . import AutoAPI
 
-    pk = next(iter(orm_cls.__table__.primary_key.columns)).name
-
     # -- define the four core variants ---------------------------------
     def _schema(verb: str):
         return AutoAPI._schema(AutoAPI, orm_cls, verb=verb)

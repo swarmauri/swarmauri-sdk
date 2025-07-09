@@ -181,7 +181,7 @@ def _register_routes_and_rpcs(  # noqa: N802
                 200,
                 SCreate,
                 SRead,
-                lambda i, p, db: _update(i, p, db, full=True),
+                functools.partial(_update, full=True),
             )
         )
     if issubclass(model, BulkCapable):
@@ -398,7 +398,8 @@ def _crud(self, model: type) -> None:  # noqa: N802
     pk = next(iter(model.__table__.primary_key.columns)).name
 
     # ----- generate the five canonical schemas ------------------------
-    _S = lambda verb, **kw: self._schema(model, verb=verb, **kw)
+    def _S(verb: str, **kw):
+        return self._schema(model, verb=verb, **kw)
 
     SCreate = _S("create")  # PK excluded
     SRead = _S("read")  # full set
