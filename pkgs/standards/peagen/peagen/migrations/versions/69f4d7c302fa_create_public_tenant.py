@@ -49,6 +49,7 @@ def upgrade() -> None:
             sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("slug", sa.String),
             sa.column("name", sa.String),
+            sa.column("email", sa.String),
             sa.column("created_at", sa.DateTime(timezone=False)),
             sa.column("updated_at", sa.DateTime(timezone=False)),
         )
@@ -59,6 +60,7 @@ def upgrade() -> None:
                     "id": tenant_id,
                     "slug": "public",
                     "name": "Public",
+                    "email": "support@swarmauri.com",
                     "created_at": now,
                     "updated_at": now,
                 }
