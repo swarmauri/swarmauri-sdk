@@ -259,7 +259,9 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin):
     duration_s = Column(Integer)
 
     task = relationship(Task, back_populates="works")
-
+    eval_results = relationship(
+        "EvalResult", back_populates="work", cascade="all, delete-orphan"
+    )
 
 # ---------------------------------------------------------------------
 # 5) Raw blobs (stand-alone)

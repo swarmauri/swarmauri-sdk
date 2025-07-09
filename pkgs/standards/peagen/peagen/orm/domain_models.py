@@ -116,7 +116,7 @@ class EvalResult(Base, GUIDPk, Timestamped, Ownable):
     metrics     = Column(JSON,   nullable=False)
 
     owner    = relationship(User, lazy="selectin")
-    task_run = relationship("TaskRun", back_populates="eval_results", lazy="selectin")
+    task_run = relationship("Work", back_populates="eval_results", lazy="selectin")
     analyses = relationship(
         "AnalysisResult",
         back_populates="eval_result",

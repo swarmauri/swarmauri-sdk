@@ -13,12 +13,12 @@ def test_alembic_upgrade_and_current(tmp_path):
     repo_root = Path(__file__).resolve().parents[5]
 
     env = os.environ.copy()
-    env.setdefault("REDIS_URL", "redis://localhost:6379/0")
     env.pop("PG_HOST", None)
     env.pop("PG_PORT", None)
     env.pop("PG_DB", None)
     env.pop("PG_USER", None)
     env.pop("PG_PASS", None)
+    env.pop("PG_DSN", None)
 
     db_path = repo_root / "gateway.db"
     if db_path.exists():
@@ -62,7 +62,7 @@ def test_alembic_upgrade_and_current(tmp_path):
 
     with sqlite3.connect(db_path) as conn:
         cur = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='task_runs'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='works'"
         )
         assert cur.fetchone() is not None
-        conn.execute("PRAGMA table_info(task_runs)")
+        conn.execute("PRAGMA table_info(works)")
