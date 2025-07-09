@@ -23,7 +23,14 @@ async def test_fetch_handler_passes_args(monkeypatch):
         "install_template_sets": False,
     }
 
-    task = build_task("fetch", args)
+    task = build_task(
+        action="fetch",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.fetch_handler(task)
 
     assert result == {"count": 2}

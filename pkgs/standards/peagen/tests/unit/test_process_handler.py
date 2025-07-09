@@ -47,7 +47,14 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    task = build_task("process", args)
+    task = build_task(
+        action="process",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
 
     result = await handler.process_handler(task)
 

@@ -27,7 +27,14 @@ async def test_doe_handler_calls_generate_payload(monkeypatch):
         "skip_validate": True,
     }
 
-    task = build_task("doe", args)
+    task = build_task(
+        action="doe",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.doe_handler(task)
 
     assert result == {"done": True}

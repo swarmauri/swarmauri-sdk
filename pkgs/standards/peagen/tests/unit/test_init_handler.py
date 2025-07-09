@@ -26,7 +26,14 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 
     monkeypatch.setattr(init_core, func, fake)
     args = {"kind": kind, "path": "~/p"}
-    task = build_task("init", args)
+    task = build_task(
+        action="init",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.init_handler(task)
 
     assert result == {"kind": kind}
@@ -37,7 +44,25 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
 @pytest.mark.asyncio
 async def test_init_handler_errors(monkeypatch):
     with pytest.raises(ValueError):
-        await handler.init_handler(build_task("init", {}))
+        await handler.init_handler(
+            build_task(
+                action="init",
+                args={},
+                tenant_id="t",
+                pool_id="p",
+                repo="repo",
+                ref="HEAD",
+            )
+        )
 
     with pytest.raises(ValueError):
-        await handler.init_handler(build_task("init", {"kind": "unknown"}))
+        await handler.init_handler(
+            build_task(
+                action="init",
+                args={"kind": "unknown"},
+                tenant_id="t",
+                pool_id="p",
+                repo="repo",
+                ref="HEAD",
+            )
+        )
