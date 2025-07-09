@@ -17,9 +17,7 @@ from peagen.core.doe_core import (
     create_run_branches,
 )
 from peagen._utils.config_loader import resolve_cfg
-from peagen._utils import maybe_clone_repo
 from peagen.plugins import PluginManager
-from peagen.plugins.vcs import pea_ref
 
 # ─────────────────────────── schema handle ────────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")  # ← used as input type

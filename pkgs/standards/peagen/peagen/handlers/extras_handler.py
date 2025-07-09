@@ -8,17 +8,14 @@ Output: dict      { "generated": [ ... ] }
 
 from __future__ import annotations
 
-import shutil
-import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from autoapi.v2 import AutoAPI
-from peagen.orm import Status, Task
+from peagen.orm import Task
 
 from peagen._utils import maybe_clone_repo
 from peagen.core.extras_core import generate_schemas
-from .repo_utils import fetch_repo, cleanup_repo
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")

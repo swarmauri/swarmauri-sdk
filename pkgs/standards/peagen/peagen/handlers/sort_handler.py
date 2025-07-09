@@ -8,18 +8,17 @@ Output: dict      – result returned by sort_core helpers
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2          import AutoAPI
-from peagen.orm          import Task
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 
-from peagen._utils                 import maybe_clone_repo
-from peagen._utils.config_loader   import resolve_cfg
-from peagen.core.sort_core         import sort_single_project, sort_all_projects
+from peagen._utils import maybe_clone_repo
+from peagen._utils.config_loader import resolve_cfg
+from peagen.core.sort_core import sort_single_project, sort_all_projects
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")                   # incoming model
+TaskRead = AutoAPI.get_schema(Task, "read")  # incoming model
 
 
 # ─────────────────────────── main coroutine ───────────────────────────
@@ -42,27 +41,27 @@ async def sort_handler(task: TaskRead) -> Dict[str, Any]:
     }
     """
     payload: Dict[str, Any] = task.payload or {}
-    args:    Dict[str, Any] = payload.get("args", {})
-    cfg_override            = payload.get("cfg_override", {})
+    args: Dict[str, Any] = payload.get("args", {})
+    cfg_override = payload.get("cfg_override", {})
 
     # ----- effective configuration ------------------------------------
     cfg = resolve_cfg(toml_text=cfg_override)
 
     params: Dict[str, Any] = {
         "projects_payload": args["projects_payload"],
-        "project_name"    : args.get("project_name"),
-        "start_idx"       : args.get("start_idx", 0),
-        "start_file"      : args.get("start_file"),
-        "transitive"      : args.get("transitive", False),
+        "project_name": args.get("project_name"),
+        "start_idx": args.get("start_idx", 0),
+        "start_file": args.get("start_file"),
+        "transitive": args.get("transitive", False),
         "show_dependencies": args.get("show_dependencies", False),
-        "cfg"             : cfg,
+        "cfg": cfg,
     }
 
     repo = args.get("repo")
-    ref  = args.get("ref", "HEAD")
+    ref = args.get("ref", "HEAD")
 
     # ----- delegate to core business logic ----------------------------
-    with maybe_clone_repo(repo, ref):                      # no-op when repo is None
+    with maybe_clone_repo(repo, ref):  # no-op when repo is None
         if params["project_name"]:
             return sort_single_project(params)
         return sort_all_projects(params)

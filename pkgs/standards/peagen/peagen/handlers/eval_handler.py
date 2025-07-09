@@ -17,7 +17,7 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional
 
 from autoapi.v2 import AutoAPI
-from peagen.orm import Status, Task
+from peagen.orm import Task
 
 from peagen.core.eval_core import evaluate_workspace
 from peagen._utils.config_loader import resolve_cfg

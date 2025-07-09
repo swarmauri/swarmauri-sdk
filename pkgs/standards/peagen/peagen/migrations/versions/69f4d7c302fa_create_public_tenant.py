@@ -115,5 +115,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Intentionally left empty; keep the public tenant and user."""
-    pass
+    """Intentionally left empty; keep the public tenant and user."""    pass

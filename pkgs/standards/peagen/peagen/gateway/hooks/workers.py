@@ -18,10 +18,9 @@ from autoapi.v2 import Phase, AutoAPI
 from peagen.transport.jsonrpc import RPCException
 from peagen.orm import Worker
 
-from peagen.defaults import WORKER_KEY, WORKER_TTL, READY_QUEUE
+from peagen.defaults import WORKER_KEY, WORKER_TTL
 from .. import log, queue, api
-from ..schedule_helpers import _load_task, _save_task, _finalize_parent_tasks
-from .._publish import _publish_task, _publish_event, _publish_queue_length
+from .._publish import _publish_event
 
 # ─────────────────── schema handles ────────────────────────────────────
 WorkerCreate = AutoAPI.get_schema(Worker, "create")

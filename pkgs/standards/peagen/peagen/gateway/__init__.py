@@ -17,8 +17,6 @@ import logging
 import os
 
 
-import httpx
-
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v2 import AutoAPI
 from fastapi import FastAPI, Request
@@ -132,6 +130,7 @@ def _client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.headers.get("x-real-ip") or request.client.host
+
 
 # ─────────── scheduler loop ───────────────────────────────────────────
 async def scheduler() -> None:

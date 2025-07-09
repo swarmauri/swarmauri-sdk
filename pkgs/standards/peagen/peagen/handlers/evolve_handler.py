@@ -13,7 +13,7 @@ import uuid
 import yaml
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional
 
 from autoapi.v2 import AutoAPI
 from peagen.orm import Status, Task
@@ -21,7 +21,6 @@ from peagen.orm import Status, Task
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 from .fanout import fan_out
 
 # ─────────────────────────── AutoAPI schema ───────────────────────────
