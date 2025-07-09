@@ -1,50 +1,55 @@
 """
 peagen.core.mutate_core
 ───────────────────────
-Light-weight “evolution” helper used by the *mutate* task handler.
+Minimal GA-style optimisation of a single Python file *inside a task
+work-tree*.
 
-The previous implementation expected a *workspace_uri* that could point to a
-local directory *or* a git-style URI.  The new pipeline always supplies a
-concrete git *repo* **and** a *ref* (branch / tag / SHA).  This module therefore
-
-1. clones the requested revision into a disposable checkout;
-2. runs a very small GA-style search over *target_file*;
-3. returns the path of the winning variant plus basic telemetry.
-
-No legacy fallback for *workspace_uri* remains.
+Key updates
+-----------
+* **Work-tree first** – clone/fetch logic replaced with mirror + `add_git_worktree`,
+  protected by `repo_lock`.
+* **No storage adapters** – artefacts are written directly into the work-tree.
+* **No `workspace_uri` fallback** – caller must supply `repo` **and** `ref`.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import random
-import shutil
-import tempfile
 import textwrap
+import uuid
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugin_manager import PluginManager, resolve_plugin_spec
-from peagen.core.fetch_core import fetch_single  # shallow clone helper
+from peagen.core.git_repo_core import (
+    repo_lock,
+    open_repo,
+    fetch_git_remote,
+)
+from peagen.core.git_repo_core import add_git_worktree  # imported separately for clarity
+from peagen.defaults import ROOT_DIR
 from swarmauri_standard.programs.Program import Program
 
-# --------------------------------------------------------------------- #
+# ────────────────────────────── prompt  ───────────────────────────────
 PROMPT = """\
 Improve the python code below. Return only the new version.
 ```python
 {parent}
 ```"""
-# --------------------------------------------------------------------- #
 
 
+# ─────────────────────────── mutator helper  ──────────────────────────
 def _pick_mutators(
     pm: PluginManager,
     mutations: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Tuple[float, Any]]:
-    """Return a list (probability, mutator-instance) from *mutations* spec."""
+    """Return list of (probability, mutator-instance)."""
     if not mutations:
-        return [(1.0, pm.get("mutators"))]  # default bundled mutator
+        return [(1.0, pm.get("mutators"))]
 
     chosen: List[Tuple[float, Any]] = []
     for spec in mutations:
@@ -56,8 +61,8 @@ def _pick_mutators(
     return chosen
 
 
-# ───────────────────────────── public API ──────────────────────────────
-def mutate_workspace(  # noqa: PLR0913 – many tunables by design
+# ───────────────────────────── public API  ────────────────────────────
+def mutate_workspace(  # noqa: PLR0913
     *,
     repo: str,
     ref: str = "HEAD",
@@ -68,85 +73,68 @@ def mutate_workspace(  # noqa: PLR0913 – many tunables by design
     profile_mod: str | None = None,
     cfg_path: Optional[Path] = None,
     mutations: Optional[List[Dict[str, Any]]] = None,
-    evaluator_ref: str = ("performance_evaluator"),
+    evaluator_ref: str = "performance_evaluator",
 ) -> Dict[str, Optional[str]]:
     """
-    Run a very small GA-style search over *target_file* in *repo@ref*.
-
-    Parameters
-    ----------
-    repo, ref
-        Git repository URL (SSH / HTTPS / local path) and revision to check out.
-    target_file
-        File **relative to the repo root** to mutate.
-    import_path, entry_fn
-        Fully-qualified module import path and entry function for benchmarking.
-    gens
-        Number of generations (1 ⇒ parent + one child).
-    profile_mod
-        Optional helper module for the evaluator.
-    cfg_path
-        Path to an overriding *.peagen.toml* (rarely needed).
-    mutations
-        List of mutator specs – see documentation for exact schema.
-    evaluator_ref
-        Plugin reference resolving to an Evaluator subclass.
+    Evolve *target_file* within an isolated work-tree and return the winner.
 
     Returns
     -------
-    Dict[str, Optional[str]]
-        { "winner": <abs-path>, "score": <float>, "meta": <dict> }
+    dict  –  {
+        "winner": <abs-path>,
+        "score": <float|None>,
+        "meta":  <dict|None>,
+        "worktree": <path to work-tree>
+    }
     """
+    # ── 1. Create / refresh mirror & work-tree ─────────────────────────
+    repo_hash = hashlib.sha1(repo.encode()).hexdigest()[:12]
+    mirror_base = Path(ROOT_DIR).expanduser() / "mirrors"
+    mirror_path = mirror_base / repo_hash
 
-    # ------------------------------------------------------------------ #
-    # 1. clone requested revision into a temp dir
-    # ------------------------------------------------------------------ #
-    checkout_dir = Path(tempfile.mkdtemp(prefix="pea_mutate_"))
-    try:
-        fetch_single(repo=repo, ref=ref, dest_root=checkout_dir)
-    except Exception as exc:
-        shutil.rmtree(checkout_dir, ignore_errors=True)
-        raise RuntimeError(f"clone failed: {exc}") from exc
+    worktree_base = Path(ROOT_DIR).expanduser() / "worktrees"
+    worktree_path = (
+        worktree_base
+        / repo_hash
+        / ref.replace("/", "_")
+        / f"mutate_{uuid.uuid4().hex[:8]}"
+    )
 
-    # workspace for downstream helpers
-    workspace_root = checkout_dir
-    cfg = resolve_cfg(toml_path=str(cfg_path or workspace_root / ".peagen.toml"))
+    worktree_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with repo_lock(repo):
+        git_repo = open_repo(mirror_path, remote_url=repo)
+        fetch_git_remote(git_repo)
+        add_git_worktree(git_repo, ref, worktree_path)
+
+    # ── 2. Config & plugin manager ─────────────────────────────────────
+    cfg_file = cfg_path or worktree_path / ".peagen.toml"
+    cfg = resolve_cfg(toml_path=str(cfg_file)) if cfg_file.exists() else {}
     pm = PluginManager(cfg)
 
-    # ------------------------------------------------------------------ #
-    # 2. build mutator & evaluator pool
-    # ------------------------------------------------------------------ #
+    # mutators & evaluator
     mutators = _pick_mutators(pm, mutations)
-
     pool = pm.get("evaluator_pools")
     EvalCls = resolve_plugin_spec("evaluators", evaluator_ref)
-    evaluator = EvalCls(
-        import_path=import_path,
-        entry_fn=entry_fn,
-        profile_mod=profile_mod,
-    )
+    evaluator = EvalCls(import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod)
     pool.add_evaluator(evaluator, name="performance")
 
-    # ------------------------------------------------------------------ #
-    # 3. baseline source + GA loop
-    # ------------------------------------------------------------------ #
-    tgt_path = workspace_root / target_file
+    # ── 3. GA loop ─────────────────────────────────────────────────────
+    tgt_path = worktree_path / target_file
     parent_src = tgt_path.read_text(encoding="utf-8")
-    program = Program.from_workspace(workspace_root)
+    program = Program.from_workspace(worktree_path)
 
-    best_src = parent_src
-    best_score = float("inf")
-    best_meta: Dict[str, Any] | None = None
-
+    best_src, best_score, best_meta = parent_src, float("inf"), None
     weights, muts = zip(*mutators)
+
     for _ in range(max(1, gens)):
         prompt = textwrap.dedent(PROMPT.format(parent=best_src))
         mutator = random.choices(muts, weights=weights, k=1)[0]
 
-        try:
+        with suppress(Exception):
             child_src = mutator.mutate(prompt)
-        except Exception as exc:  # noqa: BLE001
-            logging.warning("mutator error: %s", exc)
+        if "child_src" not in locals():
+            logging.warning("mutator failed; keeping parent source")
             child_src = best_src
 
         program.content[target_file] = child_src
@@ -159,15 +147,12 @@ def mutate_workspace(  # noqa: PLR0913 – many tunables by design
         if score < best_score:
             best_src, best_score, best_meta = child_src, score, meta
 
-    winner_path = workspace_root / "winner.py"
+    winner_path = worktree_path / "winner.py"
     winner_path.write_text(best_src, encoding="utf-8")
 
-    # ------------------------------------------------------------------ #
-    # 4. return results (caller may decide to commit / push etc.)
-    # ------------------------------------------------------------------ #
     return {
         "winner": str(winner_path),
         "score": str(best_score) if best_score != float("inf") else None,
         "meta": best_meta,
-        "checkout_root": str(checkout_dir),
+        "worktree": str(worktree_path),
     }

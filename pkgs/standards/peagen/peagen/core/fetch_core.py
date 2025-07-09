@@ -1,45 +1,51 @@
 """
 peagen.core.fetch_core
 ──────────────────────
-Materialise a *single* Git repository + ref (and optionally many) into a local
-workspace.  All mirror prep is already handled by the gateway, so this module
-only needs to clone/fetch and check out the requested ref.
+Materialise one or more Git repositories at a specific *ref* into **work-trees**.
+All mirror provisioning (org / mirror creation) is done by the gateway, so this
+module is only responsible for:
 
-Key entry-points
-----------------
-• fetch_single() – repo + ref → workspace
-• fetch_many()   – convenience wrapper for multiple repos
+1. Refreshing the already-existing mirror (`git fetch --all`).
+2. Creating an isolated work-tree for the caller.
+3. Returning the path + commit SHA.
+
+Concurrency safety is provided by ``repo_lock(repo_url)``.
 """
 
 from __future__ import annotations
 
+import hashlib
+import shutil
 import tempfile
+import uuid
 from pathlib import Path
 from typing import List, Optional
 
+from peagen.defaults import ROOT_DIR
 from peagen.core.git_repo_core import (
-    open_repo,  # pluggable VCS adapter
-    repo_lock,  # cross-process file lock
+    open_repo,
+    fetch_git_remote,
+    repo_lock,
 )
 
+# ───────────────────────── helper: deterministic paths ────────────
+def _mirror_path(repo_url: str) -> Path:
+    """Return the filesystem path of the bare mirror for *repo_url*."""
+    repo_hash = hashlib.sha1(repo_url.encode()).hexdigest()[:12]
+    return Path(ROOT_DIR).expanduser() / "mirrors" / repo_hash
 
-# ─────────────────────────── helpers ──────────────────────────────
-def _checkout(repo_url: str, ref: str, dest: Path) -> str | None:
-    """
-    Clone or update *repo_url* into *dest* and checkout *ref*.
 
-    Returns the checked-out commit SHA (or None on bare copy errors).
-    """
-    with repo_lock(repo_url):  # requirement #4
-        vcs = open_repo(dest, remote_url=repo_url)  # requirement #3
-        try:
-            vcs.fetch(ref, checkout=True)  # update if remote already cloned
-        except Exception:
-            vcs.checkout(ref)
-        try:
-            return vcs.repo.head.commit.hexsha
-        except Exception:
-            return None
+def _worktree_path(
+    repo_url: str,
+    ref: str,
+    base: Path,
+    tag: str | None = None,
+) -> Path:
+    """Compute work-tree path under *base*."""
+    repo_hash = hashlib.sha1(repo_url.encode()).hexdigest()[:12]
+    ref_dir = ref.replace("/", "_")
+    tag = tag or uuid.uuid4().hex[:8]
+    return base / repo_hash / ref_dir / tag
 
 
 # ─────────────────────────── public API ───────────────────────────
@@ -50,36 +56,42 @@ def fetch_single(
     dest_root: Path,
 ) -> dict:
     """
-    Ensure *repo* is present in *dest_root* and checked out at *ref*.
+    Ensure *repo* is fetched and checked out at *ref* inside *dest_root*.
 
     Parameters
     ----------
     repo : str
-        Clone URL understood by Git (https, ssh, or local path).
+        Clone URL (https / ssh) of the upstream repository.
     ref : str, optional
-        Branch, tag, or SHA.  Defaults to "HEAD".
+        Branch, tag, or commit SHA. Defaults to "HEAD".
     dest_root : Path
-        Destination directory for the workspace.
+        Directory that will become the **work-tree**. Any pre-existing content
+        will be removed first.
 
     Returns
     -------
-    dict  –  {"workspace": <str>, "commit": <sha|None>, "updated": <bool>}
+    dict – {"workspace": <str>, "commit": <sha>, "updated": <bool>}
     """
     if not repo:
         raise ValueError("parameter 'repo' must be supplied")
 
-    # Resolve previous HEAD (if any) to detect updates
-    old_sha = None
-    if (dest_root / ".git").exists():
-        try:
-            old_sha = open_repo(dest_root).repo.head.commit.hexsha
-        except Exception:
-            pass
+    mirror = _mirror_path(repo)
+    dest_root = dest_root.expanduser().resolve()
 
-    new_sha = _checkout(repo, ref, dest_root)
+    with repo_lock(repo):
+        vcs = open_repo(mirror, remote_url=repo)
+        fetch_git_remote(vcs)
 
-    updated = new_sha is not None and new_sha != old_sha
-    return {"workspace": str(dest_root), "commit": new_sha, "updated": updated}
+        # Remove any stale work-tree at dest_root
+        if dest_root.exists():
+            shutil.rmtree(dest_root, ignore_errors=True)
+        dest_root.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create fresh work-tree
+        vcs.git.worktree("add", str(dest_root), ref)
+        commit_sha = vcs.repo.commit(ref).hexsha
+
+    return {"workspace": str(dest_root), "commit": commit_sha, "updated": True}
 
 
 def fetch_many(
@@ -89,27 +101,35 @@ def fetch_many(
     out_dir: Optional[Path] = None,
 ) -> dict:
     """
-    Clone / update *repos* under *out_dir* (or a temp dir) at *ref*.
+    Materialise **each** repository in *repos* at *ref* into its own work-tree.
 
     Parameters
     ----------
     repos : List[str]
         List of clone URLs.
     ref : str, optional
-        Branch, tag, or SHA applied to **all** repos.  Defaults to "HEAD".
+        Branch, tag, or SHA applied to all repos. Defaults to "HEAD".
     out_dir : Path | None
-        Workspace root.  If None, a temp directory is created.
+        Root directory under which work-trees will be created.  If None,
+        a temporary directory is generated inside the Peagen root.
 
     Returns
     -------
     dict – {"workspace": <root>, "fetched": [<fetch_single results>]}
     """
-    workspace = (
-        out_dir.resolve()
+    base = (
+        out_dir.expanduser().resolve()
         if out_dir
-        else Path(tempfile.mkdtemp(prefix="peagen_ws_")).resolve()
+        else Path(ROOT_DIR).expanduser()
+        / "worktrees"
+        / f"bulk_{uuid.uuid4().hex[:8]}"
     )
-    workspace.mkdir(parents=True, exist_ok=True)
+    base.mkdir(parents=True, exist_ok=True)
 
-    results = [fetch_single(repo=r, ref=ref, dest_root=workspace) for r in repos]
-    return {"workspace": str(workspace), "fetched": results}
+    results = []
+    for repo_url in repos:
+        wtree_path = _worktree_path(repo_url, ref, base)
+        res = fetch_single(repo=repo_url, ref=ref, dest_root=wtree_path)
+        results.append(res)
+
+    return {"workspace": str(base), "fetched": results}

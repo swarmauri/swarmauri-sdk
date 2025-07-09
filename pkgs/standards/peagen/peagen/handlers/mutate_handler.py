@@ -1,79 +1,64 @@
 """
+peagen.handlers.mutate_handler
+──────────────────────────────
 Async entry-point for the *mutate* workflow.
 
-Input  : TaskRead – AutoAPI schema mapped to the Task ORM table
-Output : dict     – JSON-serialisable result from mutate_workspace()
+Changes vs. legacy
+------------------
+* Does **not** create a throw-away clone; the heavy-lifting is done by
+  :func:`peagen.core.mutate_core.mutate_workspace`, which creates an
+  isolated work-tree under repo-level locking.
+* No storage-adapter logic.
+* `workspace_uri` parameter is gone.
 """
 
 from __future__ import annotations
 
 import os
-import shutil
-import tempfile
+from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from autoapi.v2 import AutoAPI
 from peagen.orm import Task
-
 from peagen.core.mutate_core import mutate_workspace
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.plugins.vcs import pea_ref
+from peagen.plugins.vcs import GitVCS, pea_ref
 
-# ─────────────────────────── schema handle ────────────────────────────
+# ─────────────────────────── schema handle ──────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")
 
-
-# ─────────────────────────── main coroutine ───────────────────────────
+# ─────────────────────────── coroutine ──────────────────────────────
 async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    `task.args` **must** contain at least:
+    Expected *task.args*::
 
-        repo          – git URL to clone (required)
-        ref           – git ref / SHA (optional, defaults to HEAD)
-        target_file   – path (inside repo) of the file to mutate
-        import_path   – `package.module`
-        entry_fn      – function name used for benchmarking
-        gens          – number of generations
-        mutations     – list of mutation-spec dicts
-        profile_mod   – optional helper module
-        config        – optional .toml path inside the repo
-        evaluator     – name of evaluator plugin (defaults to “performance”)
+        {
+            "repo":         "<git-url>",          # required
+            "ref":          "main",               # optional (default HEAD)
+            "target_file":  "src/foo.py",         # required – relative to repo root
+            "import_path":  "pkg.module",         # required
+            "entry_fn":     "benchmark",          # required
+            "gens":         3,                    # optional
+            "mutations":    [...],                # optional
+            "profile_mod":  "prof",               # optional
+            "config":       "path/to/.toml",      # optional – inside repo
+            "evaluator":    "performance_evaluator"  # optional
+        }
     """
     args: Dict[str, Any] = task.args or {}
-
-    # ------------------------------------------------------------------ #
-    # 1. Mandatory repository checkout
-    # ------------------------------------------------------------------ #
     repo: str = args["repo"]
     ref: str = args.get("ref", "HEAD")
 
-    from peagen.core.fetch_core import fetch_single
+    cfg_path = (
+        Path(args["config"]).expanduser() if args.get("config") else None
+    )
 
-    tmp_checkout = Path(tempfile.mkdtemp(prefix="pea_repo_"))
-    fetch_single(repo=repo, ref=ref, dest_root=tmp_checkout)
-
-    workspace_uri = str(tmp_checkout)  # workspace **is** the cloned repo root
-
-    # ------------------------------------------------------------------ #
-    # 2. Resolve configuration & plugins
-    # ------------------------------------------------------------------ #
-    cfg_path = Path(args["config"]).expanduser() if args.get("config") else None
-    cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
-    pm = PluginManager(cfg)
-
-    evaluator_name = args.get("evaluator", "performance")
-    try:
-        evaluator_cls = pm.get("evaluators")[evaluator_name]  # type: ignore[index]
-    except Exception as exc:  # noqa: BLE001
-        raise ValueError(f"Unknown evaluator plugin '{evaluator_name}'") from exc
-
-    # ------------------------------------------------------------------ #
-    # 3. Perform mutation
-    # ------------------------------------------------------------------ #
+    # ── 1. run mutation --------------------------------------------------
     result = mutate_workspace(
-        workspace_uri=workspace_uri,
+        repo=repo,
+        ref=ref,
         target_file=args["target_file"],
         import_path=args["import_path"],
         entry_fn=args["entry_fn"],
@@ -81,34 +66,29 @@ async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
         profile_mod=args.get("profile_mod"),
         cfg_path=cfg_path,
         mutations=args.get("mutations"),
-        evaluator=evaluator_cls,  # pass the class, not a string
+        evaluator_ref=args.get("evaluator", "performance_evaluator"),
     )
 
-    # ------------------------------------------------------------------ #
-    # 4. Optional VCS integration
-    # ------------------------------------------------------------------ #
-    try:
-        vcs = pm.get("vcs")
-    except Exception:  # pragma: no cover – plugin optional
-        vcs = None
+    # ── 2. optional VCS commit ------------------------------------------
+    cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else None)
+    pm = PluginManager(cfg)
+    with suppress(Exception):
+        vcs: GitVCS = pm.get("vcs")  # type: ignore[assignment]
+        worktree = Path(result["worktree"]).resolve()
+        if Path(vcs.repo.working_tree_dir).resolve() != worktree:
+            # re-bind the VCS instance to the correct work-tree
+            vcs = GitVCS(worktree)
 
-    if vcs and result.get("winner"):
-        repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
-        rel_winner = os.path.relpath(winner_path, repo_root)
-
+        rel_winner = os.path.relpath(winner_path, worktree)
         commit_sha = vcs.commit([rel_winner], f"mutate {winner_path.name}")
         result["winner_oid"] = vcs.blob_oid(rel_winner)
 
         branch = pea_ref("run", winner_path.stem)
         vcs.create_branch(branch, checkout=False)
-        vcs.push(branch)
+        if vcs.has_remote():
+            vcs.push(branch)
 
         result.update(commit=commit_sha, branch=branch)
-
-    # ------------------------------------------------------------------ #
-    # 5. Cleanup temporary checkout
-    # ------------------------------------------------------------------ #
-    shutil.rmtree(tmp_checkout, ignore_errors=True)
 
     return result

@@ -1,55 +1,57 @@
 """
-Generate EXTRAS JSON-Schema files from template-set ``EXTRAS.md`` files.
+peagen.handlers.extras_handler
+──────────────────────────────
+Generate JSON-Schema files from template-set ``EXTRAS.md`` sources.
 
-Input : TaskRead  – AutoAPI schema for the Task table
-Output: dict      – { "generated": [ <paths> ] }
+Updates
+-------
+* **No `maybe_clone_repo`** or ad-hoc cloning logic.  
+  Caller **must** supply the current task *work-tree* via
+  ``task.args["worktree"]``.
+* No storage-adapter uploads – files are written directly inside the
+  provided work-tree.
+
+Expected ``task.args``
+----------------------
+{
+    "worktree"      : "<abs path>",          # required – task work-tree
+    "templates_root": "<dir>",               # optional, default <worktree>/template_sets
+    "schemas_dir"   : "<dir>"                # optional, default <worktree>/jsonschemas/extras
+}
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
-
-from peagen._utils           import maybe_clone_repo
+from peagen.orm import Task
 from peagen.core.extras_core import generate_schemas
 
-# ─────────────────────────── schema handle ────────────────────────────
+# ───────────────────────── schema handle ────────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")
 
-# ─────────────────────────── main coroutine ───────────────────────────
-async def extras_handler(task: TaskRead) -> Dict[str, Any]:
-    """
-    `task.args` MAY contain:
 
-        repo            – optional git URL
-        ref             – optional ref/branch (default "HEAD")
-        templates_root  – dir with template-set EXTRAS.md files
-        schemas_dir     – destination for generated schema files
-    """
+# ───────────────────────── main coroutine ───────────────────────────
+async def extras_handler(task: TaskRead) -> Dict[str, Any]:
     args: Dict[str, Any] = task.args or {}
 
-    repo: Optional[str] = args.get("repo")
-    ref:  str           = args.get("ref", "HEAD")
+    worktree = Path(args["worktree"]).expanduser().resolve()
+    if not worktree.exists():
+        raise FileNotFoundError(f"worktree not found: {worktree}")
 
-    # ───────── optional repo checkout (context manager cleans up) ─────
-    with maybe_clone_repo(repo, ref) as tmp_checkout:
-        project_root = tmp_checkout or Path(__file__).resolve().parents[1]
+    templates_root = (
+        Path(args["templates_root"]).expanduser()
+        if args.get("templates_root")
+        else worktree / "template_sets"
+    )
+    schemas_dir = (
+        Path(args["schemas_dir"]).expanduser()
+        if args.get("schemas_dir")
+        else worktree / "jsonschemas" / "extras"
+    )
+    schemas_dir.mkdir(parents=True, exist_ok=True)
 
-        templates_root = (
-            Path(args["templates_root"]).expanduser()
-            if args.get("templates_root")
-            else project_root / "template_sets"
-        )
-        schemas_dir = (
-            Path(args["schemas_dir"]).expanduser()
-            if args.get("schemas_dir")
-            else project_root / "jsonschemas" / "extras"
-        )
-
-        written: List[Path] = generate_schemas(templates_root, schemas_dir)
-
-    # ───────── return serialisable mapping ────────────────────────────
+    written: List[Path] = generate_schemas(templates_root, schemas_dir)
     return {"generated": [str(p) for p in written]}

@@ -15,15 +15,23 @@ GATEWAY_URL = DEFAULT_GATEWAY
 # Default timeout for JSON-RPC requests in seconds.
 RPC_TIMEOUT = 30.0
 
-# ───────────────────────── Peagen Lock ────────────────────────────
-# Default directory for repository lock files.
-LOCK_DIR = "~/.cache/peagen/locks"
+# ───────────────────────── Root Paths ────────────────────────────
+# Base directory Peagen uses for caches, mirrors, work-trees, etc.
+# Can be overridden with the environment variable `PEAGEN_ROOT_DIR`.
+ROOT_DIR = os.getenv("PEAGEN_ROOT_DIR", "~/.cache/peagen")
 
+# ───────────────────────── Peagen Lock ───────────────────────────
+# Directory for repository lock files, under the root path.
+LOCK_DIR = os.path.join(ROOT_DIR, "locks")
 
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
     return Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
 
+# Convenience accessor for the root directory.
+def root_dir() -> Path:
+    """Return Peagen’s root working directory."""
+    return Path(ROOT_DIR).expanduser()
 
 # ─────────────────────────── GIT Shadow ────────────────────────────
 
@@ -95,6 +103,10 @@ BAN_THRESHOLD = 10
 
 __all__ = [
     "CONFIG",
+    "ROOT_DIR",
+    "LOCK_DIR",
+    "root_dir",
+    "lock_dir",
     "WORKER_KEY",
     "WORKER_TTL",
     "BAN_THRESHOLD",
@@ -102,8 +114,6 @@ __all__ = [
     "READY_QUEUE",
     "PUBSUB_CHANNEL",
     "TASK_KEY",
-    "LOCK_DIR",
-    "lock_dir",
     "DEFAULT_POOL",
     "RPC_TIMEOUT",
 ]

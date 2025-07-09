@@ -1,99 +1,91 @@
 """
 peagen.handlers.analysis_handler
 ────────────────────────────────
-Run-directory analysis executed by a worker.
+Run-directory analysis worker.
 
-Input : TaskRead  – AutoAPI schema for the `Task` table
-Output: dict      – JSON-serialisable result from `analyze_runs`
+Key changes
+-----------
+* Requires caller to pass an **existing work-tree** via `task.args["worktree"]`.
+  No cloning, no `maybe_clone_repo`, no `repo_utils`.
+* `run_dirs` may be absolute or *relative to the supplied work-tree*.
+* No storage-adapter logic.
 """
 
 from __future__ import annotations
 
+import os
+from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List
 
 from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
+from peagen.orm import Task
+from peagen.core.analysis_core import analyze_runs
+from peagen._utils.config_loader import resolve_cfg
+from peagen.plugins import PluginManager
+from peagen.plugins.vcs import GitVCS, pea_ref
 
-from peagen._utils                import maybe_clone_repo
-from peagen._utils.config_loader  import resolve_cfg
-from peagen.core.analysis_core    import analyze_runs
-from peagen.plugins               import PluginManager
-from peagen.plugins.vcs           import pea_ref
+# ───────────────────────── schema handle ────────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-from .repo_utils import fetch_repo, cleanup_repo
-
-# ───────────────────────── schema handle ──────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")      # ← includes `args` field
-
-
-# ───────────────────────── helper: checkout repo ──────────────────────
-def _checkout_repo(repo: Optional[str], ref: str) -> Tuple[Optional[Path], Optional[str]]:
-    """Return (tmp_dir, prev_cwd) when *repo* is provided, else (None, None)."""
-    if repo is None:
-        return None, None
-    return fetch_repo(repo, ref)                 # util in repo_utils
-
-
-# ─────────────────────────── main coroutine ───────────────────────────
+# ─────────────────────────‍ main coroutine ──────────────────────────
 async def analysis_handler(task: TaskRead) -> Dict[str, Any]:
     """
-    task.args MUST contain
-    ----------------------
-    {
-        "run_dirs"  : ["out/run-001", ...],   # required, relative to repo root
-        "spec_name" : "analysis",            # optional
-        "repo"      : "<git url>",           # optional (local path if absent)
-        "ref"       : "HEAD"                 # optional, defaults to HEAD
-    }
+    Expected ``task.args``::
+
+        {
+            "run_dirs":  ["out/run-001", ...],  # list of run directories
+            "worktree":  "<abs path>",          # required – task work-tree
+            "spec_name": "analysis",            # optional
+        }
     """
     args: Dict[str, Any] = task.args or {}
 
-    # ─── extract & validate primary parameters ────────────────────────
-    run_dirs     = [Path(p) for p in args.get("run_dirs", [])]
-    if not run_dirs:
-        raise ValueError("analysis_handler: 'run_dirs' must be non-empty")
+    worktree = Path(args["worktree"]).expanduser().resolve()
+    if not worktree.exists():
+        raise FileNotFoundError(f"worktree not found: {worktree}")
 
-    spec_name    = args.get("spec_name", "analysis")
-    repo_url     = args.get("repo")          # may be None (local analysis)
-    ref          = args.get("ref", "HEAD")
+    # resolve run directories
+    run_dirs_arg: List[str] = args.get("run_dirs", [])
+    if not run_dirs_arg:
+        raise ValueError("'run_dirs' must be a non-empty list")
 
-    # ─── optional checkout of remote repo ─────────────────────────────
-    tmp_dir, prev_cwd = _checkout_repo(repo_url, ref)
+    run_dirs: List[Path] = [
+        (worktree / p).resolve() if not Path(p).is_absolute() else Path(p).resolve()
+        for p in run_dirs_arg
+    ]
 
-    with maybe_clone_repo(repo_url, ref):
-        result: Dict[str, Any] = analyze_runs(run_dirs, spec_name=spec_name)
+    spec_name = args.get("spec_name", "analysis")
 
-    # ─── optional VCS integration (commit / branch push) ──────────────
-    cfg = resolve_cfg()
-    pm  = PluginManager(cfg)
-    try:
-        vcs = pm.get("vcs")
-    except Exception:                             # plugin may be absent
-        vcs = None
+    # ─── perform analysis ────────────────────────────────────────────
+    result = analyze_runs(run_dirs, spec_name=spec_name)
 
-    if vcs and result.get("results_file"):
-        analysis_branch = pea_ref("analysis", spec_name)
-        vcs.create_branch(analysis_branch, "HEAD", checkout=True)
+    # ─── optional VCS integration ────────────────────────────────────
+    cfg_path = worktree / ".peagen.toml"
+    cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path.exists() else None)
+    pm = PluginManager(cfg)
 
-        # ensure run branches are merged (ours strategy)
-        for rd in run_dirs:
-            run_branch = pea_ref("run", rd.name)
-            vcs.merge_ours(run_branch, f"merge {run_branch}")
+    with suppress(Exception):
+        vcs: GitVCS = pm.get("vcs")  # type: ignore[assignment]
+        # re-bind if the plugin was initialised with a different working tree
+        if Path(vcs.repo.working_tree_dir).resolve() != worktree:
+            vcs = GitVCS(worktree)
 
-        repo_root  = Path(vcs.repo.working_tree_dir)
-        rel_path   = Path(result["results_file"]).resolve().relative_to(repo_root)
-        commit_sha = vcs.commit([str(rel_path)], f"analysis {spec_name}")
-        vcs.switch("HEAD")
-        vcs.push(analysis_branch)
+        if results_file := result.get("results_file"):
+            analysis_branch = pea_ref("analysis", spec_name)
+            vcs.create_branch(analysis_branch, "HEAD", checkout=True)
 
-        result.update(
-            commit=commit_sha,
-            analysis_branch=analysis_branch,
-        )
+            # merge run branches using "ours"
+            for rd in run_dirs:
+                run_branch = pea_ref("run", rd.name)
+                vcs.merge_ours(run_branch, f"merge {run_branch}")
 
-    # ─── cleanup checkout (if any) ────────────────────────────────────
-    if repo_url:
-        cleanup_repo(tmp_dir, prev_cwd)
+            rel_path = os.path.relpath(Path(results_file), worktree)
+            commit_sha = vcs.commit([rel_path], f"analysis {spec_name}")
+            vcs.switch("HEAD")
+            if vcs.has_remote():
+                vcs.push(analysis_branch)
+
+            result.update(commit=commit_sha, analysis_branch=analysis_branch)
 
     return result

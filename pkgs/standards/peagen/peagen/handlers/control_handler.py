@@ -1,10 +1,15 @@
 """
 peagen.handlers.control_handler
 ────────────────────────────────
-Pause / resume / cancel / retry helpers that operate on the
-AutoAPI-generated **TaskUpdate** model.
+Pause / resume / cancel / retry helpers that operate on AutoAPI-generated
+**TaskUpdate** objects.
 
-All callers must pass an *iterable* of TaskUpdate instances.
+Key changes
+-----------
+* Uses the canonical helper
+    ``peagen.gateway.schedule_helpers._save_task``
+  instead of a re-implemented Redis persistence layer.
+* No other functional changes.
 """
 
 from __future__ import annotations
@@ -12,36 +17,18 @@ from __future__ import annotations
 from typing import Iterable
 
 from autoapi import AutoAPI
-from autoapi.v2.tables.task import Task  # SQLAlchemy row
+from autoapi.v2.tables.task import Task  # SQLAlchemy model row
 
 from peagen.core import control_core
 from peagen.plugins.queues import QueueBase
-from peagen import defaults
+from peagen.gateway.schedule_helpers import _save_task  # ← single source of truth
 
-# ────────────────────────── AutoAPI schemas ───────────────────────────
-TaskUpdate = AutoAPI.get_schema(Task, "update")  # ← concrete type
-
-TASK_KEY = defaults.CONFIG["task_key"]
+# ─────────────────────────── schemas ────────────────────────────────
+TaskUpdate = AutoAPI.get_schema(Task, "update")  # validated Pydantic model
 
 
-async def _save_task_redis(queue: QueueBase, t: TaskUpdate, ttl: int) -> None:
-    """
-    Persist *t* (TaskUpdate) in Redis under task:<id>.
-    Hash fields:
-        • blob   – canonical JSON string
-        • status – enum value (str)
-    """
-    await queue.hset(
-        TASK_KEY.format(t.id),
-        mapping={
-            "blob": t.model_dump_json(),
-            "status": str(t.status.value if hasattr(t.status, "value") else t.status),
-        },
-    )
-    await queue.expire(TASK_KEY.format(t.id), ttl)
-
-
-async def apply(  # noqa: C901 complexity unchanged
+# ─────────────────────────── entry-point ────────────────────────────
+async def apply(  # noqa: C901 (complex orchestration)
     op: str,
     queue: QueueBase,
     tasks: Iterable[TaskUpdate],
@@ -50,10 +37,12 @@ async def apply(  # noqa: C901 complexity unchanged
 ) -> int:
     """
     Apply *op* (“pause”, “resume”, “cancel”, “retry”, “retry_from”)
-    to each TaskUpdate in *tasks*, update Redis, and (for retry ops)
-    re-queue the task JSON onto <ready_prefix>:<pool>.
+    to each TaskUpdate in *tasks*, persist the new state via `_save_task`,
+    and (for retry ops) enqueue the task JSON onto ``<ready_prefix>:<pool>``.
 
-    Returns the number of tasks affected.
+    Returns
+    -------
+    int – number of tasks affected.
     """
     if op == "pause":
         count = control_core.pause(tasks)
@@ -66,11 +55,11 @@ async def apply(  # noqa: C901 complexity unchanged
     elif op == "retry":
         count = control_core.retry(tasks)
     else:
-        return 0
+        return 0  # unknown op
 
     for t in tasks:
-        # 1️⃣  persist updated state
-        await _save_task_redis(queue, t, ttl)
+        # 1️⃣  persist updated state (Redis hash + expiry handled by helper)
+        await _save_task(queue, t, ttl)
 
         # 2️⃣  re-queue retried tasks
         if op in {"retry", "retry_from"}:

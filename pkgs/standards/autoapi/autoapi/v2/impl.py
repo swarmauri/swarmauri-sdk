@@ -5,7 +5,7 @@ Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 
 import re
 from inspect import isawaitable, signature
-from typing import Any, List, Union, get_args, get_origin
+from typing import Any, List, get_args, get_origin
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
@@ -274,9 +274,7 @@ def _register_routes_and_rpcs(  # noqa: N802
                 inspect.Parameter(
                     "db",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[
-                        Union[AsyncSession, Session], Depends(provider)
-                    ],
+                    annotation=Annotated[Any, Depends(provider)],
                 )
             )
 

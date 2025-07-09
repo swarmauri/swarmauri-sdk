@@ -1,13 +1,26 @@
-# peagen/core/process_core.py
+"""
+peagen.core.process_core
+========================
+Render, generate, and commit project files directly into the **existing
+task work-tree** (created upstream by fetch/eval/mutate handlers).
+
+Key points
+----------
+* **No storage adapters** – artefacts are normal Git-tracked files.
+* **project_dir == worktree** – caller must supply it via cfg["worktree"].
+* No legacy workspace_root / source_packages logic remains.
+"""
+
+from __future__ import annotations
 
 import os
 import yaml
+from contextlib import suppress
 from pathlib import Path
 from os import PathLike
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from swarmauri_standard.loggers.Logger import Logger
-
 from swarmauri_prompt_j2prompttemplate import J2PromptTemplate
 
 from peagen._utils._context import _create_context
@@ -15,7 +28,6 @@ from peagen.core.sort_core import sort_file_records
 from peagen.core.render_core import _render_copy_template, _render_generate_template
 from peagen.plugins.vcs import GitVCS
 from peagen._utils.slug_utils import slugify
-
 from peagen._utils._search_template_sets import (
     build_global_template_search_paths,
     build_ptree_template_search_paths,
@@ -32,119 +44,63 @@ from peagen.errors import (
 logger = Logger(name=__name__)
 
 
+# ───────────────────────── payload loader ────────────────────────────
 def load_projects_payload(
     projects_payload: Union[str, PathLike[str], List[Dict[str, Any]], Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
-    """Return the list of projects from a payload value.
-
-    ``projects_payload`` may be a filesystem path, YAML text, or an already
-    decoded Python mapping containing a top-level ``PROJECTS`` key.
-    """
-
+    """Return a list of project dicts parsed from *projects_payload*."""
     if isinstance(projects_payload, (list, dict)):
-        doc = projects_payload
+        doc: Any = projects_payload
     else:
         try:
-            if isinstance(projects_payload, PathLike):
-                projects_payload = os.fspath(projects_payload)
-            maybe_path = Path(projects_payload)
-            if maybe_path.is_file():
-                yaml_text = maybe_path.read_text(encoding="utf-8")
-            elif "://" in projects_payload:
-                from urllib.parse import urlparse, urlunparse
-                from peagen.plugins import discover_and_register_plugins
-
-                discover_and_register_plugins()
-                from peagen.plugins.git_filters import make_filter_for_uri
-
-                parsed = urlparse(projects_payload)
-                if not parsed.scheme:
-                    raise ValueError(f"Invalid URI: {projects_payload}")
-
-                if parsed.scheme == "file":
-                    path = Path(parsed.path)
-                    yaml_text = path.read_text(encoding="utf-8")
-                else:
-                    dir_path, key = parsed.path.rsplit("/", 1)
-                    root = urlunparse(
-                        (parsed.scheme, parsed.netloc, dir_path, "", "", "")
-                    )
-                    git_filter = make_filter_for_uri(root)
-                    with git_filter.download(key) as fh:  # type: ignore[attr-defined]
-                        yaml_text = fh.read().decode("utf-8")
-            else:
-                yaml_text = projects_payload
-        except (OSError, TypeError, ValueError):
-            yaml_text = projects_payload
+            pp = Path(os.fspath(projects_payload))
+            yaml_text = pp.read_text(encoding="utf-8") if pp.is_file() else str(
+                projects_payload
+            )
+        except Exception:
+            yaml_text = str(projects_payload)
         doc = yaml.safe_load(yaml_text)
 
     if isinstance(doc, list):
         return doc
     if not isinstance(doc, dict):
-        raise ProjectsPayloadFormatError(
-            type(doc).__name__,
-            str(projects_payload) if isinstance(projects_payload, str) else None,
-        )
+        raise ProjectsPayloadFormatError(type(doc).__name__, str(projects_payload))
 
     projects = doc.get("PROJECTS")
     if not isinstance(projects, list):
-        raise MissingProjectsListError(
-            str(projects_payload) if isinstance(projects_payload, str) else None
-        )
+        raise MissingProjectsListError(str(projects_payload))
 
-    errors = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
-    if errors:
-        raise ProjectsPayloadValidationError(
-            errors, str(projects_payload) if isinstance(projects_payload, str) else None
-        )
+    errs = _collect_errors(doc, PROJECTS_PAYLOAD_V1_SCHEMA)
+    if errs:
+        raise ProjectsPayloadValidationError(errs, str(projects_payload))
     return projects
 
 
+# ───────────────────── template-set helpers ─────────────────────────
 def locate_template_set(
-    template_set: str, search_paths: List[Path], logger: Optional[Any] = None
+    template_set: str, search_paths: List[Path], log: Optional[Any] = None
 ) -> Path:
-    """
-    Given a template_set name and a list of base directories, return the first
-    Path(base_dir)/template_set that exists as a directory. Otherwise raise.
-    """
-    log = logger or globals().get("logger")
-    if log:
-        log.info(f"Locating template set '{template_set}' in search paths:")
-        for idx, p in enumerate(search_paths):
-            log.debug(f"  [{idx}] {p}")
-
+    """Locate *template_set* within *search_paths*."""
+    log = log or logger
     for base in search_paths:
-        candidate = Path(base) / template_set
-        if candidate.is_dir():
-            if log:
-                log.info(f"Found template set '{template_set}' at: {candidate}")
-            return candidate.resolve()
-
-    raise ValueError(
-        f"Template set '{template_set}' not found in any of: {search_paths}"
-    )
+        cand = base / template_set
+        if cand.is_dir():
+            log.info(f"Template set '{template_set}' found at {cand}")
+            return cand.resolve()
+    raise ValueError(f"Template set '{template_set}' not found in {search_paths}")
 
 
+# ───────────────────── ptree rendering ─────────────────────────────
 def _render_package_ptree(
     project: Dict[str, Any],
     pkg: Dict[str, Any],
     global_search_paths: List[Path],
-    workspace_root: Path,
-    storage_adapter: Any | None = None,
-    logger: Optional[Any] = None,
+    project_dir: Path,
+    log: Optional[Any] = None,
 ) -> List[Dict[str, Any]]:
-    """
-    1) Determine which template set directory to use for this package.
-    2) Build a dedicated ptree search path via build_ptree_template_search_paths().
-    3) Render ptree.yaml.j2 within that directory, passing in {"PROJ": project_with_pkg}.
-    4) Parse the rendered YAML into a list of file-record dicts.
-    5) Attach "TEMPLATE_SET": template_dir and "PTREE_SEARCH_PATHS": ptree_paths to each record.
-    6) Return the list of records (possibly empty).
-    """
-    log = logger or globals().get("logger")
-    pkg_name = pkg.get("NAME", "<no-package-name>")
-    if log:
-        log.info(f"--- Rendering ptree for package '{pkg_name}' ---")
+    """Render ptree.yaml.j2 for a package → list of file records."""
+    log = log or logger
+    pkg_name = pkg.get("NAME", "<pkg>")
 
     tmpl_name = (
         pkg.get("TEMPLATE_SET_OVERRIDE")
@@ -152,126 +108,60 @@ def _render_package_ptree(
         or project.get("TEMPLATE_SET")
         or "default"
     )
-    if log:
-        log.info(f"Using template set name: '{tmpl_name}' for package '{pkg_name}'")
+    template_dir = locate_template_set(tmpl_name, global_search_paths, log)
 
-    # 1) Locate the package’s template directory using the global search paths
-    template_dir = locate_template_set(tmpl_name, global_search_paths, logger)
+    ptree_paths = build_ptree_template_search_paths(template_dir, Path.cwd())
 
-    # 2) Build ptree search paths
-    base_dir = Path(os.getcwd())
-    ptree_paths = build_ptree_template_search_paths(
-        package_template_dir=template_dir,
-        base_dir=base_dir,
-        workspace_root=workspace_root,
-        source_packages=project.get("SOURCE_PACKAGES", []),
-    )
-    if log:
-        log.debug(f"Built ptree search paths for '{pkg_name}':")
-        for idx, p in enumerate(ptree_paths):
-            log.debug(f"  [{idx}] {p}")
-
-    # 3) Render ptree.yaml.j2 with correct context
-    project_copy = dict(project)  # shallow copy of the project dict
-    project_copy.setdefault("EXTRAS", {})
-    pkg_copy = dict(pkg)
-    pkg_copy.setdefault("EXTRAS", {})
-    for mod in pkg_copy.get("MODULES", []):
-        if isinstance(mod, dict):
-            mod.setdefault("EXTRAS", {})
-    project_copy["PKGS"] = [pkg_copy]
+    # Prepare render context
+    proj_copy = dict(project, PKGS=[dict(pkg)])
+    proj_copy.setdefault("EXTRAS", {})
+    proj_copy["PKGS"][0].setdefault("EXTRAS", {})
 
     j2 = J2PromptTemplate()
     j2.templates_dir = ptree_paths
 
-    ptree_path = Path(template_dir) / "ptree.yaml.j2"
-    if not ptree_path.exists():
-        if logger:
-            logger.warning(
-                f"No ptree.yaml.j2 found in {template_dir} for package '{pkg_name}'. Skipping."
-            )
+    ptree_tpl = template_dir / "ptree.yaml.j2"
+    if not ptree_tpl.exists():
+        log.warning(f"No ptree.yaml.j2 for package '{pkg_name}'. Skipping.")
         return []
 
-    j2.set_template(ptree_path)
-    rendered = j2.fill({"PROJ": project_copy})
-    if log:
-        log.debug(
-            f"Rendered ptree.yaml.j2 for package '{pkg_name}' (length: {len(rendered)} chars)"
-        )
+    j2.set_template(ptree_tpl)
+    rendered = j2.fill({"PROJ": proj_copy})
 
-    # Save the rendered ptree to the workspace for debugging and as an artifact
-    ptree_dir = workspace_root / ".peagen"
-    ptree_dir.mkdir(parents=True, exist_ok=True)
-    ptree_file = ptree_dir / f"{slugify(pkg_name)}_ptree.yaml"
-    ptree_file.write_text(rendered, encoding="utf-8")
-    if storage_adapter:
-        key = f"{project.get('NAME', 'project')}/.peagen/{ptree_file.name}"
-        with open(ptree_file, "rb") as fh:
-            storage_adapter.upload(key, fh)
+    # Save rendered ptree for debugging
+    debug_dir = project_dir / ".peagen"
+    debug_dir.mkdir(parents=True, exist_ok=True)
+    (debug_dir / f"{slugify(pkg_name)}_ptree.yaml").write_text(
+        rendered, encoding="utf-8"
+    )
 
-    # 4) Parse YAML
-    try:
-        parsed = yaml.safe_load(rendered)
-    except Exception as e:
-        raise ValueError(f"Failed to parse YAML for package '{pkg_name}': {e}")
+    parsed = yaml.safe_load(rendered)
+    records = (
+        parsed["FILES"]
+        if isinstance(parsed, dict) and "FILES" in parsed
+        else parsed
+        if isinstance(parsed, list)
+        else []
+    )
 
-    if isinstance(parsed, dict) and "FILES" in parsed:
-        pkg_file_records = parsed["FILES"]
-    elif isinstance(parsed, list):
-        pkg_file_records = parsed
-    else:
-        if logger:
-            logger.warning(
-                f"Rendered ptree.yaml.j2 did not yield a list or 'FILES' for package '{pkg_name}'"
-            )
-        return []
-
-    # 5) Attach metadata to each record
-    for rec in pkg_file_records:
+    for rec in records:
         rec["TEMPLATE_SET"] = str(template_dir)
         rec["PTREE_SEARCH_PATHS"] = [str(p) for p in ptree_paths]
 
-    if log:
-        log.info(
-            f" - Found {len(pkg_file_records)} file-record(s) for package '{pkg_name}'"
-        )
-
-    return pkg_file_records
+    return records
 
 
+# ───────────────────── file handlers ───────────────────────────────
 def _handle_copy(
     rec: Dict[str, Any],
     context: Dict[str, Any],
     j2: J2PromptTemplate,
-    workspace_root: Path,
-    storage_adapter: Any,
-    project_name: str,
-    logger: Optional[Any],
+    project_dir: Path,
     commit_paths: List[Path],
 ) -> None:
-    """
-    Render a COPY record and save/upload it, then track it for a commit.
-    """
-    log = logger or globals().get("logger")
-    rendered_name = rec.get("RENDERED_FILE_NAME")
-    if log:
-        log.info(f"Processing COPY file '{rendered_name}'")
-
-    content = _render_copy_template(rec, context, j2)
-    out_path = workspace_root / rendered_name
+    out_path = project_dir / rec["RENDERED_FILE_NAME"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(content or "", encoding="utf-8")
-
-    if log:
-        log.info(f" - Saved COPY to {out_path}")
-
-    if storage_adapter:
-        key = f"{project_name}/{rendered_name}"
-        with open(out_path, "rb") as fsrc:
-            storage_adapter.upload(key, fsrc)
-        if log:
-            log.info(f" - Uploaded COPY to storage key: {key}")
-
+    out_path.write_text(_render_copy_template(rec, context, j2) or "", encoding="utf-8")
     commit_paths.append(out_path)
 
 
@@ -281,57 +171,21 @@ def _handle_generate(
     j2: J2PromptTemplate,
     agent_env: Dict[str, Any],
     cfg: Dict[str, Any],
-    workspace_root: Path,
-    storage_adapter: Any,
-    project_name: str,
-    logger: Optional[Any],
+    project_dir: Path,
     commit_paths: List[Path],
 ) -> None:
-    """
-    Render a GENERATE record by calling the external agent, save/upload it, then track it for a commit.
-    """
-    log = logger or globals().get("logger")
-    rendered_name = rec.get("RENDERED_FILE_NAME")
-    if log:
-        log.info(f"Processing GENERATE file '{rendered_name}'")
-
     prompt_tpl = rec.get("AGENT_PROMPT_TEMPLATE")
-    if log:
-        log.debug(prompt_tpl)
     if not prompt_tpl:
-        if logger:
-            logger.error(
-                f"No AGENT_PROMPT_TEMPLATE for GENERATE file '{rendered_name}'; skipping."
-            )
+        logger.error(f"No AGENT_PROMPT_TEMPLATE for {rec['RENDERED_FILE_NAME']}")
         return
-
-    content = _render_generate_template(
-        rec,
-        context,
-        prompt_tpl,
-        j2,
-        agent_env,
-        cfg,
-    )
-    if log:
-        log.debug(content)
-    out_path = workspace_root / rendered_name
+    content = _render_generate_template(rec, context, prompt_tpl, j2, agent_env, cfg)
+    out_path = project_dir / rec["RENDERED_FILE_NAME"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content or "", encoding="utf-8")
-
-    if log:
-        log.info(f" - Saved GENERATE to {out_path}")
-
-    if storage_adapter:
-        key = f"{project_name}/{rendered_name}"
-        with open(out_path, "rb") as fsrc:
-            storage_adapter.upload(key, fsrc)
-        if log:
-            log.info(f" - Uploaded GENERATE to storage key: {key}")
-
     commit_paths.append(out_path)
 
 
+# ───────────────────── project orchestrator ────────────────────────
 def process_single_project(
     project: Dict[str, Any],
     cfg: Dict[str, Any],
@@ -340,192 +194,96 @@ def process_single_project(
     transitive: bool = False,
 ) -> Tuple[List[Dict[str, Any]], int, str | None, List[str]]:
     """
-    1) Build a global Jinja search path that includes built-ins, plugins, and workspace.
-    2) For each package in project["PACKAGES"]:
-       a) Locate and render its ptree.yaml.j2 → file records.
-    3) Topologically sort all collected file records.
-    4) If sorted_records is nonempty:
-       a) Write each file (COPY or GENERATE) under the default output (<cwd>/<project_name>/…).
-       b) Upload to storage if a storage_adapter is in cfg (optional).
-       c) Commit generated files to Git if ``cfg['vcs']`` is present.
-    Returns ``(sorted_records, next_idx, commit_hexsha, oids)`` where ``oids`` is
-    the list of object IDs committed to the VCS (may be empty).
+    Render *project* inside ``cfg["worktree"]`` and optionally commit results.
+
+    cfg must include:
+        * worktree: Path to the task’s Git work-tree.
+        * (optional) vcs:   GitVCS instance bound to that work-tree.
+        * (optional) logger: custom logger.
+        * (optional) agent_env / other generation config.
     """
-    logger = cfg.get("logger") or globals().get("logger")
-    project_name = project.get("NAME", "<no-project-name>")
+    if "worktree" not in cfg:
+        raise KeyError("cfg['worktree'] is required (path to task work-tree)")
 
-    if logger:
-        logger.info(
-            f"========== Starting process for project '{project_name}' =========="
-        )
+    log = cfg.get("logger") or logger
+    name = project.get("NAME", "<project>")
+    project_dir = Path(cfg["worktree"]).resolve()
+    log.info(f"========== Processing '{name}' in work-tree {project_dir} ==========")
 
-    # ─── STEP 1: Build global search paths ─────────────────────────────────
-    base_dir = Path(os.getcwd())
-    source_pkgs = cfg.get("source_packages", [])
+    global_paths = build_global_template_search_paths(base_dir=Path.cwd())
 
-    storage_adapter = cfg.get("storage_adapter")
-
-    # Always materialize workspace_root under the current working directory:
-    workspace_root = Path(base_dir) / project_name
-    workspace_root.mkdir(parents=True, exist_ok=True)
-
-    global_search_paths = build_global_template_search_paths(
-        workspace_root=workspace_root,
-        source_packages=source_pkgs,
-        base_dir=base_dir,
-    )
-    if logger:
-        logger.debug("Global Jinja search paths:")
-        for idx, p in enumerate(global_search_paths):
-            logger.debug(f"  [{idx}] {p}")
-
-    # ─── STEP 2: Render each package’s ptree.yaml.j2 → file records ─────
-    all_file_records: List[Dict[str, Any]] = []
+    # 1. Collect file records
+    records: List[Dict[str, Any]] = []
     for pkg in project.get("PACKAGES", []):
-        pkg_records = _render_package_ptree(
-            project=project,
-            pkg=pkg,
-            global_search_paths=global_search_paths,
-            workspace_root=workspace_root,
-            storage_adapter=storage_adapter,
-            logger=logger,
+        records.extend(
+            _render_package_ptree(project, pkg, global_paths, project_dir, log)
         )
-        all_file_records.extend(pkg_records)
-    if logger:
-        logger.info(f"Total file-records collected: {len(all_file_records)}")
 
-    # ─── STEP 3: Topological sort ─────────────────────────────────────────
+    # 2. Topological sort
     sorted_records, next_idx = sort_file_records(
-        file_records=all_file_records,
-        start_idx=start_idx,
-        start_file=start_file,
-        transitive=transitive,
+        records, start_idx, start_file, transitive
     )
-    if logger:
-        logger.info(f"Topologically sorted, {len(sorted_records)} files to process.")
-
     if not sorted_records:
-        if logger:
-            logger.warning(
-                f"No files to process for project '{project_name}'. Exiting."
-            )
         return sorted_records, next_idx, None, []
 
-    # ─── STEP 4: Prepare commit tracking (workspace already exists) ──────────
+    # 3. Render files
     commit_paths: List[Path] = []
     vcs: GitVCS | None = cfg.get("vcs")
-    if logger:
-        logger.info(f"Processing files under: {workspace_root}")
-        logger.info("Beginning file-by-file rendering:")
 
-    # ─── STEP 5: Render & save each sorted file ───────────────────────────
     for idx, rec in enumerate(sorted_records, start=start_idx):
-        rendered_name = rec.get("RENDERED_FILE_NAME")
-        if logger:
-            logger.info(f"--- File [{idx}] '{rendered_name}' ---")
-
+        log.info(f"--- Rendering [{idx}] {rec['RENDERED_FILE_NAME']} ---")
         j2 = J2PromptTemplate()
-
-        record_dir = Path(rec.get("TEMPLATE_SET", "")).resolve()
-        ptree_paths = [Path(p) for p in rec.get("PTREE_SEARCH_PATHS", [])]
-        if logger:
-            logger.debug("Pt ree search paths for this file:")
-            for i, p in enumerate(ptree_paths):
-                logger.debug(f"  [{i}] {p}")
-
-        file_paths = build_file_template_search_paths(
-            record_template_dir=record_dir,
-            workspace_root=workspace_root,
-            ptree_search_paths=ptree_paths,
+        j2.templates_dir = build_file_template_search_paths(
+            Path(rec["TEMPLATE_SET"]).resolve(),
+            [Path(p) for p in rec["PTREE_SEARCH_PATHS"]],
         )
-        j2.templates_dir = file_paths
 
-        if logger:
-            logger.debug("Final Jinja search paths for file:")
-            for i, p in enumerate(file_paths):
-                logger.debug(f"  [{i}] {p}")
-
-        context = _create_context(rec, project, logger)
-
-        process_type = rec.get("PROCESS_TYPE", "COPY").upper()
-        if logger:
-            logger.debug(process_type)
-        if process_type == "COPY":
-            if logger:
-                logger.debug("cfg: %s", cfg)
-            _handle_copy(
-                rec,
-                context,
-                j2,
-                workspace_root,
-                storage_adapter,
-                project_name,
-                logger,
-                commit_paths,
-            )
-        elif process_type == "GENERATE":
-            if logger:
-                logger.debug("cfg: %s", cfg)
+        ctx = _create_context(rec, project, log)
+        if rec.get("PROCESS_TYPE", "COPY").upper() == "COPY":
+            _handle_copy(rec, ctx, j2, project_dir, commit_paths)
+        else:
             _handle_generate(
                 rec,
-                context,
+                ctx,
                 j2,
                 cfg.get("agent_env", {}),
                 cfg,
-                workspace_root,
-                storage_adapter,
-                project_name,
-                logger,
+                project_dir,
                 commit_paths,
             )
-        else:
-            if logger:
-                logger.warning(
-                    f"Unknown PROCESS_TYPE '{process_type}' for file '{rendered_name}'; skipping."
-                )
 
-    # ─── STEP 6: Commit results ───────────────────────────────────────────
-    commit_sha = None
+    # 4. Commit
+    commit_sha: str | None = None
     oids: List[str] = []
     if vcs and commit_paths:
         repo_root = Path(vcs.repo.working_tree_dir)
         rels = [os.path.relpath(p, repo_root) for p in commit_paths]
-        commit_sha = vcs.commit(rels, f"process {project_name}")
+        commit_sha = vcs.commit(rels, f"process {name}")
         for rel in rels:
-            try:
+            with suppress(Exception):
                 oids.append(vcs.blob_oid(rel, ref=commit_sha))
-            except Exception:
-                pass
         vcs.push(vcs.repo.active_branch.name)
-    if logger:
-        logger.info(f"========== Completed project '{project_name}' ==========\n")
+
+    log.info(f"========== Completed '{name}' ==========\n")
     return sorted_records, next_idx, commit_sha, oids
 
 
+# ───────────────────── payload orchestrator ────────────────────────
 def process_all_projects(
     projects_payload: Union[str, List[Dict[str, Any]], Dict[str, Any]],
     cfg: Dict[str, Any],
     transitive: bool = False,
 ) -> Dict[str, List[Dict[str, Any]]]:
-    """Process every project described in ``projects_payload``.
-
-    ``projects_payload`` may be a path, YAML text or already parsed mapping.
-    For each project, :func:`process_single_project` is invoked and the results
-    are aggregated into a mapping ``{project_name: [sorted_records], ...}``.
-    """
+    """Render & commit every project described by *projects_payload*."""
     projects = load_projects_payload(projects_payload)
-    results: Dict[str, List[Dict[str, Any]]] = {}
-    next_idx = 0
+    aggregate: Dict[str, List[Dict[str, Any]]] = {}
+    idx = 0
 
     for proj in projects:
-        name = proj.get("NAME", f"project_{next_idx}")
-        recs, next_idx, _, _ = process_single_project(
-            proj,
-            cfg,
-            start_idx=next_idx,
-            start_file=None,
-            transitive=transitive,
+        name = proj.get("NAME", f"project_{idx}")
+        recs, idx, _, _ = process_single_project(
+            proj, cfg, start_idx=idx, transitive=transitive
         )
-        results[name] = recs
+        aggregate[name] = recs
 
-    return results
+    return aggregate

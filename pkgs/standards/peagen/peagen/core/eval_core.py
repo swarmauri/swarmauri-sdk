@@ -1,38 +1,53 @@
-# peagen/core/eval_core.py
 """
-Pure business-logic for evaluating programs with an EvaluatorPool.
+peagen.core.eval_core
+=====================
+Business logic for evaluating programs with an EvaluatorPool.
 
-Functions
----------
-evaluate_workspace()  – orchestrates one evaluation run and returns a report
+Public entry-point
+------------------
+evaluate_workspace() – orchestrates one evaluation run for a given
+(repo, ref) and returns a JSON-serialisable report.
+
+Key guarantees
+--------------
+* **Work-tree per run** – every invocation checks-out a dedicated work-tree
+  at <ROOT_DIR>/worktrees/<repo-hash>/<ref>/<task>/<run>.
+* **Concurrency-safe** – all Git writes are wrapped in ``repo_lock(repo)``.
+* **No repository mutations** – artefacts remain in the ephemeral work-tree
+  which is removed on exit.
 """
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import os
+import shutil
+import uuid
+from contextlib import suppress
+from importlib import import_module
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from importlib import import_module
-
-from peagen.common import PathOrURI, temp_workspace
 from peagen._utils.config_loader import load_peagen_toml
+from peagen.defaults import ROOT_DIR
 from peagen.plugin_manager import resolve_plugin_spec
 from peagen.plugins.evaluator_pools.default import DefaultEvaluatorPool
-from swarmauri_standard.programs.Program import Program
-
+from peagen.core.git_repo_core import (
+    repo_lock,
+    open_repo,
+    fetch_git_remote,
+)
+from swarmauri_standard.programs import Program
 
 # ───────────────────────── helper: pool resolution ──────────────────────────
 def _build_pool(pool_ref: Optional[str], eval_cfg: Dict[str, Any]):
-    """
-    Return an *initialised* EvaluatorPool instance based on config.
-    """
     choice = pool_ref or eval_cfg.get("pool")
-    if choice:
-        PoolCls = resolve_plugin_spec("evaluator_pools", choice)
-    else:
-        PoolCls = DefaultEvaluatorPool
-
+    PoolCls = (
+        resolve_plugin_spec("evaluator_pools", choice)
+        if choice
+        else DefaultEvaluatorPool
+    )
     pool = PoolCls()
     pool.initialize()
     return pool
@@ -40,81 +55,65 @@ def _build_pool(pool_ref: Optional[str], eval_cfg: Dict[str, Any]):
 
 # ─────────────── helper: evaluator registration/update ─────────────────────
 def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
-    """
-    Attach evaluators described in *evaluators_cfg* to *pool*.
-    Support both string and dict forms from .peagen.toml.
-    """
     for name, spec in evaluators_cfg.items():
         if name == "default_evaluator":
             continue
-        # ------------------------------------------------------------------ #
-        # 1) Instantiate or locate evaluator
-        # ------------------------------------------------------------------ #
-        if isinstance(spec, str):
-            if "." in spec or ":" in spec:
-                mod, cls = spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1)
-                EvalCls = getattr(import_module(mod), cls)
-            else:
-                EvalCls = resolve_plugin_spec("evaluators", spec)
-            evaluator = EvalCls()
-        elif isinstance(spec, dict):
-            if "cls" in spec:
-                mod, cls = (
-                    spec["cls"].split(":", 1)
-                    if ":" in spec["cls"]
-                    else spec["cls"].rsplit(".", 1)
-                )
-                EvalCls = getattr(import_module(mod), cls)
-            else:
-                EvalCls = resolve_plugin_spec("evaluators", name)
 
-            args = dict(spec.get("args", {}))
-            args.update({k: v for k, v in spec.items() if k not in {"cls", "args"}})
-            evaluator = EvalCls(**args)
+        # 1) resolve implementation class -------------------------------
+        if isinstance(spec, str):
+            mod, cls = spec.split(":", 1) if ":" in spec else spec.rsplit(".", 1)
+            EvalCls = (
+                getattr(import_module(mod), cls)
+                if "." in spec or ":" in spec
+                else resolve_plugin_spec("evaluators", spec)
+            )
+            evaluator = EvalCls()
+            kwargs: Dict[str, Any] = {}
+        elif isinstance(spec, dict):
+            cls_spec = spec.get("cls", name)
+            mod, cls = (
+                cls_spec.split(":", 1) if ":" in cls_spec else cls_spec.rsplit(".", 1)
+            )
+            EvalCls = getattr(import_module(mod), cls)
+            kwargs = {
+                **spec.get("args", {}),
+                **{k: v for k, v in spec.items() if k not in {"cls", "args"}},
+            }
+            evaluator = EvalCls(**kwargs)
         else:
             raise ValueError(f"Invalid evaluator specification for '{name}': {spec}")
 
-        # ------------------------------------------------------------------ #
-        # 2) Add or update on the pool
-        # ------------------------------------------------------------------ #
+        # 2) register / reconfigure -------------------------------------
         existing = pool.get_evaluator(name)
         if existing is None:
             pool.add_evaluator(evaluator, name=name)
-        else:
-            if isinstance(spec, dict):  # re-configure existing instance
-                args = dict(spec.get("args", {}))
-                args.update({k: v for k, v in spec.items() if k not in {"cls", "args"}})
-                if callable(getattr(existing, "configure", None)):
-                    existing.configure(args)
-                else:
-                    for k, v in args.items():
-                        setattr(existing, k, v)
+        elif isinstance(spec, dict) and callable(getattr(existing, "configure", None)):
+            existing.configure(kwargs)  # type: ignore[arg-type]
 
 
-# ─────────────── helper: workspace program discovery ───────────────────────
-def _collect_programs(workspace: str, pattern: str) -> Tuple[List[Path], List[Program]]:
-    """
-    Return (program_paths, Program instances) for *workspace*.
-    Remote URIs are fetched into a temp dir via program.fetch helpers.
-    """
-    if "://" in workspace:
-        # NOTE: rely on fetch_core to materialise remote workspace first
-        from peagen.core.fetch_core import fetch_single  # local import to avoid cycle
-
-        with temp_workspace() as tmp_dir:
-            fetch_single(workspace, dest_root=tmp_dir)
-            workspace_path = tmp_dir
-    else:
-        workspace_path = Path(PathOrURI(workspace))
-
-    paths: List[Path] = []
-    programs: List[Program] = []
-    for p in workspace_path.glob(pattern):
+# ───────────── helper: workspace program discovery (local only) ─────────────
+def _collect_programs(workspace: Path, pattern: str) -> Tuple[List[Path], List[Program]]:
+    paths, programs = [], []
+    for p in workspace.glob(pattern):
         if p.is_file():
             paths.append(p)
             programs.append(Program.from_workspace(p.parent))
-
     return paths, programs
+
+
+# ──────────────────────── helper: work-tree path  ───────────────────────────
+def _worktree_path(repo: str, ref: str, task: str = "eval") -> Path:
+    """Deterministic path for the current work-tree."""
+    repo_hash = hashlib.sha1(repo.encode()).hexdigest()[:12]
+    run_id = uuid.uuid4().hex[:10]
+    return (
+        Path(ROOT_DIR).expanduser()
+        / "worktrees"
+        / repo_hash
+        / ref.replace("/", "_")
+        / task
+        / run_id
+    )
 
 
 # ───────────────────────────── public API ───────────────────────────────────
@@ -129,66 +128,80 @@ def evaluate_workspace(
     skip_failed: bool = False,
 ) -> Dict[str, Any]:
     """
-    Evaluate programs from ``repo`` and ``ref`` according to configuration.
+    Evaluate programs at *repo*@*ref* and return a summary report.
 
-    Returns a JSON-serialisable report (no I/O side-effects).
+    This function never mutates the repository: it fetches latest refs,
+    materialises an isolated work-tree, runs the EvaluatorPool, then deletes
+    the work-tree before returning.
     """
-    # 1) resolve configuration file (.peagen.toml) -------------------------
-    from peagen.core.fetch_core import fetch_single
-    import tempfile
 
-    tmp_repo = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
-    fetch_single(repo=repo, ref=ref, dest_root=tmp_repo)
-    workspace_path = str(tmp_repo)
+    # 1) establish mirror & work-tree ------------------------------------
+    mirror_base = Path(ROOT_DIR).expanduser() / "mirrors"
+    mirror_base.mkdir(parents=True, exist_ok=True)
 
+    mirror_path = mirror_base / hashlib.sha1(repo.encode()).hexdigest()[:12]
+    worktree_path = _worktree_path(repo, ref)
+
+    with repo_lock(repo):
+        git_repo = open_repo(mirror_path, remote_url=repo)
+        fetch_git_remote(git_repo)
+
+        # ensure fresh work-tree
+        if worktree_path.exists():
+            shutil.rmtree(worktree_path, ignore_errors=True)
+        git_repo.git.worktree("add", str(worktree_path), ref)
+
+    # 2) locate .peagen.toml --------------------------------------------
     if cfg_path is None:
-        ws_cfg = Path(workspace_path) / ".peagen.toml"
+        ws_cfg = worktree_path / ".peagen.toml"
         cwd_cfg = Path.cwd() / ".peagen.toml"
         cfg_path = ws_cfg if ws_cfg.exists() else cwd_cfg
         if not cfg_path.exists():
+            with suppress(Exception):
+                shutil.rmtree(worktree_path, ignore_errors=True)
             raise FileNotFoundError(
                 "No .peagen.toml configuration found – supply cfg_path explicitly."
             )
 
     cfg = load_peagen_toml(cfg_path)
-    eval_cfg: Dict[str, Any] = cfg.get("evaluation", {})
+    eval_cfg = cfg.get("evaluation", {})
 
-    # 2) build evaluator pool + register evaluators ------------------------
+    # 3) build evaluator pool & register evaluators ---------------------
     pool = _build_pool(pool_ref, eval_cfg)
     _register_evaluators(pool, eval_cfg.get("evaluators", {}))
 
-    # 3) collect program files --------------------------------------------
-    prog_paths, progs = _collect_programs(workspace_path, program_glob)
+    # 4) discover programs ----------------------------------------------
+    prog_paths, programs = _collect_programs(worktree_path, program_glob)
 
-    # 4) run evaluation ----------------------------------------------------
-    if async_eval:
-        results = asyncio.run(pool.evaluate_async(progs))
-    else:
-        results = pool.evaluate(progs)
-
-    # 5) optional filtering ------------------------------------------------
-    paired = (
-        [(pp, rr) for pp, rr in zip(prog_paths, results) if rr.score > 0]
-        if skip_failed
-        else list(zip(prog_paths, results))
+    # 5) run evaluation --------------------------------------------------
+    results = (
+        asyncio.run(pool.evaluate_async(programs))
+        if async_eval
+        else pool.evaluate(programs)
     )
 
-    # 6) build report ----------------------------------------------------
+    # 6) optionally filter failures -------------------------------------
+    paired = [
+        (p, r) for p, r in zip(prog_paths, results) if (r.score > 0 or not skip_failed)
+    ]
+
+    # 7) synthesize report ----------------------------------------------
     report = {
         "schemaVersion": "1.0.0",
         "evaluators": pool.get_evaluator_names(),
         "results": [
-            {
-                "program_path": str(pp),
-                "score": rr.score,
-                "metadata": rr.metadata,
-            }
-            for pp, rr in paired
+            {"program_path": str(p), "score": r.score, "metadata": r.metadata}
+            for p, r in paired
         ],
     }
-    if tmp_repo:
-        import shutil
 
-        shutil.rmtree(tmp_repo, ignore_errors=True)
+    # 8) cleanup work-tree ----------------------------------------------
+    with suppress(Exception):
+        # remove work-tree from Git *and* delete files
+        try:
+            git_repo.git.worktree("remove", "--force", str(worktree_path))
+        except Exception:
+            pass
+        shutil.rmtree(worktree_path, ignore_errors=True)
 
     return report
