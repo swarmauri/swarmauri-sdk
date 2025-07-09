@@ -1,11 +1,12 @@
 import subprocess
 from pathlib import Path
 
+import os
 import pytest
 
 pytestmark = pytest.mark.smoke
 
-gateway = "https://gw.peagen.com/rpc"
+gateway = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
