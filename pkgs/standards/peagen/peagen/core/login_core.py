@@ -7,6 +7,7 @@ The function still:
 2. Uploads the *public* key to the JSON-RPC gateway.
 3. Returns the validated success envelope or raises for any error.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,9 +15,9 @@ from typing import Any, Optional
 
 import httpx
 
-from autoapi_client import AutoAPIClient           # ← new client
-from autoapi.v2         import AutoAPI               # ← for .get_schema()
-from peagen.orm import PublicKey       # ORM resource
+from autoapi_client import AutoAPIClient  # ← new client
+from autoapi.v2 import AutoAPI  # ← for .get_schema()
+from peagen.orm import DeployKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.plugins.secret_drivers import AutoGpgDriver
@@ -26,8 +27,8 @@ __all__ = ["login"]
 
 # ----------------------------------------------------------------------
 def _schema(tag: str):
-    """Shortcut to the server-generated schema for the PublicKey resource."""
-    return AutoAPI.get_schema(PublicKey, tag)
+    """Shortcut to the server-generated schema for the DeployKey resource."""
+    return AutoAPI.get_schema(DeployKey, tag)
 
 
 def login(
@@ -52,18 +53,15 @@ def login(
 
     # 2 ─ build request/response schemas dynamically
     SCreate = _schema("create")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
-    params  = SCreate(public_key=public_key)
+    params = SCreate(public_key=public_key)
 
     # 3 ─ JSON-RPC call via AutoAPIClient
-    with AutoAPIClient(gateway_url,
-                       client=httpx.Client(timeout=timeout_s)) as rpc:
+    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
         try:
-            result = rpc.call("PublicKeys.create",
-                              params=params,
-                              out_schema=SRead)
-        except (httpx.HTTPError, RuntimeError) as exc:
+            result = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
+        except (httpx.HTTPError, RuntimeError):
             raise
 
     # 4 ─ return success as plain dict for callers that expect JSON

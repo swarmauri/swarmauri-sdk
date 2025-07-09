@@ -13,28 +13,30 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from autoapi.v2        import AutoAPI
-from peagen.orm        import TaskModel            # your ORM class
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task  # your ORM class
 
-from peagen._utils              import maybe_clone_repo
+from peagen._utils import maybe_clone_repo
 from peagen._utils.config_loader import resolve_cfg
-from peagen.core.analysis_core   import analyze_runs
-from peagen.plugins              import PluginManager
-from peagen.plugins.vcs          import pea_ref
+from peagen.core.analysis_core import analyze_runs
+from peagen.plugins import PluginManager
+from peagen.plugins.vcs import pea_ref
 
 from .repo_utils import fetch_repo, cleanup_repo
 
 
 # ─────────────────────────── AutoAPI schemas ──────────────────────────
-TaskRead = AutoAPI.get_schema(TaskModel, "read")        # for incoming payload
+TaskRead = AutoAPI.get_schema(Task, "read")  # for incoming payload
 
 
 # ─────────────────────────── helper fns ───────────────────────────────
-def _checkout_repo(repo: Optional[str], ref: str) -> Tuple[Optional[Path], Optional[str]]:
+def _checkout_repo(
+    repo: Optional[str], ref: str
+) -> Tuple[Optional[Path], Optional[str]]:
     """Return (tmp_dir, prev_cwd) if *repo* is provided, else (None, None)."""
     if not repo:
         return None, None
-    return fetch_repo(repo, ref)     # ⇢ repo_utils.fetch_repo
+    return fetch_repo(repo, ref)  # ⇢ repo_utils.fetch_repo
 
 
 # ─────────────────────────── main handler  ────────────────────────────
@@ -54,9 +56,9 @@ async def analysis_handler(task: TaskRead) -> Dict[str, Any]:
     args: Dict[str, Any] = payload.get("args", {})
 
     repo: Optional[str] = args.get("repo")
-    ref: str            = args.get("ref", "HEAD")
-    run_dirs            = [Path(p) for p in args.get("run_dirs", [])]
-    spec_name: str      = args.get("spec_name", "analysis")
+    ref: str = args.get("ref", "HEAD")
+    run_dirs = [Path(p) for p in args.get("run_dirs", [])]
+    spec_name: str = args.get("spec_name", "analysis")
 
     # --- clone / checkout repo (if any) -------------------------------
     tmp_dir, prev_cwd = _checkout_repo(repo, ref)
@@ -67,10 +69,10 @@ async def analysis_handler(task: TaskRead) -> Dict[str, Any]:
 
     # --- optional VCS integration ------------------------------------
     cfg = resolve_cfg()
-    pm  = PluginManager(cfg)
+    pm = PluginManager(cfg)
     try:
         vcs = pm.get("vcs")
-    except Exception:          # pragma: no cover – plugin optional
+    except Exception:  # pragma: no cover – plugin optional
         vcs = None
 
     if vcs:
@@ -85,7 +87,7 @@ async def analysis_handler(task: TaskRead) -> Dict[str, Any]:
         # Commit results file if present
         if rf := result.get("results_file"):
             repo_root = Path(vcs.repo.working_tree_dir)
-            rel_path  = Path(rf).resolve().relative_to(repo_root)
+            rel_path = Path(rf).resolve().relative_to(repo_root)
             commit_sha = vcs.commit([str(rel_path)], f"analysis {spec_name}")
             result["commit"] = commit_sha
 
