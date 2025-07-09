@@ -10,7 +10,7 @@ WORKER_LIST = "Workers.list"
 
 pytestmark = pytest.mark.smoke
 
-GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
 REPO = "testproject"
 
 SPEC_PATH = (
