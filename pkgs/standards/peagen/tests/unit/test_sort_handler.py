@@ -2,6 +2,8 @@ import pytest
 
 from peagen.handlers import sort_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -29,7 +31,14 @@ async def test_sort_handler_delegates(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    task = build_task("sort", args)
+    task = build_task(
+        action=Action.SORT,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.sort_handler(task)
 
     if project_name:

@@ -2,6 +2,8 @@ import pytest
 
 from peagen.handlers import eval_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -15,7 +17,14 @@ async def test_eval_handler(monkeypatch):
     monkeypatch.setattr(handler, "evaluate_workspace", fake_evaluate_workspace)
 
     args = {}
-    params = build_task("eval", args, repo="repo", ref="HEAD")
+    params = build_task(
+        action=Action.EVAL,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.eval_handler(params)
 
     assert result["report"]["results"][0]["score"] == 0

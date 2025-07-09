@@ -2,6 +2,8 @@ import pytest
 
 from peagen.handlers import process_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 class DummyPM:
@@ -47,7 +49,14 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    task = build_task("process", args)
+    task = build_task(
+        action=Action.PROCESS,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
 
     result = await handler.process_handler(task)
 

@@ -2,6 +2,8 @@ import pytest
 
 from peagen.handlers import templates_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -29,7 +31,14 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
-    task = build_task("templates", {"operation": op, **args})
+    task = build_task(
+        action=Action.VALIDATE,
+        args={"operation": op, **args},
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.templates_handler(task)
 
     assert result == {"op": op}

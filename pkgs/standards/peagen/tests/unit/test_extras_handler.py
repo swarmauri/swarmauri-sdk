@@ -3,6 +3,8 @@ from pathlib import Path
 
 from peagen.handlers import extras_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -29,7 +31,14 @@ async def test_extras_handler_calls_generate_schemas(
     if schemas_dir:
         args["schemas_dir"] = schemas_dir
 
-    task = build_task("extras", args)
+    task = build_task(
+        action=Action.VALIDATE,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.extras_handler(task)
 
     base = Path(handler.__file__).resolve().parents[1]

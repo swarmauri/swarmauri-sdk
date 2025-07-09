@@ -3,6 +3,8 @@ from pathlib import Path
 
 from peagen.handlers import doe_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -27,7 +29,14 @@ async def test_doe_handler_calls_generate_payload(monkeypatch):
         "skip_validate": True,
     }
 
-    task = build_task("doe", args)
+    task = build_task(
+        action=Action.VALIDATE,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.doe_handler(task)
 
     assert result == {"done": True}

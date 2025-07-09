@@ -2,6 +2,8 @@ import pytest
 
 from peagen.handlers import mutate_handler as handler
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -27,7 +29,14 @@ async def test_mutate_handler_invokes_core(monkeypatch):
         "evaluator_ref": "ev",
     }
 
-    task = build_task("mutate", args, pool="default")
+    task = build_task(
+        action=Action.MUTATE,
+        args=args,
+        tenant_id=str(uuid4()),
+        pool_id=str(uuid4()),
+        repo="repo",
+        ref="HEAD",
+    )
 
     result = await handler.mutate_handler(task)
 
