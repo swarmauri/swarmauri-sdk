@@ -18,6 +18,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
 
     # Choose the appropriate health endpoint based on available DB provider
     if get_db:
+
         @r.get("/healthz", tags=["health"])
         def _health(db: Session = Depends(get_db)):
             try:
@@ -29,6 +30,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
             finally:
                 db.close()
     elif get_async_db:
+
         @r.get("/healthz", tags=["health"])
         async def _health(db: AsyncSession = Depends(get_async_db)):
             try:

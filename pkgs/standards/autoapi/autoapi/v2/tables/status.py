@@ -13,13 +13,14 @@ Canonical store of workflow / lifecycle states.
 If you add/remove a state later, just edit the `Status` enum – the rest
 keeps working.
 """
+
 from __future__ import annotations
 
 from enum import StrEnum
 from sqlalchemy import Column, String, Enum as SAEnum, Integer
 
-from ._base   import Base
-from ..mixins import Timestamped                     # created_at / updated_at
+from ._base import Base
+from ..mixins import Timestamped  # created_at / updated_at
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -27,31 +28,31 @@ from ..mixins import Timestamped                     # created_at / updated_at
 # ────────────────────────────────────────────────────────────────────────
 class Status(StrEnum):
     # queued / dispatching
-    QUEUED          = "queued"
-    WAITING         = "waiting"
-    INPUT_REQUIRED  = "input_required"
-    AUTH_REQUIRED   = "auth_required"
+    QUEUED = "queued"
+    WAITING = "waiting"
+    INPUT_REQUIRED = "input_required"
+    AUTH_REQUIRED = "auth_required"
 
     # approvals
-    APPROVED        = "approved"
-    REJECTED        = "rejected"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
     # execution lifecycle
-    DISPATCHED      = "dispatched"
-    RUNNING         = "running"
-    PAUSED          = "paused"
+    DISPATCHED = "dispatched"
+    RUNNING = "running"
+    PAUSED = "paused"
 
     # final states
-    SUCCESS         = "success"
-    FAILED          = "failed"
-    CANCELLED       = "cancelled"
+    SUCCESS = "success"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
     # (legacy / generic)
-    PENDING         = "pending"      # optional catch-all
-    ACTIVE          = "active"
-    SUSPENDED       = "suspended"
-    DISABLED        = "disabled"
-    DELETED         = "deleted"
+    PENDING = "pending"  # optional catch-all
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    DISABLED = "disabled"
+    DELETED = "deleted"
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -63,15 +64,16 @@ class StatusEnum(Base, Timestamped):
     code     – canonical string value from the Status enum
     label    – human-readable label (“Paused”, “Failed”, …)
     """
+
     __tablename__ = "status_enums"
 
-    id    = Column(Integer, primary_key=True, autoincrement=True)
-    code  = Column(SAEnum(Status, name="status_code_enum"),
-                   unique=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(SAEnum(Status, name="status_code_enum"), unique=True, nullable=False)
     label = Column(String, nullable=False)
 
-    def __repr__(self) -> str:          # noqa: D401
+    def __repr__(self) -> str:  # noqa: D401
         return f"<StatusEnum {self.code}>"
+
 
 __all__ = ["Status", "StatusEnum"]
 
@@ -79,6 +81,6 @@ for _name in list(globals()):
     if _name not in __all__ and not _name.startswith("__"):
         del globals()[_name]
 
+
 def __dir__():
-    """Tighten `dir()` output for interactive sessions."""
-    return sorted(__all__)
+    """Tighten `dir()` output for interactive sessions."""    return sorted(__all__)

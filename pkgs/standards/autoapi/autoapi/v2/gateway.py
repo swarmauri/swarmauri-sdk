@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from sqlalchemy.orm import Session
 from typing import Any, Dict
 
-from .hooks           import Phase
-from .jsonrpc_models  import _RPCReq, _RPCRes, _ok, _err   # tiny utility file
+from .hooks import Phase
+from .jsonrpc_models import _RPCReq, _RPCRes, _ok, _err  # tiny utility file
 
 
 def build_gateway(api) -> APIRouter:
@@ -14,10 +14,10 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
-    @r.post("/rpc", response_model=_RPCRes, tags=['rpc'])
-    async def _gateway(                                   # ← signature updated
+    @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
+    async def _gateway(  # ← signature updated
         req: Request,
-        env: _RPCReq = Body(..., embed=False),            # ① JSON-RPC envelope
+        env: _RPCReq = Body(..., embed=False),  # ① JSON-RPC envelope
         db: Session = Depends(api.get_db),
     ):
         ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}

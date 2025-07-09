@@ -44,6 +44,7 @@ _module_map = {
     "Change": f"{__name__}.audit",
 }
 
+
 def __getattr__(name: str) -> Any:  # noqa: D401
     """Dynamically import `tenant`, `user`, or `group` on first use."""
     if name not in _module_map:
