@@ -143,50 +143,49 @@ def _get_client_ip(request: Request) -> str:  # pragma: no cover - legacy
 # ─────────── scheduler loop ───────────────────────────────────────────
 async def scheduler() -> None:
     sched_log.info("scheduler loop started")
-    async with httpx.AsyncClient(timeout=10, http2=True):
-        while True:
-            # — 1. find pools with queued work
-            pools = await queue.smembers("pools")
-            if not pools:
-                await asyncio.sleep(0.25)
-                continue
-            # — 2. BLPOP from all pool queues
-            keys = [f"{READY_QUEUE}:{p}" for p in pools]
-            res = await queue.blpop(keys, 0.5)
-            if res is None:
-                continue
-            queue_key, raw_json = res
-            pool = queue_key.split(":", 1)[1]
-            await _publish._publish_queue_length(queue, pool)
+    while True:
+        # — 1. find pools with queued work
+        pools = await queue.smembers("pools")
+        if not pools:
+            await asyncio.sleep(0.25)
+            continue
+        # — 2. BLPOP from all pool queues
+        keys = [f"{READY_QUEUE}:{p}" for p in pools]
+        res = await queue.blpop(keys, 0.5)
+        if res is None:
+            continue
+        queue_key, raw_json = res
+        pool = queue_key.split(":", 1)[1]
+        await _publish._publish_queue_length(queue, pool)
 
-            try:
-                task = Task.model_validate_json(raw_json)
-            except Exception as exc:  # noqa: BLE001
-                sched_log.warning("invalid task JSON; %s", exc)
-                continue
+        try:
+            task = Task.model_validate_json(raw_json)
+        except Exception as exc:  # noqa: BLE001
+            sched_log.warning("invalid task JSON; %s", exc)
+            continue
 
-            # — 3. find available worker
-            workers = await schedule_helpers.get_live_workers_by_pool(queue, pool)
-            target = schedule_helpers.pick_worker(workers, task.action)
+        # — 3. find available worker
+        workers = await schedule_helpers.get_live_workers_by_pool(queue, pool)
+        target = schedule_helpers.pick_worker(workers, task.action)
 
-            if target is None:
-                sched_log.warning("no worker for %s:%s", pool, task.action)
-                await schedule_helpers._fail_task(
-                    task, NoWorkerAvailableError(pool, task.action), sched_log
-                )
-                continue
+        if target is None:
+            sched_log.warning("no worker for %s:%s", pool, task.action)
+            await schedule_helpers._fail_task(
+                task, NoWorkerAvailableError(pool, task.action), sched_log
+            )
+            continue
 
-            # — 4. dispatch
-            ok = await schedule_helpers.dispatch_work(task, target, sched_log)
-            if ok:
-                await schedule_helpers._save_task(
-                    queue, task.model_copy(update={"status": StatusEnum.DISPATCHED})
-                )
-                await _publish._publish_task(queue, task)
-            else:
-                await schedule_helpers.remove_worker(queue, target["id"])
-                await queue.rpush(queue_key, raw_json)  # re-queue
-                await asyncio.sleep(1)  # back-off
+        # — 4. dispatch
+        ok = await schedule_helpers.dispatch_work(task, target, sched_log)
+        if ok:
+            await schedule_helpers._save_task(
+                queue, task.model_copy(update={"status": StatusEnum.DISPATCHED})
+            )
+            await _publish._publish_task(queue, task)
+        else:
+            await schedule_helpers.remove_worker(queue, target["id"])
+            await queue.rpush(queue_key, raw_json)  # re-queue
+            await asyncio.sleep(1)  # back-off
 
 
 # ─────────── FastAPI startup / shutdown handlers ──────────────────────
