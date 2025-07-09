@@ -18,6 +18,8 @@ from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI  # façade for get_schema
 from peagen.orm import Worker, Work
 
+DEFAULT_POOL_ID = uuid.UUID(int=0)
+
 # Auto-generated schemas
 SWorkerCreate = AutoAPI.get_schema(Worker, "create")
 SWorkerRead = AutoAPI.get_schema(Worker, "read")
@@ -61,7 +63,7 @@ class WorkerBase:
         # ----- env / defaults --------------------------------------
         self.pool = pool or os.getenv("DQ_POOL", "default")
         self.gateway = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4())[:8])
+        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4()))
         self.port = port or int(os.getenv("PORT", 8001))
         self.host = host or os.getenv("DQ_HOST") or _local_ip()
         self.listen_at = f"http://{self.host}:{self.port}/rpc"
@@ -130,7 +132,7 @@ class WorkerBase:
         try:
             payload = SWorkerCreate(
                 id=self.worker_id,
-                pool=self.pool,
+                pool_id=DEFAULT_POOL_ID,
                 url=self.listen_at,
                 advertises={"cpu": True},
                 handlers=list(self._handlers),
