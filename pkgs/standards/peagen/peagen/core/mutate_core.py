@@ -26,7 +26,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugin_manager import PluginManager, resolve_plugin_spec
-from peagen.plugins.vcs import open_repo         # optional; may raise
 from peagen.core.fetch_core import fetch_single  # shallow clone helper
 from swarmauri_standard.programs.Program import Program
 
@@ -69,9 +68,7 @@ def mutate_workspace(  # noqa: PLR0913 – many tunables by design
     profile_mod: str | None = None,
     cfg_path: Optional[Path] = None,
     mutations: Optional[List[Dict[str, Any]]] = None,
-    evaluator_ref: str = (
-        "performance_evaluator"
-    ),
+    evaluator_ref: str = ("performance_evaluator"),
 ) -> Dict[str, Optional[str]]:
     """
     Run a very small GA-style search over *target_file* in *repo@ref*.
