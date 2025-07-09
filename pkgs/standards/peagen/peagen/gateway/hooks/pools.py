@@ -3,16 +3,20 @@ gateway.hooks.pool
 ──────────────────────
 Only CRUD hooks remain – no ad-hoc RPC methods.
 """
+
 from __future__ import annotations
+
 from typing import Any, Dict
 
-from autoapi.v2 import Phase, AutoAPI
+from autoapi.v2 import AutoAPI, Phase
+
 from peagen.orm import Pool
 
-from .. import queue, log, api
+from .. import api, log, queue
 
 # Fast, cacheable access to the generated Pool schemas
 PoolRead = AutoAPI.get_schema(Pool, "read")
+
 
 # ─────────────────────────── CRUD hooks ────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Pools.create")

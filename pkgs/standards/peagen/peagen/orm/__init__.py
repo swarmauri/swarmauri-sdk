@@ -4,24 +4,23 @@ condensed_orm.py  –  all Peagen domain tables in one place
 """
 
 from __future__ import annotations
-import uuid
+
 import datetime as dt
 from typing import Any, Dict, FrozenSet
 from enum import Enum, auto
 
 from sqlalchemy import (
-    Column,
-    String,
-    DateTime,
-    Boolean,
-    Integer,
-    ForeignKey,
-    Enum as SAEnum,
     JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
     Numeric,
+    String,
     Table,
     UniqueConstraint,
-    Index,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum

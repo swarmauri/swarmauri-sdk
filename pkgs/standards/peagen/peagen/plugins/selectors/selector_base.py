@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from peagen.transport.jsonrpc_schemas import Status
-from peagen.plugins.result_backends import ResultBackendBase
+from peagen.orm import Status
+# from peagen.plugins.result_backends import ResultBackendBase
 
 
 class SelectorBase:
     """Common candidate selection logic."""
 
-    def __init__(self, backend: ResultBackendBase, num_candidates: int = 1) -> None:
+    def __init__(self, backend, num_candidates: int = 1) -> None:
         self.backend = backend
         self.num_candidates = num_candidates
 

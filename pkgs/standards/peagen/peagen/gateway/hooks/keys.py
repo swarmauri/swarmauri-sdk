@@ -9,34 +9,36 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict
 
+from autoapi.v2 import AutoAPI, Phase
 from pgpy import PGPKey
-from autoapi.v2 import Phase, AutoAPI
+
 from peagen.orm import PublicKey
 
-from .. import log, api
+from .. import api, log
 
 # -------------------------------------------------------------------
 # Resolve the exact server-side schemas once (lru_cached inside AutoAPI)
-SCreate = AutoAPI.get_schema(PublicKey, "create")   # body for DeployKeys.create
-SRead   = AutoAPI.get_schema(PublicKey, "read")     # single-row read
-SDelete = AutoAPI.get_schema(PublicKey, "delete")   # pk-only schema
-SListIn = AutoAPI.get_schema(PublicKey, "list")     # fetch all keys
+SCreate = AutoAPI.get_schema(PublicKey, "create")  # body for DeployKeys.create
+SRead = AutoAPI.get_schema(PublicKey, "read")  # single-row read
+SDelete = AutoAPI.get_schema(PublicKey, "delete")  # pk-only schema
+SListIn = AutoAPI.get_schema(PublicKey, "list")  # fetch all keys
 # -------------------------------------------------------------------
 
 
 @api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.create")
 async def pre_key_upload(ctx: Dict[str, Any]) -> None:
     """Validate the uploaded key and prepare DB row."""
-    params: SCreate = ctx["env"].params          # ← validated by AutoAPI
-    pgp = PGPKey(); pgp.parse(params.public_key)
+    params: SCreate = ctx["env"].params  # ← validated by AutoAPI
+    pgp = PGPKey()
+    pgp.parse(params.public_key)
 
     ctx["key_data"] = {
-        "id":          str(uuid.uuid4()),
-        "user_id":     None,                    # resolved by service layer
-        "name":        f"{pgp.fingerprint[:16]}-key",
-        "public_key":  params.public_key,
-        "secret_id":   None,
-        "read_only":   True,
+        "id": str(uuid.uuid4()),
+        "user_id": None,  # resolved by service layer
+        "name": f"{pgp.fingerprint[:16]}-key",
+        "public_key": params.public_key,
+        "secret_id": None,
+        "read_only": True,
     }
     ctx["fingerprint"] = pgp.fingerprint
 
@@ -45,13 +47,12 @@ async def pre_key_upload(ctx: Dict[str, Any]) -> None:
 async def post_key_upload(ctx: Dict[str, Any]) -> None:
     """Cache the key in memory and shape the RPC result."""
     params: SCreate = ctx["env"].params
-    fp: str         = ctx["fingerprint"]
+    fp: str = ctx["fingerprint"]
 
     log.info("key persisted (fingerprint=%s)", fp)
 
     # Use the server's *read* schema for the success envelope
-    ctx["result"] = SRead(public_key=params.public_key,
-                          fingerprint=fp).model_dump()
+    ctx["result"] = SRead(public_key=params.public_key, fingerprint=fp).model_dump()
 
 
 @api.hook(Phase.POST_HANDLER, method="DeployKeys.read")
@@ -62,10 +63,11 @@ async def post_key_fetch(ctx: Dict[str, Any]) -> None:
 
     for row in rows:
         pub = row["public_key"] if isinstance(row, dict) else row.public_key
-        pgp = PGPKey(); pgp.parse(pub)
+        pgp = PGPKey()
+        pgp.parse(pub)
         mapping[pgp.fingerprint] = pub
 
-    ctx["result"] = {"keys": mapping}            # simple dict for clients
+    ctx["result"] = {"keys": mapping}  # simple dict for clients
 
 
 @api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.delete")
