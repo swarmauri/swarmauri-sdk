@@ -15,11 +15,9 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
-    Index,
     Integer,
     String,
     UniqueConstraint,
-    text,
 )
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
 from sqlalchemy.orm import relationship, foreign, remote
@@ -202,19 +200,7 @@ class Task(
     """Task table — explicit columns, polymorphic spec ref."""
 
     __tablename__ = "tasks"
-    __table_args__ = (
-        Index("ix_tasks_action_status", "action", "status"),
-        Index(
-            "uq_tasks_dedup",
-            "action",
-            "repo",
-            "ref",
-            "spec_kind",
-            "spec_uuid",
-            unique=True,
-            postgresql_where=text("status != 'error'"),
-        ),
-    )
+    __table_args__ = ()
     # ───────── routing & ownership ──────────────────────────
     action = Column(PgEnum(Action, name="task_action"), nullable=False)
     pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)

@@ -44,4 +44,5 @@ async def validate_handler(task: TaskRead) -> Dict[str, Any]:
     with maybe_clone_repo(repo, ref):  # no-op if repo is None
         return validate_artifact(
             kind,
-            Path(path_str).expanduser() if path_str else None,        )
+            Path(path_str).expanduser() if path_str else None,
+        )
