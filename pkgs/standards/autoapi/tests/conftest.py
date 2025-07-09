@@ -1,6 +1,5 @@
 from typing import AsyncIterator, Iterator
 
-import pytest
 import pytest_asyncio
 from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.mixins import BulkCapable, GUIDPk
