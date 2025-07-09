@@ -4,7 +4,6 @@ from functools import wraps
 from inspect import signature
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
     Literal,
@@ -14,7 +13,7 @@ from typing import (
     get_origin,
 )
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, declarative_base

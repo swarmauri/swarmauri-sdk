@@ -11,7 +11,6 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
-from sqlalchemy.ext.declarative import declarative_mixin
 
 
 # ----------------------------------------------------------------------

@@ -40,7 +40,8 @@ class _RPCRes(BaseModel):
     id: str | int | None = None
 
 
-_ok = lambda x, q: _RPCRes(result=x, id=q.id)
+def _ok(x: Any, q: _RPCReq) -> _RPCRes:
+    return _RPCRes(result=x, id=q.id)
 
 
 def _err(code: int, msg: str, q: _RPCReq, data: dict | None = None) -> _RPCRes:

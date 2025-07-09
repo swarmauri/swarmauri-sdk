@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Any, Dict
 
 from .hooks import Phase
-from .jsonrpc_models import _RPCReq, _RPCRes, _ok, _err  # tiny utility file
+from .jsonrpc_models import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
 
 
 def build_gateway(api) -> APIRouter:
