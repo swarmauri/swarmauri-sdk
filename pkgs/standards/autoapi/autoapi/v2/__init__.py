@@ -107,7 +107,7 @@ class AutoAPI:
     async def initialize_async(self):
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
-            async with self.get_async_db() as adb:
+            async for adb in self.get_async_db():
                 # Get the engine from the session
                 engine = adb.get_bind()
                 await adb.run_sync(
@@ -117,6 +117,7 @@ class AutoAPI:
                         tables=self.tables,
                     )
                 )
+                break
             self._ddl_executed = True
 
     def initialize_sync(self):
