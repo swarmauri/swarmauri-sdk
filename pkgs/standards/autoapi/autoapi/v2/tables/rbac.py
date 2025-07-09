@@ -39,4 +39,5 @@ for _name in list(globals()):
 
 
 def __dir__():
-    # optional, keeps IPython completion tight    return sorted(__all__)
+    """Tighten `dir()` output for interactive sessions."""
+    return sorted(__all__)

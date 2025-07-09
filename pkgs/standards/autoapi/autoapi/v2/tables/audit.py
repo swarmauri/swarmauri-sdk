@@ -22,5 +22,5 @@ for _name in list(globals()):
         del globals()[_name]
 
 def __dir__():
-    # optional, keeps IPython completion tight
+    """Tighten `dir()` output for interactive sessions."""
     return sorted(__all__)

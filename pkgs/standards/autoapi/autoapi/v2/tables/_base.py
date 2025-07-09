@@ -18,3 +18,7 @@ class Base(DeclarativeBase):
         return cls.__name__.lower()               # "tenant" / "user" / "group"
 
 __all__ = ["Base"]
+
+def __dir__():
+    """Tighten `dir()` output for interactive sessions."""
+    return sorted(__all__)
