@@ -5,7 +5,7 @@ from autoapi.v2 import AutoAPI
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_generation(api_client):
-    client, api, Item = await api_client
+    client, api, Item = api_client
 
     create_model = AutoAPI.get_schema(Item, "create")
     read_model = AutoAPI.get_schema(Item, "read")
@@ -27,7 +27,7 @@ async def test_schema_generation(api_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_bulk_operation_schema(api_client):
-    client, _, _ = await api_client
+    client, _, _ = api_client
     spec = (await client.get("/openapi.json")).json()
     assert "/items/bulk" in spec["paths"]
     ops = spec["paths"]["/items/bulk"]

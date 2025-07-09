@@ -1,5 +1,4 @@
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import Iterator
 
 import pytest_asyncio
 from autoapi.v2 import AutoAPI, Base
@@ -8,11 +7,14 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 
 @pytest_asyncio.fixture()
 async def api_client():
+    Base.metadata.clear()
+
     class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
@@ -23,22 +25,17 @@ async def api_client():
         name = Column(String, nullable=False)
         _nested_path = "/tenants/{tenant_id}"
 
-    @asynccontextmanager
-    async def get_db() -> AsyncIterator[AsyncSession]:
-        async_engine = create_async_engine("sqlite+aiosqlite:///gateway.db", echo=True)
-        async_session_factory = async_sessionmaker(
-            bind=async_engine, class_=AsyncSession, expire_on_commit=False
-        )
-        async with async_session_factory() as session:
-            try:
-                yield session
-            finally:
-                await session.close()
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
+    SessionLocal = sessionmaker(bind=engine)
 
-    api = AutoAPI(
-        base=Base, include={Tenant, Item}, get_async_db=get_db
-    )  # Changed from get_db to get_async_db
-    await api.initialize_async()
+    def get_db() -> Iterator[Session]:
+        with SessionLocal() as session:
+            yield session
+
+    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db)
+    api.initialize_sync()
 
     app = FastAPI()
     app.include_router(api.router)

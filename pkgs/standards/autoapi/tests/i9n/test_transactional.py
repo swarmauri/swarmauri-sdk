@@ -6,7 +6,7 @@ from autoapi.v2.transactional import transactional
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_transaction_decorator(api_client):
-    client, api, Item = await api_client
+    client, api, Item = api_client
 
     def fail(params, db):
         obj = Item(tenant_id=uuid.UUID(params["tenant_id"]), name=params["name"])

@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_basic_endpoints(api_client):
-    client, _, _ = await api_client
+    client, _, _ = api_client
 
     resp = await client.get("/openapi.json")
     assert resp.status_code == 200
