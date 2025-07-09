@@ -29,7 +29,14 @@ async def test_extras_handler_calls_generate_schemas(
     if schemas_dir:
         args["schemas_dir"] = schemas_dir
 
-    task = build_task("extras", args)
+    task = build_task(
+        action="extras",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.extras_handler(task)
 
     base = Path(handler.__file__).resolve().parents[1]

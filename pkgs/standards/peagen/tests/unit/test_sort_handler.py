@@ -29,7 +29,14 @@ async def test_sort_handler_delegates(monkeypatch, project_name):
     if project_name:
         args["project_name"] = project_name
 
-    task = build_task("sort", args)
+    task = build_task(
+        action="sort",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.sort_handler(task)
 
     if project_name:
