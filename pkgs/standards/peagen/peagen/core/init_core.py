@@ -79,10 +79,6 @@ def _render_scaffold(
 def init_project(
     *,
     path: Path,
-    template_set: str = "default",
-    provider: Optional[str] = None,
-    with_doe: bool = False,
-    with_eval_stub: bool = False,
     force: bool = False,
     git_remotes: dict[str, str] | None = None,
     filter_uri: str | None = None,
@@ -97,10 +93,6 @@ def init_project(
     project_root = path.name
     context = {
         "PROJECT_ROOT": project_root,
-        "template_set": template_set,
-        "provider": provider or "",
-        "with_doe": with_doe,
-        "with_eval_stub": with_eval_stub,
         "peagen_version": "0.0.0",
     }
 

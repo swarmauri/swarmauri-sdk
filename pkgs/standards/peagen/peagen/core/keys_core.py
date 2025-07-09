@@ -94,7 +94,7 @@ def upload_public_key(
     params = SCreate(public_key=pubkey)
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
+        res = rpc.call("DeployKeys.create", params=params, out_schema=SRead)
 
     return res.model_dump()
 
@@ -104,7 +104,7 @@ def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> d
     params = SDel(fingerprint=fingerprint)
 
     with _rpc(gateway_url) as rpc:
-        res: dict = rpc.call("PublicKeys.delete", params=params, out_schema=dict)
+        res: dict = rpc.call("DeployKeys.delete", params=params, out_schema=dict)
 
     return res
 
@@ -114,6 +114,6 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
     SRead = _schema("read")
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("PublicKeys.list", params=SListIn(), out_schema=list[SRead])  # type: ignore
+        res = rpc.call("DeployKeys.list", params=SListIn(), out_schema=list[SRead])  # type: ignore
 
     return [k.model_dump() for k in res]
