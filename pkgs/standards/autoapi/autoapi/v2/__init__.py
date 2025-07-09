@@ -13,7 +13,7 @@ from typing import Any, AsyncIterator, Callable, Dict, Iterator, Optional, Type
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy.orm import Session
 
 from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
@@ -26,7 +26,7 @@ from .impl import (
     _wrap_rpc,
 )
 from .routes import _nested_prefix  # path builder
-from .tables._base import Base
+from .tables._base import Base as Base
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
 from .types import (

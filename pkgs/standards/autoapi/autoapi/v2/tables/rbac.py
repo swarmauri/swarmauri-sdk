@@ -39,5 +39,6 @@ for _name in list(globals()):
 
 
 def __dir__():
-    """Tighten `dir()` output for interactive sessions."""
+    """Tighten ``dir()`` output for interactive sessions."""
+
     return sorted(__all__)
