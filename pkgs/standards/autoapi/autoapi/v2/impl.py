@@ -156,7 +156,13 @@ def _register_routes_and_rpcs(  # noqa: N802
     from fastapi import HTTPException
 
     # ─── helpers & preliminaries ────────────────────────────────────────
-    is_async = issubclass(model, AsyncCapable)
+    # Determine async mode. If only an async DB provider exists, treat all
+    # models as async even without the ``AsyncCapable`` mixin.
+    is_async = (
+        bool(self.get_async_db)
+        if self.get_db is None
+        else issubclass(model, AsyncCapable)
+    )
     provider = self.get_async_db if is_async else self.get_db
 
     pk_col = next(iter(model.__table__.primary_key.columns))
@@ -293,18 +299,23 @@ def _register_routes_and_rpcs(  # noqa: N802
                     p = p.model_copy(update=parent_kw)
 
                 # ── delegate to the core helper WITHOUT extra **kwargs ────────────
+                async def call_sync(fn, *args):
+                    if isinstance(db, AsyncSession):
+                        return await db.run_sync(lambda s: fn(*args, s))
+                    return fn(*args, db)
+
                 match verb:
                     case "list":
-                        return await _run(core, p, db)
+                        return await call_sync(core, p)
                     case "read" | "delete":
-                        return await _run(core, item_id, db)
+                        return await call_sync(core, item_id)
                     case "update" | "replace":
-                        return await _run(core, item_id, p, db)
+                        return await call_sync(core, item_id, p)
                     case "clear":
-                        return await _run(core, db)
+                        return await call_sync(core)
                     case _:
                         # create / bulk_create / bulk_delete
-                        return await _run(core, p, db)
+                        return await call_sync(core, p)
 
             _impl.__name__ = f"{verb}_{tab}"
             wrapped = functools.wraps(_impl)(_impl)
