@@ -1,7 +1,6 @@
 # peagen/handlers/doe_process_handler.py
 from __future__ import annotations
 
-import os
 import shutil
 import tempfile
 import uuid

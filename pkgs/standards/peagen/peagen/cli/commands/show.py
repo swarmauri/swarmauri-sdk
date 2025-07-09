@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import typer
-from peagen.core.git_repo_core import open_repo   # ← new import
+from peagen.core.git_repo_core import open_repo  # ← new import
 
 show_app = typer.Typer(help="Inspect raw Git objects inside a repository.")
 
@@ -13,7 +13,9 @@ show_app = typer.Typer(help="Inspect raw Git objects inside a repository.")
 def show(
     oid: str = typer.Argument(..., help="Git object ID (commit, tree, blob, tag)"),
     repo: Path = typer.Option(
-        ".", "--repo", "-r",
+        ".",
+        "--repo",
+        "-r",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -26,10 +28,10 @@ def show(
     of its contents.  Uses the pluggable VCS adapter exposed via
     ``peagen.core.git_repo_core.open_repo``.
     """
-    vcs = open_repo(repo)            # open local clone (read-only)
+    vcs = open_repo(repo)  # open local clone (read-only)
     info = {
-        "type":   vcs.object_type(oid),
-        "size":   vcs.object_size(oid),
+        "type": vcs.object_type(oid),
+        "size": vcs.object_size(oid),
         "pretty": vcs.object_pretty(oid),
     }
     typer.echo(json.dumps(info, indent=2))

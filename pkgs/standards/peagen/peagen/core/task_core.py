@@ -5,12 +5,11 @@ from an AutoAPI gateway.
 from __future__ import annotations
 
 import httpx
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
-from peagen.orm import Task, Status
+from peagen.orm import Task
 
 from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
 

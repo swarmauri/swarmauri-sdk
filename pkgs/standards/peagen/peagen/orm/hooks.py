@@ -3,7 +3,7 @@ from autoapi.v2.hooks import Phase, _Hook
 from fastapi import HTTPException
 from sqlalchemy.exc import NoResultFound
 
-from . import Task, Secret, DeployKey, Repository   # ← your ORM classes
+from . import Task, Secret, DeployKey, Repository  # ← your ORM classes
 
 _TARGET_MODELS = {Task, Secret, DeployKey}
 # _ALLOWED_VERBS = {"create", "update"}               # ignore read/list/delete
@@ -14,8 +14,9 @@ class _ResolveRepositoryHook(_Hook):
     Slug-or-ID repository resolver / consistency guard
     for Task, Secret, and DeployKey submissions.
     """
+
     phase = Phase.PRE_TX_BEGIN
-    model = None          # make it globally visible; we'll filter manually
+    model = None  # make it globally visible; we'll filter manually
 
     def __call__(self, ctx):
         # ── 1. apply only to our tables & verbs ─────────────────────────
@@ -25,15 +26,15 @@ class _ResolveRepositoryHook(_Hook):
         #     return
 
         data = ctx.in_.model_dump()
-        db   = ctx.db
+        db = ctx.db
 
         # ── 2. slug-only submission: resolve repository_id ──────────────
         if data.get("repository_id") is None:
             try:
                 repo_id = (
                     db.query(Repository.id)
-                      .filter_by(tenant_id=data["tenant_id"], slug=data["repo"])
-                      .one()[0]
+                    .filter_by(tenant_id=data["tenant_id"], slug=data["repo"])
+                    .one()[0]
                 )
             except NoResultFound:
                 raise HTTPException(

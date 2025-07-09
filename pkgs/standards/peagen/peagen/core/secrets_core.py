@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import httpx
 from pathlib import Path
-from typing import List, Optional, Any, Dict
+from typing import List, Optional
 
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from autoapi.v2 import AutoAPI
-from peagen.orm import Task, Status
+from peagen.orm import Task
 
 from peagen.core.mutate_core import mutate_workspace
 from peagen._utils.config_loader import resolve_cfg

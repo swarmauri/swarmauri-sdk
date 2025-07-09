@@ -352,4 +352,5 @@ def remote_init_repo(  # noqa: PLR0913
             remotes["origin"] = origin
         if upstream:
             remotes["upstream"] = upstream
-        args["remotes"] = remotes    _remote_task("init", args, ctx, repo, ref)
+        args["remotes"] = remotes
+    _remote_task("init", args, ctx, repo, ref)

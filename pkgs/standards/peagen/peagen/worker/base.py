@@ -6,8 +6,7 @@ import logging
 import os
 import socket
 import uuid
-import json
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Iterable
+from typing import Awaitable, Callable
 
 import httpx
 from fastapi import Body, FastAPI, HTTPException
@@ -192,4 +191,5 @@ class WorkerBase:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
             self._client.call("Works.update", params=upd)
             self.log.info("Works.update %s → %s", work_id, status)
-        except Exception as exc:            self.log.error("notify failed: %s", exc)
+        except Exception as exc:
+            self.log.error("notify failed: %s", exc)

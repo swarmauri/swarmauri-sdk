@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 
 
-
 # ───────────────── CTX DEFAULT FALLBACKS ─────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 GATEWAY_URL = DEFAULT_GATEWAY
@@ -19,6 +18,7 @@ RPC_TIMEOUT = 30.0
 # ───────────────────────── Peagen Lock ────────────────────────────
 # Default directory for repository lock files.
 LOCK_DIR = "~/.cache/peagen/locks"
+
 
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
@@ -59,7 +59,6 @@ CONFIG = {
     },
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
 }
-
 
 
 # ─────────────────────────── Pools ────────────────────────────
