@@ -307,8 +307,9 @@ def _register_routes_and_rpcs(  # noqa: N802
                         return await _run(core, p, db)
 
             _impl.__name__ = f"{verb}_{tab}"
-            _impl.__signature__ = inspect.Signature(parameters=params)
-            return functools.wraps(_impl)(_impl)
+            wrapped = functools.wraps(_impl)(_impl)
+            wrapped.__signature__ = inspect.Signature(parameters=params)
+            return wrapped
 
         # mount on every relevant router
         for r in routers:

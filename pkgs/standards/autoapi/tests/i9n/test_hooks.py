@@ -5,7 +5,7 @@ from autoapi.v2 import Phase
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hooks_modify_request_and_response(api_client):
-    client, api, _ = await api_client
+    client, api, _ = api_client
 
     @api.hook(Phase.PRE_TX_BEGIN, method="Items.create")
     async def upcase(ctx):

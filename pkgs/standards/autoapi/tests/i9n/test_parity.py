@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_rest_rpc_parity(api_client):
-    client, _, Item = await api_client
+    client, _, Item = api_client
     t = await client.post("/tenants", json={"name": "acme"})
     tenant_id = t.json()["id"]
 
