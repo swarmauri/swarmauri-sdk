@@ -1,12 +1,16 @@
 # peagen/handlers/doe_process_handler.py
 from __future__ import annotations
 
-import os, shutil, tempfile, uuid, yaml
+import os
+import shutil
+import tempfile
+import uuid
+import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
-from autoapi.v2          import AutoAPI
-from peagen.orm      import Status, Task
+from autoapi.v2 import AutoAPI
+from peagen.orm import Status, Task
 
 from peagen.core.doe_core import generate_payload
 from peagen._utils.config_loader import resolve_cfg
@@ -16,7 +20,7 @@ from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdap
 from .fanout import fan_out
 
 # ─────────────────────────── AutoAPI schemas ──────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")               # incoming task
+TaskRead = AutoAPI.get_schema(Task, "read")  # incoming task
 
 
 # ─────────────────────────── helper: tmp file -------------------------
@@ -74,21 +78,23 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:
         if "spec_text" in args:
             args["spec"] = str(_write_tmp(args["spec_text"], "spec.yaml", tmp_data))
         if "template_text" in args:
-            args["template"] = str(_write_tmp(args["template_text"], "template.yaml", tmp_data))
+            args["template"] = str(
+                _write_tmp(args["template_text"], "template.yaml", tmp_data)
+            )
 
     cfg_path = _resolve_existing(args["config"]) if args.get("config") else None
 
     # ---------- core DoE expansion -------------------------------------
     result = generate_payload(
-        spec_path     = _resolve_existing(args["spec"]),
-        template_path = _resolve_existing(args["template"]),
-        output_path   = Path(args["output"]).expanduser(),
-        cfg_path      = cfg_path,
-        notify_uri    = args.get("notify"),
-        dry_run       = args.get("dry_run", False),
-        force         = args.get("force", False),
-        skip_validate = args.get("skip_validate", False),
-        evaluate_runs = args.get("evaluate_runs", False),
+        spec_path=_resolve_existing(args["spec"]),
+        template_path=_resolve_existing(args["template"]),
+        output_path=Path(args["output"]).expanduser(),
+        cfg_path=cfg_path,
+        notify_uri=args.get("notify"),
+        dry_run=args.get("dry_run", False),
+        force=args.get("force", False),
+        skip_validate=args.get("skip_validate", False),
+        evaluate_runs=args.get("evaluate_runs", False),
     )
 
     dry_run = result.get("dry_run", args.get("dry_run", False))
@@ -98,10 +104,10 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:
 
     # ---------- optional object-store upload ---------------------------
     cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else ".peagen.toml")
-    pm  = PluginManager(cfg)
+    pm = PluginManager(cfg)
     try:
         storage_adapter = pm.get("storage_adapters")
-    except Exception:                                    # pragma: no cover
+    except Exception:  # pragma: no cover
         file_cfg = cfg.get("storage", {}).get("adapters", {}).get("file", {})
         storage_adapter = FileStorageAdapter(**file_cfg) if file_cfg else None
 
@@ -111,7 +117,7 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:
 
     for p in output_paths:
         text = Path(p).read_text()
-        doc  = yaml.safe_load(text)
+        doc = yaml.safe_load(text)
         proj = (doc.get("PROJECTS") or [None])[0]
 
         payload: str | bytes = text

@@ -10,7 +10,10 @@ Sub-commands
 
 from __future__ import annotations
 
-import asyncio, json, time, uuid
+import asyncio
+import json
+import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -18,14 +21,14 @@ import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
 from peagen.handlers.sort_handler import sort_handler
-from peagen.cli.task_helpers      import build_task, submit_task, get_task
-from peagen.orm                   import Status
+from peagen.cli.task_helpers import build_task, submit_task, get_task
+from peagen.orm import Status
 
-DEFAULT_POOL_ID   = uuid.UUID(int=0)     # demo; replace in prod
+DEFAULT_POOL_ID = uuid.UUID(int=0)  # demo; replace in prod
 DEFAULT_TENANT_ID = uuid.UUID(int=1)
 
-local_sort_app   = typer.Typer(help="Sort generated project files locally.")
-remote_sort_app  = typer.Typer(help="Submit sort tasks to the gateway.")
+local_sort_app = typer.Typer(help="Sort generated project files locally.")
+remote_sort_app = typer.Typer(help="Submit sort tasks to the gateway.")
 
 
 # ───────────────────── helper: build args dict ────────────────────────
@@ -39,10 +42,10 @@ def _base_args(
 ) -> Dict[str, Any]:
     return {
         "projects_payload": projects_payload,
-        "project_name":     project_name,
-        "start_idx":        start_idx,
-        "start_file":       start_file,
-        "transitive":       transitive,
+        "project_name": project_name,
+        "start_idx": start_idx,
+        "start_file": start_file,
+        "transitive": transitive,
         "show_dependencies": show_dependencies,
     }
 
@@ -53,12 +56,12 @@ def run_sort(  # noqa: PLR0913
     ctx: typer.Context,
     projects_payload: str,
     project_name: Optional[str] = None,
-    start_idx: int              = 0,
-    start_file: Optional[str]   = None,
-    transitive: bool            = False,
-    show_dependencies: bool     = False,
-    repo: Optional[str]         = typer.Option(None, "--repo"),
-    ref: str                    = typer.Option("HEAD", "--ref"),
+    start_idx: int = 0,
+    start_file: Optional[str] = None,
+    transitive: bool = False,
+    show_dependencies: bool = False,
+    repo: Optional[str] = typer.Option(None, "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     # 1) config override
     cfg_path = ctx.obj.get("config_path") if ctx.obj else None
@@ -66,12 +69,16 @@ def run_sort(  # noqa: PLR0913
 
     # 2) build task
     args = _base_args(
-        projects_payload, project_name, start_idx, start_file,
-        transitive, show_dependencies,
+        projects_payload,
+        project_name,
+        start_idx,
+        start_file,
+        transitive,
+        show_dependencies,
     )
     if repo:
         args |= {"repo": repo, "ref": ref}
-    args["cfg_override"] = cfg_override           # inject override
+    args["cfg_override"] = cfg_override  # inject override
 
     task = build_task(
         action="sort",
@@ -85,7 +92,7 @@ def run_sort(  # noqa: PLR0913
     # 3) call handler
     try:
         result = asyncio.run(sort_handler(task))
-    except Exception as exc:                      # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         typer.echo(f"[ERROR] {exc}", err=True)
         raise typer.Exit(1)
 
@@ -104,21 +111,21 @@ def submit_sort(  # noqa: PLR0913
     ctx: typer.Context,
     projects_payload: str,
     project_name: Optional[str] = None,
-    start_idx: int              = 0,
-    start_file: Optional[str]   = None,
-    transitive: bool            = False,
-    show_dependencies: bool     = False,
-    repo: str                   = typer.Option(..., "--repo"),
-    ref:  str                   = typer.Option("HEAD", "--ref"),
-    watch: bool                 = typer.Option(False, "--watch", "-w"),
-    interval: float             = typer.Option(2.0, "--interval", "-i"),
+    start_idx: int = 0,
+    start_file: Optional[str] = None,
+    transitive: bool = False,
+    show_dependencies: bool = False,
+    repo: str = typer.Option(..., "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
+    watch: bool = typer.Option(False, "--watch", "-w"),
+    interval: float = typer.Option(2.0, "--interval", "-i"),
 ) -> None:
     # 1) read YAML text so workers need no local file access
     yaml_text = Path(projects_payload).read_text(encoding="utf-8")
 
     # 2) cfg_override from ctx
     inline = ctx.obj.get("task_override_inline")
-    file_  = ctx.obj.get("task_override_file")
+    file_ = ctx.obj.get("task_override_file")
     cfg_override: Dict[str, Any] = {}
     if inline:
         cfg_override = json.loads(inline)
@@ -127,8 +134,12 @@ def submit_sort(  # noqa: PLR0913
 
     # 3) task args
     args = _base_args(
-        yaml_text, project_name, start_idx, start_file,
-        transitive, show_dependencies,
+        yaml_text,
+        project_name,
+        start_idx,
+        start_file,
+        transitive,
+        show_dependencies,
     ) | {"repo": repo, "ref": ref, "cfg_override": cfg_override}
 
     task = build_task(

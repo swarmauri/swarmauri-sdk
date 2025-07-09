@@ -15,17 +15,16 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-import httpx
 import typer
 from autoapi_client import AutoAPIClient
-from autoapi.v2     import AutoAPI
-from peagen.orm     import Secret
-from peagen.core    import secrets_core
+from autoapi.v2 import AutoAPI
+from peagen.orm import Secret
+from peagen.core import secrets_core
 
 # ---------------------------------------------------------------------
-DEFAULT_GATEWAY   = "http://localhost:8000/rpc"
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 
-local_secrets_app  = typer.Typer(help="Manage secrets in the local .peagen store")
+local_secrets_app = typer.Typer(help="Manage secrets in the local .peagen store")
 remote_secrets_app = typer.Typer(help="Manage secrets on the gateway via JSON-RPC")
 
 
@@ -48,7 +47,7 @@ def add_local_secret(
     try:
         secrets_core.add_local_secret(name, value, recipients=recipients)
         typer.echo(f"✅  stored secret '{name}' locally")
-    except Exception as exc:                        # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
         raise typer.Exit(1)
 
@@ -83,19 +82,19 @@ def add_remote_secret(  # noqa: PLR0913
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
     SCreate = _schema("create")
-    SRead   = _schema("read")
-    params  = SCreate(
-        secretId   = secret_id,
-        value      = value,
-        version    = version,
-        recipients = [str(p) for p in recipient],
-        pool       = pool,
+    SRead = _schema("read")
+    params = SCreate(
+        secretId=secret_id,
+        value=value,
+        version=version,
+        recipients=[str(p) for p in recipient],
+        pool=pool,
     )
     try:
         with _rpc(gateway_url) as rpc:
             res = rpc.call("Secrets.create", params=params, out_schema=SRead)
         typer.echo(f"🚀  uploaded secret '{res.secretId}' (v{res.version})")
-    except Exception as exc:                       # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
         raise typer.Exit(1)
 
@@ -142,7 +141,7 @@ def fetch_server_secrets(
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
     SListIn = _schema("list")
-    SRead   = _schema("read")
+    SRead = _schema("read")
     try:
         with _rpc(gateway_url) as rpc:
             lst = rpc.call("Secrets.list", params=SListIn(), out_schema=list[SRead])  # type: ignore[arg-type]

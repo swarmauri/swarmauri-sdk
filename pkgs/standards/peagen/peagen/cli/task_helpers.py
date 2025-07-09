@@ -1,31 +1,33 @@
 # task_helpers.py  – aligned with Task v3
 from __future__ import annotations
 
-import uuid, httpx
+import uuid
+import httpx
 from typing import Any, Dict, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2      import AutoAPI
+from autoapi.v2 import AutoAPI
 from peagen.defaults import RPC_TIMEOUT
 from peagen.orm import Status, Task, Action, SpecKind
+
 
 # ─────────────────── local factory ──────────────────────────────────────
 def build_task(
     *,
     tenant_id: str,
-    pool_id:   str,
-    action:    Action | str,
-    repo:      str,
-    ref:       str,
-    args:      Dict[str, Any] | None = None,
+    pool_id: str,
+    action: Action | str,
+    repo: str,
+    ref: str,
+    args: Dict[str, Any] | None = None,
     # Optional columns
-    repository_id: Optional[str] = None,          # slug-only flow leaves this None
-    config_toml:   Optional[str] = None,
-    spec_kind:     Optional[SpecKind | str] = None,
-    spec_uuid:     Optional[str] = None,
-    note:          Optional[str] = None,
-    labels:        Optional[Dict[str, Any]] = None,
-    status:        Status = Status.WAITING,
+    repository_id: Optional[str] = None,  # slug-only flow leaves this None
+    config_toml: Optional[str] = None,
+    spec_kind: Optional[SpecKind | str] = None,
+    spec_uuid: Optional[str] = None,
+    note: Optional[str] = None,
+    labels: Optional[Dict[str, Any]] = None,
+    status: Status = Status.WAITING,
 ):
     """
     Return a TaskCreate Pydantic instance that matches AutoAPI's
@@ -38,7 +40,7 @@ def build_task(
         tenant_id=tenant_id,
         pool_id=pool_id,
         action=action,
-        repository_id=repository_id,   # may be None → pre-hook resolves it
+        repository_id=repository_id,  # may be None → pre-hook resolves it
         repo=repo,
         ref=ref,
         config_toml=config_toml,
@@ -54,7 +56,7 @@ def build_task(
 # ─────────────────── RPC helpers ────────────────────────────────────────
 def submit_task(
     gateway_url: str,
-    task_model: Any,                         # instance from build_task()
+    task_model: Any,  # instance from build_task()
     *,
     timeout: float = RPC_TIMEOUT,
 ) -> Dict[str, Any]:
@@ -64,7 +66,7 @@ def submit_task(
     with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
         res = rpc.call(
             "tasks.create",
-            params=task_model.model_dump(),   # AutoAPIClient expects dict
+            params=task_model.model_dump(),  # AutoAPIClient expects dict
             out_schema=SRead,
         )
     return res.model_dump()

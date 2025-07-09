@@ -2,23 +2,24 @@
 
 from __future__ import annotations
 
-import json, httpx
+import json
+import httpx
 from pathlib import Path
 from typing import List, Optional, Any, Dict
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2          import AutoAPI
+from autoapi.v2 import AutoAPI
 from peagen.orm import Secret, Worker
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.defaults import DEFAULT_GATEWAY
 
-STORE_FILE      = Path.home() / ".peagen" / "secret_store.json"
+STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 
 # ─────────────────────── internal helpers ────────────────────────────
 def _schema(model, tag: str):
-    return AutoAPI.get_schema(model, tag)            # classmethod
+    return AutoAPI.get_schema(model, tag)  # classmethod
 
 
 def _rpc(url: str, *, timeout: float = 30.0) -> AutoAPIClient:
@@ -27,15 +28,15 @@ def _rpc(url: str, *, timeout: float = 30.0) -> AutoAPIClient:
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     """Return public keys advertised by workers in ``pool``."""
-    SListIn  = _schema(Worker, "list")
-    SRead    = _schema(Worker, "read")
+    SListIn = _schema(Worker, "list")
+    SRead = _schema(Worker, "read")
 
     try:
         with _rpc(gateway_url) as rpc:
             workers = rpc.call(
                 "Workers.list",
                 params=SListIn(pool=pool),
-                out_schema=list[SRead],          # type: ignore[arg-type]
+                out_schema=list[SRead],  # type: ignore[arg-type]
             )
     except (httpx.HTTPError, RuntimeError):
         return []
@@ -64,11 +65,15 @@ def _save(data: dict) -> None:
 
 
 # ─────────────────────── local-only secrets ***************************
-def add_local_secret(name: str, value: str, recipients: List[Path] | None = None) -> None:
+def add_local_secret(
+    name: str, value: str, recipients: List[Path] | None = None
+) -> None:
     drv = AutoGpgDriver()
     pubkeys = [p.read_text() for p in recipients or []] + [drv.pub_path.read_text()]
-    cipher  = drv.encrypt(value.encode(), list(set(pubkeys))).decode()
-    data    = _load(); data[name] = cipher; _save(data)
+    cipher = drv.encrypt(value.encode(), list(set(pubkeys))).decode()
+    data = _load()
+    data[name] = cipher
+    _save(data)
 
 
 def get_local_secret(name: str) -> str:
@@ -80,7 +85,9 @@ def get_local_secret(name: str) -> str:
 
 
 def remove_local_secret(name: str) -> None:
-    data = _load(); data.pop(name, None); _save(data)
+    data = _load()
+    data.pop(name, None)
+    _save(data)
 
 
 # ─────────────────────── gateway-backed secrets ***********************
@@ -93,16 +100,16 @@ def add_remote_secret(
     recipients: List[Path] | None = None,
     pool: str = "default",
 ) -> dict:
-    drv  = AutoGpgDriver()
+    drv = AutoGpgDriver()
     pubs = [p.read_text() for p in recipients or []]
     pubs.append(drv.pub_path.read_text())
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
 
-    cipher   = drv.encrypt(value.encode(), list(set(pubs))).decode()
-    SCreate  = _schema(Secret, "create")
-    SRead    = _schema(Secret, "read")
+    cipher = drv.encrypt(value.encode(), list(set(pubs))).decode()
+    SCreate = _schema(Secret, "create")
+    SRead = _schema(Secret, "read")
 
-    params   = SCreate(name=secret_id, cipher=cipher, version=version)
+    params = SCreate(name=secret_id, cipher=cipher, version=version)
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call("Secrets.create", params=params, out_schema=SRead)
@@ -113,14 +120,12 @@ def get_remote_secret(
     secret_id: str,
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> str:
-    drv      = AutoGpgDriver()
-    SDel     = _schema(Secret, "delete")   # only primary key (name)
-    SRead    = _schema(Secret, "read")
+    drv = AutoGpgDriver()
+    SDel = _schema(Secret, "delete")  # only primary key (name)
+    SRead = _schema(Secret, "read")
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("Secrets.read",
-                       params=SDel(name=secret_id),
-                       out_schema=SRead)
+        res = rpc.call("Secrets.read", params=SDel(name=secret_id), out_schema=SRead)
 
     if not res.cipher:
         raise ValueError("Secret not found or is empty.")
@@ -133,7 +138,7 @@ def remove_remote_secret(
     gateway_url: str = DEFAULT_GATEWAY,
     version: Optional[int] = None,
 ) -> dict:
-    SDel = _schema(Secret, "delete")        # pk-only schema
+    SDel = _schema(Secret, "delete")  # pk-only schema
 
     params = SDel(name=secret_id, version=version)
 

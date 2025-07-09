@@ -4,7 +4,7 @@ peagen init – scaffolding helpers for every first-class artefact.
 """
 
 from __future__ import annotations
-import json, uuid
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 
@@ -13,10 +13,8 @@ from swarmauri_standard.loggers.Logger import Logger
 
 from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
-from peagen.cli.task_helpers   import build_task, submit_task
-from peagen.errors             import PATNotAllowedError
-
-
+from peagen.cli.task_helpers import build_task, submit_task
+from peagen.errors import PATNotAllowedError
 
 
 # --------------------------------------------------------------------- helpers
@@ -34,11 +32,9 @@ def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
     return remotes
 
 
-
 # demo UUIDs – swap for real values in prod
-DEFAULT_POOL_ID   = uuid.UUID(int=0)
+DEFAULT_POOL_ID = uuid.UUID(int=0)
 DEFAULT_TENANT_ID = uuid.UUID(int=1)
-
 
 
 # ── Typer root ───────────────────────────────────────────────────────────────
@@ -170,69 +166,6 @@ def local_init_project(
     self.logger.info("Exiting local init_project command")
 
 
-@remote_init_app.command("project")
-def remote_init_project(
-    ctx: typer.Context,
-    path: Path = typer.Argument(
-        ".", exists=False, dir_okay=True, file_okay=False, help="Target directory"
-    ),
-    force: bool = typer.Option(False, "--force", help="Overwrite if dir not empty."),
-    git_remote: Optional[List[str]] = typer.Option(
-        None,
-        "--git-remote",
-        help="Git remote in name=url format. Use multiple times for several remotes",
-    ),
-    filter_uri: str = typer.Option(
-        None, "--filter-uri", help="Configure git filter with this URI"
-    ),
-    add_filter_config: bool = typer.Option(
-        False, "--add-filter-config", help="Also record filter in .peagen.toml"
-    ),
-):
-    """Submit a project scaffold task via JSON-RPC."""
-    args = {
-        "kind": "project",
-        "path": str(path),
-        "force": force,
-        "git_remotes": _parse_remotes(git_remote),
-        "filter_uri": filter_uri,
-    }
-    try:
-        task = build_task("init", args, pool="default")
-        reply = submit_task(ctx.obj.get("gateway_url"), task)
-        if "error" in reply:
-            raise PATNotAllowedError(reply["error"]["message"])
-    except PATNotAllowedError as exc:
-        typer.echo(f"[ERROR] {exc}")
-        raise typer.Exit(1)
-
-
-@remote_init_app.command("repo-config")
-def remote_init_repo_config(
-    ctx: typer.Context,
-    path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
-    git_remote: Optional[List[str]] = typer.Option(
-        None,
-        "--git-remote",
-        help="Git remote in name=url format. Use multiple times for several remotes",
-    ),
-) -> None:
-    """Submit a repo configuration task via JSON-RPC."""
-    args = {
-        "kind": "repo-config",
-        "path": str(path),
-        "remotes": _parse_remotes(git_remote),
-    }
-    try:
-        task = build_task("init", args, pool="default")
-        reply = submit_task(ctx.obj.get("gateway_url"), task)
-        if "error" in reply:
-            raise PATNotAllowedError(reply["error"]["message"])
-    except PATNotAllowedError as exc:
-        typer.echo(f"[ERROR] {exc}")
-        raise typer.Exit(1)
-
-
 # ── init template-set ────────────────────────────────────────────────────────
 @local_init_app.command("template-set")
 def local_init_template_set(
@@ -266,13 +199,10 @@ def local_init_template_set(
     self.logger.info("Exiting local init_template_set command")
 
 
-
-
-
-
 # ───────────────────────────── LOCAL COMMANDS (unchanged) ────────────────────
 #   … all local_* functions stay exactly the same – they call _call_handler …
 #   (see end of file for unchanged local implementations)
+
 
 # ───────────────────────────── REMOTE HELPERS ───────────────────────────────
 def _remote_task(
@@ -280,7 +210,7 @@ def _remote_task(
     args: Dict[str, Any],
     ctx: typer.Context,
     repo: str,
-    ref:  str,
+    ref: str,
 ):
     """Build & submit a remote init Task, handling PAT errors nicely."""
     task = build_task(
@@ -305,7 +235,7 @@ def remote_init_project(  # noqa: PLR0913
     git_remote: Optional[List[str]] = typer.Option(None, "--git-remote"),
     filter_uri: str = typer.Option(None, "--filter-uri"),
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ):
     """Submit a project scaffold task via JSON-RPC."""
     args = {
@@ -324,7 +254,7 @@ def remote_init_repo_config(  # noqa: PLR0913
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     git_remote: Optional[List[str]] = typer.Option(None, "--git-remote"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ):
     args = {
         "kind": "repo-config",
@@ -339,11 +269,11 @@ def remote_init_template_set(  # noqa: PLR0913
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
-    org: Optional[str]  = typer.Option(None, "--org"),
-    use_uv: bool        = typer.Option(True, "--uv/--no-uv"),
-    force: bool         = typer.Option(False, "--force"),
+    org: Optional[str] = typer.Option(None, "--org"),
+    use_uv: bool = typer.Option(True, "--uv/--no-uv"),
+    force: bool = typer.Option(False, "--force"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ):
     args = {
         "kind": "template-set",
@@ -361,10 +291,10 @@ def remote_init_doe_spec(  # noqa: PLR0913
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     name: Optional[str] = typer.Option(None, "--name"),
-    org: Optional[str]  = typer.Option(None, "--org"),
-    force: bool         = typer.Option(False, "--force"),
+    org: Optional[str] = typer.Option(None, "--org"),
+    force: bool = typer.Option(False, "--force"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ):
     args = {
         "kind": "doe-spec",
@@ -381,9 +311,9 @@ def remote_init_ci(  # noqa: PLR0913
     ctx: typer.Context,
     path: Path = typer.Argument(".", dir_okay=True, file_okay=False),
     github: bool = typer.Option(True, "--github/--gitlab"),
-    force: bool  = typer.Option(False, "--force"),
+    force: bool = typer.Option(False, "--force"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ):
     args = {
         "kind": "ci",
@@ -405,7 +335,7 @@ def remote_init_repo(  # noqa: PLR0913
     origin: str = typer.Option(None, "--origin"),
     upstream: str = typer.Option(None, "--upstream"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     args = {
         "kind": "repo",
@@ -422,5 +352,4 @@ def remote_init_repo(  # noqa: PLR0913
             remotes["origin"] = origin
         if upstream:
             remotes["upstream"] = upstream
-        args["remotes"] = remotes
-    _remote_task("init", args, ctx, repo, ref)
+        args["remotes"] = remotes    _remote_task("init", args, ctx, repo, ref)

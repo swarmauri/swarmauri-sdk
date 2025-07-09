@@ -10,23 +10,27 @@ Sub-commands
 
 from __future__ import annotations
 
-import asyncio, json, tempfile, time, uuid
+import asyncio
+import json
+import tempfile
+import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import typer
 
 from peagen._utils.config_loader import _effective_cfg, load_peagen_toml
-from peagen.cli.task_helpers     import build_task, submit_task, get_task
+from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.process_handler import process_handler
-from peagen.orm                   import Status
+from peagen.orm import Status
 
 # ────────────────────────── constants ────────────────────────────────
-DEFAULT_GATEWAY   = "http://localhost:8000/rpc"
-DEFAULT_POOL_ID   = uuid.UUID(int=0)
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+DEFAULT_POOL_ID = uuid.UUID(int=0)
 DEFAULT_TENANT_ID = uuid.UUID(int=1)
 
-local_process_app  = typer.Typer(help="Render / generate project files locally.")
+local_process_app = typer.Typer(help="Render / generate project files locally.")
 remote_process_app = typer.Typer(help="Submit processing tasks to the gateway.")
 
 
@@ -73,13 +77,18 @@ def run(  # noqa: PLR0913
     agent_env: Optional[str] = typer.Option(None, "--agent-env"),
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     """Run the processing pipeline locally."""
     cfg_override = _effective_cfg(ctx.obj.get("config_path"))
     args = _collect_args(
-        projects_payload, project_name, start_idx, start_file,
-        transitive, agent_env, output_base,
+        projects_payload,
+        project_name,
+        start_idx,
+        start_file,
+        transitive,
+        agent_env,
+        output_base,
     ) | {"repo": repo, "ref": ref, "cfg_override": cfg_override}
 
     task = build_task(
@@ -99,7 +108,9 @@ def run(  # noqa: PLR0913
 @remote_process_app.command("process")
 def submit(  # noqa: PLR0913
     ctx: typer.Context,
-    projects_payload: str = typer.Argument(..., help="Path to YAML file or inline text"),
+    projects_payload: str = typer.Argument(
+        ..., help="Path to YAML file or inline text"
+    ),
     project_name: Optional[str] = typer.Option(None, "--project-name"),
     start_idx: int = typer.Option(0, "--start-idx"),
     start_file: Optional[str] = typer.Option(None, "--start-file"),
@@ -107,7 +118,7 @@ def submit(  # noqa: PLR0913
     agent_env: Optional[str] = typer.Option(None, "--agent-env"),
     output_base: Optional[Path] = typer.Option(None, "--output-base"),
     repo: str = typer.Option(..., "--repo"),
-    ref:  str = typer.Option("HEAD", "--ref"),
+    ref: str = typer.Option("HEAD", "--ref"),
     watch: bool = typer.Option(False, "--watch", "-w"),
     interval: float = typer.Option(2.0, "--interval", "-i"),
 ) -> None:

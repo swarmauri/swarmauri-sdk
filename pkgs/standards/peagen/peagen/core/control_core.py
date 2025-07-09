@@ -5,8 +5,10 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.orm import Status, Task
+from autoapi.v2 import AutoAPI
 
 SUpdate = AutoAPI.get_schema(Task, "update")
+
 
 def pause(tasks: Iterable[SUpdate]) -> int:
     selected = list(tasks)
