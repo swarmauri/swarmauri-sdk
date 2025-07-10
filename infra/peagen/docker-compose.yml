@@ -154,6 +154,7 @@ services:
       GITEA__service__REGISTER_EMAIL_CONFIRM: "false"
       GITEA__service__DISABLE_REGISTRATION:  "true"
       GITEA__repository__ENABLE_PUSH_CREATE_USER: "true"
+      GITEA__repository__ENABLE_PUSH_CREATE_ORG:  "true"
 
     volumes:
       - /mnt/data/gitea:/data             # <- all repos & config live here
