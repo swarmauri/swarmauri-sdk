@@ -9,21 +9,19 @@ class DummyPM:
         self.cfg = cfg
 
     def get(self, name):
-        return "adapter"
-
-
-class DummyAdapter:
-    def __init__(self, **kw):
-        pass
+        raise Exception
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 @pytest.mark.parametrize("project_name", ["proj", None])
-async def test_process_handler_dispatch(monkeypatch, project_name):
-    monkeypatch.setattr(handler, "resolve_cfg", lambda toml_text=None: {})
+async def test_process_handler_dispatch(monkeypatch, tmp_path, project_name):
+    monkeypatch.setattr(
+        handler,
+        "resolve_cfg",
+        lambda toml_text=None, toml_path=".peagen.toml": {},
+    )
     monkeypatch.setattr(handler, "PluginManager", DummyPM)
-    monkeypatch.setattr(handler, "FileStorageAdapter", DummyAdapter)
 
     calls = {}
 
@@ -43,7 +41,7 @@ async def test_process_handler_dispatch(monkeypatch, project_name):
     monkeypatch.setattr(handler, "process_single_project", fake_single)
     monkeypatch.setattr(handler, "process_all_projects", fake_all)
 
-    args = {"projects_payload": "pp"}
+    args = {"projects_payload": "pp", "worktree": str(tmp_path)}
     if project_name:
         args["project_name"] = project_name
 
