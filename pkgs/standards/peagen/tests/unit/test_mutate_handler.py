@@ -25,15 +25,16 @@ async def test_mutate_handler_invokes_core(monkeypatch):
     monkeypatch.setattr(handler, "PluginManager", DummyPM)
 
     args = {
-        "workspace_uri": "ws",
+        "repo": "repo",
+        "ref": "HEAD",
         "target_file": "t.py",
         "import_path": "mod",
         "entry_fn": "f",
         "gens": 3,
         "profile_mod": None,
-        "config": None,
+        "config": "conf.toml",
         "mutations": [{"kind": "echo_mutator", "probability": 1}],
-        "evaluator_ref": "ev",
+        "evaluator": "ev",
     }
 
     task = build_task(
@@ -48,7 +49,8 @@ async def test_mutate_handler_invokes_core(monkeypatch):
     result = await handler.mutate_handler(task)
 
     assert result == {"winner": "w.py", "score": "1", "meta": {"ok": True}}
-    assert captured["workspace_uri"] == "ws"
+    assert captured["repo"] == "repo"
+    assert captured["ref"] == "HEAD"
     assert captured["target_file"] == "t.py"
     assert captured["import_path"] == "mod"
     assert captured["entry_fn"] == "f"
