@@ -1,83 +1,94 @@
-"""Async entry-point for the mutate workflow."""
+"""
+peagen.handlers.mutate_handler
+──────────────────────────────
+Async entry-point for the *mutate* workflow.
+
+Changes vs. legacy
+------------------
+* Does **not** create a throw-away clone; the heavy-lifting is done by
+  :func:`peagen.core.mutate_core.mutate_workspace`, which creates an
+  isolated work-tree under repo-level locking.
+* No storage-adapter logic.
+* `workspace_uri` parameter is gone.
+"""
 
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 from peagen.core.mutate_core import mutate_workspace
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.plugins.vcs import pea_ref
+from peagen.plugins.vcs import GitVCS, pea_ref
 
+# ─────────────────────────── schema handle ──────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-async def mutate_handler(task: SubmitParams) -> SubmitResult:
-    payload = task.payload
-    args: Dict[str, Any] = payload.get("args", {})
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    tmp_dir = None
-    if repo:
-        from peagen.core.fetch_core import fetch_single
-        import tempfile
+# ─────────────────────────── coroutine ──────────────────────────────
+async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
+    """
+    Expected *task.args*::
 
-        tmp_dir = Path(tempfile.mkdtemp(prefix="peagen_repo_"))
-        fetch_single(repo=repo, ref=ref, dest_root=tmp_dir)
-        ws = args.get("workspace_uri", ".")
-        ws_path = Path(ws)
-        if not ws_path.is_absolute() and "://" not in ws and not ws.startswith("git+"):
-            args["workspace_uri"] = str((tmp_dir / ws).resolve())
-        else:
-            args["workspace_uri"] = str(tmp_dir)
+        {
+            "repo":         "<git-url>",          # required
+            "ref":          "main",               # optional (default HEAD)
+            "target_file":  "src/foo.py",         # required – relative to repo root
+            "import_path":  "pkg.module",         # required
+            "entry_fn":     "benchmark",          # required
+            "gens":         3,                    # optional
+            "mutations":    [...],                # optional
+            "profile_mod":  "prof",               # optional
+            "config":       "path/to/.toml",      # optional – inside repo
+            "evaluator":    "performance_evaluator"  # optional
+        }
+    """
+    args: Dict[str, Any] = task.args or {}
+    repo: str = args["repo"]
+    ref: str = args.get("ref", "HEAD")
 
+    cfg_path = (
+        Path(args["config"]).expanduser() if args.get("config") else None
+    )
+
+    # ── 1. run mutation --------------------------------------------------
     result = mutate_workspace(
-        workspace_uri=args["workspace_uri"],
+        repo=repo,
+        ref=ref,
         target_file=args["target_file"],
         import_path=args["import_path"],
         entry_fn=args["entry_fn"],
         gens=int(args.get("gens", 1)),
         profile_mod=args.get("profile_mod"),
-        cfg_path=Path(args["config"]) if args.get("config") else None,
+        cfg_path=cfg_path,
         mutations=args.get("mutations"),
-        evaluator_ref=args.get(
-            "evaluator_ref",
-            "peagen.plugins.evaluators.performance_evaluator:PerformanceEvaluator",
-        ),
+        evaluator_ref=args.get("evaluator", "performance_evaluator"),
     )
 
-    cfg = resolve_cfg()
+    # ── 2. optional VCS commit ------------------------------------------
+    cfg = resolve_cfg(toml_path=str(cfg_path) if cfg_path else None)
     pm = PluginManager(cfg)
-    try:
-        vcs = pm.get("vcs")
-    except Exception:  # pragma: no cover - optional
-        if tmp_dir and (tmp_dir / ".git").exists():
-            from peagen.core.mirror_core import open_repo
+    with suppress(Exception):
+        vcs: GitVCS = pm.get("vcs")  # type: ignore[assignment]
+        worktree = Path(result["worktree"]).resolve()
+        if Path(vcs.repo.working_tree_dir).resolve() != worktree:
+            # re-bind the VCS instance to the correct work-tree
+            vcs = GitVCS(worktree)
 
-            vcs = open_repo(tmp_dir)
-        else:
-            vcs = None
-
-    if vcs and result.get("winner"):
-        repo_root = Path(vcs.repo.working_tree_dir)
         winner_path = Path(result["winner"]).resolve()
-        rel = os.path.relpath(winner_path, repo_root)
-        commit_sha = None
-        branch = None
-        if vcs.repo.head.is_valid() and winner_path.exists():
-            commit_sha = vcs.commit([rel], f"mutate {winner_path.name}")
-            result["winner_oid"] = vcs.blob_oid(rel)
-            branch = pea_ref("run", winner_path.stem)
-            vcs.create_branch(branch, checkout=False)
-            vcs.push(branch)
-        if commit_sha is not None:
-            result["commit"] = commit_sha
-        if branch:
-            result["branch"] = branch
-    if tmp_dir:
-        import shutil
+        rel_winner = os.path.relpath(winner_path, worktree)
+        commit_sha = vcs.commit([rel_winner], f"mutate {winner_path.name}")
+        result["winner_oid"] = vcs.blob_oid(rel_winner)
 
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        branch = pea_ref("run", winner_path.stem)
+        vcs.create_branch(branch, checkout=False)
+        if vcs.has_remote():
+            vcs.push(branch)
+
+        result.update(commit=commit_sha, branch=branch)
+
     return result

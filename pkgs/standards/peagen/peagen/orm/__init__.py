@@ -1,158 +1,286 @@
 """
-peagen.orm
-==========
-
-• Aggregates **all** SQLAlchemy ORM classes.
-• No engine/session helpers—those live elsewhere.
-
-`peagen.models` is deprecated and now forwards to this package.
+condensed_orm.py  –  all Peagen domain tables in one place
+(uses only sqlalchemy.Column – no mapped_column / JSONB).
 """
 
 from __future__ import annotations
 
-# ----------------------------------------------------------------------
-# Base (declarative metadata root)
-# ----------------------------------------------------------------------
-from .base import Base  # noqa: F401  (re-exported via __all__)
+import datetime as dt
+from typing import FrozenSet
+from enum import Enum, auto
 
-# ----------------------------------------------------------------------
-# Tenant domain
-# ----------------------------------------------------------------------
-from .tenant.tenant import TenantModel  # noqa: F401
-from .tenant.user import UserModel  # noqa: F401
-from .tenant.tenant_user_association import (  # noqa: F401
-    TenantUserAssociationModel,
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
+from sqlalchemy.orm import relationship, foreign, remote
+from sqlalchemy.orm import declarative_mixin, declared_attr
+
+# ---------------------------------------------------------------------
+# bring in the baseline tables that AutoAPI already owns
+# ---------------------------------------------------------------------
+from autoapi.v2.tables import Tenant, User
+from autoapi.v2.tables import Role, RoleGrant, RolePerm
+from autoapi.v2.tables import Status
+from autoapi.v2.tables import Base
+from autoapi.v2.mixins import (
+    GUIDPk,
+    UserMixin,
+    TenantMixin,
+    Ownable,
+    Timestamped,
+    TenantBound,
+    StatusMixin,
+    BlobRef,
 )
 
-# ----------------------------------------------------------------------
-# Repository domain
-# ----------------------------------------------------------------------
-from .repo.repository import RepositoryModel  # noqa: F401
-from .repo.git_reference import GitReferenceModel  # noqa: F401
-from .repo.git_mirror import GitMirrorModel  # noqa: F401
-from .repo.deploy_key import DeployKeyModel  # noqa: F401
-from .repo.repository_deploy_key_association import (  # noqa: F401
-    RepositoryDeployKeyAssociationModel,
-)
-from .repo.repository_user_association import (  # noqa: F401
-    RepositoryUserAssociationModel,
-)
 
-# ----------------------------------------------------------------------
-# Task / execution domain
-# ----------------------------------------------------------------------
-from .status import Status  # noqa: F401
-from .task import TaskModel  # noqa: F401
-from .task.raw_blob import RawBlobModel  # noqa: F401
-from .task_run import TaskRunModel  # noqa: F401
-from .task.task_relation import TaskRelationModel  # noqa: F401
-from .task.task_run_relation_association import (  # noqa: F401
-    TaskRunTaskRelationAssociationModel,
-)
+# ---------------------------------------------------------------------
 
-# ----------------------------------------------------------------------
-# DOE / Render / Evolution domain
-# ----------------------------------------------------------------------
-from .specs.doe_spec import DoeSpecModel  # noqa: F401
-from .specs.evolve_spec import EvolveSpecModel  # noqa: F401
-from .specs.project_payload import ProjectPayloadModel  # noqa: F401
+def _is_terminal(cls, state: str | Status) -> bool:
+    """Return True if *state* represents completion."""
+    terminal: FrozenSet[str] = frozenset({"success", "failed", "cancelled", "rejected"})
+    value = state.value if isinstance(state, Status) else state
+    return value in terminal
 
-# ----------------------------------------------------------------------
-# Configuration / secrets
-# ----------------------------------------------------------------------
-from .config.peagen_toml_spec import PeagenTomlSpecModel  # noqa: F401
-from .config.secret import SecretModel  # noqa: F401
 
-# ----------------------------------------------------------------------
-# Infrastructure
-# ----------------------------------------------------------------------
-from .infra.pool import PoolModel  # noqa: F401
-from .infra.worker import WorkerModel  # noqa: F401
-from .infra.pool_worker_association import (  # noqa: F401
-    PoolWorkerAssociationModel,
-)
+Status.is_terminal = classmethod(_is_terminal)
 
-# ----------------------------------------------------------------------
-# Result domain (evaluation & analysis)
-# ----------------------------------------------------------------------
-from .result.eval_result import EvalResultModel  # noqa: F401
-from .result.analysis_result import AnalysisResultModel  # noqa: F401
 
-# ----------------------------------------------------------------------
-# Misc / security
-# ----------------------------------------------------------------------
-from .abuse_record import AbuseRecordModel  # noqa: F401
-from .security.public_key import PublicKeyModel  # noqa: F401
+# ---------------------------------------------------------------------
+# Repository hierarchy
+# ---------------------------------------------------------------------
 
-__all__: list[str] = [
-    # base
-    "Base",
-    # tenant
-    "TenantModel",
-    "UserModel",
-    "TenantUserAssociationModel",
-    # repo
-    "RepositoryModel",
-    "GitReferenceModel",
-    "DeployKeyModel",
-    "RepositoryDeployKeyAssociationModel",
-    "RepositoryUserAssociationModel",
-    # task
-    "TaskModel",
-    "RawBlobModel",
+
+class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
+    """
+    A code or data repository that lives under a tenant.
+    – parent of Secrets & DeployKeys
+    """
+
+    __tablename__ = "repositories"
+    __table_args__ = (
+        UniqueConstraint("url", name="uq_repositories_url"),
+        UniqueConstraint("tenant_id", "name", name="uq_repositories_tenant_name"),
+    )
+    name = Column(String, nullable=False)
+    url = Column(String, unique=True, nullable=False)
+    default_branch = Column(String, default="main")
+    commit_sha = Column(String(length=40), nullable=True)
+    remote_name = Column(String, nullable=False, default="origin")
+
+    # relationships
+    secrets = relationship(
+        "Secret", back_populates="repository", cascade="all, delete-orphan"
+    )
+    deploy_keys = relationship(
+        "DeployKey", back_populates="repository", cascade="all, delete-orphan"
+    )
+    tasks = relationship(
+        "Task",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+    )
+    users = relationship(User, secondary="user_repositories", backref="repositories")
+
+
+@declarative_mixin
+class RepositoryMixin:
+    repository_id = Column(
+        UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False
+    )
+
+
+class RepositoryRefMixin:
+    repository_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("repositories.id", ondelete="CASCADE"),
+        nullable=True,  # ← changed
+    )
+    repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
+    ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
+
+
+    @declared_attr
+    def repository(cls):
+        from peagen.orm import Repository               # late import
+        return relationship(
+            "Repository",
+            back_populates="tasks",
+            primaryjoin=foreign(cls.repository_id) == remote(Repository.id),
+        )
+
+# ---------------------------------------------------------------------
+# association edges
+# ---------------------------------------------------------------------
+
+
+class UserTenant(Base, GUIDPk, TenantMixin, UserMixin):
+    """
+    Many-to-many edge between users and tenants.
+    A user may be invited to / removed from any number of tenants.
+    """
+
+    __tablename__ = "user_tenants"
+    joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
+
+
+class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
+    """
+    Edge capturing *any* per-repository permission or ownership
+    the user may have.  `perm` can be "owner", "push", "pull", etc.
+    """
+
+    __tablename__ = "user_repositories"
+
+
+# ---------------------------------------------------------------------
+# 3) Secret & DeployKey now point to Repository, not Tenant
+# ---------------------------------------------------------------------
+
+
+class Secret(Base, GUIDPk, RepositoryRefMixin, Timestamped):
+    __tablename__ = "secrets"
+    __table_args__ = (
+        UniqueConstraint(
+            "repository_id", "name", "version", name="uq_secret_repo_name_ver"
+        ),
+    )
+    name = Column(String, nullable=False)
+    cipher = Column(String, nullable=False)
+    version = Column(Integer, default=0, nullable=False)
+
+    repository = relationship(Repository, back_populates="secrets")
+
+
+class DeployKey(Base, GUIDPk, UserMixin, RepositoryRefMixin, Timestamped):
+    __tablename__ = "deploy_keys"
+    __table_args__ = (
+        UniqueConstraint("repository_id", "public_key", name="uq_deploykey_repo_key"),
+    )
+    public_key = Column(String, nullable=False)
+    read_only = Column(Boolean, default=True)
+
+    repository = relationship(Repository, back_populates="deploy_keys")
+
+
+# ---------------------------------------------------------------------
+# 4) Execution / queue objects (unchanged parents but FK tweaks)
+# ---------------------------------------------------------------------
+
+
+class Pool(Base, GUIDPk, Timestamped, TenantBound):
+    __tablename__ = "pools"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name", name="uq_pools_tenant_name"),
+    )
+    name = Column(String, nullable=False, unique=True)
+
+
+class Worker(Base, GUIDPk, Timestamped):
+    __tablename__ = "workers"
+    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
+    url = Column(String, nullable=False)
+    advertises = Column(JSON, nullable=True)
+
+    pool = relationship(Pool, backref="workers")
+
+
+class Action(str, Enum):
+    SORT = auto()
+    PROCESS = auto()
+    MUTATE = auto()
+    EVOLVE = auto()
+    FETCH = auto()
+    VALIDATE = auto()
+
+
+class SpecKind(str, Enum):
+    DOE = "doe"  # ↦ doe_specs.id
+    EVOLVE = "evolve"  # ↦ evolve_specs.id
+    PAYLOAD = "payload"  # ↦ project_payloads.id
+
+
+class Task(
+    Base, GUIDPk, Timestamped, TenantBound, Ownable, RepositoryRefMixin, StatusMixin
+):
+    """Task table — explicit columns, polymorphic spec ref."""
+
+    __tablename__ = "tasks"
+    __table_args__ = ()
+    # ───────── routing & ownership ──────────────────────────
+    action = Column(PgEnum(Action, name="task_action"), nullable=False)
+    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
+
+    # ───────── workspace reference ──────────────────────────
+    config_toml = Column(String)
+
+    # ───────── polymorphic spec reference ───────────────────
+    spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
+    spec_uuid = Column(UUID(as_uuid=True), nullable=True)
+
+    # (DB-level FK can’t point to multiple tables; enforce in application code.)
+
+    # ───────── flexible metadata & labels ───────────────────
+    args = Column(JSON, nullable=False, default=dict)
+    labels = Column(JSON, nullable=False, default=dict)
+    note = Column(String)
+    schema_version = Column(Integer, nullable=False, default=3)
+
+    works = relationship("Work", back_populates="task")  # unchanged
+
+
+class Work(Base, GUIDPk, Timestamped, StatusMixin):
+    """
+    One execution attempt of a Task (retries generate multiple Work rows).
+    """
+
+    __tablename__ = "works"
+    task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
+    result = Column(JSON, nullable=True)
+    duration_s = Column(Integer)
+
+    task = relationship(Task, back_populates="works")
+
+
+# ---------------------------------------------------------------------
+# 5) Raw blobs (stand-alone)
+# ---------------------------------------------------------------------
+
+
+class RawBlob(Base, GUIDPk, Timestamped, BlobRef):
+    __tablename__ = "raw_blobs"
+    mime_type = Column(String, nullable=False)
+    size = Column(Integer, nullable=False)
+
+
+__all__ = [
+    "Tenant",
+    "User",
+    "Role",
+    "RoleGrant",
+    "RolePerm",
     "Status",
-    "TaskRunModel",
-    "TaskRelationModel",
-    "TaskRunTaskRelationAssociationModel",
-    # evolution
-    "DoeSpecModel",
-    "EvolveSpecModel",
-    "ProjectPayloadModel",
-    # config
-    "PeagenTomlSpecModel",
-    "SecretModel",
-    # infra
-    "PoolModel",
-    "WorkerModel",
-    "PoolWorkerAssociationModel",
-    # result
-    "EvalResultModel",
-    "AnalysisResultModel",
-    # misc
-    "AbuseRecordModel",
-    "PublicKeyModel",
-    "task_schema_to_orm",
-    "task_orm_to_schema",
+    "Base",
+    "Repository",
+    "RepositoryMixin",
+    "RepositoryRefMixin",
+    "UserTenant",
+    "UserRepository",
+    "Secret",
+    "DeployKey",
+    "Pool",
+    "Worker",
+    "Action",
+    "SpecKind",
+    "Task",
+    "Work",
+    "RawBlob",
 ]
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:  # pragma: no cover - lint/static type hinting only
-    from .schemas import TaskCreate, TaskUpdate, TaskRead
-
-
-def __getattr__(name: str):
-    if name in {"TaskCreate", "TaskUpdate", "TaskRead"}:
-        from . import schemas as _schemas
-
-        value = getattr(_schemas, name)
-        globals()[name] = value
-        return value
-    raise AttributeError(name)
-
-
-def task_schema_to_orm(data: "TaskCreate | TaskUpdate") -> TaskModel:
-    """Convert a :class:`TaskCreate` or :class:`TaskUpdate` to a ``TaskModel``."""
-
-    from .schemas import TaskCreate, TaskUpdate  # avoid circular import
-
-    assert isinstance(data, (TaskCreate, TaskUpdate))
-    return TaskModel(**data.model_dump())
-
-
-def task_orm_to_schema(row: TaskModel) -> "TaskRead":
-    """Convert a ``TaskModel`` row to its ``TaskRead`` schema."""
-
-    from .schemas import TaskRead  # avoid circular import
-
-    return TaskRead.from_orm(row)

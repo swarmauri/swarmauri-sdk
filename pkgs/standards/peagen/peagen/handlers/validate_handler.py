@@ -1,23 +1,51 @@
+"""
+peagen.handlers.validate_handler
+────────────────────────────────
+Async entry-point for generic *validate* tasks (schema / semantic checks).
+
+Changes vs. legacy
+------------------
+* **worktree required** – handler operates inside an existing task
+  work-tree supplied via ``task.args["worktree"]``; no cloning logic.
+* Removes the `maybe_clone_repo` context manager and any repo-checkout code.
+* Calls :pyfunc:`peagen.core.validate_core.validate_artifact` directly.
+
+Expected ``task.args``
+----------------------
+{
+    "kind":      "project" | "template" | ... ,   # required
+    "worktree":  "<abs path>",                    # required – task work-tree
+    "path":      "<relative|abs path>"            # optional, defaults to CWD within work-tree
+}
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict, Any
 
-
-from peagen._utils import maybe_clone_repo
-
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 from peagen.core.validate_core import validate_artifact
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
+# ───────────────────────── schema handle ────────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-async def validate_handler(task: SubmitParams) -> SubmitResult:
-    args: Dict[str, Any] = task.payload["args"]
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    kind: str = args["kind"]
-    path_str: str | None = args.get("path")
+# ───────────────────────── main coroutine ───────────────────────────
+async def validate_handler(task: TaskRead) -> Dict[str, Any]:
+    args: Dict[str, Any] = task.args or {}
 
-    with maybe_clone_repo(repo, ref):
-        return validate_artifact(
-            kind, Path(path_str).expanduser() if path_str else None
-        )
+    kind: str = args["kind"]  # validation target type (mandatory)
+    worktree = Path(args["worktree"]).expanduser().resolve()
+    if not worktree.exists():
+        raise FileNotFoundError(f"worktree not found: {worktree}")
+
+    # Resolve the artifact path (may be omitted for some kinds)
+    artifact_path_arg = args.get("path")
+    artifact_path: Path | None = None
+    if artifact_path_arg:
+        p = Path(artifact_path_arg).expanduser()
+        artifact_path = p if p.is_absolute() else (worktree / p).resolve()
+
+    # Delegate to core validator
+    return validate_artifact(kind, artifact_path)

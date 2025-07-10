@@ -10,6 +10,7 @@ from httpx import HTTPError
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
 from peagen.core.login_core import login as core_login
+from peagen.defaults import DEFAULT_GATEWAY
 
 # ---------------------------------------------------------------------------#
 # Typer application
@@ -32,7 +33,7 @@ def login(
         help="Directory containing the GPG key-pair.",
     ),
     gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc",
+        DEFAULT_GATEWAY,
         "--gateway-url",
         help="JSON-RPC endpoint for the Peagen gateway.",
     ),

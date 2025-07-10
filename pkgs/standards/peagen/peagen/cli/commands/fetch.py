@@ -15,11 +15,10 @@ from typing import List, Optional
 import typer
 
 from peagen.handlers.fetch_handler import fetch_handler
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm import Status
 from peagen.cli.task_helpers import build_task
 
 fetch_app = typer.Typer(help="Materialise Peagen workspaces from URIs.")
-
 
 # ───────────────────────── helpers ─────────────────────────
 
@@ -69,7 +68,7 @@ def run(
     pool = "default"
     if ctx is not None and getattr(ctx, "obj", None):
         pool = ctx.obj.get("pool", "default")
-    task = build_task("fetch", args, pool=pool, status=Status.waiting)
+    task = build_task("fetch", args, pool=pool, status=Status.WAITING)
 
     result = asyncio.run(fetch_handler(task))
     typer.echo(json.dumps(result, indent=2))

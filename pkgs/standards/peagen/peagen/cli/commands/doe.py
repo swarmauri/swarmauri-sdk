@@ -1,6 +1,11 @@
-# peagen/commands/doe.py
 """
-CLI wrapper for Design-of-Experiments expansion.
+peagen.cli.commands.doe
+────────────────────────────────────────
+CLI wrapper for Design-of-Experiments (DOE) utilities.
+
+• `peagen doe gen`       – local expansion
+• `peagen doe process`   – local processing
+• `peagen remote-doe …`  – submit tasks to the gateway
 """
 
 from __future__ import annotations
@@ -8,311 +13,235 @@ from __future__ import annotations
 import asyncio
 import json
 import time
+import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import typer
 
+from peagen.cli.task_helpers import (
+    build_task,
+    submit_task,
+    get_task,
+)
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
-from peagen.cli.task_helpers import build_task, submit_task, get_task
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm import Status
 
+# ────────────────────────── constants ────────────────────────────
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-local_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
-remote_doe_app = typer.Typer(help="Generate project-payload bundles from DOE specs.")
+DEFAULT_POOL_ID = uuid.UUID(int=0)  # «0000…» for demo
+DEFAULT_TENANT_ID = uuid.UUID(int=1)  # replace in prod
+
+local_doe_app = typer.Typer(help="Generate project-payload bundles locally.")
+remote_doe_app = typer.Typer(help="Submit DOE jobs to the gateway.")
 
 
-# ───────────────────────────── local run ───────────────────────────────────
+# ───────────────────────── helper util ───────────────────────────
+def _assemble_args(
+    spec: Path,
+    template: Path,
+    output: Path,
+    *,
+    config: Optional[Path],
+    dry_run: bool = False,
+    force: bool = False,
+    skip_validate: bool = False,
+    evaluate_runs: bool = False,
+) -> Dict[str, Any]:
+    return {
+        "spec": str(spec),
+        "template": str(template),
+        "output": str(output),
+        "config": str(config) if config else None,
+        "dry_run": dry_run,
+        "force": force,
+        "skip_validate": skip_validate,
+        "evaluate_runs": evaluate_runs,
+    }
+
+
+# ───────────────────────────── local run ──────────────────────────────
 @local_doe_app.command("gen")
 def run_gen(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(
-        ..., exists=True, help="Path to the DOE specification YAML"
-    ),
-    template: Path = typer.Argument(
-        ..., exists=True, help="Path to the project-payload template"
-    ),
-    output: Path = typer.Option(
-        "project_payloads.yaml",
-        "--output",
-        "-o",
-        help="Destination YAML file for generated payloads",
-    ),
-    config: Optional[Path] = typer.Option(
-        None, "-c", "--config", help="Override configuration for this run"
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Webhook URL for completion notification"
-    ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Simulate the run without writing files"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite output even if it exists"
-    ),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip validating the DOE spec"
-    ),
-    json_out: bool = typer.Option(
-        False, "--json", help="Print the result dictionary as JSON"
-    ),
-    evaluate_runs: bool = typer.Option(
-        False, "--eval-runs", help="Evaluate each run after generation"
-    ),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    spec: Path,
+    template: Path,
+    output: Path = Path("project_payloads.yaml"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    json_out: bool = typer.Option(False, "--json"),
+    evaluate_runs: bool = typer.Option(False, "--eval-runs"),
+    repo: str = typer.Option(..., "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
-    """Generate a project‑payload bundle from a DOE spec locally."""
-    args = {
-        "spec": str(spec),
-        "template": str(template),
-        "output": str(output),
-        "config": str(config) if config else None,
-        "notify": notify,
-        "dry_run": dry_run,
-        "force": force,
-        "skip_validate": skip_validate,
-        "evaluate_runs": evaluate_runs,
-    }
-    if repo:
-        args.update({"repo": repo, "ref": ref})
+    """Generate a project-payload bundle locally."""
+    args = _assemble_args(
+        spec,
+        template,
+        output,
+        config=config,
+        dry_run=dry_run,
+        force=force,
+        skip_validate=skip_validate,
+        evaluate_runs=evaluate_runs,
+    ) | {"repo": repo, "ref": ref}
 
-    task = build_task("doe", args, pool="default")
+    task = build_task(
+        action="doe",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
     result = asyncio.run(doe_handler(task))
+    typer.echo(
+        json.dumps(result, indent=2)
+        if json_out
+        else f"✅ {', '.join(result.get('outputs', []))}"
+    )
 
-    if json_out:
-        typer.echo(json.dumps(result, indent=2))
-    else:
-        outs = ", ".join(result.get("outputs", []))
-        typer.echo(f"✅  {outs}")
 
-
-# ─────────────────────────── remote submit ─────────────────────────────────
+# ───────────────────────── remote submit (gen) ─────────────────────────
 @remote_doe_app.command("gen")
 def submit_gen(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(
-        ..., exists=True, help="Path to the DOE specification YAML"
-    ),
-    template: Path = typer.Argument(
-        ..., exists=True, help="Path to the project-payload template"
-    ),
-    output: Path = typer.Option(
-        "project_payloads.yaml",
-        "--output",
-        "-o",
-        help="Destination YAML file for generated payloads",
-    ),
-    config: Optional[Path] = typer.Option(
-        None, "-c", "--config", help="Override configuration for this run"
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Webhook URL for completion notification"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite output even if it exists"
-    ),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip validating the DOE spec"
-    ),
-    evaluate_runs: bool = typer.Option(
-        False, "--eval-runs", help="Evaluate each run after generation"
-    ),
-    repo: str = typer.Option(..., "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    spec: Path,
+    template: Path,
+    output: Path = Path("project_payloads.yaml"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    evaluate_runs: bool = typer.Option(False, "--eval-runs"),
+    repo: str = typer.Option(..., "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
-    """Submit a DOE generation task to a remote worker."""
-    args = {
-        "spec": str(spec),
-        "template": str(template),
-        "output": str(output),
-        "config": str(config) if config else None,
-        "force": force,
-        "skip_validate": skip_validate,
-        "evaluate_runs": evaluate_runs,
-    }
-    args.update({"repo": repo, "ref": ref})
-    task = build_task("doe", args, pool="default")
+    """Submit a DOE generation task to the gateway."""
+    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
 
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    args = _assemble_args(
+        spec,
+        template,
+        output,
+        config=config,
+        force=force,
+        skip_validate=skip_validate,
+        evaluate_runs=evaluate_runs,
+    ) | {"repo": repo, "ref": ref}
 
-    if "error" in reply:
-        typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
+    task = build_task(
+        action="doe",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
 
-    task_id = reply.get("result", {}).get("taskId", task.id)
-    typer.secho(f"Submitted task {task_id}", fg=typer.colors.GREEN)
+    reply = submit_task(gw, task)
+    typer.echo(f"Submitted task {reply['id']} (status={reply['status']})")
 
 
-# ───────────────────────────── local process ─────────────────────────────
+# ───────────────────────────── local process ──────────────────────────
 @local_doe_app.command("process")
 def run_process(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(
-        ..., exists=True, help="Path to the DOE specification YAML"
-    ),
-    template: Path = typer.Argument(
-        ..., exists=True, help="Path to the project-payload template"
-    ),
-    output: Path = typer.Option(
-        "project_payloads.yaml",
-        "--output",
-        "-o",
-        help="Destination YAML file for generated payloads",
-    ),
-    config: Optional[Path] = typer.Option(
-        None, "-c", "--config", help="Override configuration for this run"
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Webhook URL for completion notification"
-    ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Simulate the run without writing files"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite output even if it exists"
-    ),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip validating the DOE spec"
-    ),
-    json_out: bool = typer.Option(
-        False, "--json", help="Print the result dictionary as JSON"
-    ),
-    evaluate_runs: bool = typer.Option(
-        False, "--eval-runs", help="Evaluate each run after generation"
-    ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    spec: Path,
+    template: Path,
+    output: Path = Path("project_payloads.yaml"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    json_out: bool = typer.Option(False, "--json"),
+    evaluate_runs: bool = typer.Option(False, "--eval-runs"),
+    repo: Optional[str] = typer.Option(None, "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
-    """Process a DOE specification locally."""
-    args = {
-        "spec": str(spec),
-        "template": str(template),
-        "output": str(output),
-        "config": str(config) if config else None,
-        "notify": notify,
-        "dry_run": dry_run,
-        "force": force,
-        "skip_validate": skip_validate,
-        "evaluate_runs": evaluate_runs,
-    }
+    """Process DOE specification locally."""
+    args = _assemble_args(
+        spec,
+        template,
+        output,
+        config=config,
+        dry_run=dry_run,
+        force=force,
+        skip_validate=skip_validate,
+        evaluate_runs=evaluate_runs,
+    )
     if repo:
-        args.update({"repo": repo, "ref": ref})
+        args |= {"repo": repo, "ref": ref}
 
-    task = build_task("doe_process", args, pool="default")
+    task = build_task(
+        action="doe_process",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
     result = asyncio.run(doe_process_handler(task))
-
     typer.echo(
         json.dumps(result, indent=2) if json_out else json.dumps(result, indent=2)
     )
 
 
-# ───────────────────────────── remote process ────────────────────────────
+# ───────────────────────── remote submit (process) ────────────────────
 @remote_doe_app.command("process")
 def submit_process(  # noqa: PLR0913
     ctx: typer.Context,
-    spec: Path = typer.Argument(
-        ..., exists=True, help="Path to the DOE specification YAML"
-    ),
-    template: Path = typer.Argument(
-        ..., exists=True, help="Path to the project-payload template"
-    ),
-    output: Path = typer.Option(
-        "project_payloads.yaml",
-        "--output",
-        "-o",
-        help="Destination YAML file for generated payloads",
-    ),
-    config: Optional[Path] = typer.Option(
-        None, "-c", "--config", help="Override configuration for this run"
-    ),
-    notify: Optional[str] = typer.Option(
-        None, "--notify", help="Webhook URL for completion notification"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite output even if it exists"
-    ),
-    skip_validate: bool = typer.Option(
-        False, "--skip-validate", help="Skip validating the DOE spec"
-    ),
-    evaluate_runs: bool = typer.Option(
-        False, "--eval-runs", help="Evaluate each run after generation"
-    ),
-    watch: bool = typer.Option(False, "--watch", "-w", help="Poll until finished"),
-    interval: float = typer.Option(
-        2.0, "--interval", "-i", help="Seconds between polls"
-    ),
-    repo: Optional[str] = typer.Option(None, "--repo", help="Git repository URI"),
-    ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
+    spec: Path,
+    template: Path,
+    output: Path = Path("project_payloads.yaml"),
+    config: Optional[Path] = typer.Option(None, "-c", "--config"),
+    force: bool = typer.Option(False, "--force"),
+    skip_validate: bool = typer.Option(False, "--skip-validate"),
+    evaluate_runs: bool = typer.Option(False, "--eval-runs"),
+    watch: bool = typer.Option(False, "--watch", "-w"),
+    interval: float = typer.Option(2.0, "--interval", "-i"),
+    repo: Optional[str] = typer.Option(None, "--repo"),
+    ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
-    """Enqueue DOE processing on a remote worker."""
+    """Submit DOE processing to the gateway and optionally watch progress."""
+    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
 
-    def _git_root(path: Path) -> Path:
-        for p in [path] + list(path.parents):
-            if (p / ".git").exists():
-                return p
-        return path
-
-    root = _git_root(Path.cwd())
-
-    def _canonical(p: Path) -> str:
+    def _rel(p: Path) -> str:
         try:
-            return str(p.resolve().relative_to(root))
+            return str(p.relative_to(Path.cwd()))
         except ValueError:
-            return str(p.resolve())
+            return str(p)
 
-    args = {
-        "spec": _canonical(spec),
-        "template": _canonical(template),
-        "output": str(output),
-        "config": str(config) if config else None,
-        "notify": notify,
-        "force": force,
-        "skip_validate": skip_validate,
-        "evaluate_runs": evaluate_runs,
-    }
-    args.update({"repo": repo, "ref": ref})
-    task = build_task("doe_process", args, pool="default")
-
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
-
-    if "error" in reply:
-        typer.secho(
-            f"Remote error {reply['error']['code']}: {reply['error']['message']}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    typer.secho(
-        f"Submitted task {reply.get('result', {}).get('taskId', task.id)}",
-        fg=typer.colors.GREEN,
+    args = _assemble_args(
+        _rel(spec),
+        _rel(template),
+        output,
+        config=config,
+        force=force,
+        skip_validate=skip_validate,
+        evaluate_runs=evaluate_runs,
     )
+    if repo:
+        args |= {"repo": repo, "ref": ref}
+
+    task = build_task(
+        action="doe_process",
+        args=args,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        pool_id=str(DEFAULT_POOL_ID),
+        repo=repo,
+        ref=ref,
+    )
+
+    created = submit_task(gw, task)
+    typer.echo(f"Submitted task {created['id']}")
+
     if watch:
         while True:
-            task_reply = get_task(ctx.obj.get("gateway_url"), task.id)
-            if Status.is_terminal(task_reply.status):
+            cur = get_task(gw, created["id"])
+            if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)
-
-        typer.echo(json.dumps(task_reply.model_dump(), indent=2))
-        children = task_reply.result.get("children", []) if task_reply.result else []
-        for cid in children:
-            while True:
-                child_reply = get_task(ctx.obj.get("gateway_url"), cid)
-                if Status.is_terminal(child_reply.status):
-                    break
-                time.sleep(interval)
-            typer.echo(json.dumps(child_reply.model_dump(), indent=2))
-            if child_reply.status != "success":
-                typer.secho(
-                    f"Child task {cid} failed",
-                    fg=typer.colors.RED,
-                    err=True,
-                )
-                raise typer.Exit(1)
+        typer.echo(json.dumps(cur.model_dump(), indent=2))

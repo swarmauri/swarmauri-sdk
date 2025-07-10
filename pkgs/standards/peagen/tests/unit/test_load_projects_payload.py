@@ -1,4 +1,3 @@
-import io
 import yaml
 import pytest
 
@@ -8,7 +7,6 @@ from peagen.errors import (
     ProjectsPayloadFormatError,
     MissingProjectsListError,
 )
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
 
 
 @pytest.mark.unit
@@ -24,10 +22,10 @@ def test_load_projects_payload_remote(tmp_path):
         ],
     }
     yaml_text = yaml.safe_dump(data)
-    adapter = FileStorageAdapter(tmp_path)
-    uri = adapter.upload("pp.yaml", io.BytesIO(yaml_text.encode()))
+    yaml_file = tmp_path / "pp.yaml"
+    yaml_file.write_text(yaml_text)
 
-    projects = load_projects_payload(uri)
+    projects = load_projects_payload(str(yaml_file))
     assert projects and projects[0]["NAME"] == "A"
 
 

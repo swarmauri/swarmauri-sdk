@@ -6,10 +6,11 @@ import os
 import yaml
 import pytest
 import httpx
-from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+
+WORKER_LIST = "Workers.list"
 
 EXAMPLES = Path(__file__).resolve().parent / "examples"
-GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
 
 
 def _gateway_available(url: str) -> bool:

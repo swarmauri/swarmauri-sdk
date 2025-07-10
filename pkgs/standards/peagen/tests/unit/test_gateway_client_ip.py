@@ -1,6 +1,6 @@
 import pytest
 
-from peagen.gateway import _get_client_ip
+from peagen.gateway import _client_ip
 
 
 class DummyClient:
@@ -17,10 +17,10 @@ class DummyRequest:
 @pytest.mark.unit
 def test_get_client_ip_forwarded():
     req = DummyRequest({"x-forwarded-for": "203.0.113.7, 10.0.0.1"})
-    assert _get_client_ip(req) == "203.0.113.7"
+    assert _client_ip(req) == "203.0.113.7"
 
 
 @pytest.mark.unit
 def test_get_client_ip_fallback():
     req = DummyRequest({}, "10.1.1.1")
-    assert _get_client_ip(req) == "10.1.1.1"
+    assert _client_ip(req) == "10.1.1.1"

@@ -1,30 +1,22 @@
-"""Utility helpers for key pair management."""
+"""Utility helpers for key-pair management — refactored for AutoAPIClient."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import httpx
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI
+from peagen.orm import DeployKey  # ORM resource
+
 from peagen._utils.config_loader import load_peagen_toml
 from peagen.plugins import PluginManager
-from peagen.transport.client import send_jsonrpc_request
-from peagen.transport.jsonrpc_schemas.keys import (
-    KEYS_DELETE,
-    KEYS_FETCH,
-    KEYS_UPLOAD,
-    DeleteParams,
-    DeleteResult,
-    FetchParams,
-    FetchResult,
-    UploadParams,
-    UploadResult,
-)
-
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+from peagen.defaults import DEFAULT_GATEWAY
 
 
+# ───────────────────────── secrets-driver glue (unchanged) ────────────
 def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> Any:
-    """Instantiate the configured secrets driver."""
     cfg = load_peagen_toml()
     pm = PluginManager(cfg)
     try:
@@ -34,96 +26,41 @@ def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> A
 
         drv = AutoGpgDriver()
 
-    # fallback to AutoGpgDriver if the driver lacks key management helpers
     if not hasattr(drv, "list_keys"):
         from peagen.plugins.secret_drivers import AutoGpgDriver
 
         drv = AutoGpgDriver()
+
     if key_dir is not None and hasattr(drv, "key_dir"):
         drv.key_dir = Path(key_dir)
         drv.priv_path = drv.key_dir / "private.asc"
         drv.pub_path = drv.key_dir / "public.asc"
+
     if passphrase is not None and hasattr(drv, "passphrase"):
         drv.passphrase = passphrase
+
     if hasattr(drv, "_ensure_keys"):
         drv._ensure_keys()
+
     return drv
 
 
+# ─────────────────────────── local helpers (unchanged) ────────────────
 def create_keypair(
     key_dir: Path | None = None, passphrase: Optional[str] = None
 ) -> dict:
-    """Create a GPG key pair.
-
-    Args:
-        key_dir (Path | None): Destination directory for the keys.
-        passphrase (Optional[str]): Optional passphrase for the private key.
-
-    Returns:
-        dict: Paths of the generated key files.
-    """
     drv = _get_driver(key_dir=key_dir, passphrase=passphrase)
     return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
 
 
-def upload_public_key(
-    key_dir: Path | None = None,
-    gateway_url: str = DEFAULT_GATEWAY,
-) -> dict:
-    """Upload the local public key to the gateway."""
-    drv = _get_driver(key_dir=key_dir)
-    pubkey = drv.pub_path.read_text()
-    params = UploadParams(public_key=pubkey).model_dump()
-    res = send_jsonrpc_request(
-        gateway_url,
-        KEYS_UPLOAD,
-        params,
-        expect=UploadResult,
-    )
-    return res.model_dump()
-
-
-def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
-    """Remove a stored public key on the gateway."""
-    params = DeleteParams(fingerprint=fingerprint).model_dump()
-    res = send_jsonrpc_request(
-        gateway_url,
-        KEYS_DELETE,
-        params,
-        expect=DeleteResult,
-    )
-    return res.model_dump()
-
-
-def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
-    """Fetch trusted keys from the gateway."""
-    params = FetchParams().model_dump()
-    res = send_jsonrpc_request(
-        gateway_url,
-        KEYS_FETCH,
-        params,
-        expect=FetchResult,
-    )
-    return res.result.model_dump() if res.result else {}
-
-
 def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:
-    """Return a mapping of key fingerprints to public key paths."""
-
-    drv = _get_driver(key_dir=key_dir)
-    return drv.list_keys()
+    return _get_driver(key_dir=key_dir).list_keys()
 
 
 def export_public_key(
-    fingerprint: str,
-    *,
-    key_dir: Path | None = None,
-    fmt: str = "armor",
+    fingerprint: str, *, key_dir: Path | None = None, fmt: str = "armor"
 ) -> str:
-    """Return ``fingerprint`` key in the requested ``fmt``."""
-
-    drv = _get_driver(key_dir=key_dir)
-    return drv.export_public_key(fingerprint, fmt=fmt)
+    return _get_driver(key_dir=key_dir).export_public_key(fingerprint, fmt=fmt)
 
 
 def add_key(
@@ -133,7 +70,50 @@ def add_key(
     key_dir: Path | None = None,
     name: str | None = None,
 ) -> dict:
-    """Store ``public_key`` (and optional ``private_key``) under ``key_dir``."""
-
     drv = _get_driver(key_dir=key_dir)
     return drv.add_key(public_key, private_key=private_key, name=name)
+
+
+# ─────────────────────────── RPC helpers (new stack) ───────────────────
+def _rpc(gateway_url: str) -> AutoAPIClient:
+    return AutoAPIClient(gateway_url, client=httpx.Client(timeout=30.0))
+
+
+def _schema(tag: str):
+    return AutoAPI.get_schema(DeployKey, tag)  # classmethod
+
+
+def upload_public_key(
+    key_dir: Path | None = None, gateway_url: str = DEFAULT_GATEWAY
+) -> dict:
+    drv = _get_driver(key_dir=key_dir)
+    pubkey = drv.pub_path.read_text()
+    SCreate = _schema("create")
+    SRead = _schema("read")
+
+    params = SCreate(public_key=pubkey)
+
+    with _rpc(gateway_url) as rpc:
+        res = rpc.call("DeployKeys.create", params=params, out_schema=SRead)
+
+    return res.model_dump()
+
+
+def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
+    SDel = _schema("delete")
+    params = SDel(fingerprint=fingerprint)
+
+    with _rpc(gateway_url) as rpc:
+        res: dict = rpc.call("DeployKeys.delete", params=params, out_schema=dict)
+
+    return res
+
+
+def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
+    SListIn = _schema("list")
+    SRead = _schema("read")
+
+    with _rpc(gateway_url) as rpc:
+        res = rpc.call("DeployKeys.list", params=SListIn(), out_schema=list[SRead])  # type: ignore
+
+    return [k.model_dump() for k in res]

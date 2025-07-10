@@ -478,11 +478,7 @@ class QueueDashboardApp(App):
         if criteria.get("status"):
             tasks = [t for t in tasks if t.get("status") == criteria["status"]]
         if criteria.get("action"):
-            tasks = [
-                t
-                for t in tasks
-                if t.get("payload", {}).get("action") == criteria["action"]
-            ]
+            tasks = [t for t in tasks if t.get("action") == criteria["action"]]
         if criteria.get("label"):
             tasks = [t for t in tasks if criteria["label"] in t.get("labels", [])]
 
@@ -498,7 +494,7 @@ class QueueDashboardApp(App):
 
             def _key_func(task_item):
                 if sort_key == "action":
-                    return task_item.get("payload", {}).get("action")
+                    return task_item.get("action")
                 if sort_key == "label":
                     return ",".join(task_item.get("labels", []))
                 if sort_key == "duration":
@@ -622,7 +618,7 @@ class QueueDashboardApp(App):
                     f"{prefix}{_truncate_id(task_id)}",
                     t_data.get("pool", ""),
                     t_data.get("status", ""),
-                    t_data.get("payload", {}).get("action", ""),
+                    t_data.get("action", ""),
                     ",".join(t_data.get("labels", [])),
                     _format_ts(t_data.get("date_created")),
                     _format_ts(t_data.get("last_modified")),
@@ -648,7 +644,7 @@ class QueueDashboardApp(App):
                                 f"  {_truncate_id(str(child_id_str))}",
                                 child_task.get("pool", ""),
                                 child_task.get("status", ""),
-                                child_task.get("payload", {}).get("action", ""),
+                                child_task.get("action", ""),
                                 ",".join(child_task.get("labels", [])),
                                 _format_ts(child_task.get("date_created")),
                                 _format_ts(child_task.get("last_modified")),
@@ -695,7 +691,7 @@ class QueueDashboardApp(App):
                         _truncate_id(task_id),
                         t_data.get("pool", ""),
                         t_data.get("status", ""),
-                        t_data.get("payload", {}).get("action", ""),
+                        t_data.get("action", ""),
                         ",".join(t_data.get("labels", [])),
                         _format_ts(t_data.get("date_created")),
                         _format_ts(t_data.get("last_modified")),

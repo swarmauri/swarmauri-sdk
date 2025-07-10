@@ -5,7 +5,7 @@ from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from redis.asyncio import Redis
 from peagen.gateway.runtime_cfg import settings
-from peagen.defaults import CONFIG as defaults
+from peagen.defaults import READY_QUEUE, PUBSUB_CHANNEL
 import json
 
 redis: Redis = Redis.from_url(settings.redis_url, decode_responses=True)
@@ -18,7 +18,7 @@ async def _send_snapshot(ws: WebSocket) -> None:
     # pools & queue lengths
     pools = await redis.smembers("pools")
     for pool in pools:
-        qlen = len(await redis.lrange(f"{defaults['ready_queue']}:{pool}", 0, -1))
+        qlen = len(await redis.lrange(f"{READY_QUEUE}:{pool}", 0, -1))
         await ws.send_text(
             json.dumps({"type": "queue.update", "data": {"pool": pool, "length": qlen}})
         )
@@ -46,7 +46,7 @@ async def ws_tasks(ws: WebSocket):
     await ws.accept()
     await _send_snapshot(ws)
     pubsub = redis.pubsub()
-    await pubsub.subscribe(defaults["pubsub"])
+    await pubsub.subscribe(PUBSUB_CHANNEL)
     try:
         async for msg in pubsub.listen():
             if msg["type"] == "message":
@@ -55,4 +55,4 @@ async def ws_tasks(ws: WebSocket):
                 except WebSocketDisconnect:
                     break
     finally:
-        await pubsub.unsubscribe(defaults["pubsub"])
+        await pubsub.unsubscribe(PUBSUB_CHANNEL)

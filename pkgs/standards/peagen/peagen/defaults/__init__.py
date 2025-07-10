@@ -6,53 +6,51 @@ Package-level built-in configuration and constants.
 import os
 from pathlib import Path
 
-from .abuse import BAN_THRESHOLD
-from .events import CONTROL_QUEUE, READY_QUEUE, PUBSUB_CHANNEL, TASK_KEY
-from .methods import *  # noqa: F401,F403 re-export rpc method names
-from peagen.transport.error_codes import ErrorCode
 
+# ───────────────── CTX DEFAULT FALLBACKS ─────────────────────────
+DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+GATEWAY_URL = DEFAULT_GATEWAY
+
+# ───────────────────────── TIMEOUTS ──────────────────────────────
 # Default timeout for JSON-RPC requests in seconds.
 RPC_TIMEOUT = 30.0
 
-# Default directory for repository lock files.
-LOCK_DIR = "~/.cache/peagen/locks"
+# ───────────────────────── Root Paths ────────────────────────────
+# Base directory Peagen uses for caches, mirrors, work-trees, etc.
+# Can be overridden with the environment variable `PEAGEN_ROOT_DIR`.
+ROOT_DIR = os.getenv("PEAGEN_ROOT_DIR", "~/.cache/peagen")
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+# ───────────────────────── Peagen Lock ───────────────────────────
+# Directory for repository lock files, under the root path.
+LOCK_DIR = os.path.join(ROOT_DIR, "locks")
 
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
     return Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
 
+# Convenience accessor for the root directory.
+def root_dir() -> Path:
+    """Return Peagen’s root working directory."""
+    return Path(ROOT_DIR).expanduser()
 
-# Default worker pool used when none is specified via environment variables.
-DEFAULT_POOL = "default"
+# ─────────────────────────── GIT Shadow ────────────────────────────
 
 # Git Shadow Mirror
 GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
 GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 
+
+# ───────────────────────── Default SVC USER ────────────────────────
+
 ## DEFAULT SVC USER UUID
 DEFAULT_SVC_USER_ID = "00000000-0000-0000-0000-000000000001"
 
+
+# ──────────────────────── Plugin Config ────────────────────────────
+
 # Base configuration used when no `.peagen.toml` is present.
 CONFIG = {
-    "gateway_url": "http://localhost:8000/rpc",
-    "control_queue": CONTROL_QUEUE,
-    "ready_queue": READY_QUEUE,
-    "pubsub": PUBSUB_CHANNEL,
-    "task_key": TASK_KEY,
     "queues": {"default_queue": "in_memory", "adapters": {"in_memory": {"maxsize": 0}}},
-    "result_backends": {
-        "default_backend": "local_fs",
-        "adapters": {
-            "local_fs": {"root_dir": "./task_runs"},
-            "in_memory": {},
-        },
-    },
-    "storage": {
-        "default_filter": "file",
-        "filters": {"file": {"output_dir": "./peagen_artifacts"}},
-    },
     "mutation": {
         "mutators": {"default_mutator": "DefaultMutator"},
     },
@@ -70,16 +68,52 @@ CONFIG = {
     "secrets": {"default_secret": "env", "adapters": {"env": {"prefix": ""}}},
 }
 
+
+# ─────────────────────────── Pools ────────────────────────────
+DEFAULT_POOL = "default"
+"""Default worker pool used when none is specified via environment variables."""
+
+# ─────────────────────────── Workers ────────────────────────────
+# workers are stored as hashes:  queue.hset worker:<id> pool url advertises last_seen
+WORKER_KEY = "worker:{}"  # format with workerId
+WORKER_TTL = 15  # seconds before a worker is considered dead
+
+# ─────────────────────────── Task ────────────────────────────
+TASK_TTL = 24 * 3600  # 24 h, adjust as needed
+
+TASK_KEY = "task:{}"
+"""Redis key template for task metadata."""
+
+# ─────────────────────────── Queue ────────────────────────────────
+
+CONTROL_QUEUE = "control"
+"""Worker ↔ gateway control messages queue."""
+
+READY_QUEUE = "queue"
+"""Prefix for per-pool ready queues."""
+
+PUBSUB_CHANNEL = "task:update"
+"""Channel name for task event broadcasts."""
+
+# ─────────────────────────── Abuse ────────────────────────────
+
+BAN_THRESHOLD = 10
+
+# ─────────────────────────── Exports ────────────────────────────
+
 __all__ = [
     "CONFIG",
+    "ROOT_DIR",
+    "LOCK_DIR",
+    "root_dir",
+    "lock_dir",
+    "WORKER_KEY",
+    "WORKER_TTL",
     "BAN_THRESHOLD",
     "CONTROL_QUEUE",
     "READY_QUEUE",
     "PUBSUB_CHANNEL",
     "TASK_KEY",
-    "LOCK_DIR",
-    "lock_dir",
     "DEFAULT_POOL",
     "RPC_TIMEOUT",
-    "ErrorCode",
 ]

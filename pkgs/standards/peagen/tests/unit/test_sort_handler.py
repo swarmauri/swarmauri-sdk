@@ -7,10 +7,10 @@ from peagen.cli.task_helpers import build_task
 @pytest.mark.unit
 @pytest.mark.asyncio
 @pytest.mark.parametrize("project_name", ["proj", None])
-async def test_sort_handler_delegates(monkeypatch, project_name):
+async def test_sort_handler_delegates(monkeypatch, tmp_path, project_name):
     calls = {}
 
-    def fake_resolve_cfg(toml_text=None):
+    def fake_resolve_cfg(toml_path=None):
         return {"cfg": True}
 
     def fake_single(params):
@@ -25,11 +25,18 @@ async def test_sort_handler_delegates(monkeypatch, project_name):
     monkeypatch.setattr(handler, "sort_single_project", fake_single)
     monkeypatch.setattr(handler, "sort_all_projects", fake_all)
 
-    args = {"projects_payload": "payload"}
+    args = {"projects_payload": "payload", "worktree": str(tmp_path)}
     if project_name:
         args["project_name"] = project_name
 
-    task = build_task("sort", args)
+    task = build_task(
+        action="sort",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="HEAD",
+    )
     result = await handler.sort_handler(task)
 
     if project_name:

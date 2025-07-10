@@ -10,24 +10,31 @@ from peagen.cli.task_helpers import build_task
 async def test_fetch_handler_passes_args(monkeypatch):
     captured = {}
 
-    def fake_fetch_many(**kwargs):
-        captured.update(kwargs)
-        return {"count": len(kwargs.get("workspace_uris", []))}
+    def fake_fetch_many(repos, *, ref="HEAD", out_dir=None):
+        captured["repos"] = repos
+        captured["ref"] = ref
+        captured["out_dir"] = out_dir
+        return {"count": len(repos)}
 
     monkeypatch.setattr(handler, "fetch_many", fake_fetch_many)
 
     args = {
-        "workspaces": ["w1", "w2"],
+        "repos": ["git+repo1", "git+repo2"],
         "out_dir": "~/out",
-        "no_source": True,
-        "install_template_sets": False,
+        "ref": "main",
     }
 
-    task = build_task("fetch", args)
+    task = build_task(
+        action="fetch",
+        args=args,
+        tenant_id="t",
+        pool_id="p",
+        repo="repo",
+        ref="main",
+    )
     result = await handler.fetch_handler(task)
 
     assert result == {"count": 2}
-    assert captured["workspace_uris"] == ["w1", "w2"]
+    assert captured["repos"] == ["git+repo1", "git+repo2"]
+    assert captured["ref"] == "main"
     assert captured["out_dir"] == Path("~/out").expanduser()
-    assert captured["no_source"] is True
-    assert captured["install_template_sets_flag"] is False

@@ -1,43 +1,43 @@
-# peagen/handlers/fetch_handler.py
 """
+peagen.handlers.fetch_handler
+─────────────────────────────
 Async entry-point for the *fetch* pipeline.
 
-• Delegates all heavy-lifting to ``core.fetch_core.fetch_many``.
-• Returns a lightweight JSON-serialisable summary.
+• Delegates work to :func:`peagen.core.fetch_core.fetch_many`.
+• Accepts an AutoAPI-generated **TaskRead** object whose ``args`` must contain:
+
+    {
+        "repos":   [ "<git-url>", … ],   # required – list of clone URLs
+        "ref":     "main",               # optional – branch/tag/SHA (default "HEAD")
+        "out_dir": "<path>"              # optional – base directory for work-trees
+    }
+
+Returns a JSON-serialisable summary produced by *fetch_many*.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 from peagen.core.fetch_core import fetch_many
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
 
+# ────────────────────────── schema handle ───────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-async def fetch_handler(task: SubmitParams) -> SubmitResult:
-    """
-    Parameters (in task.payload.args)
-    ---------------------------------
-    workspaces: List[str]  – one or more workspace URIs
-    out_dir:   str        – destination workspace folder
-    no_source: bool        – ignored
-    install_template_sets: bool – ignored
-    """
-    # normalise ---------------------------------------------
-    payload = task.payload
-    args: Dict[str, Any] = payload.get("args", {})
-    uris: List[str] = args.get("workspaces", [])
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
+# ─────────────────────────── coroutine ──────────────────────────────
+async def fetch_handler(task: TaskRead) -> Dict[str, Any]:
+    args: Dict[str, Any] = task.args or {}
 
-    summary = fetch_many(
-        workspace_uris=uris,
-        repo=repo,
-        ref=ref,
-        out_dir=Path(args["out_dir"]).expanduser(),
-        install_template_sets_flag=args.get("install_template_sets", True),
-        no_source=args.get("no_source", False),
-    )
+    repos: List[str] = args.get("repos", [])
+    if not repos:
+        raise ValueError("task.args.repos must be a non-empty list of clone URLs")
+
+    ref: str = args.get("ref", "HEAD")
+    out_dir_arg: Optional[str] = args.get("out_dir")
+    out_dir: Optional[Path] = Path(out_dir_arg).expanduser() if out_dir_arg else None
+
+    summary = fetch_many(repos=repos, ref=ref, out_dir=out_dir)
     return summary

@@ -49,8 +49,9 @@ def upgrade() -> None:
             sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("slug", sa.String),
             sa.column("name", sa.String),
-            sa.column("date_created", sa.DateTime(timezone=False)),
-            sa.column("last_modified", sa.DateTime(timezone=False)),
+            sa.column("email", sa.String),
+            sa.column("created_at", sa.DateTime(timezone=False)),
+            sa.column("updated_at", sa.DateTime(timezone=False)),
         )
         op.bulk_insert(
             tenants,
@@ -59,8 +60,9 @@ def upgrade() -> None:
                     "id": tenant_id,
                     "slug": "public",
                     "name": "Public",
-                    "date_created": now,
-                    "last_modified": now,
+                    "email": "support@swarmauri.com",
+                    "created_at": now,
+                    "updated_at": now,
                 }
             ],
         )
@@ -76,20 +78,17 @@ def upgrade() -> None:
         users = sa.table(
             "users",
             sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
-            sa.column("username", sa.String),
             sa.column("email", sa.String),
-            sa.column("role", sa.String),
-            sa.column("date_created", sa.DateTime(timezone=False)),
-            sa.column("last_modified", sa.DateTime(timezone=False)),
+            sa.column("tenant_id", sa.dialects.postgresql.UUID(as_uuid=True)),
+            sa.column("created_at", sa.DateTime(timezone=False)),
+            sa.column("updated_at", sa.DateTime(timezone=False)),
         )
         assoc = sa.table(
-            "tenant_user_associations",
+            "user_tenants",
             sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("tenant_id", sa.dialects.postgresql.UUID(as_uuid=True)),
             sa.column("user_id", sa.dialects.postgresql.UUID(as_uuid=True)),
-            sa.column("role", sa.String),
-            sa.column("date_created", sa.DateTime(timezone=False)),
-            sa.column("last_modified", sa.DateTime(timezone=False)),
+            sa.column("joined_at", sa.DateTime(timezone=False)),
         )
 
         op.bulk_insert(
@@ -97,11 +96,10 @@ def upgrade() -> None:
             [
                 {
                     "id": user_id,
-                    "username": "public",
                     "email": "public@example.com",
-                    "role": "member",
-                    "date_created": now,
-                    "last_modified": now,
+                    "tenant_id": tenant_id,
+                    "created_at": now,
+                    "updated_at": now,
                 }
             ],
         )
@@ -112,9 +110,7 @@ def upgrade() -> None:
                     "id": uuid.uuid4(),
                     "tenant_id": tenant_id,
                     "user_id": user_id,
-                    "role": "owner",
-                    "date_created": now,
-                    "last_modified": now,
+                    "joined_at": now,
                 }
             ],
         )

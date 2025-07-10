@@ -2,7 +2,9 @@ import yaml
 import pytest
 from pathlib import Path
 
+import peagen.core.process_core as process_core
 from peagen.core.process_core import _render_package_ptree, process_single_project
+from peagen.core.sort_core import sort_file_records
 
 
 @pytest.fixture
@@ -98,8 +100,6 @@ def test_render_package_ptree(
     """
     # Build minimal global search path
     global_search_paths = [tmp_template_set.parent]
-    workspace_root = tmp_path / "workspace"
-    workspace_root.mkdir()
 
     # Load project and package dict
     payload = yaml.safe_load(tmp_project_payload.read_text())
@@ -110,8 +110,8 @@ def test_render_package_ptree(
         project=project,
         pkg=pkg,
         global_search_paths=global_search_paths,
-        workspace_root=workspace_root,
-        logger=None,
+        project_dir=tmp_path,
+        log=None,
     )
 
     # Expect exactly one record for module "mod1"
@@ -149,12 +149,26 @@ def test_process_single_project_integration(
         lambda prompt, agent_env, logger=None: "Generated for test_project: pkgA.mod1",
     )
 
+    monkeypatch.setattr(
+        process_core,
+        "sort_file_records",
+        lambda records,
+        start_idx=0,
+        start_file=None,
+        transitive=False: sort_file_records(
+            file_records=records,
+            start_idx=start_idx,
+            start_file=start_file,
+            transitive=transitive,
+        ),
+    )
+
     cfg = {
         "logger": None,
-        "source_packages": [],
         "storage_adapter": DummyAdapter(),
         "peagen_version": "test",
         "agent_env": {},
+        "worktree": tmp_path,
     }
 
     sorted_records, next_idx, commit_sha, oids = process_single_project(
@@ -171,7 +185,7 @@ def test_process_single_project_integration(
     assert isinstance(oids, list)
 
     # Check that the file was written
-    out_file = Path.cwd() / project["NAME"] / rec["RENDERED_FILE_NAME"]
+    out_file = Path(cfg["worktree"]) / rec["RENDERED_FILE_NAME"]
     assert out_file.exists()
 
     # The content should match the template ("Generated for test_project: pkgA.mod1")

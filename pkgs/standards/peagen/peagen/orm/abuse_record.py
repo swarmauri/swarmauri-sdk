@@ -1,23 +1,26 @@
 from __future__ import annotations
 
-import datetime as dt
-from sqlalchemy import String, Integer, Boolean, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Column, String, Integer, Boolean
 
-from .base import Base
+from autoapi.v2.tables import Base, User
+from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable
+from sqlalchemy.orm import relationship
 
 
-class AbuseRecordModel(Base):
-    """Track abuse metrics for a given IP address."""
+class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
+    """
+    Track abuse metrics for a given IP address.
+    • id          – surrogate UUID PK (from GUIDPk)
+    • created_at  – first_seen (from Timestamped)
+    • updated_at  – maintained automatically (from Timestamped)
+    • owner_id    – who owns this record (from Ownable)
+    """
 
     __tablename__ = "abuse_records"
 
-    ip: Mapped[str] = mapped_column(String, primary_key=True)
-    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    first_seen: Mapped[dt.datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=dt.datetime.utcnow
-    )
-    banned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    ip = Column(String, nullable=False, unique=True, index=True)
+    count = Column(Integer, nullable=False, default=0)
+    banned = Column(Boolean, nullable=False, default=False)
 
-    def __repr__(self) -> str:  # pragma: no cover
-        return f"<AbuseRecord ip={self.ip!r} count={self.count} banned={self.banned}>"
+    # relationships
+    owner = relationship(User, lazy="selectin")

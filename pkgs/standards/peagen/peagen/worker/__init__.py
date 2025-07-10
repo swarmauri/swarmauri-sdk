@@ -9,6 +9,7 @@ from peagen.handlers.process_handler import process_handler
 from peagen.handlers.sort_handler import sort_handler
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.handlers.evolve_handler import evolve_handler
+
 # from peagen.handlers.login_handler import login_handler
 from peagen.handlers.keys_handler import keys_handler
 from peagen.handlers.secrets_handler import secrets_handler
@@ -51,9 +52,3 @@ class PeagenWorker(WorkerBase):
 # ──────────────────────────────────────────────────────────────────────────────
 worker = PeagenWorker()
 app = worker.app
-
-
-# (Optionally) if you need to add more FastAPI routes, you can do so here, e.g.:
-# @app.get("/some-other-endpoint")
-# async def custom_endpoint() -> Dict[str, Any]:
-#     return {"message": "hello from PeagenWorker"}

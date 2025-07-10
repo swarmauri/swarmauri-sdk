@@ -21,7 +21,7 @@ GROUPS = {
     "programs": ("peagen.plugins.programs", object),
     "publishers": ("peagen.plugins.publishers", object),
     "queues": ("peagen.plugins.queues", object),
-    "result_backends": ("peagen.plugins.result_backends", object),
+    # "result_backends": ("peagen.plugins.result_backends", object),
     # deprecated: storage adapters are now git filters
     "storage_adapters": ("peagen.plugins.storage_adapters", object),
     "git_filters": ("peagen.plugins.git_filters", object),
@@ -131,11 +131,11 @@ class PluginManager:
             "items": "adapters",
             "default": "default_queue",
         },
-        "result_backends": {
-            "section": "result_backends",
-            "items": "adapters",
-            "default": "default_backend",
-        },
+        # "result_backends": {
+        #     "section": "result_backends",
+        #     "items": "adapters",
+        #     "default": "default_backend",
+        # },
         "evaluators": {
             "section": "evaluation",
             "items": "evaluators",

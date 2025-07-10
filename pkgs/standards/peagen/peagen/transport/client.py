@@ -1,108 +1,67 @@
-"""
-send_jsonrpc_request – build ➜ POST ➜ parse a JSON-RPC 2.0 call.
+# """Minimal helper for AutoAPI JSON-RPC requests."""
 
-* Strictly typed against peagen.transport.envelope.Response.
-* Uses httpx.post with a configurable *timeout*.
-"""
+# from __future__ import annotations
 
-from __future__ import annotations
+# from typing import Any, Mapping, Type, TypeVar, Union, overload
 
-import uuid
-from typing import Any, Mapping, Type, TypeVar, Union, overload
+# import httpx
+# from pydantic import BaseModel
+# from autoapi_client import AutoAPIClient
 
-import httpx
-from pydantic import BaseModel, ValidationError
-
-from .builder import build_jsonrpc_request
-from .envelope import Error, Response
-
-# ---------- public types & defaults ----------
-R = TypeVar("R", bound=BaseModel)
-RPC_TIMEOUT: float = 30.0  # seconds
+# R = TypeVar("R", bound=BaseModel)
+# RPC_TIMEOUT: float = 30.0
 
 
-class RPCTransportError(RuntimeError):
-    """Low-level HTTP or JSON parse failure."""
+# class RPCTransportError(RuntimeError):
+#     """Low-level HTTP or JSON parse failure."""
 
 
-class RPCResponseError(RuntimeError):
-    """Gateway returned a JSON-RPC *error* object."""
+# class RPCResponseError(RuntimeError):
+#     """Gateway returned a JSON-RPC error object."""
 
-    def __init__(self, err: Error):
-        super().__init__(f"(code {err.code}) {err.message}")
-        self.code: int = err.code
-        self.message: str = err.message
-        self.data: dict[str, Any] | None = err.data
-
-
-# ---------- public helper ----------
-@overload
-def send_jsonrpc_request(
-    gateway_url: str,
-    method: str,
-    params: Mapping[str, Any] | BaseModel,
-    *,
-    expect: None = ...,
-    timeout: float = RPC_TIMEOUT,
-) -> Response[dict]: ...  # raw response
+#     def __init__(self, err: Mapping[str, Any]):
+#         super().__init__(f"(code {err.get('code')}) {err.get('message')}")
+#         self.code: int = err.get("code", -32000)
+#         self.message: str = err.get("message", "unknown")
+#         self.data: Mapping[str, Any] | None = err.get("data")
 
 
-@overload
-def send_jsonrpc_request(
-    gateway_url: str,
-    method: str,
-    params: Mapping[str, Any] | BaseModel,
-    *,
-    expect: Type[R],
-    timeout: float = RPC_TIMEOUT,
-) -> R: ...  # typed result
+# @overload
+# def send_jsonrpc_request(
+#     gateway_url: str,
+#     method: str,
+#     params: Mapping[str, Any] | BaseModel,
+#     *,
+#     expect: None = ...,  # noqa: D417
+#     timeout: float = RPC_TIMEOUT,
+# ) -> dict: ...
 
 
-def send_jsonrpc_request(
-    gateway_url: str,
-    method: str,
-    params: Mapping[str, Any] | BaseModel,
-    *,
-    expect: Type[R] | None = None,
-    timeout: float = RPC_TIMEOUT,
-) -> Union[Response[dict], R]:
-    """
-    Build → HTTP POST → parse a JSON-RPC request in one line.
+# @overload
+# def send_jsonrpc_request(
+#     gateway_url: str,
+#     method: str,
+#     params: Mapping[str, Any] | BaseModel,
+#     *,
+#     expect: Type[R],
+#     timeout: float = RPC_TIMEOUT,
+# ) -> R: ...
 
-    Raises
-    ------
-    RPCBuildError       – request could not be constructed.
-    RPCTransportError   – network / HTTP / non-JSON response.
-    RPCResponseError    – gateway returned a JSON-RPC error object.
-    """
-    # 1️⃣ build (and validate) envelope
-    envelope = build_jsonrpc_request(method, params, id=str(uuid.uuid4()))
 
-    # 2️⃣ transmit
-    try:
-        resp = httpx.post(
-            gateway_url,
-            json=envelope.model_dump(mode="json"),
-            timeout=timeout,
-        )
-        resp.raise_for_status()
-    except Exception as exc:  # noqa: BLE001
-        raise RPCTransportError(f"HTTP transport failure: {exc}") from exc
+# def send_jsonrpc_request(
+#     gateway_url: str,
+#     method: str,
+#     params: Mapping[str, Any] | BaseModel,
+#     *,
+#     expect: Type[R] | None = None,
+#     timeout: float = RPC_TIMEOUT,
+# ) -> Union[dict, R]:
+#     """Call *method* on *gateway_url* using :class:`AutoAPIClient`."""
 
-    # 3️⃣ parse JSON-RPC response
-    try:
-        parsed: Response[Any] = Response[Any].model_validate(resp.json())
-    except ValidationError as exc:
-        raise RPCTransportError(f"Invalid JSON-RPC payload: {exc}") from exc
-
-    if parsed.error is not None:  # JSON-RPC error
-        raise RPCResponseError(parsed.error)
-
-    if expect is None:
-        return parsed  # raw Response
-    try:
-        return expect.model_validate(parsed.result)  # typed Result
-    except ValidationError as exc:
-        raise RPCTransportError(
-            f"Result failed validation as {expect.__name__}: {exc}"
-        ) from exc
+#     try:
+#         with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+#             return rpc.call(method, params=params, out_schema=expect)
+#     except httpx.HTTPError as exc:  # pragma: no cover
+#         raise RPCTransportError(str(exc)) from exc
+#     except RuntimeError as exc:  # pragma: no cover
+#         raise RPCResponseError({"message": str(exc)}) from exc

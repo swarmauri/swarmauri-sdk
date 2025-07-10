@@ -1,47 +1,70 @@
-"""peagen.handlers.templates_handler
-----------------------------------
+"""
+Async entry-point for template-set management.
 
-Async handler for template-set management tasks.
+Input : TaskRead  – AutoAPI schema bound to the Task ORM table  
+Output: dict      – JSON-serialisable result from templates_core helpers
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict
 
-from peagen._utils import maybe_clone_repo
+from autoapi.v2 import AutoAPI
+from peagen.orm  import Task
 
-from peagen.core.templates_core import (
+from peagen._utils               import maybe_clone_repo
+from peagen.core.templates_core  import (
     list_template_sets,
     show_template_set,
     add_template_set,
     remove_template_set,
 )
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
+
+# ─────────────────────────── schema handle ────────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")   # incoming model
 
 
-async def templates_handler(task: SubmitParams) -> SubmitResult:
-    """Dispatch template-set operations based on ``args.operation``."""
-    payload = task.payload
-    args: Dict[str, Any] = payload.get("args", {})
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    op = args.get("operation")
+# ─────────────────────────── main coroutine ───────────────────────────
+async def templates_handler(task: TaskRead) -> Dict[str, Any]:
+    """
+    task.args MUST contain:
 
-    with maybe_clone_repo(repo, ref):
-        if op == "list":
+        {
+            "action":  "list" | "show" | "add" | "remove",
+            # list   → {}
+            # show   → { "name": "<set-name>" }
+            # add    → { "source": "<uri>", "from_bundle": "...",
+            #             "editable": false, "force": false }
+            # remove → { "name": "<set-name>" }
+            "repo": "<git-url>",   # optional – for remote ops
+            "ref" : "HEAD"         # optional – defaults to HEAD
+        }
+    """
+    args: Dict[str, Any] = task.args or {}
+    action: str | None   = args.get("action")
+    if action is None:
+        raise ValueError("templates_handler: missing 'action' in task.args")
+
+    repo_url = args.get("repo")
+    ref      = args.get("ref", "HEAD")
+
+    # Clone repo (if provided) for template-set operations that require a VCS tree
+    with maybe_clone_repo(repo_url, ref):
+        if action == "list":
             return list_template_sets()
-        if op == "show":
+
+        if action == "show":
             return show_template_set(args["name"])
-        if op == "add":
+
+        if action == "add":
             return add_template_set(
                 args["source"],
-                from_bundle=args.get("from_bundle"),
-                editable=args.get("editable", False),
-                force=args.get("force", False),
-            )
-        if op == "remove":
-            return remove_template_set(
-                args["name"],
+                from_bundle = args.get("from_bundle"),
+                editable    = args.get("editable", False),
+                force       = args.get("force", False),
             )
 
-    raise ValueError(f"Unknown operation: {op}")
+        if action == "remove":
+            return remove_template_set(args["name"])
+
+    raise ValueError(f"Unknown template-set operation '{action}'")

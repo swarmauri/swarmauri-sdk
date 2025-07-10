@@ -4,8 +4,6 @@ import inspect
 from typing import Callable, Dict
 
 from pydantic import BaseModel
-from peagen.transport import _registry
-from peagen.transport.envelope import Error
 
 
 class RPCException(Exception):
@@ -18,16 +16,15 @@ class RPCException(Exception):
         self.data = data
 
     def as_error(self) -> dict:
-        return Error(code=self.code, message=self.message, data=self.data).model_dump()
+        return {"code": self.code, "message": self.message, "data": self.data}
 
 
 class RPCDispatcher:
-    """Ultra-light JSON-RPC 2.0 dispatcher (no batching, no notifications)."""
+    """Ultra-light JSON-RPC 2.0 dispatcher."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._methods: Dict[str, Callable] = {}
 
-    # decorator: @rpc.method() or @rpc.method("Custom.Name")
     def method(self, name: str | None = None):
         def decorator(fn: Callable):
             self._methods[name or fn.__name__] = fn
@@ -36,7 +33,6 @@ class RPCDispatcher:
         return decorator
 
     async def dispatch(self, req: dict | list) -> dict | list:
-        """Dispatch a single request or a batch of requests."""
         if isinstance(req, list):
             return [await self.dispatch(r) for r in req]
 
@@ -49,37 +45,17 @@ class RPCDispatcher:
 
         try:
             params = req.get("params") or {}
-            PModel = _registry.params_model(req["method"])
-            sig = inspect.signature(fn)
-
-            if PModel and len(sig.parameters) == 1:
-                arg_name, _ = next(iter(sig.parameters.items()))
-                hints = inspect.get_annotations(fn, eval_str=True)
-                ann = hints.get(arg_name)
-                if ann and isinstance(ann, type) and issubclass(ann, BaseModel):
-                    parsed = PModel.model_validate(params)
-                    if isinstance(parsed, ann):
-                        result = fn(parsed)
-                    elif hasattr(parsed, arg_name):
-                        result = fn(getattr(parsed, arg_name))
-                    else:
-                        result = fn(parsed)
-                else:
-                    parsed = PModel.model_validate(params).model_dump()
-                    result = fn(**parsed)
-            else:
+            if isinstance(params, dict):
                 result = fn(**params)
+            else:
+                result = fn(params)
             if inspect.isawaitable(result):
                 result = await result
             if isinstance(result, BaseModel):
                 result = result.model_dump()
             return {"jsonrpc": "2.0", "result": result, "id": req["id"]}
         except RPCException as exc:
-            return {
-                "jsonrpc": "2.0",
-                "error": exc.as_error(),
-                "id": req["id"],
-            }
+            return {"jsonrpc": "2.0", "error": exc.as_error(), "id": req["id"]}
         except Exception as exc:  # noqa: BLE001
             return self._error(-32000, str(exc), req["id"])
 

@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Input, Select
 
-from peagen.transport.jsonrpc_schemas import Status
+from peagen.orm import Status
 
 
 class FilterBar(Horizontal):
@@ -103,9 +103,9 @@ class FilterBar(Horizontal):
         pools = {str(t.get("pool")) for t in tasks if t.get("pool") is not None}
         statuses = {status.value for status in Status}
         actions = {
-            str(t.get("payload", {}).get("action"))
+            str(t.get("action"))
             for t in tasks
-            if t.get("payload", {}).get("action") is not None
+            if t.get("action") is not None
         }
         labels = {
             str(lbl) for t in tasks for lbl in t.get("labels", []) if lbl is not None

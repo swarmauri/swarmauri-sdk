@@ -1,54 +1,57 @@
-"""Async entry-point for generating EXTRAS schema files."""
+"""
+peagen.handlers.extras_handler
+──────────────────────────────
+Generate JSON-Schema files from template-set ``EXTRAS.md`` sources.
+
+Updates
+-------
+* **No `maybe_clone_repo`** or ad-hoc cloning logic.  
+  Caller **must** supply the current task *work-tree* via
+  ``task.args["worktree"]``.
+* No storage-adapter uploads – files are written directly inside the
+  provided work-tree.
+
+Expected ``task.args``
+----------------------
+{
+    "worktree"      : "<abs path>",          # required – task work-tree
+    "templates_root": "<dir>",               # optional, default <worktree>/template_sets
+    "schemas_dir"   : "<dir>"                # optional, default <worktree>/jsonschemas/extras
+}
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-
-from peagen._utils import maybe_clone_repo
-
+from autoapi.v2 import AutoAPI
+from peagen.orm import Task
 from peagen.core.extras_core import generate_schemas
-from peagen.transport.jsonrpc_schemas.task import SubmitParams, SubmitResult
-from .repo_utils import fetch_repo, cleanup_repo
+
+# ───────────────────────── schema handle ────────────────────────────
+TaskRead = AutoAPI.get_schema(Task, "read")
 
 
-async def extras_handler(task: SubmitParams) -> SubmitResult:
-    """Generate EXTRAS schemas based on template-set ``EXTRAS.md`` files."""
-    payload = task.payload
-    args: Dict[str, Any] = payload.get("args", {})
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
+# ───────────────────────── main coroutine ───────────────────────────
+async def extras_handler(task: TaskRead) -> Dict[str, Any]:
+    args: Dict[str, Any] = task.args or {}
 
-    with maybe_clone_repo(repo, ref) as tmp:
-        base = tmp or Path(__file__).resolve().parents[1]
-        templates_root = (
-            Path(args.get("templates_root")).expanduser()
-            if args.get("templates_root")
-            else base / "template_sets"
-        )
-        schemas_dir = (
-            Path(args.get("schemas_dir")).expanduser()
-            if args.get("schemas_dir")
-            else base / "jsonschemas" / "extras"
-        )
-    repo = args.get("repo")
-    ref = args.get("ref", "HEAD")
-    tmp_dir, prev_cwd = fetch_repo(repo, ref)
+    worktree = Path(args["worktree"]).expanduser().resolve()
+    if not worktree.exists():
+        raise FileNotFoundError(f"worktree not found: {worktree}")
 
-    base = Path(__file__).resolve().parents[1]
     templates_root = (
-        Path(args.get("templates_root")).expanduser()
+        Path(args["templates_root"]).expanduser()
         if args.get("templates_root")
-        else base / "template_sets"
+        else worktree / "template_sets"
     )
     schemas_dir = (
-        Path(args.get("schemas_dir")).expanduser()
+        Path(args["schemas_dir"]).expanduser()
         if args.get("schemas_dir")
-        else base / "jsonschemas" / "extras"
+        else worktree / "jsonschemas" / "extras"
     )
+    schemas_dir.mkdir(parents=True, exist_ok=True)
 
-    written = generate_schemas(templates_root, schemas_dir)
-    if repo:
-        cleanup_repo(tmp_dir, prev_cwd)
+    written: List[Path] = generate_schemas(templates_root, schemas_dir)
     return {"generated": [str(p) for p in written]}

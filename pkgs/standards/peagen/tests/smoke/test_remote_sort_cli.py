@@ -4,11 +4,12 @@ from pathlib import Path
 
 import httpx
 import pytest
-from peagen.transport.jsonrpc_schemas.worker import WORKER_LIST
+
+WORKER_LIST = "Workers.list"
 
 pytestmark = pytest.mark.smoke
 
-GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "https://gw.peagen.com/rpc")
+GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples" / "projects_payloads"
 BASE_URL = GATEWAY.removesuffix("/rpc")
 REPO = "testproject"

@@ -1,40 +1,33 @@
 """
-CLI wrapper for querying asynchronous tasks.
+CLI wrapper for querying and managing asynchronous Tasks via AutoAPI.
 """
 
 from __future__ import annotations
 
 import json
 import time
-import uuid
-
-import httpx
-
+from typing import Any
 
 import typer
-
-from peagen.transport import (
-    TASK_PATCH,
-    TASK_PAUSE,
-    TASK_RESUME,
-    TASK_CANCEL,
-    TASK_RETRY,
-    TASK_RETRY_FROM,
-)
-from peagen.transport.jsonrpc_schemas.task import (
-    PatchParams,
-    PatchResult,
-    SimpleSelectorParams,
-    CountResult,
-)
-from peagen.cli.task_helpers import get_task
-from peagen.transport import Request, Response
-
-from peagen.transport.jsonrpc_schemas import Status
+from autoapi_client import AutoAPIClient
+from autoapi.v2 import AutoAPI
+from peagen.orm import Status, Task
+from peagen.cli.task_helpers import get_task, build_task, submit_task
 
 remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
 
+# ───────────────────────── helpers ────────────────────────────────────
+def _rpc(ctx: typer.Context) -> AutoAPIClient:
+    return AutoAPIClient(ctx.obj["gateway_url"])
+
+
+def _schema(tag: str):
+    # shortcut to the Pydantic model generated for <Task, tag>
+    return AutoAPI.get_schema(Task, tag)
+
+
+# ───────────────────────── commands ───────────────────────────────────
 @remote_task_app.command("get")
 def get(  # noqa: D401
     ctx: typer.Context,
@@ -44,13 +37,12 @@ def get(  # noqa: D401
         2.0, "--interval", "-i", help="Seconds between polls"
     ),
 ):
-    """Fetch status / result for *TASK_ID* (optionally watch until done)."""
-
+    """Fetch status/result for *TASK_ID* (optionally watch until done)."""
     while True:
-        reply = get_task(ctx.obj.get("gateway_url"), task_id)
-        typer.echo(json.dumps(reply.model_dump(), indent=2))
+        reply = get_task(task_id, gateway_url=ctx.obj["gateway_url"])
+        typer.echo(json.dumps(reply, indent=2))
 
-        if not watch or Status.is_terminal(reply.status):
+        if not watch or Status.is_terminal(reply["status"]):
             break
         time.sleep(interval)
 
@@ -59,82 +51,79 @@ def get(  # noqa: D401
 def patch_task(
     ctx: typer.Context,
     task_id: str = typer.Argument(..., help="UUID of the task to update"),
-    changes: str = typer.Argument(..., help="JSON string of fields to modify"),
+    changes: str = typer.Argument(..., help="JSON dict of fields to modify"),
 ):
-    """Send a Task.patch RPC call."""
+    """Apply partial update to a Task."""
+    SUpdate = _schema("update")
+    SRead = _schema("read")
 
-    payload = json.loads(changes)
-    envelope = Request(
-        id=str(uuid.uuid4()),
-        method=TASK_PATCH,
-        params=PatchParams(taskId=task_id, changes=payload).model_dump(),
-    )
-    resp = httpx.post(
-        ctx.obj.get("gateway_url"),
-        json=envelope.model_dump(mode="json"),
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    res = Response[PatchResult].model_validate(resp.json())
-    typer.echo(json.dumps(res.result, indent=2))
+    changes_obj = SUpdate.model_validate(json.loads(changes))
+    params = {"id": task_id, **changes_obj.model_dump(exclude_unset=True)}
+
+    with _rpc(ctx) as rpc:
+        res = rpc.call("Tasks.update", params=params, out_schema=SRead)
+    typer.echo(json.dumps(res.model_dump(), indent=2))
 
 
-def _simple_call(ctx: typer.Context, method: str, selector: str) -> None:
-    envelope = Request(
-        id=str(uuid.uuid4()),
-        method=method,
-        params=SimpleSelectorParams(selector=selector).model_dump(),
-    )
-    resp = httpx.post(
-        ctx.obj.get("gateway_url"),
-        json=envelope.model_dump(mode="json"),
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    res = Response[CountResult].model_validate(resp.json())
-    typer.echo(json.dumps(res.result, indent=2))
+# ── helper for one-shot status transitions ────────────────────────────
+def _simple_status_change(ctx: typer.Context, task_id: str, new_status: Status):
+    SUpdate = _schema("update")
+    SRead = _schema("read")
+    params = {"id": task_id, "status": new_status}
+
+    with _rpc(ctx) as rpc:
+        res = rpc.call("Tasks.update", params=SUpdate(**params), out_schema=SRead)
+    typer.echo(json.dumps(res.model_dump(), indent=2))
 
 
 @remote_task_app.command("pause")
-def pause(
-    ctx: typer.Context,
-    selector: str = typer.Argument(..., help="Task ID or label selector"),
-) -> None:
-    """Pause one task or all tasks matching a label."""
-    _simple_call(ctx, TASK_PAUSE, selector)
+def pause(ctx: typer.Context, task_id: str):
+    """Mark a running task as *paused*."""
+    _simple_status_change(ctx, task_id, Status.paused)
 
 
 @remote_task_app.command("resume")
-def resume(
-    ctx: typer.Context,
-    selector: str = typer.Argument(..., help="Task ID or label selector"),
-) -> None:
-    """Resume a paused task or label set."""
-    _simple_call(ctx, TASK_RESUME, selector)
+def resume(ctx: typer.Context, task_id: str):
+    """Resume a paused task."""
+    _simple_status_change(ctx, task_id, Status.running)
 
 
 @remote_task_app.command("cancel")
-def cancel(
-    ctx: typer.Context,
-    selector: str = typer.Argument(..., help="Task ID or label selector"),
-) -> None:
-    """Cancel a task or label set."""
-    _simple_call(ctx, TASK_CANCEL, selector)
+def cancel(ctx: typer.Context, task_id: str):
+    """Cancel a running/queued task."""
+    _simple_status_change(ctx, task_id, Status.cancelled)
 
 
 @remote_task_app.command("retry")
-def retry(
-    ctx: typer.Context,
-    selector: str = typer.Argument(..., help="Task ID or label selector"),
-) -> None:
-    """Retry a task or label set."""
-    _simple_call(ctx, TASK_RETRY, selector)
+def retry(ctx: typer.Context, task_id: str):
+    """Retry a task (sets status = retry)."""
+    _simple_status_change(ctx, task_id, Status.retry)
 
 
 @remote_task_app.command("retry-from")
 def retry_from(
     ctx: typer.Context,
-    selector: str = typer.Argument(..., help="Task ID or label selector"),
-) -> None:
-    """Retry a task and its descendants."""
-    _simple_call(ctx, TASK_RETRY_FROM, selector)
+    source_task_id: str = typer.Argument(..., help="Existing task to clone"),
+):
+    """
+    Create a **new** task by cloning *source_task_id* and submitting it.
+
+    Works with the new flat schema where `action` and `args` live directly
+    on the Task row (rather than inside `payload`).
+    """
+    # 1. fetch the original task
+    original = get_task(source_task_id, gateway_url=ctx.obj["gateway_url"])
+    if not original.get("action"):
+        typer.echo("Source task has no action to clone.", err=True)
+        raise typer.Exit(1)
+
+    # 2. build & submit a new task with the same action/args/pool
+    new_task = build_task(
+        action=original["action"],
+        args=original.get("args", {}),
+        pool=original.get("pool", "default"),
+        tenant_id=original.get("tenant_id", "default"),
+        labels=original.get("labels") or [],
+    )
+    submitted = submit_task(ctx.obj["gateway_url"], new_task)
+    typer.echo(json.dumps(submitted, indent=2))
