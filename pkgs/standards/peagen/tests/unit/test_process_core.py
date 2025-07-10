@@ -2,7 +2,9 @@ import yaml
 import pytest
 from pathlib import Path
 
+import peagen.core.process_core as process_core
 from peagen.core.process_core import _render_package_ptree, process_single_project
+from peagen.core.sort_core import sort_file_records
 
 
 @pytest.fixture
@@ -145,6 +147,20 @@ def test_process_single_project_integration(
     monkeypatch.setattr(
         "peagen.core.render_core.call_external_agent",
         lambda prompt, agent_env, logger=None: "Generated for test_project: pkgA.mod1",
+    )
+
+    monkeypatch.setattr(
+        process_core,
+        "sort_file_records",
+        lambda records,
+        start_idx=0,
+        start_file=None,
+        transitive=False: sort_file_records(
+            file_records=records,
+            start_idx=start_idx,
+            start_file=start_file,
+            transitive=transitive,
+        ),
     )
 
     cfg = {
