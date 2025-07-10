@@ -48,7 +48,7 @@ jobs:
 
         sudo -E docker compose \
           -f infra/peagen/docker-compose.yml \
-          up -d --build --force-recreate --no-deps croutondb gateway worker
+          up -d --build --force-recreate --no-deps gateway worker
 
 
 
@@ -59,10 +59,6 @@ jobs:
     - name: Get container logs on failure
       if: failure()          # <- overrides the implicit success() check
       run: |
-        echo "::group::croutondb logs"
-        sudo -E docker compose -f infra/peagen/docker-compose.yml logs croutondb || true
-        echo "::endgroup::"
-
         echo "::group::gateway logs"
         sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
         echo "::endgroup::"

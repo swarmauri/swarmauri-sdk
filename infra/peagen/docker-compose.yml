@@ -1,8 +1,3 @@
-version: "3.9"
-
-# -----------------------------------------------------------------
-# Optional root dir makes switching between dev / prod trivial
-# -----------------------------------------------------------------
 x-paths: &paths
   DATA_ROOT:    ${DATA_ROOT:-./data}          # override in .env or CI
   CONFIG_ROOT:  ${CONFIG_ROOT:-./config}      # idem
