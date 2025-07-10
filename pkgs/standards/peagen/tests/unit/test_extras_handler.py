@@ -12,7 +12,7 @@ from peagen.cli.task_helpers import build_task
     [(None, None), ("/tmp/tmpl", "/tmp/schema")],
 )
 async def test_extras_handler_calls_generate_schemas(
-    monkeypatch, templates_root, schemas_dir
+    monkeypatch, tmp_path, templates_root, schemas_dir
 ):
     called = {}
 
@@ -23,7 +23,7 @@ async def test_extras_handler_calls_generate_schemas(
 
     monkeypatch.setattr(handler, "generate_schemas", fake_generate_schemas)
 
-    args = {}
+    args = {"worktree": str(tmp_path)}
     if templates_root:
         args["templates_root"] = templates_root
     if schemas_dir:
@@ -39,7 +39,7 @@ async def test_extras_handler_calls_generate_schemas(
     )
     result = await handler.extras_handler(task)
 
-    base = Path(handler.__file__).resolve().parents[1]
+    base = Path(args["worktree"])
     expected_templates = (
         Path(templates_root).expanduser() if templates_root else base / "template_sets"
     )
