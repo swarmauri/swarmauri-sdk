@@ -29,9 +29,10 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
 
     monkeypatch.setattr(handler, func, fake)
 
+    payload = {"action": op, **args}
     task = build_task(
-        action=op,
-        args=args,
+        action="templates",
+        args=payload,
         tenant_id="t",
         pool_id="p",
         repo="repo",
