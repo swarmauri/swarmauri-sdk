@@ -40,6 +40,7 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 from peagen.plugins.vcs import pea_ref
 
+from .fanout import fan_out
 # ───────────────────────── schema handle ────────────────────────────
 TaskRead = AutoAPI.get_schema(Task, "read")
 
