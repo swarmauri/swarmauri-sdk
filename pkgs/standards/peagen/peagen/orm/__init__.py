@@ -20,7 +20,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum, ARRAY
-from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import relationship, foreign, remote
 from sqlalchemy.orm import declarative_mixin, declared_attr
 
@@ -214,7 +214,7 @@ class Worker(Base, GUIDPk, Timestamped):
         default=lambda: {},              # backend-agnostic Python factory
         nullable=True
     )
-    handlers = Column(ARRAY(text), nullable=True, default=lambda: [])
+    handlers = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
 
     pool = relationship(Pool, backref="workers")
 
