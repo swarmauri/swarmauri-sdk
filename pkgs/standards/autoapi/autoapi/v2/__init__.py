@@ -19,7 +19,6 @@ from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
 from .hooks import Phase, _Hook, _init_hooks, _run
 from .impl import (
-    _commit_or_flush,
     _crud,
     _register_routes_and_rpcs,
     _schema,
@@ -137,7 +136,6 @@ class AutoAPI:
     _crud = _crud
     _wrap_rpc = _wrap_rpc
     _run = _run
-    _commit_or_flush = _commit_or_flush
     _nested_prefix = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
