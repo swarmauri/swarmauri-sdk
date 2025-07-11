@@ -29,7 +29,7 @@ from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.orm import Status
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
-# ────────────────────────── apps ──────——──────────────────────
+# ────────────────────────── apps ───────────────────────────────
 
 
 local_doe_app = typer.Typer(help="Generate project-payload bundles locally.")

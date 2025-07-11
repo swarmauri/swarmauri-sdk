@@ -1,5 +1,5 @@
 """
-condensed_orm.py  –  all Peagen domain tables in one place
+peagen/orm/__init__.py  –  all Peagen domain tables in one place
 (uses only sqlalchemy.Column – no mapped_column / JSONB).
 """
 
