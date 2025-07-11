@@ -9,7 +9,7 @@ import datetime as dt
 from typing import FrozenSet
 from enum import Enum, auto
 
-from sqlalchemy import (
+from autoapi.v2.types import (
     JSON,
     Boolean,
     Column,
@@ -18,11 +18,10 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    PgEnum, ARRAY, UUID,
+    MutableDict, MutableList,
+    relationship, foreign, remote, declarative_mixin, declared_attr
 )
-from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum, ARRAY
-from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import relationship, foreign, remote
-from sqlalchemy.orm import declarative_mixin, declared_attr
 
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
@@ -215,12 +214,12 @@ class Worker(Base, GUIDPk, Timestamped):
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},              # backend-agnostic Python factory
+        default=dict,              # backend-agnostic Python factory
         nullable=True
     )
     handlers =  Column(
         MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},              # backend-agnostic Python factory
+        default=dict,              # backend-agnostic Python factory
         nullable=True
     )
 

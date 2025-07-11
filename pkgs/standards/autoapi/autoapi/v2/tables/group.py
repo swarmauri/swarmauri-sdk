@@ -2,7 +2,7 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from sqlalchemy import Column, String
+from ..types import Column, String
 
 
 class Group(Base, GUIDPk, Timestamped, TenantBound, Principal):

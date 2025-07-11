@@ -1,10 +1,9 @@
 # autoapi/tables/audit.py
 import datetime as dt
-from sqlalchemy import Column, DateTime, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
 
 from . import Base
 from ..mixins import GUIDPk, Timestamped
+from ..types import Column, DateTime, Integer, String, UUID
 
 
 class Change(Base, GUIDPk, Timestamped):
