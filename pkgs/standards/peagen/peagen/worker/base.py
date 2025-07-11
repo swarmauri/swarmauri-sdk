@@ -130,7 +130,7 @@ class WorkerBase:
         try:
             payload = SWorkerCreate(
                 id=self.worker_id,
-                pool_id=str(DEFAULT_POOL_ID),
+                pool_id=DEFAULT_POOL_ID,
                 url=self.listen_at,
                 advertises={"cpu": True},
                 handlers={"handlers": list(self._handlers)},
@@ -155,6 +155,7 @@ class WorkerBase:
             try:
                 upd = SWorkerUpdate(
                     id=self.worker_id,
+                    pool_id=DEFAULT_POOL_ID,
                     url=self.listen_at,
                     advertises={"cpu": True},
                     handlers={"handlers": list(self._handlers)}

@@ -1,12 +1,9 @@
 # autoapi/v2/mixins/bootstrappable.py
 #from __future__ import annotations
 
-import datetime as dt
 from typing import Any, ClassVar, List
 
-import sqlalchemy as sa
-from sqlalchemy import event, insert
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import event
 from autoapi.v2.tables import Base
 # --------------------------------------------------------------------- #
 # internal registry of every subclass that wants seeding
@@ -38,6 +35,7 @@ def _seed_all(target, connection, **kw):
 
             stmt = pg_insert(cls).values(cls.DEFAULT_ROWS).on_conflict_do_nothing()
         else:                           # SQLite ≥ 3.35 or anything that accepts OR IGNORE
+            import sqlalchemy as sa
             stmt = sa.insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
         # --------------------------------------------------------------
         connection.execute(stmt)
