@@ -7,6 +7,7 @@ from typing import Any, ClassVar, List
 import sqlalchemy as sa
 from sqlalchemy import event, insert
 from sqlalchemy.orm import Mapped, mapped_column
+from autoapi.v2.tables import Base
 # --------------------------------------------------------------------- #
 # internal registry of every subclass that wants seeding
 _BOOTSTRAPPABLES: list[type["Bootstrappable"]] = []
@@ -40,3 +41,16 @@ def _seed_all(target, connection, **kw):
             stmt = sa.insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
         # --------------------------------------------------------------
         connection.execute(stmt)
+
+__all__ = ["Bootstrappable"]
+
+
+for _name in list(globals()):
+    if _name not in __all__ and not _name.startswith("__"):
+        del globals()[_name]
+
+
+def __dir__():
+    """Tighten ``dir()`` output for interactive sessions."""
+
+    return sorted(__all__)

@@ -12,6 +12,9 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
+
+
+from .bootstrappable import Bootstrappable
 # ----------------------------------------------------------------------
 
 
