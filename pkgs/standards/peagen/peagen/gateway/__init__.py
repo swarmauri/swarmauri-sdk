@@ -90,6 +90,17 @@ api = AutoAPI(
 app.include_router(api.router)
 app.include_router(ws_router)
 
+# ─────────── OpenAPI tags configuration ─────────────────────────────────
+# Extract all unique tags from routes and sort them alphabetically
+all_tags = set()
+for route in app.routes:
+    if hasattr(route, "tags"):
+        all_tags.update(route.tags)
+
+# Update the OpenAPI schema with sorted tags
+app.openapi_tags = [{"name": tag} for tag in sorted(all_tags)]
+
+
 # ─────────── Plugin-driven queue / result backend ─────────────────────
 cfg = resolve_cfg()
 plugins = PluginManager(cfg)
@@ -204,7 +215,6 @@ async def _startup() -> None:
     global READY
     READY = True
     log.info("gateway ready")
-
 
 
 async def _shutdown() -> None:

@@ -1,5 +1,5 @@
 # autoapi/v2/mixins/bootstrappable.py
-#from __future__ import annotations
+# from __future__ import annotations
 
 from typing import Any, ClassVar, List
 from ..types import event
@@ -13,6 +13,7 @@ _BOOTSTRAPPABLES: list[type["Bootstrappable"]] = []
 
 class Bootstrappable:
     """Inherit to auto-insert `DEFAULT_ROWS` right after schema creation."""
+
     DEFAULT_ROWS: ClassVar[List[dict[str, Any]]] = []
 
     # keep track of concrete subclasses that define defaults
@@ -39,6 +40,7 @@ def _seed_all(target, connection, **kw):
             stmt = sa.insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
         # --------------------------------------------------------------
         connection.execute(stmt)
+
 
 __all__ = ["Bootstrappable", "_BOOTSTRAPPABLES"]
 

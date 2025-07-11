@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
-from .types import _SchemaVerb
+from .types import _SchemaVerb, JSON
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
