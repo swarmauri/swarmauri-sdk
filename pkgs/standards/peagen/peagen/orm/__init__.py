@@ -42,17 +42,18 @@ from autoapi.v2.mixins import (
     BlobRef,
 )
 from peagen.defaults import (
-    DEFAULT_GATEWAY, 
-    DEFAULT_POOL_NAME, 
-    DEFAULT_POOL_ID, 
+    DEFAULT_GATEWAY,
+    DEFAULT_POOL_NAME,
+    DEFAULT_POOL_ID,
     DEFAULT_TENANT_ID,
     DEFAULT_TENANT_EMAIL,
     DEFAULT_TENANT_NAME,
     DEFAULT_TENANT_SLUG,
-    )
+)
 
 
 # ---------------------------------------------------------------------
+
 
 def _is_terminal(cls, state: str | Status) -> bool:
     """Return True if *state* represents completion."""
@@ -68,12 +69,14 @@ Status.is_terminal = classmethod(_is_terminal)
 # Repository hierarchy
 # ---------------------------------------------------------------------
 class Tenant(TenantBase, Bootstrappable):
-    DEFAULT_ROWS = [{
-        "id": DEFAULT_TENANT_ID, 
-        "email": DEFAULT_TENANT_EMAIL, 
-        "name": DEFAULT_TENANT_NAME, 
-        "slug": DEFAULT_TENANT_SLUG
-        }]
+    DEFAULT_ROWS = [
+        {
+            "id": DEFAULT_TENANT_ID,
+            "email": DEFAULT_TENANT_EMAIL,
+            "name": DEFAULT_TENANT_NAME,
+            "slug": DEFAULT_TENANT_SLUG,
+        }
+    ]
 
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
@@ -93,7 +96,6 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
     commit_sha = Column(String(length=40), nullable=True)
     remote_name = Column(String, nullable=False, default="origin")
 
-    # relationships
     secrets = relationship(
         "Secret", back_populates="repository", cascade="all, delete-orphan"
     )
@@ -124,15 +126,16 @@ class RepositoryRefMixin:
     repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
     ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
 
-
     @declared_attr
     def repository(cls):
-        from peagen.orm import Repository               # late import
+        from peagen.orm import Repository  # late import
+
         return relationship(
             "Repository",
             back_populates="tasks",
             primaryjoin=foreign(cls.repository_id) == remote(Repository.id),
         )
+
 
 # ---------------------------------------------------------------------
 # association edges
@@ -200,17 +203,22 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
     )
     name = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
-        {"id": DEFAULT_POOL_ID, "name": DEFAULT_POOL_NAME, "tenant_id": DEFAULT_TENANT_ID,}
+        {
+            "id": DEFAULT_POOL_ID,
+            "name": DEFAULT_POOL_NAME,
+            "tenant_id": DEFAULT_TENANT_ID,
+        }
     ]
 
 
 class Worker(Base, GUIDPk, Timestamped):
     __tablename__ = "workers"
-    pool_id = Column(UUID(as_uuid=True), 
-        ForeignKey("pools.id"), 
+    pool_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("pools.id"),
         nullable=False,
         default=DEFAULT_POOL_ID,
-        )
+    )
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON
