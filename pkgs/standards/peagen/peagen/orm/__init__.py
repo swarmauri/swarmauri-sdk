@@ -210,6 +210,7 @@ class Worker(Base, GUIDPk, Timestamped):
     pool_id = Column(UUID(as_uuid=True), 
         ForeignKey("pools.id"), 
         nullable=False,
+        default=DEFAULT_POOL_ID,
         info=dict(no_update=True)
         )
     url = Column(String, nullable=False)
