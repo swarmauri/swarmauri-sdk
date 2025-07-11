@@ -7,7 +7,7 @@ from sqlalchemy import Column, String
 
 class Tenant(Base, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
-    name  = Column(String, unique=True)
+    name = Column(String, unique=True)
     email = Column(String, unique=True)
 
 
