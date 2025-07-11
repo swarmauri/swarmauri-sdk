@@ -18,7 +18,6 @@ from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
 from peagen.orm import Worker, Work, Status  # Status enum for updates
 
-DEFAULT_POOL_ID = uuid.UUID(int=0)
 
 # Generated schemas
 SWorkerCreate = AutoAPI.get_schema(Worker, "create")
@@ -134,7 +133,7 @@ class WorkerBase:
                 pool_id=str(DEFAULT_POOL_ID),
                 url=self.listen_at,
                 advertises={"cpu": True},
-                handlers={name: True for name in self._handlers},
+                handlers={"handlers": list(self._handlers)},
             )
             self._client.call("Workers.create", params=payload, out_schema=SWorkerRead)
             self.log.info("registered @ gateway as %s", self.worker_id)
@@ -159,7 +158,7 @@ class WorkerBase:
                     pool_id=str(DEFAULT_POOL_ID),
                     url=self.listen_at,
                     advertises={"cpu": True},
-                    handlers={name: True for name in self._handlers},
+                    handlers={"handlers": list(self._handlers)}
                 )  # last_seen handled server-side
                 self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")

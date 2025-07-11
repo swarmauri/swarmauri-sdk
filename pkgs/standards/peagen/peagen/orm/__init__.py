@@ -214,7 +214,11 @@ class Worker(Base, GUIDPk, Timestamped):
         default=lambda: {},              # backend-agnostic Python factory
         nullable=True
     )
-    handlers = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    handlers =  Column(
+        MutableDict.as_mutable(JSON),   # or JSON
+        default=lambda: {},              # backend-agnostic Python factory
+        nullable=True
+    )
 
     pool = relationship(Pool, backref="workers")
 
