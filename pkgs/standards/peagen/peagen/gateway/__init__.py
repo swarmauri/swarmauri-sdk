@@ -183,16 +183,27 @@ async def scheduler() -> None:
 # ─────────── FastAPI startup / shutdown handlers ──────────────────────
 async def _startup() -> None:
     log.info("gateway startup …")
-    await api.initialize_async()
+
+    # 1 – run Alembic first so the ORM never creates tables implicitly
     if engine.url.get_backend_name() != "sqlite":
-        mig = migrate_core.alembic_upgrade()
+        mig = migrate_core.alembic_upgrade(
+            db_url=str(engine.url)  # <- live Postgres DSN
+        )
         if not mig.get("ok"):
-            raise MigrationFailureError(str(mig.get("erhokror")))
+            # expose full stderr in logs for easier debugging
+            log.error("Alembic failed:\n%s", mig.get("stderr", ""))
+            raise MigrationFailureError(mig["error"])
+
+    # 2 – metadata validation / SQLite convenience mode
+    await api.initialize_async()
+
+    # 3 – background tasks
     asyncio.create_task(scheduler())
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
     log.info("gateway ready")
+
 
 
 async def _shutdown() -> None:

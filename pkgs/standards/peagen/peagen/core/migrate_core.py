@@ -1,26 +1,49 @@
+"""
+peagen.core.migrate_core
+────────────────────────
+Small wrapper around Alembic that
+
+* finds the packaged ``alembic.ini`` automatically,
+* allows the caller to inject the live DATABASE_URL (Postgres, MySQL, …),
+* streams or captures stdout/stderr,
+* returns a simple dict → {"ok": bool, "stdout": str, "stderr": str, "error": str | None}.
+"""
+
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-
-# ``alembic.ini`` sits alongside the ``migrations`` directory in the package
-# root. When running from source this lives two levels up from this file, while
-# an installed wheel places it one level up. Check both locations for
-# robustness.
+# --------------------------------------------------------------------------- #
+# Locate alembic.ini – works from source checkouts *and* installed wheels
+# --------------------------------------------------------------------------- #
 _src_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
 _pkg_cfg = Path(__file__).resolve().parents[1] / "alembic.ini"
-ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
+ALEMBIC_CFG: Path = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
+# --------------------------------------------------------------------------- #
+# helpers
+# --------------------------------------------------------------------------- #
+def _run_alembic(
+    cmd: List[str],
+    stream: bool = False,
+    *,
+    env: Optional[dict] = None,
+) -> Dict[str, Any]:
+    """
+    Execute *cmd* in a subprocess.
 
-def _run_alembic(cmd: List[str], stream: bool) -> Dict[str, Any]:
-    """Run *cmd* returning ``stdout`` and ``stderr``.
+    If *stream* is True, stdout/stderr are shown live **and** collected;
+    otherwise they are only collected.
 
-    If *stream* is ``True``, forward output to the parent process while
-    capturing it.
+    Returns
+    -------
+    dict
+        ``{"ok": bool, "stdout": str, "stderr": str, "error": str | None}``
     """
     if stream:
         proc = subprocess.Popen(
@@ -29,25 +52,22 @@ def _run_alembic(cmd: List[str], stream: bool) -> Dict[str, Any]:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
+            env=env or None,
         )
 
         stdout_lines: List[str] = []
         stderr_lines: List[str] = []
 
-        def _pump(src, dest_stream, buffer):
+        def _pump(src, dest, buf):
             for line in iter(src.readline, ""):
-                dest_stream.write(line)
-                dest_stream.flush()
-                buffer.append(line)
+                dest.write(line)
+                dest.flush()
+                buf.append(line)
             src.close()
 
         threads = [
-            threading.Thread(
-                target=_pump, args=(proc.stdout, sys.stdout, stdout_lines)
-            ),
-            threading.Thread(
-                target=_pump, args=(proc.stderr, sys.stderr, stderr_lines)
-            ),
+            threading.Thread(target=_pump, args=(proc.stdout, sys.stdout, stdout_lines)),
+            threading.Thread(target=_pump, args=(proc.stderr, sys.stderr, stderr_lines)),
         ]
         for t in threads:
             t.start()
@@ -58,70 +78,72 @@ def _run_alembic(cmd: List[str], stream: bool) -> Dict[str, Any]:
 
         stdout = "".join(stdout_lines)
         stderr = "".join(stderr_lines)
-        if proc.returncode == 0:
-            return {"ok": True, "stdout": stdout, "stderr": stderr}
-        return {
-            "ok": False,
-            "error": f"exit code {proc.returncode}",
-            "stdout": stdout,
-            "stderr": stderr,
-        }
 
+        return (
+            {"ok": True, "stdout": stdout, "stderr": stderr, "error": None}
+            if proc.returncode == 0
+            else {
+                "ok": False,
+                "stdout": stdout,
+                "stderr": stderr,
+                "error": f"exit code {proc.returncode}",
+            }
+        )
+
+    # ------- capture-only branch ------------------------------------------
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        res = subprocess.run(
+            cmd,  # noqa: S603,S607
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env or None,
+        )
+        return {"ok": True, "stdout": res.stdout, "stderr": res.stderr, "error": None}
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
         return {
             "ok": False,
-            "error": str(exc),
             "stdout": exc.stdout,
             "stderr": exc.stderr,
+            "error": str(exc),
         }
-    return {"ok": True, "stdout": result.stdout, "stderr": result.stderr}
 
 
-def alembic_upgrade(cfg: Path = ALEMBIC_CFG, *, stream: bool = False) -> Dict[str, Any]:
-    """Apply all outstanding migrations using *cfg*."""
-    return _run_alembic(
-        [
-            "alembic",
-            "-c",
-            str(cfg),
-            "upgrade",
-            "heads",
-        ],
-        stream,
-    )
+# --------------------------------------------------------------------------- #
+# public API
+# --------------------------------------------------------------------------- #
+def alembic_upgrade(
+    cfg: Path | str = ALEMBIC_CFG,
+    *,
+    stream: bool = False,
+    db_url: str | None = None,
+) -> Dict[str, Any]:
+    """Upgrade to *heads* using *cfg*."""
+    cmd = ["alembic", "-c", str(cfg), "upgrade", "heads"]
+    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    return _run_alembic(cmd, stream, env=env)
 
 
 def alembic_downgrade(
-    cfg: Path = ALEMBIC_CFG, *, stream: bool = False
+    cfg: Path | str = ALEMBIC_CFG,
+    *,
+    stream: bool = False,
+    db_url: str | None = None,
 ) -> Dict[str, Any]:
-    """Downgrade the database by one revision using *cfg*."""
-    return _run_alembic(
-        [
-            "alembic",
-            "-c",
-            str(cfg),
-            "downgrade",
-            "-1",
-        ],
-        stream,
-    )
+    """Step down one revision using *cfg*."""
+    cmd = ["alembic", "-c", str(cfg), "downgrade", "-1"]
+    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    return _run_alembic(cmd, stream, env=env)
 
 
 def alembic_revision(
-    message: str, cfg: Path = ALEMBIC_CFG, *, stream: bool = False
+    message: str,
+    cfg: Path | str = ALEMBIC_CFG,
+    *,
+    stream: bool = False,
+    db_url: str | None = None,
 ) -> Dict[str, Any]:
-    """Create a new revision with *message* using *cfg*."""
-    return _run_alembic(
-        [
-            "alembic",
-            "-c",
-            str(cfg),
-            "revision",
-            "--autogenerate",
-            "-m",
-            message,
-        ],
-        stream,
-    )
+    """Autogenerate a new revision with *message*."""
+    cmd = ["alembic", "-c", str(cfg), "revision", "--autogenerate", "-m", message]
+    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    return _run_alembic(cmd, stream, env=env)

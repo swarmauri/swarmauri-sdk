@@ -115,6 +115,27 @@ def upgrade() -> None:
             ],
         )
 
+    # ---------- default pool ----------
+    pool_id = uuid.UUID(int=0)
+    if (
+        bind.execute(
+            sa.text("SELECT 1 FROM pools WHERE id = :id"), {"id": str(pool_id)}
+        ).fetchone()
+        is None
+    ):
+        op.bulk_insert(
+            pools,
+            [
+                {
+                    "id": pool_id,
+                    "tenant_id": tenant_id,
+                    "name": "default",
+                    "created_at": now,
+                    "updated_at": now,
+                }
+            ],
+        )
+
 
 def downgrade() -> None:
     """Intentionally left empty; keep the public tenant and user."""
