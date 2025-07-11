@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
-from .types import _SchemaVerb, JSON
+from .types import _SchemaVerb
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
@@ -522,7 +522,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
     )
 
 
-# ───────────────────────── RPC adapter ──────────────────────
+# ───────────────────────── RPC adapter (unchanged) ──────────────────────
 def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     p = iter(signature(core).parameters.values())
     first = next(p, None)
@@ -543,24 +543,32 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
         if exp_pm:
             r = core(obj_in, db=db)
         else:
-            # Build the payload model (IN) and pass it positionally so `_update`
-            # receives (item_id, p, db) instead of individual keyword args.
-            payload = IN.model_validate(data)       # IN is SUpdate or SCreate
-
             if pk_name in data and first and first.name != pk_name:
-                # first param is the primary key (usually `i`)
-                r = core(**{first.name: data[pk_name]}, p=payload, db=db)
+                r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
             else:
-                # core expects (p, db) or (item_id, p, db)
-                r = core(p=payload, db=db)
-            if not out_lst:
-                if isinstance(r, BaseModel):
-                    return r.model_dump()
-                if single:
-                    return OUT.model_validate(r).model_dump()
-                return r
+                r = core(**data, db=db)
 
+        if not out_lst:
+            if isinstance(r, BaseModel):
+                return r.model_dump()
+            if single:
+                return OUT.model_validate(r).model_dump()
+            return r
+
+        out: list[Any] = []
+        for itm in r:
+            if isinstance(itm, BaseModel):
+                out.append(itm.model_dump())
+            elif elem_md:
+                out.append(elem.model_validate(itm).model_dump())
+            else:
+                out.append(itm)
+        return out
+
+    return h
 
 
 def _commit_or_flush(self, db: Session):
     db.flush() if db.in_nested_transaction() else db.commit()
+
+
