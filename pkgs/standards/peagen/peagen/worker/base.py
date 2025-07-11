@@ -15,18 +15,18 @@ from swarmauri_standard.loggers.Logger import Logger
 
 # ─── AutoAPI & client ────────────────────────────────────────────────
 from autoapi_client import AutoAPIClient
-from autoapi.v2     import AutoAPI
-from peagen.orm     import Worker, Work, Status     # Status enum for updates
+from autoapi.v2 import AutoAPI
+from peagen.orm import Worker, Work, Status  # Status enum for updates
 
 DEFAULT_POOL_ID = uuid.UUID(int=0)
 
 # Generated schemas
 SWorkerCreate = AutoAPI.get_schema(Worker, "create")
-SWorkerRead   = AutoAPI.get_schema(Worker, "read")
+SWorkerRead = AutoAPI.get_schema(Worker, "read")
 SWorkerUpdate = AutoAPI.get_schema(Worker, "update")
 
-SWorkCreate   = AutoAPI.get_schema(Work,   "create")
-SWorkUpdate   = AutoAPI.get_schema(Work,   "update")
+SWorkCreate = AutoAPI.get_schema(Work, "create")
+SWorkUpdate = AutoAPI.get_schema(Work, "update")
 
 
 # --------------------------------------------------------------------
@@ -35,7 +35,7 @@ def _local_ip() -> str:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
-    except OSError:        # pragma: no cover
+    except OSError:  # pragma: no cover
         return "127.0.0.1"
     finally:
         s.close()
@@ -61,22 +61,22 @@ class WorkerBase:
         heartbeat_interval: float = 5.0,
     ) -> None:
         # ----- env / defaults --------------------------------------
-        self.pool        = pool or os.getenv("DQ_POOL", "default")
-        self.gateway     = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
-        self.worker_id   = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4()))
-        self.port        = port or int(os.getenv("PORT", 8001))
-        self.host        = host or os.getenv("DQ_HOST") or _local_ip()
-        self.listen_at   = f"http://{self.host}:{self.port}/rpc"
+        self.pool = pool or os.getenv("DQ_POOL", "default")
+        self.gateway = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4()))
+        self.port = port or int(os.getenv("PORT", 8001))
+        self.host = host or os.getenv("DQ_HOST") or _local_ip()
+        self.listen_at = f"http://{self.host}:{self.port}/rpc"
 
-        lvl   = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
+        lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
         level = getattr(logging, lvl, logging.INFO)
         self.log = Logger(name="worker", default_level=level)
 
         # ----- runtime objects -------------------------------------
-        self.app       = FastAPI(title="Peagen Worker")
+        self.app = FastAPI(title="Peagen Worker")
         self._handlers: Dict[str, Callable[[Dict], Awaitable[Dict]]] = {}
-        self._client   = AutoAPIClient(self.gateway)
-        self._http     = httpx.AsyncClient(timeout=10.0)
+        self._client = AutoAPIClient(self.gateway)
+        self._http = httpx.AsyncClient(timeout=10.0)
         self._hb_task: asyncio.Task | None = None
         self._hb_every = heartbeat_interval
         self.ready = False
@@ -130,15 +130,15 @@ class WorkerBase:
         """
         try:
             payload = SWorkerCreate(
-                id       = self.worker_id,
-                pool_id  = DEFAULT_POOL_ID,
-                url      = self.listen_at,
-                advertises = {"cpu": True},
-                handlers   = list(self._handlers),
+                id=self.worker_id,
+                pool_id=str(DEFAULT_POOL_ID),
+                url=self.listen_at,
+                advertises={"cpu": True},
+                handlers=list(self._handlers),
             )
             self._client.call("Workers.create", params=payload, out_schema=SWorkerRead)
             self.log.info("registered @ gateway as %s", self.worker_id)
-        except Exception as exc:          # pragma: no cover
+        except Exception as exc:  # pragma: no cover
             self.log.error("registration failed: %s", exc, exc_info=True)
 
         self._hb_task = asyncio.create_task(self._heartbeat_loop())
@@ -154,10 +154,14 @@ class WorkerBase:
         while True:
             await asyncio.sleep(self._hb_every)
             try:
-                upd = SWorkerUpdate(id=self.worker_id)  # last_seen handled server-side
+                upd = SWorkerUpdate(
+                    id=self.worker_id,
+                    pool_id=str(DEFAULT_POOL_ID),
+                    url=self.listen_at,
+                )  # last_seen handled server-side
                 self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")
-            except Exception as exc:      # pragma: no cover
+            except Exception as exc:  # pragma: no cover
                 self.log.warning("heartbeat failed: %s", exc)
 
     # ─────────────────────── work execution flow ───────────────────
@@ -167,9 +171,9 @@ class WorkerBase:
         and report status back via `Works.update`.
         """
         try:
-            work_in  = SWorkCreate.model_validate(raw)
-            work_id  = str(work_in.id)
-            action   = work_in.action
+            work_in = SWorkCreate.model_validate(raw)
+            work_id = str(work_in.id)
+            action = work_in.action
 
             if action not in self._handlers:
                 raise RuntimeError(f"unsupported action '{action}'")
@@ -180,9 +184,11 @@ class WorkerBase:
 
             await self._notify(work_id, Status.success, result=result)
 
-        except Exception as exc:          # pragma: no cover
+        except Exception as exc:  # pragma: no cover
             self.log.exception("work failed: %s", exc)
-            await self._notify(raw.get("id", "unknown"), Status.failed, {"error": str(exc)})
+            await self._notify(
+                raw.get("id", "unknown"), Status.failed, {"error": str(exc)}
+            )
 
     async def _notify(
         self,
@@ -194,5 +200,5 @@ class WorkerBase:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
             self._client.call("Works.update", params=upd)
             self.log.info("Works.update %s → %s", work_id, status)
-        except Exception as exc:          # pragma: no cover
+        except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)
