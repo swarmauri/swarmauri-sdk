@@ -466,7 +466,11 @@ def _wrap_rpc(self, core, IN, OUT, pk_name: str, model):  # noqa: N802
     """
     sig        = signature(core)
     params     = list(sig.parameters.values())
-    pk_param   = next((p for p in params if p.name == pk_name), None)
+    # accept both "<table>_id" (REST path) *and* raw PK name
+    pk_param   = next(
+        (p for p in params if p.name in (pk_name, "item_id")),
+        None,
+    )
     dto_param  = next(
         (
             p for p in params
