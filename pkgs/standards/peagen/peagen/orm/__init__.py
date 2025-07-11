@@ -19,7 +19,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum, ARRAY
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import relationship, foreign, remote
 from sqlalchemy.orm import declarative_mixin, declared_attr
@@ -42,7 +42,15 @@ from autoapi.v2.mixins import (
     StatusMixin,
     BlobRef,
 )
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import (
+    DEFAULT_GATEWAY, 
+    DEFAULT_POOL_NAME, 
+    DEFAULT_POOL_ID, 
+    DEFAULT_TENANT_ID,
+    DEFAULT_TENANT_EMAIL,
+    DEFAULT_TENANT_NAME,
+    DEFAULT_TENANT_SLUG,
+    )
 
 
 # ---------------------------------------------------------------------
@@ -61,9 +69,12 @@ Status.is_terminal = classmethod(_is_terminal)
 # Repository hierarchy
 # ---------------------------------------------------------------------
 class Tenant(TenantBase, Bootstrappable):
-    DEFAULT_ROWS = [
-        {"id": DEFAULT_TENANT_ID, "email":"support@peagen.com", "name": "public", "slug": "Public"}
-    ]
+    DEFAULT_ROWS = [{
+        "id": DEFAULT_TENANT_ID, 
+        "email": DEFAULT_TENANT_EMAIL, 
+        "name": DEFAULT_TENANT_NAME, 
+        "slug": DEFAULT_TENANT_SLUG
+        }]
 
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
@@ -190,7 +201,7 @@ class Pool(Base, GUIDPk, Timestamped, TenantBound):
     )
     name = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
-        {"id": DEFAULT_POOL_ID, "tenant_id": DEFAULT_TENANT_ID, "name": "default"}
+        {"id": DEFAULT_POOL_ID, "name": DEFAULT_POOL_NAME, "tenant_id": DEFAULT_TENANT_ID,}
     ]
 
 
@@ -203,11 +214,7 @@ class Worker(Base, GUIDPk, Timestamped):
         default=lambda: {},              # backend-agnostic Python factory
         nullable=True
     )
-    handlers = Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},              # backend-agnostic Python factory
-        nullable=True
-    )
+    handlers = Column(ARRAY(text), nullable=True, default=lambda: [])
 
     pool = relationship(Pool, backref="workers")
 

@@ -10,9 +10,9 @@ from typing import Awaitable, Callable, Dict
 
 import httpx
 from fastapi import Body, FastAPI, HTTPException
-from peagen.transport import RPCDispatcher
 from swarmauri_standard.loggers.Logger import Logger
-
+from peagen.transport import RPCDispatcher
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
 # ─── AutoAPI & client ────────────────────────────────────────────────
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
@@ -61,8 +61,8 @@ class WorkerBase:
         heartbeat_interval: float = 5.0,
     ) -> None:
         # ----- env / defaults --------------------------------------
-        self.pool = pool or os.getenv("DQ_POOL", "default")
-        self.gateway = gateway or os.getenv("DQ_GATEWAY", "http://localhost:8000/rpc")
+        self.pool = pool or os.getenv("DQ_POOL", DEFAULT_POOL_NAME)
+        self.gateway = gateway or os.getenv("DQ_GATEWAY", DEFAULT_GATEWAY)
         self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4()))
         self.port = port or int(os.getenv("PORT", 8001))
         self.host = host or os.getenv("DQ_HOST") or _local_ip()
