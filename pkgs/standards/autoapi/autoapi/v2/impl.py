@@ -9,13 +9,12 @@ from typing import Any, List, get_args, get_origin
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
-from sqlalchemy import JSON
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
-from .types import _SchemaVerb
+from .types import _SchemaVerb, JSON
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
