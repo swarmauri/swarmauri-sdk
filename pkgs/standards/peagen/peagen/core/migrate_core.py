@@ -21,13 +21,9 @@ from typing import Any, Dict, List, Optional
 # --------------------------------------------------------------------------- #
 # Locate alembic.ini – works from source checkouts *and* installed wheels
 # --------------------------------------------------------------------------- #
-def _select_cfg() -> Path:
-    for cfg in (_pkg_cfg, _src_cfg): 
-        if cfg.exists() and (cfg.parent / "migrations").is_dir():
-            return cfg
-    raise FileNotFoundError("No suitable alembic.ini found")
-
-ALEMBIC_CFG = _select_cfg()
+_src_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
+_pkg_cfg = Path(__file__).resolve().parents[1] / "alembic.ini"
+ALEMBIC_CFG: Path = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
 # --------------------------------------------------------------------------- #
 # helpers
