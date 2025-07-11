@@ -2,7 +2,7 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Slugged, Timestamped
-from sqlalchemy import Column, String
+from ..types import Column, String
 
 
 class Tenant(Base, GUIDPk, Slugged, Timestamped):

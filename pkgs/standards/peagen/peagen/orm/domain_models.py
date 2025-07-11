@@ -7,16 +7,16 @@ and properly named unique constraints.
 
 from __future__ import annotations
 
-from sqlalchemy import (
+from autoapi.v2.types import (
     Column,
     String,
     Text,
     JSON,
     UniqueConstraint,
     ForeignKey,
+    UUID,
+    relationship
 )
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 
 from autoapi.v2.tables import Base, Tenant, User
 from autoapi.v2.mixins import (

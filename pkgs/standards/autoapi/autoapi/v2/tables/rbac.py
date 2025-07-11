@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from ..types import Column, Integer, String, ForeignKey, UUID
 
 from . import Base
 from ..mixins import (

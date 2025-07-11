@@ -17,7 +17,7 @@ keeps working.
 from __future__ import annotations
 
 from enum import StrEnum
-from sqlalchemy import Column, String, Enum as SAEnum, Integer
+from ..types import Column, String, SAEnum, Integer
 
 from ._base import Base
 from ..mixins import Timestamped  # created_at / updated_at

@@ -1,16 +1,10 @@
 # mixins_generic.py ───── all mix-ins live here
 import uuid
 import datetime as dt
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_mixin, declared_attr
-from sqlalchemy import (
-    Enum as SAEnum,
-    Numeric,
-    Index,
-)
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
-from sqlalchemy.orm import Mapped, mapped_column
+from ..types import (
+    Column, DateTime, Integer, String, ForeignKey, declarative_mixin, 
+    declared_attr, UUID, SAEnum, Numeric, Index, Mapped, 
+    mapped_column, JSONB, TSVECTOR)
 
 
 

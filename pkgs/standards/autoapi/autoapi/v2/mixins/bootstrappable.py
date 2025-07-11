@@ -2,8 +2,7 @@
 # from __future__ import annotations
 
 from typing import Any, ClassVar, List
-
-from sqlalchemy import event
+from ..types import event
 from autoapi.v2.tables import Base
 
 # --------------------------------------------------------------------- #
