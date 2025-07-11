@@ -207,8 +207,11 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
 
 class Worker(Base, GUIDPk, Timestamped):
     __tablename__ = "workers"
-    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False,
-        info=dict(noupdate=True))
+    pool_id = Column(UUID(as_uuid=True), 
+        ForeignKey("pools.id"), 
+        nullable=False,
+        info=dict(no_update=True)
+        )
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON

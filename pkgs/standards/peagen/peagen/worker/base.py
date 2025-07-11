@@ -157,7 +157,7 @@ class WorkerBase:
                     id=self.worker_id,
                     url=self.listen_at,
                     advertises={"cpu": True},
-                    handlers=list(self._handlers)
+                    handlers={"handlers": list(self._handlers)}
                 )  # last_seen handled server-side
                 self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")
