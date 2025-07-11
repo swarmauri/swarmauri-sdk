@@ -1,4 +1,4 @@
-# bootstrappable.py
+# autoapi/v2/mixins/bootstrappable.py
 #from __future__ import annotations
 
 import datetime as dt
@@ -42,7 +42,7 @@ def _seed_all(target, connection, **kw):
         # --------------------------------------------------------------
         connection.execute(stmt)
 
-__all__ = ["Bootstrappable"]
+__all__ = ["Bootstrappable", "_BOOTSTRAPPABLES"]
 
 
 for _name in list(globals()):
