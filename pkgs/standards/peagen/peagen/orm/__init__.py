@@ -62,7 +62,7 @@ Status.is_terminal = classmethod(_is_terminal)
 # ---------------------------------------------------------------------
 class Tenant(TenantBase, Bootstrappable):
     DEFAULT_ROWS = [
-        {"id": DEFAULT_TENANT_ID, "email":"support@peagen.com" "name": "public", "slug": "Public"}
+        {"id": DEFAULT_TENANT_ID, "email":"support@peagen.com", "name": "public", "slug": "Public"}
     ]
 
 
