@@ -35,9 +35,7 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 
-# ── monkey-patch JSON types so AutoAPI schema reflection works ────────────
-JSON.python_type = dict   # type: ignore[attr-defined]
-JSONB.python_type = dict  # type: ignore[attr-defined]
+
 
 # ── public re-exports ─────────────────────────────────────────────────────
 __all__: list[str] = [
