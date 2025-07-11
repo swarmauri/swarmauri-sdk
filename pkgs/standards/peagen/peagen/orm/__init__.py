@@ -214,12 +214,12 @@ class Worker(Base, GUIDPk, Timestamped):
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON
-        default=dict,              # backend-agnostic Python factory
+        default=lambda: {},       # ✔ correct for SQLAlchemy
         nullable=True
     )
     handlers =  Column(
         MutableDict.as_mutable(JSON),   # or JSON
-        default=dict,              # backend-agnostic Python factory
+        default=lambda: {},       # ✔ correct for SQLAlchemy
         nullable=True
     )
 
