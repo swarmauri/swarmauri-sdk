@@ -194,7 +194,7 @@ class DeployKey(Base, GUIDPk, UserMixin, RepositoryRefMixin, Timestamped):
 # ---------------------------------------------------------------------
 
 
-class Pool(Base, GUIDPk, Timestamped, TenantBound):
+class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
     __tablename__ = "pools"
     __table_args__ = (
         UniqueConstraint("tenant_id", "name", name="uq_pools_tenant_name"),
@@ -207,7 +207,8 @@ class Pool(Base, GUIDPk, Timestamped, TenantBound):
 
 class Worker(Base, GUIDPk, Timestamped):
     __tablename__ = "workers"
-    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
+    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False,
+        info=dict(noupdate=True))
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON
