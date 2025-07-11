@@ -123,6 +123,14 @@ def upgrade() -> None:
         ).fetchone()
         is None
     ):
+        pools = sa.table(
+            "pools",
+            sa.column("id", sa.dialects.postgresql.UUID(as_uuid=True)),
+            sa.column("tenant_id", sa.dialects.postgresql.UUID(as_uuid=True)),
+            sa.column("name", sa.String),
+            sa.column("created_at", sa.DateTime(timezone=False)),
+            sa.column("updated_at", sa.DateTime(timezone=False)),
+        )
         op.bulk_insert(
             pools,
             [
