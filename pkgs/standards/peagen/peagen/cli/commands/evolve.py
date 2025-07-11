@@ -23,14 +23,14 @@ import typer
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.evolve_handler import evolve_handler
 from peagen.core.validate_core import validate_evolve_spec
-from peagen.orm import Status
+from peagen.orm import Status, Action
 
 # ---------------------------------------------------------------------
 DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 DEFAULT_POOL_ID = uuid.UUID(int=0)  # demo value → replace in prod
 DEFAULT_TENANT_ID = uuid.UUID(int=1)
 
-local_evolve_app = typer.Typer(help="Expand & mutate DOE-evolve spec locally.")
+local_evolve_app = typer.Typer(help="Expand & mutate evolve spec locally.")
 remote_evolve_app = typer.Typer(help="Submit evolve spec to the gateway.")
 
 
@@ -61,7 +61,7 @@ def run(
         raise typer.Exit(1)
 
     task = build_task(
-        action="evolve",
+        action=Action.EVOLVE,
         args=_args_for_task(spec, repo, ref),
         tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
@@ -99,7 +99,7 @@ def submit(
     gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
 
     task = build_task(
-        action="evolve",
+        action=Action.EVOLVE,
         args=_args_for_task(spec, repo, ref),
         tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
