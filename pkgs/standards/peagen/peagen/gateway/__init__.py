@@ -187,7 +187,8 @@ async def _startup() -> None:
     # 1 – run Alembic first so the ORM never creates tables implicitly
     if engine.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade(
-            db_url=str(engine.url)  # <- live Postgres DSN
+            # keep the exact credentials that were used to build the engine
+            db_url=engine.url.render_as_string(hide_password=False)
         )
         if not mig.get("ok"):
             # expose full stderr in logs for easier debugging
