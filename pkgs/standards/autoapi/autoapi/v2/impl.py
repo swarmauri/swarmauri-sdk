@@ -506,49 +506,75 @@ def _crud(self, model: type) -> None:  # noqa: N802
 
 
 # ───────────────────────── RPC adapter (unchanged) ──────────────────────
-def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
-    p = iter(signature(core).parameters.values())
-    first = next(p, None)
-    exp_pm = (
-        bool(first)
-        and isinstance(first.annotation, type)
-        and issubclass(first.annotation, BaseModel)
+# ───────────────────────── RPC adapter (revised) ────────────────────────
+def _wrap_rpc(self, core, IN, OUT, pk_name: str, model):  # noqa: N802
+    """
+    Generic JSON-RPC → CRUD shim.
+
+    Supports core signatures:
+        create : def _(dto: SCreate, db)
+        read   : def _(id, db)
+        update : def _(id, dto: SUpdate, db, *, full=False)
+        delete : def _(id, db)
+        list   : def _(params: SListIn, db)
+    """
+    sig        = signature(core)
+    params     = list(sig.parameters.values())
+    pk_param   = next((p for p in params if p.name == pk_name), None)
+    dto_param  = next(                       # first Pydantic-annotated param
+        (p for p in params
+         if isinstance(p.annotation, type) and issubclass(p.annotation, BaseModel)),
+        None,
     )
-    out_lst = get_origin(OUT) is list
-    elem = get_args(OUT)[0] if out_lst else None
-    elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
-    single = callable(getattr(OUT, "model_validate", None))
 
-    def h(raw: dict, db: Session):
+    out_is_list = get_origin(OUT) is list
+    out_elem    = get_args(OUT)[0] if out_is_list else None
+    out_elem_md = callable(getattr(out_elem, "model_validate", None))
+    out_single  = callable(getattr(OUT, "model_validate", None))
+
+    def handler(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
-        data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        data   = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
 
-        if exp_pm:
-            r = core(obj_in, db=db)
+        # ---------------- Build call-time arguments -------------------
+        kwargs: dict[str, Any] = {"db": db}
+
+        # Primary-key handling
+        if pk_param and pk_name in data:
+            kwargs[pk_param.name] = data.pop(pk_name)
+
+        # DTO handling
+        if dto_param:
+            dto_cls = dto_param.annotation
+            dto_obj = dto_cls.model_validate(data)
+            kwargs[dto_param.name] = dto_obj
         else:
-            if pk_name in data and first and first.name != pk_name:
-                r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
-            else:
-                r = core(**data, db=db)
+            # No DTO parameter – pass remaining scalars as keywords
+            kwargs.update(data)
 
-        if not out_lst:
-            if isinstance(r, BaseModel):
-                return r.model_dump()
-            if single:
-                return OUT.model_validate(r).model_dump()
-            return r
+        # ---------------- Invoke core -------------------------------
+        result = core(**kwargs)
 
+        # ---------------- Normalise return --------------------------
+        if not out_is_list:
+            return (
+                result
+                if not out_single
+                else OUT.model_validate(result).model_dump()
+            )
+
+        # list-return
         out: list[Any] = []
-        for itm in r:
+        for itm in result:
             if isinstance(itm, BaseModel):
                 out.append(itm.model_dump())
-            elif elem_md:
-                out.append(elem.model_validate(itm).model_dump())
+            elif out_elem_md:
+                out.append(out_elem.model_validate(itm).model_dump())
             else:
                 out.append(itm)
         return out
 
-    return h
+    return handler
 
 
 def _commit_or_flush(self, db: Session):
