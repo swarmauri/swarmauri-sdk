@@ -27,7 +27,7 @@ from sqlalchemy.orm import declarative_mixin, declared_attr
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
 # ---------------------------------------------------------------------
-from autoapi.v2.tables import Tenant, User
+from autoapi.v2.tables import Tenant as TenantBase, User
 from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import Status
 from autoapi.v2.tables import Base
@@ -41,6 +41,7 @@ from autoapi.v2.mixins import (
     StatusMixin,
     BlobRef,
 )
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 
 # ---------------------------------------------------------------------
@@ -58,6 +59,10 @@ Status.is_terminal = classmethod(_is_terminal)
 # ---------------------------------------------------------------------
 # Repository hierarchy
 # ---------------------------------------------------------------------
+class Tenant(TenantBase, Bootstrappable):
+    DEFAULT_ROWS = [
+        {"id": DEFAULT_TENANT_ID, "name": "public", "slug": "Public"}
+    ]
 
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
@@ -183,6 +188,9 @@ class Pool(Base, GUIDPk, Timestamped, TenantBound):
         UniqueConstraint("tenant_id", "name", name="uq_pools_tenant_name"),
     )
     name = Column(String, nullable=False, unique=True)
+    DEFAULT_ROWS = [
+        {"id": DEFAULT_POOL_ID, "tenant_id": DEFAULT_TENANT_ID, "name": "default"}
+    ]
 
 
 class Worker(Base, GUIDPk, Timestamped):

@@ -40,11 +40,12 @@ GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
 GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 
 
-# ───────────────────────── Default SVC USER ────────────────────────
+# ───────────────────────── Default Resources ────────────────────────
 
-## DEFAULT SVC USER UUID
-DEFAULT_SVC_USER_ID = "00000000-0000-0000-0000-000000000001"
-
+## DEFAULT RESOURCES UUIDS
+DEFAULT_TENANT_ID = uuid.UUID(int=0) 
+DEFAULT_POOL_ID = uuid.UUID(int=1)
+DEFAULT_SVC_USER_ID = uuid.UUID(int=99)
 
 # ──────────────────────── Plugin Config ────────────────────────────
 

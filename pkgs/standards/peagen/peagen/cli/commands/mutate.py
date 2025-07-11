@@ -22,10 +22,10 @@ import typer
 from peagen.handlers.mutate_handler import mutate_handler
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.orm import Status
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
-# demo UUIDs – replace with real IDs in production
-DEFAULT_POOL_ID = uuid.UUID(int=0)
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
+# ────────────────────────── apps ───────────────────────────────
+
 
 local_mutate_app = typer.Typer(help="Run mutate workflow locally.")
 remote_mutate_app = typer.Typer(help="Submit mutate workflow to gateway.")

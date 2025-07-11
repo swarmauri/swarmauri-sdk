@@ -21,8 +21,9 @@ from autoapi.v2 import AutoAPI
 from peagen.orm import Secret
 from peagen.core import secrets_core
 
-# ---------------------------------------------------------------------
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+
+# ────────────────────────── apps ───────────────────────────────
 
 local_secrets_app = typer.Typer(help="Manage secrets in the local .peagen store")
 remote_secrets_app = typer.Typer(help="Manage secrets on the gateway via JSON-RPC")

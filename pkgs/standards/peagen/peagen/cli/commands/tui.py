@@ -5,7 +5,9 @@ import typer
 
 from peagen.tui.app import QueueDashboardApp
 
-DEFAULT_GATEWAY = "http://localhost:8000"
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+
+# ────────────────────────── apps ───────────────────────────────
 
 
 dashboard_app = typer.Typer(help="Launch the Textual dashboard to monitor tasks.")

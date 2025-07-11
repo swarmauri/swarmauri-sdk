@@ -27,11 +27,10 @@ from peagen.cli.task_helpers import (
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.orm import Status
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
-# ────────────────────────── constants ────────────────────────────
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-DEFAULT_POOL_ID = uuid.UUID(int=0)  # «0000…» for demo
-DEFAULT_TENANT_ID = uuid.UUID(int=1)  # replace in prod
+# ────────────────────────── apps ──────——──────────────────────
+
 
 local_doe_app = typer.Typer(help="Generate project-payload bundles locally.")
 remote_doe_app = typer.Typer(help="Submit DOE jobs to the gateway.")

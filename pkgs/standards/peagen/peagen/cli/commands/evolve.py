@@ -25,10 +25,9 @@ from peagen.handlers.evolve_handler import evolve_handler
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.orm import Status, Action
 
-# ---------------------------------------------------------------------
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-DEFAULT_POOL_ID = uuid.UUID(int=0)  # demo value → replace in prod
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+
+# ────────────────────────── apps ───────────────────────────────
 
 local_evolve_app = typer.Typer(help="Expand & mutate evolve spec locally.")
 remote_evolve_app = typer.Typer(help="Submit evolve spec to the gateway.")

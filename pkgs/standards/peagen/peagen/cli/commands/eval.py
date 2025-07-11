@@ -22,11 +22,9 @@ import typer
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.eval_handler import eval_handler
 from peagen.orm import Status
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
-# ─────────── constants ────────────────────────────────────────────────
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-DEFAULT_POOL_ID = uuid.UUID(int=0)  # replace with real IDs in prod
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
+# ────────────────────────── apps ───────────────────────────────
 
 local_eval_app = typer.Typer(help="Evaluate programs locally.")
 remote_eval_app = typer.Typer(help="Submit evaluations to the gateway.")

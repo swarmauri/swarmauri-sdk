@@ -24,9 +24,9 @@ from peagen.handlers.sort_handler import sort_handler
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.orm import Status
 
-DEFAULT_POOL_ID = uuid.UUID(int=0)  # demo; replace in prod
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
+# ────────────────────────── apps ───────────────────────────────
 local_sort_app = typer.Typer(help="Sort generated project files locally.")
 remote_sort_app = typer.Typer(help="Submit sort tasks to the gateway.")
 

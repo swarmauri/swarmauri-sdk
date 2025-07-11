@@ -15,6 +15,8 @@ from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
 from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+
 
 
 # --------------------------------------------------------------------- helpers
@@ -30,11 +32,6 @@ def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
             url = item
         remotes[name] = url
     return remotes
-
-
-# demo UUIDs – swap for real values in prod
-DEFAULT_POOL_ID = uuid.UUID(int=0)
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
 
 
 # ── Typer root ───────────────────────────────────────────────────────────────

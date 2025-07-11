@@ -25,10 +25,9 @@ from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.process_handler import process_handler
 from peagen.orm import Status
 
-# ────────────────────────── constants ────────────────────────────────
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
-DEFAULT_POOL_ID = uuid.UUID(int=0)
-DEFAULT_TENANT_ID = uuid.UUID(int=1)
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+
+# ────────────────────────── apps ───────────────────────────────
 
 local_process_app = typer.Typer(help="Render / generate project files locally.")
 remote_process_app = typer.Typer(help="Submit processing tasks to the gateway.")
