@@ -36,6 +36,7 @@ from autoapi.v2.mixins import (
     UserMixin,
     TenantMixin,
     Ownable,
+    Bootstrappable,
     Timestamped,
     TenantBound,
     StatusMixin,
