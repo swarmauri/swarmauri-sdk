@@ -4,6 +4,7 @@ Package-level built-in configuration and constants.
 """
 
 import os
+import uuid
 from pathlib import Path
 
 
