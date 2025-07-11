@@ -4,7 +4,7 @@ peagen.core.migrate_core
 Small wrapper around Alembic that
 
 * finds the packaged ``alembic.ini`` automatically,
-* allows the caller to inject the live DATABASE_URL (Postgres, MySQL, …),
+* allows the caller to inject the live PG_DSN (Postgres, MySQL, …),
 * streams or captures stdout/stderr,
 * returns a simple dict → {"ok": bool, "stdout": str, "stderr": str, "error": str | None}.
 """
@@ -120,7 +120,7 @@ def alembic_upgrade(
 ) -> Dict[str, Any]:
     """Upgrade to *heads* using *cfg*."""
     cmd = ["alembic", "-c", str(cfg), "upgrade", "heads"]
-    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    env = {**os.environ, "PG_DSN": db_url} if db_url else None
     return _run_alembic(cmd, stream, env=env)
 
 
@@ -132,7 +132,7 @@ def alembic_downgrade(
 ) -> Dict[str, Any]:
     """Step down one revision using *cfg*."""
     cmd = ["alembic", "-c", str(cfg), "downgrade", "-1"]
-    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    env = {**os.environ, "PG_DSN": db_url} if db_url else None
     return _run_alembic(cmd, stream, env=env)
 
 
@@ -145,5 +145,5 @@ def alembic_revision(
 ) -> Dict[str, Any]:
     """Autogenerate a new revision with *message*."""
     cmd = ["alembic", "-c", str(cfg), "revision", "--autogenerate", "-m", message]
-    env = {**os.environ, "DATABASE_URL": db_url} if db_url else None
+    env = {**os.environ, "PG_DSN": db_url} if db_url else None
     return _run_alembic(cmd, stream, env=env)
