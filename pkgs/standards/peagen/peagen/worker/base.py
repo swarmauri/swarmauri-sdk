@@ -158,6 +158,8 @@ class WorkerBase:
                     id=self.worker_id,
                     pool_id=str(DEFAULT_POOL_ID),
                     url=self.listen_at,
+                    advertises={"cpu": True},
+                    handlers=list(self._handlers),
                 )  # last_seen handled server-side
                 self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")

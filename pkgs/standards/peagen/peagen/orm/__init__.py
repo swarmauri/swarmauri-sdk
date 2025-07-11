@@ -20,6 +20,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import relationship, foreign, remote
 from sqlalchemy.orm import declarative_mixin, declared_attr
 
@@ -188,7 +189,16 @@ class Worker(Base, GUIDPk, Timestamped):
     __tablename__ = "workers"
     pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
     url = Column(String, nullable=False)
-    advertises = Column(JSON, nullable=True)
+    advertises = Column(
+        MutableDict.as_mutable(JSON),   # or JSON
+        default=lambda: {},              # backend-agnostic Python factory
+        nullable=True
+    )
+    handlers = Column(
+        MutableDict.as_mutable(JSON),   # or JSON
+        default=lambda: {},              # backend-agnostic Python factory
+        nullable=True
+    )
 
     pool = relationship(Pool, backref="workers")
 
