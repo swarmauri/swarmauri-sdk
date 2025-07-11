@@ -462,20 +462,20 @@ def _crud(self, model: type) -> None:  # noqa: N802
 # ───────────────────────── RPC adapter (generic) ───────────────────────
 def _wrap_rpc(self, core, IN, OUT, pk_name: str, model):  # noqa: N802
     """
-    Generic JSON-RPC → CRUD shim (works for every core signature).
+    Generic JSON-RPC → CRUD shim.
+    Works for create/read/update/delete/list.
     """
-    sig        = signature(core)
-    params     = list(sig.parameters.values())
-    # accept both "<table>_id" (REST path) *and* raw PK name
-    pk_param   = next(
+    sig       = signature(core)
+    params    = list(sig.parameters.values())
+
+    # Accept both the DB column name and the REST path placeholder
+    pk_param  = next(
         (p for p in params if p.name in (pk_name, "item_id")),
         None,
     )
-    dto_param  = next(
-        (
-            p for p in params
-            if isinstance(p.annotation, type) and issubclass(p.annotation, BaseModel)
-        ),
+    dto_param = next(
+        (p for p in params
+         if isinstance(p.annotation, type) and issubclass(p.annotation, BaseModel)),
         None,
     )
 
@@ -484,24 +484,47 @@ def _wrap_rpc(self, core, IN, OUT, pk_name: str, model):  # noqa: N802
     out_elem_md  = callable(getattr(out_elem, "model_validate", None))
     out_single   = callable(getattr(OUT, "model_validate", None))
 
+    # ──────────────────────────────────────────────────────────────
     def handler(raw: dict, db: Session):
-        obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
-        data   = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        #
+        # 1️⃣  Extract primary-key (if present) **before** model validation
+        #
+        pk_value = None
+        if pk_param:
+            # tolerate either "id" or "item_id" coming from clients
+            for k in (pk_name, "item_id"):
+                if k in raw:
+                    pk_value = raw.pop(k)
+                    break
 
-        # -------- build call-time kwargs -----------------------------------
-        kwargs: dict[str, Any] = {"db": db}
-        if pk_param and pk_name in data:
-            kwargs[pk_param.name] = data.pop(pk_name)
+        #
+        # 2️⃣  Validate remaining payload (may be empty) into DTO
+        #
+        dto_obj = None
         if dto_param:
             dto_cls = dto_param.annotation
-            kwargs[dto_param.name] = dto_cls.model_validate(data)
-        else:
-            kwargs.update(data)
+            dto_obj = (
+                dto_cls.model_validate(raw)
+                if raw or dto_cls.model_fields
+                else dto_cls()           # empty payload allowed
+            )
 
-        # -------- invoke core ----------------------------------------------
+        #
+        # 3️⃣  Build kwargs for the core function
+        #
+        kwargs: dict[str, Any] = {"db": db}
+        if pk_param and pk_value is not None:
+            kwargs[pk_param.name] = pk_value
+        if dto_param:
+            kwargs[dto_param.name] = dto_obj
+        else:
+            kwargs.update(raw)          # create / list paths
+
+        #
+        # 4️⃣  Invoke core and normalise return
+        #
         result = core(**kwargs)
 
-        # -------- normalise return -----------------------------------------
         if not out_is_list:
             return (
                 result
@@ -509,7 +532,7 @@ def _wrap_rpc(self, core, IN, OUT, pk_name: str, model):  # noqa: N802
                 else OUT.model_validate(result).model_dump()
             )
 
-        # list-return
+        # list-return normalisation
         out: list[Any] = []
         for itm in result:
             if isinstance(itm, BaseModel):

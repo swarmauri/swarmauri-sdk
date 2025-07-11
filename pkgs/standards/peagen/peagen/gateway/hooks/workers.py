@@ -60,14 +60,14 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     await _cache_worker(
         created.id,
         {
-            "pool": wc.pool,
+            "pool": wc.pool_id,
             "url": wc.url,
             "advertises": wc.advertises or {},
             "handlers": wc.handlers,
         },
     )
-    await queue.sadd(f"pool:{wc.pool}:members", created.id)
-    log.info("worker %s joined pool %s", created.id, wc.pool)
+    await queue.sadd(f"pool:{wc.pool_id}:members", created.id)
+    log.info("worker %s joined pool %s", created.id, wc.pool_id)
 
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
@@ -78,18 +78,22 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
     # Pull existing cached data (may not exist for first heartbeat after restart)
     cached = await queue.hgetall(WORKER_KEY.format(wid))
-    if not cached and (wu.pool is None or wu.url is None):
+    if not cached and (getattr(wu, "pool_id", None) is None or wu.url is None):
         raise RPCException(code=-32602, message="unknown worker; pool & url required")
 
     # merge incoming changes
     mutated = {
-        "pool": wu.pool if wu.pool is not None else cached.get("pool"),
+        "pool": getattr(wu, "pool_id", None)
+        if getattr(wu, "pool_id", None) is not None
+        else cached.get("pool"),
         "url": wu.url if wu.url is not None else cached.get("url"),
         "advertises": wu.advertises or cached.get("advertises", {}),
         "handlers": wu.handlers or cached.get("handlers", []),
     }
     ctx["worker_cache_upd"] = mutated
     ctx["worker_id"] = wid
+
+
 
 
 @api.hook(Phase.POST_COMMIT, method="Workers.update")

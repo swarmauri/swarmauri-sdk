@@ -2,6 +2,7 @@
 # from __future__ import annotations
 
 from typing import Any, ClassVar, List
+
 from sqlalchemy import event
 from autoapi.v2.tables import Base
 
@@ -35,10 +36,9 @@ def _seed_all(target, connection, **kw):
             from sqlalchemy.dialects.postgresql import insert as pg_insert
 
             stmt = pg_insert(cls).values(cls.DEFAULT_ROWS).on_conflict_do_nothing()
-        else:  # SQLite ≥ 3.35 or anything that accepts OR IGNORE
-            from sqlalchemy import insert as insert
-
-            stmt = insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
+        else:                           # SQLite ≥ 3.35 or anything that accepts OR IGNORE
+            import sqlalchemy as sa
+            stmt = sa.insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
         # --------------------------------------------------------------
         connection.execute(stmt)
 

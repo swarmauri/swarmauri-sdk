@@ -219,8 +219,7 @@ class Worker(Base, GUIDPk, Timestamped):
         ForeignKey("pools.id"),
         nullable=False,
         default=DEFAULT_POOL_ID,
-        info=dict(no_update=True),
-    )
+        )
     url = Column(String, nullable=False)
     advertises = Column(
         MutableDict.as_mutable(JSON),  # or JSON
