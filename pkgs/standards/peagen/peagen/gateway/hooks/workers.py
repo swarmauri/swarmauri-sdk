@@ -42,15 +42,15 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     # maintain a set of pool members for quick WS broadcasts
     try:
         await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
-    except:
-        log.error("failure to add member to pool queue.")
+    except Exception as exc:
+        log.error("failure to add member to pool queue.", 'err:', str(exc))
 
     try:
         key = WORKER_KEY.format(worker_id)
         await queue.hset(key, mapping={**created})
         await queue.expire(key, WORKER_TTL)
-    except:
-        log.error("failure to add worker.")
+    except Exception as exc:
+        log.error("failure to add worker.", 'err:', str(exc))
 
 
     try:
@@ -90,10 +90,10 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
-            await queue.sadd(f"pool_id:{updated.pool_id}:members", str(worker_id))
-        log.debug("cached member `%s` in `%s`", (worker_id, updated.pool_id))
+            await queue.sadd(f"pool_id:{updated['pool_id']}:members", str(worker_id))
+        log.debug("cached member `%s` in `%s`", (worker_id, updated['pool_id']))
     except Exception as exc:
-        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, updated.pool_id))
+        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, updated['pool_id']), 'err:', str(exc))
 
     try:
         key = WORKER_KEY.format(worker_id)
@@ -102,7 +102,7 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 
         log.debug("cached worker: `%s` ", worker_id)
     except Exception as exc:
-        log.debug("cached failed for worker: `%s`", worker_id)
+        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
 
     try:
         await _publish_event("Workers.update", {**updated})
@@ -116,3 +116,20 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
     # For brevity this stays empty; implement when real-time pool state is required.
     log.info("entering post_workers_list")
     pass
+
+@api.hook(Phase.POST_HANDLER, method="Workers.list")
+async def post_workers_delete(ctx: Dict[str, Any]) -> None:
+    """Expire the worker's registry entry immediately."""
+    try:
+        worker_id: str      = ctx["worker_id"]
+        await queue.expire(WORKER_KEY.format(worker_id), 0)
+
+        log.debug("worker expired: `%s` ", worker_id)
+    except Exception as exc:
+        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
+
+    try:
+        await _publish_event("Workers.delete", {"id": workerId})
+    except Exception as exc:
+        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
+
