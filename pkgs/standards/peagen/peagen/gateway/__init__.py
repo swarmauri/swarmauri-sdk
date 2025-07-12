@@ -91,7 +91,15 @@ api = AutoAPI(
 app.include_router(api.router)
 app.include_router(ws_router)
 
-# Hooks need `api` **and** `log`; import them only now.
+# ─────────── Plugin-driven queue / result backend ─────────────────────
+cfg = resolve_cfg()
+plugins = PluginManager(cfg)
+queue_plugin = plugins.get("queues", None)
+queue: QueueBase = (
+    queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
+)
+
+# Hooks need `api` **and** `log` **and** `queue`; import them only now.
 from .hooks import *       # noqa: F401,F403  (registers decorators)
 
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
@@ -103,15 +111,6 @@ for route in app.routes:
 
 # Update the OpenAPI schema with sorted tags
 app.openapi_tags = [{"name": tag} for tag in sorted(all_tags)]
-
-
-# ─────────── Plugin-driven queue / result backend ─────────────────────
-cfg = resolve_cfg()
-plugins = PluginManager(cfg)
-queue_plugin = plugins.get("queues", None)
-queue: QueueBase = (
-    queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
-)
 
 
 # ─────────── flush Redis state on shutdown ────────────────────────────
