@@ -37,20 +37,20 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create")
 
     created: WorkerRead = WorkerRead(**ctx["result"])
-    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
+    log.info(f"worker {created.id} joined pool_id {created.pool_id}")
 
     # maintain a set of pool members for quick WS broadcasts
     try:
         await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
     except Exception as exc:
-        log.error("failure to add member to pool queue.", 'err:', str(exc))
+        log.error(f"failure to add member to pool queue.", 'err: {exc}')
 
     try:
-        key = WORKER_KEY.format(worker_id)
+        key = WORKER_KEY.format(created.id)
         await queue.hset(key, mapping={**created})
         await queue.expire(key, WORKER_TTL)
     except Exception as exc:
-        log.error("failure to add worker.", 'err:', str(exc))
+        log.error(f"failure to add worker. err: {exc}")
 
 
     try:
@@ -91,18 +91,18 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
             await queue.sadd(f"pool_id:{updated['pool_id']}:members", str(worker_id))
-        log.debug("cached member `%s` in `%s`", (worker_id, updated['pool_id']))
+        log.debug(f"cached member `{worker_id}` in `{updated['pool_id']}`")
     except Exception as exc:
-        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, updated['pool_id']), 'err:', str(exc))
+        log.debug(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
 
     try:
         key = WORKER_KEY.format(worker_id)
         await queue.hset(key, mapping={**updated})
         await queue.expire(key, WORKER_TTL)
 
-        log.debug("cached worker: `%s` ", worker_id)
+        log.debug(f"cached worker: `{worker_id}` ")
     except Exception as exc:
-        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
+        log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
         await _publish_event("Workers.update", {**updated})
@@ -121,15 +121,14 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
 async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     """Expire the worker's registry entry immediately."""
     try:
-        worker_id: str      = ctx["worker_id"]
+        wu: WorkerUpdate = ctx["env"].params
+        worker_id: str   = str(wu['id'] or wu['item_id'])
         await queue.expire(WORKER_KEY.format(worker_id), 0)
 
-        log.debug("worker expired: `%s` ", worker_id)
+        log.debug(f"worker expired: `{worker_id}` ")
     except Exception as exc:
-        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
-
+        log.debug(f"cached failed for worker: `{worker_id} `err: {exc}")
     try:
         await _publish_event("Workers.delete", {"id": workerId})
     except Exception as exc:
-        log.debug("cached failed for worker: `%s`", worker_id, 'err:', str(exc))
-
+        log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
