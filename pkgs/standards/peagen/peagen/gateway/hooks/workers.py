@@ -107,7 +107,7 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
     try:
         await _publish_event("Workers.update", {**updated})
     except Exception as exc:
-        log.error("post_worker_update failure to _publish_event for: `Workers.update`")
+        log.error(f"post_worker_update failure to _publish_event for: `Workers.update` err: {exc}")
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
 @api.hook(Phase.POST_HANDLER, method="Workers.list")
