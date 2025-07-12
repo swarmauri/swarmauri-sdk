@@ -1,6 +1,7 @@
 # autoapi_client/__init__.py
 from __future__ import annotations
 
+import uuid
 import itertools
 import json
 import httpx
@@ -32,7 +33,6 @@ class AutoAPIClient:
         self._endpoint = endpoint
         self._own = client is None  # whether we manage its life
         self._client = client or httpx.Client(timeout=10.0)
-        self._id_iter = itertools.count()
 
     # ─────────── public high-level call helpers ────────────────────── #
     @overload
@@ -70,18 +70,18 @@ class AutoAPIClient:
             "jsonrpc": "2.0",
             "method": method,
             "params": params_dict,
-            "id": next(self._id_iter),
+            "id": str(uuid.uuid4()),
         }
-
         # ----- HTTP roundtrip ----------------------------------------------
         r = self._client.post(
             self._endpoint,
             json=req,
             headers={"Content-Type": "application/json"},
         )
-        r.raise_for_status()
 
+        r.raise_for_status()
         res = r.json()
+        
 
         # ----- JSON-RPC error handling -------------------------------------
         if err := res.get("error"):
