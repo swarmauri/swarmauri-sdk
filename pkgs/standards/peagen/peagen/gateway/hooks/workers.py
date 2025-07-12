@@ -11,10 +11,10 @@ AutoAPI-native hooks for Worker CRUD.
 from __future__ import annotations
 
 import json
-import time
 import httpx
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Mapping, Any
+from pydantic import BaseModel
 
 from autoapi.v2 import Phase, AutoAPI
 from peagen.transport.jsonrpc import RPCException
@@ -29,6 +29,25 @@ WorkerCreate = AutoAPI.get_schema(Worker, "create")
 WorkerRead   = AutoAPI.get_schema(Worker, "read")
 WorkerUpdate = AutoAPI.get_schema(Worker, "update")
 WorkersListQ = AutoAPI.get_schema(Worker, "list")        # query model
+
+
+
+def _as_redis_hash(model: BaseModel) -> Mapping[str, str]:
+    """
+    Convert a Pydantic model to a flat mapping[str, str] acceptable to HSET.
+    • scalars → str(v)
+    • dict / list → json.dumps(v, separators=(',', ':'))
+    • None      → skipped (keeps hash compact)
+    """
+    out: dict[str, str] = {}
+    for k, v in model.model_dump(mode="json").items():
+        if v is None:
+            continue
+        if isinstance(v, (dict, list)):
+            out[k] = json.dumps(v, separators=(",", ":"))
+        else:
+            out[k] = str(v)
+    return out
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
@@ -47,7 +66,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.set(key, created.model_dump_json())
+        await queue.hset(key, _as_redis_hash(created))
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -71,7 +90,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     worker_id: str   = str(wu['id'] or wu['item_id'])
 
     # pull any cached data; first heartbeat after restart may miss
-    cached = await queue.get(WORKER_KEY.format(worker_id))
+    cached = await queue.exists(WORKER_KEY.format(worker_id))
     if not cached and wu['pool_id'] is None:
         raise RPCException(code=-32602, message="unknown worker; pool_id required")
 
@@ -108,7 +127,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
 
         key = WORKER_KEY.format(worker_id)
         log.info(f"key: {key}")
-        await queue.set(key, updated.model_dump_json())
+        await queue.hset(key, _as_redis_hash(updated))
         log.info(f"key set worked.")
         await queue.expire(key, WORKER_TTL)
         log.info(f"key expiration set.")
