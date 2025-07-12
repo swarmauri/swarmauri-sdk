@@ -34,6 +34,8 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")        # query model
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
 @api.hook(Phase.POST_RESPONSE, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_create")
+
     created: WorkerRead = WorkerRead(**ctx["result"])
     log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
 
@@ -69,7 +71,9 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_RESPONSE, method="Workers.update")
 async def post_worker_update(ctx: Dict[str, Any]) -> None:
-    log.debug("heartbeat stored for %s", worker_id)
+    log.info("entering post_worker_update")
+
+    log.info("heartbeat stored for %s", str(ctx['worker_id']))
 
     try:
         updated: WorkerRead = ctx["result"]
