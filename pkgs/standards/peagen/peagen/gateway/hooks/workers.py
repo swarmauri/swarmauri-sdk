@@ -134,6 +134,6 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
         log.info(f"worker expiration op failed: `{worker_id} `err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.delete", {"id": workerId})
+        await _publish_event(queue, "Workers.delete", {"id": worker_id})
     except Exception as exc:
         log.info(f"publish event for Workers.delete failed on : `{worker_id}` err: {exc}")
