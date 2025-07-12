@@ -133,7 +133,7 @@ class WorkerBase:
                 pool_id=DEFAULT_POOL_ID,
                 url=self.listen_at,
                 advertises={"cpu": True},
-                handlers={"handlers": list(self._handlers)},
+                handlers=list(self._handlers),
             )
             self._client.call("Workers.create", params=payload, out_schema=SWorkerRead)
             self.log.info("registered @ gateway as %s", self.worker_id)
@@ -158,7 +158,7 @@ class WorkerBase:
                     pool_id=DEFAULT_POOL_ID,
                     url=self.listen_at,
                     advertises={"cpu": True},
-                    handlers={"handlers": list(self._handlers)}
+                    handlers=list(self._handlers),
                 )  # last_seen handled server-side
                 self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")

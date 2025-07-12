@@ -21,6 +21,7 @@ from autoapi.v2.types import (
     PgEnum,
     UUID,
     MutableDict,
+    MutableList,
     relationship,
     foreign,
     remote,
@@ -231,8 +232,8 @@ class Worker(Base, GUIDPk, Timestamped):
         info=dict(no_update=True)
     )
     handlers =  Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},       # ✔ correct for SQLAlchemy
+        MutableList.as_mutable(JSON),   # or JSON
+        default=lambda: [],       # ✔ correct for SQLAlchemy
         nullable=True,
         info=dict(no_update=True)
 

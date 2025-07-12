@@ -106,7 +106,6 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
 
         log.info(f"\nupdated.model_dump_json(): {updated.model_dump_json()}\n")
 
-
         key = WORKER_KEY.format(worker_id)
         log.info(f"key: {key}")
         await queue.set(key, updated.model_dump_json())
