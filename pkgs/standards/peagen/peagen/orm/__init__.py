@@ -219,16 +219,18 @@ class Worker(Base, GUIDPk, Timestamped):
         nullable=False,
         default=DEFAULT_POOL_ID,
     )
-    url = Column(String, nullable=False)
+    url = Column(String, nullable=False, info=dict(no_update=True))
     advertises = Column(
         MutableDict.as_mutable(JSON),   # or JSON
         default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True
+        nullable=True,
+        info=dict(no_update=True)
     )
     handlers =  Column(
         MutableDict.as_mutable(JSON),   # or JSON
         default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True
+        nullable=True,
+        info=dict(no_update=True)
     )
 
     pool = relationship(Pool, backref="workers")
