@@ -97,7 +97,9 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         log.info(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
 
     try:
-        log.info(type(updated))
+        log.info(f"type(updated):", type(updated))
+        log.info(f"worker_id:", worker_id)
+        log.info(f"updated", updated)
         key = WORKER_KEY.format(worker_id)
         await queue.hset(key, mapping={**updated})
         await queue.expire(key, WORKER_TTL)
