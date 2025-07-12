@@ -37,22 +37,11 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create")
 
     created: WorkerRead = WorkerRead(**ctx["result"])
-    # ── upsert worker metadata in Redis ────────────────────────────────
-    await _cache_worker(
-        worker_id = created.id,
-        data      = {
-            "pool":       created.pool_id,
-            "url":        created.url,
-            "advertises": created.advertises or {},
-            "handlers":   created.handlers or {},
-        },
-    )
 
     # maintain a set of pool members for quick WS broadcasts
-    await queue.sadd(f"pool:{created.pool_id}:members", created.id)
+    await queue.sadd(f"pool_id:{created.pool_id}:members", created.id)
 
-    log.info("worker %s joined pool %s", created.id, created.pool_id)
-
+    log.info("worker %s joined pool_id %s", created.id, created.pool_id)
     await _publish_event("Workers.create", {**created})
 
 
@@ -62,20 +51,20 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_worker_update")
 
     wu: WorkerUpdate = ctx["env"].params
-    worker_id: str   = str(wu['id'] or wu.item_id)
+    worker_id: str   = str(wu['id'] or wu['item_id'])
 
     # pull any cached data; first heartbeat after restart may miss
     cached = await queue.hgetall(WORKER_KEY.format(worker_id))
-    if not cached and wu.pool_id is None:
-        raise RPCException(code=-32602, message="unknown worker; pool required")
+    if not cached and wu['pool_id'] is None:
+        raise RPCException(code=-32602, message="unknown worker; pool_id required")
 
     # store for downstream use
     ctx["worker_id"]          = worker_id
     ctx["worker_cache_upd"]   = {
-        "pool":       wu.pool_id,
-        "url":        wu.url,
-        "advertises": wu.advertises or {},
-        "handlers":   wu.handlers or {},
+        "pool_id":    wu['pool_id'],
+        "url":        wu['url'],
+        "advertises": wu['advertises'] or {},
+        "handlers":   wu['handlers'] or {},
     }
 
 
@@ -114,7 +103,7 @@ async def _cache_worker(worker_id: str, data: dict) -> None:
 
     # serialise nested structures consistently
     mapping = {
-        "pool":       data.get("pool"),
+        "pool_id":       data.get("pool_id"),
         "url":        data.get("url"),
         "advertises": json.dumps(data.get("advertises", {})),
         "handlers":   json.dumps(data.get("handlers", {})),
@@ -125,7 +114,7 @@ async def _cache_worker(worker_id: str, data: dict) -> None:
     await queue.expire(key, WORKER_TTL)
 
     # keep pool id in its members-set so /ws metrics stay functional
-    if data.get("pool"):
-        await queue.sadd("pools", data["pool"])
+    if data.get("pool_id"):
+        await queue.sadd("pools", data["pool_id"])
 
     await _publish_event("Workers.update", {"id": worker_id, **data})
