@@ -71,7 +71,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     worker_id: str   = str(wu['id'] or wu['item_id'])
 
     # pull any cached data; first heartbeat after restart may miss
-    cached = await queue.hgetall(WORKER_KEY.format(worker_id))
+    cached = await queue.get(WORKER_KEY.format(worker_id))
     if not cached and wu['pool_id'] is None:
         raise RPCException(code=-32602, message="unknown worker; pool_id required")
 
