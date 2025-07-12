@@ -22,28 +22,6 @@ from peagen.defaults import WORKER_KEY, WORKER_TTL
 from .. import log, queue, api
 from .._publish import _publish_event
 
-# ───────────────────────────── logging helpers ──────────────────────────
-def _hook_logger(fn):
-    """
-    Decorator for uniform entry/exit/exception logging around async hooks.
-    """
-    @functools.wraps(fn)
-    async def _wrap(*args, **kwargs):
-        t0 = time.perf_counter()
-        log.debug("▶ %s - args=%s kwargs=%s", fn.__name__, args, kwargs)
-        try:
-            res = await fn(*args, **kwargs)
-            dt = (time.perf_counter() - t0) * 1e3
-            log.debug("✔ %s - %.2f ms", fn.__name__, dt)
-            return res
-        except RPCException as re:
-            log.warning("⚠ RPCException in %s - %s", fn.__name__, re, exc_info=True)
-            raise                         # let AutoAPI propagate RPC errors
-        except Exception as exc:
-            log.exception("✖ Unhandled in %s: %s", fn.__name__, exc)
-            raise
-    return _wrap
-
 # ─────────────────── schema handles ────────────────────────────────────
 WorkerCreate = AutoAPI.get_schema(Worker, "create")
 WorkerRead = AutoAPI.get_schema(Worker, "read")
@@ -53,8 +31,8 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")  # request model
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Workers.create")
-@_hook_logger
 async def pre_worker_create(ctx: Dict[str, Any]) -> None:
+    log.info("entering pre_worker_create")
     wc: WorkerCreate = ctx["env"].params
 
     # auto-discover handlers if caller omitted them
@@ -76,8 +54,8 @@ async def pre_worker_create(ctx: Dict[str, Any]) -> None:
 
 
 @api.hook(Phase.POST_COMMIT, method="Workers.create")
-@_hook_logger
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_create")
     created: WorkerRead = ctx["result"]
     wc: WorkerCreate = ctx["worker_in"]
 
@@ -96,8 +74,8 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Workers.update")
-@_hook_logger
 async def pre_worker_update(ctx: Dict[str, Any]) -> None:
+    log.info("entering pre_worker_update")
     wu: WorkerUpdate = ctx["env"].params
     wid = wu.id or wu.item_id
 
@@ -122,8 +100,8 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
 
 @api.hook(Phase.POST_COMMIT, method="Workers.update")
-@_hook_logger
 async def post_worker_update(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_update")
     try:
         wid = ctx["worker_id"]
         data = ctx["worker_cache_upd"]
@@ -136,8 +114,8 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
 @api.hook(Phase.POST_HANDLER, method="Workers.list")
-@_hook_logger
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_workers_list")
     params = ctx["env"].params or {}
     filter_pool = params.get("pool")
 
