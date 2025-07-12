@@ -49,6 +49,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
         key = WORKER_KEY.format(created.id)
         await queue.hset(key, mapping=created.model_dump())
         await queue.expire(key, WORKER_TTL)
+        log.info(f"cached `{key}` ")
     except Exception as exc:
         log.error(f"failure to add worker. err: {exc}")
 
