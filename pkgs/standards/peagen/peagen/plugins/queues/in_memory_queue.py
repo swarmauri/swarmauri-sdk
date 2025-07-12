@@ -84,6 +84,9 @@ class InMemoryQueue:
                     return None
 
     # -------------------- hash ops -------------------
+    async def get(self, key: str) -> None:
+        return self.client.get(key)
+
     async def set(self, key: str, mapping: dict[str, Any]) -> None:
         self.hashes[key] = mapping
 
