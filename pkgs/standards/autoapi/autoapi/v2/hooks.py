@@ -54,10 +54,8 @@ async def _run(self, phase: Phase, ctx: Dict[str, Any]) -> None:
     Fire hooks for *phase*.  First those bound to the specific
     RPC method (if any), then the catch-all hooks.
     """
-    print("\n\n→hook _run start", phase, ctx)
     m = getattr(ctx.get("env"), "method", None)
     for fn in self._hook_registry[phase].get(m, []):
         await fn(ctx)
     for fn in self._hook_registry[phase].get(None, []):
         await fn(ctx)
-    print("\n\n←hook _run end", phase, ctx)
