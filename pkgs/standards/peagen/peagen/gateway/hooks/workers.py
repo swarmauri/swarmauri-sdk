@@ -47,7 +47,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.hset(key, mapping=created.model_dump_json())
+        await queue.set(key, mapping=created.model_dump_json())
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -109,7 +109,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
 
         key = WORKER_KEY.format(worker_id)
         log.info(f"key: {key}")
-        await queue.hset(key, mapping=updated.model_dump_json())
+        await queue.set(key, mapping=updated.model_dump_json())
         log.info(f"key hset worked.")
         await queue.expire(key, WORKER_TTL)
         log.info(f"key expiration set.")
