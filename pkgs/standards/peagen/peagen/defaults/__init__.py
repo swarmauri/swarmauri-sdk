@@ -44,14 +44,14 @@ GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 # ───────────────────────── Default Resources ────────────────────────
 
 ## DEFAULT RESOURCES UUIDS
-DEFAULT_TENANT_ID = uuid.UUID(int=0) 
+DEFAULT_TENANT_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000")
 DEFAULT_TENANT_EMAIL = "admin@example.com" 
 DEFAULT_TENANT_NAME  = "Public"
 DEFAULT_TENANT_SLUG  = "public"
 
-DEFAULT_POOL_ID = uuid.UUID(int=1)
+DEFAULT_POOL_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000001")
 DEFAULT_POOL_NAME = "default"
-DEFAULT_SVC_USER_ID = uuid.UUID(int=99)
+DEFAULT_SVC_USER_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000099")
 
 
 # ──────────────────────── Plugin Config ────────────────────────────
