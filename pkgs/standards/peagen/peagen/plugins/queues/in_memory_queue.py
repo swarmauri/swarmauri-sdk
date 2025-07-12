@@ -85,7 +85,7 @@ class InMemoryQueue:
 
     # -------------------- hash ops -------------------
     async def set(self, key: str, mapping: dict[str, Any]) -> None:
-        self.hashes[key].update(mapping)
+        self.hashes[key] = mapping
 
     async def hset(self, key: str, mapping: dict[str, Any]) -> None:
         self.hashes[key].update(mapping)
