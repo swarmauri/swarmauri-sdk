@@ -25,6 +25,7 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
 from peagen.defaults import READY_QUEUE
 from peagen.errors import MigrationFailureError, NoWorkerAvailableError
+# peagen/gateway/__init__.py
 from peagen.orm import (
     Base,
     DeployKey,
@@ -51,7 +52,6 @@ from swarmauri_standard.loggers.Logger import Logger
 from . import _publish, schedule_helpers
 from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
-from .hooks import *
 
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -90,6 +90,9 @@ api = AutoAPI(
 
 app.include_router(api.router)
 app.include_router(ws_router)
+
++ # Hooks need `api` **and** `log`; import them only now.
++ from .hooks import *       # noqa: F401,F403  (registers decorators)
 
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
