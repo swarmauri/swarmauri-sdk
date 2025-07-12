@@ -34,9 +34,8 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")        # query model
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
 @api.hook(Phase.POST_RESPONSE, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
-    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
-
     created: WorkerRead = WorkerRead(**ctx["result"])
+    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
 
     # maintain a set of pool members for quick WS broadcasts
     try:
