@@ -18,9 +18,14 @@ from autoapi.v2.types import (
     Integer,
     String,
     UniqueConstraint,
-    PgEnum, ARRAY, UUID,
-    MutableDict, MutableList,
-    relationship, foreign, remote, declarative_mixin, declared_attr
+    PgEnum,
+    UUID,
+    MutableDict,
+    relationship,
+    foreign,
+    remote,
+    declarative_mixin,
+    declared_attr,
 )
 
 # ---------------------------------------------------------------------
@@ -42,7 +47,6 @@ from autoapi.v2.mixins import (
     BlobRef,
 )
 from peagen.defaults import (
-    DEFAULT_GATEWAY,
     DEFAULT_POOL_NAME,
     DEFAULT_POOL_ID,
     DEFAULT_TENANT_ID,
@@ -231,6 +235,7 @@ class Worker(Base, GUIDPk, Timestamped):
         default=lambda: {},       # ✔ correct for SQLAlchemy
         nullable=True,
         info=dict(no_update=True)
+
     )
 
     pool = relationship(Pool, backref="workers")
