@@ -195,7 +195,10 @@ async def scheduler() -> None:
 async def _startup() -> None:
     log.info("gateway startup …")
 
-    # 1 – run Alembic first so the ORM never creates tables implicitly
+    # 1 – metadata validation / SQLite convenience mode
+    await api.initialize_async()
+
+    # 2 – run Alembic first so the ORM never creates tables implicitly
     if engine.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade(
             # keep the exact credentials that were used to build the engine
@@ -205,9 +208,6 @@ async def _startup() -> None:
             # expose full stderr in logs for easier debugging
             log.error("Alembic failed:\n%s", mig.get("stderr", ""))
             raise MigrationFailureError(mig["error"])
-
-    # 2 – metadata validation / SQLite convenience mode
-    await api.initialize_async()
 
     # 3 – background tasks
     asyncio.create_task(scheduler())
