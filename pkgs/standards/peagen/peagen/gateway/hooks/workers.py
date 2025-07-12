@@ -39,10 +39,10 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     created: WorkerRead = WorkerRead(**ctx["result"])
 
     # maintain a set of pool members for quick WS broadcasts
-    await queue.sadd(f"pool_id:{created.pool_id}:members", created.id)
+    await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
 
-    log.info("worker %s joined pool_id %s", created.id, created.pool_id)
-    await _publish_event("Workers.create", {**created})
+    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
+    await _publish_event("Workers.create", {created.model_dump()})
 
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
@@ -61,7 +61,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     # store for downstream use
     ctx["worker_id"]          = worker_id
     ctx["worker_cache_upd"]   = {
-        "pool_id":    wu['pool_id'],
+        "pool_id":    str(wu['pool_id']),
         "url":        wu['url'],
         "advertises": wu['advertises'] or {},
         "handlers":   wu['handlers'] or {},
