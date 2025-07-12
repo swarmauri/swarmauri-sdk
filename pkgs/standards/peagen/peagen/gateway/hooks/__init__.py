@@ -13,7 +13,7 @@ from .pools import (
     post_pool_create,
 )
 
-from .pools import (
+from .secrets import (
     post_secret_add,
     post_secret_delete,
 )
@@ -35,7 +35,7 @@ from .workers import (
     post_workers_list,
 )
 
-from .workers import (
+from .works import (
     post_work_update,
 )
 
