@@ -46,8 +46,8 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
         log.error(f"failure to add member to pool queue.", 'err: {exc}')
 
     try:
-        key = WORKER_KEY.format(created.id)
-        await queue.hset(key, mapping=created.model_dump())
+        key = WORKER_KEY.format(str(created.id))
+        await queue.hset(key, mapping=created.model_dump_json())
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -91,12 +91,13 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
-            await queue.sadd(f"pool_id:{updated['pool_id']}:members", str(worker_id))
+            await queue.sadd(f"pool_id:{updated['pool_id']}:members", worker_id)
         log.info(f"cached member `{worker_id}` in `{updated['pool_id']}`")
     except Exception as exc:
         log.info(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
 
     try:
+        log.info(type(updated))
         key = WORKER_KEY.format(worker_id)
         await queue.hset(key, mapping={**updated})
         await queue.expire(key, WORKER_TTL)
@@ -128,8 +129,9 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
 
         log.info(f"worker expired: `{worker_id}` ")
     except Exception as exc:
-        log.info(f"cached failed for worker: `{worker_id} `err: {exc}")
+        log.info(f"worker expiration op failed: `{worker_id} `err: {exc}")
+
     try:
         await _publish_event(queue, "Workers.delete", {"id": workerId})
     except Exception as exc:
-        log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
+        log.info(f"publish event for Workers.delete failed on : `{worker_id}` err: {exc}")
