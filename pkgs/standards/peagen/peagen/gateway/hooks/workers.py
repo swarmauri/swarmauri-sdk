@@ -36,8 +36,7 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")        # query model
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create")
 
-    created: WorkerRead = ctx["result"]
-
+    created: WorkerRead = WorkerRead(**ctx["result"])
     # ── upsert worker metadata in Redis ────────────────────────────────
     await _cache_worker(
         worker_id = created.id,
