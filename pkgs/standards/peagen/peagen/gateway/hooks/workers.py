@@ -47,14 +47,14 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(created.id)
-        await queue.hset(key, mapping={**created})
+        await queue.hset(key, mapping=created.model_dump())
         await queue.expire(key, WORKER_TTL)
     except Exception as exc:
         log.error(f"failure to add worker. err: {exc}")
 
 
     try:
-        await _publish_event("Workers.create", {created.model_dump()})
+        await _publish_event(queue, "Workers.create", {created.model_dump()})
     except:
         log.error("post_worker_create failure to _publish_event for: `Workers.create`")
 
@@ -105,7 +105,7 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
-        await _publish_event("Workers.update", {**updated})
+        await _publish_event(queue, "Workers.update", {**updated})
     except Exception as exc:
         log.error(f"post_worker_update failure to _publish_event for: `Workers.update` err: {exc}")
 
@@ -129,6 +129,6 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     except Exception as exc:
         log.debug(f"cached failed for worker: `{worker_id} `err: {exc}")
     try:
-        await _publish_event("Workers.delete", {"id": workerId})
+        await _publish_event(queue, "Workers.delete", {"id": workerId})
     except Exception as exc:
         log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
