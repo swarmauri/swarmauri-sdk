@@ -30,7 +30,8 @@ from .tasks import (
 from .workers import (
     post_worker_create,
     pre_worker_update,
-    post_worker_update,
+    post_worker_update_cache_pool,
+    post_worker_update_cache_worker,
     post_workers_list,
 )
 
@@ -56,7 +57,8 @@ __all__ = [
     "post_task_read",
     "post_worker_create",
     "pre_worker_update",
-    "post_worker_update",
+    "post_worker_update_cache_pool",
+    "post_worker_update_cache_worker",
     "post_workers_list",
     "post_work_update",
 ]
