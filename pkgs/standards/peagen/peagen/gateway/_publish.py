@@ -30,7 +30,7 @@ async def _publish_event(queue, event_type: str, data_obj: Any) -> None:
             "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "data": data,
         }
-        await queue.publish(PUBSUB_CHANNEL, json.dumps(event))
+        await queue.publish(PUBSUB_CHANNEL, json.dumps(event, default=str))
     except Exception as exc:
         print(f'_publish_event failed: {exc}')
         raise exc

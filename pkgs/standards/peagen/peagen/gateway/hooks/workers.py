@@ -81,7 +81,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_RESPONSE, method="Workers.update")
 async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_updatepool")
+    log.info("entering post_worker_update_cache_pool")
 
     log.info("heartbeat stored for %s", str(ctx['worker_id']))
 
@@ -92,26 +92,31 @@ async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.pool_id:
             await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
-        log.info(f"cached member `{worker_id}` in `{updated['pool_id']}`")
+        log.info(f"cached member `{worker_id}` in `{updated.pool_id}`")
     except Exception as exc:
         log.info(f"pool member `{worker_id}` failed to cache in `{updated.pool_id}` err: {exc}")
 
 
 @api.hook(Phase.POST_RESPONSE, method="Workers.update")
 async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_update_worker")
+    log.info("entering post_worker_update_cache_worker")
     try:
         updated: WorkerRead = WorkerRead(**ctx["result"])
         worker_id: str      = ctx["worker_id"]
+
         log.info(f"type(updated): {type(updated)}")
         log.info(f"updated: {updated}")
         log.info(f"updated.model_dump(mode=json): {updated.model_dump(mode="json")}")
         log.info(f"updated.model_dump(): {updated.model_dump()}")
         log.info(f"updated.model_dump_json(): {updated.model_dump_json()}")
         log.info(f"worker_id: {worker_id}")
+
         key = WORKER_KEY.format(worker_id)
+        log.info(f"key: {key}")
         await queue.hset(key, mapping=updated.model_dump())
+        log.info(f"key hset worked.")
         await queue.expire(key, WORKER_TTL)
+        log.info(f"key expiration set.")
 
         log.info(f"cached worker: `{worker_id}` ")
     except Exception as exc:
