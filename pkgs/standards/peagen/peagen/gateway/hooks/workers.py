@@ -47,7 +47,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.hset(key, mapping=created.model_dump(mode="json"))
+        await queue.hset(key, mapping=created.model_dump_json())
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -104,16 +104,12 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
         updated: WorkerRead = WorkerRead(**ctx["result"])
         worker_id: str      = ctx["worker_id"]
 
-        log.info(f"type(updated): {type(updated)}")
-        log.info(f"updated: {updated}")
-        log.info(f"updated.model_dump(mode=json): {updated.model_dump(mode="json")}")
-        log.info(f"updated.model_dump(): {updated.model_dump()}")
-        log.info(f"updated.model_dump_json(): {updated.model_dump_json()}")
-        log.info(f"worker_id: {worker_id}")
+        log.info(f"\nupdated.model_dump_json(): {updated.model_dump_json()}\n")
+
 
         key = WORKER_KEY.format(worker_id)
         log.info(f"key: {key}")
-        await queue.hset(key, mapping=updated.model_dump(mode="json"))
+        await queue.hset(key, mapping=updated.model_dump_json())
         log.info(f"key hset worked.")
         await queue.expire(key, WORKER_TTL)
         log.info(f"key expiration set.")
