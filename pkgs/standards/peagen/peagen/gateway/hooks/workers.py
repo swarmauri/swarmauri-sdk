@@ -46,9 +46,18 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
         log.error("failure to add member to pool queue.")
 
     try:
+        key = WORKER_KEY.format(worker_id)
+        await queue.hset(key, mapping={**created})
+        await queue.expire(key, WORKER_TTL)
+    except:
+        log.error("failure to add worker.")
+
+
+    try:
         await _publish_event("Workers.create", {created.model_dump()})
     except:
         log.error("post_worker_create failure to _publish_event for: `Workers.create`")
+
 
 
 
@@ -79,10 +88,21 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         updated: WorkerRead = ctx["result"]
         worker_id: str      = ctx["worker_id"]
 
-        await _cache_worker(worker_id, {**updated})
-        log.debug("heartbeat cached for %s", worker_id)
+        # keep pool id in its members-set so /ws metrics stay functional
+        if updated.get("pool_id"):
+            await queue.sadd(f"pool_id:{created.pool_id}:members", str(worker_id))
+        log.debug("cached member `%s` in `%s`", (worker_id, created.pool_id))
     except Exception as exc:
-        log.debug("heartbeat failed to cache for %s", worker_id)
+        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, created.pool_id))
+
+    try:
+        key = WORKER_KEY.format(worker_id)
+        await queue.hset(key, mapping={**updated})
+        await queue.expire(key, WORKER_TTL)
+
+        log.debug("cached worker: `%s` ", worker_id)
+    except Exception as exc:
+        log.debug("cached failed for worker: `%s`", worker_id)
 
     try:
         await _publish_event("Workers.update", {**updated})
@@ -96,21 +116,3 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
     # For brevity this stays empty; implement when real-time pool state is required.
     log.info("entering post_workers_list")
     pass
-
-
-# ─────────────────── Redis helper ──────────────────────────────────────
-async def _cache_worker(worker_id: str, data: dict) -> None:
-    """
-    Upsert worker metadata in `worker:<id>` hash and refresh TTL.
-    """
-    key = WORKER_KEY.format(worker_id)
-    now = int(time.time())
-
-    await queue.hset(key, mapping=data)
-    await queue.expire(key, WORKER_TTL)
-
-    # keep pool id in its members-set so /ws metrics stay functional
-    if data.get("pool_id"):
-        await queue.sadd("pools", data["pool_id"])
-
-    await _publish_event("Workers.update", {"id": worker_id, **data})
