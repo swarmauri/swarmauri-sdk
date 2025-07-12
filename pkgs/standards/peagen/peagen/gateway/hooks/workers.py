@@ -91,18 +91,18 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
             await queue.sadd(f"pool_id:{updated['pool_id']}:members", str(worker_id))
-        log.debug(f"cached member `{worker_id}` in `{updated['pool_id']}`")
+        log.info(f"cached member `{worker_id}` in `{updated['pool_id']}`")
     except Exception as exc:
-        log.debug(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
+        log.info(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
 
     try:
         key = WORKER_KEY.format(worker_id)
         await queue.hset(key, mapping={**updated})
         await queue.expire(key, WORKER_TTL)
 
-        log.debug(f"cached worker: `{worker_id}` ")
+        log.info(f"cached worker: `{worker_id}` ")
     except Exception as exc:
-        log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
+        log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
         await _publish_event(queue, "Workers.update", {**updated})
@@ -125,10 +125,10 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
         worker_id: str   = str(wu['id'] or wu['item_id'])
         await queue.expire(WORKER_KEY.format(worker_id), 0)
 
-        log.debug(f"worker expired: `{worker_id}` ")
+        log.info(f"worker expired: `{worker_id}` ")
     except Exception as exc:
-        log.debug(f"cached failed for worker: `{worker_id} `err: {exc}")
+        log.info(f"cached failed for worker: `{worker_id} `err: {exc}")
     try:
         await _publish_event(queue, "Workers.delete", {"id": workerId})
     except Exception as exc:
-        log.debug(f"cached failed for worker: `{worker_id}` err: {exc}")
+        log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
