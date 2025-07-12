@@ -24,6 +24,8 @@ SecretRead = AutoAPI.get_schema(Secret, "read")
 @api.hook(Phase.POST_COMMIT, method="Secrets.create")
 async def post_secret_add(ctx: Dict[str, Any]) -> None:
     """Return a simple OK dict after the secret is persisted."""
+    log.info("entering post_secret_add")
+
     params = ctx["env"].params
     log.info("Secret stored successfully: %s", params.name)
     ctx["result"] = {"ok": True}  # ← no ad-hoc model
@@ -32,6 +34,7 @@ async def post_secret_add(ctx: Dict[str, Any]) -> None:
 @api.hook(Phase.POST_COMMIT, method="Secrets.delete")
 async def post_secret_delete(ctx: Dict[str, Any]) -> None:
     """Confirm deletion with a flat OK payload."""
+    log.info("entering post_secret_delete")
+    
     params = ctx["env"].params
     log.info("Secret deleted: %s", params.name)
-    ctx["result"] = {"ok": True}

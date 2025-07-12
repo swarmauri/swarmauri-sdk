@@ -29,6 +29,8 @@ async def post_work_update(ctx: Dict[str, Any]) -> None:
     """
     When a Work row becomes terminal, update the cached Task and fan-out.
     """
+    log.info("entering post_work_update")
+
     wr: WorkRead = ctx["result"]
 
     # only act on terminal statuses

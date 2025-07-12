@@ -94,6 +94,7 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
     """Replace DB snapshot with live-only snapshot if Redis has fresher info."""
     # For brevity this stays empty; implement when real-time pool state is required.
+    log.info("entering post_workers_list")
     pass
 
 

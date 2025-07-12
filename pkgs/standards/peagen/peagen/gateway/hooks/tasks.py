@@ -34,6 +34,8 @@ TaskUpdate = AutoAPI.get_schema(Task, "update")
 # ─────────────────────────── CREATE hooks ─────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Tasks.create")
 async def pre_task_create(ctx: Dict[str, Any]) -> None:
+    log.info("entering pre_task_create")
+
     tc: TaskCreate = ctx["env"].params  # validated Pydantic model
 
     # ---- optional shadow-repo logic -----------------------------------
@@ -82,6 +84,8 @@ async def pre_task_create(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_COMMIT, method="Tasks.create")
 async def post_task_create(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_task_create")
+
     created: TaskRead = ctx["result"]
     submitted: TaskCreate = ctx["task_in"]
 
@@ -103,6 +107,8 @@ async def post_task_create(ctx: Dict[str, Any]) -> None:
 # ─────────────────────────── UPDATE hooks ─────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Tasks.update")
 async def pre_task_update(ctx: Dict[str, Any]) -> None:
+    log.info("entering pre_task_update")
+
     upd: TaskUpdate = ctx["env"].params
     tid = upd.id or upd.item_id
     cached = await _load_task(queue, tid)
@@ -115,6 +121,8 @@ async def pre_task_update(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_COMMIT, method="Tasks.update")
 async def post_task_update(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_task_update")
+
     task: TaskRead = ctx["cached_task"]
     changes: Dict[str, Any] = ctx["changes"]
 
@@ -133,6 +141,8 @@ async def post_task_update(ctx: Dict[str, Any]) -> None:
 # ─────────────────────────── READ hooks ───────────────────────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Tasks.read")
 async def pre_task_read(ctx: Dict[str, Any]) -> None:
+    log.info("entering pre_task_read")
+
     tid = ctx["env"].params.get("id") or ctx["env"].params.get("item_id")
     hit = await _load_task(queue, tid)
     if hit:
@@ -142,5 +152,7 @@ async def pre_task_read(ctx: Dict[str, Any]) -> None:
 
 @api.hook(Phase.POST_HANDLER, method="Tasks.read")
 async def post_task_read(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_task_read")
+    
     if ctx.get("skip_db") and ctx.get("cached_task"):
         ctx["result"] = ctx["cached_task"]
