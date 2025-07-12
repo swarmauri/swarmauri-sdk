@@ -52,8 +52,8 @@ def _as_redis_hash(model: BaseModel) -> Mapping[str, str]:
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
 @api.hook(Phase.POST_RESPONSE, method="Workers.create")
-async def post_worker_create(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_create")
+async def post_worker_create_cache_pool(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_create_cache_pool")
 
     created: WorkerRead = WorkerRead(**ctx["result"])
     log.info(f"worker {created.id} joined pool_id {created.pool_id}")
@@ -62,7 +62,16 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     try:
         await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
     except Exception as exc:
-        log.error(f"failure to add member to pool queue.", 'err: {exc}')
+        log.error(f"failure to add member to pool queue. err: {exc}")
+
+
+
+@api.hook(Phase.POST_RESPONSE, method="Workers.create")
+async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_create_cache_worker")
+
+    created: WorkerRead = WorkerRead(**ctx["result"])
+    log.info(f"worker {created.id} joined pool_id {created.pool_id}")
 
     try:
         key = WORKER_KEY.format(str(created.id))
@@ -72,14 +81,10 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     except Exception as exc:
         log.error(f"failure to add worker. err: {exc}")
 
-
     try:
         await _publish_event(queue, "Workers.create", created)
-    except:
-        log.error("post_worker_create failure to _publish_event for: `Workers.create`")
-
-
-
+    except Exception as exc:
+        log.error(f"failure to _publish_event for: `Workers.create` err: {exc}")
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
 @api.hook(Phase.PRE_TX_BEGIN, method="Workers.update")
@@ -139,7 +144,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
     try:
         await _publish_event(queue, "Workers.update", updated)
     except Exception as exc:
-        log.error(f"post_worker_update failure to _publish_event for: `Workers.update` err: {exc}")
+        log.error(f"failure to _publish_event for: `Workers.update` err: {exc}")
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
 @api.hook(Phase.POST_HANDLER, method="Workers.list")
@@ -164,4 +169,4 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     try:
         await _publish_event(queue, "Workers.delete", {"id": worker_id})
     except Exception as exc:
-        log.info(f"publish event for Workers.delete failed on : `{worker_id}` err: {exc}")
+        log.info(f"failure to _publish_event for: `Workers.delete` err: {exc}")
