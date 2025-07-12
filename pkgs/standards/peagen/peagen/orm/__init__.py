@@ -18,9 +18,14 @@ from autoapi.v2.types import (
     Integer,
     String,
     UniqueConstraint,
-    PgEnum, ARRAY, UUID,
-    MutableDict, MutableList,
-    relationship, foreign, remote, declarative_mixin, declared_attr
+    PgEnum,
+    UUID,
+    MutableDict,
+    relationship,
+    foreign,
+    remote,
+    declarative_mixin,
+    declared_attr,
 )
 
 # ---------------------------------------------------------------------
@@ -42,7 +47,6 @@ from autoapi.v2.mixins import (
     BlobRef,
 )
 from peagen.defaults import (
-    DEFAULT_GATEWAY,
     DEFAULT_POOL_NAME,
     DEFAULT_POOL_ID,
     DEFAULT_TENANT_ID,
@@ -221,14 +225,14 @@ class Worker(Base, GUIDPk, Timestamped):
     )
     url = Column(String, nullable=False)
     advertises = Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True
+        MutableDict.as_mutable(JSON),  # or JSON
+        default=lambda: {},  # ✔ correct for SQLAlchemy
+        nullable=True,
     )
-    handlers =  Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True
+    handlers = Column(
+        MutableDict.as_mutable(JSON),  # or JSON
+        default=lambda: {},  # ✔ correct for SQLAlchemy
+        nullable=True,
     )
 
     pool = relationship(Pool, backref="workers")
