@@ -12,16 +12,16 @@ from typing import Any, Dict
 from autoapi.v2 import AutoAPI, Phase
 from pgpy import PGPKey
 
-from peagen.orm import PublicKey
+from peagen.orm import DeployKey
 
 from .. import api, log
 
 # -------------------------------------------------------------------
 # Resolve the exact server-side schemas once (lru_cached inside AutoAPI)
-SCreate = AutoAPI.get_schema(PublicKey, "create")  # body for DeployKeys.create
-SRead = AutoAPI.get_schema(PublicKey, "read")  # single-row read
-SDelete = AutoAPI.get_schema(PublicKey, "delete")  # pk-only schema
-SListIn = AutoAPI.get_schema(PublicKey, "list")  # fetch all keys
+SCreate = AutoAPI.get_schema(DeployKey, "create")  # body for DeployKeys.create
+SRead = AutoAPI.get_schema(DeployKey, "read")  # single-row read
+SDelete = AutoAPI.get_schema(DeployKey, "delete")  # pk-only schema
+SListIn = AutoAPI.get_schema(DeployKey, "list")  # fetch all keys
 # -------------------------------------------------------------------
 
 
@@ -83,3 +83,6 @@ async def post_key_delete(ctx: Dict[str, Any]) -> None:
     fp = ctx["fingerprint"]
     log.info("key removed: %s", fp)
     ctx["result"] = {"ok": True}
+
+
+__all__ = []
