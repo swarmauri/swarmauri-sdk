@@ -90,10 +90,10 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
 
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
-            await queue.sadd(f"pool_id:{created.pool_id}:members", str(worker_id))
-        log.debug("cached member `%s` in `%s`", (worker_id, created.pool_id))
+            await queue.sadd(f"pool_id:{updated.pool_id}:members", str(worker_id))
+        log.debug("cached member `%s` in `%s`", (worker_id, updated.pool_id))
     except Exception as exc:
-        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, created.pool_id))
+        log.debug("pool member `%s` failed to cache in `%s`", (worker_id, updated.pool_id))
 
     try:
         key = WORKER_KEY.format(worker_id)
