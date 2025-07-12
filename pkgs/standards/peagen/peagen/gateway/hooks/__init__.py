@@ -1,3 +1,5 @@
+# peagen/gateway/hooks/__init__.py
+
 from .keys import (
     pre_key_upload,
     post_key_upload,
@@ -8,21 +10,21 @@ from .keys import (
 
 from .pools import (
     pre_pool_create, 
-    post_pool_create
+    post_pool_create,
 )
 
 from .pools import (
-post_secret_add,
-post_secret_delete
+    post_secret_add,
+    post_secret_delete,
 )
 
 from .tasks import (
-pre_task_create,
-post_task_create,
-pre_task_update,
-post_task_update,
-pre_task_read,
-post_task_read,
+    pre_task_create,
+    post_task_create,
+    pre_task_update,
+    post_task_update,
+    pre_task_read,
+    post_task_read,
 )
 
 from .workers import (
@@ -34,8 +36,8 @@ from .workers import (
 )
 
 from .workers import (
-    post_work_update
-    )
+    post_work_update,
+)
 
 __all__ = [
     "pre_key_upload",
@@ -46,7 +48,7 @@ __all__ = [
     "pre_pool_create", 
     "post_pool_create"
     "post_secret_add",
-    "post_secret_delete"
+    "post_secret_delete",
     "pre_task_create",
     "post_task_create",
     "pre_task_update",
@@ -58,5 +60,5 @@ __all__ = [
     "pre_worker_update",
     "post_worker_update",
     "post_workers_list",
-    "post_work_update"
+    "post_work_update",
 ]
