@@ -63,7 +63,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_worker_update")
 
     wu: WorkerUpdate = ctx["env"].params
-    worker_id: str   = str(wu.id or wu.item_id)
+    worker_id: str   = str(wu['id'] or wu.item_id)
 
     # pull any cached data; first heartbeat after restart may miss
     cached = await queue.hgetall(WORKER_KEY.format(worker_id))
@@ -129,4 +129,4 @@ async def _cache_worker(worker_id: str, data: dict) -> None:
     if data.get("pool"):
         await queue.sadd("pools", data["pool"])
 
-    await _publish_event("worker.update", {"id": worker_id, **data})
+    await _publish_event("Workers.update", {"id": worker_id, **data})
