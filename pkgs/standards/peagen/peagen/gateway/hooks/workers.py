@@ -32,9 +32,9 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")        # query model
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
-@api.hook(Phase.POST_COMMIT, method="Workers.create")
+@api.hook(Phase.POST_RESPONSE, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_create")
+    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
 
     created: WorkerRead = WorkerRead(**ctx["result"])
 
@@ -42,14 +42,13 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
     try:
         await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
     except:
-        log.error("failure to queue member to pool.")
+        log.error("failure to add member to pool queue.")
 
     try:
         await _publish_event("Workers.create", {created.model_dump()})
     except:
-        log.error("failure to _publish_event for: `Workers.create`")
+        log.error("post_worker_create failure to _publish_event for: `Workers.create`")
 
-    log.info("worker %s joined pool_id %s", str(created.id), str(created.pool_id))
 
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
@@ -69,21 +68,23 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     ctx["worker_id"]          = worker_id
 
 
-@api.hook(Phase.POST_COMMIT, method="Workers.update")
+@api.hook(Phase.POST_RESPONSE, method="Workers.update")
 async def post_worker_update(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_update")
+    log.debug("heartbeat stored for %s", worker_id)
 
     try:
         updated: WorkerRead = ctx["result"]
         worker_id: str      = ctx["worker_id"]
 
         await _cache_worker(worker_id, {**updated})
-        log.debug("heartbeat stored for %s", worker_id)
+        log.debug("heartbeat cached for %s", worker_id)
+    except Exception as exc:
+        log.debug("heartbeat failed to cache for %s", worker_id)
 
+    try:
         await _publish_event("Workers.update", {**updated})
     except Exception as exc:
-        log.warning("post_worker_update failure: %s", exc)
-
+        log.error("post_worker_update failure to _publish_event for: `Workers.update`")
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
 @api.hook(Phase.POST_HANDLER, method="Workers.list")
