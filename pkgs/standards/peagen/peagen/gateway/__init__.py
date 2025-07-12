@@ -51,6 +51,7 @@ from swarmauri_standard.loggers.Logger import Logger
 from . import _publish, schedule_helpers
 from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
+from .hooks import *
 
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
