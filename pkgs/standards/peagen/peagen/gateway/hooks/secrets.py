@@ -14,7 +14,7 @@ from autoapi.v2 import AutoAPI, Phase
 
 from peagen.orm import Secret
 
-from .. import api, log
+from peagen.gateway import api, log
 
 # Generated schemas (if you need field names etc.)
 SecretRead = AutoAPI.get_schema(Secret, "read")

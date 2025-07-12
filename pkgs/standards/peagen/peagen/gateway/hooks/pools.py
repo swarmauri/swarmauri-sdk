@@ -12,7 +12,7 @@ from autoapi.v2 import AutoAPI, Phase
 
 from peagen.orm import Pool
 
-from .. import api, log, queue
+from peagen.gateway import api, log, queue
 
 # Fast, cacheable access to the generated Pool schemas
 PoolRead = AutoAPI.get_schema(Pool, "read")

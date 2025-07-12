@@ -19,8 +19,8 @@ from peagen.transport.jsonrpc import RPCException
 from peagen.orm import Worker
 
 from peagen.defaults import WORKER_KEY, WORKER_TTL
-from .. import log, queue, api
-from .._publish import _publish_event
+from peagen.gateway import log, queue, api
+from peagen.gateway._publish import _publish_event
 
 # ─────────────────── schema handles ────────────────────────────────────
 WorkerCreate = AutoAPI.get_schema(Worker, "create")

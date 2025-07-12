@@ -13,9 +13,9 @@ from autoapi.v2 import AutoAPI, Phase
 
 from peagen.orm import Status, Task, Work
 
-from .. import api, log, queue
-from .._publish import _publish_task
-from ..schedule_helpers import _finalize_parent_tasks, _load_task, _save_task
+from peagen.gateway. import api, log, queue
+from peagen.gateway._publish import _publish_task
+from peagen.gateway.schedule_helpers import _finalize_parent_tasks, _load_task, _save_task
 
 # ─────────────────── schema handles ────────────────────────────────────
 WorkRead = AutoAPI.get_schema(Work, "read")

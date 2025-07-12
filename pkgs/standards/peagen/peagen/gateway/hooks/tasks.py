@@ -16,9 +16,9 @@ from peagen.errors import TaskNotFoundError
 from peagen.orm import Task
 from peagen.transport.jsonrpc import RPCException
 
-from .. import api, log, queue
-from .._publish import _publish_queue_length, _publish_task
-from ..schedule_helpers import (
+from peagen.gateway import api, log, queue
+from peagen.gateway._publish import _publish_queue_length, _publish_task
+from peagen.gateway.schedule_helpers import (
     _finalize_parent_tasks,
     _load_task,
     _save_task,

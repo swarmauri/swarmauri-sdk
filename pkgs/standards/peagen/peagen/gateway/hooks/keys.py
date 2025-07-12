@@ -14,7 +14,7 @@ from pgpy import PGPKey
 
 from peagen.orm import DeployKey
 
-from .. import api, log
+from peagen.gateway import api, log
 
 # -------------------------------------------------------------------
 # Resolve the exact server-side schemas once (lru_cached inside AutoAPI)
