@@ -47,7 +47,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.hset(key, mapping=created.model_dump_json())
+        await queue.hset(key, mapping=created.model_dump())
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -86,22 +86,22 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
     log.info("heartbeat stored for %s", str(ctx['worker_id']))
 
     try:
-        updated: WorkerRead = ctx["result"]
+        updated: WorkerRead = WorkerRead(**ctx["result"])
         worker_id: str      = ctx["worker_id"]
 
         # keep pool id in its members-set so /ws metrics stay functional
         if updated.get("pool_id"):
-            await queue.sadd(f"pool_id:{updated['pool_id']}:members", worker_id)
+            await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
         log.info(f"cached member `{worker_id}` in `{updated['pool_id']}`")
     except Exception as exc:
-        log.info(f"pool member `{worked_id}` failed to cache in `{updated['pool_id']}` err: {exc}")
+        log.info(f"pool member `{worked_id}` failed to cache in `{updated.pool_id}` err: {exc}")
 
     try:
         log.info(f"type(updated): {type(updated)}")
-        log.info(f"worker_id: {worker_id}")
         log.info(f"updated: {updated}")
+        log.info(f"worker_id: {worker_id}")
         key = WORKER_KEY.format(worker_id)
-        await queue.hset(key, mapping={**updated})
+        await queue.hset(key, mapping=updated.model_dump())
         await queue.expire(key, WORKER_TTL)
 
         log.info(f"cached worker: `{worker_id}` ")
@@ -109,7 +109,7 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.update", {**updated})
+        await _publish_event(queue, "Workers.update", {updated.model_dump()})
     except Exception as exc:
         log.error(f"post_worker_update failure to _publish_event for: `Workers.update` err: {exc}")
 
