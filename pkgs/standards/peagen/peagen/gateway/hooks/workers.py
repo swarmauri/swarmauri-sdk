@@ -60,12 +60,6 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
     # store for downstream use
     ctx["worker_id"]          = worker_id
-    ctx["worker_cache_upd"]   = {
-        "pool_id":    str(wu['pool_id']),
-        "url":        wu['url'],
-        "advertises": wu['advertises'] or {},
-        "handlers":   wu['handlers'] or {},
-    }
 
 
 @api.hook(Phase.POST_COMMIT, method="Workers.update")
@@ -75,9 +69,8 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
     try:
         updated: WorkerRead = ctx["result"]
         worker_id: str      = ctx["worker_id"]
-        data: dict          = ctx["worker_cache_upd"]
 
-        await _cache_worker(worker_id, data)
+        await _cache_worker(worker_id, {**updated})
         log.debug("heartbeat stored for %s", worker_id)
 
         await _publish_event("Workers.update", {**updated})
@@ -101,16 +94,7 @@ async def _cache_worker(worker_id: str, data: dict) -> None:
     key = WORKER_KEY.format(worker_id)
     now = int(time.time())
 
-    # serialise nested structures consistently
-    mapping = {
-        "pool_id":       data.get("pool_id"),
-        "url":        data.get("url"),
-        "advertises": json.dumps(data.get("advertises", {})),
-        "handlers":   json.dumps(data.get("handlers", {})),
-        "updated_at": now,
-    }
-
-    await queue.hset(key, mapping=mapping)
+    await queue.hset(key, mapping=data)
     await queue.expire(key, WORKER_TTL)
 
     # keep pool id in its members-set so /ws metrics stay functional
