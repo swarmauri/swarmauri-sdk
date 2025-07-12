@@ -30,29 +30,6 @@ WorkersListQ = AutoAPI.get_schema(Worker, "list")  # request model
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="Workers.create")
-async def pre_worker_create(ctx: Dict[str, Any]) -> None:
-    log.info("entering pre_worker_create")
-    wc: WorkerCreate = ctx["env"].params
-
-    # auto-discover handlers if caller omitted them
-    handlers = wc.handlers or []
-    if not handlers:
-        try:
-            well_known = wc.url.replace("/rpc", "/well-known")
-            async with httpx.AsyncClient(timeout=5) as cl:
-                r = await cl.get(well_known)
-                if r.status_code == 200:
-                    handlers = r.json().get("handlers", [])
-        except Exception as exc:  # noqa: BLE001
-            log.warning("well-known fetch for %s failed – %s", wc.url, exc)
-
-    if not handlers:
-        raise RPCException(code=-32602, message="worker supports no handlers")
-
-    ctx["worker_in"] = wc.model_copy(update={"handlers": handlers})
-
-
 @api.hook(Phase.POST_COMMIT, method="Workers.create")
 async def post_worker_create(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create")

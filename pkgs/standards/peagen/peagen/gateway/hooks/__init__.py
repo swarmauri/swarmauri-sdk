@@ -28,7 +28,6 @@ from .tasks import (
 )
 
 from .workers import (
-    pre_worker_create,
     post_worker_create,
     pre_worker_update,
     post_worker_update,
@@ -55,7 +54,6 @@ __all__ = [
     "post_task_update",
     "pre_task_read",
     "post_task_read",
-    "pre_worker_create",
     "post_worker_create",
     "pre_worker_update",
     "post_worker_update",
