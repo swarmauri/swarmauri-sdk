@@ -91,8 +91,8 @@ api = AutoAPI(
 app.include_router(api.router)
 app.include_router(ws_router)
 
-+ # Hooks need `api` **and** `log`; import them only now.
-+ from .hooks import *       # noqa: F401,F403  (registers decorators)
+# Hooks need `api` **and** `log`; import them only now.
+from .hooks import *       # noqa: F401,F403  (registers decorators)
 
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
