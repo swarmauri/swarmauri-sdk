@@ -30,6 +30,7 @@ async def _publish_event(queue, event_type: str, data: Mapping[str, Any]) -> Non
         }
         await queue.publish(PUBSUB_CHANNEL, json.dumps(event, default=str))
     except Exception as exc:
+        print(f'_publish_event failed: {exc}')
         raise exc
 
 

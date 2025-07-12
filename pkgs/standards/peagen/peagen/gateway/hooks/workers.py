@@ -117,7 +117,7 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
     log.info("entering post_workers_list")
     pass
 
-@api.hook(Phase.POST_HANDLER, method="Workers.list")
+@api.hook(Phase.POST_HANDLER, method="Workers.delete")
 async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     """Expire the worker's registry entry immediately."""
     try:
