@@ -55,7 +55,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
 
     try:
-        await _publish_event(queue, "Workers.create", {created.model_dump()})
+        await _publish_event(queue, "Workers.create", created)
     except:
         log.error("post_worker_create failure to _publish_event for: `Workers.create`")
 
@@ -105,7 +105,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
         worker_id: str      = ctx["worker_id"]
         log.info(f"type(updated): {type(updated)}")
         log.info(f"updated: {updated}")
-        log.info(f"updated.model_dump(mode=json): {updated.model_dump(mode=json)}")
+        log.info(f"updated.model_dump(mode=json): {updated.model_dump(mode="json")}")
         log.info(f"updated.model_dump(): {updated.model_dump()}")
         log.info(f"updated.model_dump_json(): {updated.model_dump_json()}")
         log.info(f"worker_id: {worker_id}")
@@ -118,7 +118,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
         log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.update", {updated.model_dump()})
+        await _publish_event(queue, "Workers.update", updated)
     except Exception as exc:
         log.error(f"post_worker_update failure to _publish_event for: `Workers.update` err: {exc}")
 
