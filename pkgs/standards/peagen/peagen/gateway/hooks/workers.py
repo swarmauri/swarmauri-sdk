@@ -47,7 +47,7 @@ async def post_worker_create(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.hset(key, mapping=created.model_dump(mode="json"))
+        await queue.hset(key, mapping=created.model_dump())
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -80,8 +80,8 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
 
 
 @api.hook(Phase.POST_RESPONSE, method="Workers.update")
-async def post_worker_update(ctx: Dict[str, Any]) -> None:
-    log.info("entering post_worker_update")
+async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_updatepool")
 
     log.info("heartbeat stored for %s", str(ctx['worker_id']))
 
@@ -90,18 +90,27 @@ async def post_worker_update(ctx: Dict[str, Any]) -> None:
         worker_id: str      = ctx["worker_id"]
 
         # keep pool id in its members-set so /ws metrics stay functional
-        if updated.get("pool_id"):
+        if updated.pool_id:
             await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
         log.info(f"cached member `{worker_id}` in `{updated['pool_id']}`")
     except Exception as exc:
         log.info(f"pool member `{worker_id}` failed to cache in `{updated.pool_id}` err: {exc}")
 
+
+@api.hook(Phase.POST_RESPONSE, method="Workers.update")
+async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
+    log.info("entering post_worker_update_worker")
     try:
+        updated: WorkerRead = WorkerRead(**ctx["result"])
+        worker_id: str      = ctx["worker_id"]
         log.info(f"type(updated): {type(updated)}")
         log.info(f"updated: {updated}")
+        log.info(f"updated.model_dump(mode=json): {updated.model_dump(mode=json)}")
+        log.info(f"updated.model_dump(): {updated.model_dump()}")
+        log.info(f"updated.model_dump_json(): {updated.model_dump_json()}")
         log.info(f"worker_id: {worker_id}")
         key = WORKER_KEY.format(worker_id)
-        await queue.hset(key, mapping=updated.model_dump(mode="json"))
+        await queue.hset(key, mapping=updated.model_dump())
         await queue.expire(key, WORKER_TTL)
 
         log.info(f"cached worker: `{worker_id}` ")
