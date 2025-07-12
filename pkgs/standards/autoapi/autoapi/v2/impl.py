@@ -424,7 +424,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
 
     def _SList():
         base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=1)))
+                    limit=(int | None, Field(None, ge=10)))
 
         _scalars = {str, int, float, bool, bytes, uuid.UUID}
 
@@ -463,6 +463,10 @@ def _crud(self, model: type) -> None:  # noqa: N802
         return obj
 
     def _update(i, p: SUpdate, db, *, full=False):
+        if isinstance(p, dict):
+            p = SUpdate(**p)
+        if isinstance(i, str):
+            i = uuid.UUID(i)
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -536,17 +540,17 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
     single = callable(getattr(OUT, "model_validate", None))
 
+
     def h(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
-
         if exp_pm:
             r = core(obj_in, db=db)
         else:
             if pk_name in data and first and first.name != pk_name:
                 r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
             else:
-                r = core(**data, db=db)
+                r = core(raw[pk_name], data, db=db)
 
         if not out_lst:
             if isinstance(r, BaseModel):
