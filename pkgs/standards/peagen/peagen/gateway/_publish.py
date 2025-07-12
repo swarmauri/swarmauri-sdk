@@ -22,12 +22,15 @@ from peagen.defaults import PUBSUB_CHANNEL, READY_QUEUE
 # 1. low-level publish helper (unchanged)
 # ------------------------------------------------------------------ #
 async def _publish_event(queue, event_type: str, data: Mapping[str, Any]) -> None:
-    event = {
-        "type": event_type,
-        "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "data": data,
-    }
-    await queue.publish(PUBSUB_CHANNEL, json.dumps(event, default=str))
+    try:
+        event = {
+            "type": event_type,
+            "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "data": data,
+        }
+        await queue.publish(PUBSUB_CHANNEL, json.dumps(event, default=str))
+    except Exception as exc:
+        raise exc
 
 
 # ------------------------------------------------------------------ #
