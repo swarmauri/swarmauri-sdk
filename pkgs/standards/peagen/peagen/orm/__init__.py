@@ -93,8 +93,8 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
 
     __tablename__ = "repositories"
     __table_args__ = (
-        UniqueConstraint("url", name="uq_repositories_url"),
-        UniqueConstraint("tenant_id", "name", name="uq_repositories_tenant_name"),
+        UniqueConstraint("url"),
+        UniqueConstraint("tenant_id", "name"),
     )
     name = Column(String, nullable=False)
     url = Column(String, unique=True, nullable=False)
@@ -175,7 +175,7 @@ class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
 class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "public_keys"
     __table_args__ = (
-        UniqueConstraint("user_id", "public_key", name="uq_publickey_user_key"),
+        UniqueConstraint("user_id", "public_key"),
     )
     title      = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
@@ -184,7 +184,7 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
 class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "gpg_keys"
     __table_args__ = (
-        UniqueConstraint("user_id", "gpg_key", name="uq_gpgkey_user_key"),
+        UniqueConstraint("user_id", "gpg_key"),
     )
     gpg_key = Column(String, nullable=False)
     # Placeholder for compelte implementation
@@ -192,7 +192,7 @@ class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
     __tablename__ = "deploy_keys"
     __table_args__ = (
-        UniqueConstraint("repository_id", "public_key", name="uq_deploykey_repo_key"),
+        UniqueConstraint("repository_id", "public_key"),
     )
     title      = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
@@ -221,9 +221,7 @@ class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
 
     __table_args__ = (
         # scope-local uniqueness
-        UniqueConstraint("user_id", "name", name="uq_user_secret_name"),
-        # quick look-ups & RLS filter support
-        Index("ix_user_secret_user", "user_id"),
+        UniqueConstraint("user_id", "name"),
         # pull inherited constraints
         *_SecretCoreMixin.__table_args__,
     )
@@ -235,8 +233,7 @@ class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
     __tablename__ = "org_secrets"
 
     __table_args__ = (
-        UniqueConstraint("org_id", "name",  name="uq_org_secret_name"),
-        Index("ix_org_secret_org", "org_id"),
+        UniqueConstraint("org_id", "name"),
         *_SecretCoreMixin.__table_args__,
     )
     
@@ -249,8 +246,7 @@ class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
     repository = relationship("Repository", back_populates="secrets")
 
     __table_args__ = (
-        UniqueConstraint("repo_id", "name", name="uq_repo_secret_name"),
-        Index("ix_repo_secret_repo", "repo_id"),
+        UniqueConstraint("repo_id", "name"),
         *_SecretCoreMixin.__table_args__,
     )
 
@@ -262,7 +258,7 @@ class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
 class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
     __tablename__ = "pools"
     __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_pools_tenant_name"),
+        UniqueConstraint("tenant_id", "name"),
     )
     name = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [

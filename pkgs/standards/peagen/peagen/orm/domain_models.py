@@ -39,7 +39,7 @@ class DoeSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     spec = Column(JSON, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_doe_specs_tenant_name"),
+        UniqueConstraint("tenant_id", "name"),
     )
 
     tenant = relationship(Tenant, lazy="selectin")
@@ -64,7 +64,7 @@ class EvolveSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     spec = Column(JSON, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_evolve_specs_tenant_name"),
+        UniqueConstraint("tenant_id", "name"),
     )
 
     tenant = relationship(Tenant, lazy="selectin")
@@ -88,7 +88,7 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     payload = Column(JSON, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_project_payloads_tenant_name"),
+        UniqueConstraint("tenant_id", "name"),
     )
 
     tenant = relationship(Tenant, lazy="selectin")
