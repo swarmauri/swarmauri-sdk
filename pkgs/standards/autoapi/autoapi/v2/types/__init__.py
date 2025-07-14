@@ -12,6 +12,7 @@ from sqlalchemy import (
     Numeric,
     String,
     UniqueConstraint,
+    CheckConstraint,
     event,
 )
 from sqlalchemy.dialects.postgresql import (
@@ -54,6 +55,7 @@ __all__: list[str] = [
     "Numeric",
     "String",
     "UniqueConstraint",
+    "CheckConstraint",
     "event",
     # sqlalchemy.dialects.postgresql
     "ARRAY",
