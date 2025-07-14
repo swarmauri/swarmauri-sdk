@@ -1,10 +1,5 @@
 """
-peagen.handlers.keys_handler
-────────────────────────────
-Async entry-point for key-management tasks.
-
-Input  : TaskRead  – AutoAPI schema for the Task ORM table
-Output : dict      – passthrough result from peagen.core.keys_core helpers
+Async entry-point for key-management tasks executed by workers / runners.
 """
 
 from __future__ import annotations
@@ -12,52 +7,60 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
+import anyio
 from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
-
 from peagen.core import keys_core
+from peagen.defaults import DEFAULT_GATEWAY
+from peagen.orm import Task
+from pydantic import BaseModel, Field, ValidationError
 
-# ───────────────────────── schema handle ──────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")          # validated Pydantic model
+# ─────────────────────────── argument models ────────────────────────────
+class _Base(BaseModel):
+    action: str
 
+class _Create(_Base):
+    action: str = Field("create", const=True)
+    key_dir: Path | None = None
+    passphrase: str | None = None
 
-# ───────────────────────── main coroutine ─────────────────────────────
-async def keys_handler(task: TaskRead) -> Dict[str, Any]:
-    """
-    `task.args` MUST contain:
+class _Upload(_Base):
+    action: str = Field("upload", const=True)
+    key_dir: Path | None = None
+    passphrase: str | None = None
+    gateway_url: str = DEFAULT_GATEWAY
 
-        {
-            "action": "create" | "upload" | "remove" | "fetch-server",
-            # create          → { "key_dir": "<dir>", "passphrase": "..." }
-            # upload/remove   → { "key_dir": "<dir>", ...  gateway_url?: str }
-            # fetch-server    → { "gateway_url": "<url>" }
-            # remove          → { "fingerprint": "<fp>", ... }
-        }
-    """
-    args: Dict[str, Any] = task.args or {}
-    action: str | None   = args.get("action")
+class _Remove(_Base):
+    action: str = Field("remove", const=True)
+    fingerprint: str
+    gateway_url: str = DEFAULT_GATEWAY
 
-    if action == "create":
-        return keys_core.create_keypair(
-            key_dir   = Path(args.get("key_dir", "")).expanduser() if args.get("key_dir") else None,
-            passphrase= args.get("passphrase"),
-        )
+class _Fetch(_Base):
+    action: str = Field("fetch-server", const=True)
+    gateway_url: str = DEFAULT_GATEWAY
 
-    if action == "upload":
-        return keys_core.upload_public_key(
-            key_dir     = Path(args.get("key_dir", "")).expanduser() if args.get("key_dir") else None,
-            gateway_url = args.get("gateway_url", keys_core.DEFAULT_GATEWAY),
-        )
+_ArgsUnion = _Create | _Upload | _Remove | _Fetch
 
-    if action == "remove":
-        return keys_core.remove_public_key(
-            fingerprint = args["fingerprint"],
-            gateway_url = args.get("gateway_url", keys_core.DEFAULT_GATEWAY),
-        )
+# schema alias so we don’t import AutoAPI in call-sites
+TaskRead = AutoAPI.get_schema(Task, "read")
 
-    if action == "fetch-server":
-        return keys_core.fetch_server_keys(
-            gateway_url = args.get("gateway_url", keys_core.DEFAULT_GATEWAY),
-        )
+# ───────────────────────────── dispatcher ───────────────────────────────
+_ACTIONS: dict[str, callable] = {
+    "create": lambda a: keys_core.create_keypair(a.key_dir, a.passphrase),
+    "upload": lambda a: keys_core.upload_public_key(
+        a.key_dir, a.passphrase, a.gateway_url
+    ),
+    "remove": lambda a: keys_core.remove_public_key(
+        a.fingerprint, a.gateway_url
+    ),
+    "fetch-server": lambda a: keys_core.fetch_server_keys(a.gateway_url),
+}
 
-    raise ValueError(f"Unknown key-management action '{action}'")
+# ──────────────────────────── entry-point ───────────────────────────────
+async def keys_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: D401
+    try:
+        args = _ArgsUnion.model_validate(task.args or {})
+    except ValidationError as exc:
+        raise ValueError(f"Invalid key-management arguments: {exc}") from exc
+
+    # call sync helper inside a worker thread to avoid blocking the event-loop
+    return await anyio.to_thread.run_sync(_ACTIONS[args.action], args)

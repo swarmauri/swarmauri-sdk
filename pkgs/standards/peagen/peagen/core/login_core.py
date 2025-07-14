@@ -20,7 +20,7 @@ from autoapi.v2 import AutoAPI  # ← for .get_schema()
 from peagen.orm import DeployKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.plugins.cryptos import ParamikoCrypto
 
 __all__ = ["login"]
 
@@ -47,9 +47,9 @@ def login(
     RuntimeError
         JSON-RPC error returned by the gateway.
     """
-    # 1 ─ ensure local key-pair
-    drv = AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
-    public_key = drv.pub_path.read_text(encoding="utf-8")
+    # 1 ─ ensure local SSH key-pair
+    drv = ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
+    public_key = drv.public_key_str()          # returns single-line OpenSSH key
 
     # 2 ─ build request/response schemas dynamically
     SCreate = _schema("create")

@@ -1,119 +1,120 @@
-"""Utility helpers for key-pair management — refactored for AutoAPIClient."""
+"""
+Key-pair helpers driven by `peagen.plugins.cryptography`.
+
+Exports
+-------
+create_keypair()      – ensure local key-pair, return fingerprint + pubkey
+upload_public_key()   – POST DeployKeys.create → dict
+remove_public_key()   – DELETE DeployKeys.delete → dict
+fetch_server_keys()   – GET   DeployKeys.list   → [dict]
+"""
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable
 
 import httpx
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
-from peagen.orm import DeployKey  # ORM resource
-
-from peagen._utils.config_loader import load_peagen_toml
-from peagen.plugins import PluginManager
 from peagen.defaults import DEFAULT_GATEWAY
+from peagen.orm import DeployKey
+from peagen.plugins import PluginManager
 
+# ───────────────────────── cryptography layer ───────────────────────────
+from peagen.plugins.cryptos.base import CryptoBase           # contract
+from peagen.plugins.cryptos.paramiko_crypto import ParamikoCrypto
 
-# ───────────────────────── secrets-driver glue (unchanged) ────────────
-def _get_driver(key_dir: Path | None = None, passphrase: str | None = None) -> Any:
-    cfg = load_peagen_toml()
+# -----------------------------------------------------------------------#
+# Internal helpers
+# -----------------------------------------------------------------------#
+def _get_crypto(
+    key_dir: str | Path | None = None,
+    passphrase: str | None = None,
+) -> CryptoBase:
+    """
+    Resolve a `CryptoBase` provider through the plugin manager.
+    Fallback ➜ `ParamikoCrypto` when no plugin is configured.
+    """
+    cfg = PluginManager.load_peagen_toml()  # helper loads ~/.peagen.toml
     pm = PluginManager(cfg)
     try:
-        drv = pm.get("secrets_drivers")
+        crypto_cls = pm.get("cryptos")             # user-supplied plugin
     except KeyError:
-        from peagen.plugins.secret_drivers import AutoGpgDriver
-
-        drv = AutoGpgDriver()
-
-    if not hasattr(drv, "list_keys"):
-        from peagen.plugins.secret_drivers import AutoGpgDriver
-
-        drv = AutoGpgDriver()
-
-    if key_dir is not None and hasattr(drv, "key_dir"):
-        drv.key_dir = Path(key_dir)
-        drv.priv_path = drv.key_dir / "private.asc"
-        drv.pub_path = drv.key_dir / "public.asc"
-
-    if passphrase is not None and hasattr(drv, "passphrase"):
-        drv.passphrase = passphrase
-
-    if hasattr(drv, "_ensure_keys"):
-        drv._ensure_keys()
-
-    return drv
+        crypto_cls = ParamikoCrypto                # built-in default
+    return crypto_cls(key_dir=key_dir, passphrase=passphrase)
 
 
-# ─────────────────────────── local helpers (unchanged) ────────────────
+@contextmanager
+def _rpc(gateway: str = DEFAULT_GATEWAY, timeout: float = 30.0):
+    with AutoAPIClient(gateway, timeout=httpx.Timeout(timeout)) as client:
+        yield client
+
+
+def _schema(verb: str):
+    """Helper for DeployKey schema look-ups (create/read/delete/list)."""
+    return AutoAPI.get_schema(DeployKey, verb)  # type: ignore[arg-type]
+
+# -----------------------------------------------------------------------#
+# Public helpers
+# -----------------------------------------------------------------------#
 def create_keypair(
-    key_dir: Path | None = None, passphrase: Optional[str] = None
+    key_dir: str | Path | None = None,
+    passphrase: str | None = None,
 ) -> dict:
-    drv = _get_driver(key_dir=key_dir, passphrase=passphrase)
-    return {"private": str(drv.priv_path), "public": str(drv.pub_path)}
+    """
+    Idempotent local key-pair provisioning.
 
-
-def list_local_keys(key_dir: Path | None = None) -> Dict[str, str]:
-    return _get_driver(key_dir=key_dir).list_keys()
-
-
-def export_public_key(
-    fingerprint: str, *, key_dir: Path | None = None, fmt: str = "armor"
-) -> str:
-    return _get_driver(key_dir=key_dir).export_public_key(fingerprint, fmt=fmt)
-
-
-def add_key(
-    public_key: Path,
-    *,
-    private_key: Path | None = None,
-    key_dir: Path | None = None,
-    name: str | None = None,
-) -> dict:
-    drv = _get_driver(key_dir=key_dir)
-    return drv.add_key(public_key, private_key=private_key, name=name)
-
-
-# ─────────────────────────── RPC helpers (new stack) ───────────────────
-def _rpc(gateway_url: str) -> AutoAPIClient:
-    return AutoAPIClient(gateway_url, client=httpx.Client(timeout=30.0))
-
-
-def _schema(tag: str):
-    return AutoAPI.get_schema(DeployKey, tag)  # classmethod
+    Returns
+    -------
+    dict  { "fingerprint": str, "public_key": str }
+    """
+    drv = _get_crypto(key_dir, passphrase)
+    return {"fingerprint": drv.fingerprint(), "public_key": drv.public_key_str()}
 
 
 def upload_public_key(
-    key_dir: Path | None = None, gateway_url: str = DEFAULT_GATEWAY
+    key_dir: str | Path | None = None,
+    passphrase: str | None = None,
+    gateway_url: str = DEFAULT_GATEWAY,
 ) -> dict:
-    drv = _get_driver(key_dir=key_dir)
-    pubkey = drv.pub_path.read_text()
-    SCreate = _schema("create")
-    SRead = _schema("read")
-
-    params = SCreate(public_key=pubkey)
+    drv = _get_crypto(key_dir, passphrase)
+    SCreateIn = _schema("create")
+    SRead     = _schema("read")
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("DeployKeys.create", params=params, out_schema=SRead)
-
+        res = rpc.call(
+            "DeployKeys.create",
+            params=SCreateIn(key=drv.public_key_str()),
+            out_schema=SRead,
+        )
     return res.model_dump()
 
 
-def remove_public_key(fingerprint: str, gateway_url: str = DEFAULT_GATEWAY) -> dict:
-    SDel = _schema("delete")
-    params = SDel(fingerprint=fingerprint)
+def remove_public_key(
+    fingerprint: str,
+    gateway_url: str = DEFAULT_GATEWAY,
+) -> dict:
+    SDeleteIn = _schema("delete")
 
     with _rpc(gateway_url) as rpc:
-        res: dict = rpc.call("DeployKeys.delete", params=params, out_schema=dict)
-
+        res: dict = rpc.call(
+            "DeployKeys.delete",
+            params=SDeleteIn(fingerprint=fingerprint),
+            out_schema=dict,
+        )
     return res
 
 
-def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> dict:
+def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> list[dict]:
     SListIn = _schema("list")
-    SRead = _schema("read")
+    SRead   = _schema("read")
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("DeployKeys.list", params=SListIn(), out_schema=list[SRead])  # type: ignore
-
+        res = rpc.call(
+            "DeployKeys.list",
+            params=SListIn(),                # no filters
+            out_schema=list[SRead],          # type: ignore[arg-type]
+        )
     return [k.model_dump() for k in res]

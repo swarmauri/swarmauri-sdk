@@ -27,6 +27,8 @@ GROUPS = {
     "git_filters": ("peagen.plugins.git_filters", object),
     "vcs": ("peagen.plugins.vcs", object),
     "selectors": ("peagen.plugins.selectors", object),
+    # keys and secrets
+    "cryptos": ("peagen.plugins.cryptos", object),
     "secrets_drivers": ("peagen.plugins.secret_drivers", object),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
@@ -151,11 +153,11 @@ class PluginManager:
             "items": "template_sets",
             "default": "template_set",
         },
-        "consumers": {
-            "section": "consumers",
-            "items": "plugins",
-            "default": "default_consumer",
-        },
+        # "consumers": {
+        #     "section": "consumers",
+        #     "items": "plugins",
+        #     "default": "default_consumer",
+        # },
         "mutators": {
             "section": "mutation",
             "items": "mutators",
@@ -176,14 +178,19 @@ class PluginManager:
             "items": "plugins",
             "default": "default_selector",
         },
-        "secrets_drivers": {
-            "section": "secrets",
-            "items": "adapters",
-            "default": "default_secret",
-        },
+        # "secrets_drivers": {
+        #     "section": "secrets",
+        #     "items": "adapters",
+        #     "default": "default_secret",
+        # },
         "llms": {
             "section": "llm",
             "default": "default_provider",
+        },
+        "cryptos": {
+            "section": "cryptos",
+            "items": "adapters",
+            "default": "default_crypto",
         },
     }
 
