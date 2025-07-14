@@ -185,6 +185,7 @@ class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
     __table_args__ = (
         UniqueConstraint("user_id", "gpg_key", name="uq_gpgkey_user_key"),
     )
+    gpg_key = Column(String, nullable=False)
     # Placeholder for compelte implementation
 
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
