@@ -1,7 +1,9 @@
 """
 peagen.cli.commands.keys
 ────────────────────────
-Manage local and remote *DeployKey* objects.
+Manage local and remote *DeployKey* objects only.
+Does not pertain to *PublicKey* or *GPGKey* objects.
+
 
 Local commands
 --------------

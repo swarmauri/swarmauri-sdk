@@ -37,8 +37,9 @@ from autoapi.v2.tables import Status
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import (
     GUIDPk,
-    UserMixin,
     TenantMixin,
+    UserMixin,
+    OrgMixin,
     Ownable,
     Bootstrappable,
     Timestamped,
@@ -83,7 +84,7 @@ class Tenant(TenantBase, Bootstrappable):
     ]
 
 
-class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
+class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
     """
     A code or data repository that lives under a tenant.
     – parent of Secrets & DeployKeys
@@ -111,7 +112,6 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, StatusMixin):
         back_populates="repository",
         cascade="all, delete-orphan",
     )
-    users = relationship(User, secondary="user_repositories", backref="repositories")
 
 
 @declarative_mixin
@@ -166,34 +166,91 @@ class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
 
 
 # ---------------------------------------------------------------------
-# 3) Secret & DeployKey now point to Repository, not Tenant
+# 3) Keys
 # ---------------------------------------------------------------------
 
 
-class Secret(Base, GUIDPk, RepositoryRefMixin, Timestamped):
-    __tablename__ = "secrets"
+
+class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
+    __tablename__ = "public_keys"
     __table_args__ = (
-        UniqueConstraint(
-            "repository_id", "name", "version", name="uq_secret_repo_name_ver"
-        ),
+        UniqueConstraint("user_id", "public_key", name="uq_publickey_user_key"),
     )
-    name = Column(String, nullable=False)
-    cipher = Column(String, nullable=False)
-    version = Column(Integer, default=0, nullable=False)
+    title      = Column(String, nullable=False)
+    public_key = Column(String, nullable=False)
+    read_only = Column(Boolean, default=True)
 
-    repository = relationship(Repository, back_populates="secrets")
+class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
+    __tablename__ = "gpg_keys"
+    __table_args__ = (
+        UniqueConstraint("user_id", "gpg_key", name="uq_gpgkey_user_key"),
+    )
+    # Placeholder for compelte implementation
 
-
-class DeployKey(Base, GUIDPk, UserMixin, RepositoryRefMixin, Timestamped):
+class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
     __tablename__ = "deploy_keys"
     __table_args__ = (
         UniqueConstraint("repository_id", "public_key", name="uq_deploykey_repo_key"),
     )
+    title      = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
 
     repository = relationship(Repository, back_populates="deploy_keys")
 
+# ---------------------------------------------------------------------
+# 3) Secrets
+# ---------------------------------------------------------------------
+class _SecretCoreMixin:                       # no table, just columns
+    name = Column(String(128), nullable=False)  # max 128 chars
+    data = Column(String,       nullable=False)  # encrypted/encoded blob
+    desc = Column(String,       nullable=True)   # optional free-text
+
+    # generic input guard – tighten as needed
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
+    )
+
+class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
+    """
+    One secret per (user_id, name).  Deleted when the user is deleted.
+    """
+    __tablename__ = "user_secrets"
+
+    __table_args__ = (
+        # scope-local uniqueness
+        UniqueConstraint("user_id", "name", name="uq_user_secret_name"),
+        # quick look-ups & RLS filter support
+        Index("ix_user_secret_user", "user_id"),
+        # pull inherited constraints
+        *_SecretCoreMixin.__table_args__,
+    )
+
+class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
+    """
+    Secret that belongs to an organisation; cascades with the org row.
+    """
+    __tablename__ = "org_secrets"
+
+    __table_args__ = (
+        UniqueConstraint("org_id", "name",  name="uq_org_secret_name"),
+        Index("ix_org_secret_org", "org_id"),
+        *_SecretCoreMixin.__table_args__,
+    )
+    
+class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
+    """
+    Secret tied to a repository; follows repo ownership transfers & deletes.
+    """
+    __tablename__ = "repo_secrets"
+
+    repository = relationship("Repository", back_populates="secrets")
+
+    __table_args__ = (
+        UniqueConstraint("repo_id", "name", name="uq_repo_secret_name"),
+        Index("ix_repo_secret_repo", "repo_id"),
+        *_SecretCoreMixin.__table_args__,
+    )
 
 # ---------------------------------------------------------------------
 # 4) Execution / queue objects (unchanged parents but FK tweaks)

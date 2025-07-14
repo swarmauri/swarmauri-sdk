@@ -1,4 +1,7 @@
-"""Login CLI command: create/verify key-pair locally and upload the public key."""
+"""
+Login CLI command: create/verify key-pair locally and upload *PublicKey* object.
+
+"""
 
 from __future__ import annotations
 
