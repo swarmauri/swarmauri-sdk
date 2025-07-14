@@ -246,7 +246,7 @@ class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
     repository = relationship("Repository", back_populates="secrets")
 
     __table_args__ = (
-        UniqueConstraint("repo_id", "name"),
+        UniqueConstraint("repository_id", "name"),
         *_SecretCoreMixin.__table_args__,
     )
 
