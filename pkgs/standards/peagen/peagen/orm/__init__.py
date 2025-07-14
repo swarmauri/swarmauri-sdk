@@ -18,6 +18,7 @@ from autoapi.v2.types import (
     Integer,
     String,
     UniqueConstraint,
+    CheckConstraint,
     PgEnum,
     UUID,
     MutableDict,
