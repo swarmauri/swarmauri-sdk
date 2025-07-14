@@ -20,12 +20,6 @@ class GUIDPk:
 
 
 # ────────── principals -----------------------------------------
-@declarative_mixin
-class Ownable:
-    owner_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False
-    )
-
 
 class TenantMixin:
     tenant_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("tenants.id"))
@@ -37,6 +31,17 @@ class UserMixin:
         UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False
     )
 
+@declarative_mixin
+class OrgMixin:
+    org_id = Column(
+        UUID(as_uuid=True), ForeignKey("orgs.id"), index=True, nullable=False
+    )
+
+@declarative_mixin
+class Ownable:
+    owner_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False
+    )
 
 @declarative_mixin
 class Principal:  # concrete table marker
