@@ -53,7 +53,7 @@ from swarmauri_standard.loggers.Logger import Logger
 from . import _publish, schedule_helpers
 from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
-from .hooks import *  # noqa: F401,F403  (registers decorators)
+
 
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -89,6 +89,9 @@ api = AutoAPI(
     },
     get_async_db=get_async_db,
 )
+
+
+from .hooks import *  # noqa: F401,F403  (registers decorators) Must come after api is defined until we refactor
 
 app.include_router(api.router)
 app.include_router(ws_router)
