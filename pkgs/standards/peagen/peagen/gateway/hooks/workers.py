@@ -72,7 +72,7 @@ async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
     try:
         key = WORKER_KEY.format(str(created.id))
 
-        await queue.hset(key, _as_redis_hash(created)))
+        await queue.hset(key, _as_redis_hash(created))
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
