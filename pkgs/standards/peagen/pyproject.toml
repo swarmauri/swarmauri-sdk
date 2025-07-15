@@ -170,7 +170,7 @@ file    = "peagen.plugins.git_filters.file_filter:FileFilter"
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.cryptos"]
-git = "peagen.plugins.cryptos.paramiko:ParamikoCrypto"
+git = "peagen.plugins.cryptos.paramiko_crypto:ParamikoCrypto"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"

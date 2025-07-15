@@ -23,8 +23,8 @@ from peagen.orm import DeployKey
 from peagen.plugins import PluginManager
 
 # ───────────────────────── cryptography layer ───────────────────────────
-from peagen.plugins.cryptos.base import CryptoBase           # contract
-from peagen.plugins.cryptos.paramiko_crypto import ParamikoCrypto
+from peagen.plugins.cryptos import ParamikoCrypto, CryptoBase
+
 
 # -----------------------------------------------------------------------#
 # Internal helpers
@@ -40,9 +40,9 @@ def _get_crypto(
     cfg = PluginManager.load_peagen_toml()  # helper loads ~/.peagen.toml
     pm = PluginManager(cfg)
     try:
-        crypto_cls = pm.get("cryptos")             # user-supplied plugin
+        crypto_cls = pm.get("cryptos")  # user-supplied plugin
     except KeyError:
-        crypto_cls = ParamikoCrypto                # built-in default
+        crypto_cls = ParamikoCrypto  # built-in default
     return crypto_cls(key_dir=key_dir, passphrase=passphrase)
 
 
@@ -55,6 +55,7 @@ def _rpc(gateway: str = DEFAULT_GATEWAY, timeout: float = 30.0):
 def _schema(verb: str):
     """Helper for DeployKey schema look-ups (create/read/delete/list)."""
     return AutoAPI.get_schema(DeployKey, verb)  # type: ignore[arg-type]
+
 
 # -----------------------------------------------------------------------#
 # Public helpers
@@ -81,7 +82,7 @@ def upload_public_key(
 ) -> dict:
     drv = _get_crypto(key_dir, passphrase)
     SCreateIn = _schema("create")
-    SRead     = _schema("read")
+    SRead = _schema("read")
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
@@ -109,12 +110,12 @@ def remove_public_key(
 
 def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> list[dict]:
     SListIn = _schema("list")
-    SRead   = _schema("read")
+    SRead = _schema("read")
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
             "DeployKeys.list",
-            params=SListIn(),                # no filters
-            out_schema=list[SRead],          # type: ignore[arg-type]
+            params=SListIn(),  # no filters
+            out_schema=list[SRead],  # type: ignore[arg-type]
         )
     return [k.model_dump() for k in res]

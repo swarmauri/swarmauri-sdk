@@ -18,7 +18,7 @@ from typing import List, Optional
 import typer
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
-from peagen.orm import Secret
+from peagen.orm import RepoSecret
 from peagen.core import secrets_core
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
@@ -35,7 +35,7 @@ def _rpc(url: str) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(Secret, tag)
+    return AutoAPI.get_schema(RepoSecret, tag)
 
 
 # ─────────────────────── LOCAL COMMANDS (unchanged) ───────────────────
@@ -93,7 +93,7 @@ def add_remote_secret(  # noqa: PLR0913
     )
     try:
         with _rpc(gateway_url) as rpc:
-            res = rpc.call("Secrets.create", params=params, out_schema=SRead)
+            res = rpc.call("RepoSecrets.create", params=params, out_schema=SRead)
         typer.echo(f"🚀  uploaded secret '{res.secretId}' (v{res.version})")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
@@ -110,7 +110,7 @@ def get_remote_secret(
     try:
         with _rpc(gateway_url) as rpc:
             secret = rpc.call(
-                "Secrets.read",
+                "RepoSecrets.read",
                 params={"secretId": secret_id, "version": version},
                 out_schema=SRead,
             )
@@ -130,7 +130,7 @@ def remove_remote_secret(
     try:
         params = SDel(secretId=secret_id, version=version)
         with _rpc(gateway_url) as rpc:
-            rpc.call("Secrets.delete", params=params, out_schema=dict)
+            rpc.call("RepoSecrets.delete", params=params, out_schema=dict)
         typer.echo(f"🗑️  removed secret '{secret_id}' from gateway")
     except Exception as exc:
         typer.echo(f"❌  {exc}", err=True)
@@ -145,7 +145,7 @@ def fetch_server_secrets(
     SRead = _schema("read")
     try:
         with _rpc(gateway_url) as rpc:
-            lst = rpc.call("Secrets.list", params=SListIn(), out_schema=list[SRead])  # type: ignore[arg-type]
+            lst = rpc.call("RepoSecrets.list", params=SListIn(), out_schema=list[SRead])  # type: ignore[arg-type]
         typer.echo(json.dumps([s.model_dump() for s in lst], indent=2))
     except Exception as exc:
         typer.echo(f"❌  {exc}", err=True)
