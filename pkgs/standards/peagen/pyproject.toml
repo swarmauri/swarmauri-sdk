@@ -170,7 +170,8 @@ file    = "peagen.plugins.git_filters.file_filter:FileFilter"
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.cryptos"]
-git = "peagen.plugins.cryptos.paramiko:ParamikoCrypto"
+paramiko = "peagen.plugins.cryptos.paramiko_crypto:ParamikoCrypto"
+pgp = "peagen.plugins.cryptos.pgp_crypto:PGPCrypto"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
@@ -197,9 +198,9 @@ echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
 llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
-[project.entry-points."peagen.plugins.secret_drivers"]
-env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
-autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
+# [project.entry-points."peagen.plugins.secret_drivers"]
+# env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
+# autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
 
 [project.entry-points."peagen.plugins.evaluators"]
 psutil_io = "peagen.plugins.evaluators.psutil_io:PsutilIOEvaluator"

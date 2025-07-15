@@ -15,12 +15,10 @@ Assumptions & Guarantees
 from __future__ import annotations
 
 import hashlib
-import shutil
-import tempfile
 import uuid
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from autoapi.v2 import AutoAPI
 from peagen.orm import Task, Status, Action

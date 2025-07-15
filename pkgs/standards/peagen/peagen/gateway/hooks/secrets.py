@@ -12,16 +12,24 @@ from typing import Any, Dict
 
 from autoapi.v2 import AutoAPI, Phase
 
-from peagen.orm import Secret
+from peagen.orm import RepoSecret
+# Activate if UserSecret, OrgSecret are enabled
+# from peagen.orm import OrgSecret, UserSecret
 
 from peagen.gateway import api, log
 
-# Generated schemas (if you need field names etc.)
-SecretRead = AutoAPI.get_schema(Secret, "read")
+# Activate if UserSecret, OrgSecret are enabled
+# UserSecretRead = AutoAPI.get_schema(UserSecret, "read")
+# OrgSecretRead = AutoAPI.get_schema(OrgSecret, "read")
+
+RepoSecretRead = AutoAPI.get_schema(RepoSecret, "read")
 
 
 # ─────────────────────────── hooks ───────────────────────────────────
-@api.hook(Phase.POST_COMMIT, method="Secrets.create")
+# Activate if UserSecret, OrgSecret are enabled
+# @api.hook(Phase.POST_COMMIT, method="UserSecrets.create")
+# @api.hook(Phase.POST_COMMIT, method="OrgSecrets.create")
+@api.hook(Phase.POST_COMMIT, method="RepoSecrets.create")
 async def post_secret_add(ctx: Dict[str, Any]) -> None:
     """Return a simple OK dict after the secret is persisted."""
     log.info("entering post_secret_add")
@@ -31,10 +39,13 @@ async def post_secret_add(ctx: Dict[str, Any]) -> None:
     ctx["result"] = {"ok": True}  # ← no ad-hoc model
 
 
-@api.hook(Phase.POST_COMMIT, method="Secrets.delete")
+# Activate if UserSecret, OrgSecret are enabled
+# @api.hook(Phase.POST_COMMIT, method="UserSecrets.delete")
+# @api.hook(Phase.POST_COMMIT, method="OrgSecrets.delete")
+@api.hook(Phase.POST_COMMIT, method="RepoSecrets.delete")
 async def post_secret_delete(ctx: Dict[str, Any]) -> None:
     """Confirm deletion with a flat OK payload."""
     log.info("entering post_secret_delete")
-    
+
     params = ctx["env"].params
     log.info("Secret deleted: %s", params.name)

@@ -4,7 +4,6 @@ peagen init – scaffolding helpers for every first-class artefact.
 """
 
 from __future__ import annotations
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 
@@ -15,7 +14,7 @@ from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
 from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 
 
