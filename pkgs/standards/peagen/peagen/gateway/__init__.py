@@ -91,7 +91,6 @@ api = AutoAPI(
 )
 
 
-from .hooks import *  # noqa: F401,F403  (registers decorators) Must come after api is defined until we refactor
 
 app.include_router(api.router)
 app.include_router(ws_router)
@@ -104,6 +103,10 @@ queue: QueueBase = (
     queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
 )
 
+# ─────────── NOQA Import ─────────────────────
+# Must import after api and queue are defined due to prevent circular imports.
+
+from .hooks import *  # noqa: F401,F403  (registers decorators) Must come after api is defined until we refactor
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
 all_tags = set()
