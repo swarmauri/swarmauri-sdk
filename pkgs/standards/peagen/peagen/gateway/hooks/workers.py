@@ -71,7 +71,8 @@ async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
 
     try:
         key = WORKER_KEY.format(str(created.id))
-        await queue.hset(key, {"updated_at": str(created.updated_at)})
+
+        await queue.hset(key, _as_redis_hash(created)))
         await queue.expire(key, WORKER_TTL)
         log.info(f"cached `{key}` ")
     except Exception as exc:
@@ -131,7 +132,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
 
         key = WORKER_KEY.format(worker_id)
         log.info(f"key: {key}")
-        await queue.hset(key, _as_redis_hash(updated))
+        await queue.hset(key, {"updated_at": str(updated.updated_at)})
         log.info("key set worked.")
         await queue.expire(key, WORKER_TTL)
         log.info("key expiration set.")
