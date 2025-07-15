@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from autoapi.v2 import AutoAPI
 from peagen.orm import Task

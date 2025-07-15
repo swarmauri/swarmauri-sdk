@@ -13,7 +13,6 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -24,7 +23,7 @@ from peagen.handlers.sort_handler import sort_handler
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.orm import Status
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 # ────────────────────────── apps ───────────────────────────────
 local_sort_app = typer.Typer(help="Sort generated project files locally.")

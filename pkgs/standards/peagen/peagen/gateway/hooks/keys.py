@@ -54,7 +54,7 @@ async def post_key_upload(ctx: Dict[str, Any]) -> None:
     log.info("entering post_key_upload")
 
     params: SCreate = ctx["env"].params
-    fp: str = ctx["fingerprint"]
+    fp: str = params.fingerprint
 
     log.info("key persisted (fingerprint=%s)", fp)
 

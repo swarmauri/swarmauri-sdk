@@ -7,13 +7,10 @@ Create Date: 2025-07-01 00:00:00
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timezone
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from sqlalchemy import text
-from alembic import op
 
 revision: str = "69f4d7c302fa"
 down_revision: Union[str, None] = None

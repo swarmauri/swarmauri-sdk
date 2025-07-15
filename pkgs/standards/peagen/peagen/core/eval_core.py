@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import os
 import shutil
 import uuid
 from contextlib import suppress

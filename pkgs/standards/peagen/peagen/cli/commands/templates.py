@@ -9,7 +9,7 @@ import typer
 from peagen.handlers.templates_handler import templates_handler
 from peagen.cli.task_helpers import build_task, submit_task
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_GATEWAY
 
 # ────────────────────────── apps ───────────────────────────────
 local_template_sets_app = typer.Typer(
