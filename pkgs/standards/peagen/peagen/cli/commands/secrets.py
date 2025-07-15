@@ -21,7 +21,7 @@ from autoapi.v2 import AutoAPI
 from peagen.orm import RepoSecret
 from peagen.core import secrets_core
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_GATEWAY
 
 # ────────────────────────── apps ───────────────────────────────
 

@@ -15,10 +15,9 @@ Changes vs. legacy
 from __future__ import annotations
 
 import hashlib
-import shutil
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 from autoapi.v2 import AutoAPI
@@ -38,7 +37,6 @@ from peagen.core.doe_core import (
 )
 from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
-from peagen.plugins.vcs import pea_ref
 
 from .fanout import fan_out
 # ───────────────────────── schema handle ────────────────────────────

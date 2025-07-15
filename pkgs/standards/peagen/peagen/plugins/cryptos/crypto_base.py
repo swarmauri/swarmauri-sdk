@@ -4,9 +4,8 @@ import abc
 import base64
 import hashlib
 import json
-import os
 from pathlib import Path
-from typing import Final, Iterable, Protocol, runtime_checkable
+from typing import Final, Iterable
 
 # ──────────────────────────────── envelope ────────────────────────────────
 class HybridEnvelope(dict):

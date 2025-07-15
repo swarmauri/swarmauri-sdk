@@ -5,7 +5,7 @@ import typer
 
 from peagen.tui.app import QueueDashboardApp
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_GATEWAY
 
 # ────────────────────────── apps ───────────────────────────────
 

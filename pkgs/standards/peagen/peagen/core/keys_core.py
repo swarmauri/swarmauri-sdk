@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Iterable
 
 import httpx
 from autoapi_client import AutoAPIClient
