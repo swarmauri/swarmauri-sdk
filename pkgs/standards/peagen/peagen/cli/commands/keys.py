@@ -75,20 +75,11 @@ def upload(
     key_dir: Path = typer.Option(Path.home() / ".peagen" / "keys", "--key-dir"),
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
-    SCreate = _schema("create")
-    SRead = _schema("read")
-
     try:
-        payload = keys_core.export_public_key_as_dict(
-            key_dir
-        )  # {"fingerprint": …, "key": …}
-        params = SCreate.model_validate(payload)
-
-        with _rpc_client(gateway_url) as rpc:
-            res = rpc.call("DeployKeys.create", params=params, out_schema=SRead)
-
-        typer.echo(f"🚀  Uploaded key – fingerprint: {res.fingerprint}")
-
+        res = keys_core.upload_public_key(key_dir=key_dir, gateway_url=gateway_url)
+        typer.echo(
+            f"🚀  Uploaded key – fingerprint: {res.get('fingerprint', 'unknown')}"
+        )
     except (httpx.HTTPError, ValueError) as exc:
         typer.echo(f"❌  Upload failed: {exc}", err=True)
         raise typer.Exit(1)
@@ -101,16 +92,9 @@ def remove(
     fingerprint: str,
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
-    SDel = _schema("delete")
-
     try:
-        params = SDel(fingerprint=fingerprint)
-        with _rpc_client(gateway_url) as rpc:
-            rpc.call(
-                "DeployKeys.delete", params=params
-            )  # returns empty dict on success
+        keys_core.remove_public_key(fingerprint=fingerprint, gateway_url=gateway_url)
         typer.echo(f"🗑️  Removed key {fingerprint} from gateway.")
-
     except httpx.HTTPError as exc:
         typer.echo(f"❌  Removal failed: {exc}", err=True)
         raise typer.Exit(1)
@@ -122,19 +106,9 @@ def fetch_server(
     ctx: typer.Context,
     gateway_url: str = typer.Option(DEFAULT_GATEWAY, "--gateway-url"),
 ) -> None:
-    SListIn = _schema("list")
-    SRead = _schema("read")
-
     try:
-        with _rpc_client(gateway_url) as rpc:
-            keys = rpc.call(
-                "DeployKeys.list",
-                params=SListIn(),  # empty input model
-                out_schema=list[SRead],  # type: ignore[arg-type]
-            )
-
-        typer.echo(json.dumps([k.model_dump() for k in keys], indent=2))
-
+        keys = keys_core.fetch_server_keys(gateway_url=gateway_url)
+        typer.echo(json.dumps(keys, indent=2))
     except httpx.HTTPError as exc:
         typer.echo(f"❌  Fetch failed: {exc}", err=True)
         raise typer.Exit(1)
