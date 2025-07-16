@@ -103,7 +103,7 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
     remote_name = Column(String, nullable=False, default="origin")
 
     secrets = relationship(
-        "Secret", back_populates="repository", cascade="all, delete-orphan"
+        "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
     )
     deploy_keys = relationship(
         "DeployKey", back_populates="repository", cascade="all, delete-orphan"
