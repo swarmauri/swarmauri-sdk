@@ -19,23 +19,23 @@ class _Base(BaseModel):
     action: str
 
 class _Create(_Base):
-    action: str = Field("create", const=True)
+    action: str = Field("create", Literal=True)
     key_dir: Path | None = None
     passphrase: str | None = None
 
 class _Upload(_Base):
-    action: str = Field("upload", const=True)
+    action: str = Field("upload", Literal=True)
     key_dir: Path | None = None
     passphrase: str | None = None
     gateway_url: str = DEFAULT_GATEWAY
 
 class _Remove(_Base):
-    action: str = Field("remove", const=True)
+    action: str = Field("remove", Literal=True)
     fingerprint: str
     gateway_url: str = DEFAULT_GATEWAY
 
 class _Fetch(_Base):
-    action: str = Field("fetch-server", const=True)
+    action: str = Field("fetch-server", Literal=True)
     gateway_url: str = DEFAULT_GATEWAY
 
 _ArgsUnion = _Create | _Upload | _Remove | _Fetch
