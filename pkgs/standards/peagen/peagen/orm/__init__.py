@@ -32,7 +32,7 @@ from autoapi.v2.types import (
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
 # ---------------------------------------------------------------------
-from autoapi.v2.tables import Tenant as TenantBase, User
+from autoapi.v2.tables import Tenant as TenantBase, User, Org
 from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import Status
 from autoapi.v2.tables import Base

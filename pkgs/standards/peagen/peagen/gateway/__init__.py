@@ -30,6 +30,7 @@ from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 from peagen.orm import (
     Base,
     DeployKey,
+    Org,
     Pool,
     RawBlob,
     Repository,
@@ -73,6 +74,7 @@ api = AutoAPI(
     include={
         Tenant,
         User,
+        Org,
         Role,
         RoleGrant,
         RolePerm,
