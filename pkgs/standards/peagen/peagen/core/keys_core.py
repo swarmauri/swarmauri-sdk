@@ -17,6 +17,7 @@ from pathlib import Path
 import httpx
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
+from peagen._utils.config_loader import resolve_cfg
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import DeployKey
 from peagen.plugins import PluginManager
@@ -36,7 +37,7 @@ def _get_crypto(
     Resolve a `CryptoBase` provider through the plugin manager.
     Fallback ➜ `ParamikoCrypto` when no plugin is configured.
     """
-    cfg = PluginManager.load_peagen_toml()  # helper loads ~/.peagen.toml
+    cfg = resolve_cfg()  # helper loads ~/.peagen.toml
     pm = PluginManager(cfg)
     try:
         crypto_cls = pm.get("cryptos")  # user-supplied plugin
