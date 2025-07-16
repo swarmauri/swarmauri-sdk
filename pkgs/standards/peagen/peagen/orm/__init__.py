@@ -32,7 +32,7 @@ from autoapi.v2.types import (
 # ---------------------------------------------------------------------
 # bring in the baseline tables that AutoAPI already owns
 # ---------------------------------------------------------------------
-from autoapi.v2.tables import Tenant as TenantBase, User, Org
+from autoapi.v2.tables import Tenant as TenantBase, User as UserBase, Org
 from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import Status
 from autoapi.v2.tables import Base
@@ -55,6 +55,10 @@ from peagen.defaults import (
     DEFAULT_TENANT_EMAIL,
     DEFAULT_TENANT_NAME,
     DEFAULT_TENANT_SLUG,
+    DEFAULT_SUPER_USER_ID,
+    DEFAULT_SUPER_USER_EMAIL,
+    DEFAULT_SUPER_USER_ID_2,
+    DEFAULT_SUPER_USER_EMAIL_2
 )
 
 
@@ -84,6 +88,20 @@ class Tenant(TenantBase, Bootstrappable):
         }
     ]
 
+
+class User(UserBase, Bootstrappable):
+    DEFAULT_ROWS = [
+        {
+            "id": DEFAULT_SUPER_USER_ID,
+            "email": DEFAULT_SUPER_USER_EMAIL,
+            "tenant_id": DEFAULT_TENANT_ID,
+        },
+        {
+            "id": DEFAULT_SUPER_USER_ID_2,
+            "email": DEFAULT_SUPER_USER_EMAIL_2,
+            "tenant_id": DEFAULT_TENANT_ID,
+        }
+    ]
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
     """

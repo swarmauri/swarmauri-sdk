@@ -17,7 +17,7 @@ import httpx
 
 from autoapi_client import AutoAPIClient  # ← new client
 from autoapi.v2 import AutoAPI  # ← for .get_schema()
-from peagen.orm import DeployKey  # ORM resource
+from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.plugins.cryptos import ParamikoCrypto
@@ -27,8 +27,8 @@ __all__ = ["login"]
 
 # ----------------------------------------------------------------------
 def _schema(tag: str):
-    """Shortcut to the server-generated schema for the DeployKey resource."""
-    return AutoAPI.get_schema(DeployKey, tag)
+    """Shortcut to the server-generated schema for the PublicKey resource."""
+    return AutoAPI.get_schema(PublicKey, tag)
 
 
 def login(
@@ -55,7 +55,7 @@ def login(
     SCreate = _schema("create")
     SRead = _schema("read")
 
-    params = SCreate(public_key=public_key)
+    params = SCreate(public_key=public_key, title="default")
 
     # 3 ─ JSON-RPC call via AutoAPIClient
     with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:

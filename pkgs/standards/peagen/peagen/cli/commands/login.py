@@ -11,7 +11,7 @@ from typing import Optional
 import typer
 from httpx import HTTPError
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.plugins.cryptos import ParamikoCrypto
 from peagen.core.login_core import login as core_login
 from peagen.defaults import DEFAULT_GATEWAY
 
@@ -48,7 +48,7 @@ def login(
         gateway_url += "/rpc"
 
     # Fail fast if the key-pair is missing or unreadable.
-    AutoGpgDriver(key_dir=key_dir, passphrase=passphrase)
+    ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
 
     try:
         reply = core_login(
@@ -65,3 +65,4 @@ def login(
         raise typer.Exit(1)
 
     typer.echo("Logged in and uploaded public key")
+
