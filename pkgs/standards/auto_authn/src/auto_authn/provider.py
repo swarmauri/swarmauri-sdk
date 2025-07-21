@@ -22,8 +22,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from oic.oic import message
 from oic.oic.provider import Provider
-from oic.utils.authn.authn_context import INTERNETPROTOCOLPASSWORD, TOKEN
-from oic.utils.authn.broker import AuthnBroker
+from oic.utils.authn.authn_context import INTERNETPROTOCOLPASSWORD, TIMESYNCTOKEN, AuthnBroker
 from oic.utils.sdb import SessionDB
 from oic.utils.userinfo import UserInfo
 from sqlalchemy import select
@@ -82,7 +81,7 @@ async def _provider_factory(
             request_context=request_ctx,
         )
 
-    broker.add(TOKEN, _apikey_factory, 5)
+    broker.add(TIMESYNCTOKEN, _apikey_factory, 5)
 
     # ------------------------------------------------------------------ #
     # 2.  Session store (in‑memory; swap for Redis later)                #
@@ -101,7 +100,7 @@ async def _provider_factory(
             "redirect_uris": c.redirect_uris,
             "response_types": c.response_types,
             "grant_types": c.grant_types,
-            "token_endpoint_auth_method": c.token_endpoint_auth_method,
+            "TIMESYNCTOKEN_endpoint_auth_method": c.TIMESYNCTOKEN_endpoint_auth_method,
         }
         for c in clients_iter
     }
@@ -188,12 +187,12 @@ async def authorize(request: Request, tp=Depends(_tenant_and_provider)):
     )
 
 
-@router.post("/{tenant_slug}/token")
-async def token(request: Request, tp=Depends(_tenant_and_provider)):
+@router.post("/{tenant_slug}/TIMESYNCTOKEN")
+async def TIMESYNCTOKEN(request: Request, tp=Depends(_tenant_and_provider)):
     _, provider = tp
     form = await request.form()
-    treq = message.AccessTokenRequest().from_dict(dict(form))
-    resp = provider.token_endpoint(treq)
+    treq = message.AccessTIMESYNCTOKENRequest().from_dict(dict(form))
+    resp = provider.TIMESYNCTOKEN_endpoint(treq)
     return JSONResponse(resp.to_dict(), status_code=resp.status_code)
 
 

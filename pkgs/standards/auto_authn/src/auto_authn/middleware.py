@@ -38,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api_keys import verify_api_key
 from .config import settings
-from .db import SessionMaker
+from . import db
 from .models import Tenant
 
 # --------------------------------------------------------------------------- #
@@ -81,10 +81,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         tenant_slug = match.group(1)
 
-        async with SessionMaker() as db:  # type: ignore[arg-type]
-            tenant = await _get_active_tenant(db, tenant_slug)
+        # Ensure SessionMaker is initialized
+        if db.SessionMaker is None:
+            db._init_sessionmaker()
+
+        async with db.SessionMaker() as db_session:  # type: ignore[arg-type]
+            tenant = await _get_active_tenant(db_session, tenant_slug)
             if tenant:
-                principal = await _authenticate(request, tenant, db)
+                principal = await _authenticate(request, tenant, db_session)
                 request.state.principal = principal  # may be None
 
         return await call_next(request)

@@ -105,8 +105,8 @@ class Settings(BaseSettings):
     allowed_clock_skew: int = Field(120, ge=0)
 
     # API-key guardrails
-    api_key_min_ttl: int = Field(API_KEY_MIN_TTL, ge=1, le=API_KEY_MAX_TTL)
-    api_key_max_ttl: int = Field(API_KEY_MAX_TTL, ge=7, le=365)
+    api_key_min_ttl: int = Field(API_KEY_MIN_TTL, ge=1, le=API_KEY_MIN_TTL)
+    api_key_max_ttl: int = Field(API_KEY_MAX_TTL, ge=7, le=API_KEY_MAX_TTL)
     api_key_hash_secret: str = Field(API_KEY_HASH_SECRET)
 
     # --------------------------------------------------------------------- #

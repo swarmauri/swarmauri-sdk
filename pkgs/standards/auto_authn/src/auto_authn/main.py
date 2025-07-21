@@ -23,7 +23,8 @@ from .api_keys import create_api_key, revoke_api_key
 from .config import settings
 from .db import get_session, lifespan
 from .middleware import AuthMiddleware, Principal, get_principal
-from .models import APIKey, APIKeyOut
+from .models import APIKey
+from .schema import APIKeyOut
 from .provider import router as oidc_router
 from pydantic import BaseModel, Field
 
