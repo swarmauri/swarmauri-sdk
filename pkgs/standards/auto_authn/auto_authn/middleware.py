@@ -1,5 +1,5 @@
 """
-auth_authn_idp.middleware
+auto_authn.middleware
 =========================
 Common FastAPI authentication helpers.
 
@@ -19,7 +19,7 @@ Assumptions
 -----------
 • All tenant‑scoped routes start with `/{tenant_slug}/…`.
 • Your FastAPI app already wires the database `lifespan()` from
-  `auth_authn_idp.db`.
+  `auto_authn.db`.
 """
 
 from __future__ import annotations

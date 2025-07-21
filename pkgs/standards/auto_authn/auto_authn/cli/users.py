@@ -1,5 +1,5 @@
 """
-auth_authn_idp.cli.users
+auto_authn.cli.users
 ========================
 User‑management commands for the Auth‑AuthN CLI.
 

@@ -1,5 +1,5 @@
 """
-auth_authn_idp.crypto
+auto_authn.crypto
 =====================
 Key‑management helpers for the Auth + AuthN OIDC provider.
 

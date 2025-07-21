@@ -1,11 +1,11 @@
 """
-auth_authn_idp.main
+auto_authn.main
 ===================
 ASGI entry‑point for the Auth‑AuthN Identity‑Provider.
 
 Run locally
 -----------
-    uvicorn auth_authn_idp.main:app --reload
+    uvicorn auto_authn.main:app --reload
 """
 
 from __future__ import annotations
@@ -157,7 +157,7 @@ if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
     uvicorn.run(
-        "auth_authn_idp.main:app",
+        "auto_authn.main:app",
         host=settings.host,
         port=settings.port,
         reload=True,

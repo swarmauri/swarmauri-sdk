@@ -1,5 +1,5 @@
 """
-auth_authn_idp.config
+auto_authn.config
 =====================
 Environment-driven configuration for the Auth + AuthN Identity-Provider.
 

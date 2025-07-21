@@ -1,5 +1,5 @@
 """
-auth_authn_idp.cli.keys
+auto_authn.cli.keys
 =======================
 CLI management for *long‑lived API keys* (7 – 90 days).
 
@@ -71,7 +71,7 @@ def create(
         console.print(f"[green]🔑 {secret}[/]  (store it securely)")
 
         if save:
-            keyring.set_password("auth-authn-api-key", "default", secret)
+            keyring.set_password("auto_authn-api-key", "default", secret)
             console.print("[cyan]✓ Saved to OS keyring (profile 'default')[/]")
 
     asyncio.run(_run())

@@ -1,5 +1,5 @@
 """
-auth_authn_idp.api_keys
+auto_authn.api_keys
 ~~~~~~~~~~~~~~~~~~~~~~~
 Business logic for Personal‑Access‑Tokens (“API keys”).
 

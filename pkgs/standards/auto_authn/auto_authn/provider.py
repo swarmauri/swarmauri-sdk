@@ -1,13 +1,13 @@
 """
-auth_authn_idp.provider
+auto_authn.provider
 =======================
 Factory / router glue for the Auth + AuthN OIDC server.
 
 Typical FastAPI wiring
 ----------------------
     from fastapi import FastAPI
-    from auth_authn_idp.db       import lifespan
-    from auth_authn_idp.provider import router        # OIDC endpoints
+    from auto_authn.db       import lifespan
+    from auto_authn.provider import router        # OIDC endpoints
 
     app = FastAPI(lifespan=lifespan)
     app.include_router(router, prefix="/{tenant_slug}")

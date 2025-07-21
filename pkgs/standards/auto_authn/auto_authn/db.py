@@ -1,5 +1,5 @@
 """
-auth_authn_idp.db
+auto_authn.db
 =================
 Centralised SQLAlchemy 2.x *async* engine & session factory.
 

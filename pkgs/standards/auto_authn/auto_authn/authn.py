@@ -1,5 +1,5 @@
 """
-auth_authn_idp.authn
+auto_authn.authn
 ~~~~~~~~~~~~~~~~~~~~
 Pluggable authentication back‑ends for *pyoidc*.
 

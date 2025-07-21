@@ -1,5 +1,5 @@
 """
-auth_authn_idp.models
+auto_authn.models
 =====================
 Declarative ORM classes for the Auth + AuthN server (SQLAlchemy 2.x).
 
