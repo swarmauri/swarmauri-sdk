@@ -22,7 +22,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from oic.oic import message
 from oic.oic.provider import Provider
-from oic.utils.authn.authn_context import INTERNETPROTOCOLPASSWORD, TIMESYNCTOKEN, AuthnBroker
+from oic.utils.authn.authn_context import (
+    INTERNETPROTOCOLPASSWORD,
+    TIMESYNCTOKEN,
+    AuthnBroker,
+)
 from oic.utils.sdb import SessionDB
 from oic.utils.userinfo import UserInfo
 from sqlalchemy import select
@@ -188,7 +192,7 @@ async def authorize(request: Request, tp=Depends(_tenant_and_provider)):
 
 
 @router.post("/{tenant_slug}/TIMESYNCTOKEN")
-async def TIMESYNCTOKEN(request: Request, tp=Depends(_tenant_and_provider)):
+async def timesync_token(request: Request, tp=Depends(_tenant_and_provider)):
     _, provider = tp
     form = await request.form()
     treq = message.AccessTIMESYNCTOKENRequest().from_dict(dict(form))
