@@ -1,4 +1,4 @@
-## 🛠️ CLI Reference `auth‑authn`
+## 🛠️ CLI Reference `auto‑authn`
 
 > All commands follow the pattern
 > `auto-authn <GROUP> <COMMAND> [OPTIONS]`

@@ -81,11 +81,11 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
-#  > pip install auth-authn[postgres]
+#  > pip install auto-authn[postgres]
 postgres = [ "asyncpg>=0.29,<1.0" ]
 
-#  > pip install auth-authn[sqlite]
+#  > pip install auto-authn[sqlite]
 sqlite   = [ "aiosqlite>=0.19,<1.0" ]
 
 [project.scripts]
-auth-authn = "auto_authn.cli.__init__:app"   # Typer CLI (if you keep it)
+auto-authn = "auto_authn.cli.__init__:app"   # Typer CLI (if you keep it)
