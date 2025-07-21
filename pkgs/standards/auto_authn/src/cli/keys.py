@@ -25,7 +25,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from . import BASE_URL, bearer_header, print_table
+from . import BASE_URL, bearer_header
 
 __all__ = ["app"]
 

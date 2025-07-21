@@ -13,8 +13,6 @@ Example
 from __future__ import annotations
 
 import asyncio
-import secrets
-import sys
 from typing import Optional
 from uuid import UUID
 
@@ -23,7 +21,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from . import BASE_URL, bearer_header, keyring_save_token
+from . import BASE_URL, bearer_header
 
 __all__ = ["app"]
 

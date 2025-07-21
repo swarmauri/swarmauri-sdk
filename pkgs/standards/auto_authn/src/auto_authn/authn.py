@@ -11,15 +11,15 @@ under different ACR values.
 
 Design principles
 -----------------
-• Hard multi‑tenancy – every query filtered by ``tenant.id``.  
-• All successes / failures are audit‑logged.  
-• API keys are *never* stored or returned in plaintext; only hashed.  
+• Hard multi‑tenancy – every query filtered by ``tenant.id``.
+• All successes / failures are audit‑logged.
+• API keys are *never* stored or returned in plaintext; only hashed.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from oic.utils.authn.user import UserAuthnMethod
 from oic.utils.time_util import time_sans_frac
@@ -36,8 +36,8 @@ log = logging.getLogger(__name__)
 # --------------------------------------------------------------------------- #
 # Constants                                                                   #
 # --------------------------------------------------------------------------- #
-_ACR_PASSWORD = "pwd"       # INTERNETPROTOCOLPASSWORD
-_ACR_API_KEY = "api_key"    # TOKEN
+_ACR_PASSWORD = "pwd"  # INTERNETPROTOCOLPASSWORD
+_ACR_API_KEY = "api_key"  # TOKEN
 
 
 # --------------------------------------------------------------------------- #
@@ -89,9 +89,7 @@ class SQLPasswordAuthn(UserAuthnMethod):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
     # Mandatory pyoidc entry point                                          #
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-    async def verify(
-        self, username: str, password: str
-    ) -> Optional[Dict[str, Any]]:
+    async def verify(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         stmt = (
             select(User)
             .where(User.tenant_id == self.tenant.id)

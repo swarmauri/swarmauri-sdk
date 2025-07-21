@@ -17,9 +17,9 @@ Supported credentials
 
 Assumptions
 -----------
-• All tenant‑scoped routes start with `/{tenant_slug}/…`.  
+• All tenant‑scoped routes start with `/{tenant_slug}/…`.
 • Your FastAPI app already wires the database `lifespan()` from
-  `auth_authn_idp.db`.  
+  `auth_authn_idp.db`.
 """
 
 from __future__ import annotations
@@ -27,10 +27,9 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime as dt, timezone
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import HTTPException, Request
 from jose import JWTError, jwk, jwt
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
@@ -39,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api_keys import verify_api_key
 from .config import settings
-from .db import SessionMaker, get_session
+from .db import SessionMaker
 from .models import Tenant
 
 # --------------------------------------------------------------------------- #
@@ -119,12 +118,8 @@ async def _get_active_tenant(db: AsyncSession, slug: str) -> Tenant | None:
     from .models import Tenant
 
     return (
-        (
-            await db.scalars(
-                select(Tenant).where(Tenant.slug == slug).where(Tenant.active)
-            )
-        ).one_or_none()
-    )
+        await db.scalars(select(Tenant).where(Tenant.slug == slug).where(Tenant.active))
+    ).one_or_none()
 
 
 async def _authenticate(
@@ -136,9 +131,8 @@ async def _authenticate(
     # ---------------------------- #
     # API‑Key                      #
     # ---------------------------- #
-    api_key = (
-        request.headers.get("X-API-Key")
-        or _extract_prefixed(request.headers.get("Authorization"), "ApiKey")
+    api_key = request.headers.get("X-API-Key") or _extract_prefixed(
+        request.headers.get("Authorization"), "ApiKey"
     )
     if api_key:
         rec = await verify_api_key(api_key, db, tenant.id)

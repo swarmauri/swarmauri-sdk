@@ -16,8 +16,7 @@ Typical FastAPI wiring
 from __future__ import annotations
 
 import logging
-from functools import partial
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse

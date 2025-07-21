@@ -22,7 +22,6 @@ import importlib
 import logging
 import os
 import sys
-from pathlib import Path
 from typing import Optional
 
 import typer
@@ -42,10 +41,13 @@ _BANNER = r"""
 
 """
 
+
 def _print_banner() -> None:
     if sys.stdout.isatty():
         typer.echo(typer.style(_BANNER, fg=typer.colors.CYAN, bold=True))
-        typer.echo(f"Auth‑AuthN IdP · Version {_settings.project_name} ({_settings.environment})\n")
+        typer.echo(
+            f"Auth‑AuthN IdP · Version {_settings.project_name} ({_settings.environment})\n"
+        )
 
 
 def _configure_logging(level: str) -> None:
@@ -132,12 +134,15 @@ for _name, _rel_import in _SUB_COMMANDS.items():
         app.add_typer(_module.app, name=_name)
     except Exception as exc:  # pragma: no cover
         # Do not crash whole CLI if optional plugin missing
-        logging.getLogger(__name__).warning("Failed loading CLI cmd '%s': %s", _name, exc)
+        logging.getLogger(__name__).warning(
+            "Failed loading CLI cmd '%s': %s", _name, exc
+        )
 
 
 ###############################################################################
 # Entrypoint                                                                  #
 ###############################################################################
+
 
 def _entry() -> None:  # pragma: no cover
     """

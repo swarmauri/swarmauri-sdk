@@ -6,7 +6,7 @@ OpenID‑Connect / OAuth2 Provider with multi‑tenant isolation.
 Typical ASGI boot
 -----------------
     from fastapi import FastAPI
-    from auth_authn_idp import settings, lifespan, router
+    from auto_authn import settings, lifespan, router
 
     app = FastAPI(title="Auth‑AuthN IdP", lifespan=lifespan)
     app.include_router(router)              # /.well‑known, /token, /userinfo, …
