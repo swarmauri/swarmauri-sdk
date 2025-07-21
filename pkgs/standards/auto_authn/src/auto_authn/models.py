@@ -6,10 +6,10 @@ Declarative ORM classes for the Auth + AuthN server (SQLAlchemy 2.x).
 Highlights
 ----------
 • **Hard multi‑tenancy** – every row that must be isolated carries a
-  ``tenant_id`` FK.  
-• **Per‑tenant JWKS** – stored as JSON for atomic key rotation.  
-• **Password hygiene** – bcrypt via *passlib*.  
-• **API keys** – opaque, hashed, auditable, and revocable.  
+  ``tenant_id`` FK.
+• **Per‑tenant JWKS** – stored as JSON for atomic key rotation.
+• **Password hygiene** – bcrypt via *passlib*.
+• **API keys** – opaque, hashed, auditable, and revocable.
 """
 
 from __future__ import annotations
@@ -29,7 +29,6 @@ from sqlalchemy import (
     Integer,
     LargeBinary,
     String,
-    func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID as PG_UUID
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -207,9 +206,7 @@ class Client(TimestampMixin, Base):
 
         if self.client_secret_hash is None:
             return False
-        return (
-            hashlib.sha256(plaintext.encode()).digest() == self.client_secret_hash
-        )
+        return hashlib.sha256(plaintext.encode()).digest() == self.client_secret_hash
 
     @staticmethod
     def generate_client_id() -> str:  # pragma: no cover

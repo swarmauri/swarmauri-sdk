@@ -6,7 +6,7 @@ OpenID‑Connect / OAuth2 Provider with multi‑tenant isolation.
 Typical ASGI boot
 -----------------
     from fastapi import FastAPI
-    from auth_authn_idp import settings, lifespan, router
+    from auto_authn import settings, lifespan, router
 
     app = FastAPI(title="Auth‑AuthN IdP", lifespan=lifespan)
     app.include_router(router)              # /.well‑known, /token, /userinfo, …
@@ -17,7 +17,6 @@ from __future__ import annotations
 import importlib.metadata as _importlib_metadata
 import logging
 import sys
-from types import ModuleType
 from typing import TYPE_CHECKING
 
 # --------------------------------------------------------------------------- #
@@ -85,9 +84,11 @@ _install_default_logging()
 # --------------------------------------------------------------------------- #
 if TYPE_CHECKING:  # pragma: no cover
     from fastapi import APIRouter
+    from .config import Settings
+    from oic.oic.provider import Provider
 
     # Re‑export types so IDEs know about them
-    settings: "auth_authn_idp.config.Settings"
+    settings: "Settings"
     lifespan: callable  # FastAPI lifespan async‑context fn
     router: "APIRouter"
-    build_provider: callable[[...], "oic.oic.provider.Provider"]
+    build_provider: callable[[...], "Provider"]

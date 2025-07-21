@@ -25,14 +25,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime as dt, timezone
-from typing import List, Optional
+from typing import List
 
 import typer
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config import settings
 from ..crypto import bootstrap_initial_jwks, rotate_jwks
 from ..db import get_session
 from ..models import Tenant
@@ -58,9 +56,12 @@ async def _slug_exists(db: AsyncSession, slug: str) -> bool:
 # Commands                                                                    #
 ###############################################################################
 
+
 @app.command("create")
 def create(
-    slug: str = typer.Argument(..., help="URL‑friendly tenant slug (used in sub‑domain)."),
+    slug: str = typer.Argument(
+        ..., help="URL‑friendly tenant slug (used in sub‑domain)."
+    ),
     issuer: str = typer.Option(
         ..., "--issuer", "-i", help="Absolute issuer URL (https://login.acme.com)"
     ),
@@ -69,6 +70,7 @@ def create(
     """
     Initialise a tenant with fresh RSA keys and store it in the DB.
     """
+
     async def _inner():
         async for db in get_session():
             if await _slug_exists(db, slug):
@@ -92,6 +94,7 @@ def list_():
     """
     List all tenants with status and key information.
     """
+
     async def _inner():
         async for db in get_session():
             rows: List[Tenant] = (await db.scalars(select(Tenant))).all()
@@ -129,13 +132,14 @@ def rotate_keys(
     Rotate signing keys for **all active tenants**.  Old keys older than `--grace`
     seconds are purged.
     """
+
     async def _inner():
         rotated = 0
         async for db in get_session():
             tenants: List[Tenant] = (
                 await db.scalars(select(Tenant).where(Tenant.active))
             ).all()
-            now = dt.now(timezone.utc)
+            # now = dt.now(timezone.utc)
             for t in tenants:
                 old_json = t.jwks_json
                 new_json = rotate_jwks(old_json, retain_seconds=grace)
@@ -146,7 +150,9 @@ def rotate_keys(
             if rotated:
                 await db.commit()
         if rotated:
-            typer.secho(f"✅ rotated keys for {rotated} tenant(s)", fg=typer.colors.GREEN)
+            typer.secho(
+                f"✅ rotated keys for {rotated} tenant(s)", fg=typer.colors.GREEN
+            )
         else:
             typer.echo("No tenants required rotation.")
 
@@ -161,6 +167,7 @@ def deactivate(
     Soft‑delete (deactivate) a tenant.  Tokens remain valid until expiry, but new
     logins are blocked.
     """
+
     async def _inner():
         async for db in get_session():
             res = (
@@ -187,6 +194,7 @@ def activate(
     """
     Reactivate a previously deactivated tenant.
     """
+
     async def _inner():
         async for db in get_session():
             res = (

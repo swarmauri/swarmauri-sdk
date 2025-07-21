@@ -5,10 +5,10 @@ Business logic for Personal‑Access‑Tokens (“API keys”).
 
 Key features
 ------------
-• Opaque secrets – shown **once** at creation, never persisted in plaintext.  
-• Tenant isolation – every query is scoped by ``tenant_id``.  
-• Config‑driven TTL limits (``API_KEY_MIN_TTL`` / ``API_KEY_MAX_TTL``).  
-• Revocation & rotation support.  
+• Opaque secrets – shown **once** at creation, never persisted in plaintext.
+• Tenant isolation – every query is scoped by ``tenant_id``.
+• Config‑driven TTL limits (``API_KEY_MIN_TTL`` / ``API_KEY_MAX_TTL``).
+• Revocation & rotation support.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import secrets
-from typing import Iterable, Sequence
+from typing import Sequence
 from uuid import UUID, uuid4
 
 from sqlalchemy import select, update
@@ -30,6 +30,7 @@ __all__ = [
     "verify_api_key",
     "revoke_api_key",
 ]
+
 
 # --------------------------------------------------------------------------- #
 # Helpers                                                                     #
@@ -95,8 +96,8 @@ async def verify_api_key(
 
     Notes
     -----
-    • Performs constant‑time comparison to prevent timing attacks.  
-    • Rejects expired or revoked keys.  
+    • Performs constant‑time comparison to prevent timing attacks.
+    • Rejects expired or revoked keys.
     """
     if len(raw_secret) < 8:
         return None

@@ -5,9 +5,9 @@ Key‑management helpers for the Auth + AuthN OIDC provider.
 
 Goals
 -----
-* **Per‑tenant isolation**   – every JWKS lives inside its tenant row.  
-* **Rotation friendly**      – automatic overlap / pruning of old keys.  
-* **Interop**                – exposes `build_keyjar()` for pyoidc.  
+* **Per‑tenant isolation**   – every JWKS lives inside its tenant row.
+* **Rotation friendly**      – automatic overlap / pruning of old keys.
+* **Interop**                – exposes `build_keyjar()` for pyoidc.
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime as dt, timezone
 from typing import Dict, List, Tuple
 
 from jwcrypto import jwk
@@ -26,9 +25,9 @@ log = logging.getLogger("auth_authn.crypto")
 # --------------------------------------------------------------------------- #
 # Configurable constants                                                      #
 # --------------------------------------------------------------------------- #
-SIG_ALG = "RS256"      # JWS alg for ID‑tokens & JWT ATs
-RSA_BITS = 2048        # RSA modulus size
-GRACE_SEC = 86_400     # 24 h key‑overlap before purge
+SIG_ALG = "RS256"  # JWS alg for ID‑tokens & JWT ATs
+RSA_BITS = 2048  # RSA modulus size
+GRACE_SEC = 86_400  # 24 h key‑overlap before purge
 
 
 # --------------------------------------------------------------------------- #
@@ -45,7 +44,7 @@ def _new_rsa_key() -> jwk.JWK:
     key = jwk.JWK.generate(kty="RSA", size=RSA_BITS, use="sig", alg=SIG_ALG)
     # kid = thumbprint – stable & unique
     key.kid = key.thumbprint()
-    key.update({"iat": _epoch()})          # non‑standard but handy
+    key.update({"iat": _epoch()})  # non‑standard but handy
     return key
 
 
@@ -132,7 +131,7 @@ def build_keyjar(jwks_json: str, *, owner: str) -> KeyJar:
     )
 
     kj.add_kb(owner, priv_bundle)  # used for signing
-    kj.add_kb("", pub_bundle)      # exposed at /.well-known/jwks.json
+    kj.add_kb("", pub_bundle)  # exposed at /.well-known/jwks.json
     return kj
 
 

@@ -5,11 +5,11 @@ Centralised SQLAlchemy 2.x *async* engine & session factory.
 
 Key features
 ------------
-• Lazy, singleton **AsyncEngine** created once per process.  
+• Lazy, singleton **AsyncEngine** created once per process.
 • `NullPool` for SQLite (avoids “database is locked” in dev); pooled
-  connections with `pool_pre_ping` for Postgres.  
-• FastAPI‑style `lifespan()` helper that auto‑creates / disposes the engine.  
-• `get_session()` dependency – automatic rollback on error, commit otherwise.  
+  connections with `pool_pre_ping` for Postgres.
+• FastAPI‑style `lifespan()` helper that auto‑creates / disposes the engine.
+• `get_session()` dependency – automatic rollback on error, commit otherwise.
 """
 
 from __future__ import annotations

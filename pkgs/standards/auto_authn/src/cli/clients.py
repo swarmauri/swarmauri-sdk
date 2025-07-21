@@ -103,9 +103,7 @@ def register(
 
     async def _run() -> None:
         async with await _client() as c:
-            r = await c.post(
-                _url(tenant), json=payload, headers=bearer_header()
-            )
+            r = await c.post(_url(tenant), json=payload, headers=bearer_header())
         if r.is_error:
             console.print(f"[red]Error {r.status_code}: {r.text}[/]")
             raise typer.Exit(1)
@@ -186,9 +184,7 @@ def deactivate(
     tenant: str = typer.Argument(..., help="Tenant slug."),
     client_id: str = typer.Argument(..., help="Client ID."),
 ):
-    asyncio.run(
-        _post_no_body(_url(tenant, f"/{client_id}/deactivate"))
-    )
+    asyncio.run(_post_no_body(_url(tenant, f"/{client_id}/deactivate")))
     console.print(f"[yellow]Client '{client_id}' deactivated.[/]")
 
 
@@ -197,7 +193,5 @@ def activate(
     tenant: str = typer.Argument(..., help="Tenant slug."),
     client_id: str = typer.Argument(..., help="Client ID."),
 ):
-    asyncio.run(
-        _post_no_body(_url(tenant, f"/{client_id}/activate"))
-    )
+    asyncio.run(_post_no_body(_url(tenant, f"/{client_id}/activate")))
     console.print(f"[green]Client '{client_id}' activated.[/]")

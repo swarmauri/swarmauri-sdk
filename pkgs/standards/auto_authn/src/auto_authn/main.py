@@ -14,16 +14,19 @@ import logging
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, FastAPI, Path
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 
 from .api_keys import create_api_key, revoke_api_key
 from .config import settings
 from .db import get_session, lifespan
 from .middleware import AuthMiddleware, Principal, get_principal
-from .models import APIKey, APIKeyOut, Tenant
+from .models import APIKey, APIKeyOut
 from .provider import router as oidc_router
+from pydantic import BaseModel, Field
+
 
 log = logging.getLogger("auth_authn.main")
 
@@ -62,9 +65,6 @@ app.include_router(oidc_router)  # /{tenant_slug}/…
 
 # ------------------------  API‑Key Management  ----------------------------- #
 api_router = APIRouter(prefix="/{tenant_slug}/api-keys", tags=["api-keys"])
-
-# Pydantic request body for key issuance
-from pydantic import BaseModel, Field
 
 
 class IssueKey(BaseModel):
@@ -121,14 +121,13 @@ async def revoke_key(
     """
     Revoke an API key owned by the caller.
     """
-    success = await revoke_api_key(
-        db, tenant_id=principal.tenant_id, api_key_id=key_id
-    )
+    success = await revoke_api_key(db, tenant_id=principal.tenant_id, api_key_id=key_id)
     if not success:
         raise HTTPException(status_code=404, detail="Key not found or already revoked")
 
 
 app.include_router(api_router)
+
 
 # --------------------------------------------------------------------------- #
 # Misc endpoints                                                              #
@@ -148,6 +147,7 @@ async def root() -> JSONResponse:  # pragma: no cover
             "discovery": "/<tenant>/.well-known/openid-configuration",
         }
     )
+
 
 ###############################################################################
 # Optional CLI entry‑point                                                    #
