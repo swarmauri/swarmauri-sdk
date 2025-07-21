@@ -36,6 +36,7 @@ __all__ = ["engine", "AsyncSessionMaker", "get_session", "lifespan"]
 
 log = logging.getLogger("auth_authn.db")
 
+
 # --------------------------------------------------------------------------- #
 # Engine singleton                                                            #
 # --------------------------------------------------------------------------- #

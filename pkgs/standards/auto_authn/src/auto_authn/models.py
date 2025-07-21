@@ -88,7 +88,9 @@ class Tenant(TimestampMixin, Base):
 
     # Composite unique constraint: optional if you need both fields unique
     __table_args__ = (
-        Index("ix_tenant_slug_lower", slug, postgresql_ops={"slug": "text_pattern_ops"}),
+        Index(
+            "ix_tenant_slug_lower", slug, postgresql_ops={"slug": "text_pattern_ops"}
+        ),
     )
 
 
@@ -162,16 +164,16 @@ class Client(TimestampMixin, Base):
         ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
     )
     client_id: Mapped[str] = mapped_column(String(120), unique=True, index=True)
-    client_secret_hash: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
+    client_secret_hash: Mapped[Optional[bytes]] = mapped_column(
+        LargeBinary, nullable=True
+    )
     redirect_uris: Mapped[str] = mapped_column(
         JSON, comment="List[str] of registered redirect URIs"
     )
     grant_types: Mapped[List[str]] = mapped_column(
         JSON, default=lambda: ["authorization_code", "refresh_token"]
     )
-    response_types: Mapped[List[str]] = mapped_column(
-        JSON, default=lambda: ["code"]
-    )
+    response_types: Mapped[List[str]] = mapped_column(JSON, default=lambda: ["code"])
     token_endpoint_auth_method: Mapped[str] = mapped_column(
         String(40), default="client_secret_basic"
     )
@@ -197,9 +199,7 @@ class Client(TimestampMixin, Base):
 
         if self.client_secret_hash is None:
             return False
-        return (
-            hashlib.sha256(plaintext.encode()).digest() == self.client_secret_hash
-        )
+        return hashlib.sha256(plaintext.encode()).digest() == self.client_secret_hash
 
     @staticmethod
     def generate_client_id() -> str:  # pragma: no cover
@@ -213,6 +213,4 @@ class Client(TimestampMixin, Base):
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Client {self.client_id} (tenant={self.tenant.slug})>"
 
-    __table_args__ = (
-        Index("uix_client_tenant_id", "tenant_id"),
-    )
+    __table_args__ = (Index("uix_client_tenant_id", "tenant_id"),)

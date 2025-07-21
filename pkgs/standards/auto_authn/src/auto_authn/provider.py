@@ -92,7 +92,9 @@ async def _provider_factory(
     # KeyJar contains *both* public & private halves
     kj = build_keyjar(tenant.jwks_json, owner=tenant.issuer)
 
-    async def _claims_factory(sub: str, _client_id: str | None = None) -> Dict[str, Any]:
+    async def _claims_factory(
+        sub: str, _client_id: str | None = None
+    ) -> Dict[str, Any]:
         user: User | None = (
             await db.scalars(
                 select(User).where(User.sub == sub).where(User.tenant_id == tenant.id)
