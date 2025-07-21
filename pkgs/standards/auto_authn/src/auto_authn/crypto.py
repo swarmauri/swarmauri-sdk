@@ -16,8 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime as dt, timezone
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 from jwcrypto import jwk
 from oic.utils.keyio import KeyJar, KeyBundle
