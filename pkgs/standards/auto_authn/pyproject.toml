@@ -31,6 +31,7 @@ dependencies = [
   # ── Security --------------------------------------------------------------
   "passlib[bcrypt]>=1.7,<2.0",
   "python-jose>=3.4.0",
+  "keyring>=24.0.1",
   # ── Settings / validation -------------------------------------------------
   "pydantic>=2.7,<3.0",
   "pydantic-settings>=2.2,<3.0",

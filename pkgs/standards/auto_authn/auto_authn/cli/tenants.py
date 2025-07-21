@@ -31,7 +31,7 @@ import typer
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crypto import bootstrap_initial_jwks, rotate_jwks
+from ..crypto import bootstrap_jwks, rotate_jwks
 from ..db import get_session
 from ..models import Tenant
 
@@ -77,7 +77,7 @@ def create(
                 typer.secho(f"❌ tenant '{slug}' already exists", fg=typer.colors.RED)
                 raise typer.Exit(1)
 
-            jwks_json, kid = bootstrap_initial_jwks()
+            jwks_json, kid = bootstrap_jwks()
             tenant = Tenant(slug=slug, issuer=issuer, name=name, jwks_json=jwks_json)
             db.add(tenant)
             await db.commit()
