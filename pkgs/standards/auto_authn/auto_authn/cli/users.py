@@ -1,7 +1,7 @@
 """
 auto_authn.cli.users
 ========================
-User‑management commands for the Auth‑AuthN CLI.
+User‑management commands for the Auto‑AuthN CLI.
 
 Example
 -------

@@ -1,7 +1,7 @@
 """
 auto_authn.main
 ===================
-ASGI entry‑point for the Auth‑AuthN Identity‑Provider.
+ASGI entry‑point for the Auto‑AuthN Identity‑Provider.
 
 Run locally
 -----------

@@ -38,7 +38,7 @@ from ..models import Tenant
 log = logging.getLogger("auth_authn.cli.tenants")
 
 app = typer.Typer(
-    help="Manage tenants (customers) in the Auth‑AuthN IdP.",
+    help="Manage tenants (customers) in the Auto‑AuthN IdP.",
     add_completion=False,
 )
 

@@ -67,7 +67,7 @@ def _configure_logging(level: str) -> None:
 
 app = typer.Typer(
     add_completion=False,
-    help="Administrative CLI for the Auth‑AuthN Identity‑Provider.",
+    help="Administrative CLI for the Auto‑AuthN Identity‑Provider.",
     invoke_without_command=True,
 )
 
