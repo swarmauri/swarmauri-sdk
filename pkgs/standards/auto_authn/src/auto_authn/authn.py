@@ -1,18 +1,25 @@
 """
 auth_authn_idp.authn
 ~~~~~~~~~~~~~~~~~~~~
-Pluggable authentication back‑end for pyoidc that verifies a username /
-password against the database (bcrypt hashes) and returns the
-`authn_event` structure expected by the OIDC core.
+Pluggable authentication back‑ends for *pyoidc*.
 
-* Compatible with multi‑tenant deployments.
-* Emits audit‑log messages for every success / failure.
+* **SQLPasswordAuthn** – username / password (bcrypt) against a tenant‑scoped DB
+* **APIKeyAuthn**      – opaque, long‑lived API keys (7‑‑90 days)
+
+Both emit a pyoidc‑compatible *authn_event* and can be registered side‑by‑side
+under different ACR values.
+
+Design principles
+-----------------
+• Hard multi‑tenancy – every query filtered by ``tenant.id``.  
+• All successes / failures are audit‑logged.  
+• API keys are *never* stored or returned in plaintext; only hashed.  
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from oic.utils.authn.user import UserAuthnMethod
 from oic.utils.time_util import time_sans_frac
@@ -20,23 +27,52 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Tenant, User
+from .api_keys import verify_api_key
 
-log = logging.getLogger("auth_authn.authn")
+__all__ = ["SQLPasswordAuthn", "APIKeyAuthn"]
+
+log = logging.getLogger(__name__)
+
+# --------------------------------------------------------------------------- #
+# Constants                                                                   #
+# --------------------------------------------------------------------------- #
+_ACR_PASSWORD = "pwd"       # INTERNETPROTOCOLPASSWORD
+_ACR_API_KEY = "api_key"    # TOKEN
 
 
-class SQLPasswordAuthn(UserAuthnMethod):
+# --------------------------------------------------------------------------- #
+# Helper – build a compliant authn_event                                      #
+# --------------------------------------------------------------------------- #
+def _build_authn_event(
+    sub: str, acr: str, ctx: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
     """
-    SQLAlchemy‑backed username / password verifier.
-
+    Construct the *authn_event* dict required by pyoidc.
 
     Parameters
     ----------
-    db : AsyncSession
-        A *bound* async session (scoped to the current request/tenant).
-    tenant : Tenant
-        The tenant object whose user table we should query.
-    request_context : Dict[str, Any], optional
-        Arbitrary context you want to keep with the authn_event; e.g. IP.
+    sub
+        Stable subject identifier.
+    acr
+        Authentication Context Class Reference (``pwd``, ``api_key``…).
+    ctx
+        Arbitrary request metadata to embed for downstream auditing.
+    """
+    return {
+        "uid": sub,
+        "salt": acr,
+        "valid": time_sans_frac(),
+        "authn_info": acr,
+        "request": ctx or {},
+    }
+
+
+# --------------------------------------------------------------------------- #
+# 1. Username / Password back‑end                                             #
+# --------------------------------------------------------------------------- #
+class SQLPasswordAuthn(UserAuthnMethod):
+    """
+    Bcrypt‑based username / password verification against the tenant's user set.
     """
 
     def __init__(
@@ -44,24 +80,18 @@ class SQLPasswordAuthn(UserAuthnMethod):
         db: AsyncSession,
         tenant: Tenant,
         request_context: Optional[Dict[str, Any]] = None,
-    ):
-        super().__init__(
-            srv=None,  # will be injected by pyoidc
-            authn_info=None,  # we fill in ACR dynamically
-            db_store=None,
-        )
+    ) -> None:
+        super().__init__(srv=None, authn_info=None, db_store=None)
         self.db = db
         self.tenant = tenant
         self.request_context = request_context or {}
 
-    # ------------------------------------------------------------------ #
-    # Mandatory interface – pyoidc calls these                           #
-    # ------------------------------------------------------------------ #
-    async def verify(self, username: str, password: str) -> Optional[Dict[str, Any]]:
-        """
-        Given a username+password, return an **authn_event** dict on success or
-        `None` on failure.  Async because we hit the DB.
-        """
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # Mandatory pyoidc entry point                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    async def verify(
+        self, username: str, password: str
+    ) -> Optional[Dict[str, Any]]:
         stmt = (
             select(User)
             .where(User.tenant_id == self.tenant.id)
@@ -72,7 +102,7 @@ class SQLPasswordAuthn(UserAuthnMethod):
 
         if not user:
             log.info(
-                "Auth‑fail (no such user) tenant=%s username=%s",
+                "Auth‑fail (user‑not‑found) tenant=%s username=%s",
                 self.tenant.slug,
                 username,
             )
@@ -80,40 +110,86 @@ class SQLPasswordAuthn(UserAuthnMethod):
 
         if not user.is_active or not user.verify_password(password):
             log.info(
-                "Auth‑fail (bad credentials) tenant=%s username=%s",  #
+                "Auth‑fail (bad‑credentials) tenant=%s username=%s",
                 self.tenant.slug,
                 username,
             )
             return None
 
-        # Success – build authn_event as per pyoidc spec
-        authn_event = {
-            "uid": user.sub,  # SUBJECT identifier
-            "salt": "pwd",  # track the method used (pwd vs mfa)
-            "valid": time_sans_frac(),  # epoch seconds
-            "authn_info": "pwd",  # maps to ACR value INTERNETPROTOCOLPASSWORD
-            "request": self.request_context,
-        }
-
         log.debug(
-            "Auth‑success tenant=%s user=%s sub=%s",
+            "Auth‑success (password) tenant=%s sub=%s",
             self.tenant.slug,
-            username,
             user.sub,
         )
-        return authn_event
+        return _build_authn_event(user.sub, _ACR_PASSWORD, self.request_context)
 
-    # ------------------------------------------------------------------ #
-    # Optional – UI / redirect hooks                                     #
-    # ------------------------------------------------------------------ #
-    def __call__(self, *args, **kwargs):  # noqa: D401  (pyoidc API)
-        """
-        In a pure API‑first IdP we don't run an HTML login flow inside the
-        Authorize endpoint; instead, credentials are POSTed directly to
-        `/password-login`.  Therefore this method is **unused** and raises.
-        """
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # UI hook (unused in API‑first flows)                                   #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    def __call__(self, *args: Any, **kwargs: Any) -> None:  # noqa: D401
         raise NotImplementedError(
             "Interactive login flow not implemented – "
-            "use JSON API /password-login to obtain cookies, "
-            "or integrate MFA module."
+            "submit credentials to /password-login instead."
         )
+
+
+# --------------------------------------------------------------------------- #
+# 2. API‑Key back‑end                                                        #
+# --------------------------------------------------------------------------- #
+class APIKeyAuthn(UserAuthnMethod):
+    """
+    Verifies long‑lived opaque API keys created via ``POST /api-keys``.
+
+    Parameters
+    ----------
+    raw_key
+        The API key presented by the caller (full secret, as received).
+    db
+        Tenant‑scoped async SQLAlchemy session.
+    tenant
+        Tenant object for multi‑tenant isolation.
+    request_context
+        Additional metadata to embed in the *authn_event*.
+    """
+
+    def __init__(
+        self,
+        raw_key: str,
+        db: AsyncSession,
+        tenant: Tenant,
+        request_context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        super().__init__(srv=None, authn_info=None, db_store=None)
+        self._raw_key = raw_key
+        self.db = db
+        self.tenant = tenant
+        self.request_context = request_context or {}
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # Mandatory pyoidc entry point                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    async def verify(  # noqa: D401
+        self, *args: Any, **kwargs: Any
+    ) -> Optional[Dict[str, Any]]:
+        rec = await verify_api_key(self._raw_key, self.db, self.tenant.id)
+        if not rec:
+            log.info(
+                "Auth‑fail (api‑key‑invalid) tenant=%s prefix=%s",
+                self.tenant.slug,
+                self._raw_key[:8],
+            )
+            return None
+
+        log.debug(
+            "Auth‑success (api‑key) tenant=%s key_id=%s sub=%s",
+            self.tenant.slug,
+            rec.id,
+            rec.owner_id,
+        )
+        return _build_authn_event(rec.owner_id, _ACR_API_KEY, self.request_context)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # UI hook (unused – API keys are non‑interactive)                       #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    def __call__(self, *args: Any, **kwargs: Any) -> None:  # noqa: D401
+        raise NotImplementedError("API‑key authn backend is non‑interactive.")

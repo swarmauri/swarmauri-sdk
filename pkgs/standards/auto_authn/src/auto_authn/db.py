@@ -1,19 +1,15 @@
 """
 auth_authn_idp.db
 =================
-Centralised SQLAlchemy 2.0 async engine / session factory.
+Centralised SQLAlchemy 2.x *async* engine & session factory.
 
-Usage (FastAPI)
----------------
-    from fastapi import Depends, APIRouter
-    from auth_authn_idp.db import get_session
-
-    router = APIRouter()
-
-    @router.get("/tenants")
-    async def list_tenants(db: AsyncSession = Depends(get_session)):
-        result = await db.execute(select(Tenant))
-        return result.scalars().all()
+Key features
+------------
+• Lazy, singleton **AsyncEngine** created once per process.  
+• `NullPool` for SQLite (avoids “database is locked” in dev); pooled
+  connections with `pool_pre_ping` for Postgres.  
+• FastAPI‑style `lifespan()` helper that auto‑creates / disposes the engine.  
+• `get_session()` dependency – automatic rollback on error, commit otherwise.  
 """
 
 from __future__ import annotations
@@ -32,25 +28,27 @@ from sqlalchemy.pool import NullPool
 
 from .config import settings
 
-__all__ = ["engine", "AsyncSessionMaker", "get_session", "lifespan"]
+__all__ = ["engine", "SessionMaker", "get_session", "lifespan"]
 
 log = logging.getLogger("auth_authn.db")
-
 
 # --------------------------------------------------------------------------- #
 # Engine singleton                                                            #
 # --------------------------------------------------------------------------- #
+
+engine: AsyncEngine | None = None  # instantiated lazily
+SessionMaker: async_sessionmaker[AsyncSession] | None = None
+
+
 def _create_engine() -> AsyncEngine:
     """
-    Create a *singleton* SQLAlchemy AsyncEngine based on ENV configuration.
-
-    - Uses `NullPool` for SQLite to avoid 'database is locked' in local dev.
-    - Enables `pool_pre_ping` for Postgres to drop stale connections.
+    Instantiate **one** AsyncEngine based on `settings.database_url`.
     """
     url = settings.database_url
     echo = settings.log_level.upper() == "DEBUG"
 
     if url.startswith("sqlite"):
+        log.debug("Creating SQLite engine (url=%s)", url)
         return create_async_engine(
             url,
             echo=echo,
@@ -58,7 +56,8 @@ def _create_engine() -> AsyncEngine:
             connect_args={"check_same_thread": False},
         )
 
-    # Postgres / others
+    # Assume PostgreSQL / other driver
+    log.debug("Creating Postgres engine (url=%s)", url)
     return create_async_engine(
         url,
         echo=echo,
@@ -68,36 +67,28 @@ def _create_engine() -> AsyncEngine:
     )
 
 
-engine: AsyncEngine | None = None  # initialised lazily during lifespan
-
-
-# --------------------------------------------------------------------------- #
-# Session factory                                                             #
-# --------------------------------------------------------------------------- #
-AsyncSessionMaker: async_sessionmaker[AsyncSession] | None = None
-
-
-def _initialise_sessionmaker() -> None:
-    global AsyncSessionMaker
-    if AsyncSessionMaker is None:
-        AsyncSessionMaker = async_sessionmaker(
+def _init_sessionmaker() -> None:
+    """Initialise global `SessionMaker`."""
+    global SessionMaker
+    if SessionMaker is None:  # pragma: no cover
+        SessionMaker = async_sessionmaker(
             engine, expire_on_commit=False, autoflush=False, autocommit=False
         )
 
 
 # --------------------------------------------------------------------------- #
-# FastAPI‑style lifespan helper (optional)                                    #
+# FastAPI lifespan helper                                                     #
 # --------------------------------------------------------------------------- #
 @contextlib.asynccontextmanager
 async def lifespan(app):  # type: ignore[valid-type]
     """
-    Call this in `main.py`:
+    FastAPI integration:
 
         app = FastAPI(lifespan=lifespan)
     """
     global engine
     engine = _create_engine()
-    _initialise_sessionmaker()
+    _init_sessionmaker()
     log.info("🔗  DB engine created (url=%s)", settings.database_url)
 
     try:
@@ -109,35 +100,28 @@ async def lifespan(app):  # type: ignore[valid-type]
 
 
 # --------------------------------------------------------------------------- #
-# Session dependency                                                          #
+# Dependency                                                                  #
 # --------------------------------------------------------------------------- #
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency that yields an `AsyncSession`.
 
-    Example:
-        from fastapi import Depends
-        from auth_authn_idp.db import get_session
-
-        @router.post("/users")
-        async def create_user(payload: UserIn, db: AsyncSession = Depends(get_session)):
-            db.add(User(**payload.model_dump()))
-            await db.commit()
+    Rolls back on unhandled exceptions; commits otherwise.
     """
-    if AsyncSessionMaker is None:  # pragma: no cover
-        # Called outside an ASGI lifespan (e.g. CLI)
+    # If called outside ASGI context (CLI, tests), bootstrap engine/sessionmaker
+    if SessionMaker is None:  # pragma: no cover
         global engine
         if engine is None:
             engine = _create_engine()
-            _initialise_sessionmaker()
+        _init_sessionmaker()
 
-    async with AsyncSessionMaker() as session:  # type: ignore[arg-type]
+    async with SessionMaker() as session:  # type: ignore[arg-type]
         try:
             yield session
         except Exception:
             await session.rollback()
             raise
         else:
-            # Commit only if caller didn't explicitly commit/rollback
+            # Commit only if caller hasn't already decided.
             if session.in_transaction():
                 await session.commit()

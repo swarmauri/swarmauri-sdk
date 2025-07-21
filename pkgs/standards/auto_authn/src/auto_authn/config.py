@@ -1,21 +1,16 @@
 """
 auth_authn_idp.config
-~~~~~~~~~~~~~~~~~~~~~
-Environment‑driven configuration for the Auth + AuthN OIDC provider.
+=====================
+Environment-driven configuration for the Auth + AuthN Identity-Provider.
 
-Usage
------
-    from auth_authn_idp.config import settings
-
-    async_engine = create_async_engine(settings.database_url, pool_size=...)
-    redis = redis.asyncio.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+All variables are prefixed **AUTH_AUTHN_*** in the process environment.
 """
 
 from __future__ import annotations
 
-import os
+import secrets
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from pydantic import (
     AmqpDsn,
@@ -23,94 +18,99 @@ from pydantic import (
     Field,
     HttpUrl,
     PostgresDsn,
-    ValidationError,
     field_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# --------------------------------------------------------------------------- #
+# Top-level constants used by api_keys.py before Settings is instantiated     #
+# --------------------------------------------------------------------------- #
+API_KEY_MIN_TTL: int = int(secrets.choice(range(7, 91)))  # default 7-90 days
+API_KEY_MAX_TTL: int = int(secrets.choice(range(7, 91)))
+API_KEY_HASH_SECRET: str = secrets.token_hex(16)
+
+# --------------------------------------------------------------------------- #
+# Optional JWKS file-based config                                             #
+# --------------------------------------------------------------------------- #
+
 
 class _JWKSConfig(BaseModel):
     """
-    JWKS configuration stored on disk.
-
-    By default we generate one RSA key per tenant at runtime and cache it in the DB,
-    but a static path can be supplied for air‑gapped deployments.
+    When running in air-gapped mode you may mount a static JWKS JSON file.
     """
 
     path: Optional[Path] = Field(
         default=None,
-        description="Optional path to a *static* JSON file containing the JWKS for the whole provider.",
+        description="Absolute path to a provider-wide JWKS JSON file.",
     )
     refresh_seconds: int = Field(
-        default=86_400,
+        86_400,
         ge=300,
-        description="If `path` is set, reload the JWKS every N seconds to pick up manual rotations.",
+        description="Reload interval for static JWKS on disk.",
     )
 
 
+# --------------------------------------------------------------------------- #
+# Main settings                                                               #
+# --------------------------------------------------------------------------- #
 class Settings(BaseSettings):
     # --------------------------------------------------------------------- #
-    # Core service metadata
+    # Core
     # --------------------------------------------------------------------- #
-    project_name: str = Field("auth_authn", description="Name used in logs & metrics.")
-    environment: str = Field(
-        "dev", description="Deployment environment string (dev / staging / prod)."
-    )
-    log_level: str = Field("INFO", description="Python logging / structlog level.")
+    project_name: str = Field("auth_authn")
+    environment: str = Field("dev", description="dev / staging / prod")
+    log_level: str = Field("INFO")
 
     # --------------------------------------------------------------------- #
-    # Network / bind addresses
+    # Bind + public URLs
     # --------------------------------------------------------------------- #
     host: str = Field("0.0.0.0")
-    port: int = Field(8000, ge=1, le=65_535)
-    public_url: HttpUrl | None = Field(
+    port: int = Field(8000)
+    public_url: Optional[HttpUrl] = Field(
         default=None,
-        description="Fully qualified URL clients see (e.g. https://login.example.com). "
-        "If unset we compute it from host+port but HTTPS redirects will be wrong.",
+        description="External base URL (e.g. https://login.example.com). "
+        "Required in prod for correct issuer/discovery documents.",
     )
 
     cors_origins: List[HttpUrl] = Field(
         default_factory=list,
-        description="Allowed origins for browser‑based RPs (comma‑separated list in env var).",
+        description="Comma-separated list of browser origins.",
     )
 
     # --------------------------------------------------------------------- #
-    # Persistence back‑ends
+    # Persistence
     # --------------------------------------------------------------------- #
     database_url: PostgresDsn | str = Field(
-        "sqlite+aiosqlite:///./auth_authn.db",
-        description="Async SQLAlchemy URL.  Prefer Postgres in production.",
+        "sqlite+aiosqlite:///./auth_authn.db", description="SQLAlchemy async URL."
     )
-    redis_url: AmqpDsn | str = Field(
-        "redis://localhost:6379/0", description="Redis URL for pub/sub sessions."
-    )
+    redis_url: AmqpDsn | str = Field("redis://localhost:6379/0")
 
     # --------------------------------------------------------------------- #
-    # Crypto / signing
+    # Crypto
     # --------------------------------------------------------------------- #
     jwks: _JWKSConfig = Field(default_factory=_JWKSConfig)
-
-    # The symmetric key used by pyoidc for session cookies (NOT for tokens!)
     session_sym_key: str = Field(
-        "ChangeMeNow123456",
-        min_length=16,
-        description="AES‑128/256 key for cookie crypto.",
+        "ChangeMeNow_32chars!", min_length=16, description="AES-key for cookies."
+    )
+    jwt_audience: Optional[str] = Field(
+        default=None,
+        description="Expected `aud` in inbound Bearer JWTs. "
+        "Unset → audience verification disabled.",
     )
 
     # --------------------------------------------------------------------- #
-    # Security & throttling
+    # Security / throttling
     # --------------------------------------------------------------------- #
-    rate_limit_per_min: int = Field(
-        120, description="Global unauthenticated request limit per IP."
-    )
-    allowed_clock_skew: int = Field(
-        120,
-        ge=0,
-        description="How many seconds of skew to tolerate when validating ID‑token `iat/exp`.",
-    )
+    rate_limit_per_min: int = Field(120, ge=30)
+    allowed_clock_skew: int = Field(120, ge=0)
+
+    # API-key guardrails
+    api_key_min_ttl: int = Field(API_KEY_MIN_TTL, ge=1, le=API_KEY_MAX_TTL)
+    api_key_max_ttl: int = Field(API_KEY_MAX_TTL, ge=7, le=365)
+    api_key_hash_secret: str = Field(API_KEY_HASH_SECRET)
 
     # --------------------------------------------------------------------- #
-    # Pydantic settings
+    # Pydantic config
     # --------------------------------------------------------------------- #
     model_config = SettingsConfigDict(
         env_prefix="AUTH_AUTHN_",
@@ -119,40 +119,25 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # --------------------------------------------------------------------- #
+    # ------------------------------------------------------------------ #
     # Validators
-    # --------------------------------------------------------------------- #
-
+    # ------------------------------------------------------------------ #
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def _split_origins(cls, v: str | List[str]) -> List[str]:
-        """
-        Allow comma‑separated CORS lists in ENV:
-            AUTH_AUTHN_CORS_ORIGINS=https://foo,https://bar
-        """
+    def _split_origins(cls, v: str | List[str]) -> List[str]:  # noqa: D401
         if isinstance(v, str):
             return [o.strip() for o in v.split(",") if o.strip()]
         return v
 
     @field_validator("public_url")
     @classmethod
-    def _ensure_public_url(cls, v: HttpUrl | None, info: Any) -> HttpUrl | None:
-        """
-        If `public_url` is missing but we're in production we *must* abort,
-        otherwise OIDC discovery endpoints will advertise wrong host names.
-        """
-        env = info.data.get("environment", "dev")
-        if v is None and env == "prod":
-            raise ValueError(
-                "`public_url` is mandatory in prod to generate correct issuer URLs."
-            )
+    def _mandatory_public_url(cls, v: Optional[HttpUrl], info):  # noqa: D401
+        if v is None and info.data.get("environment") == "prod":
+            raise ValueError("`public_url` is required in prod")
         return v
 
 
-# Global singleton – import this instead of re‑parsing all settings repeatedly
-try:
-    settings = Settings()  # noqa: F401
-except ValidationError as exc:  # pragma: no cover
-    # Immediate feedback on boot‑time misconfiguration
-    print("💥 auth_authn configuration error:\n", exc, file=os.sys.stderr)
-    raise
+# --------------------------------------------------------------------------- #
+# Singleton – import `settings` everywhere                                    #
+# --------------------------------------------------------------------------- #
+settings = Settings()

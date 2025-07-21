@@ -1,62 +1,55 @@
 """
 auth_authn_idp.cli.clients
 ==========================
-Manage **OIDC clients / relying‑parties** registered under a tenant.
+Manage **OIDC clients / relying‑parties** under a tenant.
 
-Examples
---------
-# Register Peagen for tenant 'acme'
+Typical usage
+-------------
+# Register a SPA
 auth-authn clients register acme \
-    --redirect-uris https://app.peagen.io/auth/callback/acme \
-    --response-types code
+  --redirect-uris https://app.example.com/callback \
+  --response-types code \
+  --grant-types authorization_code,refresh_token
 
-# List all clients for 'acme'
+# List all clients
 auth-authn clients list acme
 
-# Rotate Peagen's client_secret
-auth-authn clients rotate-secret acme peagen-acme
+# Rotate client_secret
+auth-authn clients rotate-secret acme my-spa
 
-# Deactivate a client
+# Deactivate
 auth-authn clients deactivate acme old-legacy-rp
 """
 
 from __future__ import annotations
 
 import asyncio
-import logging
 import secrets
-import textwrap
 from typing import List, Optional
 
+import httpx
 import typer
-from rich import box
+from rich.console import Console
 from rich.table import Table
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crypto import get_active_signing_key
-from ..db import get_session
-from ..models import Client, Tenant
+from . import BASE_URL, bearer_header
 
-log = logging.getLogger("auth_authn.cli.clients")
+console = Console()
 app = typer.Typer(
-    help="OIDC client (relying‑party) lifecycle commands.",
+    help="OIDC client / RP lifecycle commands.",
     add_completion=False,
 )
+
 
 # --------------------------------------------------------------------------- #
 # Helpers                                                                     #
 # --------------------------------------------------------------------------- #
+def _url(tenant: str, suffix: str = "") -> str:
+    return f"{BASE_URL}/{tenant}/clients{suffix}"
 
 
-async def _tenant_obj(db: AsyncSession, slug: str) -> Tenant | None:
-    q = select(Tenant).where(Tenant.slug == slug, Tenant.active)
-    return (await db.scalars(q)).one_or_none()
-
-
-async def _client_obj(db: AsyncSession, tenant_id: int, client_id: str) -> Client | None:
-    q = select(Client).where(Client.tenant_id == tenant_id, Client.client_id == client_id)
-    return (await db.scalars(q)).one_or_none()
+async def _client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(timeout=15.0, follow_redirects=True)
 
 
 def _random_secret() -> str:
@@ -64,204 +57,147 @@ def _random_secret() -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Commands                                                                    #
+# Commands – CREATE / LIST                                                    #
 # --------------------------------------------------------------------------- #
 @app.command("register")
 def register(
-    tenant: str = typer.Argument(..., help="Tenant slug under which to register."),
-    client_id: str = typer.Option(
-        None,
-        "--client-id",
-        "-c",
-        help="Optional custom client_id (otherwise a random one is generated).",
+    tenant: str = typer.Argument(..., help="Tenant slug."),
+    client_id: Optional[str] = typer.Option(
+        None, "--client-id", "-c", help="Custom client_id (optional)."
     ),
     redirect_uris: List[str] = typer.Option(
-        ...,
-        "--redirect-uris",
-        "-r",
-        help="One or more redirect URIs (comma separated or repeated).",
+        ..., "--redirect-uris", "-r", help="Repeat for multiple URIs."
     ),
     response_types: List[str] = typer.Option(
-        ["code"], "--response-types", help="OIDC response types.",
+        ["code"], "--response-types", "-R", help="OIDC response types."
     ),
     grant_types: List[str] = typer.Option(
-        ["authorization_code", "refresh_token"], "--grant-types", help="OAuth2 grant types.",
+        ["authorization_code", "refresh_token"],
+        "--grant-types",
+        "-g",
+        help="OAuth2 grant types.",
     ),
     token_auth_method: str = typer.Option(
         "client_secret_basic",
         "--auth-method",
+        "-m",
         help="token_endpoint_auth_method",
-        case_sensitive=False,
     ),
-    generate_secret: bool = typer.Option(
-        True, "--generate-secret/--no-generate-secret", help="Create a client_secret."
+    no_secret: bool = typer.Option(
+        False,
+        "--no-secret",
+        help="Don't generate client_secret (public client / SPA).",
     ),
 ):
     """
-    Register a new RP / client for the given tenant.
+    Register a new relying‑party for *tenant*.
     """
-    async def _inner():
-        async for db in get_session():
-            ten = await _tenant_obj(db, tenant)
-            if ten is None:
-                typer.secho(f"Tenant '{tenant}' not found or inactive.", fg=typer.colors.RED)
-                raise typer.Exit(1)
+    payload = {
+        "client_id": client_id,
+        "redirect_uris": redirect_uris,
+        "response_types": response_types,
+        "grant_types": grant_types,
+        "token_endpoint_auth_method": token_auth_method,
+        "generate_secret": not no_secret,
+    }
 
-            if client_id is None:
-                client_id_local = Client.generate_client_id()
-            else:
-                client_id_local = client_id
-
-            if await _client_obj(db, ten.id, client_id_local):
-                typer.secho("Client ID already exists", fg=typer.colors.RED)
-                raise typer.Exit(1)
-
-            secret_plain = _random_secret() if generate_secret else None
-
-            client = Client(
-                tenant_id=ten.id,
-                client_id=client_id_local,
-                redirect_uris=list(redirect_uris),
-                response_types=list(response_types),
-                grant_types=list(grant_types),
-                token_endpoint_auth_method=token_auth_method,
+    async def _run() -> None:
+        async with await _client() as c:
+            r = await c.post(
+                _url(tenant), json=payload, headers=bearer_header()
             )
-            if secret_plain:
-                client.set_client_secret(secret_plain)
-            db.add(client)
-            await db.commit()
+        if r.is_error:
+            console.print(f"[red]Error {r.status_code}: {r.text}[/]")
+            raise typer.Exit(1)
 
-            typer.secho(
-                f"✅  client '{client_id_local}' created under tenant '{tenant}'",
-                fg=typer.colors.GREEN,
+        data = r.json()
+        console.print(
+            f"[green]✓ Client '{data['client_id']}' created under tenant '{tenant}'[/]"
+        )
+        if data.get("client_secret"):
+            console.print(
+                "[yellow]Store this client_secret securely (won't be shown again):[/]"
             )
-            if secret_plain:
-                typer.echo(
-                    typer.style(
-                        "\nStore this client_secret securely NOW (won’t be shown again):\n",
-                        bold=True,
-                    )
-                    + typer.style(textwrap.indent(secret_plain, "   "), fg=typer.colors.YELLOW)
-                )
+            console.print(f"[bold]{data['client_secret']}[/]")
 
-    asyncio.run(_inner())
+    asyncio.run(_run())
 
 
-@app.command("list")
+@app.command("list", help="List clients for a tenant.")
 def list_clients(
-    tenant: str = typer.Argument(..., help="Tenant slug to query."),
+    tenant: str = typer.Argument(..., help="Tenant slug."),
 ):
-    """
-    List clients for a tenant.
-    """
-    async def _inner():
-        async for db in get_session():
-            ten = await _tenant_obj(db, tenant)
-            if ten is None:
-                typer.secho(f"Tenant '{tenant}' not found.", fg=typer.colors.RED)
-                raise typer.Exit(1)
+    async def _run() -> None:
+        async with await _client() as c:
+            r = await c.get(_url(tenant), headers=bearer_header())
+        if r.is_error:
+            console.print(f"[red]Error {r.status_code}: {r.text}[/]")
+            raise typer.Exit(1)
 
-            rows = (
-                await db.scalars(
-                    select(Client).where(Client.tenant_id == ten.id).order_by(Client.client_id)
-                )
-            ).all()
+        rows = r.json()
+        if not rows:
+            console.print("No clients registered.")
+            return
 
-            if not rows:
-                typer.echo("No clients registered.")
-                return
+        tbl = Table("Client ID", "Auth Method", "Active", "# Redirects")
+        for c in rows:
+            tbl.add_row(
+                c["client_id"],
+                c["token_endpoint_auth_method"],
+                "yes" if c["active"] else "no",
+                str(len(c["redirect_uris"])),
+            )
+        console.print(tbl)
 
-            table = Table(box=box.SIMPLE)
-            table.add_column("Client ID")
-            table.add_column("Auth Method")
-            table.add_column("Active")
-            table.add_column("# Redirects")
-
-            for c in rows:
-                table.add_row(
-                    c.client_id,
-                    c.token_endpoint_auth_method,
-                    "yes" if c.active else "no",
-                    str(len(c.redirect_uris)),
-                )
-            from rich.console import Console
-
-            Console().print(table)
-
-    asyncio.run(_inner())
+    asyncio.run(_run())
 
 
-@app.command("rotate-secret")
+# --------------------------------------------------------------------------- #
+# Commands – SECRET ROTATION / STATE CHANGE                                   #
+# --------------------------------------------------------------------------- #
+async def _post_no_body(url: str):
+    async with await _client() as c:
+        r = await c.post(url, headers=bearer_header())
+    if r.is_error:
+        console.print(f"[red]Error {r.status_code}: {r.text}[/]")
+        raise typer.Exit(1)
+    return r
+
+
+@app.command("rotate-secret", help="Generate a new client_secret.")
 def rotate_secret(
     tenant: str = typer.Argument(..., help="Tenant slug."),
-    client_id: str = typer.Argument(..., help="Client to rotate."),
+    client_id: str = typer.Argument(..., help="Client ID."),
 ):
-    """
-    Generates a new client_secret, hashes it, and returns the *plaintext* once.
-    """
-    async def _inner():
-        async for db in get_session():
-            ten = await _tenant_obj(db, tenant)
-            if ten is None:
-                typer.secho(f"Tenant '{tenant}' not found.", fg=typer.colors.RED)
-                raise typer.Exit(1)
+    async def _run() -> None:
+        r = await _post_no_body(_url(tenant, f"/{client_id}/rotate-secret"))
+        secret = r.json().get("client_secret")
+        console.print("[green]✓ Secret rotated.[/]")
+        console.print(
+            "[yellow]Store the new secret now (won't be shown again):[/]\n"
+            f"[bold]{secret}[/]"
+        )
 
-            client = await _client_obj(db, ten.id, client_id)
-            if client is None:
-                typer.secho("Client not found.", fg=typer.colors.RED)
-                raise typer.Exit(1)
-
-            new_secret = _random_secret()
-            client.set_client_secret(new_secret)
-            await db.commit()
-            typer.secho(f"🔑 New secret set for '{client_id}'.", fg=typer.colors.GREEN)
-            typer.echo(typer.style(new_secret, fg=typer.colors.YELLOW, bold=True))
-
-    asyncio.run(_inner())
+    asyncio.run(_run())
 
 
-@app.command("deactivate")
+@app.command("deactivate", help="Soft‑disable a client.")
 def deactivate(
     tenant: str = typer.Argument(..., help="Tenant slug."),
-    client_id: str = typer.Argument(..., help="Client to deactivate."),
+    client_id: str = typer.Argument(..., help="Client ID."),
 ):
-    """
-    Soft‑disable a client (token endpoint rejects auth).
-    """
-    async def _inner(active: bool):
-        async for db in get_session():
-            ten = await _tenant_obj(db, tenant)
-            if ten is None:
-                typer.secho(f"No tenant '{tenant}'.", fg=typer.colors.RED)
-                raise typer.Exit(1)
-
-            upd = (
-                update(Client)
-                .where(Client.tenant_id == ten.id, Client.client_id == client_id)
-                .values(active=active)
-                .returning(Client.client_id)
-            )
-            res = (await db.execute(upd)).scalar_one_or_none()
-            await db.commit()
-
-            if res is None:
-                typer.secho("Client not found.", fg=typer.colors.RED)
-                raise typer.Exit(1)
-            state = "reactivated" if active else "deactivated"
-            typer.secho(f"✅ Client '{client_id}' {state}", fg=typer.colors.GREEN)
-
-    asyncio.run(_inner(False))
+    asyncio.run(
+        _post_no_body(_url(tenant, f"/{client_id}/deactivate"))
+    )
+    console.print(f"[yellow]Client '{client_id}' deactivated.[/]")
 
 
-@app.command("activate")
+@app.command("activate", help="Re‑enable a previously disabled client.")
 def activate(
     tenant: str = typer.Argument(..., help="Tenant slug."),
-    client_id: str = typer.Argument(..., help="Client to activate."),
+    client_id: str = typer.Argument(..., help="Client ID."),
 ):
-    """
-    Reactivate a previously disabled client.
-    """
-    async def _inner():
-        await deactivate.callback(tenant, client_id, _standalone_mode=False)
-
-    asyncio.run(_inner())
+    asyncio.run(
+        _post_no_body(_url(tenant, f"/{client_id}/activate"))
+    )
+    console.print(f"[green]Client '{client_id}' activated.[/]")
