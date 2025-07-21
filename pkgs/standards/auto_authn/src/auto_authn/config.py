@@ -10,6 +10,7 @@ Usage
     async_engine = create_async_engine(settings.database_url, pool_size=...)
     redis = redis.asyncio.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
 """
+
 from __future__ import annotations
 
 import os
@@ -91,7 +92,9 @@ class Settings(BaseSettings):
 
     # The symmetric key used by pyoidc for session cookies (NOT for tokens!)
     session_sym_key: str = Field(
-        "ChangeMeNow123456", min_length=16, description="AES‑128/256 key for cookie crypto."
+        "ChangeMeNow123456",
+        min_length=16,
+        description="AES‑128/256 key for cookie crypto.",
     )
 
     # --------------------------------------------------------------------- #

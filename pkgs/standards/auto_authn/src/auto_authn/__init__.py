@@ -47,6 +47,7 @@ __all__: tuple[str, ...] = (
     "__version__",
 )
 
+
 # --------------------------------------------------------------------------- #
 # Logging preset (opt‑in)                                                     #
 # --------------------------------------------------------------------------- #
@@ -63,7 +64,7 @@ def _install_default_logging() -> None:  # pragma: no cover
     level = settings.log_level.upper()
     fmt = (
         "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s "
-        '(%(filename)s:%(lineno)d)'
+        "(%(filename)s:%(lineno)d)"
     )
     handler: logging.Handler
     if sys.stderr.isatty():

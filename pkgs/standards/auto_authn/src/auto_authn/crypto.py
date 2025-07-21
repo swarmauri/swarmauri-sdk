@@ -27,8 +27,8 @@ log = logging.getLogger("auth_authn.crypto")
 # --------------------------------------------------------------------------- #
 # Constants                                                                   #
 # --------------------------------------------------------------------------- #
-SIG_ALG = "RS256"          # default JWS alg for ID‑tokens & JWT Access‑tokens
-KEY_SIZE = 2048            # RSA modulus bits
+SIG_ALG = "RS256"  # default JWS alg for ID‑tokens & JWT Access‑tokens
+KEY_SIZE = 2048  # RSA modulus bits
 KEY_GRACE_SECONDS = 86_400  # 24 h overlap before an old key is purged
 
 
@@ -170,7 +170,7 @@ def build_keyjar(jwks_json: str, owner: str) -> KeyJar:
     )
 
     kj.add_kb(owner, priv_bundle)  # used for signing
-    kj.add_kb("", pub_bundle)      # public JWKS for discovery
+    kj.add_kb("", pub_bundle)  # public JWKS for discovery
 
     return kj
 
