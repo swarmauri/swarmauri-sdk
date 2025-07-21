@@ -14,6 +14,7 @@ Key features
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import logging
 from typing import AsyncGenerator
@@ -38,6 +39,7 @@ log = logging.getLogger("auth_authn.db")
 
 engine: AsyncEngine | None = None  # instantiated lazily
 SessionMaker: async_sessionmaker[AsyncSession] | None = None
+_engine_lock = asyncio.Lock()
 
 
 def _create_engine() -> AsyncEngine:
@@ -111,9 +113,10 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     # If called outside ASGI context (CLI, tests), bootstrap engine/sessionmaker
     if SessionMaker is None:  # pragma: no cover
         global engine
-        if engine is None:
-            engine = _create_engine()
-        _init_sessionmaker()
+        async with _engine_lock:
+            if engine is None:
+                engine = _create_engine()
+            _init_sessionmaker()
 
     async with SessionMaker() as session:  # type: ignore[arg-type]
         try:
