@@ -2,6 +2,7 @@
 autoapi_impl.py  –  framework-agnostic helpers rebound onto AutoAPI.
 Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 """
+
 import uuid
 import re
 from inspect import isawaitable, signature
@@ -11,11 +12,12 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect as _sa_inspect          # NEW (for mapper.attrs)
+from sqlalchemy import inspect as _sa_inspect  # NEW (for mapper.attrs)
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
 from .types import _SchemaVerb, hybrid_property
-from .info_schema import check as _info_check          # NEW
+from .info_schema import check as _info_check  # NEW
+
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
@@ -25,6 +27,7 @@ def _not_found() -> None:
 # ---------------------------------------------------------------------
 _DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
 _SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
+
 
 def _commit_or_http(db: Session) -> None:
     try:
@@ -210,7 +213,7 @@ def _register_routes_and_rpcs(  # noqa: N802
         if nested_pref is None
         else (
             flat_router,
-            APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
+            APIRouter(prefix=f"{nested_pref}/{tab}", tags=[f"nested-{tab}"]),
         )
     )
 
@@ -293,27 +296,89 @@ def _register_routes_and_rpcs(  # noqa: N802
 
                 # ── inject path vars into the body model when it exists ───────────
                 if p is not None and parent_kw:
-                    # update() is available on every Pydantic-v2 model
-                    p = p.model_copy(update=parent_kw)
+                    if is_nested_router and nested_vars:
+                        # For nested routes, manually combine data since stripped model can't accept parent fields
+                        p_data = p.model_dump() if hasattr(p, "model_dump") else {}
 
-                # ── delegate to the core helper WITHOUT extra **kwargs ────────────
+                        # Convert path parameters to proper types (especially UUIDs)
+                        converted_parent_kw = {}
+                        for k, v in parent_kw.items():
+                            # Check if the original model field expects a UUID
+                            if hasattr(model, "__table__"):
+                                column = getattr(model.__table__.columns, k, None)
+                                if column is not None and hasattr(
+                                    column.type, "python_type"
+                                ):
+                                    expected_type = column.type.python_type
+                                    if expected_type == uuid.UUID and isinstance(
+                                        v, str
+                                    ):
+                                        converted_parent_kw[k] = uuid.UUID(v)
+                                    else:
+                                        converted_parent_kw[k] = v
+                                else:
+                                    converted_parent_kw[k] = v
+                            else:
+                                converted_parent_kw[k] = v
+
+                        p_data.update(converted_parent_kw)
+
+                        # Convert to a simple object that core functions can use
+                        class CombinedData:
+                            def __init__(self, data):
+                                self._data = data
+                                for k, v in data.items():
+                                    setattr(self, k, v)
+
+                            def model_dump(
+                                self,
+                                exclude_defaults=False,
+                                exclude_none=False,
+                                **kwargs,
+                            ):
+                                data = self._data.copy()
+                                if exclude_none:
+                                    data = {
+                                        k: v for k, v in data.items() if v is not None
+                                    }
+                                return data
+
+                        p = CombinedData(p_data)
+                    else:
+                        # Regular route: use normal model_copy
+                        p = p.model_copy(update=parent_kw)
+
+                # ── delegate to the core helper with hooks support ─────────────────
                 async def call_sync(fn, *args):
                     if isinstance(db, AsyncSession):
                         return await db.run_sync(lambda s: fn(*args, s))
                     return fn(*args, db)
 
-                match verb:
-                    case "list":
-                        return await call_sync(core, p)
-                    case "read" | "delete":
-                        return await call_sync(core, item_id)
-                    case "update" | "replace":
-                        return await call_sync(core, item_id, p)
-                    case "clear":
-                        return await call_sync(core)
-                    case _:
-                        # create / bulk_create / bulk_delete
-                        return await call_sync(core, p)
+                # Define the core function to execute based on verb
+                async def core_execution():
+
+                    match verb:
+                        case "list":
+                            return await call_sync(core, p)
+                        case "read" | "delete":
+                            return await call_sync(core, item_id)
+                        case "update" | "replace":
+                            return await call_sync(core, item_id, p)
+                        case "clear":
+                            return await call_sync(core)
+                        case _:
+                            # create / bulk_create / bulk_delete
+                            return await call_sync(core, p)
+
+                # ── use the unified invoke method with hooks ──────────────────────
+                return await self._invoke(
+                    model=tab,
+                    verb=verb,
+                    core_fn=core_execution,
+                    db=db,
+                    request=kw.get("request"),  # Add request context if available
+                    **parent_kw,  # Add parent context for nested routes
+                )
 
             _impl.__name__ = f"{verb}_{tab}"
             wrapped = functools.wraps(_impl)(_impl)
@@ -352,6 +417,7 @@ def _register_routes_and_rpcs(  # noqa: N802
 #  Pydantic schema builder (hybrid‑safe)                             #
 # ------------------------------------------------------------------ #
 
+
 def _schema(  # noqa: N802
     self,
     orm_cls: type,
@@ -387,7 +453,11 @@ def _schema(  # noqa: N802
             continue  # skip relationships / composites
 
         col = attr.columns[0] if is_column_attr and attr.columns else None
-        meta_src = col.info if col is not None and hasattr(col, "info") else getattr(attr, "info", {})
+        meta_src = (
+            col.info
+            if col is not None and hasattr(col, "info")
+            else getattr(attr, "info", {})
+        )
         meta = meta_src.get("autoapi", {}) or {}
 
         attr_name = getattr(attr, "key", getattr(attr, "__name__", None))
@@ -398,9 +468,17 @@ def _schema(  # noqa: N802
             continue
 
         # legacy flags on columns
-        if verb == "create" and col is not None and getattr(col, "info", {}).get("no_create"):
+        if (
+            verb == "create"
+            and col is not None
+            and getattr(col, "info", {}).get("no_create")
+        ):
             continue
-        if verb in {"update", "replace"} and col is not None and getattr(col, "info", {}).get("no_update"):
+        if (
+            verb in {"update", "replace"}
+            and col is not None
+            and getattr(col, "info", {}).get("no_update")
+        ):
             continue
 
         # verb‑level visibility
@@ -448,24 +526,21 @@ def _schema(  # noqa: N802
 
     # ---------------- model assembly -------------------------------
     model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
-    cfg = dict(from_attributes=True)
 
     schema_cls = create_model(  # type: ignore[arg-type]
         model_name,
-        __config__=type("Cfg", (), cfg),
+        __config__=ConfigDict(from_attributes=True),
         **fields,
     )
     _SchemaCache[cache_key] = schema_cls
     return schema_cls
 
 
-
-
 # ───────────────────────── CRUD builder ────────────────────────────────
 def _crud(self, model: type) -> None:  # noqa: N802
     tab = model.__tablename__
     mapper = _sa_inspect(model)
-    
+
     # fast-exit if already registered
     if tab in self._registered_tables:
         return
@@ -483,42 +558,37 @@ def _crud(self, model: type) -> None:  # noqa: N802
     SUpdate = _S("update", exclude={pk})  # optional/no_update cols gone
 
     def _SList():
-        base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=10)))
+        base = dict(skip=(int, Field(0, ge=0)), limit=(int | None, Field(None, ge=10)))
 
         _scalars = {str, int, float, bool, bytes, uuid.UUID}
 
         cols: dict[str, tuple[type, Field]] = {}
         for c in model.__table__.columns:
-            if c.name == pk:                      # ← skip the primary key
+            if c.name == pk:  # ← skip the primary key
                 continue
             py_t = getattr(c.type, "python_type", Any)
             if py_t in _scalars:
                 cols[c.name] = (py_t | None, Field(None))
 
         return create_model(
-            f"{tab}ListParams",
-            __config__=ConfigDict(extra="forbid"),
-            **base, **cols
+            f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base, **cols
         )
 
     SListIn = _SList()
-
 
     # ----- helpers ----------------------------------------------------
     def _not_found():
         raise HTTPException(404, "Item not found")
 
-    
     def _create(p: SCreate, db):
         data = p.model_dump()
         # separate into kwargs accepted by model(**) and virtuals
         mapper_cols = {c.key for c in mapper.attrs}  # inspector reuse
-        col_kwargs  = {k: v for k, v in data.items() if k in mapper_cols}
+        col_kwargs = {k: v for k, v in data.items() if k in mapper_cols}
         virt_kwargs = {k: v for k, v in data.items() if k not in mapper_cols}
 
-        obj = model(**col_kwargs)          # columns only
-        for k, v in virt_kwargs.items():   # hybrids / virtuals
+        obj = model(**col_kwargs)  # columns only
+        for k, v in virt_kwargs.items():  # hybrids / virtuals
             setattr(obj, k, v)
 
         db.add(obj)
@@ -610,7 +680,6 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
     single = callable(getattr(OUT, "model_validate", None))
 
-
     def h(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
@@ -644,5 +713,3 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
 
 def _commit_or_flush(self, db: Session):
     db.flush() if db.in_nested_transaction() else db.commit()
-
-

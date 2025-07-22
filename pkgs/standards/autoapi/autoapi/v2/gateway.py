@@ -2,10 +2,32 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from typing import Any, Dict
 
-from .hooks import Phase
 from .jsonrpc_models import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
+
+
+def _extract_model_and_verb(api, method_name: str) -> tuple[str, str]:
+    """Extract model and verb from RPC method name with better table name resolution."""
+    if "." in method_name:
+        model_class_name, verb = method_name.split(".", 1)
+        # Look up the actual table name from the registered tables
+        model = None
+        for table_name in api._registered_tables:
+            # Match by table name or try to match class name
+            if (
+                table_name.lower() == model_class_name.lower()
+                or table_name.lower() == model_class_name.lower() + "s"
+                or table_name.lower().rstrip("s") == model_class_name.lower()
+            ):
+                model = table_name
+                break
+        # Fallback if no match found
+        if not model:
+            model = model_class_name.lower()
+        return model, verb
+    else:
+        # Fallback for custom RPC methods
+        return "custom", method_name
 
 
 def build_gateway(api) -> APIRouter:
@@ -23,8 +45,6 @@ def build_gateway(api) -> APIRouter:
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
         ):
-            ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
-
             if api.authorize and not api.authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
@@ -33,28 +53,25 @@ def build_gateway(api) -> APIRouter:
                 return _err(-32601, "Method not found", env)
 
             try:
-                await api._run(Phase.PRE_TX_BEGIN, ctx)
-                res = fn(env.params, db)
-                ctx["result"] = res
-                await api._run(Phase.POST_HANDLER, ctx)
+                # Extract model and verb from method name with proper table name resolution
+                model, verb = _extract_model_and_verb(api, env.method)
 
-                if db.in_transaction():
-                    await api._run(Phase.PRE_COMMIT, ctx)
-                    db.commit()
-                    await api._run(Phase.POST_COMMIT, ctx)
+                # Use the unified invoke method
+                result = await api._invoke(
+                    model=model,
+                    verb=verb,
+                    core_fn=lambda: fn(env.params, db),
+                    db=db,
+                    request=req,
+                    env=env,
+                )
 
-                out = _ok(res, env)
-                await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
-                return out
+                return _ok(result, env)
 
             except Exception as exc:
-                db.rollback()
-
                 if isinstance(exc, HTTPException):
                     rpc_code, rpc_data = _http_exc_to_rpc(exc)
                     return _err(rpc_code, exc.detail, env, rpc_data)
-
-                await api._run(Phase.ON_ERROR, ctx | {"error": exc})
                 return _err(-32000, str(exc), env)
 
             finally:
@@ -68,8 +85,6 @@ def build_gateway(api) -> APIRouter:
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
         ):
-            ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
-
             if api.authorize and not api.authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
@@ -78,28 +93,25 @@ def build_gateway(api) -> APIRouter:
                 return _err(-32601, "Method not found", env)
 
             try:
-                await api._run(Phase.PRE_TX_BEGIN, ctx)
-                res = await db.run_sync(lambda s: fn(env.params, s))
-                ctx["result"] = res
-                await api._run(Phase.POST_HANDLER, ctx)
+                # Extract model and verb from method name with proper table name resolution
+                model, verb = _extract_model_and_verb(api, env.method)
 
-                if db.in_transaction():
-                    await api._run(Phase.PRE_COMMIT, ctx)
-                    await db.commit()
-                    await api._run(Phase.POST_COMMIT, ctx)
+                # Use the unified invoke method with async wrapper
+                result = await api._invoke(
+                    model=model,
+                    verb=verb,
+                    core_fn=lambda: db.run_sync(lambda s: fn(env.params, s)),
+                    db=db,
+                    request=req,
+                    env=env,
+                )
 
-                out = _ok(res, env)
-                await api._run(Phase.POST_RESPONSE, ctx | {"response": out})
-                return out
+                return _ok(result, env)
 
             except Exception as exc:
-                await db.rollback()
-
                 if isinstance(exc, HTTPException):
                     rpc_code, rpc_data = _http_exc_to_rpc(exc)
                     return _err(rpc_code, exc.detail, env, rpc_data)
-
-                await api._run(Phase.ON_ERROR, ctx | {"error": exc})
                 return _err(-32000, str(exc), env)
 
             finally:

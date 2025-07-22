@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
-from .hooks import Phase, _Hook, _init_hooks, _run
+from .hooks import Phase, _Hook, _init_hooks, _run, _invoke
 from .impl import (
     _crud,
     _register_routes_and_rpcs,
@@ -136,6 +136,7 @@ class AutoAPI:
     _crud = _crud
     _wrap_rpc = _wrap_rpc
     _run = _run
+    _invoke = _invoke
     _nested_prefix = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
@@ -144,6 +145,7 @@ class AutoAPI:
         from .get_schema import get_autoapi_schema
 
         return get_autoapi_schema(orm_cls, tag)
+
 
 # keep __all__ tidy for `from autoapi import *` users
 __all__ = [
