@@ -20,12 +20,18 @@ from __future__ import annotations
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .backends import ApiKeyBackend, AuthError, PasswordBackend  # PasswordBackend not used here, but re-exported for completeness
-from .jwtoken import JWTCoder
+from .backends import (
+    ApiKeyBackend,
+    AuthError,
+    PasswordBackend,
+)  # PasswordBackend not used here, but re-exported for completeness
 from .orm.tables import User
 from .typing import Principal
 from .db import get_async_db
+from .jwtoken import JWTCodec
 
+_api_key_backend = ApiKeyBackend()
+_jwt_coder = JWTCodec()
 
 # ---------------------------------------------------------------------
 # FastAPI dependencies

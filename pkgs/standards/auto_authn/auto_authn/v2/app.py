@@ -17,27 +17,14 @@ from __future__ import annotations
 
 import os
 import sys
-from pathlib import Path
-from typing import AsyncIterator
 
 import fastapi
-from fastapi import Depends
-from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
 
 from autoapi.v2 import get_schema  # convenience helper for /methodz
 from .crypto import public_key
-from .jwtoken import JWTCoder
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
-from .fastapi_deps import get_current_principal
-from .db import engine
- 
+
 
 # --------------------------------------------------------------------
 # FastAPI application
@@ -50,8 +37,8 @@ app = fastapi.FastAPI(
 )
 
 # Mount routers
-app.include_router(crud_api.router)     # /authn/<model> CRUD (AutoAPI)
-app.include_router(flows_router)   # /register, /login, etc.
+app.include_router(crud_api.router)  # /authn/<model> CRUD (AutoAPI)
+app.include_router(flows_router)  # /register, /login, etc.
 
 
 # --------------------------------------------------------------------
@@ -60,6 +47,7 @@ app.include_router(flows_router)   # /register, /login, etc.
 @app.get("/healthz", include_in_schema=False)
 async def health_check():
     return {"status": "alive"}
+
 
 @app.get("/methodz", include_in_schema=False)
 async def methodz():
@@ -75,11 +63,13 @@ async def methodz():
         "python": sys.version.split()[0],
     }
 
+
 # --------------------------------------------------------------------
 # OIDC discovery + JWKS
 # --------------------------------------------------------------------
 JWKS_PATH = "/.well-known/jwks.json"
 ISSUER = os.getenv("AUTHN_ISSUER", "https://authn.example.com")  # adjust in prod
+
 
 @app.get("/.well-known/openid-configuration", include_in_schema=False)
 async def oidc_config():
@@ -93,6 +83,7 @@ async def oidc_config():
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["EdDSA"],
     }
+
 
 @app.get(JWKS_PATH, include_in_schema=False)
 async def jwks():
@@ -108,6 +99,7 @@ async def jwks():
     key_dict["kid"] = key_dict.get("kid") or "ed25519-1"
 
     return {"keys": [key_dict]}
+
 
 async def _startup() -> None:
     # 1 – metadata validation / SQLite convenience mode

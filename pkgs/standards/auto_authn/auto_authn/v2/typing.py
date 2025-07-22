@@ -16,12 +16,13 @@ JWTPayload    : TypedDict for decoded JWT claims used across the codebase.
 from __future__ import annotations
 
 import uuid
-from typing import List, Protocol, TypedDict, runtime_checkable, NewType
+from typing import Protocol, TypedDict, runtime_checkable, NewType
 
 # ---------------------------------------------------------------------
 # UUID helpers
 # ---------------------------------------------------------------------
 StrUUID = NewType("StrUUID", str)  # 36-char uuid string, runtime = str
+
 
 def uuid_str() -> StrUUID:
     """Return a new random UUID *string* in canonical form."""
@@ -32,12 +33,12 @@ def uuid_str() -> StrUUID:
 # JWT payload schema
 # ---------------------------------------------------------------------
 class JWTPayload(TypedDict, total=False):
-    sub: StrUUID          # subject (user.id)
-    tid: StrUUID          # tenant id
-    typ: str              # "access" | "refresh"
-    iat: int              # issued-at (posix seconds)
-    exp: int              # expiry (posix seconds)
-    jti: str              # token id
+    sub: StrUUID  # subject (user.id)
+    tid: StrUUID  # tenant id
+    typ: str  # "access" | "refresh"
+    iat: int  # issued-at (posix seconds)
+    exp: int  # expiry (posix seconds)
+    jti: str  # token id
 
 
 # ---------------------------------------------------------------------
@@ -52,5 +53,5 @@ class Principal(Protocol):
     can be passed into auth helpers such as `require_scope`.
     """
 
-    id: StrUUID                # primary key of the user
-    tenant_id: StrUUID         # partition identifier
+    id: StrUUID  # primary key of the user
+    tenant_id: StrUUID  # partition identifier
