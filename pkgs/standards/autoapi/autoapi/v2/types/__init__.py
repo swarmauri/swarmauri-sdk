@@ -11,6 +11,7 @@ from sqlalchemy import (
     JSON,
     Numeric,
     String,
+    LargeBinary,
     UniqueConstraint,
     CheckConstraint,
     event,
@@ -19,7 +20,7 @@ from sqlalchemy.dialects.postgresql import (
     ARRAY,
     ENUM as PgEnum,
     JSONB,
-    UUID,
+    UUID as PgUUID,
     TSVECTOR
 )
 from sqlalchemy.orm import (
@@ -30,9 +31,11 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
     remote,
+    column_property,
+    # synonym,
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-
+from sqlalchemy.ext.hybrid import hybrid_property
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 
@@ -54,6 +57,7 @@ __all__: list[str] = [
     "JSON",
     "Numeric",
     "String",
+    "LargeBinary",
     "UniqueConstraint",
     "CheckConstraint",
     "event",
@@ -61,7 +65,7 @@ __all__: list[str] = [
     "ARRAY",
     "PgEnum",
     "JSONB",
-    "UUID",
+    "PgUUID",
     "TSVECTOR",
     # sqlalchemy.orm
     "Mapped",
@@ -69,9 +73,12 @@ __all__: list[str] = [
     "declared_attr",
     "foreign",
     "mapped_column",
+    "column_property",
+    "hybrid_property",
     "relationship",
     "remote",
     # sqlalchemy.ext.mutable
     "MutableDict",
     "MutableList",
+    # "synonym",
 ]

@@ -16,7 +16,9 @@ from ._base import Base
 
 __all__ = [
     "Tenant",
+    "Client",
     "User",
+    "ApiKey",
     "Group",
     "Org",
     "Role",
@@ -33,7 +35,9 @@ __all__ = [
 # ------------------------------------------------------------------ #
 _module_map = {
     "Tenant": f"{__name__}.tenant",
+    "Client": f"{__name__}.client",
     "User": f"{__name__}.user",
+    "ApiKey": f"{__name__}.apikey",
     "Group": f"{__name__}.group",
     "Org": f"{__name__}.org",
     "Role": f"{__name__}.rbac",
@@ -61,7 +65,9 @@ def __getattr__(name: str) -> Any:  # noqa: D401
 if TYPE_CHECKING:  # pragma: no cover
     from ._base import Base
     from .tenant import Tenant
+    from .client import Client
     from .user import User
+    from .apikey import ApiKey
     from .group import Group
     from .org import Org
     from .rbac import Role, RoleGrant, RolePerm

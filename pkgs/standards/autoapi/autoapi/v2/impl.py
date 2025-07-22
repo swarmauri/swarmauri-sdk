@@ -5,16 +5,17 @@ Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 import uuid
 import re
 from inspect import isawaitable, signature
-from typing import Any, List, get_args, get_origin
-
+from typing import Any, List, get_args, get_origin, Dict, Set, Tuple, Type
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect as _sa_inspect          # NEW (for mapper.attrs)
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
-from .types import _SchemaVerb
+from .types import _SchemaVerb, hybrid_property
+from .info_schema import check as _info_check          # NEW
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
@@ -23,7 +24,7 @@ def _not_found() -> None:
 
 # ---------------------------------------------------------------------
 _DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
-
+_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
 
 def _commit_or_http(db: Session) -> None:
     try:
@@ -343,69 +344,128 @@ def _register_routes_and_rpcs(  # noqa: N802
 
 
 # ───────────────────────── schema helper ────────────────────────────────
-def _schema(
+# ------------------------------------------------------------------ #
+#  Pydantic schema builder (drop‑in replacement)                     #
+# ------------------------------------------------------------------ #
+
+# ------------------------------------------------------------------ #
+#  Pydantic schema builder (hybrid‑safe)                             #
+# ------------------------------------------------------------------ #
+
+def _schema(  # noqa: N802
     self,
     orm_cls: type,
     *,
-    name: str | None = None,  # ← now optional
-    include: set[str] | None = None,
-    exclude: set[str] | None = None,
+    name: str | None = None,
+    include: Set[str] | None = None,
+    exclude: Set[str] | None = None,
     verb: _SchemaVerb = "create",
 ):
     """
-    Build a throw-away Pydantic model mirroring the SQLAlchemy table.
+    Build (and cache) a verb‑specific Pydantic model from *orm_cls*.
 
-    • If *name* is omitted or None → use "<OrmClass>Schema".
-    • *include* and *exclude* work as before.
+    ColumnInfo keys supported:
+        disable_on · write_only · read_only · default_factory · examples · py_type · hybrid
+    Also honours legacy column.info["no_create"] / ["no_update"].
     """
+    cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
+    if cache_key in _SchemaCache:
+        return _SchemaCache[cache_key]
 
-    model_name = name or f"{orm_cls.__name__}{verb.title()}"
+    mapper = _sa_inspect(orm_cls)
+    fields: Dict[str, Tuple[type, Field]] = {}
 
-    # filter predicate --------------------------------------------------
-    def _should_use(col) -> bool:
-        if include is not None and col.name not in include:
-            return False
-        if exclude is not None and col.name in exclude:
-            return False
+    # column‑mapped attrs + any @hybrid_property objects
+    attrs = list(mapper.attrs) + [
+        v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)
+    ]
 
-        # ---- automatic PK exclusion on write verbs -------------------
-        if verb in {"create", "update"} and col.name == "pk":
-            return False
+    for attr in attrs:
+        is_hybrid = isinstance(attr, hybrid_property)
+        is_column_attr = not is_hybrid and hasattr(attr, "columns")
+        if not is_column_attr and not is_hybrid:
+            continue  # skip relationships / composites
 
-        # ---- honour selective flags ----------------------------------
-        if verb == "create" and col.info.get("no_create"):
-            return False
-        if verb == "update" and col.info.get("no_update"):
-            return False
-        return True
+        col = attr.columns[0] if is_column_attr and attr.columns else None
+        meta_src = col.info if col is not None and hasattr(col, "info") else getattr(attr, "info", {})
+        meta = meta_src.get("autoapi", {}) or {}
 
-    # ---------- gather fields -----------------------------------------
-    for c in orm_cls.__table__.columns:
-        try:
-            anno = c.type.python_type
-        except Exception as exc:
-            print(f"[autoapi] Column {orm_cls.__name__}.{c.name} blew up: {exc!r}")
-            raise
+        attr_name = getattr(attr, "key", getattr(attr, "__name__", None))
+        _info_check(meta, attr_name, orm_cls.__name__)
 
-    flds = {
-        c.name: (
-            getattr(c.type, "python_type", Any),
-            Field(None if c.nullable or c.default is not None else ...),
-        )
-        for c in orm_cls.__table__.columns
-        if _should_use(c)
-    }
+        # hybrids must opt‑in
+        if is_hybrid and not meta.get("hybrid"):
+            continue
 
-    cfg    = dict(from_attributes=True)
-    M = create_model(model_name, __config__=cfg, **flds)  # type: ignore[arg-type]
-    M.model_rebuild(force=True)
-    return M
+        # legacy flags on columns
+        if verb == "create" and col is not None and getattr(col, "info", {}).get("no_create"):
+            continue
+        if verb in {"update", "replace"} and col is not None and getattr(col, "info", {}).get("no_update"):
+            continue
+
+        # verb‑level visibility
+        if verb in meta.get("disable_on", []):
+            continue
+        if meta.get("write_only") and verb == "read":
+            continue
+        if meta.get("read_only") and verb != "read":
+            continue
+
+        # hybrid with *no setter* is read‑only
+        if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
+            continue
+
+        # include / exclude filters
+        if include and attr_name not in include:
+            continue
+        if exclude and attr_name in exclude:
+            continue
+
+        # ---------- type & required ---------------------------------
+        if col is not None:
+            try:
+                py_t = col.type.python_type
+            except Exception:
+                py_t = Any
+            is_nullable = bool(getattr(col, "nullable", True))
+            has_default = getattr(col, "default", None) is not None
+            required = not is_nullable and not has_default
+        else:  # hybrid
+            py_t = getattr(attr, "python_type", meta.get("py_type", Any))
+            required = False
+
+        # ---------- defaults / examples -----------------------------
+        if "default_factory" in meta:
+            fld = Field(default_factory=meta["default_factory"])
+            required = False
+        else:
+            fld = Field(None if not required else ...)
+
+        if "examples" in meta:
+            fld = Field(fld.default, examples=meta["examples"])
+
+        fields[attr_name] = (py_t, fld)
+
+    # ---------------- model assembly -------------------------------
+    model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
+    cfg = dict(from_attributes=True)
+
+    schema_cls = create_model(  # type: ignore[arg-type]
+        model_name,
+        __config__=type("Cfg", (), cfg),
+        **fields,
+    )
+    _SchemaCache[cache_key] = schema_cls
+    return schema_cls
+
+
 
 
 # ───────────────────────── CRUD builder ────────────────────────────────
 def _crud(self, model: type) -> None:  # noqa: N802
     tab = model.__tablename__
-
+    mapper = _sa_inspect(model)
+    
     # fast-exit if already registered
     if tab in self._registered_tables:
         return
@@ -449,8 +509,18 @@ def _crud(self, model: type) -> None:  # noqa: N802
     def _not_found():
         raise HTTPException(404, "Item not found")
 
+    
     def _create(p: SCreate, db):
-        obj = model(**p.model_dump())
+        data = p.model_dump()
+        # separate into kwargs accepted by model(**) and virtuals
+        mapper_cols = {c.key for c in mapper.attrs}  # inspector reuse
+        col_kwargs  = {k: v for k, v in data.items() if k in mapper_cols}
+        virt_kwargs = {k: v for k, v in data.items() if k not in mapper_cols}
+
+        obj = model(**col_kwargs)          # columns only
+        for k, v in virt_kwargs.items():   # hybrids / virtuals
+            setattr(obj, k, v)
+
         db.add(obj)
         _commit_or_http(db)
         db.refresh(obj)

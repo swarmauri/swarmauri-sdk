@@ -1,46 +1,58 @@
 # mixins_generic.py ───── all mix-ins live here
-import uuid
+from uuid import uuid4, UUID
 import datetime as dt
 from ..types import (
     Column, DateTime, Integer, String, ForeignKey, declarative_mixin, 
-    declared_attr, UUID, SAEnum, Numeric, Index, Mapped, 
-    mapped_column, JSONB, TSVECTOR)
+    declared_attr, PgUUID, SAEnum, Numeric, Index, Mapped, 
+    mapped_column, JSONB, TSVECTOR, Boolean)
 
 
 
 from .bootstrappable import Bootstrappable
 # ----------------------------------------------------------------------
 
+uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
 
 @declarative_mixin
 class GUIDPk:
     """Universal surrogate primary key."""
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, 
+        info=dict(
+            autoapi={"default_factory":uuid4, "read_only":True, "examples": [uuid_example]}
+            )
+        )
 
 
 # ────────── principals -----------------------------------------
 
 class TenantMixin:
-    tenant_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("tenants.id"))
+    tenant_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("tenants.id"), 
+        info=dict(
+            autoapi={
+                "examples": [uuid_example]
+                }
+            ),
+        )
 
 
 @declarative_mixin
 class UserMixin:
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False
+        PgUUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
     )
 
 @declarative_mixin
 class OrgMixin:
     org_id = Column(
-        UUID(as_uuid=True), ForeignKey("orgs.id"), index=True, nullable=False
+        PgUUID(as_uuid=True), ForeignKey("orgs.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
     )
 
 @declarative_mixin
 class Ownable:
     owner_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False
+        PgUUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
     )
 
 @declarative_mixin
@@ -50,7 +62,7 @@ class Principal:  # concrete table marker
 
 # ────────── bounded scopes  ----------------------------------
 class OwnerBound:
-    owner_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("users.id"))
+    owner_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("users.id"), info=dict(autoapi={"examples": [uuid_example]}),)
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -58,7 +70,7 @@ class OwnerBound:
 
 
 class UserBound:  # membership rows
-    user_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("users.id"))
+    user_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("users.id"), info=dict(autoapi={"examples": [uuid_example]}),)
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -66,7 +78,7 @@ class UserBound:  # membership rows
 
 
 class TenantBound:
-    tenant_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("tenants.id"))
+    tenant_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("tenants.id"), info=dict(autoapi={"examples": [uuid_example]}),)
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -74,6 +86,25 @@ class TenantBound:
 
 
 # ────────── lifecycle --------------------------------------------------
+@declarative_mixin
+class Created:
+    created_at = Column(
+        DateTime,
+        default=dt.datetime.utcnow,
+        nullable=False,
+        info=dict(no_create=True, no_update=True),
+    )
+
+@declarative_mixin
+class LastUsed:
+    last_used_at = Column(DateTime(timezone=True))
+
+
+    def touch(self) -> None:
+        """Update `last_used_at` on successful authentication."""
+        self.last_used_at = datetime.utcnow()
+
+
 @declarative_mixin
 class Timestamped:
     created_at = Column(
@@ -90,6 +121,9 @@ class Timestamped:
         info=dict(no_create=True, no_update=True),
     )
 
+@declarative_mixin
+class ActiveToggle:
+    is_active = Column(Boolean, default=True)
 
 @declarative_mixin
 class SoftDelete:
@@ -99,7 +133,7 @@ class SoftDelete:
 @declarative_mixin
 class Versioned:
     revision = Column(Integer, default=1, nullable=False)
-    prev_id = Column(UUID(as_uuid=True), nullable=True)  # FK self optional
+    prev_id = Column(PgUUID(as_uuid=True), nullable=True)  # FK self optional
 
 
 # ────────── containment & hierarchy -----------------------------------
@@ -110,7 +144,7 @@ class Contained:
         if not hasattr(cls, "parent_table"):
             raise AttributeError("subclass must set parent_table")
         return Column(
-            UUID(as_uuid=True), ForeignKey(f"{cls.parent_table}.id"), nullable=False
+            PgUUID(as_uuid=True), ForeignKey(f"{cls.parent_table}.id"), nullable=False
         )
 
 
@@ -124,7 +158,7 @@ class TreeNode:
     @declared_attr
     def parent_id(cls):
         return Column(
-            UUID(as_uuid=True),
+            PgUUID(as_uuid=True),
             ForeignKey(f"{cls.__tablename__}.id"),  # << string, not lambda
             nullable=True,
         )
@@ -160,12 +194,12 @@ class Audited:  # marker only
 
 @declarative_mixin
 class BlobRef:
-    blob_id = Column(UUID(as_uuid=True))  # points to S3 / GCS
+    blob_id = Column(PgUUID(as_uuid=True))  # points to S3 / GCS
 
 
 @declarative_mixin
 class RowLock:
-    lock_token = Column(UUID(as_uuid=True), nullable=True)
+    lock_token = Column(PgUUID(as_uuid=True), nullable=True)
     locked_at = Column(DateTime, nullable=True)
 
 
@@ -191,7 +225,7 @@ class Streamable:
 # Slugged ── human-readable identifier
 @declarative_mixin
 class Slugged:
-    slug = Column(String, unique=True, nullable=False)
+    slug = Column(String(120), unique=True, nullable=False)
 
 
 # ----------------------------------------------------------------------
@@ -254,7 +288,7 @@ class MetaJSON:
 # SoftLock ── pessimistic edit lock
 @declarative_mixin
 class SoftLock:
-    locked_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    locked_by = Column(PgUUID(as_uuid=True), ForeignKey("users.id"))
     locked_at = Column(DateTime)
 
 
