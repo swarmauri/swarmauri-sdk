@@ -28,10 +28,10 @@ from .backends import (
 from .orm.tables import User
 from .typing import Principal
 from .db import get_async_db
-from .jwtoken import JWTCodec
-
+from .jwtoken import JWTCoder
+from .crypto import public_key, signing_key
 _api_key_backend = ApiKeyBackend()
-_jwt_coder = JWTCodec()
+_jwt_coder = JWTCoder(public_key, signing_key)
 
 # ---------------------------------------------------------------------
 # FastAPI dependencies
