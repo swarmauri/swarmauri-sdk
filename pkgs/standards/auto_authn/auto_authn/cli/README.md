@@ -1,7 +1,7 @@
-## 🛠️ CLI Reference `auth‑authn`
+## 🛠️ CLI Reference `auto‑authn`
 
 > All commands follow the pattern
-> `auth-authn <GROUP> <COMMAND> [OPTIONS]`
+> `auto-authn <GROUP> <COMMAND> [OPTIONS]`
 > Global flags (apply to every invocation):
 > `--quiet/-q`  suppress banner │ `--log-level/-l DEBUG|INFO|…` │ `--db-url` override DB URL
 
@@ -30,14 +30,14 @@
 
 ```bash
 # A. create tenant + admin user
-auth-authn tenants create acme --issuer https://login.acme.io --name "Acme Corp"
-auth-authn users add --tenant acme --username alice --email alice@acme.com
+auto-authn tenants create acme --issuer https://login.acme.io --name "Acme Corp"
+auto-authn users add --tenant acme --username alice --email alice@acme.com
 
 # B. register Peagen & new_service
-auth-authn clients register acme \
+auto-authn clients register acme \
     --client-id peagen-acme \
     --redirect-uris https://app.peagen.io/auth/callback/acme
-auth-authn clients register acme \
+auto-authn clients register acme \
     --client-id newsvc-acme \
     --redirect-uris https://acme.newsvc.io/auth/callback
 ```
@@ -47,7 +47,7 @@ auth-authn clients register acme \
 #### 2 . Rotate signing keys every quarter
 
 ```bash
-auth-authn tenants rotate-keys --grace $((90*24*3600))   # keep old keys 90 days
+auto-authn tenants rotate-keys --grace $((90*24*3600))   # keep old keys 90 days
 ```
 
 Relying‑parties will automatically fetch the new public key from
@@ -56,7 +56,7 @@ Relying‑parties will automatically fetch the new public key from
 #### 3 . Emergency user lockout
 
 ```bash
-auth-authn users deactivate --tenant acme bob
+auto-authn users deactivate --tenant acme bob
 ```
 
 Tokens already issued to *bob* remain valid until expiry; new login attempts are rejected.
@@ -64,7 +64,7 @@ Tokens already issued to *bob* remain valid until expiry; new login attempts are
 #### 4 . Client secret compromise
 
 ```bash
-auth-authn clients rotate-secret acme peagen-acme > new_secret.txt
+auto-authn clients rotate-secret acme peagen-acme > new_secret.txt
 # update Peagen gateway environment with new secret, then delete temporary file
 shred --remove new_secret.txt
 ```
@@ -76,9 +76,9 @@ shred --remove new_secret.txt
 Every command is self‑documenting:
 
 ```bash
-auth-authn --help                 # global options + groups
-auth-authn tenants --help         # group‑level help
-auth-authn tenants create --help  # command‑level help & examples
+auto-authn --help                 # global options + groups
+auto-authn tenants --help         # group‑level help
+auto-authn tenants create --help  # command‑level help & examples
 ```
 
-`auth-authn` returns non‑zero exit codes on validation errors so it integrates cleanly with CI/CD scripts.
+`auto-authn` returns non‑zero exit codes on validation errors so it integrates cleanly with CI/CD scripts.

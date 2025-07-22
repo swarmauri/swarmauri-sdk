@@ -1,19 +1,19 @@
 """
-auth_authn_idp.cli
+auto_authn.cli
 ==================
-Administration command‑line for the Auth‑AuthN IdP.
+Administration command‑line for the Auto-AuthN IdP.
 
 Usage examples
 --------------
     # Create a new tenant and initial admin user
-    auth-authn tenants create acme --issuer https://login.acme.com
-    auth-authn users add --tenant acme --username alice --email alice@acme.com
+    auto-authn tenants create acme --issuer https://login.acme.com
+    auto-authn users add --tenant acme --username alice --email alice@acme.com
 
     # Rotate signing keys for all tenants
-    auth-authn tenants rotate-keys --grace 7776000   # 90 days
+    auto-authn tenants rotate-keys --grace 7776000   # 90 days
 
     # List registered RPs for a tenant
-    auth-authn clients list --tenant acme
+    auto-authn clients list --tenant acme
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ def _print_banner() -> None:
     if sys.stdout.isatty():
         typer.echo(typer.style(_BANNER, fg=typer.colors.CYAN, bold=True))
         typer.echo(
-            f"Auth‑AuthN IdP · Version {_settings.project_name} ({_settings.environment})\n"
+            f"Auto‑AuthN IdP · Version {_settings.project_name} ({_settings.environment})\n"
         )
 
 
@@ -67,7 +67,7 @@ def _configure_logging(level: str) -> None:
 
 app = typer.Typer(
     add_completion=False,
-    help="Administrative CLI for the Auth‑AuthN Identity‑Provider.",
+    help="Administrative CLI for the Auto‑AuthN Identity‑Provider.",
     invoke_without_command=True,
 )
 
@@ -109,7 +109,7 @@ def _main(
 
     # 3. optional DB override (useful for ad‑hoc maintenance)
     if db_url:
-        os.environ["AUTH_AUTHN_DATABASE_URL"] = db_url
+        os.environ["AUTO_AUTHN_DATABASE_URL"] = db_url
         # Re‑load settings object lazily for sub‑commands
         Settings.model_rebuild(force=True)
 
@@ -149,7 +149,7 @@ def _entry() -> None:  # pragma: no cover
     Console‑script entry‑point defined in `pyproject.toml`:
 
         [project.scripts]
-        auth-authn = "auth_authn_idp.cli.__init__:_entry"
+        auto-authn = "auto_authn.cli.__init__:_entry"
     """
     app()
 

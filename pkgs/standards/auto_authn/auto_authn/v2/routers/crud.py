@@ -22,26 +22,21 @@ Notes
 
 from __future__ import annotations
 
-import importlib
 from autoapi.v2 import AutoAPI, Base
 from auto_authn.v2.orm.tables import (
-        Tenant,
-        User,
-        Client,
-        ApiKey,
-    )
-from ..db import engine, get_async_db  # same module as before
+    Tenant,
+    User,
+    Client,
+    ApiKey,
+)
+from ..db import get_async_db  # same module as before
+
 # ----------------------------------------------------------------------
 # 3.  Build AutoAPI instance & router
 # ----------------------------------------------------------------------
 crud_api = AutoAPI(
     base=Base,
-    include={
-        Tenant,
-        User,
-        Client,
-        ApiKey
-    },
+    include={Tenant, User, Client, ApiKey},
     get_async_db=get_async_db,
 )
 

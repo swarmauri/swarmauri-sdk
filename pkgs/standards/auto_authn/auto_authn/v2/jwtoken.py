@@ -31,7 +31,7 @@ A refresh-token has a longer TTL and carries a distinct `"typ": "refresh"`.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -102,9 +102,7 @@ class JWTCoder:
         }
         return jwt.encode(payload, self._priv, algorithm=_ALG)
 
-    def sign_pair(
-        self, *, sub: str, tid: str, **extra: Any
-    ) -> Tuple[str, str]:
+    def sign_pair(self, *, sub: str, tid: str, **extra: Any) -> Tuple[str, str]:
         """Return `(access_token, refresh_token)`."""
         access = self.sign(sub=sub, tid=tid, **extra)
         refresh = self.sign(
@@ -151,9 +149,6 @@ class JWTCoder:
 
         # strip JWT reserved claims before re-signing
         base_claims = {
-            k: v
-            for k, v in payload.items()
-            if k not in {"iat", "exp", "typ"}
+            k: v for k, v in payload.items() if k not in {"iat", "exp", "typ"}
         }
         return self.sign_pair(**base_claims)
-

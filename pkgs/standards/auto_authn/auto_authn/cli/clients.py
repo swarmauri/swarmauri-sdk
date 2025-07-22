@@ -1,24 +1,24 @@
 """
-auth_authn_idp.cli.clients
+auto_authn.cli.clients
 ==========================
 Manage **OIDC clients / relying‑parties** under a tenant.
 
 Typical usage
 -------------
 # Register a SPA
-auth-authn clients register acme \
+auto-authn clients register acme \
   --redirect-uris https://app.example.com/callback \
   --response-types code \
   --grant-types authorization_code,refresh_token
 
 # List all clients
-auth-authn clients list acme
+auto-authn clients list acme
 
 # Rotate client_secret
-auth-authn clients rotate-secret acme my-spa
+auto-authn clients rotate-secret acme my-spa
 
 # Deactivate
-auth-authn clients deactivate acme old-legacy-rp
+auto-authn clients deactivate acme old-legacy-rp
 """
 
 from __future__ import annotations

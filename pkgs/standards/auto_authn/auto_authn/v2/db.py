@@ -21,6 +21,8 @@ engine = create_async_engine(
 )
 Session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 print(dsn)
+
+
 async def get_async_db() -> AsyncSession:
     async with Session() as db:
         yield db

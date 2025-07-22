@@ -13,9 +13,9 @@ JWT_ED25519_PRIV_PATH   path to PEM-encoded Ed25519 *private* key
 
 Security notes
 --------------
-• Ed25519 chosen for small key size & deterministic signatures.  
+• Ed25519 chosen for small key size & deterministic signatures.
 • Private key never leaves this module; callers get *bytes* to feed
-  into PyJWT (`jwt.encode(..., key=PRIVATE_KEY, algorithm="EdDSA")`).  
+  into PyJWT (`jwt.encode(..., key=PRIVATE_KEY, algorithm="EdDSA")`).
 • If the PEM file is missing, a fresh key-pair is generated and written
   with `0o600` permissions – suitable for container first-run.
 """
@@ -30,7 +30,6 @@ from typing import Tuple
 import bcrypt
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
-    Ed25519PublicKey,
 )
 from cryptography.hazmat.primitives import serialization
 

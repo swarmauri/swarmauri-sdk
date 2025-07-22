@@ -1,6 +1,6 @@
-# Auth‑AuthN  IdP; Multi‑Tenant OpenID‑Connect Provider
+# Auto‑AuthN  IdP; Multi‑Tenant OpenID‑Connect Provider
 
-**Auth‑AuthN** is a batteries‑included, async, SQL‑backed OpenID‑Connect 1.0 / OAuth 2.1
+**Auto‑AuthN** is a batteries‑included, async, SQL‑backed OpenID‑Connect 1.0 / OAuth 2.1
 Identity‑Provider written in Python 3.11+.  
 It is designed for SaaS vendors who need per‑customer (tenant) isolation while
 running a single scalable cluster.

@@ -58,7 +58,9 @@ class PasswordBackend:
             User.is_active.is_(True),
         )
 
-    async def authenticate(self, db: AsyncSession, identifier: str, password: str) -> User:
+    async def authenticate(
+        self, db: AsyncSession, identifier: str, password: str
+    ) -> User:
         row: Optional[User] = await db.scalar(await self._get_user_stmt(identifier))
         if not row or not verify_pw(password, row.password_hash):
             raise AuthError("invalid username/email or password")
@@ -75,6 +77,7 @@ class ApiKeyBackend:
     * Only active, non-expired keys are valid.
     * The raw secret is never stored; verification is via BLAKE2b-256 digest.
     """
+
     async def _get_key_stmt(self, digest: str) -> Select[tuple[ApiKey]]:
         now = datetime.now(timezone.utc)
         return select(ApiKey).where(
