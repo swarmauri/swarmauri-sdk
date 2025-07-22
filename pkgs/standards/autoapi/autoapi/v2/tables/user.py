@@ -1,13 +1,20 @@
 """User model."""
 
 from ._base import Base
-from ..mixins import  (GUIDPk, 
-Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle)
+from ..mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    Principal,
+    AsyncCapable,
+    ActiveToggle,
+)
 from ..types import Column, String, LargeBinary, relationship
 
 
-class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, 
-    ActiveToggle):
+class User(
+    Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle
+):
     __tablename__ = "users"
     username = Column(String(80), nullable=False)
     email = Column(String(120), unique=True)
@@ -17,6 +24,7 @@ class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable,
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
 
 __all__ = ["User"]
 

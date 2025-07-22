@@ -162,9 +162,9 @@ async def test_transaction_parity_all_methods(api_client):
 
         # All methods should have identical transaction flow
         expected_events = ["TX_BEGIN", "PRE_COMMIT", "POST_COMMIT"]
-        assert (
-            transaction_events == expected_events
-        ), f"{method_name} transaction flow mismatch: {transaction_events}"
+        assert transaction_events == expected_events, (
+            f"{method_name} transaction flow mismatch: {transaction_events}"
+        )
 
 
 @pytest.mark.i9n

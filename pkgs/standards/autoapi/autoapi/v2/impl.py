@@ -356,7 +356,6 @@ def _register_routes_and_rpcs(  # noqa: N802
 
                 # Define the core function to execute based on verb
                 async def core_execution():
-
                     match verb:
                         case "list":
                             return await call_sync(core, p)

@@ -134,7 +134,8 @@ def async_postgres_engine(
         pool_pre_ping=True,
         echo=False,
     )
-    return eng, async_sessionmaker(        eng,
+    return eng, async_sessionmaker(
+        eng,
         expire_on_commit=False,
         class_=HybridSession,  # CHANGED ←
     )

@@ -5,7 +5,9 @@ Pure structural helpers (no FastAPI / DB imports).
 
 from typing import Any, Callable, NamedTuple, Type, Literal, TypeAlias
 
-_SchemaVerb: TypeAlias = Literal["create", "read", "update", "delete", "list"] # ❓ Should we add clear here?
+_SchemaVerb: TypeAlias = Literal[
+    "create", "read", "update", "delete", "list"
+]  # ❓ Should we add clear here?
 
 
 class _Op(NamedTuple):
@@ -19,5 +21,6 @@ class _Op(NamedTuple):
     In: Type | None  # Pydantic input model (or None)
     Out: Type  # Pydantic output model
     core: Callable[..., Any]  # The actual implementation
+
 
 __all__ = ["_Op", "_SchemaVerb"]

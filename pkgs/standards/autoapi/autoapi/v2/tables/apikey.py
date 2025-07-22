@@ -1,46 +1,50 @@
 from __future__ import annotations
 
-import secrets, hmac, hashlib
-from datetime import datetime, timezone
-from uuid import UUID
 
 from ..types import (
-    Column, String, Boolean, DateTime, ForeignKey, Index,
-    LargeBinary, relationship, UniqueConstraint, column_property, event, hybrid_property
+    Column,
+    String,
+    relationship,
+    UniqueConstraint,
+    hybrid_property,
 )
 from ._base import Base
 from ..mixins import (
     GUIDPk,
     UserMixin,
-    Timestamped,
     Created,
     LastUsed,
     ValidityWindow,
-    ActiveToggle
+    ActiveToggle,
 )
 from hashlib import blake2b
 from secrets import token_urlsafe
 from .user import User
 
+
 def get_token_urlsafe_factory():
     return token_urlsafe(8)
+
+
 # ------------------------------------------------------------------ model
 class ApiKey(
     Base,
     GUIDPk,
-    UserMixin,           # FK → user.id and back‑populates
-    Created,             # created_at timestamp
-    LastUsed,            # last_used_at timestamp
-    ValidityWindow,      # expires_at
-    ActiveToggle,        # is_active
+    UserMixin,  # FK → user.id and back‑populates
+    Created,  # created_at timestamp
+    LastUsed,  # last_used_at timestamp
+    ValidityWindow,  # expires_at
+    ActiveToggle,  # is_active
 ):
-    __tablename__  = "apikeys"
-    __table_args__ = (UniqueConstraint("digest"),{"extend_existing": True},)
+    __tablename__ = "apikeys"
+    __table_args__ = (
+        UniqueConstraint("digest"),
+        {"extend_existing": True},
+    )
 
-    label   = Column(String(120), nullable=False)
+    label = Column(String(120), nullable=False)
 
-
-    digest  = Column(
+    digest = Column(
         String(64),
         nullable=False,
         unique=True,
@@ -54,11 +58,10 @@ class ApiKey(
         },
     )
 
-
     user = relationship(
         User,
         back_populates="api_keys",
-        lazy="joined",          # optional: eager load to avoid N+1
+        lazy="joined",  # optional: eager load to avoid N+1
     )
 
     @hybrid_property
@@ -77,14 +80,14 @@ class ApiKey(
     # attach ColumnInfo so AutoAPI knows to expose it
     raw_key.default = get_token_urlsafe_factory
     raw_key.nullable = True
-    raw_key.oncreate= get_token_urlsafe_factory
-    raw_key.onupdate= get_token_urlsafe_factory
+    raw_key.oncreate = get_token_urlsafe_factory
+    raw_key.onupdate = get_token_urlsafe_factory
     raw_key.info = {
         "autoapi": {
-            "hybrid":   True,    # ← opt-in
+            "hybrid": True,  # ← opt-in
             "write_only": True,  # hide on READ/LIST
             "py_type": str,
             "default_factory": get_token_urlsafe_factory,
-            "examples":  [get_token_urlsafe_factory()],   # Swagger placeholder
+            "examples": [get_token_urlsafe_factory()],  # Swagger placeholder
         }
     }
