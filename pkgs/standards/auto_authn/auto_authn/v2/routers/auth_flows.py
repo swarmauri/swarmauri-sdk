@@ -142,4 +142,4 @@ async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db
     except AuthError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, exc.reason)
 
-    return IntrospectOut(sub=user.id, tid=user.tenant_id)
+    return IntrospectOut(sub=str(user.id), tid=str(user.tenant_id))

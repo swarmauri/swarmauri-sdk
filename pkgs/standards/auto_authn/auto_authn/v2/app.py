@@ -35,7 +35,7 @@ from .crypto import public_key
 from .jwtoken import JWTCoder
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
-from .fastapi_deps import get_current_principal, require_scope
+from .fastapi_deps import get_current_principal
 from .db import engine
  
 

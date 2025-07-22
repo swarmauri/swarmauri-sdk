@@ -86,36 +86,9 @@ async def get_current_principal(  # type: ignore[override]
     )
 
 
-def require_scope(*required: str):
-    """
-    Decorator producing a FastAPI dependency that enforces *coarse* scopes.
-
-    Example
-    -------
-    ```python
-    @router.post("/tenants/{id}/suspend",
-                 dependencies=[Depends(require_scope("tenant:admin"))])
-    async def suspend(id: UUID, principal = Depends(get_current_principal)):
-        ...
-    ```
-    """
-
-    async def _dep(principal: Principal = Depends(get_current_principal)):
-        missing = set(required) - set(principal.scopes_set if hasattr(principal, "scopes_set") else principal.scopes)
-        if missing:
-            raise HTTPException(
-                status.HTTP_403_FORBIDDEN,
-                f"scope(s) {', '.join(sorted(missing))} required",
-            )
-        return principal
-
-    return _dep
-
-
 # Public re-exports
 __all__ = [
     "get_current_principal",
-    "require_scope",
     "PasswordBackend",
     "ApiKeyBackend",
 ]

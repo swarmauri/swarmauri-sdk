@@ -3,7 +3,7 @@
 from ._base import Base
 from ..mixins import  (GUIDPk, 
 Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle)
-from ..types import Column, String, LargeBinary
+from ..types import Column, String, LargeBinary, relationship
 
 
 class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, 
@@ -12,7 +12,11 @@ class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable,
     username = Column(String(80), nullable=False)
     email = Column(String(120), unique=True)
     password_hash = Column(LargeBinary(60))
-
+    api_keys = relationship(
+        "ApiKey",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 __all__ = ["User"]
 

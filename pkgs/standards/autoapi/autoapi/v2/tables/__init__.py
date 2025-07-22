@@ -37,7 +37,7 @@ _module_map = {
     "Tenant": f"{__name__}.tenant",
     "Client": f"{__name__}.client",
     "User": f"{__name__}.user",
-    "ApiKey": f"{__name__}.api_key",
+    "ApiKey": f"{__name__}.apikey",
     "Group": f"{__name__}.group",
     "Org": f"{__name__}.org",
     "Role": f"{__name__}.rbac",
@@ -67,7 +67,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .tenant import Tenant
     from .client import Client
     from .user import User
-    from .api_key import ApiKey
+    from .apikey import ApiKey
     from .group import Group
     from .org import Org
     from .rbac import Role, RoleGrant, RolePerm

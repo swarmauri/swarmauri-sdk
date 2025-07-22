@@ -5,6 +5,8 @@ VALID_KEYS = {
     "read_only", 
     "default_factory",
     "examples",
+    "hybrid",
+    "py_type",
 }
 VALID_VERBS = {"create", "read", "update", "replace", "list", "delete", "clear"}
 

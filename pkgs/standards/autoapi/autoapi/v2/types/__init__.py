@@ -31,9 +31,11 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
     remote,
+    column_property,
+    # synonym,
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-
+from sqlalchemy.ext.hybrid import hybrid_property
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 
@@ -71,9 +73,12 @@ __all__: list[str] = [
     "declared_attr",
     "foreign",
     "mapped_column",
+    "column_property",
+    "hybrid_property",
     "relationship",
     "remote",
     # sqlalchemy.ext.mutable
     "MutableDict",
     "MutableList",
+    # "synonym",
 ]
