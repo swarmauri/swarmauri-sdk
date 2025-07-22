@@ -5,16 +5,17 @@ Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
 import uuid
 import re
 from inspect import isawaitable, signature
-from typing import Any, List, get_args, get_origin
-
+from typing import Any, List, get_args, get_origin, Dict, Set, Tuple, Type
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect as _sa_inspect          # NEW (for mapper.attrs)
 
 from .mixins import AsyncCapable, BulkCapable, Replaceable
 from .types import _SchemaVerb
+from .info_schema import check as _info_check          # NEW
 
 # ---------------------------------------------------------------------
 def _not_found() -> None:
@@ -23,7 +24,7 @@ def _not_found() -> None:
 
 # ---------------------------------------------------------------------
 _DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
-
+_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
 
 def _commit_or_http(db: Session) -> None:
     try:
@@ -343,63 +344,99 @@ def _register_routes_and_rpcs(  # noqa: N802
 
 
 # ───────────────────────── schema helper ────────────────────────────────
-def _schema(
+def _schema(  # noqa: N802
     self,
     orm_cls: type,
     *,
-    name: str | None = None,  # ← now optional
-    include: set[str] | None = None,
-    exclude: set[str] | None = None,
+    name: str | None = None,
+    include: Set[str] | None = None,
+    exclude: Set[str] | None = None,
     verb: _SchemaVerb = "create",
 ):
     """
-    Build a throw-away Pydantic model mirroring the SQLAlchemy table.
+    Build (and cache) a verb‑specific Pydantic model from *orm_cls*.
 
-    • If *name* is omitted or None → use "<OrmClass>Schema".
-    • *include* and *exclude* work as before.
+    • understands `column_property()` and other attr-based mappers
+    • honours ColumnInfo keys:
+        disable_on, write_only, read_only,
+        default_factory, py_type, example
+    • legacy `no_create` / `no_update` still work
     """
+    cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
+    if cache_key in _SchemaCache:
+        return _SchemaCache[cache_key]
 
-    model_name = name or f"{orm_cls.__name__}{verb.title()}"
+    mapper = _sa_inspect(orm_cls)
+    fields: Dict[str, Tuple[type, Field]] = {}
 
-    # filter predicate --------------------------------------------------
-    def _should_use(col) -> bool:
-        if include is not None and col.name not in include:
-            return False
-        if exclude is not None and col.name in exclude:
-            return False
+    for attr in mapper.attrs:
+        # ─── skip relationships / composites ───────────────────────────
+        if not hasattr(attr, "columns"):
+            continue
 
-        # ---- automatic PK exclusion on write verbs -------------------
-        if verb in {"create", "update"} and col.name == "pk":
-            return False
+        col = attr.columns[0] if attr.columns else None
 
-        # ---- honour selective flags ----------------------------------
-        if verb == "create" and col.info.get("no_create"):
-            return False
-        if verb == "update" and col.info.get("no_update"):
-            return False
-        return True
-
-    # ---------- gather fields -----------------------------------------
-    for c in orm_cls.__table__.columns:
-        try:
-            anno = c.type.python_type
-        except Exception as exc:
-            print(f"[autoapi] Column {orm_cls.__name__}.{c.name} blew up: {exc!r}")
-            raise
-
-    flds = {
-        c.name: (
-            getattr(c.type, "python_type", Any),
-            Field(None if c.nullable or c.default is not None else ...),
+        # column-level metadata
+        meta_source = (
+            col.info if col is not None and hasattr(col, "info") else attr.info
         )
-        for c in orm_cls.__table__.columns
-        if _should_use(c)
-    }
+        raw_meta = meta_source.get("autoapi", {}) or {}
 
-    cfg    = dict(from_attributes=True)
-    M = create_model(model_name, __config__=cfg, **flds)  # type: ignore[arg-type]
-    M.model_rebuild(force=True)
-    return M
+        _info_check(raw_meta, attr.key, orm_cls.__name__)
+
+        # legacy compatibility
+        if verb == "create" and col is not None and getattr(col, "info", {}).get("no_create"):
+            continue
+        if verb in {"update", "replace"} and col is not None and getattr(col, "info", {}).get("no_update"):
+            continue
+
+        # verb-based exclusion
+        if verb in raw_meta.get("disable_on", []):
+            continue
+        if raw_meta.get("write_only") and verb == "read":
+            continue
+        if raw_meta.get("read_only") and verb != "read":
+            continue
+
+        json_name = attr.key
+
+        # include / exclude filters
+        if include and json_name not in include:
+            continue
+        if exclude and json_name in exclude:
+            continue
+
+        # Python type & required/optional
+        if col is not None:
+            try:
+                py_t = col.type.python_type
+            except Exception:
+                py_t = Any
+            is_nullable = bool(getattr(col, "nullable", True))
+            has_default = getattr(col, "default", None) is not None
+            required = not is_nullable and not has_default
+        else:
+            py_t = getattr(attr, "python_type", raw_meta.get("py_type", Any))
+            required = True
+
+        # default / default_factory
+        if "default_factory" in raw_meta:
+            fld = Field(default_factory=raw_meta["default_factory"])
+            required = False  # ensure optional when factory present
+        else:
+            fld = Field(None if not required else ...)
+
+        if "examples" in raw_meta:
+            fld = Field(fld.default, examples=raw_meta["examples"])
+
+        fields[json_name] = (py_t, fld)
+
+    model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
+    cfg = dict(from_attributes=True)
+
+    schema_cls = create_model(model_name, __config__=type("Cfg", (), cfg), **fields)  # type: ignore[arg-type]
+    _SchemaCache[cache_key] = schema_cls
+    return schema_cls
 
 
 # ───────────────────────── CRUD builder ────────────────────────────────

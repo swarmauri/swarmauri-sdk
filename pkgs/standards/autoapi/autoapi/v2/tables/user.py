@@ -1,13 +1,17 @@
 """User model."""
 
 from ._base import Base
-from ..mixins import GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable
-from ..types import Column, String
+from ..mixins import  (GUIDPk, 
+Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle)
+from ..types import Column, String, LargeBinary
 
 
-class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable):
+class User(Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, 
+    ActiveToggle):
     __tablename__ = "users"
-    email = Column(String, unique=True)
+    username = Column(String(80), nullable=False)
+    email = Column(String(120), unique=True)
+    password_hash = Column(LargeBinary(60))
 
 
 __all__ = ["User"]

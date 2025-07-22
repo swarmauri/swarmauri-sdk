@@ -11,6 +11,7 @@ from sqlalchemy import (
     JSON,
     Numeric,
     String,
+    LargeBinary,
     UniqueConstraint,
     CheckConstraint,
     event,
@@ -19,7 +20,7 @@ from sqlalchemy.dialects.postgresql import (
     ARRAY,
     ENUM as PgEnum,
     JSONB,
-    UUID,
+    UUID as PgUUID,
     TSVECTOR
 )
 from sqlalchemy.orm import (
@@ -54,6 +55,7 @@ __all__: list[str] = [
     "JSON",
     "Numeric",
     "String",
+    "LargeBinary",
     "UniqueConstraint",
     "CheckConstraint",
     "event",
@@ -61,7 +63,7 @@ __all__: list[str] = [
     "ARRAY",
     "PgEnum",
     "JSONB",
-    "UUID",
+    "PgUUID",
     "TSVECTOR",
     # sqlalchemy.orm
     "Mapped",
