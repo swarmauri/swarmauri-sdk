@@ -1,7 +1,7 @@
 [project]
 name = "autoapi_client"
 version = "0.1.0.dev1"
-description = "Automatic API generation tools by Swarmauri."
+description = "Tiny, dependency-free HTTP client for AutoAPI with support for all HTTP methods and both synchronous and asynchronous operations."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -14,17 +14,9 @@ classifiers = [
 ]
 authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "fastapi>=0.100.0",
+    "httpx>=0.24.0",
     "pydantic>=2.0.0",
 ]
-
-[tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -62,4 +54,5 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "pydantic>=2.0.0",  # For testing schema validation
 ]

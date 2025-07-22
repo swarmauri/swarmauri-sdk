@@ -15,8 +15,14 @@ A tiny, dependency-free HTTP client for AutoAPI with support for all HTTP method
 ## Installation
 
 ```bash
-pip install httpx  # Required dependency
-pip install pydantic  # Optional, for schema validation
+# Basic installation
+pip install autoapi_client
+
+# Development installation from source
+git clone https://github.com/swarmauri/swarmauri-sdk.git
+cd swarmauri-sdk/pkgs/standards/autoapi_client
+pip install -e .
+
 ```
 
 ## Quick Start
@@ -195,13 +201,3 @@ except httpx.HTTPStatusError as e:
 except RuntimeError as e:
     print(f"JSON-RPC error: {e}")
 ```
-
-## Examples
-
-See `example_usage.py` for comprehensive usage examples demonstrating all features.
-
-## Requirements
-
-- Python 3.7+
-- httpx
-- pydantic (optional, for schema validation)
