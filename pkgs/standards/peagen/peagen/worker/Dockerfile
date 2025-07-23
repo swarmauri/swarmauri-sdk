@@ -19,7 +19,7 @@ COPY ./pkgs/ ./pkgs/
 RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
-EXPOSE 8001
+EXPOSE 8000
 
 ENV \
     DQ_POOL=""\
@@ -27,4 +27,4 @@ ENV \
     PORT="8001" \
     PG_PORT="5432"
 
-CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8001, log_level=\"info\")'"]
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
