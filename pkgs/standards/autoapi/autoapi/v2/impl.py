@@ -582,11 +582,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
 def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     p = iter(signature(core).parameters.values())
     first = next(p, None)
-    exp_pm = (
-        bool(first)
-        and isinstance(first.annotation, type)
-        and issubclass(first.annotation, BaseModel)
-    )
+    exp_pm = hasattr(IN, "model_validate")
     out_lst = get_origin(OUT) is list
     elem = get_args(OUT)[0] if out_lst else None
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
