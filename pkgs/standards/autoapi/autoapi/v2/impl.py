@@ -1,32 +1,53 @@
 """
-autoapi_impl.py  –  framework-agnostic helpers rebound onto AutoAPI.
-Compatible with FastAPI 1.5, Pydantic 2.x, SQLAlchemy 2.x.
+autoapi/v2/impl.py  –  framework-agnostic helpers rebound onto AutoAPI.
+This version **delegates all lifecycle handling to `_runner._invoke`**, so
+REST and JSON-RPC calls now share *exactly* the same hook, transaction,
+and error semantics.
+
+Compatible with FastAPI ≥ 0.110, Pydantic 2.x, SQLAlchemy 2.x.
 """
-import uuid
+from __future__ import annotations
+
 import re
+import uuid
 from inspect import isawaitable, signature
-from typing import Any, List, get_args, get_origin, Dict, Set, Tuple, Type
+from typing import (
+    Any,
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Type,
+    get_args,
+    get_origin,
+)
+
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, ConfigDict, Field, create_model
+from sqlalchemy import inspect as _sa_inspect
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect as _sa_inspect          # NEW (for mapper.attrs)
 
+from ._runner import _invoke                           # ← unified lifecycle
+from .jsonrpc_models import _RPCReq                    # ← fabricated envelope
+from .info_schema import check as _info_check
 from .mixins import AsyncCapable, BulkCapable, Replaceable
 from .types import _SchemaVerb, hybrid_property
-from .info_schema import check as _info_check          # NEW
 
-# ---------------------------------------------------------------------
+# ────────────────────────────────────────────────────────────────────────────
+_DUP_RE = re.compile(
+    r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
+)
+_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
+
+
 def _not_found() -> None:
     raise HTTPException(404, "Item not found")
 
 
-# ---------------------------------------------------------------------
-_DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
-_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
-
 def _commit_or_http(db: Session) -> None:
+    """flush/commit and translate SQLAlchemy errors into HTTP*"""
     try:
         db.flush() if db.in_nested_transaction() else db.commit()
     except IntegrityError as exc:
@@ -48,45 +69,8 @@ def _commit_or_http(db: Session) -> None:
         raise HTTPException(500, f"Database error: {exc}") from exc
 
 
-# ---------------------------------------------------------------------
-
-
-def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
-    """
-    Return a shallow clone in which every field named in *drop* is removed
-    from the **schema** that FastAPI shows.  For non-Pydantic types the
-    function is a no-op.
-    """
-    if not drop:
-        return base  # nothing to strip
-
-    # ── Case 1: List[Model]  → make List[StrippedModel] ───────────────
-    if get_origin(base) in (list, List):
-        elem = get_args(base)[0]
-        stripped = _strip_parent_fields(elem, drop=drop)
-        return list[stripped]  # Py ≥3.9 generics
-
-    # ── Case 2: plain Pydantic model ──────────────────────────────────
-    if isinstance(base, type) and issubclass(base, BaseModel):
-        fld_spec = {
-            name: (fld.annotation, fld)
-            for name, fld in base.model_fields.items()
-            if name not in drop
-        }
-        cfg = getattr(base, "model_config", ConfigDict())
-        cls = create_model(f"{base.__name__}SansParents", __config__=cfg, **fld_spec)
-        cls.model_rebuild(force=True)
-        return cls
-
-    # ── Fallback: leave untouched (e.g. dict, str, int …) ────────────
-    return base
-
-
-# ---------------------------------------------------------------------
-
-
-# ───────────────────────── small utils ───────────────────────────────────
-async def _run(core, *a):
+# ───────────────────────── helpers ──────────────────────────────────────────
+async def _run(core, *a):                              # legacy helper (still used)
     rv = core(*a)
     return await rv if isawaitable(rv) else rv
 
@@ -95,30 +79,32 @@ def _canonical(table: str, verb: str) -> str:
     return f"{''.join(w.title() for w in table.split('_'))}.{verb}"
 
 
-def _nested_prefix_clean(raw: str) -> str | None:
+def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     """
-    1. Drop every '{var}' placeholder.
-    2. Collapse duplicate slashes.
-    3. Trim a *trailing* slash.
-    4. Return None if nothing but '/' would remain.
+    Return a shallow clone of *base* with every field in *drop* removed, so that
+    child schemas used by nested routes do not expose parent identifiers.
     """
-    if not raw:
-        return None  # no nesting
+    if not drop:
+        return base
 
-    # 1 – strip placeholders
-    pref = re.sub(r"{[^}/]+}", "", raw)
+    if get_origin(base) in (list, List):               # List[Model] → List[Stripped]
+        elem = get_args(base)[0]
+        return list[_strip_parent_fields(elem, drop=drop)]
 
-    # 2 – squeeze multiple slashes   ("/foo//bar/" -> "/foo/bar/")
-    pref = re.sub(r"/{2,}", "/", pref)
+    if isinstance(base, type) and issubclass(base, BaseModel):
+        fld_spec = {
+            n: (fld.annotation, fld)
+            for n, fld in base.model_fields.items()
+            if n not in drop
+        }
+        cfg = getattr(base, "model_config", ConfigDict())
+        cls = create_model(f"{base.__name__}SansParents", __config__=cfg, **fld_spec)
+        cls.model_rebuild(force=True)
+        return cls
 
-    # 3 – remove trailing slash      (but keep the leading one)
-    pref = pref.rstrip("/")
-
-    # 4 – root-only → disable nested router
-    return pref or None
+    return base  # primitive / dict / etc.
 
 
-# ---------------------------------------------------------------------
 COMMON_ERRORS = {
     400: {"description": "Bad Request: malformed input"},
     404: {"description": "Not Found"},
@@ -127,11 +113,10 @@ COMMON_ERRORS = {
     500: {"description": "Internal Server Error"},
 }
 
-# ---------------------------------------------------------------------
+# ───────────────────── register one model’s REST/RPC ───────────────────────
 
 
-# ───────────────────── register one model’s REST/RPC ────────────────────
-def _register_routes_and_rpcs(  # noqa: N802
+def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
     model: type,
     tab: str,
@@ -148,6 +133,12 @@ def _register_routes_and_rpcs(  # noqa: N802
     _list,
     _clear,
 ) -> None:
+    """
+    Build both REST and RPC surfaces for one SQLAlchemy model.
+
+    The REST routes are thin facades: each fabricates a _RPCReq envelope and
+    delegates to `_invoke`, ensuring lifecycle parity with /rpc.
+    """
     import functools
     import inspect
     import re
@@ -155,9 +146,7 @@ def _register_routes_and_rpcs(  # noqa: N802
 
     from fastapi import HTTPException
 
-    # ─── helpers & preliminaries ────────────────────────────────────────
-    # Determine async mode. If only an async DB provider exists, treat all
-    # models as async even without the ``AsyncCapable`` mixin.
+    # ---------- sync / async detection --------------------------------
     is_async = (
         bool(self.get_async_db)
         if self.get_db is None
@@ -168,27 +157,19 @@ def _register_routes_and_rpcs(  # noqa: N802
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
 
-    # ─── helpers & preliminaries ───────────────────────────────────────────
+    # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
-        # verb       http   path          status  In-model            Out-model      core-fn
         ("create", "POST", "", 201, SCreate, SRead, _create),
-        ("list", "GET", "", 200, SListIn, List[SRead], _list),
-        ("clear", "DELETE", "", 204, None, None, _clear),
-        ("read", "GET", "/{item_id}", 200, SDel, SRead, _read),
-        ("update", "PATCH", "/{item_id}", 200, SUpdate, SRead, _update),
-        ("delete", "DELETE", "/{item_id}", 204, SDel, None, _delete),
+        ("list",   "GET",  "", 200, SListIn, List[SRead], _list),
+        ("clear",  "DELETE", "", 204, None, None, _clear),
+        ("read",   "GET",  "/{item_id}", 200, SDel, SRead, _read),
+        ("update", "PATCH","/{item_id}", 200, SUpdate, SRead, _update),
+        ("delete", "DELETE","/{item_id}", 204, SDel, None, _delete),
     ]
     if issubclass(model, Replaceable):
         spec.append(
-            (
-                "replace",
-                "PUT",
-                "/{item_id}",
-                200,
-                SCreate,
-                SRead,
-                functools.partial(_update, full=True),
-            )
+            ("replace", "PUT", "/{item_id}", 200, SCreate, SRead,
+             functools.partial(_update, full=True))
         )
     if issubclass(model, BulkCapable):
         spec += [
@@ -196,25 +177,19 @@ def _register_routes_and_rpcs(  # noqa: N802
             ("bulk_delete", "DELETE", "/bulk", 204, List[SDel], None, _delete),
         ]
 
-    # ─── nested prefix → path parameters (NOT query) ───────────────────────
-    raw_pref = self._nested_prefix(model) or ""  # e.g. "/tenants/{tenant_id}"
-    # collapse any accidental "//", then trim a trailing "/" (FastAPI asserts)
+    # ---------- nested routing ---------------------------------------
+    raw_pref = self._nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
-
-    # keep the placeholders → parent ids are path variables
-    nested_vars = re.findall(r"{(\w+)}", raw_pref)  # ["tenant_id", ...]
+    nested_vars = re.findall(r"{(\w+)}", raw_pref)
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
     routers = (
         (flat_router,)
         if nested_pref is None
-        else (
-            flat_router,
-            APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]),
-        )
+        else (flat_router, APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]))
     )
 
-    # ─── RBAC guard (unchanged) ────────────────────────────────────────
+    # ---------- RBAC guard -------------------------------------------
     def _guard(scope: str):
         async def inner(request: Request):
             if self.authorize and not self.authorize(scope, request):
@@ -222,14 +197,20 @@ def _register_routes_and_rpcs(  # noqa: N802
 
         return Depends(inner)
 
-    # ─── endpoint factory ──────────────────────────────────────────────
+    # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
 
         def _factory(is_nested_router, *, verb=verb, path=path, In=In, core=core):
-            params: list[inspect.Parameter] = []
+            params: list[inspect.Parameter] = [
+                inspect.Parameter(                    # ← request always first
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                )
+            ]
 
-            # parent keys → query parameters
+            # parent keys become path vars
             if is_nested_router:
                 for nv in nested_vars:
                     params.append(
@@ -240,7 +221,7 @@ def _register_routes_and_rpcs(  # noqa: N802
                         )
                     )
 
-            # primary-key path variable
+            # primary key path var
             if "{item_id}" in path:
                 params.append(
                     inspect.Parameter(
@@ -250,6 +231,7 @@ def _register_routes_and_rpcs(  # noqa: N802
                     )
                 )
 
+            # payload (query for list, body for others)
             def _visible(t: type) -> type:
                 return (
                     _strip_parent_fields(t, drop=set(nested_vars))
@@ -257,13 +239,12 @@ def _register_routes_and_rpcs(  # noqa: N802
                     else t
                 )
 
-            # payloads — *always* body (CREATE/LIST/UPDATE/BULK…)
             if verb == "list":
                 params.append(
                     inspect.Parameter(
                         "p",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Depends()],  # ← query params
+                        annotation=Annotated[_visible(In), Depends()],
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
@@ -284,48 +265,56 @@ def _register_routes_and_rpcs(  # noqa: N802
                 )
             )
 
-            # ---- callable body -------------------------------------------------------
+            # ---- callable body ---------------------------------------
             async def _impl(**kw):
-                db = kw.pop("db")  # always present
-                p = kw.pop("p", None)  # body payload or None
-                item_id = kw.pop("item_id", None)  # single-row CRUD or None
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}  # path vars
+                db: Session | AsyncSession = kw.pop("db")
+                req: Request = kw.pop("request")        # always present
+                p = kw.pop("p", None)
+                item_id = kw.pop("item_id", None)
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
 
-                # ── inject path vars into the body model when it exists ───────────
-                if p is not None and parent_kw:
-                    # update() is available on every Pydantic-v2 model
-                    p = p.model_copy(update=parent_kw)
-
-                # ── delegate to the core helper WITHOUT extra **kwargs ────────────
-                async def call_sync(fn, *args):
-                    if isinstance(db, AsyncSession):
-                        return await db.run_sync(lambda s: fn(*args, s))
-                    return fn(*args, db)
-
+                # assemble RPC-style param dict
                 match verb:
-                    case "list":
-                        return await call_sync(core, p)
                     case "read" | "delete":
-                        return await call_sync(core, item_id)
+                        rpc_params = {pk: item_id}
                     case "update" | "replace":
-                        return await call_sync(core, item_id, p)
-                    case "clear":
-                        return await call_sync(core)
+                        rpc_params = {pk: item_id, **p.model_dump(exclude_unset=True)}
+                    case "list":
+                        rpc_params = p.model_dump()
                     case _:
-                        # create / bulk_create / bulk_delete
-                        return await call_sync(core, p)
+                        rpc_params = p.model_dump() if p is not None else {}
+
+                if parent_kw:
+                    rpc_params.update(parent_kw)
+
+                env = _RPCReq(id=None, method=m_id, params=rpc_params)
+                ctx = {"request": req, "db": db, "env": env}
+
+                # ── use the *core* helper directly, bypassing self.rpc ──
+                if isinstance(db, AsyncSession):
+                    exec_fn = lambda _m, _p, _db=db: _db.run_sync(
+                        lambda s: core(p if verb == "create" else rpc_params, s)
+                    )
+                    return await _invoke(self, m_id, params=rpc_params, ctx=ctx,
+                                          exec_fn=exec_fn)
+
+                # synchronous DB
+                def _direct_call(_m, _p, _db=db):
+                    return core(p if verb == "create" else rpc_params, _db)
+
+                return await _invoke(self, m_id, params=rpc_params, ctx=ctx,
+                                     exec_fn=_direct_call)
 
             _impl.__name__ = f"{verb}_{tab}"
             wrapped = functools.wraps(_impl)(_impl)
             wrapped.__signature__ = inspect.Signature(parameters=params)
             return wrapped
 
-        # mount on every relevant router
-        for r in routers:
-            is_nested_router = r is not flat_router  # ← NEW
-            r.add_api_route(
+        # mount on routers
+        for rtr in routers:
+            rtr.add_api_route(
                 path,
-                _factory(is_nested_router),  # ← pass the flag
+                _factory(rtr is not flat_router),
                 methods=[http],
                 status_code=status,
                 response_model=Out,
@@ -337,20 +326,14 @@ def _register_routes_and_rpcs(  # noqa: N802
         self.rpc[m_id] = self._wrap_rpc(core, In or dict, Out, pk, model)
         self._method_ids.setdefault(m_id, None)
 
-    # final router inclusion
+    # include routers
     self.router.include_router(flat_router)
     if len(routers) > 1:
         self.router.include_router(routers[1])
 
 
-# ───────────────────────── schema helper ────────────────────────────────
-# ------------------------------------------------------------------ #
-#  Pydantic schema builder (drop‑in replacement)                     #
-# ------------------------------------------------------------------ #
+# ───────────────────────── schema builder ───────────────────────────────
 
-# ------------------------------------------------------------------ #
-#  Pydantic schema builder (hybrid‑safe)                             #
-# ------------------------------------------------------------------ #
 
 def _schema(  # noqa: N802
     self,
@@ -362,11 +345,8 @@ def _schema(  # noqa: N802
     verb: _SchemaVerb = "create",
 ):
     """
-    Build (and cache) a verb‑specific Pydantic model from *orm_cls*.
-
-    ColumnInfo keys supported:
-        disable_on · write_only · read_only · default_factory · examples · py_type · hybrid
-    Also honours legacy column.info["no_create"] / ["no_update"].
+    Build (and cache) a verb-specific Pydantic schema from *orm_cls*.
+    Supports rich Column.info["autoapi"] metadata.
     """
     cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
     if cache_key in _SchemaCache:
@@ -375,53 +355,48 @@ def _schema(  # noqa: N802
     mapper = _sa_inspect(orm_cls)
     fields: Dict[str, Tuple[type, Field]] = {}
 
-    # column‑mapped attrs + any @hybrid_property objects
     attrs = list(mapper.attrs) + [
         v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)
     ]
-
     for attr in attrs:
         is_hybrid = isinstance(attr, hybrid_property)
-        is_column_attr = not is_hybrid and hasattr(attr, "columns")
-        if not is_column_attr and not is_hybrid:
-            continue  # skip relationships / composites
+        is_col_attr = not is_hybrid and hasattr(attr, "columns")
+        if not is_hybrid and not is_col_attr:
+            continue
 
-        col = attr.columns[0] if is_column_attr and attr.columns else None
-        meta_src = col.info if col is not None and hasattr(col, "info") else getattr(attr, "info", {})
+        col = attr.columns[0] if is_col_attr and attr.columns else None
+        meta_src = (
+            col.info if col is not None and hasattr(col, "info") else getattr(attr, "info", {})
+        )
         meta = meta_src.get("autoapi", {}) or {}
 
         attr_name = getattr(attr, "key", getattr(attr, "__name__", None))
         _info_check(meta, attr_name, orm_cls.__name__)
 
-        # hybrids must opt‑in
+        # hybrids must opt-in
         if is_hybrid and not meta.get("hybrid"):
             continue
 
-        # legacy flags on columns
-        if verb == "create" and col is not None and getattr(col, "info", {}).get("no_create"):
+        # legacy flags
+        if verb == "create" and col is not None and col.info.get("no_create"):
             continue
-        if verb in {"update", "replace"} and col is not None and getattr(col, "info", {}).get("no_update"):
+        if verb in {"update", "replace"} and col is not None and col.info.get("no_update"):
             continue
 
-        # verb‑level visibility
         if verb in meta.get("disable_on", []):
             continue
         if meta.get("write_only") and verb == "read":
             continue
         if meta.get("read_only") and verb != "read":
             continue
-
-        # hybrid with *no setter* is read‑only
         if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
             continue
-
-        # include / exclude filters
         if include and attr_name not in include:
             continue
         if exclude and attr_name in exclude:
             continue
 
-        # ---------- type & required ---------------------------------
+        # type / required / default
         if col is not None:
             try:
                 py_t = col.type.python_type
@@ -434,7 +409,6 @@ def _schema(  # noqa: N802
             py_t = getattr(attr, "python_type", meta.get("py_type", Any))
             required = False
 
-        # ---------- defaults / examples -----------------------------
         if "default_factory" in meta:
             fld = Field(default_factory=meta["default_factory"])
             required = False
@@ -446,81 +420,64 @@ def _schema(  # noqa: N802
 
         fields[attr_name] = (py_t, fld)
 
-    # ---------------- model assembly -------------------------------
     model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
     cfg = dict(from_attributes=True)
 
     schema_cls = create_model(  # type: ignore[arg-type]
-        model_name,
-        __config__=type("Cfg", (), cfg),
-        **fields,
+        model_name, __config__=type("Cfg", (), cfg), **fields
     )
     _SchemaCache[cache_key] = schema_cls
     return schema_cls
 
 
-
-
 # ───────────────────────── CRUD builder ────────────────────────────────
+
+
 def _crud(self, model: type) -> None:  # noqa: N802
+    """
+    Public entry: call `api._crud(User)` to expose canonical CRUD & list routes.
+    """
     tab = model.__tablename__
     mapper = _sa_inspect(model)
-    
-    # fast-exit if already registered
+
     if tab in self._registered_tables:
         return
     self._registered_tables.add(tab)
 
     pk = next(iter(model.__table__.primary_key.columns)).name
 
-    # ----- generate the five canonical schemas ------------------------
     def _S(verb: str, **kw):
         return self._schema(model, verb=verb, **kw)
 
-    SCreate = _S("create")  # PK excluded
-    SRead = _S("read")  # full set
-    SDel = _S("delete", include={pk})  # only PK
-    SUpdate = _S("update", exclude={pk})  # optional/no_update cols gone
+    SCreate = _S("create")
+    SRead = _S("read")
+    SDel = _S("delete", include={pk})
+    SUpdate = _S("update", exclude={pk})
 
     def _SList():
-        base = dict(skip=(int, Field(0, ge=0)),
-                    limit=(int | None, Field(None, ge=10)))
-
+        base = dict(skip=(int, Field(0, ge=0)), limit=(int | None, Field(None, ge=10)))
         _scalars = {str, int, float, bool, bytes, uuid.UUID}
-
         cols: dict[str, tuple[type, Field]] = {}
         for c in model.__table__.columns:
-            if c.name == pk:                      # ← skip the primary key
+            if c.name == pk:
                 continue
             py_t = getattr(c.type, "python_type", Any)
             if py_t in _scalars:
                 cols[c.name] = (py_t | None, Field(None))
-
         return create_model(
-            f"{tab}ListParams",
-            __config__=ConfigDict(extra="forbid"),
-            **base, **cols
+            f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base, **cols
         )
 
     SListIn = _SList()
 
-
-    # ----- helpers ----------------------------------------------------
-    def _not_found():
-        raise HTTPException(404, "Item not found")
-
-    
+    # ----- DB helpers -------------------------------------------------
     def _create(p: SCreate, db):
         data = p.model_dump()
-        # separate into kwargs accepted by model(**) and virtuals
-        mapper_cols = {c.key for c in mapper.attrs}  # inspector reuse
-        col_kwargs  = {k: v for k, v in data.items() if k in mapper_cols}
-        virt_kwargs = {k: v for k, v in data.items() if k not in mapper_cols}
-
-        obj = model(**col_kwargs)          # columns only
-        for k, v in virt_kwargs.items():   # hybrids / virtuals
+        col_kwargs = {k: v for k, v in data.items() if k in {c.key for c in mapper.attrs}}
+        virt_kwargs = {k: v for k, v in data.items() if k not in col_kwargs}
+        obj = model(**col_kwargs)
+        for k, v in virt_kwargs.items():
             setattr(obj, k, v)
-
         db.add(obj)
         _commit_or_http(db)
         db.refresh(obj)
@@ -577,7 +534,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
         _commit_or_http(db)
         return {"deleted": deleted}
 
-    # ----- register with the route builder ----------------------------
+    # ----- register with route builder --------------------------------
     self._register_routes_and_rpcs(
         model,
         tab,
@@ -610,7 +567,6 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
     single = callable(getattr(OUT, "model_validate", None))
 
-
     def h(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
@@ -642,7 +598,5 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     return h
 
 
-def _commit_or_flush(self, db: Session):
+def _commit_or_flush(self, db: Session):              # legacy helper
     db.flush() if db.in_nested_transaction() else db.commit()
-
-
