@@ -162,7 +162,7 @@ services:
   gateway:
     build:
       context: ../../ # repo root ⬅️
-      dockerfile: infra/peagen/Dockerfile.gw
+      dockerfile: pkgs/standards/peagen/peagen/gateway/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
@@ -170,8 +170,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    ports:
-      - 8000
     environment:
       PG_HOST: postgres
       PG_PORT: 5432
@@ -194,7 +192,7 @@ services:
   worker:
     build:
       context: ../../
-      dockerfile: infra/peagen/Dockerfile.worker
+      dockerfile: pkgs/standards/peagen/peagen/worker/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
@@ -230,8 +228,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - 8002
     environment:
       PG_HOST: postgres
       PG_PORT: 5432
