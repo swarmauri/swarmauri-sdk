@@ -23,17 +23,18 @@ import uuid
 from typing import Annotated, Final
 
 from autoapi.v2.types import (
-    String,
+    String, LargeBinary, relationship, mapped_column, Column, hybrid_property,
 )
-from sqlalchemy.orm import mapped_column
 from autoapi.v2.tables import (
     Tenant,
     Client as ClientBase,
     User as UserBase,
-    ApiKey,
+    ApiKey as ApiKeyBase,
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
+from hashlib import blake2b
+from secrets import token_urlsafe
 # ────────────────────────────────────────────────────────────────────
 # Utility type alias for 36-char UUID strings
 _UUID = Annotated[str, mapped_column(String(36), default=lambda: str(uuid.uuid4()))]
@@ -72,7 +73,14 @@ class Client(ClientBase):  # Tenant FK via mix-in
 # --------------------------------------------------------------------
 class User(UserBase):
     """Human principal with authentication credentials."""
-
+    __table_args__ = {"extend_existing":True}
+    email = Column(String(120), unique=True)
+    password_hash = Column(LargeBinary(60))
+    api_keys = relationship(
+        "auto_authn.v2.orm.tables.ApiKey",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
     # ----------------------------------------------------------------
     @classmethod
     def new(cls, tenant_id: uuid.UUID, username: str, email: str, password: str):
@@ -87,5 +95,39 @@ class User(UserBase):
 
         return verify_pw(plain, self.password_hash)
 
+class ApiKey(ApiKeyBase):
+    user = relationship(
+        "auto_authn.v2.orm.tables.User",
+        back_populates="api_keys",
+        lazy="joined",          # optional: eager load to avoid N+1
+    )
+
+    @hybrid_property
+    def raw_key(self) -> str:
+        """Write-only virtual attribute (never returned)."""
+        raise AttributeError("raw_key is write-only")
+
+    @raw_key.setter
+    def raw_key(self, value: str) -> None:
+        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
+
+    @staticmethod
+    def digest_of(value: str) -> None:
+        return blake2b(value.encode(), digest_size=32).hexdigest()
+
+    # attach ColumnInfo so AutoAPI knows to expose it
+    raw_key.default = token_urlsafe(8)
+    raw_key.nullable = True
+    raw_key.oncreate= token_urlsafe(8)
+    raw_key.onupdate= token_urlsafe(8)
+    raw_key.info = {
+        "autoapi": {
+            "hybrid":   True,    # ← opt-in
+            "write_only": True,  # hide on READ/LIST
+            "py_type": str,
+            "default_factory": token_urlsafe(8),
+            "examples":  [token_urlsafe(8)],   # Swagger placeholder
+        }
+    }
 
 __all__ = ["ApiKey", "User", "Tenant", "Client"]
