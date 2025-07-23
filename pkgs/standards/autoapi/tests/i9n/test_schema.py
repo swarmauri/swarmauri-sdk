@@ -13,11 +13,11 @@ async def test_schema_generation(api_client):
     delete_model = AutoAPI.get_schema(Item, "delete")
     list_model = AutoAPI.get_schema(Item, "list")
 
-    assert create_model.__name__ == "Item_Create"
-    assert read_model.__name__ == "Item_Read"
-    assert update_model.__name__ == "Item_Update"
-    assert delete_model.__name__ == "Item_Delete"
-    assert list_model.__name__ == "Item_ListParams"
+    assert create_model.__name__ == "ItemCreate"
+    assert read_model.__name__ == "ItemRead"
+    assert update_model.__name__ == "ItemUpdate"
+    assert delete_model.__name__ == "ItemDelete"
+    assert list_model.__name__ == "ItemListParams"
 
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]

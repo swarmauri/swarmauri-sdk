@@ -440,7 +440,7 @@ def _schema(  # noqa: N802
 
         fields[attr_name] = (py_t, fld)
 
-    model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
+    model_name = name or f"{orm_cls.__name__}{verb.capitalize()}"
     cfg = ConfigDict(from_attributes=True)
 
     schema_cls = create_model(
