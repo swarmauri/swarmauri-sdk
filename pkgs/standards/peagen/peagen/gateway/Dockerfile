@@ -28,7 +28,7 @@ ENV \
     PG_USER="" \
     PG_PASS="" \
     REDIS_HOST="" \
-    REDIS_PASSWORD="" 
+    REDIS_PASSWORD="" \
     MINIO_USER="" \
     MINIO_ROOT_PASSWORD=""
     
