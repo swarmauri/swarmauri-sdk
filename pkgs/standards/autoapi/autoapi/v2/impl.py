@@ -429,8 +429,10 @@ def _schema(  # noqa: N802
     model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
     cfg = dict(from_attributes=True)
 
-    schema_cls = create_model(  # type: ignore[arg-type]
-        model_name, __config__=type("Cfg", (), cfg), **fields
+    schema_cls = create_model(
+        model_name,
+        __config__=ConfigDict(**cfg),
+        **fields,
     )
     _SchemaCache[cache_key] = schema_cls
     return schema_cls
