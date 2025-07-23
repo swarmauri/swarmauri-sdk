@@ -20,7 +20,7 @@ from autoapi.v2.types import (
     UniqueConstraint,
     CheckConstraint,
     PgEnum,
-    UUID,
+    PgUUID,
     MutableDict,
     relationship,
     foreign,
@@ -136,13 +136,13 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
 @declarative_mixin
 class RepositoryMixin:
     repository_id = Column(
-        UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False
+        PgUUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False
     )
 
 
 class RepositoryRefMixin:
     repository_id = Column(
-        UUID(as_uuid=True),
+        PgUUID(as_uuid=True),
         ForeignKey("repositories.id", ondelete="CASCADE"),
         nullable=True,  # ← changed
     )
@@ -291,7 +291,7 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
 class Worker(Base, GUIDPk, Timestamped):
     __tablename__ = "workers"
     pool_id = Column(
-        UUID(as_uuid=True),
+        PgUUID(as_uuid=True),
         ForeignKey("pools.id"),
         nullable=False,
         default=DEFAULT_POOL_ID,
@@ -337,14 +337,14 @@ class Task(
     __table_args__ = ()
     # ───────── routing & ownership ──────────────────────────
     action = Column(PgEnum(Action, name="task_action"), nullable=False)
-    pool_id = Column(UUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
+    pool_id = Column(PgUUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
 
     # ───────── workspace reference ──────────────────────────
     config_toml = Column(String)
 
     # ───────── polymorphic spec reference ───────────────────
     spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
-    spec_uuid = Column(UUID(as_uuid=True), nullable=True)
+    spec_uuid = Column(PgUUID(as_uuid=True), nullable=True)
 
     # (DB-level FK can’t point to multiple tables; enforce in application code.)
 
@@ -363,7 +363,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin):
     """
 
     __tablename__ = "works"
-    task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
+    task_id = Column(PgUUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
     result = Column(JSON, nullable=True)
     duration_s = Column(Integer)
 
