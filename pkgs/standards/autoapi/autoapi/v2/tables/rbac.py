@@ -1,4 +1,4 @@
-from ..types import Column, Integer, String, ForeignKey, UUID
+from ..types import Column, Integer, String, ForeignKey, PgUUID
 
 from . import Base
 from ..mixins import (
@@ -19,15 +19,15 @@ class Role(Base, GUIDPk, Timestamped, TenantBound):
 
 class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdge):
     __tablename__ = "role_perms"
-    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
+    role_id = Column(PgUUID(as_uuid=True), ForeignKey("roles.id"))
     target_table = Column(String)
     target_id = Column(String)  # row or sentinel
 
 
 class RoleGrant(Base, GUIDPk, Timestamped, TenantBound, RelationEdge):
     __tablename__ = "role_grants"
-    principal_id = Column(UUID(as_uuid=True))  # FK to principal row
-    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
+    principal_id = Column(PgUUID(as_uuid=True))  # FK to principal row
+    role_id = Column(PgUUID(as_uuid=True), ForeignKey("roles.id"))
 
 
 __all__ = ["Role", "RolePerm", "RoleGrant"]

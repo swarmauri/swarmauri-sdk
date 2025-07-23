@@ -3,16 +3,16 @@ import datetime as dt
 
 from . import Base
 from ..mixins import GUIDPk, Timestamped
-from ..types import Column, DateTime, Integer, String, UUID
+from ..types import Column, DateTime, Integer, String, PgUUID
 
 
 class Change(Base, GUIDPk, Timestamped):
     __tablename__ = "changes"
     seq = Column(Integer, primary_key=True)
     at = Column(DateTime, default=dt.datetime.utcnow)
-    actor_id = Column(UUID)
+    actor_id = Column(PgUUID)
     table_name = Column(String)
-    row_id = Column(UUID)
+    row_id = Column(PgUUID)
     action = Column(String)
 
 
