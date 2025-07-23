@@ -79,29 +79,31 @@ Status.is_terminal = classmethod(_is_terminal)
 # Repository hierarchy
 # ---------------------------------------------------------------------
 class Tenant(TenantBase, Bootstrappable):
-    DEFAULT_ROWS = [
-        {
-            "id": DEFAULT_TENANT_ID,
-            "email": DEFAULT_TENANT_EMAIL,
-            "name": DEFAULT_TENANT_NAME,
-            "slug": DEFAULT_TENANT_SLUG,
-        }
-    ]
+    pass
+    # DEFAULT_ROWS = [
+    #     {
+    #         "id": DEFAULT_TENANT_ID,
+    #         "email": DEFAULT_TENANT_EMAIL,
+    #         "name": DEFAULT_TENANT_NAME,
+    #         "slug": DEFAULT_TENANT_SLUG,
+    #     }
+    # ]
 
 
 class User(UserBase, Bootstrappable):
-    DEFAULT_ROWS = [
-        {
-            "id": DEFAULT_SUPER_USER_ID,
-            "email": DEFAULT_SUPER_USER_EMAIL,
-            "tenant_id": DEFAULT_TENANT_ID,
-        },
-        {
-            "id": DEFAULT_SUPER_USER_ID_2,
-            "email": DEFAULT_SUPER_USER_EMAIL_2,
-            "tenant_id": DEFAULT_TENANT_ID,
-        }
-    ]
+    pass 
+    # DEFAULT_ROWS = [
+    #     {
+    #         "id": DEFAULT_SUPER_USER_ID,
+    #         "email": DEFAULT_SUPER_USER_EMAIL,
+    #         "tenant_id": DEFAULT_TENANT_ID,
+    #     },
+    #     {
+    #         "id": DEFAULT_SUPER_USER_ID_2,
+    #         "email": DEFAULT_SUPER_USER_EMAIL_2,
+    #         "tenant_id": DEFAULT_TENANT_ID,
+    #     }
+    # ]
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
     """
@@ -165,14 +167,14 @@ class RepositoryRefMixin:
 # ---------------------------------------------------------------------
 
 
-class UserTenant(Base, GUIDPk, TenantMixin, UserMixin):
-    """
-    Many-to-many edge between users and tenants.
-    A user may be invited to / removed from any number of tenants.
-    """
+# class UserTenant(Base, GUIDPk, TenantMixin, UserMixin):
+#     """
+#     Many-to-many edge between users and tenants.
+#     A user may be invited to / removed from any number of tenants.
+#     """
 
-    __tablename__ = "user_tenants"
-    joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
+#     __tablename__ = "user_tenants"
+#     joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
 
 
 class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
