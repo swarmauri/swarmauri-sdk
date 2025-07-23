@@ -53,7 +53,7 @@ jobs:
       if: failure()          # <- overrides the implicit success() check
       run: |
         echo "::group::croutondb logs"
-        sudo -E docker compose -f infra/peagen/docker-compose.yml logs croutondb || true
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
         echo "::endgroup::"
 
         echo "::group::gateway logs"
