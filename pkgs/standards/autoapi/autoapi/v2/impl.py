@@ -296,24 +296,29 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
                 ctx = {"request": req, "db": db, "env": env}
 
-                # ── use the *core* helper directly, bypassing self.rpc ──
+                args = {
+                    "create": (p,),
+                    "bulk_create": (p,),
+                    "bulk_delete": (p,),
+                    "list": (p,),
+                    "clear": (),
+                    "read": (item_id,),
+                    "delete": (item_id,),
+                    "update": (item_id, p),
+                    "replace": (item_id, p),
+                }[verb]
+
                 if isinstance(db, AsyncSession):
 
                     def exec_fn(_m, _p, _db=db):
-                        return _db.run_sync(
-                            lambda s: core(
-                                p if verb == "create" else rpc_params,
-                                s,
-                            )
-                        )
+                        return _db.run_sync(lambda s: core(*args, s))
 
                     return await _invoke(
                         self, m_id, params=rpc_params, ctx=ctx, exec_fn=exec_fn
                     )
 
-                # synchronous DB
                 def _direct_call(_m, _p, _db=db):
-                    return core(p if verb == "create" else rpc_params, _db)
+                    return core(*args, _db)
 
                 return await _invoke(
                     self, m_id, params=rpc_params, ctx=ctx, exec_fn=_direct_call
