@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from inspect import isawaitable, iscoroutinefunction
 from typing import Callable, Mapping, MutableMapping, Any, Optional
+from types import SimpleNamespace
 
 from .hooks import Phase
 
@@ -40,7 +41,7 @@ async def _invoke(
         await api._run(Phase.PRE_TX_BEGIN, ctx)
 
         # ─── business logic call -------------------------------------------
-        if exec_fn is not None:                           # custom executor
+        if exec_fn is not None:  # custom executor
             result = await exec_fn(method, params, db)
         else:
             maybe = api.rpc[method](params, db)
@@ -54,15 +55,16 @@ async def _invoke(
             await api._run(Phase.PRE_COMMIT, ctx)
 
             if iscoroutinefunction(db.commit):
-                await db.commit()         # AsyncSession
+                await db.commit()  # AsyncSession
             else:
-                db.commit()               # plain Session
+                db.commit()  # plain Session
 
             await api._run(Phase.POST_COMMIT, ctx)
 
         # ─── POST hook ──────────────────────────────────────────────────────
+        ctx["response"] = SimpleNamespace(result=result)
         await api._run(Phase.POST_RESPONSE, ctx)
-        return result
+        return ctx["response"].result
 
     # ─────────────── error path ─────────────────────────────────────────────
     except Exception as exc:
