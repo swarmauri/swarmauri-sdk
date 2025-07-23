@@ -42,7 +42,6 @@ from peagen.orm import (
     Tenant,
     User,
     UserRepository,
-    UserTenant,
     Work,
     Worker,
 )
@@ -79,7 +78,6 @@ api = AutoAPI(
         RoleGrant,
         RolePerm,
         Repository,
-        UserTenant,
         UserRepository,
         RepoSecret,
         DeployKey,
