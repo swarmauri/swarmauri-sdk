@@ -3,8 +3,7 @@ from __future__ import annotations
 
 
 from ..types import (
-    Column, String, Boolean, DateTime, ForeignKey, Index,
-    LargeBinary, relationship, UniqueConstraint
+    Column, String, LargeBinary, UniqueConstraint
 )
 
 from ._base import Base

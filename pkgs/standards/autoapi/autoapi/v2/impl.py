@@ -292,11 +292,17 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
                 # ── use the *core* helper directly, bypassing self.rpc ──
                 if isinstance(db, AsyncSession):
-                    exec_fn = lambda _m, _p, _db=db: _db.run_sync(
-                        lambda s: core(p if verb == "create" else rpc_params, s)
+                    def exec_fn(_m, _p, _db=db):
+                        return _db.run_sync(
+                            lambda s: core(
+                                p if verb == "create" else rpc_params,
+                                s,
+                            )
+                        )
+
+                    return await _invoke(
+                        self, m_id, params=rpc_params, ctx=ctx, exec_fn=exec_fn
                     )
-                    return await _invoke(self, m_id, params=rpc_params, ctx=ctx,
-                                          exec_fn=exec_fn)
 
                 # synchronous DB
                 def _direct_call(_m, _p, _db=db):

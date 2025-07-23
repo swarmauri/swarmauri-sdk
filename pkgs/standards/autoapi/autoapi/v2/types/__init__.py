@@ -50,6 +50,7 @@ __all__: list[str] = [
     "Boolean",
     "Column",
     "DateTime",
+    "Text",
     "SAEnum",
     "ForeignKey",
     "Index",

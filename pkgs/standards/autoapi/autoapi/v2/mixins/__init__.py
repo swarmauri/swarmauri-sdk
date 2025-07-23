@@ -8,7 +8,7 @@ from ..types import (
 
 
 
-from .bootstrappable import Bootstrappable
+from .bootstrappable import Bootstrappable as Bootstrappable
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
@@ -102,7 +102,7 @@ class LastUsed:
 
     def touch(self) -> None:
         """Update `last_used_at` on successful authentication."""
-        self.last_used_at = datetime.utcnow()
+        self.last_used_at = dt.datetime.utcnow()
 
 
 @declarative_mixin
