@@ -10,22 +10,16 @@ RUN apt-get update && \
     apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# ─────────────────── install Python deps with uv  ──────────────────
 WORKDIR /app
 
-# ─────────────────── dependency installation ───────────────────────
-# Copy dependency files first for better layer caching
-COPY pkgs/standards/auto_authn/pyproject.toml ./
-COPY pkgs/standards/auto_authn/README.md ./
-COPY pkgs/standards/auto_authn/LICENSE ./
+# 1. Copy only dependency-defining files first (better layer caching)
+COPY ./pkgs/ ./pkgs/
 
-# ─────────────────── application code ──────────────────────────────
-COPY pkgs/standards/auto_authn/auto_authn/ ./auto_authn/
-
-RUN uv pip install --system --no-cache-dir -e .[postgres,sqlite]
+RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
-EXPOSE 8002
+EXPOSE 8000
 
 ENV \
     PG_HOST="" \
@@ -34,6 +28,8 @@ ENV \
     PG_USER="" \
     PG_PASS="" \
     REDIS_HOST="" \
-    REDIS_PASSWORD="" \
+    REDIS_PASSWORD="" 
+    MINIO_USER="" \
+    MINIO_ROOT_PASSWORD=""
     
-CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"auto_authn.v2.app:app\", host=\"0.0.0.0\", port=8002, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
