@@ -5,7 +5,6 @@ peagen/orm/__init__.py  –  all Peagen domain tables in one place
 
 from __future__ import annotations
 
-import datetime as dt
 from typing import FrozenSet
 from enum import Enum, auto
 
@@ -13,7 +12,6 @@ from autoapi.v2.types import (
     JSON,
     Boolean,
     Column,
-    DateTime,
     ForeignKey,
     Integer,
     String,
@@ -38,7 +36,7 @@ from autoapi.v2.tables import Status
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import (
     GUIDPk,
-    TenantMixin,
+    # TenantMixin,
     UserMixin,
     OrgMixin,
     Ownable,
@@ -52,13 +50,13 @@ from peagen.defaults import (
     DEFAULT_POOL_NAME,
     DEFAULT_POOL_ID,
     DEFAULT_TENANT_ID,
-    DEFAULT_TENANT_EMAIL,
-    DEFAULT_TENANT_NAME,
-    DEFAULT_TENANT_SLUG,
-    DEFAULT_SUPER_USER_ID,
-    DEFAULT_SUPER_USER_EMAIL,
-    DEFAULT_SUPER_USER_ID_2,
-    DEFAULT_SUPER_USER_EMAIL_2
+    # DEFAULT_TENANT_EMAIL,
+    # DEFAULT_TENANT_NAME,
+    # DEFAULT_TENANT_SLUG,
+    # DEFAULT_SUPER_USER_ID,
+    # DEFAULT_SUPER_USER_EMAIL,
+    # DEFAULT_SUPER_USER_ID_2,
+    # DEFAULT_SUPER_USER_EMAIL_2
 )
 
 
@@ -386,6 +384,7 @@ class RawBlob(Base, GUIDPk, Timestamped, BlobRef):
 __all__ = [
     "Tenant",
     "User",
+    "Org",
     "Role",
     "RoleGrant",
     "RolePerm",

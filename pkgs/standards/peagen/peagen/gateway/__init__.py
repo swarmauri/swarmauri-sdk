@@ -108,7 +108,7 @@ queue: QueueBase = (
 # ─────────── NOQA Import ─────────────────────
 # Must import after api and queue are defined due to prevent circular imports.
 
-from .hooks import *  # noqa: F401,F403  (registers decorators) Must come after api is defined until we refactor
+from .hooks import *  # noqa: F401,F403,E402  (registers decorators) Must come after api is defined until we refactor
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
 all_tags = set()
