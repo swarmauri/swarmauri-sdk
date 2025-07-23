@@ -97,7 +97,7 @@ class Created:
 
 @declarative_mixin
 class LastUsed:
-    last_used_at = Column(DateTime(timezone=True))
+    last_used_at = Column(DateTime, nullable=True)
 
 
     def touch(self) -> None:
