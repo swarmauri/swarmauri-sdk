@@ -11,7 +11,6 @@ from ..mixins import (
     Created,
     LastUsed,
     ValidityWindow,
-    ActiveToggle
 )
 
 # ------------------------------------------------------------------ model
@@ -22,7 +21,6 @@ class ApiKey(
     Created,             # created_at timestamp
     LastUsed,            # last_used_at timestamp
     ValidityWindow,      # expires_at
-    ActiveToggle,        # is_active
 ):
     __tablename__  = "apikeys"
     __table_args__ = (UniqueConstraint("digest"),{"extend_existing": True},)
