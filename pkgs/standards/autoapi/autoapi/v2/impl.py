@@ -297,23 +297,30 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 ctx = {"request": req, "db": db, "env": env}
 
                 # ── use the *core* helper directly, bypassing self.rpc ──
+                arg_map = {
+                    "create": [p],
+                    "list": [p],
+                    "clear": [],
+                    "read": [item_id],
+                    "delete": [item_id],
+                    "update": [item_id, p],
+                    "replace": [item_id, p],
+                    "bulk_create": [p],
+                    "bulk_delete": [p],
+                }
+                args = arg_map.get(verb, [rpc_params])
+
                 if isinstance(db, AsyncSession):
 
-                    def exec_fn(_m, _p, _db=db):
-                        return _db.run_sync(
-                            lambda s: core(
-                                p if verb == "create" else rpc_params,
-                                s,
-                            )
-                        )
+                    def exec_fn(_m, _p, _db=db, _args=args):
+                        return _db.run_sync(lambda s: core(*_args, s))
 
                     return await _invoke(
                         self, m_id, params=rpc_params, ctx=ctx, exec_fn=exec_fn
                     )
 
-                # synchronous DB
-                def _direct_call(_m, _p, _db=db):
-                    return core(p if verb == "create" else rpc_params, _db)
+                def _direct_call(_m, _p, _db=db, _args=args):
+                    return core(*_args, _db)
 
                 return await _invoke(
                     self, m_id, params=rpc_params, ctx=ctx, exec_fn=_direct_call
@@ -468,6 +475,20 @@ def _crud(self, model: type) -> None:  # noqa: N802
     self._registered_tables.add(tab)
 
     pk = next(iter(model.__table__.primary_key.columns)).name
+    try:
+        pk_py_t = model.__table__.c[pk].type.python_type
+    except Exception:
+        pk_py_t = Any
+
+    def _cast_pk(v):
+        if isinstance(v, str) and pk_py_t is uuid.UUID:
+            return uuid.UUID(v)
+        if isinstance(v, str) and pk_py_t not in (str, Any):
+            try:
+                return pk_py_t(v)
+            except Exception:
+                return v
+        return v
 
     def _S(verb: str, **kw):
         return self._schema(model, verb=verb, **kw)
@@ -509,6 +530,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
         return obj
 
     def _read(i, db):
+        i = _cast_pk(i)
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -517,8 +539,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
     def _update(i, p: SUpdate, db, *, full=False):
         if isinstance(p, dict):
             p = SUpdate(**p)
-        if isinstance(i, str):
-            i = uuid.UUID(i)
+        i = _cast_pk(i)
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -536,6 +557,7 @@ def _crud(self, model: type) -> None:  # noqa: N802
         return obj
 
     def _delete(i, db):
+        i = _cast_pk(i)
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -582,7 +604,14 @@ def _crud(self, model: type) -> None:  # noqa: N802
 def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     p = iter(signature(core).parameters.values())
     first = next(p, None)
-    exp_pm = hasattr(IN, "model_validate")
+    first_param_is_model = first is not None and (
+        first.name == "p"
+        or (
+            isinstance(first.annotation, type)
+            and issubclass(first.annotation, BaseModel)
+        )
+    )
+    exp_pm = hasattr(IN, "model_validate") and first_param_is_model
     out_lst = get_origin(OUT) is list
     elem = get_args(OUT)[0] if out_lst else None
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
@@ -591,6 +620,8 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     def h(raw: dict, db: Session):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        if not data:
+            data = raw
         if exp_pm:
             r = core(obj_in, db=db)
         else:
