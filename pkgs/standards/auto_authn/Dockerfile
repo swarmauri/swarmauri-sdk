@@ -19,7 +19,7 @@ COPY ./pkgs/ ./pkgs/
 
 # ─────────────────── application code ──────────────────────────────
 
-RUN uv pip install --directory pkgs/standards/peagen --system .[postgres]
+RUN uv pip install --directory pkgs/standards/auto_authn --system .[postgres]
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
