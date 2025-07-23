@@ -6,6 +6,7 @@ and error semantics.
 
 Compatible with FastAPI ≥ 0.110, Pydantic 2.x, SQLAlchemy 2.x.
 """
+
 from __future__ import annotations
 
 import re
@@ -29,16 +30,14 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from ._runner import _invoke                           # ← unified lifecycle
-from .jsonrpc_models import _RPCReq                    # ← fabricated envelope
+from ._runner import _invoke  # ← unified lifecycle
+from .jsonrpc_models import _RPCReq  # ← fabricated envelope
 from .info_schema import check as _info_check
 from .mixins import AsyncCapable, BulkCapable, Replaceable
 from .types import _SchemaVerb, hybrid_property
 
 # ────────────────────────────────────────────────────────────────────────────
-_DUP_RE = re.compile(
-    r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
-)
+_DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
 _SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type] = {}
 
 
@@ -70,7 +69,7 @@ def _commit_or_http(db: Session) -> None:
 
 
 # ───────────────────────── helpers ──────────────────────────────────────────
-async def _run(core, *a):                              # legacy helper (still used)
+async def _run(core, *a):  # legacy helper (still used)
     rv = core(*a)
     return await rv if isawaitable(rv) else rv
 
@@ -87,7 +86,7 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     if not drop:
         return base
 
-    if get_origin(base) in (list, List):               # List[Model] → List[Stripped]
+    if get_origin(base) in (list, List):  # List[Model] → List[Stripped]
         elem = get_args(base)[0]
         return list[_strip_parent_fields(elem, drop=drop)]
 
@@ -160,16 +159,23 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
         ("create", "POST", "", 201, SCreate, SRead, _create),
-        ("list",   "GET",  "", 200, SListIn, List[SRead], _list),
-        ("clear",  "DELETE", "", 204, None, None, _clear),
-        ("read",   "GET",  "/{item_id}", 200, SDel, SRead, _read),
-        ("update", "PATCH","/{item_id}", 200, SUpdate, SRead, _update),
-        ("delete", "DELETE","/{item_id}", 204, SDel, None, _delete),
+        ("list", "GET", "", 200, SListIn, List[SRead], _list),
+        ("clear", "DELETE", "", 204, None, None, _clear),
+        ("read", "GET", "/{item_id}", 200, SDel, SRead, _read),
+        ("update", "PATCH", "/{item_id}", 200, SUpdate, SRead, _update),
+        ("delete", "DELETE", "/{item_id}", 204, SDel, None, _delete),
     ]
     if issubclass(model, Replaceable):
         spec.append(
-            ("replace", "PUT", "/{item_id}", 200, SCreate, SRead,
-             functools.partial(_update, full=True))
+            (
+                "replace",
+                "PUT",
+                "/{item_id}",
+                200,
+                SCreate,
+                SRead,
+                functools.partial(_update, full=True),
+            )
         )
     if issubclass(model, BulkCapable):
         spec += [
@@ -203,7 +209,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         def _factory(is_nested_router, *, verb=verb, path=path, In=In, core=core):
             params: list[inspect.Parameter] = [
-                inspect.Parameter(                    # ← request always first
+                inspect.Parameter(  # ← request always first
                     "request",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Request,
@@ -268,7 +274,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # ---- callable body ---------------------------------------
             async def _impl(**kw):
                 db: Session | AsyncSession = kw.pop("db")
-                req: Request = kw.pop("request")        # always present
+                req: Request = kw.pop("request")  # always present
                 p = kw.pop("p", None)
                 item_id = kw.pop("item_id", None)
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -292,6 +298,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
                 # ── use the *core* helper directly, bypassing self.rpc ──
                 if isinstance(db, AsyncSession):
+
                     def exec_fn(_m, _p, _db=db):
                         return _db.run_sync(
                             lambda s: core(
@@ -308,8 +315,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 def _direct_call(_m, _p, _db=db):
                     return core(p if verb == "create" else rpc_params, _db)
 
-                return await _invoke(self, m_id, params=rpc_params, ctx=ctx,
-                                     exec_fn=_direct_call)
+                return await _invoke(
+                    self, m_id, params=rpc_params, ctx=ctx, exec_fn=_direct_call
+                )
 
             _impl.__name__ = f"{verb}_{tab}"
             wrapped = functools.wraps(_impl)(_impl)
@@ -372,7 +380,9 @@ def _schema(  # noqa: N802
 
         col = attr.columns[0] if is_col_attr and attr.columns else None
         meta_src = (
-            col.info if col is not None and hasattr(col, "info") else getattr(attr, "info", {})
+            col.info
+            if col is not None and hasattr(col, "info")
+            else getattr(attr, "info", {})
         )
         meta = meta_src.get("autoapi", {}) or {}
 
@@ -386,7 +396,11 @@ def _schema(  # noqa: N802
         # legacy flags
         if verb == "create" and col is not None and col.info.get("no_create"):
             continue
-        if verb in {"update", "replace"} and col is not None and col.info.get("no_update"):
+        if (
+            verb in {"update", "replace"}
+            and col is not None
+            and col.info.get("no_update")
+        ):
             continue
 
         if verb in meta.get("disable_on", []):
@@ -427,11 +441,14 @@ def _schema(  # noqa: N802
         fields[attr_name] = (py_t, fld)
 
     model_name = name or f"{orm_cls.__name__}_{verb.capitalize()}"
-    cfg = dict(from_attributes=True)
+    cfg = ConfigDict(from_attributes=True)
 
-    schema_cls = create_model(  # type: ignore[arg-type]
-        model_name, __config__=type("Cfg", (), cfg), **fields
+    schema_cls = create_model(
+        model_name,
+        __config__=cfg,
+        **fields,
     )
+    schema_cls.model_rebuild(force=True)
     _SchemaCache[cache_key] = schema_cls
     return schema_cls
 
@@ -479,7 +496,9 @@ def _crud(self, model: type) -> None:  # noqa: N802
     # ----- DB helpers -------------------------------------------------
     def _create(p: SCreate, db):
         data = p.model_dump()
-        col_kwargs = {k: v for k, v in data.items() if k in {c.key for c in mapper.attrs}}
+        col_kwargs = {
+            k: v for k, v in data.items() if k in {c.key for c in mapper.attrs}
+        }
         virt_kwargs = {k: v for k, v in data.items() if k not in col_kwargs}
         obj = model(**col_kwargs)
         for k, v in virt_kwargs.items():
@@ -604,5 +623,5 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
     return h
 
 
-def _commit_or_flush(self, db: Session):              # legacy helper
+def _commit_or_flush(self, db: Session):  # legacy helper
     db.flush() if db.in_nested_transaction() else db.commit()
