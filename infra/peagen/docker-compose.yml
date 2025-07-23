@@ -170,8 +170,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    ports:
-      - 8000
     environment:
       PG_HOST: postgres
       PG_PORT: 5432
@@ -230,8 +228,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - 8002
     environment:
       PG_HOST: postgres
       PG_PORT: 5432
