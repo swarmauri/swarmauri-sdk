@@ -513,7 +513,15 @@ def _crud(self, model: type) -> None:  # noqa: N802
         db.refresh(obj)
         return obj
 
+    pk_col = next(iter(model.__table__.primary_key.columns))
+    pk_type = getattr(pk_col.type, "python_type", str)
+
     def _read(i, db):
+        if isinstance(i, str) and pk_type is not str:
+            try:
+                i = pk_type(i)
+            except Exception:
+                pass
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -522,8 +530,11 @@ def _crud(self, model: type) -> None:  # noqa: N802
     def _update(i, p: SUpdate, db, *, full=False):
         if isinstance(p, dict):
             p = SUpdate(**p)
-        if isinstance(i, str):
-            i = uuid.UUID(i)
+        if isinstance(i, str) and pk_type is not str:
+            try:
+                i = pk_type(i)
+            except Exception:
+                pass
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -541,6 +552,11 @@ def _crud(self, model: type) -> None:  # noqa: N802
         return obj
 
     def _delete(i, db):
+        if isinstance(i, str) and pk_type is not str:
+            try:
+                i = pk_type(i)
+            except Exception:
+                pass
         obj = db.get(model, i)
         if obj is None:
             _not_found()
@@ -597,7 +613,14 @@ def _wrap_rpc(self, core, IN, OUT, pk_name, model):  # noqa: N802
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
         if exp_pm:
-            r = core(obj_in, db=db)
+            params = list(signature(core).parameters.values())
+            if pk_name in raw and params and params[0].name != pk_name:
+                if len(params) >= 3:
+                    r = core(raw[pk_name], obj_in, db=db)
+                else:
+                    r = core(raw[pk_name], db=db)
+            else:
+                r = core(obj_in, db=db)
         else:
             if pk_name in data and first and first.name != pk_name:
                 r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
