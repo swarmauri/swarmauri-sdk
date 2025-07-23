@@ -10,27 +10,21 @@ RUN apt-get update && \
     apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
-# ─────────────────── dependency installation ───────────────────────
-# Set working directory
+# ─────────────────── install Python deps with uv  ──────────────────
 WORKDIR /app
 
-# Copy dependency files first for better layer caching
+# 1. Copy only dependency-defining files first (better layer caching)
 COPY ./pkgs/ ./pkgs/
 
-# ─────────────────── application code ──────────────────────────────
-
-RUN uv pip install --directory pkgs/standards/peagen --system .[postgres]
+RUN uv pip install --directory pkgs/standards/peagen --system .
 
 # ────────────────── runtime configuration  ─────────────────────────
 EXPOSE 8000
 
 ENV \
-    PG_HOST="" \
-    PG_PORT="5432" \
-    PG_DB="" \
-    PG_USER="" \
-    PG_PASS="" \
-    REDIS_HOST="" \
-    REDIS_PASSWORD="" \
-    
-CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"auto_authn.v2.app:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
+    DQ_POOL=""\
+    DQ_GATEWAY=""\
+    PORT="8000" \
+    PG_PORT="5432"
+
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
