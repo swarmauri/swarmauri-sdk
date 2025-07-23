@@ -24,7 +24,7 @@ EXPOSE 8000
 ENV \
     DQ_POOL=""\
     DQ_GATEWAY=""\
-    PORT="8001" \
+    PORT="8000" \
     PG_PORT="5432"
 
 CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.worker:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\")'"]
