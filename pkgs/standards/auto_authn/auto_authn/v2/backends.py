@@ -82,7 +82,6 @@ class ApiKeyBackend:
         now = datetime.now(timezone.utc)
         return select(ApiKey).where(
             ApiKey.digest == digest,
-            ApiKey.is_active.is_(True),
             or_(ApiKey.valid_to.is_(None), ApiKey.valid_to > now),
         )
 
