@@ -1,12 +1,39 @@
-FROM python:3.11-slim
+# ───────────────────────── base image ──────────────────────────────
+FROM python:3.12-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    python3-dev
+# ─────────────────── system deps + uv package manager ──────────────
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends build-essential git && \
+    pip install --no-cache-dir uv && \
+    apt-get purge -y build-essential && \
+    apt-get autoremove -y && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
+# ─────────────────── dependency installation ───────────────────────
+# Copy dependency files first for better layer caching
+COPY pkgs/standards/auto_authn/pyproject.toml ./
+COPY pkgs/standards/auto_authn/README.md ./
+COPY pkgs/standards/auto_authn/LICENSE ./
+
+RUN uv pip install --directory pkgs/standards/auto_authn --system .
+
+# ─────────────────── application code ──────────────────────────────
+COPY pkgs/standards/auto_authn/auto_authn/ ./auto_authn/
+
+# ────────────────── runtime configuration  ─────────────────────────
+EXPOSE 8002
+
+ENV \
+    PG_HOST="" \
+    PG_PORT="5432" \
+    PG_DB="" \
+    PG_USER="" \
+    PG_PASS="" \
+    REDIS_HOST="" \
+    REDIS_PASSWORD="" \
+    
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"auto_authn.v2.app:app\", host=\"0.0.0.0\", port=8002, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
