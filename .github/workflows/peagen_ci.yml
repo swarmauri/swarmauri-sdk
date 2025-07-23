@@ -61,7 +61,7 @@ jobs:
     - name: Get container logs on failure
       if: failure()          # <- overrides the implicit success() check
       run: |
-        echo "::group::gateway logs"
+        echo "::group::auto_authn logs"
         sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
         echo "::endgroup::"
 
