@@ -93,6 +93,10 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+autoapi = { workspace = true }
+autoapi_client = { workspace = true }
+auto_authn = { workspace = true }
+
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
