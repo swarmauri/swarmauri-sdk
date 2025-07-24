@@ -82,13 +82,11 @@ class ApiKeyBackend:
         now = datetime.now(timezone.utc)
         return select(ApiKey).where(
             ApiKey.digest == digest,
-            ApiKey.is_active.is_(True),
             or_(ApiKey.valid_to.is_(None), ApiKey.valid_to > now),
         )
 
     async def authenticate(self, db: AsyncSession, api_key: str) -> User:
         digest = ApiKey.digest_of(api_key)
-        print(digest)
         key_row: Optional[ApiKey] = await db.scalar(await self._get_key_stmt(digest))
         if not key_row:
             raise AuthError("API key invalid, revoked, or expired")
