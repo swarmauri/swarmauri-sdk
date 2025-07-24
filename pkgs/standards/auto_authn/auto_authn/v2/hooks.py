@@ -1,7 +1,7 @@
 # auto_authn/hooks.py  (inside the AuthN package)
-from autoapi.v2.hooks import Phase
 
 def register_inject_hook(api):
+    from autoapi.v2.hooks import Phase
 
     @api.hook(Phase.PRE_TX_BEGIN)            # PRE‑DB, works for CRUD & RPC
     async def _inject(ctx):
@@ -16,7 +16,7 @@ def register_inject_hook(api):
                     setattr(prm, fld, val)
             elif isinstance(prm, dict):
                 prm.setdefault(fld, val)
-                
+
 __all__ = ["register_inject_hook"]
 
 
