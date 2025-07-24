@@ -2,10 +2,13 @@
 from uuid import uuid4, UUID
 import datetime as dt
 from ..types import (
-    Column, DateTime, Integer, String, ForeignKey, declarative_mixin, 
+    Column, TZDateTime, Integer, String, ForeignKey, declarative_mixin, 
     declared_attr, PgUUID, SAEnum, Numeric, Index, Mapped, 
     mapped_column, JSONB, TSVECTOR, Boolean)
 
+def tzutcnow() -> dt.datetime:       # default/on‑update factory
+    """Return an **aware** UTC `datetime`."""
+    return dt.datetime.now(dt.timezone.utc)
 
 
 from .bootstrappable import Bootstrappable as Bootstrappable
@@ -89,34 +92,34 @@ class TenantBound:
 @declarative_mixin
 class Created:
     created_at = Column(
-        DateTime,
-        default=dt.datetime.utcnow,
+        TZDateTime,
+        default=tzutcnow,
         nullable=False,
         info=dict(no_create=True, no_update=True),
     )
 
 @declarative_mixin
 class LastUsed:
-    last_used_at = Column(DateTime, nullable=True)
+    last_used_at = Column(TZDateTime, nullable=True)
 
 
     def touch(self) -> None:
         """Update `last_used_at` on successful authentication."""
-        self.last_used_at = dt.datetime.utcnow()
+        self.last_used_at = tzutcnow()
 
 
 @declarative_mixin
 class Timestamped:
     created_at = Column(
-        DateTime,
-        default=dt.datetime.utcnow,
+        TZDateTime,
+        default=tzutcnow,
         nullable=False,
         info=dict(no_create=True, no_update=True),
     )
     updated_at = Column(
-        DateTime,
-        default=dt.datetime.utcnow,
-        onupdate=dt.datetime.utcnow,
+        TZDateTime,
+        default=tzutcnow,
+        onupdate=tzutcnow,
         nullable=False,
         info=dict(no_create=True, no_update=True),
     )
@@ -127,7 +130,7 @@ class ActiveToggle:
 
 @declarative_mixin
 class SoftDelete:
-    deleted_at = Column(DateTime, nullable=True)  # NULL means “live”
+    deleted_at = Column(TZDateTime, nullable=True)  # NULL means “live”
 
 
 @declarative_mixin
@@ -200,7 +203,7 @@ class BlobRef:
 @declarative_mixin
 class RowLock:
     lock_token = Column(PgUUID(as_uuid=True), nullable=True)
-    locked_at = Column(DateTime, nullable=True)
+    locked_at = Column(TZDateTime, nullable=True)
 
 
 # ────────── Bulk Operations ---------------------------------------------
@@ -257,8 +260,8 @@ class StatusMixin:
 # ValidityWindow ── temporal availability
 @declarative_mixin
 class ValidityWindow:
-    valid_from = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
-    valid_to = Column(DateTime)
+    valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
+    valid_to = Column(TZDateTime)
 
 
 # ----------------------------------------------------------------------
@@ -289,7 +292,7 @@ class MetaJSON:
 @declarative_mixin
 class SoftLock:
     locked_by = Column(PgUUID(as_uuid=True), ForeignKey("users.id"))
-    locked_at = Column(DateTime)
+    locked_at = Column(TZDateTime)
 
 
 # ----------------------------------------------------------------------
