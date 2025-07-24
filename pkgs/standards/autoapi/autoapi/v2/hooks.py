@@ -33,14 +33,30 @@ def _init_hooks(self) -> None:
         lambda: defaultdict(list)
     )
 
-    def _hook(phase: Phase, fn: _Hook | None = None, *, method: str | None = None):
+    def _hook(
+        phase: Phase,
+        fn: _Hook | None = None,
+        *,
+        model: str | type | None = None,
+        op: str | None = None,
+    ):
         def _reg(f: _Hook) -> _Hook:
             async_f = (
                 f
                 if callable(getattr(f, "__await__", None))
                 else (lambda ctx, f=f: f(ctx))  # sync-to-async shim
             )
-            self._hook_registry[phase][method].append(async_f)
+
+            key: str | None
+            if model is None and op is None:
+                key = None
+            elif model is not None and op is not None:
+                name = model if isinstance(model, str) else model.__name__
+                key = f"{name}.{op}"
+            else:  # pragma: no cover - sanity guard
+                raise ValueError("model and op must be provided together")
+
+            self._hook_registry[phase][key].append(async_f)
             return f
 
         return _reg if fn is None else _reg(fn)
