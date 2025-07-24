@@ -9,8 +9,8 @@ import httpx
 from fastapi import Header, HTTPException, Request, status
 
 from autoapi.v2.types.authn_abc import AuthNProvider
-from .hooks import register_inject_hook            # ← existing helper
-from .fastapi_deps import principal_var            # ← ContextVar used by filters
+from ..hooks import register_inject_hook            # ← existing helper
+from ..fastapi_deps import principal_var            # ← ContextVar used by filters
 
 
 class RemoteAuthNAdapter(AuthNProvider):

@@ -17,8 +17,8 @@ from __future__ import annotations
 from fastapi import Request
 
 from autoapi.v2.types.authn_abc import AuthNProvider
-from .fastapi_deps import get_principal  # returns {"sub": uid, "tid": tid}
-from .hooks import register_inject_hook  # injects tenant_id / owner_id
+from ..fastapi_deps import get_principal  # returns {"sub": uid, "tid": tid}
+from ..hooks import register_inject_hook  # injects tenant_id / owner_id
 
 
 class LocalAuthNAdapter(AuthNProvider):
