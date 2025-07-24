@@ -94,16 +94,14 @@ class RPCMixin:
 
         r.raise_for_status()
         res = r.json()
-
         # ----- JSON-RPC error handling -------------------------------------
         if err := res.get("error"):
             code = err.get("code", -32000)
             msg = err.get("message", "Unknown error")
-            raise RuntimeError(f"RPC {code}: {msg}")
 
         result = res["result"]
 
         # ----- optional pydantic validation --------------------------------
-        if out_schema is not None:
+        if out_schema is not None and result is not None:
             return out_schema.model_validate(result)  # type: ignore[return-value]
         return result
