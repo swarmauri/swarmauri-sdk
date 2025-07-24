@@ -2,16 +2,11 @@
 from __future__ import annotations
 
 
-from ..types import (
-    Column, String, LargeBinary, UniqueConstraint
-)
+from ..types import Column, String, LargeBinary, UniqueConstraint
 
 from ._base import Base
-from ..mixins import (
-    GUIDPk,
-    Timestamped,
-    TenantBound
-)
+from ..mixins import GUIDPk, Timestamped, TenantBound
+
 
 class Client(Base, GUIDPk, Timestamped, TenantBound):
     __tablename__ = "clients"
@@ -19,4 +14,3 @@ class Client(Base, GUIDPk, Timestamped, TenantBound):
     # ---------------------------------------------------------------- columns --
     client_secret_hash = Column(LargeBinary(60), nullable=False)
     redirect_uris = Column(String(1000), nullable=False)
-

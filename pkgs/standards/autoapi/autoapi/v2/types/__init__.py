@@ -21,7 +21,7 @@ from sqlalchemy.dialects.postgresql import (
     ENUM as PgEnum,
     JSONB,
     UUID as PgUUID,
-    TSVECTOR
+    TSVECTOR,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -35,9 +35,9 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
+
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
-
 
 
 # ── public re-exports ─────────────────────────────────────────────────────

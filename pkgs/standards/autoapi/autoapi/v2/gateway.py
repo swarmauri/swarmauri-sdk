@@ -22,6 +22,7 @@ from typing import Any, Dict
 
 from ._runner import _invoke  # ← central lifecycle engine
 from .jsonrpc_models import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
+from pydantic import ValidationError
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -59,8 +60,12 @@ def build_gateway(api) -> APIRouter:
                 return _ok(result, env)
 
             except HTTPException as exc:
-                rpc_code, rpc_data = _http_exc_to_rpc(exc)
-                return _err(rpc_code, exc.detail, env, rpc_data)
+                rpc_code, rpc_message = _http_exc_to_rpc(exc)
+                return _err(rpc_code, rpc_message, env)
+
+            except ValidationError as exc:
+                # Handle Pydantic validation errors
+                return _err(-32602, str(exc), env)
 
             except Exception as exc:
                 # _invoke() has already rolled back & fired ON_ERROR hook.
@@ -98,8 +103,12 @@ def build_gateway(api) -> APIRouter:
                 return _ok(result, env)
 
             except HTTPException as exc:
-                rpc_code, rpc_data = _http_exc_to_rpc(exc)
-                return _err(rpc_code, exc.detail, env, rpc_data)
+                rpc_code, rpc_message = _http_exc_to_rpc(exc)
+                return _err(rpc_code, rpc_message, env)
+
+            except ValidationError as exc:
+                # Handle Pydantic validation errors
+                return _err(-32602, str(exc), env)
 
             except Exception as exc:
                 return _err(-32000, str(exc), env)

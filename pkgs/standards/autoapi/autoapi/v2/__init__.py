@@ -145,6 +145,7 @@ class AutoAPI:
 
         return get_autoapi_schema(orm_cls, tag)
 
+
 # keep __all__ tidy for `from autoapi import *` users
 __all__ = [
     "AutoAPI",

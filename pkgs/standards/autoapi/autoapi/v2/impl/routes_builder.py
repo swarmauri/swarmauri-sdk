@@ -142,7 +142,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
 
-        def _factory(is_nested_router, *, verb=verb, path=path, In=In, core=core):
+        def _factory(
+            is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
+        ):
             params: list[inspect.Parameter] = [
                 inspect.Parameter(  # ← request always first
                     "request",
