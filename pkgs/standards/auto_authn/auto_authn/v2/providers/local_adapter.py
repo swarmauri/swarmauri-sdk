@@ -1,5 +1,5 @@
 """
-auto_authn.provider
+auto_authn.providers.local_adapter
 ───────────────────
 Concrete implementation of the ``AuthNProvider`` ABC declared by
 ``autoapi.v2.authn_abc``.  It merely **adapts** the public helpers that already
@@ -21,7 +21,7 @@ from .fastapi_deps import get_principal  # returns {"sub": uid, "tid": tid}
 from .hooks import register_inject_hook  # injects tenant_id / owner_id
 
 
-class AuthNAdapter(AuthNProvider):
+class RemoteAuthNAdapter(AuthNProvider):
     """
     Thin wrapper that plugs existing *auto_authn* functions into
     the abstract interface expected by AutoAPI.
