@@ -27,7 +27,7 @@ from peagen.core import migrate_core
 from peagen.defaults import (
     READY_QUEUE, 
 )
-from peagen.gateway.settings import settings
+from peagen.gateway.runtime_cfg import settings
 from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 
 # peagen/gateway/__init__.py
@@ -72,10 +72,10 @@ READY: bool = False
 app = FastAPI(title="Peagen Pool-Manager Gateway")
 
 authn_adapter = RemoteAuthNAdapter(
-    base_url=settings.AUTHN_BASE_URL,
-    timeout=settings.AUTHN_TIMEOUT,
-    cache_ttl=settings.AUTHN_CACHE_TTL,
-    cache_size=settings.AUTHN_CACHE_SIZE,
+    base_url=settings.authn_base_url,
+    timeout=settings.authn_timeout,
+    cache_ttl=settings.authn_cache_ttl,
+    cache_size=settings.authn_cache_size,
 )
 
 api = AutoAPI(
