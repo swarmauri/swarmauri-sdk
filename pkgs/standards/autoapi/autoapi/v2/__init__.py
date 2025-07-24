@@ -50,7 +50,6 @@ class AutoAPI:
         include: set[Type],
         get_db: Callable[..., Iterator[Session]] | None = None,
         get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
-        authorize: Callable[[str, Any], bool] | None = None,
         prefix: str = "",
         authorize=None,
         authn: "AuthNProvider | None" = None):
