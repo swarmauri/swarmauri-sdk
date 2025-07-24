@@ -67,7 +67,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         # ------- tiny TTL cache to save RTT ---------------------------
         principal = self._cache_get(api_key)
         if principal is None:
-            resp = await self._client.post(self._introspect, json={"key": api_key})
+            resp = await self._client.post(self._introspect, json={"api_key": api_key})
             if resp.status_code != 200:
                 raise HTTPException(
                     status.HTTP_401_UNAUTHORIZED,
