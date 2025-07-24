@@ -29,7 +29,7 @@ RepoSecretRead = AutoAPI.get_schema(RepoSecret, "read")
 # Activate if UserSecret, OrgSecret are enabled
 # @api.hook(Phase.POST_COMMIT, method="UserSecrets.create")
 # @api.hook(Phase.POST_COMMIT, method="OrgSecrets.create")
-@api.hook(Phase.POST_COMMIT, method="RepoSecrets.create")
+@api.hook(Phase.POST_COMMIT, model="RepoSecrets", op="create")
 async def post_secret_add(ctx: Dict[str, Any]) -> None:
     """Return a simple OK dict after the secret is persisted."""
     log.info("entering post_secret_add")
@@ -42,7 +42,7 @@ async def post_secret_add(ctx: Dict[str, Any]) -> None:
 # Activate if UserSecret, OrgSecret are enabled
 # @api.hook(Phase.POST_COMMIT, method="UserSecrets.delete")
 # @api.hook(Phase.POST_COMMIT, method="OrgSecrets.delete")
-@api.hook(Phase.POST_COMMIT, method="RepoSecrets.delete")
+@api.hook(Phase.POST_COMMIT, model="RepoSecrets", op="delete")
 async def post_secret_delete(ctx: Dict[str, Any]) -> None:
     """Confirm deletion with a flat OK payload."""
     log.info("entering post_secret_delete")

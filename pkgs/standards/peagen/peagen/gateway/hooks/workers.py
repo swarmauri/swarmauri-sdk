@@ -48,7 +48,7 @@ def _as_redis_hash(model: BaseModel) -> Mapping[str, str]:
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
-@api.hook(Phase.POST_RESPONSE, method="Workers.create")
+@api.hook(Phase.POST_RESPONSE, model="Workers", op="create")
 async def post_worker_create_cache_pool(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create_cache_pool")
 
@@ -62,7 +62,7 @@ async def post_worker_create_cache_pool(ctx: Dict[str, Any]) -> None:
         log.error(f"failure to add member to pool queue. err: {exc}")
 
 
-@api.hook(Phase.POST_RESPONSE, method="Workers.create")
+@api.hook(Phase.POST_RESPONSE, model="Workers", op="create")
 async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create_cache_worker")
 
@@ -85,7 +85,7 @@ async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
 
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
-@api.hook(Phase.PRE_TX_BEGIN, method="Workers.update")
+@api.hook(Phase.PRE_TX_BEGIN, model="Workers", op="update")
 async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_worker_update")
 
@@ -101,7 +101,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     ctx["worker_id"] = worker_id
 
 
-@api.hook(Phase.POST_RESPONSE, method="Workers.update")
+@api.hook(Phase.POST_RESPONSE, model="Workers", op="update")
 async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_update_cache_pool")
 
@@ -121,7 +121,7 @@ async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
         )
 
 
-@api.hook(Phase.POST_RESPONSE, method="Workers.update")
+@api.hook(Phase.POST_RESPONSE, model="Workers", op="update")
 async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_update_cache_worker")
     try:
@@ -148,7 +148,7 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
 
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
-@api.hook(Phase.POST_HANDLER, method="Workers.list")
+@api.hook(Phase.POST_HANDLER, model="Workers", op="list")
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
     """Replace DB snapshot with live-only snapshot if Redis has fresher info."""
     # For brevity this stays empty; implement when real-time pool state is required.
@@ -156,7 +156,7 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
     pass
 
 
-@api.hook(Phase.POST_HANDLER, method="Workers.delete")
+@api.hook(Phase.POST_HANDLER, model="Workers", op="delete")
 async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     """Expire the worker's registry entry immediately."""
     try:

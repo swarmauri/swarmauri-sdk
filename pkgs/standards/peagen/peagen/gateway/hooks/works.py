@@ -15,7 +15,11 @@ from peagen.orm import Status, Task, Work
 
 from peagen.gateway import api, log, queue
 from peagen.gateway._publish import _publish_task
-from peagen.gateway.schedule_helpers import _finalize_parent_tasks, _load_task, _save_task
+from peagen.gateway.schedule_helpers import (
+    _finalize_parent_tasks,
+    _load_task,
+    _save_task,
+)
 
 # ─────────────────── schema handles ────────────────────────────────────
 WorkRead = AutoAPI.get_schema(Work, "read")
@@ -24,7 +28,7 @@ TaskRead = AutoAPI.get_schema(Task, "read")
 
 
 # ─────────────────── POST-COMMIT hook for Works.update ─────────────────
-@api.hook(Phase.POST_COMMIT, method="Works.update")
+@api.hook(Phase.POST_COMMIT, model="Works", op="update")
 async def post_work_update(ctx: Dict[str, Any]) -> None:
     """
     When a Work row becomes terminal, update the cached Task and fan-out.

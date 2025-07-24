@@ -172,7 +172,7 @@ class RepositoryRefMixin:
 #     """
 
 #     __tablename__ = "user_tenants"
-#     joined_at = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
+#     joined_at = Column(tzutcnow, default=dt.timezone.utcnow, nullable=False)
 
 
 class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):

@@ -9,7 +9,7 @@ Public façade for the AutoAPI framework.
 
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Optional, Type
+from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,8 +31,8 @@ from .tables._base import Base as Base
 from .types import (
     _Op,  # pure metadata
     _SchemaVerb,
+    AuthNProvider,
 )
-
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -50,10 +50,9 @@ class AutoAPI:
         include: set[Type],
         get_db: Callable[..., Iterator[Session]] | None = None,
         get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
-        authorize: Callable[[str, Any], bool] | None = None,
         prefix: str = "",
-        authn_dep: Optional[Any] = None,
-    ):
+        authorize=None,
+        authn: "AuthNProvider | None" = None):
         # lightweight state
         self.base = base
         self.include = include
@@ -80,13 +79,25 @@ class AutoAPI:
         # Store DDL creation for later execution
         self._ddl_executed = False
 
+
+        # ---------- initialise hook subsystem ---------------------
+
+        _init_hooks(self)
+
         # ---------- collect models, build routes, etc. -----------
 
-        # auth dependency (e.g. OAuth2PasswordBearer() or None)
-        self._authn_dep = authn_dep or Depends(lambda: None)
 
-        # initialise hook subsystem
-        _init_hooks(self)
+        # ---------------- AuthN wiring -----------------
+        if authn is not None:                           # preferred path
+            self._authn = authn
+            self._authn_dep = Depends(authn.get_principal)
+            # Late‑binding of the injection hook
+            authn.register_inject_hook(self)
+        else:
+            self._authn = None
+            self._authn_dep = Depends(lambda: None)
+
+
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)

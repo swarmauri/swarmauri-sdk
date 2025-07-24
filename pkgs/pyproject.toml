@@ -187,8 +187,10 @@ swarmauri_middleware_stdio = { workspace = true }
 swarmauri_middleware_jsonrpc = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
+
 autoapi = { workspace = true }
 autoapi_client = { workspace = true }
+auto_authn = { workspace = true }
 peagen = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }

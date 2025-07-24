@@ -2,7 +2,7 @@
 from sqlalchemy import (
     Boolean,
     Column,
-    DateTime,
+    DateTime as _DateTime,
     Enum as SAEnum,
     Text,
     ForeignKey,
@@ -38,17 +38,22 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
+from .authn_abc import AuthNProvider
 
+DateTime = _DateTime(timezone=False)
+TZDateTime = _DateTime(timezone=True)
 
 # ── public re-exports ─────────────────────────────────────────────────────
 __all__: list[str] = [
     # local
     "_Op",
     "_SchemaVerb",
+    "AuthNProvider",
     # sqlalchemy core
     "Boolean",
     "Column",
     "DateTime",
+    "TZDateTime",
     "Text",
     "SAEnum",
     "ForeignKey",

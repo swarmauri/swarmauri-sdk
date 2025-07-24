@@ -34,7 +34,7 @@ def root_dir() -> Path:
     """Return Peagen’s root working directory."""
     return Path(ROOT_DIR).expanduser()
 
-# ─────────────────────────── GIT Shadow ────────────────────────────
+# ─────────────────────────── GIT Shadow ─────────────────────────────
 
 # Git Shadow Mirror
 GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
