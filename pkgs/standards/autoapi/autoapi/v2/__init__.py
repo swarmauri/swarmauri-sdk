@@ -79,7 +79,13 @@ class AutoAPI:
         # Store DDL creation for later execution
         self._ddl_executed = False
 
+
+        # ---------- initialise hook subsystem ---------------------
+        
+        _init_hooks(self)
+
         # ---------- collect models, build routes, etc. -----------
+
 
         # ---------------- AuthN wiring -----------------
         if authn is not None:                           # preferred path
@@ -91,8 +97,7 @@ class AutoAPI:
             self._authn = None
             self._authn_dep = Depends(lambda: None)
 
-        # initialise hook subsystem
-        _init_hooks(self)
+
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
