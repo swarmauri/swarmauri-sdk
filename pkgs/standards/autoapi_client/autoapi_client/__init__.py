@@ -1,107 +1,101 @@
 # autoapi_client/__init__.py
 from __future__ import annotations
 
-import uuid
-import itertools
-import json
 import httpx
-from typing import Any, TypeVar, overload, Protocol
-from typing import runtime_checkable  # ← add
+from typing import TypeVar
 
+from ._rpc import RPCMixin, _Schema
+from ._crud import CRUDMixin
+from ._nested_crud import NestedCRUDMixin
 
 T = TypeVar("T")
 
 
-@runtime_checkable
-class _Schema(Protocol[T]):  # anything with Pydantic-v2 interface
-    @classmethod
-    def model_validate(cls, data: Any) -> T: ...
-    @classmethod
-    def model_dump_json(cls, **kw) -> str: ...
+# Re-export the Schema protocol for public use
+__all__ = ["AutoAPIClient", "_Schema"]
 
 
-# --------------------------------------------------------------------- #
-class AutoAPIClient:
+class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
     """
-    Tiny, dependency-free JSON-RPC client for AutoAPI.
-    * Uses httpx for async / sync requests.
-    * Generates ids, sets Content-Type, decodes error envelopes.
-    * Optional pydantic schema validation on both params & result.
+    Unified API client supporting both JSON-RPC and REST CRUD operations.
+
+    Features:
+    * JSON-RPC calls with optional Pydantic schema validation
+    * REST CRUD operations (GET, POST, PUT, PATCH, DELETE)
+    * Async versions of all operations (aget, apost, aput, apatch, adelete)
+    * Connection pooling via httpx.Client
+    * Optional Pydantic schema validation for requests and responses
+    * Placeholder for future nested CRUD operations
+
+    Examples:
+        # JSON-RPC usage
+        client = AutoAPIClient("http://api.example.com/rpc")
+        result = client.call("user.get", params={"id": 123})
+
+        # REST CRUD usage
+        client = AutoAPIClient("http://api.example.com")
+        user = client.get("/users/123")
+        new_user = client.post("/users", data={"name": "John", "email": "john@example.com"})
+
+        # Async usage
+        user = await client.aget("/users/123")
+        result = await client.apost("/users", data={"name": "Jane"})
     """
 
     def __init__(self, endpoint: str, *, client: httpx.Client | None = None):
+        """
+        Initialize the AutoAPIClient.
+
+        Args:
+            endpoint: Base URL for the API
+            client: Optional httpx.Client instance. If not provided, a new one will be created.
+        """
         self._endpoint = endpoint
-        self._own = client is None  # whether we manage its life
+        self._own = client is None  # whether we manage its lifecycle
         self._client = client or httpx.Client(timeout=10.0)
 
-    # ─────────── public high-level call helpers ────────────────────── #
-    @overload
-    def call(  # result with schema
-        self,
-        method: str,
-        *,
-        params: _Schema[Any] | dict | None = None,
-        out_schema: type[_Schema[T]],
-    ) -> T: ...
+        # Create async client for async operations
+        self._async_client = httpx.AsyncClient(timeout=10.0)
+        self._own_async = True  # we always own the async client
 
-    @overload
-    def call(  # raw / no schema
-        self,
-        method: str,
-        *,
-        params: dict | None = None,
-        out_schema: None = None,
-    ) -> Any: ...
+        # Initialize nested CRUD placeholder
+        NestedCRUDMixin.__init__(self)
 
-    def call(
-        self,
-        method: str,
-        *,
-        params: _Schema[Any] | dict | None = None,
-        out_schema: type[_Schema[T]] | None = None,
-    ) -> Any:
-        # ----- payload build ------------------------------------------------
-        if isinstance(params, _Schema):  # pydantic in → dump to dict
-            params_dict = json.loads(params.model_dump_json())
-        else:
-            params_dict = params or {}
+    def _get_endpoint(self) -> str:
+        """Get the endpoint URL."""
+        return self._endpoint
 
-        req = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params_dict,
-            "id": str(uuid.uuid4()),
-        }
-        # ----- HTTP roundtrip ----------------------------------------------
-        r = self._client.post(
-            self._endpoint,
-            json=req,
-            headers={"Content-Type": "application/json"},
-        )
+    def _get_client(self) -> httpx.Client:
+        """Get the HTTP client."""
+        return self._client
 
-        r.raise_for_status()
-        res = r.json()
-        
+    def _get_async_client(self) -> httpx.AsyncClient:
+        """Get the async HTTP client."""
+        return self._async_client
 
-        # ----- JSON-RPC error handling -------------------------------------
-        if err := res.get("error"):
-            code = err.get("code", -32000)
-            msg = err.get("message", "Unknown error")
-            raise RuntimeError(f"RPC {code}: {msg}")
-
-        result = res["result"]
-
-        # ----- optional pydantic validation --------------------------------
-        if out_schema is not None:
-            return out_schema.model_validate(result)  # type: ignore[return-value]
-        return result
-
-    # context-manager sugar
+    # Context manager support
     def __enter__(self):
+        """Enter context manager."""
         return self
 
-    def __exit__(self, *a):
+    def __exit__(self, *args):
+        """Exit context manager."""
         self.close()
 
+    async def __aenter__(self):
+        """Enter async context manager."""
+        return self
+
+    async def __aexit__(self, *args):
+        """Exit async context manager."""
+        await self.aclose()
+
     def close(self):
-        self._client.close() if self._own else None
+        """Close the HTTP clients."""
+        if self._own:
+            self._client.close()
+
+    async def aclose(self):
+        """Close the async HTTP client."""
+        if self._own_async:
+            await self._async_client.aclose()
