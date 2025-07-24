@@ -47,7 +47,6 @@ def _init_hooks(self) -> None:
         Usage: @api.hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
         Usage: @api.hook(Phase.POST_COMMIT)  # catch-all hook
         """
-
         def _reg(f: _Hook) -> _Hook:
             async_f = (
                 f

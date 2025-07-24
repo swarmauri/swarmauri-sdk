@@ -25,7 +25,7 @@ SListIn = AutoAPI.get_schema(DeployKey, "list")  # fetch all keys
 # -------------------------------------------------------------------
 
 
-@api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.create")
+@api.hook(Phase.PRE_TX_BEGIN, model="DeployKeys", op="create")
 async def pre_key_upload(ctx: Dict[str, Any]) -> None:
     """Validate the uploaded key and prepare DB row."""
     log.info("entering pre_key_upload")
@@ -48,7 +48,7 @@ async def pre_key_upload(ctx: Dict[str, Any]) -> None:
         raise exc
 
 
-@api.hook(Phase.POST_COMMIT, method="DeployKeys.create")
+@api.hook(Phase.POST_COMMIT, model="DeployKeys", op="create")
 async def post_key_upload(ctx: Dict[str, Any]) -> None:
     """Cache the key in memory and shape the RPC result."""
     log.info("entering post_key_upload")
@@ -59,7 +59,7 @@ async def post_key_upload(ctx: Dict[str, Any]) -> None:
     log.info("key persisted (fingerprint=%s)", fp)
 
 
-@api.hook(Phase.POST_HANDLER, method="DeployKeys.read")
+@api.hook(Phase.POST_HANDLER, model="DeployKeys", op="read")
 async def post_key_fetch(ctx: Dict[str, Any]) -> None:
     """Convert the raw DB rows into a {fingerprint: key} mapping."""
     log.info("entering POST_HANDLER")
@@ -76,7 +76,7 @@ async def post_key_fetch(ctx: Dict[str, Any]) -> None:
     # ctx["result"] = {"keys": mapping}  # simple dict for clients
 
 
-@api.hook(Phase.PRE_TX_BEGIN, method="DeployKeys.delete")
+@api.hook(Phase.PRE_TX_BEGIN, model="DeployKeys", op="delete")
 async def pre_key_delete(ctx: Dict[str, Any]) -> None:
     """Extract the fingerprint so the post-hook can update the cache."""
     log.info("entering pre_key_delete")
@@ -85,7 +85,7 @@ async def pre_key_delete(ctx: Dict[str, Any]) -> None:
     ctx["fingerprint"] = params.fingerprint
 
 
-@api.hook(Phase.POST_COMMIT, method="DeployKeys.delete")
+@api.hook(Phase.POST_COMMIT, model="DeployKeys", op="delete")
 async def post_key_delete(ctx: Dict[str, Any]) -> None:
     """Purge the key from memory and return an OK payload."""
     log.info("entering post_key_delete")
