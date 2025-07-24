@@ -83,7 +83,8 @@ dependencies = [
 
     # db api support
     "autoapi",
-    "autoapi_client"
+    "autoapi_client",
+    "auto_authn",
 
 ]
 

@@ -19,11 +19,18 @@ import os
 
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v2 import AutoAPI
+from auto_authn.v2.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
-from peagen.defaults import READY_QUEUE
+from peagen.defaults import (
+    READY_QUEUE, 
+    AUTHN_BASE_URL, 
+    AUTHN_TIMEOUT, 
+    AUTHN_CACHE_TTL, 
+    AUTHN_CACHE_SIZE,
+)
 from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 
 # peagen/gateway/__init__.py
@@ -54,7 +61,6 @@ from . import _publish, schedule_helpers
 from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
 
-
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
 log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
@@ -67,6 +73,13 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 # ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
 READY: bool = False
 app = FastAPI(title="Peagen Pool-Manager Gateway")
+
+authn_adapter = RemoteAuthNAdapter(
+    base_url=AUTHN_BASE_URL,
+    timeout=AUTHN_TIMEOUT,
+    cache_ttl=AUTHN_CACHE_TTL,
+    cache_size=AUTHN_CACHE_SIZE,
+)
 
 api = AutoAPI(
     base=Base,
@@ -88,8 +101,8 @@ api = AutoAPI(
         RawBlob,
     },
     get_async_db=get_async_db,
+    authn=authn_adapter,
 )
-
 
 
 app.include_router(api.router)
