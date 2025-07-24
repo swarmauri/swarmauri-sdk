@@ -34,11 +34,12 @@ def build_gateway(api) -> APIRouter:
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
 
-        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
+        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"], dependencies=[api._authn_dep],)
         async def _gateway(
             req : Request,
             env : _RPCReq = Body(..., embed=False),
-            db  : Session  = Depends(api.get_db),
+            db  : Session  = Depends(api.get_db,
+                ),
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
 
