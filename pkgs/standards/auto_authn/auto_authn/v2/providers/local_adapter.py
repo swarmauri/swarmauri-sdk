@@ -21,7 +21,7 @@ from .fastapi_deps import get_principal  # returns {"sub": uid, "tid": tid}
 from .hooks import register_inject_hook  # injects tenant_id / owner_id
 
 
-class RemoteAuthNAdapter(AuthNProvider):
+class LocalAuthNAdapter(AuthNProvider):
     """
     Thin wrapper that plugs existing *auto_authn* functions into
     the abstract interface expected by AutoAPI.
@@ -55,4 +55,4 @@ class RemoteAuthNAdapter(AuthNProvider):
         register_inject_hook(api)
 
 
-__all__ = ["AuthNAdapter"]
+__all__ = ["LocalAuthNAdapter"]
