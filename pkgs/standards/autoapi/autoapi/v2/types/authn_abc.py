@@ -1,7 +1,8 @@
 # autoapi/v2/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from fastapi import Depends, Request
+from fastapi import Request
+
 
 class AuthNProvider(ABC):
     """
@@ -21,6 +22,7 @@ class AuthNProvider(ABC):
         Given an *AutoAPI* instance, register whatever hooks are required
         (e.g. tenant_id / owner_id injection).  Must be idempotent.
         """
+
 
 __all__ = ["AuthNProvider"]
 

@@ -1,17 +1,32 @@
 # mixins_generic.py ───── all mix-ins live here
 from uuid import uuid4, UUID
 import datetime as dt
+from .bootstrappable import Bootstrappable as Bootstrappable
 from ..types import (
-    Column, TZDateTime, Integer, String, ForeignKey, declarative_mixin, 
-    declared_attr, PgUUID, SAEnum, Numeric, Index, Mapped, 
-    mapped_column, JSONB, TSVECTOR, Boolean)
+    Column,
+    TZDateTime,
+    Integer,
+    String,
+    ForeignKey,
+    declarative_mixin,
+    declared_attr,
+    PgUUID,
+    SAEnum,
+    Numeric,
+    Index,
+    Mapped,
+    mapped_column,
+    JSONB,
+    TSVECTOR,
+    Boolean,
+)
 
-def tzutcnow() -> dt.datetime:       # default/on‑update factory
+
+def tzutcnow() -> dt.datetime:  # default/on‑update factory
     """Return an **aware** UTC `datetime`."""
     return dt.datetime.now(dt.timezone.utc)
 
 
-from .bootstrappable import Bootstrappable as Bootstrappable
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
@@ -135,7 +150,6 @@ class Created:
 @declarative_mixin
 class LastUsed:
     last_used_at = Column(TZDateTime, nullable=True)
-
 
     def touch(self) -> None:
         """Update `last_used_at` on successful authentication."""
