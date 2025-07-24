@@ -6,7 +6,7 @@ _Hook typing protocol, so nothing is missing.
 
 from enum import Enum, auto
 from collections import defaultdict
-from typing import Any, Dict, Protocol
+from typing import Any, Dict, Protocol, Union
 
 
 # ───────────────────────── public types ─────────────────────────
@@ -37,9 +37,16 @@ def _init_hooks(self) -> None:
         phase: Phase,
         fn: _Hook | None = None,
         *,
-        model: str | type | None = None,
+        model: Union[str, type, None] = None,
         op: str | None = None,
     ):
+        """
+        Hook decorator supporting model and op parameters:
+
+        Usage: @api.hook(Phase.POST_COMMIT, model="DeployKeys", op="create")
+        Usage: @api.hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
+        Usage: @api.hook(Phase.POST_COMMIT)  # catch-all hook
+        """
         def _reg(f: _Hook) -> _Hook:
             async_f = (
                 f
@@ -47,16 +54,28 @@ def _init_hooks(self) -> None:
                 else (lambda ctx, f=f: f(ctx))  # sync-to-async shim
             )
 
-            key: str | None
-            if model is None and op is None:
-                key = None
-            elif model is not None and op is not None:
-                name = model if isinstance(model, str) else model.__name__
-                key = f"{name}.{op}"
-            else:  # pragma: no cover - sanity guard
-                raise ValueError("model and op must be provided together")
+            # Determine the hook key based on parameters
+            hook_key = None
 
-            self._hook_registry[phase][key].append(async_f)
+            if model is not None and op is not None:
+                # Model + op parameters
+                if isinstance(model, str):
+                    model_name = model
+                else:
+                    # Handle object reference - get the class name
+                    model_name = (
+                        model.__name__ if hasattr(model, "__name__") else str(model)
+                    )
+                hook_key = f"{model_name}.{op}"
+            elif model is not None or op is not None:
+                # Error: both model and op must be provided together
+                raise ValueError(
+                    "Both 'model' and 'op' parameters must be provided together"
+                )
+            # If neither model nor op is provided, hook_key remains None (catch-all)
+
+            # Register the hook
+            self._hook_registry[phase][hook_key].append(async_f)
             return f
 
         return _reg if fn is None else _reg(fn)
