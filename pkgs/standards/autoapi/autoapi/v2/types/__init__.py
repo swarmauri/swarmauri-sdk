@@ -37,6 +37,7 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
+from .authn_abc import AuthNProvider
 
 
 
@@ -45,6 +46,7 @@ __all__: list[str] = [
     # local
     "_Op",
     "_SchemaVerb",
+    "AuthNProvider",
     # sqlalchemy core
     "Boolean",
     "Column",

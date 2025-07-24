@@ -52,8 +52,8 @@ class AutoAPI:
         get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
         authorize: Callable[[str, Any], bool] | None = None,
         prefix: str = "",
-        authn_dep: Optional[Any] = None,
-    ):
+        authorize=None,
+        authn: "AuthNProvider | None" = None):
         # lightweight state
         self.base = base
         self.include = include
@@ -82,8 +82,15 @@ class AutoAPI:
 
         # ---------- collect models, build routes, etc. -----------
 
-        # auth dependency (e.g. OAuth2PasswordBearer() or None)
-        self._authn_dep = authn_dep or Depends(lambda: None)
+        # ---------------- AuthN wiring -----------------
+        if authn is not None:                           # preferred path
+            self._authn = authn
+            self._authn_dep = Depends(authn.get_principal)
+            # Late‑binding of the injection hook
+            authn.register_inject_hook(self)
+        else:
+            self._authn = None
+            self._authn_dep = Depends(lambda: None)
 
         # initialise hook subsystem
         _init_hooks(self)
