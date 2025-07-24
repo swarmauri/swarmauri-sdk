@@ -9,7 +9,7 @@ Public façade for the AutoAPI framework.
 
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Optional, Type
+from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,8 +31,8 @@ from .tables._base import Base as Base
 from .types import (
     _Op,  # pure metadata
     _SchemaVerb,
+    AuthNProvider,
 )
-
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -81,7 +81,7 @@ class AutoAPI:
 
 
         # ---------- initialise hook subsystem ---------------------
-        
+
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
