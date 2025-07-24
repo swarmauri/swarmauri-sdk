@@ -32,7 +32,6 @@ from sqlalchemy.orm import (
     relationship,
     remote,
     column_property,
-    # synonym,
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -81,5 +80,4 @@ __all__: list[str] = [
     # sqlalchemy.ext.mutable
     "MutableDict",
     "MutableList",
-    # "synonym",
 ]
