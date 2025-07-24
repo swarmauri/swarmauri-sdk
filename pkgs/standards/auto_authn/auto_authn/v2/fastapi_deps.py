@@ -17,7 +17,8 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 
 from __future__ import annotations
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
+import contextvars
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .backends import (
@@ -30,8 +31,20 @@ from .typing import Principal
 from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
+
+
+# ---------------------------------------------------------------------
+# Backends + Coder
+# ---------------------------------------------------------------------
 _api_key_backend = ApiKeyBackend()
 _jwt_coder = JWTCoder(public_key, signing_key)
+
+# ---------------------------------------------------------------------
+# Public ContextVar – used by AutoAPI row filters
+# ---------------------------------------------------------------------
+principal_var: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
+    "principal", default=None
+)
 
 # ---------------------------------------------------------------------
 # FastAPI dependencies
@@ -56,6 +69,31 @@ async def _user_from_api_key(raw_key: str, db: AsyncSession) -> User | None:
         return await _api_key_backend.authenticate(db, raw_key)
     except AuthError:
         return None
+
+
+# ---------------------------------------------------------------------
+# NEW — AuthNProvider‑compatible helper
+# ---------------------------------------------------------------------
+async def get_principal(               # <-- AutoAPI calls this
+    request: Request,
+    authorization: str = Header("", alias="Authorization"),
+    api_key: str | None = Header(None, alias="x-api-key"),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    """
+    Return a lightweight principal dict that AutoAPI understands:
+        { "sub": "<user_id>", "tid": "<tenant_id>" }
+    Raises HTTP 401 on failure.
+    """
+    user = await get_current_principal(  # reuse the existing logic
+        authorization=authorization, api_key=api_key, db=db
+    )
+    principal = {"sub": str(user.id), "tid": str(user.tenant_id)}
+
+    # cache in both request.state and ContextVar
+    request.state.principal = principal
+    principal_var.set(principal)
+    return principal
 
 
 async def get_current_principal(  # type: ignore[override]
@@ -95,6 +133,8 @@ async def get_current_principal(  # type: ignore[override]
 # Public re-exports
 __all__ = [
     "get_current_principal",
+    "get_principal",         # <- NEW
+    "principal_var",         # <- used by row_filters
     "PasswordBackend",
     "ApiKeyBackend",
 ]
