@@ -12,6 +12,7 @@ This module is *thin* by design:  it performs only
 Everything else (hooks, commit/rollback, result packing)
 lives in autoapi.v2._runner._invoke.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
@@ -19,8 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from typing import Any, Dict
 
-from ._runner          import _invoke          # ← central lifecycle engine
-from .jsonrpc_models   import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
+from ._runner import _invoke  # ← central lifecycle engine
+from .jsonrpc_models import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -34,12 +35,18 @@ def build_gateway(api) -> APIRouter:
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
 
-        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"], dependencies=[api._authn_dep],)
+        @r.post(
+            "/rpc",
+            response_model=_RPCRes,
+            tags=["rpc"],
+            dependencies=[api._authn_dep],
+        )
         async def _gateway(
-            req : Request,
-            env : _RPCReq = Body(..., embed=False),
-            db  : Session  = Depends(api.get_db,
-                ),
+            req: Request,
+            env: _RPCReq = Body(..., embed=False),
+            db: Session = Depends(
+                api.get_db,
+            ),
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
 
@@ -48,9 +55,7 @@ def build_gateway(api) -> APIRouter:
                 return _err(403, "Forbidden", env)
 
             try:
-                result = await _invoke(api, env.method,
-                                       params=env.params,
-                                       ctx=ctx)
+                result = await _invoke(api, env.method, params=env.params, ctx=ctx)
                 return _ok(result, env)
 
             except HTTPException as exc:
@@ -69,9 +74,9 @@ def build_gateway(api) -> APIRouter:
 
         @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
         async def _gateway(
-            req : Request,
-            env : _RPCReq = Body(..., embed=False),
-            db  : AsyncSession = Depends(api.get_async_db),
+            req: Request,
+            env: _RPCReq = Body(..., embed=False),
+            db: AsyncSession = Depends(api.get_async_db),
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
 

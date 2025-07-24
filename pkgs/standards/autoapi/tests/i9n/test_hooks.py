@@ -7,11 +7,11 @@ from autoapi.v2 import Phase
 async def test_hooks_modify_request_and_response(api_client):
     client, api, _ = api_client
 
-    @api.hook(Phase.PRE_TX_BEGIN, method="Items.create")
+    @api.hook(Phase.PRE_TX_BEGIN, model="Items", op="create")
     async def upcase(ctx):
         ctx["env"].params["name"] = ctx["env"].params["name"].upper()
 
-    @api.hook(Phase.POST_RESPONSE, method="Items.create")
+    @api.hook(Phase.POST_RESPONSE, model="Items", op="create")
     async def enrich(ctx):
         ctx["response"].result["hooked"] = True
 
