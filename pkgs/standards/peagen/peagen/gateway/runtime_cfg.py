@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     pg_user: Optional[str] = Field(default=os.environ.get("PG_USER"))
     pg_pass: Optional[str] = Field(default=os.environ.get("PG_PASS"))
 
+
+    # ─────────────────────────── AuthN ──────────────────────────────────
+
+    AUTHN_BASE_URL = os.getenv("AUTHN_BASE_URL", "https://authn.peagen.com")  # e.g. http://authn:8080/
+    AUTHN_TIMEOUT    = float(os.getenv("AUTHN_TIMEOUT_SEC", 0.5))         # seconds
+    AUTHN_CACHE_TTL  = int(os.getenv("AUTHN_CACHE_TTL", 30))         # seconds
+    AUTHN_CACHE_SIZE = int(os.getenv("AUTHN_CACHE_SIZE", 5000))       # entries
+
     @property
     def pg_dsn(self) -> str:
         if self.pg_dsn_env:

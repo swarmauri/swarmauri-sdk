@@ -40,12 +40,7 @@ def root_dir() -> Path:
 GIT_SHADOW_BASE = os.getenv("PEAGEN_GIT_SHADOW_URL", "https://git.peagen.com")
 GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 
-# ─────────────────────────── AuthN ──────────────────────────────────
 
-AUTHN_BASE_URL = os.getenv("AUTHN_BASE_URL", "https://authn.peagen.com")  # e.g. http://authn:8080/
-AUTHN_TIMEOUT    = float(os.getenv("AUTHN_TIMEOUT_SEC", 0.5))         # seconds
-AUTHN_CACHE_TTL  = int(os.getenv("AUTHN_CACHE_TTL"), 30)         # seconds
-AUTHN_CACHE_SIZE = int(os.getenv("AUTHN_CACHE_SIZE"), 5000)       # entries
 # ───────────────────────── Default Resources ────────────────────────
 
 ## DEFAULT RESOURCES UUIDS
