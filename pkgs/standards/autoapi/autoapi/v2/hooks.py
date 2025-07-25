@@ -47,6 +47,7 @@ def _init_hooks(self) -> None:
         Usage: @api.hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
         Usage: @api.hook(Phase.POST_COMMIT)  # catch-all hook
         """
+
         def _reg(f: _Hook) -> _Hook:
             async_f = (
                 f
@@ -62,10 +63,11 @@ def _init_hooks(self) -> None:
                 if isinstance(model, str):
                     model_name = model
                 else:
-                    # Handle object reference - get the class name
-                    model_name = (
-                        model.__name__ if hasattr(model, "__name__") else str(model)
-                    )
+                    # Handle object reference - use table name and convert to canonical form
+                    # to match the method naming convention used by _canonical()
+                    table_name = getattr(model, "__tablename__", model.__name__.lower())
+                    # Convert table_name to canonical form (e.g., "items" -> "Items")
+                    model_name = "".join(w.title() for w in table_name.split("_"))
                 hook_key = f"{model_name}.{op}"
             elif model is not None or op is not None:
                 # Error: both model and op must be provided together

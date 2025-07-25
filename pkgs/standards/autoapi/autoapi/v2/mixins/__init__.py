@@ -1,62 +1,98 @@
 # mixins_generic.py ───── all mix-ins live here
 from uuid import uuid4, UUID
 import datetime as dt
+from .bootstrappable import Bootstrappable as Bootstrappable
 from ..types import (
-    Column, TZDateTime, Integer, String, ForeignKey, declarative_mixin, 
-    declared_attr, PgUUID, SAEnum, Numeric, Index, Mapped, 
-    mapped_column, JSONB, TSVECTOR, Boolean)
+    Column,
+    TZDateTime,
+    Integer,
+    String,
+    ForeignKey,
+    declarative_mixin,
+    declared_attr,
+    PgUUID,
+    SAEnum,
+    Numeric,
+    Index,
+    Mapped,
+    mapped_column,
+    JSONB,
+    TSVECTOR,
+    Boolean,
+)
 
-def tzutcnow() -> dt.datetime:       # default/on‑update factory
+
+def tzutcnow() -> dt.datetime:  # default/on‑update factory
     """Return an **aware** UTC `datetime`."""
     return dt.datetime.now(dt.timezone.utc)
 
 
-from .bootstrappable import Bootstrappable as Bootstrappable
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
+
 
 @declarative_mixin
 class GUIDPk:
     """Universal surrogate primary key."""
 
     id = Column(
-        PgUUID(as_uuid=True), primary_key=True, default=uuid4, 
+        PgUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
         info=dict(
-            autoapi={"default_factory":uuid4, "read_only":True, "examples": [uuid_example]}
-            )
-        )
+            autoapi={
+                "default_factory": uuid4,
+                "read_only": True,
+                "examples": [uuid_example],
+            }
+        ),
+    )
 
 
 # ────────── principals -----------------------------------------
 
+
 class TenantMixin:
-    tenant_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("tenants.id"), 
-        info=dict(
-            autoapi={
-                "examples": [uuid_example]
-                }
-            ),
-        )
+    tenant_id: Mapped[PgUUID] = mapped_column(
+        PgUUID,
+        ForeignKey("tenants.id"),
+        info=dict(autoapi={"examples": [uuid_example]}),
+    )
 
 
 @declarative_mixin
 class UserMixin:
     user_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
+        PgUUID(as_uuid=True),
+        ForeignKey("users.id"),
+        index=True,
+        nullable=False,
+        info=dict(autoapi={"examples": [uuid_example]}),
     )
+
 
 @declarative_mixin
 class OrgMixin:
     org_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("orgs.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
+        PgUUID(as_uuid=True),
+        ForeignKey("orgs.id"),
+        index=True,
+        nullable=False,
+        info=dict(autoapi={"examples": [uuid_example]}),
     )
+
 
 @declarative_mixin
 class Ownable:
     owner_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False, info=dict(autoapi={"examples": [uuid_example]}),
+        PgUUID(as_uuid=True),
+        ForeignKey("users.id"),
+        index=True,
+        nullable=False,
+        info=dict(autoapi={"examples": [uuid_example]}),
     )
+
 
 @declarative_mixin
 class Principal:  # concrete table marker
@@ -65,7 +101,11 @@ class Principal:  # concrete table marker
 
 # ────────── bounded scopes  ----------------------------------
 class OwnerBound:
-    owner_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("users.id"), info=dict(autoapi={"examples": [uuid_example]}),)
+    owner_id: Mapped[PgUUID] = mapped_column(
+        PgUUID,
+        ForeignKey("users.id"),
+        info=dict(autoapi={"examples": [uuid_example]}),
+    )
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -73,7 +113,11 @@ class OwnerBound:
 
 
 class UserBound:  # membership rows
-    user_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("users.id"), info=dict(autoapi={"examples": [uuid_example]}),)
+    user_id: Mapped[PgUUID] = mapped_column(
+        PgUUID,
+        ForeignKey("users.id"),
+        info=dict(autoapi={"examples": [uuid_example]}),
+    )
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -81,7 +125,11 @@ class UserBound:  # membership rows
 
 
 class TenantBound:
-    tenant_id: Mapped[PgUUID] = mapped_column(PgUUID, ForeignKey("tenants.id"), info=dict(autoapi={"examples": [uuid_example]}),)
+    tenant_id: Mapped[PgUUID] = mapped_column(
+        PgUUID,
+        ForeignKey("tenants.id"),
+        info=dict(autoapi={"examples": [uuid_example]}),
+    )
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
@@ -98,10 +146,10 @@ class Created:
         info=dict(no_create=True, no_update=True),
     )
 
+
 @declarative_mixin
 class LastUsed:
     last_used_at = Column(TZDateTime, nullable=True)
-
 
     def touch(self) -> None:
         """Update `last_used_at` on successful authentication."""
@@ -124,9 +172,11 @@ class Timestamped:
         info=dict(no_create=True, no_update=True),
     )
 
+
 @declarative_mixin
 class ActiveToggle:
     is_active = Column(Boolean, default=True)
+
 
 @declarative_mixin
 class SoftDelete:

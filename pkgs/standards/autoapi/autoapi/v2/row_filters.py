@@ -15,7 +15,9 @@ class MemberBound:
         raise NotImplementedError
 
 
-def _apply_row_filters(model, q: Query, ctx: Any, *, strategy: str = "intersection") -> Query:
+def _apply_row_filters(
+    model, q: Query, ctx: Any, *, strategy: str = "intersection"
+) -> Query:
     """Return *q* filtered by every mix-in the model inherits.
 
     strategy = "intersection"  → AND all predicates

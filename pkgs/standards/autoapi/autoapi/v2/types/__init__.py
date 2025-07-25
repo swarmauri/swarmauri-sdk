@@ -21,7 +21,7 @@ from sqlalchemy.dialects.postgresql import (
     ENUM as PgEnum,
     JSONB,
     UUID as PgUUID,
-    TSVECTOR
+    TSVECTOR,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -35,13 +35,13 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
+
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
 
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
-
 
 # ── public re-exports ─────────────────────────────────────────────────────
 __all__: list[str] = [

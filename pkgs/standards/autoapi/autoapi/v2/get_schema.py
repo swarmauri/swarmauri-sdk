@@ -21,7 +21,7 @@ def get_autoapi_schema(
 
     # -- define the four core variants ---------------------------------
     def _schema(verb: str):
-        return AutoAPI._schema(AutoAPI, orm_cls, verb=verb)
+        return AutoAPI._schema(orm_cls, verb=verb)
 
     SRead = _schema("read")
     SCreate = _schema("create")

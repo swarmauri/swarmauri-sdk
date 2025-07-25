@@ -34,6 +34,7 @@ from .types import (
     AuthNProvider,
 )
 
+
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""
@@ -52,7 +53,8 @@ class AutoAPI:
         get_async_db: Callable[..., AsyncIterator[AsyncSession]] | None = None,
         prefix: str = "",
         authorize=None,
-        authn: "AuthNProvider | None" = None):
+        authn: "AuthNProvider | None" = None,
+    ):
         # lightweight state
         self.base = base
         self.include = include
@@ -79,16 +81,14 @@ class AutoAPI:
         # Store DDL creation for later execution
         self._ddl_executed = False
 
-
         # ---------- initialise hook subsystem ---------------------
 
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
 
-
         # ---------------- AuthN wiring -----------------
-        if authn is not None:                           # preferred path
+        if authn is not None:  # preferred path
             self._authn = authn
             self._authn_dep = Depends(authn.get_principal)
             # Late‑binding of the injection hook
@@ -96,8 +96,6 @@ class AutoAPI:
         else:
             self._authn = None
             self._authn_dep = Depends(lambda: None)
-
-
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
@@ -155,6 +153,7 @@ class AutoAPI:
         from .get_schema import get_autoapi_schema
 
         return get_autoapi_schema(orm_cls, tag)
+
 
 # keep __all__ tidy for `from autoapi import *` users
 __all__ = [
