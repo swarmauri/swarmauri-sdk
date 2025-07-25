@@ -106,7 +106,8 @@ class CRUDMixin:
             The response data, optionally validated through out_schema
         """
         url = self._build_url(path)
-        response = self._get_client().get(url, params=params)
+        headers = getattr(self, "_headers", {})
+        response = self._get_client().get(url, params=params, headers=headers)
         return self._process_response(response, out_schema)
 
     # ─────────── POST methods ───────────────────────────────────────── #
@@ -148,9 +149,9 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
-        response = self._get_client().post(
-            url, json=json_data, headers={"Content-Type": "application/json"}
-        )
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
+        response = self._get_client().post(url, json=json_data, headers=headers)
         return self._process_response(response, out_schema)
 
     # ─────────── PUT methods ────────────────────────────────────────── #
@@ -192,9 +193,9 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
-        response = self._get_client().put(
-            url, json=json_data, headers={"Content-Type": "application/json"}
-        )
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
+        response = self._get_client().put(url, json=json_data, headers=headers)
         return self._process_response(response, out_schema)
 
     # ─────────── PATCH methods ──────────────────────────────────────── #
@@ -236,9 +237,9 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
-        response = self._get_client().patch(
-            url, json=json_data, headers={"Content-Type": "application/json"}
-        )
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
+        response = self._get_client().patch(url, json=json_data, headers=headers)
         return self._process_response(response, out_schema)
 
     # ─────────── DELETE methods ─────────────────────────────────────── #
@@ -275,7 +276,8 @@ class CRUDMixin:
             The response data, optionally validated through out_schema
         """
         url = self._build_url(path)
-        response = self._get_client().delete(url)
+        headers = getattr(self, "_headers", {})
+        response = self._get_client().delete(url, headers=headers)
         return self._process_response(response, out_schema)
 
     # ─────────── Async GET methods ──────────────────────────────────── #
@@ -316,7 +318,10 @@ class CRUDMixin:
             The response data, optionally validated through out_schema
         """
         url = self._build_url(path)
-        response = await self._get_async_client().get(url, params=params)
+        headers = getattr(self, "_headers", {})
+        response = await self._get_async_client().get(
+            url, params=params, headers=headers
+        )
         return self._process_response(response, out_schema)
 
     # ─────────── Async POST methods ─────────────────────────────────── #
@@ -358,8 +363,10 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
         response = await self._get_async_client().post(
-            url, json=json_data, headers={"Content-Type": "application/json"}
+            url, json=json_data, headers=headers
         )
         return self._process_response(response, out_schema)
 
@@ -402,8 +409,10 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
         response = await self._get_async_client().put(
-            url, json=json_data, headers={"Content-Type": "application/json"}
+            url, json=json_data, headers=headers
         )
         return self._process_response(response, out_schema)
 
@@ -446,8 +455,10 @@ class CRUDMixin:
         """
         url = self._build_url(path)
         json_data = self._prepare_data(data)
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
         response = await self._get_async_client().patch(
-            url, json=json_data, headers={"Content-Type": "application/json"}
+            url, json=json_data, headers=headers
         )
         return self._process_response(response, out_schema)
 
@@ -485,5 +496,6 @@ class CRUDMixin:
             The response data, optionally validated through out_schema
         """
         url = self._build_url(path)
-        response = await self._get_async_client().delete(url)
+        headers = getattr(self, "_headers", {})
+        response = await self._get_async_client().delete(url, headers=headers)
         return self._process_response(response, out_schema)
