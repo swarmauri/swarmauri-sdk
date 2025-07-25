@@ -32,6 +32,7 @@ from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..typing import StrUUID
+from autoapi.v2.errors import IntegrityError
 
 router = APIRouter()
 
@@ -47,7 +48,7 @@ _password = constr(min_length=8, max_length=256)
 
 
 class RegisterIn(BaseModel):
-    tenant_name: constr(strip_whitespace=True, min_length=3, max_length=120)
+    tenant_slug: constr(strip_whitespace=True, min_length=3, max_length=120)
     username: _username
     email: EmailStr
     password: _password
@@ -80,30 +81,43 @@ class IntrospectOut(BaseModel):
 # ============================================================================
 #  Endpoint implementations
 # ============================================================================
-@router.post("/register", response_model=TokenPair, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=TokenPair,
+             status_code=status.HTTP_201_CREATED,
+             responses={
+                 400: {"description": "invalid params"},
+                 404: {"description": "tenant not found"},
+                 409: {"description": "duplicate key"},
+                 500: {"description": "database error"},
+             })
 async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
-    # 1. create tenant
-    print("here")
-    tenant = Tenant(
-        name=body.tenant_name, slug=body.tenant_name.lower().replace(" ", "-")
-    )
-    db.add(tenant)
-    await db.flush()  # tenant.id available
-    print("here")
-    # 2. create user
-    user = User(
-        tenant_id=tenant.id,
-        username=body.username,
-        email=body.email,
-        password_hash=hash_pw(body.password),
-    )
-    db.add(user)
-    print("here")
-    await db.commit()
-    print("here")
-    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(tenant.id), scopes=[])
-    print("now")
+    try:
+        # 1. look up pre-existing tenant
+        tenant = await db.scalar(
+            select(Tenant).where(Tenant.slug == body.tenant_slug).limit(1)
+        )
+        if tenant is None:
+            # 404 → JSON-RPC -32601 (“method / object not found”)
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
+
+        # 2. create user
+        user = User(tenant_id=tenant.id,
+                    username=body.username,
+                    email=body.email,
+                    password_hash=hash_pw(body.password))
+        db.add(user)
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT,
+                            "duplicate key") from exc
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            "database error") from exc
+
+    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(tenant.id))
     return TokenPair(access_token=access, refresh_token=refresh)
+
 
 
 @router.post("/login", response_model=TokenPair)
@@ -112,7 +126,7 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     try:
         user = await _pwd_backend.authenticate(db, body.identifier, body.password)
     except AuthError as exc:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, exc.reason)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
 
     access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
     return TokenPair(access_token=access, refresh_token=refresh)
