@@ -32,7 +32,7 @@ from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..typing import StrUUID
-from autoapi.v2.errors import IntegrityError
+from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
 
