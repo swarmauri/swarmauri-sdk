@@ -33,7 +33,7 @@ from .types import (
     _SchemaVerb,
     AuthNProvider,
 )
-from .schema import _SchemaNS
+from .schema import _SchemaNS, get_autoapi_schema as get_schema
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -160,7 +160,6 @@ class AutoAPI:
 
     @classmethod
     def get_schema(cls, orm_cls: type, op: _SchemaVerb):
-        from .schema import get_autoapi_schema
 
         return get_autoapi_schema(orm_cls, op)
 
@@ -171,4 +170,5 @@ __all__ = [
     "Phase",
     "_Hook",
     "Base",
+    "get_schema",
 ]
