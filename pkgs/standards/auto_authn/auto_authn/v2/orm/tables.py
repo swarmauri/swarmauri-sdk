@@ -22,8 +22,16 @@ import re
 import uuid
 from typing import Annotated, Final
 
+from autoapi.v2 import Base
 from autoapi.v2.types import (
-    String, LargeBinary, relationship, mapped_column, Column, hybrid_property,
+    String,
+    LargeBinary,
+    relationship,
+    mapped_column,
+    Column,
+    hybrid_property,
+    PgUUID,
+    ForeignKey,
 )
 from autoapi.v2.tables import (
     Tenant,
@@ -31,10 +39,21 @@ from autoapi.v2.tables import (
     User as UserBase,
     ApiKey as ApiKeyBase,
 )
+from autoapi.v2.mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    Principal,
+    ActiveToggle,
+    Created,
+    LastUsed,
+    ValidityWindow,
+)
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
 from hashlib import blake2b
 from secrets import token_urlsafe
+
 # ────────────────────────────────────────────────────────────────────
 # Utility type alias for 36-char UUID strings
 _UUID = Annotated[str, mapped_column(String(36), default=lambda: str(uuid.uuid4()))]
@@ -73,7 +92,8 @@ class Client(ClientBase):  # Tenant FK via mix-in
 # --------------------------------------------------------------------
 class User(UserBase):
     """Human principal with authentication credentials."""
-    __table_args__ = {"extend_existing":True}
+
+    __table_args__ = {"extend_existing": True}
     email = Column(String(120), unique=True)
     password_hash = Column(LargeBinary(60))
     api_keys = relationship(
@@ -81,6 +101,7 @@ class User(UserBase):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
     # ----------------------------------------------------------------
     @classmethod
     def new(cls, tenant_id: uuid.UUID, username: str, email: str, password: str):
@@ -95,11 +116,25 @@ class User(UserBase):
 
         return verify_pw(plain, self.password_hash)
 
+
+class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
+    """Machine principal representing an automated service."""
+
+    __tablename__ = "services"
+
+    name = Column(String(120), unique=True, nullable=False)
+    api_keys = relationship(
+        "auto_authn.v2.orm.tables.ServiceKey",
+        back_populates="service",
+        cascade="all, delete-orphan",
+    )
+
+
 class ApiKey(ApiKeyBase):
     user = relationship(
         "auto_authn.v2.orm.tables.User",
         back_populates="api_keys",
-        lazy="joined",          # optional: eager load to avoid N+1
+        lazy="joined",  # optional: eager load to avoid N+1
     )
 
     @hybrid_property
@@ -118,16 +153,78 @@ class ApiKey(ApiKeyBase):
     # attach ColumnInfo so AutoAPI knows to expose it
     raw_key.default = token_urlsafe(8)
     raw_key.nullable = True
-    raw_key.oncreate= token_urlsafe(8)
-    raw_key.onupdate= token_urlsafe(8)
+    raw_key.oncreate = token_urlsafe(8)
+    raw_key.onupdate = token_urlsafe(8)
     raw_key.info = {
         "autoapi": {
-            "hybrid":   True,    # ← opt-in
+            "hybrid": True,  # ← opt-in
             "write_only": True,  # hide on READ/LIST
             "py_type": str,
             "default_factory": token_urlsafe(8),
-            "examples":  [token_urlsafe(8)],   # Swagger placeholder
+            "examples": [token_urlsafe(8)],  # Swagger placeholder
         }
     }
 
-__all__ = ["ApiKey", "User", "Tenant", "Client"]
+
+class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow):
+    """API key bound to a service principal."""
+
+    __tablename__ = "service_keys"
+
+    service_id = Column(
+        PgUUID(as_uuid=True), ForeignKey("services.id"), index=True, nullable=False
+    )
+    label = Column(String(120), nullable=False)
+    digest = Column(
+        String(64),
+        nullable=False,
+        unique=True,
+        info={
+            "autoapi": {
+                "disable_on": ["create", "update", "replace"],
+                "read_only": True,
+            }
+        },
+    )
+
+    service = relationship(
+        "auto_authn.v2.orm.tables.Service",
+        back_populates="api_keys",
+        lazy="joined",
+    )
+
+    @hybrid_property
+    def raw_key(self) -> str:
+        raise AttributeError("raw_key is write-only")
+
+    @raw_key.setter
+    def raw_key(self, value: str) -> None:
+        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
+
+    @staticmethod
+    def digest_of(value: str) -> str:
+        return blake2b(value.encode(), digest_size=32).hexdigest()
+
+    raw_key.default = token_urlsafe(8)
+    raw_key.nullable = True
+    raw_key.oncreate = token_urlsafe(8)
+    raw_key.onupdate = token_urlsafe(8)
+    raw_key.info = {
+        "autoapi": {
+            "hybrid": True,
+            "write_only": True,
+            "py_type": str,
+            "default_factory": token_urlsafe(8),
+            "examples": [token_urlsafe(8)],
+        }
+    }
+
+
+__all__ = [
+    "ApiKey",
+    "ServiceKey",
+    "User",
+    "Service",
+    "Tenant",
+    "Client",
+]

@@ -28,6 +28,8 @@ from auto_authn.v2.orm.tables import (
     User,
     Client,
     ApiKey,
+    Service,
+    ServiceKey,
 )
 from ..db import get_async_db  # same module as before
 
@@ -36,7 +38,7 @@ from ..db import get_async_db  # same module as before
 # ----------------------------------------------------------------------
 crud_api = AutoAPI(
     base=Base,
-    include={Tenant, User, Client, ApiKey},
+    include={Tenant, User, Client, ApiKey, Service, ServiceKey},
     get_async_db=get_async_db,
 )
 
