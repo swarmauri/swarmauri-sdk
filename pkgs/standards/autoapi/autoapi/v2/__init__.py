@@ -33,7 +33,7 @@ from .types import (
     _SchemaVerb,
     AuthNProvider,
 )
-
+from .schema import _SchemaNS
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -62,7 +62,16 @@ class AutoAPI:
         self.router = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
-        self._method_ids: OrderedDict[str, None] = OrderedDict()
+        # maps "UserCreate" → <callable>; populated lazily by routes_builder
+        self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
+        self._schemas:     OrderedDict[str, Type["BaseModel"]]   = OrderedDict()
+
+        # attribute-style access, e.g.  api.methods.UserCreate(...)
+        from types import SimpleNamespace
+        self.methods: SimpleNamespace = SimpleNamespace()
+
+        # public Schemas namespace
+        self.schemas: _SchemaNS = _SchemaNS(self)
 
         # ---------- choose providers -----------------------------
         if (get_db is None) and (get_async_db is None):
@@ -140,7 +149,8 @@ class AutoAPI:
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
-    schema = _schema = _schema
+    # schema = staticmethod(_schema)   # <- prevents self-binding
+    _schema = _schema                # keep the private alias if you still need it
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc
@@ -148,11 +158,11 @@ class AutoAPI:
     _nested_prefix = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
-    @staticmethod
-    def get_schema(orm_cls: type, tag: _SchemaVerb):
-        from .get_schema import get_autoapi_schema
+    @classmethod
+    def get_schema(cls, orm_cls: type, op: _SchemaVerb):
+        from .schema import get_autoapi_schema
 
-        return get_autoapi_schema(orm_cls, tag)
+        return get_autoapi_schema(orm_cls, op)
 
 
 # keep __all__ tidy for `from autoapi import *` users

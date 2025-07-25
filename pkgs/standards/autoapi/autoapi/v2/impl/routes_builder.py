@@ -52,9 +52,8 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
 
 
 def _canonical(table: str, verb: str) -> str:
-    """Generate canonical method name from table and verb."""
-    return f"{''.join(w.title() for w in table.split('_'))}.{verb}"
-
+    cls_name = ''.join(w.title() for w in table.rstrip('s').split('_'))
+    return f"{cls_name}.{verb}"
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
@@ -289,9 +288,48 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 dependencies=[self._authn_dep, _guard(m_id)],
             )
 
+        # ─── register on parent API (makes it available under api.schemas.*) ──
+        for s in (In, Out):
+            if s is None:           # ← skip empty side of the IO pair
+                continue
+            name = s.__name__
+            if name not in self._schemas:
+                self._schemas[name] = s
+                setattr(self.schemas, name, s)
         # JSON-RPC shim
-        self.rpc[m_id] = _wrap_rpc(core, In or dict, Out, pk, model)
-        self._method_ids.setdefault(m_id, None)
+        rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
+        self.rpc[m_id] = rpc_fn
+
+        # ── in-process convenience wrapper ────────────────────────────────
+        camel = f"{model.__name__}{''.join(w.title() for w in verb.split('_'))}"
+
+        def _runner(payload, *, db=None, _method=m_id, _api=self):
+            """
+            Synchronous helper so you can write
+                api.methods.UserCreate(SUserCreate(...))
+            without having to open a DB session by hand.
+            """
+            if db is None:                        # auto-open sync session
+                if _api.get_db is None:
+                    raise TypeError(
+                        "Supply a Session via db=... "
+                        "or register get_db when constructing AutoAPI()"
+                    )
+                gen = _api.get_db()
+                db = next(gen)
+                try:
+                    return _api.rpc[_method](payload, db)
+                finally:
+                    try:
+                        next(gen)                 # finish generator → close
+                    except StopIteration:
+                        pass
+            else:                                 # caller supplied session
+                return _api.rpc[_method](payload, db)
+
+        # register under ._method_ids  and  .methods.<CamelName>
+        self._method_ids[camel] = _runner
+        setattr(self.methods, camel, _runner)
 
     # include routers
     self.router.include_router(flat_router)

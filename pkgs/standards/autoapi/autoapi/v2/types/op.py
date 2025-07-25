@@ -6,8 +6,11 @@ Pure structural helpers (no FastAPI / DB imports).
 from typing import Any, Callable, NamedTuple, Type, Literal, TypeAlias
 
 _SchemaVerb: TypeAlias = Literal[
-    "create", "read", "update", "delete", "list"
-]  # ❓ Should we add clear here?
+    "create", "read", "update", "delete", "list", "clear",
+]  
+
+# need to add clear
+# need to add support for bulk create, update, delete
 
 
 class _Op(NamedTuple):

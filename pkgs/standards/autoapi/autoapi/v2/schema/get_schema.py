@@ -2,14 +2,11 @@
 from functools import lru_cache
 from typing import Literal, TypeAlias, Any
 from pydantic import BaseModel, Field, create_model, ConfigDict
-
-_SchemaTag: TypeAlias = Literal["create", "read", "update", "delete", "list"]
-
-
+from autoapi.v2.types import _SchemaVerb
 @lru_cache(maxsize=None)
 def get_autoapi_schema(
     orm_cls: type,
-    tag: _SchemaTag,
+    op: _SchemaVerb,
 ) -> type[BaseModel]:
     """
     >>> SCreate = get_autoapi_schema(User, "create")
@@ -17,7 +14,7 @@ def get_autoapi_schema(
     The return value is *exactly* the model class AutoAPI generates
     internally, so you can use it for type-hints or client generation.
     """
-    from . import AutoAPI
+    from .. import AutoAPI
 
     # -- define the four core variants ---------------------------------
     def _schema(verb: str):
@@ -40,11 +37,13 @@ def get_autoapi_schema(
 
     SListIn = _make_list()
 
-    mapping: dict[_SchemaTag, type[BaseModel]] = {
+    mapping: dict[_SchemaVerb, type[BaseModel]] = {
         "create": SCreate,
         "read": SRead,
         "update": SUpdate,
         "delete": SDelete,
-        "list": SListIn,
+        "list": SListIn, 
+        # need to add clear
+        # need to add support for bulk create, update, delete
     }
-    return mapping[tag]
+    return mapping[op]
