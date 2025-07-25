@@ -42,7 +42,13 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
         result = await client.apost("/users", data={"name": "Jane"})
     """
 
-    def __init__(self, endpoint: str, *, client: httpx.Client | None = None):
+    def __init__(
+        self,
+        endpoint: str,
+        *,
+        client: httpx.Client | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         """
         Initialize the AutoAPIClient.
 
@@ -53,6 +59,7 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
         self._endpoint = endpoint
         self._own = client is None  # whether we manage its lifecycle
         self._client = client or httpx.Client(timeout=10.0)
+        self._headers = headers or {}
 
         # Create async client for async operations
         self._async_client = httpx.AsyncClient(timeout=10.0)
