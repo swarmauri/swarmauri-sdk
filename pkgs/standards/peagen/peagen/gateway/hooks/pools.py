@@ -19,14 +19,14 @@ PoolRead = AutoAPI.get_schema(Pool, "read")
 
 
 # ─────────────────────────── CRUD hooks ────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, model="Pools", op="create")
+@api.hook(Phase.PRE_TX_BEGIN, model="Pool", op="create")
 async def pre_pool_create(ctx: Dict[str, Any]) -> None:
     """Stash the pool name so the post-hook can use it."""
     log.info("entering pre_pool_create")
     ctx["pool_name"] = ctx["env"].params.name
 
 
-@api.hook(Phase.POST_COMMIT, model="Pools", op="create")
+@api.hook(Phase.POST_COMMIT, model="Pool", op="create")
 async def post_pool_create(ctx: Dict[str, Any]) -> None:
     """Register the new pool in Redis and shape the response."""
     log.info("entering post_pool_create")

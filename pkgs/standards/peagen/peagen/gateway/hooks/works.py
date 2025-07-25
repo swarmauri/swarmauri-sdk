@@ -27,8 +27,8 @@ WorkUpdate = AutoAPI.get_schema(Work, "update")
 TaskRead = AutoAPI.get_schema(Task, "read")
 
 
-# ─────────────────── POST-COMMIT hook for Works.update ─────────────────
-@api.hook(Phase.POST_COMMIT, model="Works", op="update")
+# ─────────────────── POST-COMMIT hook for Work.update ─────────────────
+@api.hook(Phase.POST_COMMIT, model="Work", op="update")
 async def post_work_update(ctx: Dict[str, Any]) -> None:
     """
     When a Work row becomes terminal, update the cached Task and fan-out.

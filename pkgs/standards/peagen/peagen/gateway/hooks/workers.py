@@ -3,9 +3,9 @@ gateway.api.hooks.workers
 ─────────────────────────
 AutoAPI-native hooks for Worker CRUD.
 
-• Workers.create   – pool registration & handler discovery
-• Workers.update   – heartbeat (keep-alive) + mutable fields
-• Workers.list     – DB result replaced with live-only snapshot
+• Worker.create   – pool registration & handler discovery
+• Worker.update   – heartbeat (keep-alive) + mutable fields
+• Worker.list     – DB result replaced with live-only snapshot
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from peagen.gateway._publish import _publish_event
 WorkerCreate = AutoAPI.get_schema(Worker, "create")
 WorkerRead = AutoAPI.get_schema(Worker, "read")
 WorkerUpdate = AutoAPI.get_schema(Worker, "update")
-WorkersListQ = AutoAPI.get_schema(Worker, "list")  # query model
+WorkerListQ = AutoAPI.get_schema(Worker, "list")  # query model
 
 
 def _as_redis_hash(model: BaseModel) -> Mapping[str, str]:
@@ -48,7 +48,7 @@ def _as_redis_hash(model: BaseModel) -> Mapping[str, str]:
 
 
 # ─────────────────── 1. WORKERS.CREATE hooks ───────────────────────────
-@api.hook(Phase.POST_RESPONSE, model="Workers", op="create")
+@api.hook(Phase.POST_RESPONSE, model="Worker", op="create")
 async def post_worker_create_cache_pool(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create_cache_pool")
 
@@ -62,7 +62,7 @@ async def post_worker_create_cache_pool(ctx: Dict[str, Any]) -> None:
         log.error(f"failure to add member to pool queue. err: {exc}")
 
 
-@api.hook(Phase.POST_RESPONSE, model="Workers", op="create")
+@api.hook(Phase.POST_RESPONSE, model="Worker", op="create")
 async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_create_cache_worker")
 
@@ -79,13 +79,13 @@ async def post_worker_create_cache_worker(ctx: Dict[str, Any]) -> None:
         log.error(f"failure to add worker. err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.create", created)
+        await _publish_event(queue, "Worker.create", created)
     except Exception as exc:
-        log.error(f"failure to _publish_event for: `Workers.create` err: {exc}")
+        log.error(f"failure to _publish_event for: `Worker.create` err: {exc}")
 
 
 # ─────────────────── 2. WORKERS.UPDATE hooks – heartbeat ───────────────
-@api.hook(Phase.PRE_TX_BEGIN, model="Workers", op="update")
+@api.hook(Phase.PRE_TX_BEGIN, model="Worker", op="update")
 async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_worker_update")
 
@@ -101,7 +101,7 @@ async def pre_worker_update(ctx: Dict[str, Any]) -> None:
     ctx["worker_id"] = worker_id
 
 
-@api.hook(Phase.POST_RESPONSE, model="Workers", op="update")
+@api.hook(Phase.POST_RESPONSE, model="Worker", op="update")
 async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_update_cache_pool")
 
@@ -121,7 +121,7 @@ async def post_worker_update_cache_pool(ctx: Dict[str, Any]) -> None:
         )
 
 
-@api.hook(Phase.POST_RESPONSE, model="Workers", op="update")
+@api.hook(Phase.POST_RESPONSE, model="Worker", op="update")
 async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
     log.info("entering post_worker_update_cache_worker")
     try:
@@ -142,13 +142,13 @@ async def post_worker_update_cache_worker(ctx: Dict[str, Any]) -> None:
         log.info(f"cached failed for worker: `{worker_id}` err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.update", updated)
+        await _publish_event(queue, "Worker.update", updated)
     except Exception as exc:
-        log.error(f"failure to _publish_event for: `Workers.update` err: {exc}")
+        log.error(f"failure to _publish_event for: `Worker.update` err: {exc}")
 
 
 # ─────────────────── 3. WORKERS.LIST post-hook ─────────────────────────
-@api.hook(Phase.POST_HANDLER, model="Workers", op="list")
+@api.hook(Phase.POST_HANDLER, model="Worker", op="list")
 async def post_workers_list(ctx: Dict[str, Any]) -> None:
     """Replace DB snapshot with live-only snapshot if Redis has fresher info."""
     # For brevity this stays empty; implement when real-time pool state is required.
@@ -156,7 +156,7 @@ async def post_workers_list(ctx: Dict[str, Any]) -> None:
     pass
 
 
-@api.hook(Phase.POST_HANDLER, model="Workers", op="delete")
+@api.hook(Phase.POST_HANDLER, model="Worker", op="delete")
 async def post_workers_delete(ctx: Dict[str, Any]) -> None:
     """Expire the worker's registry entry immediately."""
     try:
@@ -169,6 +169,6 @@ async def post_workers_delete(ctx: Dict[str, Any]) -> None:
         log.info(f"worker expiration op failed: `{worker_id} `err: {exc}")
 
     try:
-        await _publish_event(queue, "Workers.delete", {"id": worker_id})
+        await _publish_event(queue, "Worker.delete", {"id": worker_id})
     except Exception as exc:
-        log.info(f"failure to _publish_event for: `Workers.delete` err: {exc}")
+        log.info(f"failure to _publish_event for: `Worker.delete` err: {exc}")

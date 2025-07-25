@@ -32,7 +32,7 @@ TaskUpdate = AutoAPI.get_schema(Task, "update")
 
 
 # ─────────────────────────── CREATE hooks ─────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, model="Tasks", op="create")
+@api.hook(Phase.PRE_TX_BEGIN, model="Task", op="create")
 async def pre_task_create(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_task_create")
 
@@ -82,7 +82,7 @@ async def pre_task_create(ctx: Dict[str, Any]) -> None:
     ctx["task_in"] = tc  # cache possibly-mutated model
 
 
-@api.hook(Phase.POST_COMMIT, model="Tasks", op="create")
+@api.hook(Phase.POST_COMMIT, model="Task", op="create")
 async def post_task_create(ctx: Dict[str, Any]) -> None:
     log.info("entering post_task_create")
 
@@ -105,7 +105,7 @@ async def post_task_create(ctx: Dict[str, Any]) -> None:
 
 
 # ─────────────────────────── UPDATE hooks ─────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, model="Tasks", op="update")
+@api.hook(Phase.PRE_TX_BEGIN, model="Task", op="update")
 async def pre_task_update(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_task_update")
 
@@ -119,7 +119,7 @@ async def pre_task_update(ctx: Dict[str, Any]) -> None:
     ctx["changes"] = upd.model_dump(exclude_unset=True)
 
 
-@api.hook(Phase.POST_COMMIT, model="Tasks", op="update")
+@api.hook(Phase.POST_COMMIT, model="Task", op="update")
 async def post_task_update(ctx: Dict[str, Any]) -> None:
     log.info("entering post_task_update")
 
@@ -139,7 +139,7 @@ async def post_task_update(ctx: Dict[str, Any]) -> None:
 
 
 # ─────────────────────────── READ hooks ───────────────────────────────
-@api.hook(Phase.PRE_TX_BEGIN, model="Tasks", op="read")
+@api.hook(Phase.PRE_TX_BEGIN, model="Task", op="read")
 async def pre_task_read(ctx: Dict[str, Any]) -> None:
     log.info("entering pre_task_read")
 
@@ -150,7 +150,7 @@ async def pre_task_read(ctx: Dict[str, Any]) -> None:
         ctx["skip_db"] = True
 
 
-@api.hook(Phase.POST_HANDLER, model="Tasks", op="read")
+@api.hook(Phase.POST_HANDLER, model="Task", op="read")
 async def post_task_read(ctx: Dict[str, Any]) -> None:
     log.info("entering post_task_read")
 
