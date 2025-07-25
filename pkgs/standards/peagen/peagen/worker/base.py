@@ -13,6 +13,7 @@ from fastapi import Body, FastAPI, HTTPException
 from swarmauri_standard.loggers.Logger import Logger
 from peagen.transport import RPCDispatcher
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
+
 # ─── AutoAPI & client ────────────────────────────────────────────────
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
@@ -57,6 +58,7 @@ class WorkerBase:
         port: int | None = None,
         worker_id: str | None = None,
         log_level: str | None = None,
+        api_key: str | None = None,
         heartbeat_interval: float = 5.0,
     ) -> None:
         # ----- env / defaults --------------------------------------
@@ -66,6 +68,7 @@ class WorkerBase:
         self.port = port or int(os.getenv("PORT", 8001))
         self.host = host or os.getenv("DQ_HOST") or _local_ip()
         self.listen_at = f"http://{self.host}:{self.port}/rpc"
+        self._api_key = api_key or os.getenv("DQ_API_KEY")
 
         lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
         level = getattr(logging, lvl, logging.INFO)
@@ -74,7 +77,8 @@ class WorkerBase:
         # ----- runtime objects -------------------------------------
         self.app = FastAPI(title="Peagen Worker")
         self._handlers: Dict[str, Callable[[Dict], Awaitable[Dict]]] = {}
-        self._client = AutoAPIClient(self.gateway)
+        headers = {"x-api-key": self._api_key} if self._api_key else None
+        self._client = AutoAPIClient(self.gateway, headers=headers)
         self._http = httpx.AsyncClient(timeout=10.0)
         self._hb_task: asyncio.Task | None = None
         self._hb_every = heartbeat_interval

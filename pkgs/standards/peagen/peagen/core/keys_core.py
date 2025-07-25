@@ -17,7 +17,10 @@ from pathlib import Path
 import httpx
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
-from peagen._utils.config_loader import resolve_cfg
+from peagen._utils.config_loader import (
+    load_peagen_toml,
+    resolve_cfg,
+)
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import DeployKey
 from peagen.plugins import PluginManager
@@ -119,3 +122,12 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> list[dict]:
             out_schema=list[SRead],  # type: ignore[arg-type]
         )
     return [k.model_dump() for k in res]
+
+
+__all__ = [
+    "create_keypair",
+    "upload_public_key",
+    "remove_public_key",
+    "fetch_server_keys",
+    "load_peagen_toml",
+]

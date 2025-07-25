@@ -28,7 +28,8 @@ from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .crypto import verify_pw
-from .orm.tables import ApiKey, User
+from .orm.tables import ApiKey, ServiceKey, User
+from .typing import Principal
 
 
 class AuthError(Exception):
@@ -85,11 +86,28 @@ class ApiKeyBackend:
             or_(ApiKey.valid_to.is_(None), ApiKey.valid_to > now),
         )
 
-    async def authenticate(self, db: AsyncSession, api_key: str) -> User:
+    async def _get_service_key_stmt(self, digest: str) -> Select[tuple[ServiceKey]]:
+        now = datetime.now(timezone.utc)
+        return select(ServiceKey).where(
+            ServiceKey.digest == digest,
+            or_(ServiceKey.valid_to.is_(None), ServiceKey.valid_to > now),
+        )
+
+    async def authenticate(self, db: AsyncSession, api_key: str) -> Principal:
         digest = ApiKey.digest_of(api_key)
         key_row: Optional[ApiKey] = await db.scalar(await self._get_key_stmt(digest))
-        if not key_row:
+        if key_row:
+            if not key_row.user.is_active:
+                raise AuthError("user is inactive")
+            key_row.touch()
+            return key_row.user
+
+        svc_row: Optional[ServiceKey] = await db.scalar(
+            await self._get_service_key_stmt(digest)
+        )
+        if not svc_row:
             raise AuthError("API key invalid, revoked, or expired")
-        if not key_row.user.is_active:
-            raise AuthError("user is inactive")
-        return key_row.user
+        if not svc_row.service.is_active:
+            raise AuthError("service is inactive")
+        svc_row.touch()
+        return svc_row.service

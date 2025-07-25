@@ -32,7 +32,7 @@ from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..typing import StrUUID
-from autoapi.v2.errors import IntegrityError
+from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
 
@@ -158,8 +158,8 @@ async def refresh(body: RefreshIn):
 @router.post("/apikeys/introspect", response_model=IntrospectOut)
 async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db)):
     try:
-        user = await _api_backend.authenticate(db, body.api_key)
+        principal = await _api_backend.authenticate(db, body.api_key)
     except AuthError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, exc.reason)
 
-    return IntrospectOut(sub=str(user.id), tid=str(user.tenant_id))
+    return IntrospectOut(sub=str(principal.id), tid=str(principal.tenant_id))

@@ -86,10 +86,12 @@ class RPCMixin:
         }
 
         # ----- HTTP roundtrip ----------------------------------------------
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
         r = self._get_client().post(
             self._get_endpoint(),
             json=req,
-            headers={"Content-Type": "application/json"},
+            headers=headers,
         )
 
         r.raise_for_status()
@@ -98,6 +100,7 @@ class RPCMixin:
         if err := res.get("error"):
             code = err.get("code", -32000)
             msg = err.get("message", "Unknown error")
+            raise RuntimeError(f"RPC error {code}: {msg}")
 
         result = res["result"]
 
