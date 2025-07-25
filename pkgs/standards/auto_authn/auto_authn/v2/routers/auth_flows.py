@@ -23,6 +23,11 @@ from __future__ import annotations
 
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
+import hashlib
+import base64
+import secrets
+import time
 from pydantic import BaseModel, EmailStr, Field, constr
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,6 +44,9 @@ router = APIRouter()
 _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
+
+# ephemeral store for authorization codes
+_codes: dict[str, dict] = {}
 
 # ============================================================================
 #  Helper Pydantic models
@@ -71,6 +79,21 @@ class RefreshIn(BaseModel):
 
 class ApiKeyIn(BaseModel):
     api_key: str
+
+
+class AuthorizeIn(BaseModel):
+    client_id: str
+    redirect_uri: str
+    code_challenge: str
+    code_challenge_method: str = "S256"
+    state: str | None = None
+    identifier: str
+    password: _password
+
+
+class TokenExchange(BaseModel):
+    code: str
+    code_verifier: str
 
 
 class IntrospectOut(BaseModel):
@@ -163,3 +186,51 @@ async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db
         raise HTTPException(status.HTTP_404_NOT_FOUND, exc.reason)
 
     return IntrospectOut(sub=str(user.id), tid=str(user.tenant_id))
+
+
+# --------------------------------------------------------------------------
+#  PKCE authorization code flow
+# --------------------------------------------------------------------------
+@router.get("/{tenant}/authorize", include_in_schema=False)
+async def authorize(
+    tenant: str, q: AuthorizeIn = Depends(), db: AsyncSession = Depends(get_async_db)
+):
+    try:
+        user = await _pwd_backend.authenticate(db, q.identifier, q.password)
+    except AuthError as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, exc.reason)
+
+    code = secrets.token_urlsafe(32)
+    _codes[code] = {
+        "sub": str(user.id),
+        "tid": str(user.tenant_id),
+        "challenge": q.code_challenge,
+        "method": q.code_challenge_method,
+        "exp": time.monotonic() + 600,
+    }
+
+    params = f"code={code}"
+    if q.state:
+        params += f"&state={q.state}"
+    return RedirectResponse(url=f"{q.redirect_uri}?{params}", status_code=302)
+
+
+@router.post("/{tenant}/token", response_model=TokenPair)
+async def token_exchange(
+    tenant: str, body: TokenExchange, db: AsyncSession = Depends(get_async_db)
+):
+    data = _codes.pop(body.code, None)
+    if not data or time.monotonic() > data["exp"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid code")
+
+    if data["method"].upper() == "S256":
+        digest = hashlib.sha256(body.code_verifier.encode()).digest()
+        verifier = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+    else:
+        verifier = body.code_verifier
+
+    if verifier != data["challenge"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid code_verifier")
+
+    access, refresh = _jwt.sign_pair(sub=data["sub"], tid=data["tid"])
+    return TokenPair(access_token=access, refresh_token=refresh)
