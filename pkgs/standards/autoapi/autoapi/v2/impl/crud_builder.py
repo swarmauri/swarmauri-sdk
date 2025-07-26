@@ -14,7 +14,7 @@ from sqlalchemy import inspect as _sa_inspect
 
 from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
-from .types import Session
+from ..types import Session
 
 def _not_found() -> None:
     """Raise a standardized 404 error."""

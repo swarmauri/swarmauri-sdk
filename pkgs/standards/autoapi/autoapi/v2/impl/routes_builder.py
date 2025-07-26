@@ -296,6 +296,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             if name not in self._schemas:
                 self._schemas[name] = s
                 setattr(self.schemas, name, s)
+                
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
         self.rpc[m_id] = rpc_fn
