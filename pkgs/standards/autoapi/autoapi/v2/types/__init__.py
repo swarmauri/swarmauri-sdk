@@ -39,6 +39,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
+from .hook_provider import HookProvider
 
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
@@ -49,6 +50,7 @@ __all__: list[str] = [
     "_Op",
     "_SchemaVerb",
     "AuthNProvider",
+    "HookProvider",
     # sqlalchemy core
     "Boolean",
     "Column",
@@ -82,6 +84,7 @@ __all__: list[str] = [
     "hybrid_property",
     "relationship",
     "remote",
+    "Session",
     # sqlalchemy.ext.mutable
     "MutableDict",
     "MutableList",

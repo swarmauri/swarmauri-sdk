@@ -10,11 +10,11 @@ from __future__ import annotations
 from typing import Dict
 
 from sqlalchemy import inspect as _sa_inspect
-from sqlalchemy.orm import Session
+
 
 from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
-
+from .types import Session
 
 def _not_found() -> None:
     """Raise a standardized 404 error."""
@@ -226,3 +226,14 @@ def _crud(self, model: type) -> None:
         crud_ops["list"],
         crud_ops["clear"],
     )
+
+    # ───────────────────────────────────────────────────────────────
+    # Support for self-registering models / mixins
+    # Any class that defines
+    #     def __autoapi_register_hooks__(api): ...
+    # will be handed **this** AutoAPI instance so it can attach its
+    # hooks directly (Upsertable, audit mixins, etc.).
+    # >>> NEW
+    register_cb = getattr(model, "__autoapi_register_hooks__", None)
+    if callable(register_cb):
+        register_cb(self)
