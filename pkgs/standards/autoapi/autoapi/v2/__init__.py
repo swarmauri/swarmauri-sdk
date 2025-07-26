@@ -10,7 +10,6 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -32,9 +31,11 @@ from .types import (
     _Op,  # pure metadata
     _SchemaVerb,
     AuthNProvider,
+    MethodType,
+    SimpleNamespace
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
-
+from .transactional import transactional as _register_tx
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""
@@ -67,7 +68,6 @@ class AutoAPI:
         self._schemas:     OrderedDict[str, Type["BaseModel"]]   = OrderedDict()
 
         # attribute-style access, e.g.  api.methods.UserCreate(...)
-        from types import SimpleNamespace
         self.methods: SimpleNamespace = SimpleNamespace()
 
         # public Schemas namespace
@@ -79,6 +79,29 @@ class AutoAPI:
 
         self.get_db = get_db
         self.get_async_db = get_async_db
+
+        # ---------- add register_transactional---------------------
+        self.transactional = MethodType(_register_tx, self)
+
+
+         # ─── convenience: explicit registration ----------------------
+        def _register_existing_tx(self,
+                fn: Callable[..., Any],
+                **kw) -> Callable[..., Any]:
+             """
+             Register *fn* as a transactional handler *after* it was defined.
+
+             Example
+             -------
+                 def bundle_create(p, db): ...
+                 api.register_transactional(bundle_create,
+                                            name='bundle.create')
+             """
+             return self.transactional(fn, **kw)
+
+        self.register_transactional = MethodType(
+            _register_existing_tx, self
+        )
 
         # ---------- create schema once ---------------------------
         if include:
@@ -160,8 +183,7 @@ class AutoAPI:
 
     @classmethod
     def get_schema(cls, orm_cls: type, op: _SchemaVerb):
-
-        return get_autoapi_schema(orm_cls, op)
+        return get_schema(orm_cls, op)
 
 
 # keep __all__ tidy for `from autoapi import *` users
