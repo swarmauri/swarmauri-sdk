@@ -1,4 +1,6 @@
 # ── third-party ───────────────────────────────────────────────────────────
+from types import MethodType, SimpleNamespace
+
 from sqlalchemy import (
     Boolean,
     Column,
@@ -32,7 +34,9 @@ from sqlalchemy.orm import (
     relationship,
     remote,
     column_property,
+    Session,
 )
+
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -51,6 +55,9 @@ __all__: list[str] = [
     "_SchemaVerb",
     "AuthNProvider",
     "HookProvider",
+    # builtin types
+    "MethodType",
+    "SimpleNamespace",
     # sqlalchemy core
     "Boolean",
     "Column",
