@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import AsyncGenerator, Generator
 
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -34,7 +35,7 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     loop.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_db_engine():
     """Create a test database engine."""
     engine = create_async_engine(
@@ -54,7 +55,7 @@ async def test_db_engine():
     await engine.dispose()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session(test_db_engine) -> AsyncGenerator[AsyncSession, None]:
     """Provide a database session for tests."""
     async with AsyncSession(test_db_engine) as session:
@@ -80,10 +81,13 @@ def test_client(override_get_db) -> TestClient:
     return TestClient(app)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
     """Create an async HTTP client for testing."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    from httpx import ASGITransport
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
 
@@ -179,7 +183,7 @@ def sample_api_key_data():
 
 
 # Database object fixtures
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_tenant(db_session: AsyncSession):
     """Create a test tenant in the database."""
     tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
@@ -188,7 +192,7 @@ async def test_tenant(db_session: AsyncSession):
     return tenant
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_user(db_session: AsyncSession, test_tenant: Tenant):
     """Create a test user in the database."""
     user = User(
@@ -203,7 +207,7 @@ async def test_user(db_session: AsyncSession, test_tenant: Tenant):
     return user
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_client_obj(db_session: AsyncSession, test_tenant: Tenant):
     """Create a test OAuth client in the database."""
     client = Client.new(
@@ -217,7 +221,7 @@ async def test_client_obj(db_session: AsyncSession, test_tenant: Tenant):
     return client
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_api_key(db_session: AsyncSession, test_user: User):
     """Create a test API key in the database."""
     raw_key = "test-api-key-12345"
@@ -230,7 +234,7 @@ async def test_api_key(db_session: AsyncSession, test_user: User):
     return api_key
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def expired_api_key(db_session: AsyncSession, test_user: User):
     """Create an expired API key in the database."""
     raw_key = "expired-api-key-12345"
@@ -375,7 +379,7 @@ class AuthTestClient:
         return await self.client.post("/apikeys/introspect", json=introspect_data)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def auth_test_client(async_client: AsyncClient):
     """Provide an authentication-enhanced test client."""
     return AuthTestClient(async_client)
