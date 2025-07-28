@@ -160,7 +160,9 @@ class TestAPIKeyUserResolution:
         raw_key = "invalid-api-key"
 
         with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
-            mock_backend.authenticate = AsyncMock(side_effect=AuthError("Invalid API key"))
+            mock_backend.authenticate = AsyncMock(
+                side_effect=AuthError("Invalid API key")
+            )
 
             user = await _user_from_api_key(raw_key, mock_db)
 
@@ -174,7 +176,9 @@ class TestAPIKeyUserResolution:
         raw_key = "expired-api-key"
 
         with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
-            mock_backend.authenticate = AsyncMock(side_effect=AuthError("API key expired"))
+            mock_backend.authenticate = AsyncMock(
+                side_effect=AuthError("API key expired")
+            )
 
             user = await _user_from_api_key(raw_key, mock_db)
 

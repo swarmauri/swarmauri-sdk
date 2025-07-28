@@ -46,6 +46,7 @@ principal_var: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
     "principal", default=None
 )
 
+
 # ---------------------------------------------------------------------
 # FastAPI dependencies
 # ---------------------------------------------------------------------
@@ -74,7 +75,7 @@ async def _user_from_api_key(raw_key: str, db: AsyncSession) -> User | None:
 # ---------------------------------------------------------------------
 # NEW — AuthNProvider‑compatible helper
 # ---------------------------------------------------------------------
-async def get_principal(               # <-- AutoAPI calls this
+async def get_principal(  # <-- AutoAPI calls this
     request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
@@ -133,8 +134,8 @@ async def get_current_principal(  # type: ignore[override]
 # Public re-exports
 __all__ = [
     "get_current_principal",
-    "get_principal",         # <- NEW
-    "principal_var",         # <- used by row_filters
+    "get_principal",  # <- NEW
+    "principal_var",  # <- used by row_filters
     "PasswordBackend",
     "ApiKeyBackend",
 ]

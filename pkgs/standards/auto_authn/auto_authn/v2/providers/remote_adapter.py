@@ -2,15 +2,14 @@
 from __future__ import annotations
 
 import time
-from contextvars import ContextVar
 from typing import Final
 
 import httpx
-from fastapi import Header, HTTPException, Request, status
+from fastapi import HTTPException, Request, status
 
 from autoapi.v2.types.authn_abc import AuthNProvider
-from ..hooks import register_inject_hook            # ← existing helper
-from ..fastapi_deps import principal_var            # ← ContextVar used by filters
+from ..hooks import register_inject_hook  # ← existing helper
+from ..fastapi_deps import principal_var  # ← ContextVar used by filters
 
 
 class RemoteAuthNAdapter(AuthNProvider):
@@ -100,7 +99,7 @@ class RemoteAuthNAdapter(AuthNProvider):
 
     def _cache_put(self, key: str, principal: dict) -> None:
         if len(self._cache) >= self._max:
-            self._cache.pop(next(iter(self._cache)))        # FIFO eviction
+            self._cache.pop(next(iter(self._cache)))  # FIFO eviction
         self._cache[key] = (principal, time.monotonic())
 
 

@@ -84,9 +84,9 @@ class TestOIDCDiscoveryEndpoint:
 
         # JWKS URI should be based on the issuer
         assert jwks_uri.startswith(issuer), "JWKS URI should be based on issuer URL"
-        assert jwks_uri.endswith(
-            "/.well-known/jwks.json"
-        ), "JWKS URI should end with proper path"
+        assert jwks_uri.endswith("/.well-known/jwks.json"), (
+            "JWKS URI should end with proper path"
+        )
 
     @pytest.mark.asyncio
     async def test_discovery_endpoints_format(self, async_client):
@@ -98,16 +98,16 @@ class TestOIDCDiscoveryEndpoint:
         token_endpoint = discovery_doc["token_endpoint"]
 
         # Endpoints should be based on the issuer
-        assert token_endpoint.startswith(
-            issuer
-        ), "Token endpoint should be based on issuer URL"
+        assert token_endpoint.startswith(issuer), (
+            "Token endpoint should be based on issuer URL"
+        )
 
         # Check if registration endpoint exists and is properly formatted
         if "registration_endpoint" in discovery_doc:
             registration_endpoint = discovery_doc["registration_endpoint"]
-            assert registration_endpoint.startswith(
-                issuer
-            ), "Registration endpoint should be based on issuer URL"
+            assert registration_endpoint.startswith(issuer), (
+                "Registration endpoint should be based on issuer URL"
+            )
 
     @pytest.mark.asyncio
     async def test_discovery_supported_values(self, async_client):
@@ -220,9 +220,9 @@ class TestJWKSEndpoint:
         # Ed25519 keys should have specific fields
         if key["kty"] == "OKP":
             assert "crv" in key, "OKP key must have 'crv' (curve) field"
-            assert (
-                key["crv"] == "Ed25519"
-            ), f"Expected Ed25519 curve, got: {key.get('crv')}"
+            assert key["crv"] == "Ed25519", (
+                f"Expected Ed25519 curve, got: {key.get('crv')}"
+            )
             assert "x" in key, "Ed25519 key must have 'x' field (public key)"
 
             # Should not have private key material in public JWKS
@@ -331,9 +331,9 @@ class TestOIDCEndpointIntegration:
                 for key in jwks_doc["keys"]
                 if key.get("kty") == "OKP" and key.get("crv") == "Ed25519"
             ]
-            assert (
-                len(ed25519_keys) > 0
-            ), "Should have Ed25519 keys if EdDSA is supported"
+            assert len(ed25519_keys) > 0, (
+                "Should have Ed25519 keys if EdDSA is supported"
+            )
 
     @pytest.mark.asyncio
     async def test_oidc_endpoints_security_headers(self, async_client):
@@ -455,6 +455,6 @@ class TestOIDCCompliance:
 
             # Should return application/json
             content_type = response.headers["content-type"]
-            assert content_type.startswith(
-                "application/json"
-            ), f"Endpoint {endpoint} should return application/json, got: {content_type}"
+            assert content_type.startswith("application/json"), (
+                f"Endpoint {endpoint} should return application/json, got: {content_type}"
+            )
