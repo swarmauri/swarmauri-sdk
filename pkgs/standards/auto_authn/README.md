@@ -48,12 +48,12 @@ auth\_authn\_idp/
 pip install -e ".[sqlite]"     # editable install + SQLite driver
 
 # Initialise DB + seed default tenant
-export AUTH_AUTHN_DATABASE_URL="sqlite+aiosqlite:///./idp.db"
-export AUTH_AUTHN_PUBLIC_URL="http://localhost:8000"
-auth-authn tenants create default --issuer http://localhost:8000/default
+export AUTO_AUTHN_DATABASE_URL="sqlite+aiosqlite:///./idp.db"
+export AUTO_AUTHN_PUBLIC_URL="http://localhost:8000"
+auto-authn tenants create default --issuer http://localhost:8000/default
 
 # Run
-uvicorn auth_authn_idp.main:app --reload
+uvicorn auto_authn.main:app --reload
 ````
 
 Visit:
@@ -66,16 +66,16 @@ GET http://localhost:8000/default/.well-known/openid-configuration
 
 ## ⚙️ Configuration Reference
 
-| Env var (prefix `AUTH_AUTHN_`) | Default                               | Description                                                            |
+| Env var (prefix `AUTO_AUTHN_`) | Default                               | Description                                                            |
 | ------------------------------ | ------------------------------------- | ---------------------------------------------------------------------- |
-| `DATABASE_URL`                 | `sqlite+aiosqlite:///./auth_authn.db` | Async SQLAlchemy URL. Use Postgres in prod (`postgresql+asyncpg://…`). |
+| `DATABASE_URL`                 | `sqlite+aiosqlite:///./auto_authn.db` | Async SQLAlchemy URL. Use Postgres in prod (`postgresql+asyncpg://…`). |
 | `REDIS_URL`                    | `redis://localhost:6379/0`            | Redis for pub/sub or session store (optional).                         |
 | `PUBLIC_URL`                   | **required in prod**                  | External URL shown in discovery (`issuer`).                            |
 | `LOG_LEVEL`                    | `INFO`                                | `DEBUG`, `INFO`, `WARNING`, …                                          |
 | `SESSION_SYM_KEY`              | `ChangeMeNow123456`                   | 16/24/32 byte AES key for session cookies.                             |
 | `CORS_ORIGINS`                 | *empty*                               | Comma‑sep list of SPA origins.                                         |
 
-See `auth_authn_idp/config.py` for the full schema.
+See `auto_authn/config.py` for the full schema.
 
 ---
 
@@ -86,7 +86,7 @@ pip install alembic
 alembic upgrade head
 ```
 
-The shipped alembic environment auto‑loads `auth_authn_idp.models.Base.metadata`.
+The shipped alembic environment auto‑loads `auto_authn.models.Base.metadata`.
 
 ---
 
@@ -94,15 +94,15 @@ The shipped alembic environment auto‑loads `auth_authn_idp.models.Base.metadat
 
 ```bash
 # 1. create tenant (issuer -> https://login.acme.localhost)
-auth-authn tenants create acme \
+auto-authn tenants create acme \
     --issuer https://login.acme.localhost \
     --name "Acme Corp"
 
 # 2. add user (bcrypt hashed password)
-auth-authn users add --tenant acme --username alice --email a@acme.com
+auto-authn users add --tenant acme --username alice --email a@acme.com
 
 # 3. register relying‑party / client
-auth-authn clients register \
+auto-authn clients register \
     --tenant acme \
     --client-id service-acme \
     --redirect-uris https://app.service.io/auth/callback/acme \
@@ -116,7 +116,7 @@ auth-authn clients register \
 Rotate keys for all tenants older than 90 days:
 
 ```bash
-auth-authn tenants rotate-keys --grace 7776000   # 90d
+auto-authn tenants rotate-keys --grace 7776000   # 90d
 ```
 
 This:
@@ -200,10 +200,10 @@ services:
 
   idp:
     build: .
-    command: uvicorn auth_authn_idp.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn auto_authn.main:app --host 0.0.0.0 --port 8000
     environment:
-      AUTH_AUTHN_DATABASE_URL: postgresql+asyncpg://idp:secret@db/idp
-      AUTH_AUTHN_PUBLIC_URL: https://login.localhost
+      AUTO_AUTHN_DATABASE_URL: postgresql+asyncpg://idp:secret@db/idp
+      AUTO_AUTHN_PUBLIC_URL: https://login.localhost
     ports: [ "8000:8000" ]
     depends_on: [ db ]
 ```
@@ -221,7 +221,7 @@ pytest -q
 
 ## 🛠️ Development Tips
 
-* **Live reload**: `uvicorn auth_authn_idp.main:app --reload`.
+* **Live reload**: `uvicorn auto_authn.main:app --reload`.
 * **Lint / Format**: `ruff check . && ruff format .`.
 * **Type‑check**: `mypy src/ tests/`.
 
@@ -251,7 +251,7 @@ broker.add(MULTI_FACTOR, TOTPAuthn(db, tenant), 20)
 | ☐ | Use Redis for session DB (swap `SessionDB` implementation).      |
 | ☐ | Enable CORS domains for SPA RPs only (never `*`).                |
 | ☐ | Run alembic migrations on deploy (CI/CD step).                   |
-| ☐ | Schedule `auth-authn tenants rotate-keys` weekly via cron‑job.   |
+| ☐ | Schedule `auto-authn tenants rotate-keys` weekly via cron‑job.   |
 | ☐ | Enable rate‑limit & bot‑defence middlewares in `middlewares.py`. |
 
 ---
