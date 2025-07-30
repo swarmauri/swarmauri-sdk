@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import List, Optional, Union
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -26,6 +25,14 @@ class TenantRepository(BaseRepository):
     async def get_by_name(self, name: str) -> Optional[Tenant]:
         """Get tenant by name."""
         return await self.find_one_by(name=name)
+
+    async def get_by_slug(self, slug: str) -> Optional[Tenant]:
+        """Get tenant by slug."""
+        return await self.find_one_by(slug=slug)
+
+    async def get_by_email(self, email: str) -> Optional[Tenant]:
+        """Get tenant by email."""
+        return await self.find_one_by(email=email)
 
     async def get_active_tenants(self) -> List[Tenant]:
         """Get all active tenants."""

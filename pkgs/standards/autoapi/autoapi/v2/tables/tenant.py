@@ -1,11 +1,11 @@
 """Tenant model."""
 
 from ._base import Base
-from ..mixins import GUIDPk, Slugged, Timestamped
+from ..mixins import ActiveToggle, GUIDPk, Slugged, Timestamped
 from ..types import Column, String
 
 
-class Tenant(Base, GUIDPk, Slugged, Timestamped):
+class Tenant(Base, GUIDPk, Slugged, Timestamped, ActiveToggle):
     __tablename__ = "tenants"
     name = Column(String, unique=True)
     email = Column(String, unique=True)

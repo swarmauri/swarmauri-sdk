@@ -45,10 +45,18 @@ class TenantService(BaseService):
         """Get tenant by name."""
         return await self.repository.get_by_name(name)
 
+    async def get_by_slug(self, slug: str) -> Optional[Tenant]:
+        """Get tenant by slug."""
+        return await self.repository.get_by_slug(slug)
+
+    async def get_by_email(self, email: str) -> Optional[Tenant]:
+        """Get tenant by email."""
+        return await self.repository.get_by_email(email)
+
     async def create(self, data: Dict[str, Any]) -> Tenant:
         """Create new tenant with business validation."""
         # Validate required fields
-        self._validate_required_fields(data, ["name"])
+        self._validate_required_fields(data, ["name", "slug", "email"])
 
         # Validate field lengths
         self._validate_field_length(data, {"name": 100})

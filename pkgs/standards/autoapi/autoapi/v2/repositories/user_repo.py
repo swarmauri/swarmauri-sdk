@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import List, Optional, Union
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 

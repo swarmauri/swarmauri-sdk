@@ -29,35 +29,50 @@ class UserService(BaseService):
         self,
         user_id: Union[str, UUID],
         tenant_id: Union[str, UUID],
-        username: Optional[str] = None,
-        email: Optional[str] = None,
+        username: str,
+        is_active: bool = True,
+        **custom_fields: Any,
     ) -> User:
         """
         Ensure shadow user exists, create if missing.
 
-        This is the key method that replaces the direct database operations
-        in the bad hook example. It handles the business logic of creating
-        shadow users without exposing database operations to hook consumers.
+        This method accepts all required User model fields as explicit parameters
+        and supports custom fields for extended User models via **custom_fields.
         """
         user = await self.repository.get_by_id(user_id)
 
         if user is None:
-            # Create shadow user with business logic
+            # Validate required fields
+            if not username:
+                from ..jsonrpc_models import create_standardized_error
+
+                http_exc, _, _ = create_standardized_error(
+                    400,
+                    message="Username is required for user creation",
+                    rpc_code=-32602,
+                )
+                raise http_exc
+
+            # Create shadow user with all provided data
             user_data = {
                 "id": user_id,
                 "tenant_id": tenant_id,
-                "username": username or "unknown",
-                "is_active": True,
+                "username": username,
+                "is_active": is_active,
+                **custom_fields,  # Support for extended User models
             }
-
-            # Add email if provided
-            if email:
-                user_data["email"] = email
 
             user = await self.repository.create(**user_data)
 
             # Log business event (no direct DB operations!)
-            self.logger.info(f"Shadow user {user_id} added to tenant {tenant_id}")
+            custom_info = (
+                f" with custom fields: {list(custom_fields.keys())}"
+                if custom_fields
+                else ""
+            )
+            self.logger.info(
+                f"Shadow user {user_id} ({username}) added to tenant {tenant_id}{custom_info}"
+            )
 
         return user
 
@@ -70,16 +85,33 @@ class UserService(BaseService):
         return await self.repository.get_by_username(username)
 
     async def get_by_email(self, email: str) -> Optional[User]:
-        """Get user by email."""
+        """
+        Get user by email.
+
+        Note: This method assumes the User model has been extended with an email field.
+        If using the base User model (which doesn't include email), this method will raise an error.
+        """
         return await self.repository.get_by_email(email)
 
     async def create(self, data: Dict[str, Any]) -> User:
-        """Create new user with business validation."""
-        # Validate required fields
+        """
+        Create new user with business validation.
+
+        Validates required fields based on the base User model structure.
+        Extended User models with additional fields (like email) will be handled
+        automatically through the **custom_fields pattern.
+        """
+        # Validate required fields based on base User model
         self._validate_required_fields(data, ["username", "tenant_id"])
 
-        # Validate field lengths
-        self._validate_field_length(data, {"username": 80, "email": 120})
+        # Validate field lengths for base User model fields
+        field_limits = {"username": 80}
+
+        # Add validation for custom fields if they exist
+        if "email" in data:
+            field_limits["email"] = 120  # Common email field length
+
+        self._validate_field_length(data, field_limits)
 
         # Check for duplicate username
         if await self.repository.exists_by_username(data["username"]):
@@ -92,17 +124,21 @@ class UserService(BaseService):
             )
             raise http_exc
 
-        # Check for duplicate email if provided
+        # Check for duplicate email if provided (for extended User models)
         if "email" in data and data["email"]:
-            if await self.repository.exists_by_email(data["email"]):
-                from ..jsonrpc_models import create_standardized_error
+            try:
+                if await self.repository.exists_by_email(data["email"]):
+                    from ..jsonrpc_models import create_standardized_error
 
-                http_exc, _, _ = create_standardized_error(
-                    409,
-                    message=f"User with email '{data['email']}' already exists",
-                    rpc_code=-32099,
-                )
-                raise http_exc
+                    http_exc, _, _ = create_standardized_error(
+                        409,
+                        message=f"User with email '{data['email']}' already exists",
+                        rpc_code=-32099,
+                    )
+                    raise http_exc
+            except AttributeError:
+                # Email field doesn't exist in User model - skip validation
+                pass
 
         # Set defaults
         if "is_active" not in data:
@@ -113,9 +149,16 @@ class UserService(BaseService):
     async def update(
         self, user_id: Union[str, UUID], data: Dict[str, Any]
     ) -> Optional[User]:
-        """Update user with business validation."""
-        # Validate field lengths if provided
-        field_limits = {"username": 80, "email": 120}
+        """
+        Update user with business validation.
+
+        Handles both base User model fields and extended fields gracefully.
+        """
+        # Validate field lengths for base User model fields and common extensions
+        field_limits = {"username": 80}
+        if "email" in data:
+            field_limits["email"] = 120
+
         self._validate_field_length(
             data, {k: v for k, v in field_limits.items() if k in data}
         )
@@ -133,18 +176,22 @@ class UserService(BaseService):
                 )
                 raise http_exc
 
-        # Check for duplicate email if changing email
+        # Check for duplicate email if changing email (for extended User models)
         if "email" in data and data["email"]:
-            existing = await self.repository.get_by_email(data["email"])
-            if existing and str(existing.id) != str(user_id):
-                from ..jsonrpc_models import create_standardized_error
+            try:
+                existing = await self.repository.get_by_email(data["email"])
+                if existing and str(existing.id) != str(user_id):
+                    from ..jsonrpc_models import create_standardized_error
 
-                http_exc, _, _ = create_standardized_error(
-                    409,
-                    message=f"User with email '{data['email']}' already exists",
-                    rpc_code=-32099,
-                )
-                raise http_exc
+                    http_exc, _, _ = create_standardized_error(
+                        409,
+                        message=f"User with email '{data['email']}' already exists",
+                        rpc_code=-32099,
+                    )
+                    raise http_exc
+            except AttributeError:
+                # Email field doesn't exist in User model - skip validation
+                pass
 
         return await self.repository.update_by_id(user_id, **data)
 

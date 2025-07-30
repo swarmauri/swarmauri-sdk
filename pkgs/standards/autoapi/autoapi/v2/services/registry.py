@@ -7,9 +7,9 @@ for the AutoAPI hook system.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Union
 
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -18,8 +18,7 @@ from .tenant_service import TenantService
 from .user_service import UserService
 
 
-@dataclass
-class ServiceContext:
+class ServiceContext(BaseModel):
     """
     Container for all services available to hooks.
 
@@ -27,12 +26,17 @@ class ServiceContext:
     providing high-level business operations instead.
     """
 
-    tenant: TenantService
-    user: UserService
+    tenant: TenantService = Field(
+        ..., description="Tenant service for business operations"
+    )
+    user: UserService = Field(..., description="User service for business operations")
 
-    def __getitem__(self, key: str):
-        """Allow dictionary-style access for backward compatibility."""
-        return getattr(self, key)
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True  # Allow service instances
+        validate_assignment = True  # Validate on assignment
+        use_enum_values = True  # Use enum values in serialization
 
     def get(self, key: str, default=None):
         """Allow dict.get() style access."""
