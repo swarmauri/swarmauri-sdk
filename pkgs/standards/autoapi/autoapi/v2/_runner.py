@@ -5,7 +5,7 @@ from typing import Callable, Mapping, MutableMapping, Any, Optional
 from types import SimpleNamespace
 
 from .hooks import Phase
-from .services.registry import ServiceRegistry
+from .services.auto_registry import create_auto_services
 
 
 # ---------------------------------------------------------------------------#
@@ -41,7 +41,8 @@ async def _invoke(
     # ─── SERVICE INJECTION ───────────────────────────────────────────────────
     # Create services and inject into context
     # This replaces direct database access in hooks with high-level business operations
-    services = ServiceRegistry.create_services(db)
+    # Auto-generate services for all registered models
+    services = create_auto_services(db, api.include)
     ctx["services"] = services
 
     try:

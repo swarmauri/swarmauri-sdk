@@ -1,5 +1,4 @@
 from types import SimpleNamespace
-from autoapi.v2 import AutoAPI
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -11,7 +10,7 @@ class _SchemaNS(SimpleNamespace):
         api.schemas.UserCreate(name=…)  → instance of that model
     """
 
-    def __init__(self, api: AutoAPI):
+    def __init__(self, api: "AutoAPI"):
         super().__init__()
         self._api = api  # back-reference to parent
 
