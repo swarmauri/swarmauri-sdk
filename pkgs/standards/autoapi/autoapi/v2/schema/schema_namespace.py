@@ -1,5 +1,6 @@
 from types import SimpleNamespace
-from typing import Callable, Type
+from autoapi.v2 import AutoAPI
+
 
 # ────────────────────────────────────────────────────────────────────
 class _SchemaNS(SimpleNamespace):
@@ -10,9 +11,9 @@ class _SchemaNS(SimpleNamespace):
         api.schemas.UserCreate(name=…)  → instance of that model
     """
 
-    def __init__(self, api: "AutoAPI"):
+    def __init__(self, api: AutoAPI):
         super().__init__()
-        self._api = api                # back-reference to parent
+        self._api = api  # back-reference to parent
 
     def __getattr__(self, item: str):  # lazy lookup / build
         # already cached on the namespace?
@@ -24,7 +25,7 @@ class _SchemaNS(SimpleNamespace):
         # check AutoAPI's registry
         if item in self._api._schemas:
             mdl = self._api._schemas[item]
-            setattr(self, item, mdl)   # cache on first use
+            setattr(self, item, mdl)  # cache on first use
             return mdl
 
         # try to *derive* model  verb from the camel-cased key, e.g. "GroupCreate"

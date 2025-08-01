@@ -7,11 +7,10 @@ common CRUD operations and database session management.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
-from uuid import UUID
+from abc import ABC
+from typing import Any, List, Optional, Type, TypeVar, Union
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func

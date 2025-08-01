@@ -1,8 +1,10 @@
 # ─────────────── schema registry helper ────────────────
 from functools import lru_cache
-from typing import Literal, TypeAlias, Any
+from typing import Any
 from pydantic import BaseModel, Field, create_model, ConfigDict
 from autoapi.v2.types import _SchemaVerb
+
+
 @lru_cache(maxsize=None)
 def get_autoapi_schema(
     orm_cls: type,
@@ -42,7 +44,7 @@ def get_autoapi_schema(
         "read": SRead,
         "update": SUpdate,
         "delete": SDelete,
-        "list": SListIn, 
+        "list": SListIn,
         # need to add clear
         # need to add support for bulk create, update, delete
     }

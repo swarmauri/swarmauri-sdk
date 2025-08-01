@@ -1,11 +1,13 @@
 # autoapi/v2/types/hook_provider.py  – tiny helper module
 from abc import ABC, abstractmethod
-from typing import Protocol, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:                     # forward ref avoids circular import
+if TYPE_CHECKING:  # forward ref avoids circular import
     from autoapi.v2 import AutoAPI
 
 _HOOK_PROVIDERS: set[type] = set()
+
+
 class HookProvider(ABC):
     """
     Marker-base for mixins / models that attach hooks to an AutoAPI router.
@@ -21,6 +23,7 @@ class HookProvider(ABC):
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
         _HOOK_PROVIDERS.add(cls)
+
 
 def list_hook_providers():
     return sorted(_HOOK_PROVIDERS, key=lambda c: c.__name__)

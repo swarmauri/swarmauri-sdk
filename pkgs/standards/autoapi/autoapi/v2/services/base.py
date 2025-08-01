@@ -8,7 +8,7 @@ error handling, validation, and common business operations.
 from __future__ import annotations
 
 from abc import ABC
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict, Optional, TypeVar
 
 from ..repositories.base import BaseRepository
 

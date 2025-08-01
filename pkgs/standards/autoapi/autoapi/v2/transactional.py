@@ -3,8 +3,8 @@ autoapi.v2.transactional
 ========================
 A single decorator that
 
-• wraps a handler in an explicit SQLAlchemy transaction (sync *and* async)  
-• registers it in ``api.rpc["<name>"]``                                       
+• wraps a handler in an explicit SQLAlchemy transaction (sync *and* async)
+• registers it in ``api.rpc["<name>"]``
 • exposes a thin REST façade (default ``POST /<name>``) that forwards
   to the same RPC through the unified `_invoke` lifecycle engine.
 
@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from ._runner import _invoke  # central lifecycle engine
 
 
-def transactional(   # ← bound per-instance in AutoAPI.__init__
+def transactional(  # ← bound per-instance in AutoAPI.__init__
     self,
     fn: Callable[..., Any] | None = None,
     *,
@@ -60,7 +60,7 @@ def transactional(   # ← bound per-instance in AutoAPI.__init__
             tags=tags,
         )
 
-    rpc_id   = name or fn.__name__
+    rpc_id = name or fn.__name__
     rest_uri = rest_path or f"/{rpc_id.replace('.', '/')}"
 
     # ❶  atomic-DB wrapper (sync + async) ──────────────────────────────
@@ -74,9 +74,7 @@ def transactional(   # ← bound per-instance in AutoAPI.__init__
             return await result if isawaitable(result) else result
 
     @wraps(fn)
-    def _wrapped(params: Mapping[str, Any],
-                 db: Session | AsyncSession,
-                 *a, **k):
+    def _wrapped(params: Mapping[str, Any], db: Session | AsyncSession, *a, **k):
         return (
             _async(params, db, *a, **k)
             if isinstance(db, AsyncSession)
@@ -88,14 +86,14 @@ def transactional(   # ← bound per-instance in AutoAPI.__init__
         raise RuntimeError(f"RPC '{rpc_id}' already registered")
 
     self.rpc[rpc_id] = _wrapped
-    if hasattr(self, "_method_ids"):          # populated by /methodz route
+    if hasattr(self, "_method_ids"):  # populated by /methodz route
         self._method_ids[rpc_id] = _wrapped
 
     # ❸  REST façade that re-invokes via `_invoke`  ───────────────────
     if hasattr(self, "get_async_db") and self.get_async_db is not None:
 
         async def _rest_endpoint(
-            request: Request,                                 #  ← ✅
+            request: Request,  #  ← ✅
             params: Mapping[str, Any] = Body(...),
             db: Session = Depends(self.get_db),
         ):
@@ -105,10 +103,9 @@ def transactional(   # ← bound per-instance in AutoAPI.__init__
     else:  # fallback to sync-DB dependency
 
         async def _rest_endpoint(
-            request: Request,                                 #  ← ✅
+            request: Request,  #  ← ✅
             params: Mapping[str, Any] = Body(...),
             db: Session = Depends(self.get_db),
-            
         ):
             ctx: MutableMapping[str, Any] = {"request": request, "db": db, "env": {}}
             return await _invoke(self, rpc_id, params=params, ctx=ctx)
