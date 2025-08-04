@@ -8,10 +8,6 @@ from .keys import (
     post_key_delete,
 )
 
-from .pools import (
-    pre_pool_create,
-    post_pool_create,
-)
 
 from .secrets import (
     post_secret_add,
@@ -37,8 +33,6 @@ __all__ = [
     "post_key_fetch",
     "pre_key_delete",
     "post_key_delete",
-    "pre_pool_create",
-    "post_pool_create",
     "post_secret_add",
     "post_secret_delete",
     "pre_task_create",
