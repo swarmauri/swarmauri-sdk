@@ -41,7 +41,12 @@ from .secrets import UserSecret, OrgSecret, RepoSecret
 from .tasks import Action, SpecKind, Task
 from .works import Work
 from .mixins import RepositoryMixin, RepositoryRefMixin
-
+from peagen.defaults import (
+    DEFAULT_TENANT_ID,
+    DEFAULT_TENANT_EMAIL,
+    DEFAULT_TENANT_NAME,
+    DEFAULT_TENANT_SLUG,
+)
 
 # ---------------------------------------------------------------------
 
