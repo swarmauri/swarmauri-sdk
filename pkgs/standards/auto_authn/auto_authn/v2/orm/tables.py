@@ -165,6 +165,37 @@ class ApiKey(ApiKeyBase):
         }
     }
 
+    @classmethod
+    async def _pre_create_generate_key(cls, ctx):
+        params = ctx["env"].params
+        raw = token_urlsafe(8)
+        if hasattr(params, "model_copy"):
+            params = params.model_copy(update={"raw_key": raw})
+            ctx["env"].params = params
+        elif isinstance(params, dict):
+            params["raw_key"] = raw
+        ctx["raw_api_key"] = raw
+
+    @classmethod
+    async def _post_create_inject_key(cls, ctx):
+        raw = ctx.get("raw_api_key")
+        if not raw:
+            return
+        result = dict(ctx.get("result", {}))
+        result["api_key"] = raw
+        ctx["result"] = result
+
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import Phase
+
+        api.register_hook(Phase.PRE_TX_BEGIN, model="ApiKey", op="create")(
+            cls._pre_create_generate_key
+        )
+        api.register_hook(Phase.POST_RESPONSE, model="ApiKey", op="create")(
+            cls._post_create_inject_key
+        )
+
 
 class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow):
     """API key bound to a service principal."""
