@@ -184,7 +184,7 @@ async def test_error_parity_crud_vs_rpc(api_client):
     rpc_response = await client.post(
         "/rpc",
         json={
-            "method": "Items.read",
+            "method": "Item.read",
             "params": {"id": "00000000-0000-0000-0000-000000000000"},
         },
     )
@@ -215,7 +215,7 @@ async def test_error_parity_validation_errors(api_client):
     # Try via RPC
     rpc_response = await client.post(
         "/rpc",
-        json={"method": "Tenants.create", "params": {}},  # Missing name
+        json={"method": "Tenant.create", "params": {}},  # Missing name
     )
     assert rpc_response.status_code == 200
     rpc_data = rpc_response.json()
@@ -260,7 +260,7 @@ async def test_error_response_structure(api_client):
 
     # Test RPC error structure
     rpc_response = await client.post(
-        "/rpc", json={"method": "Items.read", "params": {"id": "invalid-uuid"}}
+        "/rpc", json={"method": "Item.read", "params": {"id": "invalid-uuid"}}
     )
     rpc_data = rpc_response.json()
 
