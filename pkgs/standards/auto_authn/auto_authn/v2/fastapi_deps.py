@@ -46,6 +46,7 @@ principal_var: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
     "principal", default=None
 )
 
+
 # ---------------------------------------------------------------------
 # FastAPI dependencies
 # ---------------------------------------------------------------------
@@ -64,9 +65,10 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
     return await db.scalar(stmt)
 
 
-async def _user_from_api_key(raw_key: str, db: AsyncSession) -> User | None:
+async def _user_from_api_key(raw_key: str, db: AsyncSession) -> Principal | None:
     try:
-        return await _api_key_backend.authenticate(db, raw_key)
+        principal, _ = await _api_key_backend.authenticate(db, raw_key)
+        return principal
     except AuthError:
         return None
 
@@ -74,7 +76,7 @@ async def _user_from_api_key(raw_key: str, db: AsyncSession) -> User | None:
 # ---------------------------------------------------------------------
 # NEW — AuthNProvider‑compatible helper
 # ---------------------------------------------------------------------
-async def get_principal(               # <-- AutoAPI calls this
+async def get_principal(  # <-- AutoAPI calls this
     request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
@@ -109,7 +111,7 @@ async def get_current_principal(  # type: ignore[override]
 
     On success
     ----------
-    Returns the **User** ORM instance (which satisfies Principal Protocol).
+    Returns the principal ORM instance (which satisfies ``Principal`` Protocol).
 
     On failure
     ----------
@@ -133,8 +135,8 @@ async def get_current_principal(  # type: ignore[override]
 # Public re-exports
 __all__ = [
     "get_current_principal",
-    "get_principal",         # <- NEW
-    "principal_var",         # <- used by row_filters
+    "get_principal",  # <- NEW
+    "principal_var",  # <- used by row_filters
     "PasswordBackend",
     "ApiKeyBackend",
 ]
