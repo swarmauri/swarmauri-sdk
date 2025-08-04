@@ -151,12 +151,15 @@ class Created:
 @declarative_mixin
 class LastUsed:
     last_used_at = Column(
-        TZDateTime, 
-        nullable=True, 
+        TZDateTime,
+        nullable=True,
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )
-        
+
+    def touch(self) -> None:
+        """Mark the object as used now."""
+        self.last_used_at = tzutcnow()
 
 
 @declarative_mixin
@@ -314,7 +317,10 @@ class StatusMixin:
 @declarative_mixin
 class ValidityWindow:
     valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
-    valid_to = Column(TZDateTime)
+    valid_to = Column(
+        TZDateTime,
+        default=lambda: tzutcnow() + dt.timedelta(days=1),
+    )
 
 
 # ----------------------------------------------------------------------
