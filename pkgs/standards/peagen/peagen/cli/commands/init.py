@@ -17,7 +17,6 @@ from peagen.errors import PATNotAllowedError
 from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 
-
 # --------------------------------------------------------------------- helpers
 def _parse_remotes(values: Optional[List[str]]) -> Dict[str, str]:
     remotes: Dict[str, str] = {}
@@ -217,7 +216,7 @@ def _remote_task(
         repo=repo,
         ref=ref,
     )
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    reply = submit_task(ctx.obj["rpc"], task)
     if "error" in reply:
         raise PATNotAllowedError(reply["error"]["message"])
 

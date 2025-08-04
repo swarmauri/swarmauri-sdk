@@ -24,7 +24,7 @@ from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.process_handler import process_handler
 from peagen.orm import Status
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -158,13 +158,13 @@ def submit(  # noqa: PLR0913
         ref=ref,
     )
 
-    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
-    created = submit_task(gw, task)
+    rpc = ctx.obj["rpc"]
+    created = submit_task(rpc, task)
     typer.secho(f"Submitted task {created['id']}", fg=typer.colors.GREEN)
 
     if watch:
         while True:
-            cur = get_task(gw, created["id"])
+            cur = get_task(rpc, created["id"])
             if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)

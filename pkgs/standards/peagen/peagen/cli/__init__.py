@@ -8,9 +8,16 @@ import os
 import sys
 from pathlib import Path
 
+import httpx
 from peagen import defaults
-
 import typer
+
+try:  # pragma: no cover - keyring may be unavailable
+    import keyring
+except Exception:  # noqa: BLE001
+    keyring = None
+
+from autoapi_client import AutoAPIClient
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
 from peagen.cli._banner import _print_banner
@@ -120,6 +127,12 @@ def _global_remote_ctx(  # noqa: D401
     gateway_url: str = typer.Option(
         "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
+    api_key: str | None = typer.Option(
+        None,
+        "--api-key",
+        envvar="DQ_API_KEY",
+        help="API key for authenticated gateway access",
+    ),
     override: str = typer.Option(
         None, "--override", help="JSON string to merge into cfg on the worker."
     ),
@@ -148,6 +161,18 @@ def _global_remote_ctx(  # noqa: D401
     gw_url = gateway_url.rstrip("/")
     if not gw_url.endswith("/rpc"):
         gw_url += "/rpc"
+
+    if api_key is None and keyring is not None:  # pragma: no branch
+        try:
+            api_key = keyring.get_password("auto_authn-api-key", "default")
+        except Exception:  # noqa: BLE001
+            api_key = None
+
+    rpc_client = AutoAPIClient(
+        gw_url,
+        client=httpx.Client(timeout=defaults.RPC_TIMEOUT),
+        api_key=api_key,
+    )
     ctx.obj.update(
         verbosity=verbose,
         gateway_url=gw_url,
@@ -157,7 +182,10 @@ def _global_remote_ctx(  # noqa: D401
         repo=repo,
         ref=ref,
         quiet=quiet,
+        api_key=api_key,
+        rpc=rpc_client,
     )
+    ctx.call_on_close(rpc_client.close)
 
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────

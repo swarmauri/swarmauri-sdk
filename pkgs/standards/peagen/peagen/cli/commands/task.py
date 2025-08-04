@@ -18,7 +18,7 @@ remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
 # ───────────────────────── helpers ────────────────────────────────────
 def _rpc(ctx: typer.Context) -> AutoAPIClient:
-    return AutoAPIClient(ctx.obj["gateway_url"])
+    return ctx.obj["rpc"]
 
 
 def _schema(tag: str):
@@ -38,7 +38,7 @@ def get(  # noqa: D401
 ):
     """Fetch status/result for *TASK_ID* (optionally watch until done)."""
     while True:
-        reply = get_task(task_id, gateway_url=ctx.obj["gateway_url"])
+        reply = get_task(_rpc(ctx), task_id)
         typer.echo(json.dumps(reply, indent=2))
 
         if not watch or Status.is_terminal(reply["status"]):
@@ -59,8 +59,8 @@ def patch_task(
     changes_obj = SUpdate.model_validate(json.loads(changes))
     params = {"id": task_id, **changes_obj.model_dump(exclude_unset=True)}
 
-    with _rpc(ctx) as rpc:
-        res = rpc.call("Tasks.update", params=params, out_schema=SRead)
+    rpc = _rpc(ctx)
+    res = rpc.call("Tasks.update", params=params, out_schema=SRead)
     typer.echo(json.dumps(res.model_dump(), indent=2))
 
 
@@ -70,8 +70,8 @@ def _simple_status_change(ctx: typer.Context, task_id: str, new_status: Status):
     SRead = _schema("read")
     params = {"id": task_id, "status": new_status}
 
-    with _rpc(ctx) as rpc:
-        res = rpc.call("Tasks.update", params=SUpdate(**params), out_schema=SRead)
+    rpc = _rpc(ctx)
+    res = rpc.call("Tasks.update", params=SUpdate(**params), out_schema=SRead)
     typer.echo(json.dumps(res.model_dump(), indent=2))
 
 
@@ -111,7 +111,7 @@ def retry_from(
     on the Task row (rather than inside `payload`).
     """
     # 1. fetch the original task
-    original = get_task(source_task_id, gateway_url=ctx.obj["gateway_url"])
+    original = get_task(_rpc(ctx), source_task_id)
     if not original.get("action"):
         typer.echo("Source task has no action to clone.", err=True)
         raise typer.Exit(1)
@@ -124,5 +124,5 @@ def retry_from(
         tenant_id=original.get("tenant_id", "default"),
         labels=original.get("labels") or [],
     )
-    submitted = submit_task(ctx.obj["gateway_url"], new_task)
+    submitted = submit_task(_rpc(ctx), new_task)
     typer.echo(json.dumps(submitted, indent=2))

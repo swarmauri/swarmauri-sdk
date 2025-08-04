@@ -63,9 +63,6 @@ def submit_extras(
     ),
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-    gateway_url: str = typer.Option(
-        "http://localhost:8000/rpc", "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
 ) -> None:
     """Submit EXTRAS schema generation as a background task."""
     args = {
@@ -77,11 +74,11 @@ def submit_extras(
     task = build_task("extras", args, pool=ctx.obj.get("pool", "default"))
 
     try:
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
         typer.echo(f"Submitted extras generation → taskId={reply['result']['taskId']}")
     except Exception as exc:
-        typer.echo(f"[ERROR] Could not reach gateway at {gateway_url}: {exc}")
+        typer.echo(f"[ERROR] Could not reach gateway: {exc}")
         raise typer.Exit(1)

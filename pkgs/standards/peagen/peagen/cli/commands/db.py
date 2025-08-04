@@ -21,12 +21,6 @@ _src_cfg = Path(__file__).resolve().parents[3] / "alembic.ini"
 _pkg_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
 ALEMBIC_CFG = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
-DEFAULT_GATEWAY = (
-    "http://localhost:8000/rpc"  # replace with peagen.defaults to make consistency
-)
-
-# DEFAULT_GATEWAY = defaults.CONFIG["gateway_url"]
-
 
 local_db_app = typer.Typer(help="Database utilities.")
 remote_db_app = typer.Typer(help="Database utilities via JSON-RPC.")
@@ -110,9 +104,7 @@ def downgrade() -> None:
 
 @remote_db_app.command("upgrade")
 def remote_upgrade(
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
+    ctx: typer.Context,
 ) -> None:
     """Submit an upgrade task via JSON-RPC."""
     try:
@@ -121,7 +113,7 @@ def remote_upgrade(
             {"op": "upgrade", "alembic_ini": str(ALEMBIC_CFG)},
             pool="default",
         )
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
@@ -133,11 +125,9 @@ def remote_upgrade(
 
 @remote_db_app.command("revision")
 def remote_revision(
+    ctx: typer.Context,
     message: str = typer.Option(
         "init", "--message", "-m", help="Message for the new revision"
-    ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
     ),
 ) -> None:
     """Submit a revision task via JSON-RPC."""
@@ -151,7 +141,7 @@ def remote_revision(
             },
             pool="default",
         )
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
@@ -163,9 +153,7 @@ def remote_revision(
 
 @remote_db_app.command("downgrade")
 def remote_downgrade(
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
+    ctx: typer.Context,
 ) -> None:
     """Submit a downgrade task via JSON-RPC."""
     try:
@@ -174,7 +162,7 @@ def remote_downgrade(
             {"op": "downgrade", "alembic_ini": str(ALEMBIC_CFG)},
             pool="default",
         )
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
