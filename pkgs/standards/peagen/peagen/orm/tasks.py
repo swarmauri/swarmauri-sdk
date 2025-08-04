@@ -22,7 +22,8 @@ from autoapi.v2.mixins import (
     Ownable,
     StatusMixin,
 )
-from peagen.orm import RepositoryRefMixin
+from peagen.orm.mixins import RepositoryRefMixin
+
 
 class Action(str, Enum):
     SORT = auto()
