@@ -5,6 +5,7 @@ from autoapi.v2.types import (
     Column,
     ForeignKey,
     PgUUID,
+    UUID,
     String,
     MutableDict,
     relationship,
@@ -88,7 +89,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         params = ctx["env"].params
         pool_id = params["pool_id"]
         if isinstance(pool_id, str):
-            pool_id = PgUUID(pool_id)
+            pool_id = PgUUID(UUID(pool_id))
         ip = cls._client_ip(ctx["request"])
 
         def _get_policy_and_count(session):
@@ -186,7 +187,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
             pool_id = await queue.hget(WORKER_KEY.format(worker_id), "pool_id")
         if isinstance(pool_id, str):
-            pool_id = PgUUID(pool_id)
+            pool_id = PgUUID(UUID(pool_id))
 
         ip = cls._client_ip(ctx["request"])
 
