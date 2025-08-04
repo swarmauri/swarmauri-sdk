@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
 import contextvars
+import jwt
+from jwt import PyJWKClient, get_unverified_header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .backends import (
@@ -31,13 +33,20 @@ from .typing import Principal
 from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
+from .runtime_cfg import settings
 
 
 # ---------------------------------------------------------------------
 # Backends + Coder
 # ---------------------------------------------------------------------
 _api_key_backend = ApiKeyBackend()
-_jwt_coder = JWTCoder(public_key, signing_key)
+
+_jwks_client: PyJWKClient | None = None
+if settings.jwks_wellknown:
+    _jwks_client = PyJWKClient(settings.jwks_wellknown)
+    _jwt_coder = None
+else:
+    _jwt_coder = JWTCoder(signing_key(), public_key())
 
 # ---------------------------------------------------------------------
 # Public ContextVar – used by AutoAPI row filters
@@ -54,7 +63,12 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
     from jwt import InvalidTokenError
 
     try:
-        payload = _jwt_coder.decode(token)
+        if _jwks_client:
+            header = get_unverified_header(token)
+            key = _jwks_client.get_signing_key_from_jwt(token).key
+            payload = jwt.decode(token, key, algorithms=[header["alg"]])
+        else:
+            payload = _jwt_coder.decode(token)
     except InvalidTokenError:
         return None
 

@@ -19,6 +19,7 @@ running a single scalable cluster.
 | **Device‑Code & PKCE** | Headless + browser flows for CLIs and SPA RPs. |
 | **Docker‑friendly** | Single `Dockerfile`, health endpoints, graceful shutdown. |
 | **Zero‑hop JWKS** | Public keys served at `/{tenant}/jwks.json` for RP validation. |
+| **Remote JWKS** | Verify bearer tokens via `JWT_WELLKNOWN_URL`. |
 | **Extensible** | Everything wired through dependency overrides; swap Postgres, Redis, metrics, … |
 
 ---
@@ -74,6 +75,7 @@ GET http://localhost:8000/default/.well-known/openid-configuration
 | `LOG_LEVEL`                    | `INFO`                                | `DEBUG`, `INFO`, `WARNING`, …                                          |
 | `SESSION_SYM_KEY`              | `ChangeMeNow123456`                   | 16/24/32 byte AES key for session cookies.                             |
 | `CORS_ORIGINS`                 | *empty*                               | Comma‑sep list of SPA origins.                                         |
+| `JWT_WELLKNOWN_URL`            | *empty*                               | Fetch JWKS from this URL instead of local key files.                   |
 
 See `auth_authn_idp/config.py` for the full schema.
 
