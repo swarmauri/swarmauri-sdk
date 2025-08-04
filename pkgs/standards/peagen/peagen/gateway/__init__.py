@@ -19,8 +19,9 @@ import os
 
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v2 import AutoAPI
+from autoapi.v2.hooks import Phase
 from auto_authn.v2.providers import RemoteAuthNAdapter
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request, status
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
@@ -100,6 +101,38 @@ api = AutoAPI(
     get_async_db=get_async_db,
     authn=authn_adapter,
 )
+
+
+async def _sync_remote_identity(ctx):
+    """Ensure tenant exists and mirror the caller into the shadow table."""
+    principal = ctx["request"].state.principal
+    if not principal:
+        return
+
+    db = ctx["db"]
+    tenant_id = principal["tid"]
+    tenant = await db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant not registered with Peagen",
+        )
+
+    await db.merge(
+        User(
+            id=principal["sub"],
+            tenant_id=tenant_id,
+            username=principal.get("username")
+            or principal.get("email")
+            or principal["sub"],
+        )
+    )
+
+
+api.register_hook(Phase.PRE_TX_BEGIN)(_sync_remote_identity)
+# ensure this hook runs second after the authn injection hook
+pre_hooks = api._hook_registry[Phase.PRE_TX_BEGIN][None]
+pre_hooks.insert(1, pre_hooks.pop())
 
 
 app.include_router(api.router)
