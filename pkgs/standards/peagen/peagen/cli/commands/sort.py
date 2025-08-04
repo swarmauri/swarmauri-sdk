@@ -151,7 +151,7 @@ def submit_sort(  # noqa: PLR0913
     )
 
     # 4) submit via gateway
-    resp = submit_task(ctx.obj.get("gateway_url"), task)
+    resp = submit_task(ctx.obj["rpc"], task)
     if "error" in resp:
         typer.echo(f"[ERROR] {resp['error']['message']}", err=True)
         raise typer.Exit(1)
@@ -162,7 +162,7 @@ def submit_sort(  # noqa: PLR0913
     # optional watch
     if watch:
         while True:
-            cur = get_task(ctx.obj.get("gateway_url"), tid)
+            cur = get_task(ctx.obj["rpc"], tid)
             if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)

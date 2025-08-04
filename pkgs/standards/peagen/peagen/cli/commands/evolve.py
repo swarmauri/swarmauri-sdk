@@ -24,7 +24,7 @@ from peagen.handlers.evolve_handler import evolve_handler
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.orm import Status, Action
 
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -94,8 +94,6 @@ def submit(
             typer.secho(err, fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
 
-    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
-
     task = build_task(
         action=Action.EVOLVE,
         args=_args_for_task(spec, repo, ref),
@@ -105,12 +103,14 @@ def submit(
         ref=ref,
     )
 
-    created = submit_task(gw, task)
+    rpc = ctx.obj["rpc"]
+
+    created = submit_task(rpc, task)
     typer.secho(f"Submitted task {created['id']}", fg=typer.colors.GREEN)
 
     if watch:
         while True:
-            cur = get_task(gw, created["id"])
+            cur = get_task(rpc, created["id"])
             if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)

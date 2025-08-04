@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 import uuid
-import httpx
 from typing import Any, Dict, Optional
 
 from autoapi_client import AutoAPIClient
 from autoapi.v2 import AutoAPI
-from peagen.defaults import RPC_TIMEOUT
 from peagen.orm import Status, Task, Action, SpecKind
 
 
@@ -55,36 +53,28 @@ def build_task(
 
 # ─────────────────── RPC helpers ────────────────────────────────────────
 def submit_task(
-    gateway_url: str,
+    rpc: AutoAPIClient,
     task_model: Any,  # instance from build_task()
-    *,
-    timeout: float = RPC_TIMEOUT,
 ) -> Dict[str, Any]:
-    """POST tasks.create and return the validated TaskRead dict."""
+    """POST ``tasks.create`` and return the validated TaskRead dict."""
     SRead = AutoAPI.get_schema(Task, "read")
-
-    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
-        res = rpc.call(
-            "tasks.create",
-            params=task_model.model_dump(),  # AutoAPIClient expects dict
-            out_schema=SRead,
-        )
+    res = rpc.call(
+        "tasks.create",
+        params=task_model.model_dump(),  # AutoAPIClient expects dict
+        out_schema=SRead,
+    )
     return res.model_dump()
 
 
 def get_task(
-    gateway_url: str,
+    rpc: AutoAPIClient,
     task_id: str,
-    *,
-    timeout: float = RPC_TIMEOUT,
 ):
     """Return a validated TaskRead Pydantic object for *task_id*."""
     SRead = AutoAPI.get_schema(Task, "read")
-
-    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
-        result = rpc.call(
-            "tasks.read",
-            params={"id": task_id},
-            out_schema=SRead,
-        )
+    result = rpc.call(
+        "tasks.read",
+        params={"id": task_id},
+        out_schema=SRead,
+    )
     return result

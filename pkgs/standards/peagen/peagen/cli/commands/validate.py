@@ -84,13 +84,11 @@ def submit_validate(
 
     # 2) Build Task.submit envelope using Task fields
     try:
-        reply = submit_task(ctx.obj.get("gateway_url"), task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             typer.echo(f"[ERROR] {reply['error']['message']}")
             raise typer.Exit(1)
         typer.echo(f"Submitted validation → taskId={reply['result']['taskId']}")
     except Exception as exc:
-        typer.echo(
-            f"[ERROR] Could not reach gateway at {ctx.obj.get('gateway_url')}: {exc}"
-        )
+        typer.echo(f"[ERROR] Could not reach gateway: {exc}")
         raise typer.Exit(1)
