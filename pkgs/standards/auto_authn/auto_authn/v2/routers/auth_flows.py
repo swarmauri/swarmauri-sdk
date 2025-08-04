@@ -77,6 +77,7 @@ class ApiKeyIn(BaseModel):
 class IntrospectOut(BaseModel):
     sub: StrUUID
     tid: StrUUID
+    kind: str
 
 
 # ============================================================================
@@ -163,8 +164,8 @@ async def refresh(body: RefreshIn):
 @router.post("/apikeys/introspect", response_model=IntrospectOut)
 async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db)):
     try:
-        principal = await _api_backend.authenticate(db, body.api_key)
+        principal, kind = await _api_backend.authenticate(db, body.api_key)
     except AuthError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, exc.reason)
 
-    return IntrospectOut(sub=str(principal.id), tid=str(principal.tenant_id))
+    return IntrospectOut(sub=str(principal.id), tid=str(principal.tenant_id), kind=kind)
