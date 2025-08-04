@@ -18,7 +18,7 @@ import os
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import AutoAPI, Phase
 from auto_authn.v2.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
@@ -57,6 +57,7 @@ from swarmauri_standard.loggers.Logger import Logger
 from . import _publish, schedule_helpers
 from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
+from sqlalchemy.exc import IntegrityError
 
 # ─────────── logging setup ─────────────────────────────────────────────
 LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
@@ -100,6 +101,41 @@ api = AutoAPI(
     get_async_db=get_async_db,
     authn=authn_adapter,
 )
+
+
+@api.hook(Phase.PRE_TX_BEGIN)
+async def _shadow_principal(ctx):
+    p = getattr(ctx["request"].state, "principal", None)
+    if not p:
+        return
+    db = ctx["db"]
+    tid = p.get("tid")
+    uid = p.get("sub")
+    if not tid or not uid:
+        return
+    slug = p.get("tenant_slug") or p.get("tenant") or tid
+    if await db.get(Tenant, tid) is None:
+        db.add(
+            Tenant(
+                id=tid,
+                slug=slug,
+                name=p.get("tenant_name"),
+                email=p.get("tenant_email"),
+            )
+        )
+    if await db.get(User, uid) is None:
+        db.add(User(id=uid, tenant_id=tid, username=p.get("username") or uid))
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+
+
+# ensure our hook runs second after the AuthN injection hook
+_pre = api._hook_registry[Phase.PRE_TX_BEGIN][None]
+if _shadow_principal in _pre:
+    _pre.remove(_shadow_principal)
+_pre.insert(1, _shadow_principal)
 
 
 app.include_router(api.router)
