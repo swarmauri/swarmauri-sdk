@@ -139,8 +139,15 @@ class WorkerBase:
                 advertises={"cpu": True},
                 handlers={"handlers": list(self._handlers)},
             )
-            self._client.call("Worker.create", params=payload, out_schema=SWorkerRead)
+            created = self._client.call(
+                "Worker.create", params=payload, out_schema=SWorkerRead
+            )
             self.log.info("registered @ gateway as %s", self.worker_id)
+            api_key = getattr(created, "api_key", None)
+            if api_key:
+                self._api_key = api_key
+                os.environ["DQ_API_KEY"] = api_key
+                self._client.api_key = api_key
         except Exception as exc:  # pragma: no cover
             self.log.error("registration failed: %s", exc, exc_info=True)
 
