@@ -22,6 +22,12 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
     duration_s = Column(Integer)
 
     task = relationship(Task, back_populates="works")
+    eval_results = relationship(
+        "EvalResult",
+        back_populates="work",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     @classmethod
     async def _post_update(cls, ctx):

@@ -51,18 +51,14 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     return base  # primitive / dict / etc.
 
 
-def _canonical(table: str, verb: str) -> str:
+def _canonical(name: str, verb: str) -> str:
     """Return canonical RPC method name.
 
-    Historically AutoAPI exposed RPC identifiers using the pluralized table
-    name followed by the operation verb separated with a dot – e.g.
-    ``Items.create``.  The previous implementation attempted to singularize
-    the table name via ``rstrip('s')`` which produced identifiers such as
-    ``Item.create``.  The test-suite (and existing consumers) expect the
-    plural form, so we keep the table name intact and simply convert it to
-    ``PascalCase``.
+    Canonical identifiers use the ORM model class name to ensure singular
+    forms, e.g. ``Item.create``.  If ``name`` is provided in snake_case it is
+    converted to ``PascalCase`` before joining with the operation verb.
     """
-    cls_name = "".join(w.title() for w in table.split("_"))
+    cls_name = "".join(w.title() for w in name.split("_")) if name.islower() else name
     return f"{cls_name}.{verb}"
 
 
@@ -134,7 +130,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     allow_cb = getattr(model, "__autoapi_allow_anon__", None)
     _allow_verbs = set(allow_cb()) if callable(allow_cb) else set()
-    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    self._allow_anon.update({_canonical(model.__name__, v) for v in _allow_verbs})
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
     routers = (
@@ -154,7 +150,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id = _canonical(tab, verb)
+        m_id = _canonical(model.__name__, verb)
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
@@ -350,7 +346,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         # ``_method_ids`` is used by the ``/methodz`` endpoint and by the hook
         # subsystem to look up handlers based on their canonical RPC name.  It
         # should therefore store entries keyed by the canonical identifier
-        # (e.g. ``Items.create``) rather than the camel-cased helper name.
+        # (e.g. ``Item.create``) rather than the camel-cased helper name.
         self._method_ids[m_id] = _runner
         setattr(self.methods, camel, _runner)
 
