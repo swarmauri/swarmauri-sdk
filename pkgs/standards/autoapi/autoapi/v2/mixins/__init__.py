@@ -28,6 +28,11 @@ def tzutcnow() -> dt.datetime:  # default/on‑update factory
     return dt.datetime.now(dt.timezone.utc)
 
 
+def tzutcnow_plus_day() -> dt.datetime:
+    """Return an aware UTC ``datetime`` one day in the future."""
+    return tzutcnow() + dt.timedelta(days=1)
+
+
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
@@ -151,12 +156,11 @@ class Created:
 @declarative_mixin
 class LastUsed:
     last_used_at = Column(
-        TZDateTime, 
-        nullable=True, 
+        TZDateTime,
+        nullable=True,
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )
-        
 
 
 @declarative_mixin
@@ -314,7 +318,7 @@ class StatusMixin:
 @declarative_mixin
 class ValidityWindow:
     valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
-    valid_to = Column(TZDateTime)
+    valid_to = Column(TZDateTime, default=tzutcnow_plus_day)
 
 
 # ----------------------------------------------------------------------

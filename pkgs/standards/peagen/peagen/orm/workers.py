@@ -13,7 +13,9 @@ from autoapi.v2.types import (
     AllowAnonProvider,
 )
 from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped
+import datetime as dt
+
+from autoapi.v2.mixins import GUIDPk, Timestamped, tzutcnow
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool
@@ -150,10 +152,14 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             )
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
-
+            valid_to = (tzutcnow() + dt.timedelta(days=1)).isoformat()
             key_resp = await authn_adapter._client.post(
                 f"{base}/service_keys",
-                json={"service_id": service_id, "label": "worker"},
+                json={
+                    "service_id": service_id,
+                    "label": "worker",
+                    "valid_to": valid_to,
+                },
             )
             key_resp.raise_for_status()
             body = key_resp.json()
