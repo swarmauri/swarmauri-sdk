@@ -10,7 +10,8 @@ from autoapi.v2.types import (
 )
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
-from peagen.orm import RepositoryRefMixin
+from peagen.orm.mixins import RepositoryMixin
+
 
 class _SecretCoreMixin:
     name = Column(String(128), nullable=False)
