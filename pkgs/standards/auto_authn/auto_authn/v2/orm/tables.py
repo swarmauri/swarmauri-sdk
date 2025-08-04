@@ -157,8 +157,8 @@ class ApiKey(ApiKeyBase):
     raw_key.onupdate = token_urlsafe(8)
     raw_key.info = {
         "autoapi": {
-            "hybrid": True,  # ← opt-in
-            "write_only": True,  # hide on READ/LIST
+            "hybrid": True,
+            "disable_on": ["create", "read", "list", "update", "replace"],
             "py_type": str,
             "default_factory": token_urlsafe(8),
             "examples": [token_urlsafe(8)],  # Swagger placeholder
