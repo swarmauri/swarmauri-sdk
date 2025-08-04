@@ -34,6 +34,7 @@ from .types import (
     AuthNProvider,
     MethodType,
     SimpleNamespace,
+    ClearExistingTableProvider,
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
@@ -105,8 +106,14 @@ class AutoAPI:
         self.register_transactional = MethodType(_register_existing_tx, self)
 
         # ---------- create schema once ---------------------------
+        self._clear_tables: set = set()
         if include:
             self.tables = {cls.__table__ for cls in include}  # deduplicate via set
+            self._clear_tables = {
+                cls.__table__
+                for cls in include
+                if issubclass(cls, ClearExistingTableProvider)
+            }
         else:
             raise ValueError("must declare tables to be created")
             self.tables = set(self.base.metadata.tables.values())
@@ -149,15 +156,17 @@ class AutoAPI:
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
             async for adb in self.get_async_db():
-                # Get the engine from the session
-                engine = adb.get_bind()
-                await adb.run_sync(
-                    lambda _: self.base.metadata.create_all(
-                        engine,
+
+                def _drop_and_create(sync_conn):
+                    for table in self._clear_tables:
+                        table.drop(sync_conn, checkfirst=True)
+                    self.base.metadata.create_all(
+                        sync_conn,
                         checkfirst=True,
                         tables=self.tables,
                     )
-                )
+
+                await adb.run_sync(_drop_and_create)
                 break
             self._ddl_executed = True
 
@@ -165,8 +174,11 @@ class AutoAPI:
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
             with next(self.get_db()) as db:
+                bind = db.get_bind()
+                for table in self._clear_tables:
+                    table.drop(bind, checkfirst=True)
                 self.base.metadata.create_all(
-                    db.get_bind(),
+                    bind,
                     checkfirst=True,
                     tables=self.tables,
                 )

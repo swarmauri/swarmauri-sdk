@@ -13,6 +13,7 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
     AllowAnonProvider,
+    ClearExistingTableProvider,
 )
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import GUIDPk, Timestamped, tzutcnow
@@ -21,7 +22,14 @@ from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 from .pools import Pool
 
 
-class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
+class Worker(
+    Base,
+    GUIDPk,
+    Timestamped,
+    HookProvider,
+    AllowAnonProvider,
+    ClearExistingTableProvider,
+):
     __tablename__ = "workers"
     pool_id = Column(
         PgUUID(as_uuid=True),

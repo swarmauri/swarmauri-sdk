@@ -47,6 +47,7 @@ from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
+from .clear_existing_provider import ClearExistingTableProvider
 
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
@@ -61,6 +62,7 @@ __all__: list[str] = [
     "HookProvider",
     "NestedPathProvider",
     "AllowAnonProvider",
+    "ClearExistingTableProvider",
     # builtin types
     "MethodType",
     "SimpleNamespace",
