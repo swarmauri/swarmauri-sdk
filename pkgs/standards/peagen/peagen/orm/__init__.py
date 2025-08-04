@@ -9,16 +9,10 @@ from typing import FrozenSet
 
 from autoapi.v2.types import (
     Column,
-    ForeignKey,
     Integer,
     String,
     UniqueConstraint,
-    PgUUID,
     relationship,
-    foreign,
-    remote,
-    declarative_mixin,
-    declared_attr,
 )
 
 # ---------------------------------------------------------------------
@@ -46,6 +40,7 @@ from .keys import PublicKey, GPGKey, DeployKey
 from .secrets import UserSecret, OrgSecret, RepoSecret
 from .tasks import Action, SpecKind, Task
 from .works import Work
+from .mixins import RepositoryMixin, RepositoryRefMixin
 
 
 # ---------------------------------------------------------------------
@@ -120,33 +115,6 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
         back_populates="repository",
         cascade="all, delete-orphan",
     )
-
-
-@declarative_mixin
-class RepositoryMixin:
-    repository_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False
-    )
-
-
-class RepositoryRefMixin:
-    repository_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("repositories.id", ondelete="CASCADE"),
-        nullable=True,  # ← changed
-    )
-    repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
-    ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
-
-    @declared_attr
-    def repository(cls):
-        from peagen.orm import Repository  # late import
-
-        return relationship(
-            "Repository",
-            back_populates="tasks",
-            primaryjoin=foreign(cls.repository_id) == remote(Repository.id),
-        )
 
 
 # ---------------------------------------------------------------------
