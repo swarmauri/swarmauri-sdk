@@ -1,7 +1,7 @@
 # autoapi/v2/mixins/bootstrappable.py
 from typing import Any, ClassVar, List
 
-from ..types import TableConfigProvider, event
+from ..types import TableConfigProvider
 
 
 class Bootstrappable(TableConfigProvider):
@@ -11,6 +11,7 @@ class Bootstrappable(TableConfigProvider):
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
+        from autoapi.v2.types import event
 
         if cls.DEFAULT_ROWS:
 
