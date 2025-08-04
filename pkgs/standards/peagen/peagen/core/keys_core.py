@@ -1,4 +1,4 @@
-z"""
+"""
 Key-pair helpers driven by `peagen.plugins.cryptography`.
 
 Exports
