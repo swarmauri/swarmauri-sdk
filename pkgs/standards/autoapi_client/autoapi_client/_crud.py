@@ -52,7 +52,20 @@ class CRUDMixin:
         self, response: httpx.Response, out_schema: type[_Schema[T]] | None = None
     ) -> Any:
         """Process HTTP response."""
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            if response.status_code == 422:
+                try:
+                    detail = response.json()
+                except ValueError:
+                    detail = response.text
+                raise httpx.HTTPStatusError(
+                    f"Unprocessable Entity: {detail}",
+                    request=exc.request,
+                    response=exc.response,
+                ) from None
+            raise
 
         # Handle empty responses (like 204 No Content)
         if response.status_code == 204 or not response.content:
