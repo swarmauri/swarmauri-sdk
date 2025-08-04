@@ -7,6 +7,7 @@ from autoapi.v2.mixins import BulkCapable, GUIDPk
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String, create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -38,7 +39,9 @@ def pytest_generate_tests(metafunc):
 def sync_db_session():
     """Create a sync database session for testing."""
     engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -140,7 +143,10 @@ async def api_client(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-        _nested_path = "/tenants/{tenant_id}"
+
+        @classmethod
+        def __autoapi_nested_paths__(cls):
+            return "/tenants/{tenant_id}"
 
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
@@ -158,7 +164,9 @@ async def api_client(db_mode):
 
     else:
         engine = create_engine(
-            "sqlite:///:memory:", connect_args={"check_same_thread": False}
+            "sqlite:///:memory:",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
         )
 
         SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
