@@ -7,7 +7,7 @@ from autoapi.v2.types import (
     JSON,
     UniqueConstraint,
     ForeignKey,
-    UUID,
+    PgUUID,
     relationship,
 )
 from autoapi.v2.tables import Base
@@ -21,10 +21,12 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "project_payloads"
 
     tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+        PgUUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
     )
     doe_spec_id = Column(
-        UUID(as_uuid=True),
+        PgUUID(as_uuid=True),
         ForeignKey("doe_specs.id", ondelete="SET NULL"),
         nullable=True,
     )

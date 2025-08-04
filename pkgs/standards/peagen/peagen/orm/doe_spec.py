@@ -7,7 +7,7 @@ from autoapi.v2.types import (
     JSON,
     UniqueConstraint,
     ForeignKey,
-    UUID,
+    PgUUID,
     relationship,
 )
 from autoapi.v2.tables import Base
@@ -21,7 +21,9 @@ class DoeSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "doe_specs"
 
     tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+        PgUUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
     )
     name = Column(String, nullable=False)
     schema_version = Column(String, nullable=False, default="1.1.0")
