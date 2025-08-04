@@ -32,6 +32,7 @@ from autoapi.v2.types import (
     hybrid_property,
     PgUUID,
     ForeignKey,
+    HookProvider,
 )
 from autoapi.v2.tables import (
     Tenant,
@@ -130,7 +131,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     )
 
 
-class ApiKey(ApiKeyBase):
+class ApiKey(ApiKeyBase, HookProvider):
     user = relationship(
         "auto_authn.v2.orm.tables.User",
         back_populates="api_keys",
