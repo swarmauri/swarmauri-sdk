@@ -133,8 +133,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
         created = cls._SRead(**ctx["result"])
         try:
-            base = authn_adapter._introspect.rsplit("/", 1)[0]
-
+            base = authn_adapter.base_url
             def _tenant_id(session):
                 pool = session.get(Pool, created.pool_id)
                 return str(pool.tenant_id) if pool else None
