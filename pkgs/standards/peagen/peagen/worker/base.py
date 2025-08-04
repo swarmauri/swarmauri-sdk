@@ -44,8 +44,8 @@ def _local_ip() -> str:
 class WorkerBase:
     """
     Minimal worker that registers with an AutoAPI-powered gateway,
-    exposes /rpc for `Works.create`, executes the work locally, and
-    reports progress via `Works.update`.
+    exposes /rpc for `Work.create`, executes the work locally, and
+    reports progress via `Work.update`.
     """
 
     # ───────────────────────── constructor ──────────────────────────
@@ -128,7 +128,7 @@ class WorkerBase:
     # ────────────────────── AutoAPI interactions ───────────────────
     async def _startup(self) -> None:
         """
-        • Create Worker row (Workers.create)
+        • Create Worker row (Worker.create)
         • Kick off heartbeat loop
         """
         try:
@@ -171,7 +171,7 @@ class WorkerBase:
                     advertises={"cpu": True},
                     handlers={"handlers": list(self._handlers)},
                 )  # last_seen handled server-side
-                self._client.call("Workers.update", params=upd)
+                self._client.call("Worker.update", params=upd)
                 self.log.debug("heartbeat ok")
             except Exception as exc:  # pragma: no cover
                 self.log.warning("heartbeat failed: %s", exc)
@@ -180,7 +180,7 @@ class WorkerBase:
     async def _run_work(self, raw: dict) -> None:
         """
         Dispatch *raw* JSON-RPC payload to the appropriate local handler
-        and report status back via `Works.update`.
+        and report status back via `Work.update`.
         """
         try:
             work_in = SWorkCreate.model_validate(raw)
@@ -210,7 +210,7 @@ class WorkerBase:
     ) -> None:
         try:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
-            self._client.call("Works.update", params=upd)
-            self.log.info("Works.update %s → %s", work_id, status)
+            self._client.call("Work.update", params=upd)
+            self.log.info("Work.update %s → %s", work_id, status)
         except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)

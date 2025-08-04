@@ -60,7 +60,7 @@ def login(
     # 3 ─ JSON-RPC call via AutoAPIClient
     with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
         try:
-            result = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
+            result = rpc.call("PublicKey.create", params=params, out_schema=SRead)
         except (httpx.HTTPError, RuntimeError):
             raise
 

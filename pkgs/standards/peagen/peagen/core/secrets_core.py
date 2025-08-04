@@ -34,7 +34,7 @@ def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:
     try:
         with _rpc(gateway_url) as rpc:
             workers = rpc.call(
-                "Workers.list",
+                "Worker.list",
                 params=SListIn(pool=pool),
                 out_schema=list[SRead],  # type: ignore[arg-type]
             )
@@ -112,7 +112,7 @@ def add_remote_secret(
     params = SCreate(name=secret_id, cipher=cipher, version=version)
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("RepoSecrets.create", params=params, out_schema=SRead)
+        res = rpc.call("RepoSecret.create", params=params, out_schema=SRead)
     return res.model_dump()
 
 
@@ -125,7 +125,7 @@ def get_remote_secret(
     SRead = _schema(RepoSecret, "read")
 
     with _rpc(gateway_url) as rpc:
-        res = rpc.call("RepoSecrets.read", params=SDel(name=secret_id), out_schema=SRead)
+        res = rpc.call("RepoSecret.read", params=SDel(name=secret_id), out_schema=SRead)
 
     if not res.cipher:
         raise ValueError("RepoSecret not found or is empty.")

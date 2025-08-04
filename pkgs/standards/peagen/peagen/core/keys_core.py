@@ -1,12 +1,12 @@
-"""
+z"""
 Key-pair helpers driven by `peagen.plugins.cryptography`.
 
 Exports
 -------
 create_keypair()      – ensure local key-pair, return fingerprint + pubkey
-upload_public_key()   – POST DeployKeys.create → dict
-remove_public_key()   – DELETE DeployKeys.delete → dict
-fetch_server_keys()   – GET   DeployKeys.list   → [dict]
+upload_public_key()   – POST DeployKey.create → dict
+remove_public_key()   – DELETE DeployKey.delete → dict
+fetch_server_keys()   – GET   DeployKey.list   → [dict]
 """
 
 from __future__ import annotations
@@ -89,7 +89,7 @@ def upload_public_key(
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
-            "DeployKeys.create",
+            "DeployKey.create",
             params=SCreateIn(key=drv.public_key_str()),
             out_schema=SRead,
         )
@@ -104,7 +104,7 @@ def remove_public_key(
 
     with _rpc(gateway_url) as rpc:
         res: dict = rpc.call(
-            "DeployKeys.delete",
+            "DeployKey.delete",
             params=SDeleteIn(fingerprint=fingerprint),
             out_schema=dict,
         )
@@ -117,7 +117,7 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> list[dict]:
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
-            "DeployKeys.list",
+            "DeployKey.list",
             params=SListIn(),  # no filters
             out_schema=list[SRead],  # type: ignore[arg-type]
         )
