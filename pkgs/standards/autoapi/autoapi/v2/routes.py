@@ -10,9 +10,13 @@ from typing import Type, Optional
 def _nested_prefix(self, model: Type) -> Optional[str]:
     """Return the user-supplied hierarchical prefix or *None*.
 
-    • If the SQLAlchemy model defines a `_nested_path` string
-      → return it verbatim.
+    • If the SQLAlchemy model defines `__autoapi_nested_paths__`
+      → call it and return the result.
+    • Else, fall back to legacy `_nested_path` string if present.
     • Otherwise → signal ``no nested route wanted`` with ``None``.
     """
 
+    cb = getattr(model, "__autoapi_nested_paths__", None)
+    if callable(cb):
+        return cb()
     return getattr(model, "_nested_path", None)

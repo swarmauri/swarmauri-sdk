@@ -140,7 +140,10 @@ async def api_client(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-        _nested_path = "/tenants/{tenant_id}"
+
+        @classmethod
+        def __autoapi_nested_paths__(cls):
+            return "/tenants/{tenant_id}"
 
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)

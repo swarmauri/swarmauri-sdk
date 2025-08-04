@@ -13,6 +13,7 @@ from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
@@ -32,10 +33,12 @@ from .types import (
     _SchemaVerb,
     AuthNProvider,
     MethodType,
-    SimpleNamespace
+    SimpleNamespace,
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
+
+
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""
@@ -65,7 +68,8 @@ class AutoAPI:
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
-        self._schemas:     OrderedDict[str, Type["BaseModel"]]   = OrderedDict()
+        self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
+        self._allow_anon: set[str] = set()
 
         # attribute-style access, e.g.  api.methods.UserCreate(...)
         self.methods: SimpleNamespace = SimpleNamespace()
@@ -83,25 +87,22 @@ class AutoAPI:
         # ---------- add register_transactional---------------------
         self.transactional = MethodType(_register_tx, self)
 
+        # ─── convenience: explicit registration ----------------------
+        def _register_existing_tx(
+            self, fn: Callable[..., Any], **kw
+        ) -> Callable[..., Any]:
+            """
+            Register *fn* as a transactional handler *after* it was defined.
 
-         # ─── convenience: explicit registration ----------------------
-        def _register_existing_tx(self,
-                fn: Callable[..., Any],
-                **kw) -> Callable[..., Any]:
-             """
-             Register *fn* as a transactional handler *after* it was defined.
+            Example
+            -------
+                def bundle_create(p, db): ...
+                api.register_transactional(bundle_create,
+                                           name='bundle.create')
+            """
+            return self.transactional(fn, **kw)
 
-             Example
-             -------
-                 def bundle_create(p, db): ...
-                 api.register_transactional(bundle_create,
-                                            name='bundle.create')
-             """
-             return self.transactional(fn, **kw)
-
-        self.register_transactional = MethodType(
-            _register_existing_tx, self
-        )
+        self.register_transactional = MethodType(_register_existing_tx, self)
 
         # ---------- create schema once ---------------------------
         if include:
@@ -173,7 +174,7 @@ class AutoAPI:
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
     # schema = staticmethod(_schema)   # <- prevents self-binding
-    _schema = _schema                # keep the private alias if you still need it
+    _schema = _schema  # keep the private alias if you still need it
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc

@@ -43,7 +43,10 @@ from sqlalchemy.ext.hybrid import hybrid_property
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
+from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
+from .nested_path_provider import NestedPathProvider
+from .allow_anon_provider import AllowAnonProvider
 
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
@@ -54,7 +57,10 @@ __all__: list[str] = [
     "_Op",
     "_SchemaVerb",
     "AuthNProvider",
+    "TableConfigProvider",
     "HookProvider",
+    "NestedPathProvider",
+    "AllowAnonProvider",
     # builtin types
     "MethodType",
     "SimpleNamespace",
