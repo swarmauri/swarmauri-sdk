@@ -9,6 +9,7 @@ from autoapi.v2.types import (
     MutableDict,
     relationship,
     HookProvider,
+    AllowAnonProvider,
 )
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import GUIDPk, Timestamped
@@ -17,7 +18,7 @@ from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 from .pools import Pool
 
 
-class Worker(Base, GUIDPk, Timestamped, HookProvider):
+class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __tablename__ = "workers"
     pool_id = Column(
         PgUUID(as_uuid=True),
@@ -249,6 +250,10 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider):
             await _publish_event(queue, "Worker.delete", {"id": worker_id})
         except Exception as exc:  # noqa: BLE001
             log.info("failure to _publish_event for: `Worker.delete` err: %s", exc)
+
+    @classmethod
+    def __autoapi_allow_anon__(cls) -> set[str]:
+        return {"create"}
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
