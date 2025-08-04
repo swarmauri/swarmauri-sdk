@@ -20,10 +20,9 @@ from autoapi.v2.mixins import (
     Timestamped,
     TenantBound,
     Ownable,
-    RepositoryRefMixin,
     StatusMixin,
 )
-
+from peagen.orm import RepositoryRefMixin
 
 class Action(str, Enum):
     SORT = auto()

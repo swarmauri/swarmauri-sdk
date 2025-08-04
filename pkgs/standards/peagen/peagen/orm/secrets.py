@@ -9,8 +9,8 @@ from autoapi.v2.types import (
     relationship,
 )
 from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, OrgMixin, RepositoryMixin, Timestamped, UserMixin
-
+from autoapi.v2.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
+from peagen.orm import RepositoryRefMixin
 
 class _SecretCoreMixin:
     name = Column(String(128), nullable=False)

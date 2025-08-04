@@ -11,7 +11,8 @@ from autoapi.v2.types import (
 )
 from autoapi.v2.types import relationship
 from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, RepositoryRefMixin, Timestamped, UserMixin
+from autoapi.v2.mixins import GUIDPk, Timestamped, UserMixin
+from peagen.orm import RepositoryRefMixin
 
 
 class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
