@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field, constr
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crypto import hash_pw
@@ -81,14 +82,17 @@ class IntrospectOut(BaseModel):
 # ============================================================================
 #  Endpoint implementations
 # ============================================================================
-@router.post("/register", response_model=TokenPair,
-             status_code=status.HTTP_201_CREATED,
-             responses={
-                 400: {"description": "invalid params"},
-                 404: {"description": "tenant not found"},
-                 409: {"description": "duplicate key"},
-                 500: {"description": "database error"},
-             })
+@router.post(
+    "/register",
+    response_model=TokenPair,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {"description": "invalid params"},
+        404: {"description": "tenant not found"},
+        409: {"description": "duplicate key"},
+        500: {"description": "database error"},
+    },
+)
 async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
     try:
         # 1. look up pre-existing tenant
@@ -100,24 +104,25 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
 
         # 2. create user
-        user = User(tenant_id=tenant.id,
-                    username=body.username,
-                    email=body.email,
-                    password_hash=hash_pw(body.password))
+        user = User(
+            tenant_id=tenant.id,
+            username=body.username,
+            email=body.email,
+            password_hash=hash_pw(body.password),
+        )
         db.add(user)
         await db.commit()
     except IntegrityError as exc:
         await db.rollback()
-        raise HTTPException(status.HTTP_409_CONFLICT,
-                            "duplicate key") from exc
+        raise HTTPException(status.HTTP_409_CONFLICT, "duplicate key") from exc
     except Exception as exc:
         await db.rollback()
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            "database error") from exc
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
+        ) from exc
 
     access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(tenant.id))
     return TokenPair(access_token=access, refresh_token=refresh)
-
 
 
 @router.post("/login", response_model=TokenPair)
@@ -125,7 +130,7 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
 async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     try:
         user = await _pwd_backend.authenticate(db, body.identifier, body.password)
-    except AuthError as exc:
+    except AuthError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
 
     access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
