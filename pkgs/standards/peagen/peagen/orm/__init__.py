@@ -19,7 +19,6 @@ from autoapi.v2.types import (
     CheckConstraint,
     PgEnum,
     PgUUID,
-    MutableDict,
     relationship,
     foreign,
     remote,
@@ -46,18 +45,9 @@ from autoapi.v2.mixins import (
     StatusMixin,
     BlobRef,
 )
-from peagen.defaults import (
-    DEFAULT_POOL_NAME,
-    DEFAULT_POOL_ID,
-    DEFAULT_TENANT_ID,
-    # DEFAULT_TENANT_EMAIL,
-    # DEFAULT_TENANT_NAME,
-    # DEFAULT_TENANT_SLUG,
-    # DEFAULT_SUPER_USER_ID,
-    # DEFAULT_SUPER_USER_EMAIL,
-    # DEFAULT_SUPER_USER_ID_2,
-    # DEFAULT_SUPER_USER_EMAIL_2
-)
+
+from .pools import Pool
+from .workers import Worker
 
 
 # ---------------------------------------------------------------------
@@ -89,7 +79,7 @@ class Tenant(TenantBase, Bootstrappable):
 
 
 class User(UserBase, Bootstrappable):
-    pass 
+    pass
     # DEFAULT_ROWS = [
     #     {
     #         "id": DEFAULT_SUPER_USER_ID,
@@ -102,6 +92,7 @@ class User(UserBase, Bootstrappable):
     #         "tenant_id": DEFAULT_TENANT_ID,
     #     }
     # ]
+
 
 class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
     """
@@ -189,52 +180,48 @@ class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
 # ---------------------------------------------------------------------
 
 
-
 class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "public_keys"
-    __table_args__ = (
-        UniqueConstraint("user_id", "public_key"),
-    )
-    title      = Column(String, nullable=False)
+    __table_args__ = (UniqueConstraint("user_id", "public_key"),)
+    title = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
 
+
 class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "gpg_keys"
-    __table_args__ = (
-        UniqueConstraint("user_id", "gpg_key"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "gpg_key"),)
     gpg_key = Column(String, nullable=False)
     # Placeholder for compelte implementation
 
+
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
     __tablename__ = "deploy_keys"
-    __table_args__ = (
-        UniqueConstraint("repository_id", "public_key"),
-    )
-    title      = Column(String, nullable=False)
+    __table_args__ = (UniqueConstraint("repository_id", "public_key"),)
+    title = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
 
     repository = relationship(Repository, back_populates="deploy_keys")
 
+
 # ---------------------------------------------------------------------
 # 3) Secrets
 # ---------------------------------------------------------------------
-class _SecretCoreMixin:                       # no table, just columns
+class _SecretCoreMixin:  # no table, just columns
     name = Column(String(128), nullable=False)  # max 128 chars
-    data = Column(String,       nullable=False)  # encrypted/encoded blob
-    desc = Column(String,       nullable=True)   # optional free-text
+    data = Column(String, nullable=False)  # encrypted/encoded blob
+    desc = Column(String, nullable=True)  # optional free-text
 
     # generic input guard – tighten as needed
-    __table_args__ = (
-        CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
-    )
+    __table_args__ = (CheckConstraint("length(name) > 0", name="chk_name_nonempty"),)
+
 
 class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
     """
     One secret per (user_id, name).  Deleted when the user is deleted.
     """
+
     __tablename__ = "user_secrets"
 
     __table_args__ = (
@@ -244,21 +231,25 @@ class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
         *_SecretCoreMixin.__table_args__,
     )
 
+
 class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
     """
     Secret that belongs to an organisation; cascades with the org row.
     """
+
     __tablename__ = "org_secrets"
 
     __table_args__ = (
         UniqueConstraint("org_id", "name"),
         *_SecretCoreMixin.__table_args__,
     )
-    
+
+
 class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
     """
     Secret tied to a repository; follows repo ownership transfers & deletes.
     """
+
     __tablename__ = "repo_secrets"
 
     repository = relationship("Repository", back_populates="secrets")
@@ -268,49 +259,10 @@ class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
         *_SecretCoreMixin.__table_args__,
     )
 
+
 # ---------------------------------------------------------------------
 # 4) Execution / queue objects (unchanged parents but FK tweaks)
 # ---------------------------------------------------------------------
-
-
-class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
-    __tablename__ = "pools"
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name"),
-    )
-    name = Column(String, nullable=False, unique=True)
-    DEFAULT_ROWS = [
-        {
-            "id": DEFAULT_POOL_ID,
-            "name": DEFAULT_POOL_NAME,
-            "tenant_id": DEFAULT_TENANT_ID,
-        }
-    ]
-
-
-class Worker(Base, GUIDPk, Timestamped):
-    __tablename__ = "workers"
-    pool_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("pools.id"),
-        nullable=False,
-        default=DEFAULT_POOL_ID,
-    )
-    url = Column(String, nullable=False, info=dict(no_update=True))
-    advertises = Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True,
-        info=dict(no_update=True)
-    )
-    handlers =  Column(
-        MutableDict.as_mutable(JSON),   # or JSON
-        default=lambda: {},       # ✔ correct for SQLAlchemy
-        nullable=True,
-        info=dict(no_update=True)
-    )
-
-    pool = relationship(Pool, backref="workers")
 
 
 class Action(str, Enum):

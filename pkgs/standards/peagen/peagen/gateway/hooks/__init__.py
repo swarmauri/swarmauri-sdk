@@ -8,10 +8,6 @@ from .keys import (
     post_key_delete,
 )
 
-from .pools import (
-    pre_pool_create, 
-    post_pool_create,
-)
 
 from .secrets import (
     post_secret_add,
@@ -27,15 +23,6 @@ from .tasks import (
     post_task_read,
 )
 
-from .workers import (
-    post_worker_create_cache_pool,
-    post_worker_create_cache_worker,
-    pre_worker_update,
-    post_worker_update_cache_pool,
-    post_worker_update_cache_worker,
-    post_workers_list,
-)
-
 from .works import (
     post_work_update,
 )
@@ -46,8 +33,6 @@ __all__ = [
     "post_key_fetch",
     "pre_key_delete",
     "post_key_delete",
-    "pre_pool_create", 
-    "post_pool_create",
     "post_secret_add",
     "post_secret_delete",
     "pre_task_create",
@@ -56,11 +41,5 @@ __all__ = [
     "post_task_update",
     "pre_task_read",
     "post_task_read",
-    "post_worker_create_cache_pool",
-    "post_worker_create_cache_worker",
-    "pre_worker_update",
-    "post_worker_update_cache_pool",
-    "post_worker_update_cache_worker",
-    "post_workers_list",
     "post_work_update",
 ]
