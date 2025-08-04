@@ -35,7 +35,7 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider)
         from peagen.gateway import log, queue
 
         log.info("entering post_pool_create")
-        created = cls._SRead(**ctx["result"])
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         await queue.sadd("pools", created.name)
         log.info("pool created: %s", created.name)
         ctx["result"] = created.model_dump()

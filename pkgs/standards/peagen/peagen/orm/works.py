@@ -41,7 +41,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
         from peagen.orm import Status
 
         log.info("entering post_work_update")
-        wr = cls._SRead(**ctx["result"])
+        wr = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         if not Status.is_terminal(wr.status):
             return
         task = await _load_task(queue, str(wr.task_id))

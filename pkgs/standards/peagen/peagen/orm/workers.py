@@ -104,7 +104,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     async def _post_create_cache_pool(cls, ctx):
         from peagen.gateway import log, queue
 
-        created = cls._SRead(**ctx["result"])
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         log.info("worker %s joined pool_id %s", created.id, created.pool_id)
         try:
             await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
@@ -115,7 +115,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     async def _post_create_cache_worker(cls, ctx):
         from peagen.gateway import log, queue
 
-        created = cls._SRead(**ctx["result"])
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         try:
             key = WORKER_KEY.format(str(created.id))
             await queue.hset(key, cls._as_redis_hash(created))
@@ -134,7 +134,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     async def _post_create_auto_register(cls, ctx):
         from peagen.gateway import authn_adapter, log
 
-        created = cls._SRead(**ctx["result"])
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         try:
             base = authn_adapter.base_url
 
@@ -151,9 +151,17 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
 
+            from datetime import datetime, timedelta, timezone
+
+            valid_to = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+
             key_resp = await authn_adapter._client.post(
                 f"{base}/service_keys",
-                json={"service_id": service_id, "label": "worker"},
+                json={
+                    "service_id": service_id,
+                    "label": "worker",
+                    "valid_to": valid_to,
+                },
             )
             key_resp.raise_for_status()
             body = key_resp.json()
@@ -218,7 +226,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
         worker_id = ctx["worker_id"]
         try:
-            updated = cls._SRead(**ctx["result"])
+            updated = cls._SRead.model_validate(ctx["result"], from_attributes=True)
             if updated.pool_id:
                 await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
             log.info("cached member `%s` in `%s`", worker_id, updated.pool_id)
@@ -237,7 +245,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
         worker_id = ctx["worker_id"]
         try:
-            updated = cls._SRead(**ctx["result"])
+            updated = cls._SRead.model_validate(ctx["result"], from_attributes=True)
             key = WORKER_KEY.format(worker_id)
             await queue.hset(key, {"updated_at": str(updated.updated_at)})
             await queue.expire(key, WORKER_TTL)

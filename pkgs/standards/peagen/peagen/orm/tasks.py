@@ -116,7 +116,7 @@ class Task(
         from peagen.gateway.schedule_helpers import _save_task
 
         log.info("entering post_task_create")
-        created = cls._SRead(**ctx["result"])
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         submitted = ctx["task_in"]
         wire = submitted.model_copy(update={"id": created.id})
         await queue.rpush(
