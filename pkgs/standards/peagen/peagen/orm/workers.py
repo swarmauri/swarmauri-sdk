@@ -89,7 +89,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         pool_id = params["pool_id"]
         ip = cls._client_ip(ctx["request"])
 
-        async def _get_policy_and_count(session):
+        def _get_policy_and_count(session):
             pool = session.get(Pool, pool_id)
             count = session.query(cls).filter(cls.pool_id == pool_id).count()
             return (pool.policy if pool else {}, count)
@@ -170,7 +170,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
         ip = cls._client_ip(ctx["request"])
 
-        async def _get_policy_and_count(session):
+        def _get_policy_and_count(session):
             pool = session.get(Pool, pool_id)
             count = session.query(cls).filter(cls.pool_id == pool_id).count()
             return (pool.policy if pool else {}, count)
