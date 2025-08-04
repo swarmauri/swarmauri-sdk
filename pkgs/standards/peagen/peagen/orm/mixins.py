@@ -7,9 +7,7 @@ from autoapi.v2.types import (
     String,
     declarative_mixin,
     declared_attr,
-    foreign,
     relationship,
-    remote,
 )
 
 
@@ -38,12 +36,10 @@ class RepositoryRefMixin:
 
     @declared_attr
     def repository(cls):
-        from peagen.orm import Repository  # late import
-
         return relationship(
             "Repository",
             back_populates="tasks",
-            primaryjoin=foreign(cls.repository_id) == remote(Repository.id),
+            foreign_keys=lambda: [cls.repository_id],
         )
 
 
