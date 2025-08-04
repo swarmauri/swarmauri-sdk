@@ -61,13 +61,9 @@ def _init_hooks(self) -> None:
             if model is not None and op is not None:
                 # Model + op parameters
                 if isinstance(model, str):
-                    model_name = model
+                    model_name = "".join(w.title() for w in model.split("_"))
                 else:
-                    # Handle object reference - use table name and convert to canonical form
-                    # to match the method naming convention used by _canonical()
-                    table_name = getattr(model, "__tablename__", model.__name__.lower())
-                    # Convert table_name to canonical form (e.g., "items" -> "Items")
-                    model_name = "".join(w.title() for w in table_name.split("_"))
+                    model_name = model.__name__
                 hook_key = f"{model_name}.{op}"
             elif model is not None or op is not None:
                 # Error: both model and op must be provided together

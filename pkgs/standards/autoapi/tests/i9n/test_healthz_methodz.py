@@ -59,18 +59,18 @@ async def test_methodz_endpoint_comprehensive(api_client):
         assert isinstance(method_name, str)
         assert "." in method_name  # Should follow Model.operation pattern
 
-    # Should have methods for Items and Tenants (from conftest)
+    # Should have methods for Item and Tenant (from conftest)
     expected_methods = [
-        "Items.create",
-        "Items.read",
-        "Items.update",
-        "Items.delete",
-        "Items.list",
-        "Tenants.create",
-        "Tenants.read",
-        "Tenants.update",
-        "Tenants.delete",
-        "Tenants.list",
+        "Item.create",
+        "Item.read",
+        "Item.update",
+        "Item.delete",
+        "Item.list",
+        "Tenant.create",
+        "Tenant.read",
+        "Tenant.update",
+        "Tenant.delete",
+        "Tenant.list",
     ]
 
     for method in expected_methods:
@@ -86,14 +86,14 @@ async def test_methodz_basic_functionality(api_client):
     response = await client.get("/methodz")
     data = response.json()
 
-    # Should contain Items.create method
-    assert "Items.create" in data
+    # Should contain Item.create method
+    assert "Item.create" in data
 
     # Should contain basic CRUD operations
     crud_operations = ["create", "read", "update", "delete", "list"]
     for operation in crud_operations:
-        assert f"Items.{operation}" in data
-        assert f"Tenants.{operation}" in data
+        assert f"Item.{operation}" in data
+        assert f"Tenant.{operation}" in data
 
 
 @pytest.mark.i9n
@@ -142,11 +142,11 @@ async def test_methodz_reflects_dynamic_models(api_client):
     initial_data = response.json()
 
     # Should include methods for models from conftest
-    assert "Tenants.create" in initial_data
-    assert "Tenants.read" in initial_data
-    assert "Tenants.update" in initial_data
-    assert "Tenants.delete" in initial_data
-    assert "Tenants.list" in initial_data
+    assert "Tenant.create" in initial_data
+    assert "Tenant.read" in initial_data
+    assert "Tenant.update" in initial_data
+    assert "Tenant.delete" in initial_data
+    assert "Tenant.list" in initial_data
 
 
 @pytest.mark.i9n
