@@ -10,6 +10,8 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
+
+import sqlalchemy as sa
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -34,6 +36,7 @@ from .types import (
     AuthNProvider,
     MethodType,
     SimpleNamespace,
+    ClearTableProvider,
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
@@ -158,6 +161,10 @@ class AutoAPI:
                         tables=self.tables,
                     )
                 )
+                for model in self.include:
+                    if issubclass(model, ClearTableProvider):
+                        await adb.execute(sa.delete(model))
+                await adb.commit()
                 break
             self._ddl_executed = True
 
@@ -170,6 +177,10 @@ class AutoAPI:
                     checkfirst=True,
                     tables=self.tables,
                 )
+                for model in self.include:
+                    if issubclass(model, ClearTableProvider):
+                        db.execute(sa.delete(model))
+                db.commit()
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
