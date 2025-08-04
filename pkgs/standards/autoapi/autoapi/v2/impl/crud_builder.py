@@ -16,6 +16,7 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
+
 def _not_found() -> None:
     """Raise a standardized 404 error."""
     http_exc, _, _ = create_standardized_error(404, rpc_code=-32094)

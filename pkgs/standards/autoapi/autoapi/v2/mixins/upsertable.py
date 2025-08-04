@@ -38,7 +38,7 @@ from typing import Any, Mapping, Sequence
 
 from sqlalchemy import inspect
 
-from autoapi.v2.hooks         import Phase
+from autoapi.v2.hooks import Phase
 from autoapi.v2.types import Session, HookProvider
 
 
@@ -63,9 +63,9 @@ class Upsertable(HookProvider):
         model = cls.__name__.lower()
 
         for op in ("create", "update", "replace"):
-            api.register_hook(
-                Phase.PRE_TX_BEGIN, model=model, op=op
-            )(cls._make_hook(op))
+            api.register_hook(Phase.PRE_TX_BEGIN, model=model, op=op)(
+                cls._make_hook(op)
+            )
 
     # ─── hook factory -----------------------------------------------------
     @classmethod
@@ -76,13 +76,11 @@ class Upsertable(HookProvider):
         the operation without any client-side change.
         """
 
-        async def _hook(ctx: Mapping[str, Any]) -> None:          # noqa: D401
-            p  : dict    = ctx["payload"]                         # request body
-            db : Session = ctx["db"]                              # current Tx
+        async def _hook(ctx: Mapping[str, Any]) -> None:  # noqa: D401
+            p: dict = ctx["payload"]  # request body
+            db: Session = ctx["db"]  # current Tx
 
-            keys = cls.__upsert_keys__ or [
-                col.name for col in inspect(cls).primary_key
-            ]
+            keys = cls.__upsert_keys__ or [col.name for col in inspect(cls).primary_key]
 
             exists = cls._row_exists(p, db, keys)
 
@@ -104,7 +102,9 @@ class Upsertable(HookProvider):
 
     # ─── helpers ----------------------------------------------------------
     @classmethod
-    def _row_exists(cls, p: Mapping[str, Any], db: Session, keys: Sequence[str]) -> bool:
+    def _row_exists(
+        cls, p: Mapping[str, Any], db: Session, keys: Sequence[str]
+    ) -> bool:
         """
         Quick existence test on the *natural key*.
         """

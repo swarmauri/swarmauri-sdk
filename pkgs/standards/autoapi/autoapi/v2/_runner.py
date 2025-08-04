@@ -5,6 +5,7 @@ from typing import Callable, Mapping, MutableMapping, Any, Optional
 from types import SimpleNamespace
 
 from .hooks import Phase
+from .services.auto_registry import create_auto_services
 
 
 # ---------------------------------------------------------------------------#
@@ -26,6 +27,7 @@ async def _invoke(
     params    : flat dict of parameters (exactly what JSON-RPC would carry)
     ctx       : mutable context injected into every hook
                 ─ keys **required** so far: ``request``, ``db``, ``env``
+                ─ keys **added** by this refactor: ``services``
     exec_fn   : optional delegate that knows how to execute the business
                 function inside an AsyncSession’s `run_sync`.  REST routes that
                 hold an `AsyncSession` supply this, otherwise leave *None*.
@@ -35,6 +37,13 @@ async def _invoke(
     The raw result (dict / list / pydantic dump) produced by the business func.
     """
     db = ctx["db"]
+
+    # ─── SERVICE INJECTION ───────────────────────────────────────────────────
+    # Create services and inject into context
+    # This replaces direct database access in hooks with high-level business operations
+    # Auto-generate services for all registered models
+    services = create_auto_services(db, api.include)
+    ctx["services"] = services
 
     try:
         # ─── PRE hook ────────────────────────────────────────────────────────

@@ -77,7 +77,12 @@ def build_gateway(api) -> APIRouter:
     # ───────── asynchronous SQLAlchemy branch ──────────────────────────────
     else:
 
-        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"], dependencies=[api._authn_dep],)
+        @r.post(
+            "/rpc",
+            response_model=_RPCRes,
+            tags=["rpc"],
+            dependencies=[api._authn_dep],
+        )
         async def _gateway(
             req: Request,
             env: _RPCReq = Body(..., embed=False),

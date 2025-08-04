@@ -52,8 +52,9 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
 
 
 def _canonical(table: str, verb: str) -> str:
-    cls_name = ''.join(w.title() for w in table.rstrip('s').split('_'))
+    cls_name = "".join(w.title() for w in table.rstrip("s").split("_"))
     return f"{cls_name}.{verb}"
+
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
@@ -290,13 +291,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # ─── register on parent API (makes it available under api.schemas.*) ──
         for s in (In, Out):
-            if s is None:           # ← skip empty side of the IO pair
+            if s is None:  # ← skip empty side of the IO pair
                 continue
             name = s.__name__
             if name not in self._schemas:
                 self._schemas[name] = s
                 setattr(self.schemas, name, s)
-                
+
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
         self.rpc[m_id] = rpc_fn
@@ -310,7 +311,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 api.methods.UserCreate(SUserCreate(...))
             without having to open a DB session by hand.
             """
-            if db is None:                        # auto-open sync session
+            if db is None:  # auto-open sync session
                 if _api.get_db is None:
                     raise TypeError(
                         "Supply a Session via db=... "
@@ -322,10 +323,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     return _api.rpc[_method](payload, db)
                 finally:
                     try:
-                        next(gen)                 # finish generator → close
+                        next(gen)  # finish generator → close
                     except StopIteration:
                         pass
-            else:                                 # caller supplied session
+            else:  # caller supplied session
                 return _api.rpc[_method](payload, db)
 
         # register under ._method_ids  and  .methods.<CamelName>
