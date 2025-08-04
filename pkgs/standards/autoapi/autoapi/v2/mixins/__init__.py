@@ -150,11 +150,13 @@ class Created:
 
 @declarative_mixin
 class LastUsed:
-    last_used_at = Column(TZDateTime, nullable=True)
-
-    def touch(self) -> None:
-        """Update `last_used_at` on successful authentication."""
-        self.last_used_at = tzutcnow()
+    last_used_at = Column(
+        TZDateTime, 
+        nullable=True, 
+        onupdate=tzutcnow,
+        info=dict(no_create=True, no_update=True),
+    )
+        
 
 
 @declarative_mixin
