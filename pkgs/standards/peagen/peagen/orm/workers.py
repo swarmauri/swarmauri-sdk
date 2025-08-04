@@ -86,7 +86,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
         log.info("entering pre_worker_create_policy_gate")
         params = ctx["env"].params
-        pool_id = params.pool_id
+        pool_id = params["pool_id"]
         ip = cls._client_ip(ctx["request"])
 
         async def _get_policy_and_count(session):
