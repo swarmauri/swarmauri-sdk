@@ -44,7 +44,8 @@ class RemoteAuthNAdapter(AuthNProvider):
         cache_size: int = 10_000,
         client: httpx.AsyncClient | None = None,
     ) -> None:
-        self._introspect = f"{base_url.rstrip('/')}/apikeys/introspect"
+        self.base_url = base_url.rstrip("/")
+        self._introspect = f"{self.base_url}/apikeys/introspect"
         self._client = client or httpx.AsyncClient(
             timeout=timeout,
             headers={"User-Agent": "autoauthn-remote-adapter"},

@@ -129,16 +129,32 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
     @classmethod
     async def _post_create_auto_register(cls, ctx):
-        from peagen.gateway import log, authn_adapter
+        from peagen.gateway import authn_adapter, log
 
         created = cls._SRead(**ctx["result"])
         try:
-            resp = await authn_adapter._client.post(
-                f"{authn_adapter._introspect.rsplit('/', 1)[0]}/workers",
-                json={"worker_id": str(created.id)},
+            base = authn_adapter.base_url
+
+            def _tenant_id(session):
+                pool = session.get(Pool, created.pool_id)
+                return str(pool.tenant_id) if pool else None
+
+            tenant_id = await ctx["db"].run_sync(_tenant_id)
+
+            svc_resp = await authn_adapter._client.post(
+                f"{base}/services",
+                json={"name": f"worker-{created.id}", "tenant_id": tenant_id},
             )
-            resp.raise_for_status()
-            ctx["raw_worker_key"] = resp.json().get("api_key")
+            svc_resp.raise_for_status()
+            service_id = svc_resp.json()["id"]
+
+            key_resp = await authn_adapter._client.post(
+                f"{base}/service_keys",
+                json={"service_id": service_id, "label": "worker"},
+            )
+            key_resp.raise_for_status()
+            body = key_resp.json()
+            ctx["raw_worker_key"] = body.get("api_key") or body.get("raw_key")
         except Exception as exc:  # pragma: no cover
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
