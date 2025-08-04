@@ -15,6 +15,7 @@ from autoapi.v2.types import (
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import GUIDPk, Timestamped
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
+from secrets import token_urlsafe
 
 from .pools import Pool
 
@@ -151,13 +152,13 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
 
+            raw_key = token_urlsafe(8)
             key_resp = await authn_adapter._client.post(
                 f"{base}/service_keys",
-                json={"service_id": service_id, "label": "worker"},
+                json={"service_id": service_id, "label": "worker", "raw_key": raw_key},
             )
             key_resp.raise_for_status()
-            body = key_resp.json()
-            ctx["raw_worker_key"] = body.get("api_key") or body.get("raw_key")
+            ctx["raw_worker_key"] = raw_key
         except Exception as exc:  # pragma: no cover
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
