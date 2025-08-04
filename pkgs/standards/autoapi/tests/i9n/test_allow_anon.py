@@ -1,16 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import Column, String, ForeignKey, create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
 
 from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.mixins import GUIDPk
 from autoapi.v2.types import AuthNProvider
+from fastapi import Request
 
 
 class DummyAuth(AuthNProvider):
-    async def get_principal(self, request):
+    async def get_principal(self, request: Request):
         if request.headers.get("Authorization") != "Bearer secret":
             raise HTTPException(status_code=401)
         return {"sub": "user"}
@@ -36,7 +38,9 @@ def _build_client():
             return {"list", "read"}
 
     engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 

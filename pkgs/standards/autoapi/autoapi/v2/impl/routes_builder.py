@@ -52,7 +52,17 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
 
 
 def _canonical(table: str, verb: str) -> str:
-    cls_name = "".join(w.title() for w in table.rstrip("s").split("_"))
+    """Return canonical RPC method name.
+
+    Historically AutoAPI exposed RPC identifiers using the pluralized table
+    name followed by the operation verb separated with a dot – e.g.
+    ``Items.create``.  The previous implementation attempted to singularize
+    the table name via ``rstrip('s')`` which produced identifiers such as
+    ``Item.create``.  The test-suite (and existing consumers) expect the
+    plural form, so we keep the table name intact and simply convert it to
+    ``PascalCase``.
+    """
+    cls_name = "".join(w.title() for w in table.split("_"))
     return f"{cls_name}.{verb}"
 
 
@@ -336,8 +346,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             else:  # caller supplied session
                 return _api.rpc[_method](payload, db)
 
-        # register under ._method_ids  and  .methods.<CamelName>
-        self._method_ids[camel] = _runner
+        # register under ._method_ids and .methods.<CamelName>
+        # ``_method_ids`` is used by the ``/methodz`` endpoint and by the hook
+        # subsystem to look up handlers based on their canonical RPC name.  It
+        # should therefore store entries keyed by the canonical identifier
+        # (e.g. ``Items.create``) rather than the camel-cased helper name.
+        self._method_ids[m_id] = _runner
         setattr(self.methods, camel, _runner)
 
     # include routers
