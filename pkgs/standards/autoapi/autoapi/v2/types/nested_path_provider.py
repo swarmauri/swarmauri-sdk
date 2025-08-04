@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from .table_config_provider import TableConfigProvider
 
 _NESTED_PATH_PROVIDERS: set[type] = set()
 
 
-class NestedPathProvider(TableConfigProvider, ABC):
+class NestedPathProvider(TableConfigProvider):
     """Models that supply nested route prefixes."""
 
     @classmethod

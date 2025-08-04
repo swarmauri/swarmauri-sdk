@@ -1,9 +1,7 @@
-from abc import ABC
-
 _TABLE_CONFIG_PROVIDERS: set[type] = set()
 
 
-class TableConfigProvider(ABC):
+class TableConfigProvider:
     """Marker base for table-level configuration providers."""
 
     def __init_subclass__(cls, **kw):

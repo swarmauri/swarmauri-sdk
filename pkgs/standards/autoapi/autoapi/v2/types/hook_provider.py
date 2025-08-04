@@ -1,5 +1,5 @@
 # autoapi/v2/types/hook_provider.py  – tiny helper module
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from .table_config_provider import TableConfigProvider
@@ -10,12 +10,11 @@ if TYPE_CHECKING:  # forward ref avoids circular import
 _HOOK_PROVIDERS: set[type] = set()
 
 
-class HookProvider(TableConfigProvider, ABC):
+class HookProvider(TableConfigProvider):
     """
     Marker-base for mixins / models that attach hooks to an AutoAPI router.
 
     Subclasses **must** implement `__autoapi_register_hooks__`.
-    Failure is caught at *class definition time* (thanks to ABC).
     """
 
     @classmethod

@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from .table_config_provider import TableConfigProvider
 
 _ALLOW_ANON_PROVIDERS: set[type] = set()
 
 
-class AllowAnonProvider(TableConfigProvider, ABC):
+class AllowAnonProvider(TableConfigProvider):
     """Models that expose operations without authentication."""
 
     @classmethod
