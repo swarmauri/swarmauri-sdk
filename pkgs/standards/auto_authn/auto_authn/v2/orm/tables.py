@@ -33,15 +33,17 @@ from autoapi.v2.types import (
     PgUUID,
     ForeignKey,
     HookProvider,
+    UUID,
 )
 from autoapi.v2.tables import (
-    Tenant,
+    Tenant as TenantBase,
     Client as ClientBase,
     User as UserBase,
     ApiKey as ApiKeyBase,
 )
 from autoapi.v2.mixins import (
     GUIDPk,
+    Bootstrappable,
     Timestamped,
     TenantBound,
     Principal,
@@ -61,6 +63,16 @@ _UUID = Annotated[str, mapped_column(String(36), default=lambda: str(uuid.uuid4(
 
 # Regular-expression for a valid client_id (RFC 6749 allows many forms)
 _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
+
+class Tenant(TenantBase, Bootstrappable):
+    DEFAULT_ROWS = [
+        {
+            "id": uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),
+            "email": "tenant@example.com",
+            "name": "Public",
+            "slug": "public",
+        }
+    ]
 
 
 # --------------------------------------------------------------------

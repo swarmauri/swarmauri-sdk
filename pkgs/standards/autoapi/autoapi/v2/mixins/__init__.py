@@ -161,7 +161,9 @@ class LastUsed:
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )
-
+    def touch(self) -> None:
+        """Mark the object as used now."""
+        self.last_used_at = tzutcnow()
 
 @declarative_mixin
 class Timestamped:
