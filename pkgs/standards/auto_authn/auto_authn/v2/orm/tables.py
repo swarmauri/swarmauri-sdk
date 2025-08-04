@@ -33,7 +33,6 @@ from autoapi.v2.types import (
     PgUUID,
     ForeignKey,
     HookProvider,
-    UUID,
 )
 from autoapi.v2.tables import (
     Tenant as TenantBase,
@@ -51,6 +50,7 @@ from autoapi.v2.mixins import (
     Created,
     LastUsed,
     ValidityWindow,
+    uuid_example,
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
@@ -63,6 +63,7 @@ _UUID = Annotated[str, mapped_column(String(36), default=lambda: str(uuid.uuid4(
 
 # Regular-expression for a valid client_id (RFC 6749 allows many forms)
 _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
+
 
 class Tenant(TenantBase, Bootstrappable):
     DEFAULT_ROWS = [
@@ -135,6 +136,13 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 
     __tablename__ = "services"
 
+    tenant_id = Column(
+        PgUUID,
+        ForeignKey("tenants.id"),
+        nullable=False,
+        default=uuid.UUID("ffffffff-0000-0000-0000-000000000000"),
+        info={"autoapi": {"examples": [uuid_example]}},
+    )
     name = Column(String(120), unique=True, nullable=False)
     api_keys = relationship(
         "auto_authn.v2.orm.tables.ServiceKey",
