@@ -1,5 +1,4 @@
 # mixins_generic.py ───── all mix-ins live here
-from uuid import uuid4, UUID
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
 from ..types import (
@@ -19,6 +18,8 @@ from ..types import (
     JSONB,
     TSVECTOR,
     Boolean,
+    UUID,
+    uuid4,
 )
 
 

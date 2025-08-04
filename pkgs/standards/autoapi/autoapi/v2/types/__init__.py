@@ -1,6 +1,6 @@
 # ── third-party ───────────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
-
+from uuid import uuid4, UUID
 from sqlalchemy import (
     Boolean,
     Column,
@@ -101,4 +101,7 @@ __all__: list[str] = [
     # sqlalchemy.ext.mutable
     "MutableDict",
     "MutableList",
+    # uuid convenience
+    "uuid4",
+    "UUID",
 ]
