@@ -87,6 +87,8 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         log.info("entering pre_worker_create_policy_gate")
         params = ctx["env"].params
         pool_id = params["pool_id"]
+        if isinstance(pool_id, str):
+            pool_id = PgUUID(pool_id)
         ip = cls._client_ip(ctx["request"])
 
         def _get_policy_and_count(session):
@@ -134,6 +136,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         created = cls._SRead(**ctx["result"])
         try:
             base = authn_adapter.base_url
+
             def _tenant_id(session):
                 pool = session.get(Pool, created.pool_id)
                 return str(pool.tenant_id) if pool else None
@@ -182,6 +185,8 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             from peagen.gateway import queue
 
             pool_id = await queue.hget(WORKER_KEY.format(worker_id), "pool_id")
+        if isinstance(pool_id, str):
+            pool_id = PgUUID(pool_id)
 
         ip = cls._client_ip(ctx["request"])
 
