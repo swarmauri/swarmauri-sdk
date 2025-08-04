@@ -6,18 +6,13 @@ peagen/orm/__init__.py  –  all Peagen domain tables in one place
 from __future__ import annotations
 
 from typing import FrozenSet
-from enum import Enum, auto
 
 from autoapi.v2.types import (
-    JSON,
-    Boolean,
     Column,
     ForeignKey,
     Integer,
     String,
     UniqueConstraint,
-    CheckConstraint,
-    PgEnum,
     PgUUID,
     relationship,
     foreign,
@@ -37,7 +32,6 @@ from autoapi.v2.mixins import (
     GUIDPk,
     # TenantMixin,
     UserMixin,
-    OrgMixin,
     Ownable,
     Bootstrappable,
     Timestamped,
@@ -48,6 +42,10 @@ from autoapi.v2.mixins import (
 
 from .pools import Pool
 from .workers import Worker
+from .keys import PublicKey, GPGKey, DeployKey
+from .secrets import UserSecret, OrgSecret, RepoSecret
+from .tasks import Action, SpecKind, Task
+from .works import Work
 
 
 # ---------------------------------------------------------------------
@@ -176,153 +174,6 @@ class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
 
 
 # ---------------------------------------------------------------------
-# 3) Keys
-# ---------------------------------------------------------------------
-
-
-class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
-    __tablename__ = "public_keys"
-    __table_args__ = (UniqueConstraint("user_id", "public_key"),)
-    title = Column(String, nullable=False)
-    public_key = Column(String, nullable=False)
-    read_only = Column(Boolean, default=True)
-
-
-class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
-    __tablename__ = "gpg_keys"
-    __table_args__ = (UniqueConstraint("user_id", "gpg_key"),)
-    gpg_key = Column(String, nullable=False)
-    # Placeholder for compelte implementation
-
-
-class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
-    __tablename__ = "deploy_keys"
-    __table_args__ = (UniqueConstraint("repository_id", "public_key"),)
-    title = Column(String, nullable=False)
-    public_key = Column(String, nullable=False)
-    read_only = Column(Boolean, default=True)
-
-    repository = relationship(Repository, back_populates="deploy_keys")
-
-
-# ---------------------------------------------------------------------
-# 3) Secrets
-# ---------------------------------------------------------------------
-class _SecretCoreMixin:  # no table, just columns
-    name = Column(String(128), nullable=False)  # max 128 chars
-    data = Column(String, nullable=False)  # encrypted/encoded blob
-    desc = Column(String, nullable=True)  # optional free-text
-
-    # generic input guard – tighten as needed
-    __table_args__ = (CheckConstraint("length(name) > 0", name="chk_name_nonempty"),)
-
-
-class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
-    """
-    One secret per (user_id, name).  Deleted when the user is deleted.
-    """
-
-    __tablename__ = "user_secrets"
-
-    __table_args__ = (
-        # scope-local uniqueness
-        UniqueConstraint("user_id", "name"),
-        # pull inherited constraints
-        *_SecretCoreMixin.__table_args__,
-    )
-
-
-class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
-    """
-    Secret that belongs to an organisation; cascades with the org row.
-    """
-
-    __tablename__ = "org_secrets"
-
-    __table_args__ = (
-        UniqueConstraint("org_id", "name"),
-        *_SecretCoreMixin.__table_args__,
-    )
-
-
-class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
-    """
-    Secret tied to a repository; follows repo ownership transfers & deletes.
-    """
-
-    __tablename__ = "repo_secrets"
-
-    repository = relationship("Repository", back_populates="secrets")
-
-    __table_args__ = (
-        UniqueConstraint("repository_id", "name"),
-        *_SecretCoreMixin.__table_args__,
-    )
-
-
-# ---------------------------------------------------------------------
-# 4) Execution / queue objects (unchanged parents but FK tweaks)
-# ---------------------------------------------------------------------
-
-
-class Action(str, Enum):
-    SORT = auto()
-    PROCESS = auto()
-    MUTATE = auto()
-    EVOLVE = auto()
-    FETCH = auto()
-    VALIDATE = auto()
-
-
-class SpecKind(str, Enum):
-    DOE = "doe"  # ↦ doe_specs.id
-    EVOLVE = "evolve"  # ↦ evolve_specs.id
-    PAYLOAD = "payload"  # ↦ project_payloads.id
-
-
-class Task(
-    Base, GUIDPk, Timestamped, TenantBound, Ownable, RepositoryRefMixin, StatusMixin
-):
-    """Task table — explicit columns, polymorphic spec ref."""
-
-    __tablename__ = "tasks"
-    __table_args__ = ()
-    # ───────── routing & ownership ──────────────────────────
-    action = Column(PgEnum(Action, name="task_action"), nullable=False)
-    pool_id = Column(PgUUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
-
-    # ───────── workspace reference ──────────────────────────
-    config_toml = Column(String)
-
-    # ───────── polymorphic spec reference ───────────────────
-    spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
-    spec_uuid = Column(PgUUID(as_uuid=True), nullable=True)
-
-    # (DB-level FK can’t point to multiple tables; enforce in application code.)
-
-    # ───────── flexible metadata & labels ───────────────────
-    args = Column(JSON, nullable=False, default=dict)
-    labels = Column(JSON, nullable=False, default=dict)
-    note = Column(String)
-    schema_version = Column(Integer, nullable=False, default=3)
-
-    works = relationship("Work", back_populates="task")  # unchanged
-
-
-class Work(Base, GUIDPk, Timestamped, StatusMixin):
-    """
-    One execution attempt of a Task (retries generate multiple Work rows).
-    """
-
-    __tablename__ = "works"
-    task_id = Column(PgUUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
-    result = Column(JSON, nullable=True)
-    duration_s = Column(Integer)
-
-    task = relationship(Task, back_populates="works")
-
-
-# ---------------------------------------------------------------------
 # 5) Raw blobs (stand-alone)
 # ---------------------------------------------------------------------
 
@@ -345,10 +196,13 @@ __all__ = [
     "Repository",
     "RepositoryMixin",
     "RepositoryRefMixin",
-    "UserTenant",
     "UserRepository",
-    "Secret",
+    "PublicKey",
+    "GPGKey",
     "DeployKey",
+    "UserSecret",
+    "OrgSecret",
+    "RepoSecret",
     "Pool",
     "Worker",
     "Action",

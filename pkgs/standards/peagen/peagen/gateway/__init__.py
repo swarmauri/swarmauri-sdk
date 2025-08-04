@@ -25,7 +25,7 @@ from fastapi import FastAPI, Request
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
 from peagen.defaults import (
-    READY_QUEUE, 
+    READY_QUEUE,
 )
 from peagen.gateway.runtime_cfg import settings
 from peagen.errors import MigrationFailureError, NoWorkerAvailableError
@@ -116,7 +116,6 @@ queue: QueueBase = (
 # ─────────── NOQA Import ─────────────────────
 # Must import after api and queue are defined due to prevent circular imports.
 
-from .hooks import *  # noqa: F401,F403,E402  (registers decorators) Must come after api is defined until we refactor
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
 all_tags = set()
