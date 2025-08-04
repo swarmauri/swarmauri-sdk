@@ -19,17 +19,16 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider)
     name = Column(String, nullable=False, unique=True)
     policy = Column(
         MutableDict.as_mutable(JSON),
-        default=lambda: {"allowed_cidrs": [], "max_instances": None},
+        default=lambda: {"allowed_cidrs": ["172.18.0.0/24"], "max_instances": 10},
         nullable=True,
     )
-    # DEFAULT_ROWS = [
-    #     {
-    #         "id": DEFAULT_POOL_ID,
-    #         "name": DEFAULT_POOL_NAME,
-    #         "tenant_id": DEFAULT_TENANT_ID,
-    #         "policy": {"allowed_cidrs": [], "max_instances": None},
-    #     }
-    # ]
+    DEFAULT_ROWS = [
+        {
+            "id": DEFAULT_POOL_ID,
+            "name": DEFAULT_POOL_NAME,
+            "tenant_id": DEFAULT_TENANT_ID,
+        }
+    ]
 
     @classmethod
     async def _post_create_register(cls, ctx):

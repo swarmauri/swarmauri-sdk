@@ -60,15 +60,14 @@ Status.is_terminal = classmethod(_is_terminal)
 # Repository hierarchy
 # ---------------------------------------------------------------------
 class Tenant(TenantBase, Bootstrappable):
-    pass
-    # DEFAULT_ROWS = [
-    #     {
-    #         "id": DEFAULT_TENANT_ID,
-    #         "email": DEFAULT_TENANT_EMAIL,
-    #         "name": DEFAULT_TENANT_NAME,
-    #         "slug": DEFAULT_TENANT_SLUG,
-    #     }
-    # ]
+    DEFAULT_ROWS = [
+        {
+            "id": DEFAULT_TENANT_ID,
+            "email": DEFAULT_TENANT_EMAIL,
+            "name": DEFAULT_TENANT_NAME,
+            "slug": DEFAULT_TENANT_SLUG,
+        }
+    ]
 
 
 class User(UserBase, Bootstrappable):
