@@ -28,6 +28,11 @@ def tzutcnow() -> dt.datetime:  # default/on‑update factory
     return dt.datetime.now(dt.timezone.utc)
 
 
+def tzutcnow_plus_day() -> dt.datetime:
+    """Return an aware UTC ``datetime`` one day in the future."""
+    return tzutcnow() + dt.timedelta(days=1)
+
+
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
@@ -156,11 +161,9 @@ class LastUsed:
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )
-
     def touch(self) -> None:
         """Mark the object as used now."""
         self.last_used_at = tzutcnow()
-
 
 @declarative_mixin
 class Timestamped:
@@ -317,10 +320,7 @@ class StatusMixin:
 @declarative_mixin
 class ValidityWindow:
     valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
-    valid_to = Column(
-        TZDateTime,
-        default=lambda: tzutcnow() + dt.timedelta(days=1),
-    )
+    valid_to = Column(TZDateTime, default=tzutcnow_plus_day)
 
 
 # ----------------------------------------------------------------------
