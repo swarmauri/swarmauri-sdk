@@ -151,9 +151,17 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
 
+            from datetime import datetime, timedelta, timezone
+
+            valid_to = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+
             key_resp = await authn_adapter._client.post(
                 f"{base}/service_keys",
-                json={"service_id": service_id, "label": "worker"},
+                json={
+                    "service_id": service_id,
+                    "label": "worker",
+                    "valid_to": valid_to,
+                },
             )
             key_resp.raise_for_status()
             body = key_resp.json()
