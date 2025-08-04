@@ -123,7 +123,7 @@ def test_rpc_call_error_handling():
 
     with patch.object(httpx.Client, "post", new=fake_post):
         client = AutoAPIClient("http://example.com/api")
-        with pytest.raises(RuntimeError, match="RPC -32602: Invalid params"):
+        with pytest.raises(RuntimeError, match="RPC error -32602: Invalid params"):
             client.call("invalid.method")
 
 
