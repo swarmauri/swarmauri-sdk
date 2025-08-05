@@ -22,7 +22,7 @@ async def test_route_and_method_symmetry(api_client):
     for verb, (http_verb, path) in CRUD_MAP.items():
         assert path in paths
         assert http_verb in paths[path]
-        assert f"Item.{verb}" in method_list
+        assert f"Items.{verb}" in method_list
 
     nested_base = "/tenants/{tenant_id}"
     assert nested_base in paths

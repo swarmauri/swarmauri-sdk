@@ -61,9 +61,10 @@ def _init_hooks(self) -> None:
             if model is not None and op is not None:
                 # Model + op parameters
                 if isinstance(model, str):
-                    model_name = "".join(w.title() for w in model.split("_"))
+                    tab = model if model.endswith(("s", "S")) else f"{model}s"
                 else:
-                    model_name = model.__name__
+                    tab = getattr(model, "__tablename__", model.__name__)
+                model_name = "".join(w.title() for w in tab.split("_"))
                 hook_key = f"{model_name}.{op}"
             elif model is not None or op is not None:
                 # Error: both model and op must be provided together

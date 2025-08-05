@@ -17,27 +17,26 @@ class _RowBound(HookProvider):
     # ――― AutoAPI bootstrap ―――
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        model = cls.__name__.lower()
+        model = cls.__tablename__
 
         for op in ("read", "list"):
-            api.register_hook(
-                Phase.POST_HANDLER, model=model, op=op
-            )(cls._make_hook())
+            api.register_hook(Phase.POST_HANDLER, model=model, op=op)(cls._make_hook())
 
     # ――― per-request hook ―――
     @classmethod
     def _make_hook(cls):
         async def _hook(ctx: Mapping[str, Any]) -> None:
-            if "result" not in ctx:          # defensive
+            if "result" not in ctx:  # defensive
                 return
 
             res = ctx["result"]
-            if isinstance(res, Sequence):    # list → drop the invisible rows
+            if isinstance(res, Sequence):  # list → drop the invisible rows
                 ctx["result"] = [row for row in res if cls.is_visible(row, ctx)]
-            else:                            # single object (read)
+            else:  # single object (read)
                 if not cls.is_visible(res, ctx):
                     # mimic 404 to avoid leaking existence
                     from autoapi.v2.jsonrpc_models import create_standardized_error
+
                     http_exc, _, _ = create_standardized_error(404)
                     raise http_exc
 
@@ -45,7 +44,9 @@ class _RowBound(HookProvider):
 
     # sub-classes must override
     @staticmethod
-    def is_visible(obj, ctx) -> bool: raise NotImplementedError
+    def is_visible(obj, ctx) -> bool:
+        raise NotImplementedError
+
 
 # ----- Examples ----------------------------------------------------
 # Concrete Mixins with one-liner predicates
