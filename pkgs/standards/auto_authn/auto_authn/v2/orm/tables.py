@@ -213,7 +213,7 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, HookProvider):
         unique=True,
         info={
             "autoapi": {
-                "disable_on": ["create", "update", "replace"],
+                "disable_on": ["update", "replace"],
                 "read_only": True,
             }
         },
