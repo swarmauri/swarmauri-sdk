@@ -54,7 +54,7 @@ async def test_hook_phases_execution_order(api_client):
     res = await client.post(
         "/rpc",
         json={
-            "method": "Item.create",
+            "method": "Items.create",
             "params": {"tenant_id": tid, "name": "test-item"},
         },
     )
@@ -108,7 +108,7 @@ async def test_hook_parity_crud_vs_rpc(api_client):
     await client.post(
         "/rpc",
         json={
-            "method": "Item.create",
+            "method": "Items.create",
             "params": {"tenant_id": tid, "name": "rpc-item"},
         },
     )
@@ -242,17 +242,17 @@ async def test_catch_all_hooks(api_client):
 
     # Verify catch-all hook was called for successful operations
     expected_methods = [
-        "Tenant.create",
-        "Item.create",
-        "Item.list",
-        "Item.read",
+        "Tenants.create",
+        "Items.create",
+        "Items.list",
+        "Items.read",
     ]
 
     # Add update and delete to expected methods if they succeeded
     if update_succeeded:
-        expected_methods.append("Item.update")
+        expected_methods.append("Items.update")
     if delete_succeeded:
-        expected_methods.append("Item.delete")
+        expected_methods.append("Items.delete")
 
     assert len(catch_all_executions) == len(expected_methods)
     for method in expected_methods:

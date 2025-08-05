@@ -17,7 +17,7 @@ async def test_schema_generation(api_client):
     assert read_model.__name__ == "ItemRead"
     assert update_model.__name__ == "ItemUpdate"
     assert delete_model.__name__ == "ItemDelete"
-    assert list_model.__name__ == "ItemListParams"
+    assert list_model.__name__ == "ItemsListParams"
 
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]

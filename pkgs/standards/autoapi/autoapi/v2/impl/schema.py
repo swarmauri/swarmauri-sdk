@@ -143,8 +143,11 @@ def create_list_schema(model: type) -> Type[BaseModel]:
     Returns:
         Pydantic schema for list filtering parameters
     """
-    tab = model.__tablename__
-    base = dict(skip=(int, Field(0, ge=0)), limit=(int | None, Field(None, ge=10)))
+    tab = "".join(w.title() for w in model.__tablename__.split("_"))
+    base = dict(
+        skip=(int | None, Field(None, ge=0)),
+        limit=(int | None, Field(None, ge=10)),
+    )
     _scalars = {str, int, float, bool, bytes, uuid.UUID}
     cols: dict[str, tuple[type, Field]] = {}
 

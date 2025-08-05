@@ -38,7 +38,7 @@ from typing import Any, Mapping, Sequence
 
 from sqlalchemy import inspect
 
-from autoapi.v2.hooks         import Phase
+from autoapi.v2.hooks import Phase
 from autoapi.v2.types import Session, HookProvider
 
 
@@ -60,12 +60,12 @@ class Upsertable(HookProvider):
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         """Called automatically by AutoAPI._crud(cls)."""
-        model = cls.__name__.lower()
+        model = cls.__tablename__
 
         for op in ("create", "update", "replace"):
-            api.register_hook(
-                Phase.PRE_TX_BEGIN, model=model, op=op
-            )(cls._make_hook(op))
+            api.register_hook(Phase.PRE_TX_BEGIN, model=model, op=op)(
+                cls._make_hook(op)
+            )
 
     # ─── hook factory -----------------------------------------------------
     @classmethod
@@ -76,27 +76,25 @@ class Upsertable(HookProvider):
         the operation without any client-side change.
         """
 
-        async def _hook(ctx: Mapping[str, Any]) -> None:          # noqa: D401
-            p  : dict    = ctx["payload"]                         # request body
-            db : Session = ctx["db"]                              # current Tx
+        tab = "".join(w.title() for w in cls.__tablename__.split("_"))
 
-            keys = cls.__upsert_keys__ or [
-                col.name for col in inspect(cls).primary_key
-            ]
+        async def _hook(ctx: Mapping[str, Any]) -> None:  # noqa: D401
+            p: dict = ctx["payload"]  # request body
+            db: Session = ctx["db"]  # current Tx
+
+            keys = cls.__upsert_keys__ or [col.name for col in inspect(cls).primary_key]
 
             exists = cls._row_exists(p, db, keys)
 
             # Decide target verb and rewrite:
             if verb == "create" and exists:
-                ctx["env"].method = f"{cls.__name__}.update"
+                ctx["env"].method = f"{tab}.update"
 
             elif verb == "update" and not exists:
-                ctx["env"].method = f"{cls.__name__}.create"
+                ctx["env"].method = f"{tab}.create"
 
             elif verb == "replace":
-                ctx["env"].method = (
-                    f"{cls.__name__}.update" if exists else f"{cls.__name__}.create"
-                )
+                ctx["env"].method = f"{tab}.update" if exists else f"{tab}.create"
 
             # Otherwise keep original verb (normal path)
 
@@ -104,7 +102,9 @@ class Upsertable(HookProvider):
 
     # ─── helpers ----------------------------------------------------------
     @classmethod
-    def _row_exists(cls, p: Mapping[str, Any], db: Session, keys: Sequence[str]) -> bool:
+    def _row_exists(
+        cls, p: Mapping[str, Any], db: Session, keys: Sequence[str]
+    ) -> bool:
         """
         Quick existence test on the *natural key*.
         """

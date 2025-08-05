@@ -18,8 +18,8 @@ async def test_transaction_decorator(api_client):
 
     fail = transactional(api, fail)
 
-    api.rpc["Item.fail"] = fail
-    api._method_ids["Item.fail"] = None
+    api.rpc["Items.fail"] = fail
+    api._method_ids["Items.fail"] = None
 
     t = await client.post("/tenants", json={"name": "tx"})
     tid = t.json()["id"]
@@ -27,7 +27,7 @@ async def test_transaction_decorator(api_client):
     bad = await client.post(
         "/rpc",
         json={
-            "method": "Item.fail",
+            "method": "Items.fail",
             "params": {"tenant_id": tid, "name": "a", "fail": True},
         },
     )
@@ -38,7 +38,7 @@ async def test_transaction_decorator(api_client):
 
     ok = await client.post(
         "/rpc",
-        json={"method": "Item.fail", "params": {"tenant_id": tid, "name": "b"}},
+        json={"method": "Items.fail", "params": {"tenant_id": tid, "name": "b"}},
     )
     assert ok.json()["result"]["id"]
     lst2 = await client.get("/items")
