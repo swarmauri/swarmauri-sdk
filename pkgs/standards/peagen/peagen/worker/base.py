@@ -87,7 +87,7 @@ class WorkerBase:
         # ----- JSON-RPC dispatcher --------------------------------
         self.rpc = RPCDispatcher()
 
-        @self.rpc.method("Work.create")
+        @self.rpc.method("Works.create")
         async def _on_work_start(payload: dict) -> dict:
             asyncio.create_task(self._run_work(payload))
             return {"accepted": True}
@@ -171,7 +171,7 @@ class WorkerBase:
                     advertises={"cpu": True},
                     handlers={"handlers": list(self._handlers)},
                 )  # last_seen handled server-side
-                self._client.call("Worker.update", params=upd)
+                self._client.call("Workers.update", params=upd)
                 self.log.debug("heartbeat ok")
             except Exception as exc:  # pragma: no cover
                 self.log.warning("heartbeat failed: %s", exc)
