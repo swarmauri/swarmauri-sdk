@@ -238,37 +238,41 @@ class ServiceKey(
     @staticmethod
     def digest_of(value: str) -> str:
         return sha256(value.encode()).hexdigest()
-        
+
     # ──────────────────────────────────────────────────────────
     # Hooks
     # ──────────────────────────────────────────────────────────
     @classmethod
     async def _pre_commit_generate(cls, ctx):
         """
-        • Runs just before flush/commit on *create*.
-        • Generates a raw key, hashes it into `digest`,
-          and stores both on the SQLAlchemy row.
-        • Stashes the raw key in ctx so POST_COMMIT can expose it.
-        """
-        row = ctx["row"]                      # SQLAlchemy instance
-        if row.digest:                        # idempotence guard
-            return
+        Runs *after* validation but *before* flush:
 
-        raw   = token_urlsafe(32)
-        row.digest        = cls.digest_of(raw)
-        row.last_used_at  = datetime.now(timezone.utc)
-        ctx["raw_service_key"] = raw          # pass downstream
+        1. Creates a one-time secret.
+        2. Adds its digest + last_used_at to **ctx["env"].params** so the
+           ORM instance receives them automatically.
+        3. Stashes the raw secret for the response phase.
+        """
+        params = ctx["env"].params                     # ← same access pattern
+
+        raw     = token_urlsafe(32)
+        digest  = cls.digest_of(raw)
+        now     = dt.datetime.now(dt.timezone.utc)
+
+        # Pydantic v2 → use model_copy so we keep the same schema instance
+        params = params.model_copy(
+            update={"digest": digest, "last_used_at": now}
+        )
+        ctx["env"].params = params
+        ctx["raw_service_key"] = raw                   # hand off to POST_COMMIT
 
     @classmethod
     async def _post_commit_inject(cls, ctx):
-        """
-        After the transaction commits, swap the digest back out
-        and give the caller the one-time secret.
-        """
+        """Swap the digest out of the response and return the raw key once."""
         raw = ctx.pop("raw_service_key", None)
         if raw:
             result = dict(ctx.get("result", {}))
-            result["service_key"] = raw
+            # `api_key` is the naming convention you already use elsewhere
+            result["api_key"] = raw
             ctx["result"] = result
 
     # ──────────────────────────────────────────────────────────
@@ -277,11 +281,9 @@ class ServiceKey(
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         from autoapi.v2 import Phase
-
         api.register_hook(
             Phase.PRE_COMMIT, model="ServiceKey", op="create"
         )(cls._pre_commit_generate)
-
         api.register_hook(
             Phase.POST_COMMIT, model="ServiceKey", op="create"
         )(cls._post_commit_inject)
