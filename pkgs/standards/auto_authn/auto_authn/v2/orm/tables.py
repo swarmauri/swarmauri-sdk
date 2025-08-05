@@ -243,7 +243,7 @@ class ServiceKey(
     # Hooks
     # ──────────────────────────────────────────────────────────
     @classmethod
-    async def _pre_commit_generate(cls, ctx):
+    async def _pre_tx_generate(cls, ctx):
         """
         Runs *after* validation but *before* flush:
 
@@ -282,7 +282,7 @@ class ServiceKey(
     def __autoapi_register_hooks__(cls, api) -> None:
         from autoapi.v2 import Phase
         api.register_hook(
-            Phase.PRE_COMMIT, model="ServiceKey", op="create"
+            Phase.PRE_TX_BEGIN, model="ServiceKey", op="create"
         )(cls._pre_commit_generate)
         api.register_hook(
             Phase.POST_COMMIT, model="ServiceKey", op="create"
