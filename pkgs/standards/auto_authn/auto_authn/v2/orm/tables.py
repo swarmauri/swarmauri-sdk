@@ -283,7 +283,7 @@ class ServiceKey(
         from autoapi.v2 import Phase
         api.register_hook(
             Phase.PRE_TX_BEGIN, model="ServiceKey", op="create"
-        )(cls._pre_commit_generate)
+        )(cls._pre_tx_generate)
         api.register_hook(
             Phase.POST_COMMIT, model="ServiceKey", op="create"
         )(cls._post_commit_inject)
