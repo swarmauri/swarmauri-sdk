@@ -243,15 +243,32 @@ class ServiceKey(
     # Hooks
     # ──────────────────────────────────────────────────────────
     @classmethod
-    async def _pre_commit_generate(cls, ctx):
+    async def _pre_create_generate(cls, ctx):
+        params = ctx["env"].params
         raw = token_urlsafe(32)
-        ctx["row"].digest = cls.digest_of(raw)
+        digest = cls.digest_of(raw)
+        if hasattr(params, "model_dump"):
+            if getattr(params, "digest", None):
+                raise HTTPException(
+                    status_code=422, detail="digest is server generated"
+                )
+            params = params.model_copy(update={"digest": digest})
+            ctx["env"].params = params
+        elif isinstance(params, dict):
+            if params.get("digest"):
+                raise HTTPException(
+                    status_code=422, detail="digest is server generated"
+                )
+            params["digest"] = digest
         ctx["raw_service_key"] = raw
 
     @classmethod
     async def _post_commit_inject(cls, ctx):
+        raw = ctx.pop("raw_service_key", None)
+        if not raw:
+            return
         result = dict(ctx.get("result", {}))
-        result["service_key"] = ctx.pop("raw_service_key")
+        result["service_key"] = raw
         ctx["result"] = result
 
     # ──────────────────────────────────────────────────────────
@@ -261,8 +278,8 @@ class ServiceKey(
     def __autoapi_register_hooks__(cls, api) -> None:
         from autoapi.v2 import Phase
 
-        api.register_hook(Phase.PRE_COMMIT, model="ServiceKey", op="create")(
-            cls._pre_commit_generate
+        api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
+            cls._pre_create_generate
         )
         api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
             cls._post_commit_inject
