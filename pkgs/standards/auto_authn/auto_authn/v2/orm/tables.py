@@ -29,7 +29,6 @@ from autoapi.v2.types import (
     relationship,
     mapped_column,
     Column,
-    hybrid_property,
     PgUUID,
     ForeignKey,
     HookProvider,
@@ -53,8 +52,10 @@ from autoapi.v2.mixins import (
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
-from hashlib import blake2b
+from hashlib import sha256
 from secrets import token_urlsafe
+from datetime import datetime, timezone
+from fastapi import HTTPException
 
 # ────────────────────────────────────────────────────────────────────
 # Utility type alias for 36-char UUID strings
@@ -150,43 +151,30 @@ class ApiKey(ApiKeyBase, HookProvider):
         lazy="joined",  # optional: eager load to avoid N+1
     )
 
-    @hybrid_property
-    def raw_key(self) -> str:
-        """Write-only virtual attribute (never returned)."""
-        raise AttributeError("raw_key is write-only")
-
-    @raw_key.setter
-    def raw_key(self, value: str) -> None:
-        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
-
     @staticmethod
     def digest_of(value: str) -> None:
-        return blake2b(value.encode(), digest_size=32).hexdigest()
-
-    # attach ColumnInfo so AutoAPI knows to expose it
-    raw_key.default = token_urlsafe(8)
-    raw_key.nullable = True
-    raw_key.oncreate = token_urlsafe(8)
-    raw_key.onupdate = token_urlsafe(8)
-    raw_key.info = {
-        "autoapi": {
-            "hybrid": True,  # ← opt-in
-            "write_only": True,  # hide on READ/LIST
-            "py_type": str,
-            "default_factory": token_urlsafe(8),
-            "examples": [token_urlsafe(8)],  # Swagger placeholder
-        }
-    }
+        return sha256(value.encode()).hexdigest()
 
     @classmethod
-    async def _pre_create_generate_key(cls, ctx):
+    async def _pre_create_generate(cls, ctx):
         params = ctx["env"].params
-        raw = token_urlsafe(8)
-        if hasattr(params, "model_copy"):
-            params = params.model_copy(update={"raw_key": raw})
+        raw = token_urlsafe(32)
+        digest = sha256(raw.encode()).hexdigest()
+        now = datetime.now(timezone.utc)
+        if hasattr(params, "model_dump"):
+            if getattr(params, "raw_key", None) or getattr(params, "digest", None):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params = params.model_copy(update={"digest": digest, "last_used_at": now})
             ctx["env"].params = params
         elif isinstance(params, dict):
-            params["raw_key"] = raw
+            if params.get("raw_key") or params.get("digest"):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params["digest"] = digest
+            params["last_used_at"] = now
         ctx["raw_api_key"] = raw
 
     @classmethod
@@ -203,9 +191,9 @@ class ApiKey(ApiKeyBase, HookProvider):
         from autoapi.v2 import Phase
 
         api.register_hook(Phase.PRE_TX_BEGIN, model="ApiKey", op="create")(
-            cls._pre_create_generate_key
+            cls._pre_create_generate
         )
-        api.register_hook(Phase.POST_RESPONSE, model="ApiKey", op="create")(
+        api.register_hook(Phase.POST_COMMIT, model="ApiKey", op="create")(
             cls._post_create_inject_key
         )
 
@@ -237,41 +225,30 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, HookProvider):
         lazy="joined",
     )
 
-    @hybrid_property
-    def raw_key(self) -> str:
-        raise AttributeError("raw_key is write-only")
-
-    @raw_key.setter
-    def raw_key(self, value: str) -> None:
-        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
-
     @staticmethod
     def digest_of(value: str) -> str:
-        return blake2b(value.encode(), digest_size=32).hexdigest()
-
-    raw_key.default = token_urlsafe(8)
-    raw_key.nullable = True
-    raw_key.oncreate = token_urlsafe(8)
-    raw_key.onupdate = token_urlsafe(8)
-    raw_key.info = {
-        "autoapi": {
-            "hybrid": True,
-            "write_only": True,
-            "py_type": str,
-            "default_factory": token_urlsafe(8),
-            "examples": [token_urlsafe(8)],
-        }
-    }
+        return sha256(value.encode()).hexdigest()
 
     @classmethod
-    async def _pre_create_generate_key(cls, ctx):
+    async def _pre_create_generate(cls, ctx):
         params = ctx["env"].params
-        raw = token_urlsafe(8)
-        if hasattr(params, "model_copy"):
-            params = params.model_copy(update={"raw_key": raw})
+        raw = token_urlsafe(32)
+        digest = sha256(raw.encode()).hexdigest()
+        now = datetime.now(timezone.utc)
+        if hasattr(params, "model_dump"):
+            if getattr(params, "raw_key", None) or getattr(params, "digest", None):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params = params.model_copy(update={"digest": digest, "last_used_at": now})
             ctx["env"].params = params
         elif isinstance(params, dict):
-            params["raw_key"] = raw
+            if params.get("raw_key") or params.get("digest"):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params["digest"] = digest
+            params["last_used_at"] = now
         ctx["raw_service_key"] = raw
 
     @classmethod
@@ -288,9 +265,9 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, HookProvider):
         from autoapi.v2 import Phase
 
         api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
-            cls._pre_create_generate_key
+            cls._pre_create_generate
         )
-        api.register_hook(Phase.POST_RESPONSE, model="ServiceKey", op="create")(
+        api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
             cls._post_create_inject_key
         )
 
