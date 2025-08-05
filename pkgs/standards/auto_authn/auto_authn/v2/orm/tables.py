@@ -222,8 +222,8 @@ class ServiceKey(
         unique=True,
         info={
             "autoapi": {
-                # still excluded from create/update schemas
-                "disable_on": ["create", "update", "replace"],
+                # excluded from update/replace request bodies
+                "disable_on": ["update", "replace"],
                 "read_only": True,
             }
         },
@@ -243,37 +243,16 @@ class ServiceKey(
     # Hooks
     # ──────────────────────────────────────────────────────────
     @classmethod
-    async def _pre_tx_generate(cls, ctx):
-        """
-        Runs *after* validation but *before* flush:
-
-        1. Creates a one-time secret.
-        2. Adds its digest + last_used_at to **ctx["env"].params** so the
-           ORM instance receives them automatically.
-        3. Stashes the raw secret for the response phase.
-        """
-        params = ctx["env"].params                     # ← same access pattern
-
-        raw     = token_urlsafe(32)
-        digest  = cls.digest_of(raw)
-        now     = dt.datetime.now(dt.timezone.utc)
-
-        # Pydantic v2 → use model_copy so we keep the same schema instance
-        params = params.model_copy(
-            update={"digest": digest, "last_used_at": now}
-        )
-        ctx["env"].params = params
-        ctx["raw_service_key"] = raw                   # hand off to POST_COMMIT
+    async def _pre_commit_generate(cls, ctx):
+        raw = token_urlsafe(32)
+        ctx["row"].digest = cls.digest_of(raw)
+        ctx["raw_service_key"] = raw
 
     @classmethod
     async def _post_commit_inject(cls, ctx):
-        """Swap the digest out of the response and return the raw key once."""
-        raw = ctx.pop("raw_service_key", None)
-        if raw:
-            result = dict(ctx.get("result", {}))
-            # `api_key` is the naming convention you already use elsewhere
-            result["api_key"] = raw
-            ctx["result"] = result
+        result = dict(ctx.get("result", {}))
+        result["service_key"] = ctx.pop("raw_service_key")
+        ctx["result"] = result
 
     # ──────────────────────────────────────────────────────────
     # Hook registration
@@ -281,12 +260,13 @@ class ServiceKey(
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         from autoapi.v2 import Phase
-        api.register_hook(
-            Phase.PRE_TX_BEGIN, model="ServiceKey", op="create"
-        )(cls._pre_tx_generate)
-        api.register_hook(
-            Phase.POST_COMMIT, model="ServiceKey", op="create"
-        )(cls._post_commit_inject)
+
+        api.register_hook(Phase.PRE_COMMIT, model="ServiceKey", op="create")(
+            cls._pre_commit_generate
+        )
+        api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
+            cls._post_commit_inject
+        )
 
 
 __all__ = [
