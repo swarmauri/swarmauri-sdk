@@ -198,22 +198,32 @@ class ApiKey(ApiKeyBase, HookProvider):
         )
 
 
-class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, HookProvider):
-    """API key bound to a service principal."""
-
+class ServiceKey(
+    Base,
+    GUIDPk,
+    Created,
+    LastUsed,
+    ValidityWindow,
+    HookProvider,
+):
     __tablename__ = "service_keys"
 
     service_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("services.id"), index=True, nullable=False
+        PgUUID(as_uuid=True),
+        ForeignKey("services.id"),
+        index=True,
+        nullable=False,
     )
     label = Column(String(120), nullable=False)
+
     digest = Column(
         String(64),
         nullable=False,
         unique=True,
         info={
             "autoapi": {
-                "disable_on": ["update", "replace"],
+                # still excluded from create/update schemas
+                "disable_on": ["create", "update", "replace"],
                 "read_only": True,
             }
         },
@@ -228,48 +238,53 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, HookProvider):
     @staticmethod
     def digest_of(value: str) -> str:
         return sha256(value.encode()).hexdigest()
-
+        
+    # ──────────────────────────────────────────────────────────
+    # Hooks
+    # ──────────────────────────────────────────────────────────
     @classmethod
-    async def _pre_create_generate(cls, ctx):
-        params = ctx["env"].params
-        raw = token_urlsafe(32)
-        digest = sha256(raw.encode()).hexdigest()
-        now = datetime.now(timezone.utc)
-        if hasattr(params, "model_dump"):
-            if getattr(params, "raw_key", None) or getattr(params, "digest", None):
-                raise HTTPException(
-                    status_code=422, detail="raw_key/digest are server generated"
-                )
-            params = params.model_copy(update={"digest": digest, "last_used_at": now})
-            ctx["env"].params = params
-        elif isinstance(params, dict):
-            if params.get("raw_key") or params.get("digest"):
-                raise HTTPException(
-                    status_code=422, detail="raw_key/digest are server generated"
-                )
-            params["digest"] = digest
-            params["last_used_at"] = now
-        ctx["raw_service_key"] = raw
-
-    @classmethod
-    async def _post_create_inject_key(cls, ctx):
-        raw = ctx.get("raw_service_key")
-        if not raw:
+    async def _pre_commit_generate(cls, ctx):
+        """
+        • Runs just before flush/commit on *create*.
+        • Generates a raw key, hashes it into `digest`,
+          and stores both on the SQLAlchemy row.
+        • Stashes the raw key in ctx so POST_COMMIT can expose it.
+        """
+        row = ctx["row"]                      # SQLAlchemy instance
+        if row.digest:                        # idempotence guard
             return
-        result = dict(ctx.get("result", {}))
-        result["service_key"] = raw
-        ctx["result"] = result
 
+        raw   = token_urlsafe(32)
+        row.digest        = cls.digest_of(raw)
+        row.last_used_at  = datetime.now(timezone.utc)
+        ctx["raw_service_key"] = raw          # pass downstream
+
+    @classmethod
+    async def _post_commit_inject(cls, ctx):
+        """
+        After the transaction commits, swap the digest back out
+        and give the caller the one-time secret.
+        """
+        raw = ctx.pop("raw_service_key", None)
+        if raw:
+            result = dict(ctx.get("result", {}))
+            result["service_key"] = raw
+            ctx["result"] = result
+
+    # ──────────────────────────────────────────────────────────
+    # Hook registration
+    # ──────────────────────────────────────────────────────────
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         from autoapi.v2 import Phase
 
-        api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
-            cls._post_create_inject_key
-        )
+        api.register_hook(
+            Phase.PRE_COMMIT, model="ServiceKey", op="create"
+        )(cls._pre_commit_generate)
+
+        api.register_hook(
+            Phase.POST_COMMIT, model="ServiceKey", op="create"
+        )(cls._post_commit_inject)
 
 
 __all__ = [

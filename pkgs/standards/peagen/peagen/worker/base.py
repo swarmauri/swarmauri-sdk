@@ -143,7 +143,7 @@ class WorkerBase:
                 "Workers.create", params=payload, out_schema=SWorkerRead
             )
             self.log.info("registered @ gateway as %s", self.worker_id)
-            api_key = getattr(created, "api_key", None)
+            api_key = getattr(created, "service_key", None)
             if api_key:
                 self._api_key = api_key
                 os.environ["DQ_API_KEY"] = api_key
