@@ -158,7 +158,6 @@ class LastUsed:
     last_used_at = Column(
         TZDateTime,
         nullable=True,
-        default=tzutcnow,
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )

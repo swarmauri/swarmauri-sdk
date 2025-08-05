@@ -8,7 +8,7 @@ from SQLAlchemy ORM classes with verb-specific configurations.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, Set, Tuple, Type
+from typing import Any, Dict, Set, Tuple, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy import inspect as _sa_inspect
@@ -117,6 +117,10 @@ def _schema(
 
         if "examples" in meta:
             fld = Field(fld.default, examples=meta["examples"])
+
+        # Make nullable fields Optional for proper Pydantic validation
+        if col is not None and is_nullable and py_t is not Any:
+            py_t = Union[py_t, None]
 
         fields[attr_name] = (py_t, fld)
 
