@@ -89,7 +89,7 @@ def upload_public_key(
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
-            "DeployKey.create",
+            "DeployKeys.create",
             params=SCreateIn(key=drv.public_key_str()),
             out_schema=SRead,
         )
@@ -104,7 +104,7 @@ def remove_public_key(
 
     with _rpc(gateway_url) as rpc:
         res: dict = rpc.call(
-            "DeployKey.delete",
+            "DeployKeys.delete",
             params=SDeleteIn(fingerprint=fingerprint),
             out_schema=dict,
         )
@@ -117,7 +117,7 @@ def fetch_server_keys(gateway_url: str = DEFAULT_GATEWAY) -> list[dict]:
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
-            "DeployKey.list",
+            "DeployKeys.list",
             params=SListIn(),  # no filters
             out_schema=list[SRead],  # type: ignore[arg-type]
         )

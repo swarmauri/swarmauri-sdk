@@ -140,7 +140,7 @@ class WorkerBase:
                 handlers={"handlers": list(self._handlers)},
             )
             created = self._client.call(
-                "Worker.create", params=payload, out_schema=SWorkerRead
+                "Workers.create", params=payload, out_schema=SWorkerRead
             )
             self.log.info("registered @ gateway as %s", self.worker_id)
             api_key = getattr(created, "api_key", None)
@@ -210,7 +210,7 @@ class WorkerBase:
     ) -> None:
         try:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
-            self._client.call("Work.update", params=upd)
-            self.log.info("Work.update %s → %s", work_id, status)
+            self._client.call("Works.update", params=upd)
+            self.log.info("Works.update %s → %s", work_id, status)
         except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)
