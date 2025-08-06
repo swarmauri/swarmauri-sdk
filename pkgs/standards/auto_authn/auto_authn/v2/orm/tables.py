@@ -140,12 +140,6 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 class ApiKey(ApiKeyBase, UserMixin):
     __table_args__ = {"extend_existing": True}
 
-    user = relationship(
-        "auto_authn.v2.orm.tables.User",
-        back_populates="api_keys",
-        lazy="joined",  # optional: eager load to avoid N+1
-    )
-
 
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
@@ -156,13 +150,6 @@ class ServiceKey(ApiKeyBase):
         index=True,
         nullable=False,
     )
-
-    service = relationship(
-        "auto_authn.v2.orm.tables.Service",
-        back_populates="service_keys",
-        lazy="joined",
-    )
-
 
 __all__ = [
     "ApiKey",
