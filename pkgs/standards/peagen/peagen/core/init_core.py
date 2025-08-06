@@ -211,17 +211,17 @@ def init_repo(
     import subprocess
     import tempfile
 
-    tenant, name = repo.split("/", 1)
+    principal, name = repo.split("/", 1)
     gh = Github(pat)
 
     try:
-        owner = gh.get_organization(tenant)
+        owner = gh.get_organization(principal)
     except Exception:
         auth_user = gh.get_user()
-        if auth_user.login.lower() == tenant.lower():
+        if auth_user.login.lower() == principal.lower():
             owner = auth_user
         else:
-            owner = gh.get_user(tenant)
+            owner = gh.get_user(principal)
 
     try:
         repo_obj = owner.create_repo(name, private=True, description=description)
@@ -261,7 +261,14 @@ def init_repo(
         path = Path(".")
 
     final_remotes = remotes.copy() if remotes else {}
-    final_remotes.setdefault("origin", repo_obj.ssh_url)
+    if not remotes:
+        from peagen.defaults import GIT_SHADOW_BASE
+
+        shadow = GIT_SHADOW_BASE.rstrip("/")
+        final_remotes["origin"] = f"{shadow}/{principal}/{name}.git"
+        final_remotes["upstream"] = repo_obj.ssh_url
+    else:
+        final_remotes.setdefault("origin", repo_obj.ssh_url)
     configure_repo(path=path, remotes=final_remotes)
     vcs = open_repo(path, remotes=final_remotes)
     for remote_name in final_remotes:
