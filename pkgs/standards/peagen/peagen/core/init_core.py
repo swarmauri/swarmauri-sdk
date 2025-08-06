@@ -16,6 +16,9 @@ from typing import Any, Dict, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from github import Github
 
+from peagen.core.git_repo_core import open_repo
+from peagen.defaults import GIT_SHADOW_BASE
+
 from peagen.plugins import (
     PluginManager,
     discover_and_register_plugins,
@@ -255,9 +258,19 @@ def init_repo(
         "next": "configure DEPLOY_KEY_SECRET",
     }
 
-    if path is not None:
-        result.update({"configured": str(path)})
+    if path is None:
+        path = Path(".")
 
+    final_remotes = remotes.copy() if remotes else {}
+    shadow_url = f"{GIT_SHADOW_BASE.rstrip('/')}/{tenant}/{name}.git"
+    final_remotes.setdefault("origin", shadow_url)
+    final_remotes.setdefault("upstream", repo_obj.ssh_url)
+    configure_repo(path=path, remotes=final_remotes)
+    vcs = open_repo(path, remotes=final_remotes)
+    for remote_name in final_remotes:
+        vcs.push("HEAD", remote=remote_name)
+
+    result.update({"configured": str(path), "remotes": final_remotes})
     return result
 
 
