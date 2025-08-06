@@ -20,6 +20,7 @@ from .._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
+from .schema import _schema
 
 
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
@@ -152,6 +153,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
+        rpc_in = In or dict
+        if verb in {"update", "replace"}:
+            rpc_in = _schema(model, verb=verb)
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
@@ -247,6 +251,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 def _build_args(_p):
                     match verb:
                         case "create" | "bulk_create" | "bulk_delete" | "list":
+                            if verb == "list":
+                                return (In(**_p),)
                             return (_p,)
                         case "clear":
                             return ()
@@ -306,8 +312,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             )
 
         # ─── register on parent API (makes it available under api.schemas.*) ──
-        for s in (In, Out):
-            if s is None:  # ← skip empty side of the IO pair
+        for s in (In, Out, rpc_in):
+            if not isinstance(s, type):
                 continue
             name = s.__name__
             if name not in self._schemas:
@@ -315,7 +321,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 setattr(self.schemas, name, s)
 
         # JSON-RPC shim
-        rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
+        rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────

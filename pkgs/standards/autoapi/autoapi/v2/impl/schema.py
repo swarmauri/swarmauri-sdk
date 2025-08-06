@@ -87,7 +87,15 @@ def _schema(
             continue
         if meta.get("write_only") and verb == "read":
             continue
-        if meta.get("read_only") and verb != "read":
+
+        ro = meta.get("read_only")
+        if isinstance(ro, dict):
+            if ro.get(verb):
+                continue
+        elif isinstance(ro, (set, list, tuple)):
+            if verb in ro:
+                continue
+        elif ro and verb != "read":
             continue
         if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
             continue
@@ -105,6 +113,8 @@ def _schema(
             is_nullable = bool(getattr(col, "nullable", True))
             has_default = getattr(col, "default", None) is not None
             required = not is_nullable and not has_default
+            if col.primary_key and verb in {"update", "replace"}:
+                required = True
         else:  # hybrid
             py_t = getattr(attr, "python_type", meta.get("py_type", Any))
             required = False

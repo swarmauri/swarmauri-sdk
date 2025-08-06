@@ -49,7 +49,7 @@ class GUIDPk:
         info=dict(
             autoapi={
                 "default_factory": uuid4,
-                "read_only": True,
+                "read_only": {"create": True},
                 "examples": [uuid_example],
             }
         ),
@@ -161,9 +161,11 @@ class LastUsed:
         onupdate=tzutcnow,
         info=dict(no_create=True, no_update=True),
     )
+
     def touch(self) -> None:
         """Mark the object as used now."""
         self.last_used_at = tzutcnow()
+
 
 @declarative_mixin
 class Timestamped:
@@ -184,7 +186,7 @@ class Timestamped:
 
 @declarative_mixin
 class ActiveToggle:
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
 
 @declarative_mixin
