@@ -56,6 +56,7 @@ from peagen.cli.commands import (
     local_analysis_app,
     remote_analysis_app,
     dashboard_app,
+    remote_init_app,
 )
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
@@ -192,7 +193,6 @@ def _global_remote_ctx(  # noqa: D401
 
 # ─────────────────────────── SUB-COMMAND REGISTRY ───────────────────────────
 
-app.add_typer(local_init_app, name="init")
 app.add_typer(fetch_app)
 app.add_typer(local_app, name="local")
 app.add_typer(remote_app, name="remote")
@@ -216,6 +216,7 @@ local_app.add_typer(local_secrets_app, name="secrets")
 local_app.add_typer(local_publickey_app, name="publickey")
 local_app.add_typer(local_deploykey_app, name="deploykey")
 local_app.add_typer(show_app, name="git")
+local_app.add_typer(local_init_app, name="init")
 
 
 remote_app.add_typer(remote_doe_app, name="doe")
@@ -232,6 +233,7 @@ remote_app.add_typer(remote_validate_app)
 remote_app.add_typer(remote_secrets_app, name="secrets")
 remote_app.add_typer(remote_publickey_app, name="publickey")
 remote_app.add_typer(remote_deploykey_app, name="deploykey")
+remote_app.add_typer(remote_init_app, name="init")
 
 if __name__ == "__main__":
     app()
