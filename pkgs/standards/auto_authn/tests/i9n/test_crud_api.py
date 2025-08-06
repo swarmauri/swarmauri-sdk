@@ -55,16 +55,16 @@ class TestCRUDEndpointAvailability:
         assert response.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_apikeys_endpoints_available(self, async_client: AsyncClient):
+    async def test_api_keys_endpoints_available(self, async_client: AsyncClient):
         """Test that API key CRUD endpoints are available."""
-        # Test GET /apikeys (list)
-        response = await async_client.get("/apikeys")
+        # Test GET /api_keys (list)
+        response = await async_client.get("/api_keys")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
         # Test invalid API key ID returns 404
         invalid_id = str(uuid.uuid4())
-        response = await async_client.get(f"/apikeys/{invalid_id}")
+        response = await async_client.get(f"/api_keys/{invalid_id}")
         assert response.status_code == 404
 
     @pytest.mark.asyncio
@@ -141,7 +141,7 @@ class TestCRUDResponseStructure:
             "/tenants",
             "/users",
             "/clients",
-            "/apikeys",
+            "/api_keys",
             "/services",
             "/service_keys",
         ]
@@ -215,9 +215,9 @@ class TestCRUDResponseStructure:
             )
 
     @pytest.mark.asyncio
-    async def test_apikey_list_structure(self, async_client: AsyncClient):
+    async def test_api_key_list_structure(self, async_client: AsyncClient):
         """Test that API key list has expected structure."""
-        response = await async_client.get("/apikeys")
+        response = await async_client.get("/api_keys")
         assert response.status_code == 200
 
         data = response.json()
@@ -335,24 +335,24 @@ class TestCRUDIntegration:
                 assert isinstance(user["tenant_id"], str)
 
     @pytest.mark.asyncio
-    async def test_user_apikey_relationship_structure(self, async_client: AsyncClient):
-        """Test that user-apikey relationships are properly structured."""
+    async def test_user_api_key_relationship_structure(self, async_client: AsyncClient):
+        """Test that user-API key relationships are properly structured."""
         # Get users and API keys to verify relationship structure
         users_response = await async_client.get("/users")
-        apikeys_response = await async_client.get("/apikeys")
+        api_keys_response = await async_client.get("/api_keys")
 
         assert users_response.status_code == 200
-        assert apikeys_response.status_code == 200
+        assert api_keys_response.status_code == 200
 
         users = users_response.json()
-        apikeys = apikeys_response.json()
+        api_keys = api_keys_response.json()
 
         # If there are API keys, they should reference valid user IDs
-        if apikeys and users:
-            apikey = apikeys[0]
-            if "user_id" in apikey:
+        if api_keys and users:
+            api_key = api_keys[0]
+            if "user_id" in api_key:
                 # API key's user_id should reference an existing user
-                assert isinstance(apikey["user_id"], str)
+                assert isinstance(api_key["user_id"], str)
 
     @pytest.mark.asyncio
     async def test_all_crud_endpoints_consistent(self, async_client: AsyncClient):
@@ -361,7 +361,7 @@ class TestCRUDIntegration:
             "/tenants",
             "/users",
             "/clients",
-            "/apikeys",
+            "/api_keys",
             "/services",
             "/service_keys",
         ]

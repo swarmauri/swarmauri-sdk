@@ -398,7 +398,7 @@ class TestApiKeyIntrospection:
 
         introspect_data = {"api_key": raw_key}
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post("/api_keys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -410,7 +410,7 @@ class TestApiKeyIntrospection:
         """Test API key introspection with invalid key."""
         introspect_data = {"api_key": "invalid-api-key"}
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post("/api_keys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -448,7 +448,7 @@ class TestApiKeyIntrospection:
 
         introspect_data = {"api_key": raw_key}
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post("/api_keys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

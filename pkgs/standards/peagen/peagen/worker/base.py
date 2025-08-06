@@ -5,7 +5,6 @@ import asyncio
 import logging
 import os
 import socket
-import uuid
 from typing import Awaitable, Callable, Dict
 
 import httpx
@@ -142,7 +141,7 @@ class WorkerBase:
                 "Workers.create", params=payload.model_dump(mode="json")
             )
             self.worker_id = created.get("id")
-            api_key = created.get("api_key") or created.get("service_key")
+            api_key = created.get("api_key")
             if api_key:
                 self._api_key = api_key
                 os.environ["DQ_API_KEY"] = api_key
