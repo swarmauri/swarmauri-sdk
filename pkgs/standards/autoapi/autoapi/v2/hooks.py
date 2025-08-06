@@ -64,10 +64,9 @@ def _init_hooks(self) -> None:
                     tab = model if model.endswith(("s", "S")) else f"{model}s"
                 else:
                     tab = getattr(model, "__tablename__", model.__name__)
-                # Preserve existing camelCase while upper-casing only the first
-                # letter of underscore-delimited segments. This avoids
-                # lowercasing already-camelcased portions like "ServiceKeys".
-                if "_" in tab:
+                if tab.islower():
+                    model_name = "".join(part.title() for part in tab.split("_"))
+                elif "_" in tab:
                     model_name = "".join(
                         part[:1].upper() + part[1:] for part in tab.split("_")
                     )
