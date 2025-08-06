@@ -19,6 +19,7 @@ from peagen.defaults import (
     DEFAULT_POOL_ID,
     DEFAULT_SUPER_USER_ID,
     DEFAULT_TENANT_ID,
+    GIT_SHADOW_BASE,
 )
 from peagen.orm import Repository
 
@@ -72,7 +73,7 @@ def local_init_filter(
 
 @local_init_app.command("repo")
 def local_init_repo(
-    repo: str = typer.Argument(..., help="tenant/repo"),
+    repo: str = typer.Argument(..., help="principal/repo"),
     pat: str = typer.Option(..., envvar="GITHUB_PAT", help="GitHub PAT"),
     description: str = typer.Option("", help="Repository description"),
     deploy_key: Path = typer.Option(None, "--deploy-key", help="Existing private key"),
@@ -94,10 +95,15 @@ def local_init_repo(
         "path": str(path),
     }
     remotes: Dict[str, str] = {}
+    principal, name = repo.split("/", 1)
     if origin:
         remotes["origin"] = origin
+    else:
+        remotes["origin"] = f"{GIT_SHADOW_BASE.rstrip('/')}/{principal}/{name}.git"
     if upstream:
         remotes["upstream"] = upstream
+    else:
+        remotes["upstream"] = f"git@github.com:{principal}/{name}.git"
     args["remotes"] = remotes
     result = _call_handler(args)
     _summary(Path("."), result["next"])
@@ -328,7 +334,7 @@ def remote_init_ci(  # noqa: PLR0913
 @remote_init_app.command("repo")
 def remote_init_repo(
     ctx: typer.Context,
-    repo_slug: str = typer.Argument(..., help="tenant/repo"),
+    repo_slug: str = typer.Argument(..., help="principal/repo"),
     url: str = typer.Option(None, "--url", help="Repository URL"),
     default_branch: str = typer.Option("main", "--default-branch"),
     remote_name: str = typer.Option("origin", "--remote-name"),
@@ -337,11 +343,11 @@ def remote_init_repo(
     self = Logger(name="init_repo")
     self.logger.info("Entering remote init_repo command")
     try:
-        tenant, name = repo_slug.split("/", 1)
+        principal, name = repo_slug.split("/", 1)
     except ValueError:
-        typer.echo("❌  repo must be in 'tenant/name' format", err=True)
+        typer.echo("❌  repo must be in 'principal/name' format", err=True)
         raise typer.Exit(1)
-    repo_url = url or f"https://github.com/{tenant}/{name}"
+    repo_url = url or f"https://github.com/{principal}/{name}"
     SCreate = AutoAPI.get_schema(Repository, "create")
     SRead = AutoAPI.get_schema(Repository, "read")
     params = SCreate(
