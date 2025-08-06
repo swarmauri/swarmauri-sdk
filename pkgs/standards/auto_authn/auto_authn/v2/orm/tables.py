@@ -125,12 +125,6 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     __tablename__ = "services"
 
     name = Column(String(120), unique=True, nullable=False)
-    service_keys = relationship(
-        "auto_authn.v2.orm.tables.ServiceKey",
-        back_populates="service",
-        cascade="all, delete-orphan",
-    )
-
 
 class ApiKey(ApiKeyBase, UserMixin):
     __table_args__ = {"extend_existing": True}
