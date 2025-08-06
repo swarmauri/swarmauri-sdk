@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
@@ -113,7 +114,12 @@ async def _shadow_principal(ctx):
     uid = p.get("sub")
     if not tid or not uid:
         return
-    slug = p.get("tenant_slug") or p.get("tenant") or tid
+    try:
+        tid = uuid.UUID(str(tid))
+        uid = uuid.UUID(str(uid))
+    except (ValueError, AttributeError):
+        return
+    slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
     if await db.get(Tenant, tid) is None:
         db.add(
             Tenant(
@@ -124,7 +130,7 @@ async def _shadow_principal(ctx):
             )
         )
     if await db.get(User, uid) is None:
-        db.add(User(id=uid, tenant_id=tid, username=p.get("username") or uid))
+        db.add(User(id=uid, tenant_id=tid, username=p.get("username") or str(uid)))
     try:
         await db.commit()
     except IntegrityError:
