@@ -16,11 +16,14 @@ from typing import Any, Dict, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from github import Github
 
+from peagen.core.git_repo_core import open_repo
+
 from peagen.plugins import (
     PluginManager,
     discover_and_register_plugins,
     registry,
 )
+from peagen._utils.config_loader import resolve_cfg
 from peagen.core.doe_core import _sha256
 
 
@@ -214,7 +217,11 @@ def init_repo(
     try:
         owner = gh.get_organization(tenant)
     except Exception:
-        owner = gh.get_user(tenant)
+        auth_user = gh.get_user()
+        if auth_user.login.lower() == tenant.lower():
+            owner = auth_user
+        else:
+            owner = gh.get_user(tenant)
 
     try:
         repo_obj = owner.create_repo(name, private=True, description=description)
@@ -250,12 +257,31 @@ def init_repo(
         "next": "configure DEPLOY_KEY_SECRET",
     }
 
-    if path is not None:
-        result.update({"configured": str(path)})
+    if path is None:
+        path = Path(".")
 
+    final_remotes = remotes.copy() if remotes else {}
+    final_remotes.setdefault("origin", repo_obj.ssh_url)
+    configure_repo(path=path, remotes=final_remotes)
+    vcs = open_repo(path, remotes=final_remotes)
+    for remote_name in final_remotes:
+        vcs.push("HEAD", remote=remote_name)
+
+    result.update({"configured": str(path), "remotes": final_remotes})
     return result
 
 
 def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
     """Configure an existing repository with additional remotes."""
+    cfg = resolve_cfg()
+    vcs_cfg = cfg.setdefault("vcs", {})
+    adapters = vcs_cfg.setdefault("adapters", {})
+    default = vcs_cfg.get("default_vcs", "git")
+    adapter_cfg = adapters.setdefault(default, {})
+    adapter_cfg["path"] = str(path)
+    if remotes:
+        adapter_cfg.setdefault("remotes", {})
+        adapter_cfg["remotes"].update(remotes)
+    pm = PluginManager(cfg)
+    pm.get("vcs", default)
     return {"configured": str(path), "remotes": remotes}

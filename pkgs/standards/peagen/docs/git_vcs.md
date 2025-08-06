@@ -107,6 +107,12 @@ push results back to it.
 
    This calls the GitHub API, creates an Ed25519 key pair and registers the
    public key as a deploy key so the CLI can push via SSH.
+   If ``--origin`` or ``--upstream`` are omitted, the command defaults the
+   former to ``git@github.com:<principal>/<repo>.git`` and omits the latter.
+
+   For remote repositories, ``peagen remote init repo`` defaults the origin to
+   ``https://git.peagen.com/<principal>/<repo>.git`` and the upstream to
+   ``git@github.com:<principal>/<repo>.git``.
 
 2. **Authenticate with the gateway** – upload the same public key so the gateway
    can verify your requests.
