@@ -244,29 +244,31 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
                 ctx = {"request": req, "db": db, "env": env}
 
-                args = {
-                    "create": (p,),
-                    "bulk_create": (p,),
-                    "bulk_delete": (p,),
-                    "list": (p,),
-                    "clear": (),
-                    "read": (item_id,),
-                    "delete": (item_id,),
-                    "update": (item_id, p),
-                    "replace": (item_id, p),
-                }[verb]
+                def _build_args(_p):
+                    match verb:
+                        case "create" | "bulk_create" | "bulk_delete" | "list":
+                            return (_p,)
+                        case "clear":
+                            return ()
+                        case "read" | "delete":
+                            return (_p[pk],)
+                        case "update" | "replace":
+                            body = {k: v for k, v in _p.items() if k != pk}
+                            return (_p[pk], body)
+                        case _:
+                            return ()
 
                 if isinstance(db, AsyncSession):
 
                     def exec_fn(_m, _p, _db=db):
-                        return _db.run_sync(lambda s: core(*args, s))
+                        return _db.run_sync(lambda s: core(*_build_args(_p), s))
 
                     return await _invoke(
                         self, m_id, params=rpc_params, ctx=ctx, exec_fn=exec_fn
                     )
 
                 def _direct_call(_m, _p, _db=db):
-                    return core(*args, _db)
+                    return core(*_build_args(_p), _db)
 
                 return await _invoke(
                     self, m_id, params=rpc_params, ctx=ctx, exec_fn=_direct_call
@@ -298,7 +300,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 _factory(rtr is not flat_router),
                 methods=[http],
                 status_code=status,
-                response_model=Out,
+                response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
             )
