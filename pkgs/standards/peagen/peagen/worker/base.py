@@ -44,8 +44,8 @@ def _local_ip() -> str:
 class WorkerBase:
     """
     Minimal worker that registers with an AutoAPI-powered gateway,
-    exposes /rpc for `Works.create`, executes the work locally, and
-    reports progress via `Works.update`.
+    exposes /rpc for `Work.create`, executes the work locally, and
+    reports progress via `Work.update`.
     """
 
     # ───────────────────────── constructor ──────────────────────────
@@ -87,7 +87,7 @@ class WorkerBase:
         # ----- JSON-RPC dispatcher --------------------------------
         self.rpc = RPCDispatcher()
 
-        @self.rpc.method("Work.create")
+        @self.rpc.method("Works.create")
         async def _on_work_start(payload: dict) -> dict:
             asyncio.create_task(self._run_work(payload))
             return {"accepted": True}
@@ -128,7 +128,7 @@ class WorkerBase:
     # ────────────────────── AutoAPI interactions ───────────────────
     async def _startup(self) -> None:
         """
-        • Create Worker row (Workers.create)
+        • Create Worker row (Worker.create)
         • Kick off heartbeat loop
         """
         try:
@@ -139,8 +139,15 @@ class WorkerBase:
                 advertises={"cpu": True},
                 handlers={"handlers": list(self._handlers)},
             )
-            self._client.call("Worker.create", params=payload, out_schema=SWorkerRead)
+            created = self._client.call(
+                "Workers.create", params=payload, out_schema=SWorkerRead
+            )
             self.log.info("registered @ gateway as %s", self.worker_id)
+            api_key = getattr(created, "service_key", None)
+            if api_key:
+                self._api_key = api_key
+                os.environ["DQ_API_KEY"] = api_key
+                self._client.api_key = api_key
         except Exception as exc:  # pragma: no cover
             self.log.error("registration failed: %s", exc, exc_info=True)
 
@@ -173,7 +180,7 @@ class WorkerBase:
     async def _run_work(self, raw: dict) -> None:
         """
         Dispatch *raw* JSON-RPC payload to the appropriate local handler
-        and report status back via `Works.update`.
+        and report status back via `Work.update`.
         """
         try:
             work_in = SWorkCreate.model_validate(raw)

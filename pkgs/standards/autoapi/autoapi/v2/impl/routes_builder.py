@@ -51,9 +51,17 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     return base  # primitive / dict / etc.
 
 
-def _canonical(table: str, verb: str) -> str:
-    cls_name = ''.join(w.title() for w in table.rstrip('s').split('_'))
+def _canonical(tab: str, verb: str) -> str:
+    """Return canonical RPC method name.
+
+    Canonical identifiers use the ORM *table* name so methods align with the
+    pluralised table, e.g. ``Items.create``.  If ``tab`` is provided in
+    snake_case it is converted to ``PascalCase`` before joining with the
+    operation verb.
+    """
+    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
     return f"{cls_name}.{verb}"
+
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
@@ -120,6 +128,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     raw_pref = self._nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
     nested_vars = re.findall(r"{(\w+)}", raw_pref)
+
+    allow_cb = getattr(model, "__autoapi_allow_anon__", None)
+    _allow_verbs = set(allow_cb()) if callable(allow_cb) else set()
+    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
     routers = (
@@ -278,6 +290,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # mount on routers
         for rtr in routers:
+            deps = [_guard(m_id)]
+            if m_id not in self._allow_anon:
+                deps.insert(0, self._authn_dep)
             rtr.add_api_route(
                 path,
                 _factory(rtr is not flat_router),
@@ -285,23 +300,24 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 status_code=status,
                 response_model=Out,
                 responses=COMMON_ERRORS,
-                dependencies=[self._authn_dep, _guard(m_id)],
+                dependencies=deps,
             )
 
         # ─── register on parent API (makes it available under api.schemas.*) ──
         for s in (In, Out):
-            if s is None:           # ← skip empty side of the IO pair
+            if s is None:  # ← skip empty side of the IO pair
                 continue
             name = s.__name__
             if name not in self._schemas:
                 self._schemas[name] = s
                 setattr(self.schemas, name, s)
+
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
-        camel = f"{model.__name__}{''.join(w.title() for w in verb.split('_'))}"
+        camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
 
         def _runner(payload, *, db=None, _method=m_id, _api=self):
             """
@@ -309,7 +325,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 api.methods.UserCreate(SUserCreate(...))
             without having to open a DB session by hand.
             """
-            if db is None:                        # auto-open sync session
+            if db is None:  # auto-open sync session
                 if _api.get_db is None:
                     raise TypeError(
                         "Supply a Session via db=... "
@@ -321,14 +337,18 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     return _api.rpc[_method](payload, db)
                 finally:
                     try:
-                        next(gen)                 # finish generator → close
+                        next(gen)  # finish generator → close
                     except StopIteration:
                         pass
-            else:                                 # caller supplied session
+            else:  # caller supplied session
                 return _api.rpc[_method](payload, db)
 
-        # register under ._method_ids  and  .methods.<CamelName>
-        self._method_ids[camel] = _runner
+        # register under ._method_ids and .methods.<CamelName>
+        # ``_method_ids`` is used by the ``/methodz`` endpoint and by the hook
+        # subsystem to look up handlers based on their canonical RPC name.  It
+        # should therefore store entries keyed by the canonical identifier
+        # (e.g. ``Items.create``) rather than the camel-cased helper name.
+        self._method_ids[m_id] = _runner
         setattr(self.methods, camel, _runner)
 
     # include routers

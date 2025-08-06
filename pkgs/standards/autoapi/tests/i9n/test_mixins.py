@@ -5,7 +5,7 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import Column, String
 
 from autoapi.v2.mixins import GUIDPk
@@ -354,6 +354,24 @@ async def test_validity_window_mixin(create_test_api):
     assert "valid_to" in create_schema.model_fields
     assert "valid_from" in read_schema.model_fields
     assert "valid_to" in read_schema.model_fields
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_validity_window_default(create_test_api):
+    api = create_test_api(DummyModelValidityWindow)
+    session = next(api.get_db())
+    try:
+        instance = DummyModelValidityWindow(name="x")
+        session.add(instance)
+        session.flush()
+        vf_default = instance.valid_from
+        vt_default = instance.valid_to
+    finally:
+        session.close()
+    assert vf_default is not None
+    assert vt_default is not None
+    assert abs((vt_default - vf_default) - timedelta(days=1)) < timedelta(seconds=1)
 
 
 @pytest.mark.i9n

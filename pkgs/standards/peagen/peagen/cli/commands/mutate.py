@@ -114,8 +114,6 @@ def submit(  # noqa: PLR0913
     interval: float = typer.Option(2.0, "--interval", "-i"),
 ) -> None:
     """Submit a mutate task to the gateway (optionally watch progress)."""
-    gw = ctx.obj.get("gateway_url")
-
     args = _args_dict(
         target_file, import_path, entry_fn, profile_mod, fitness, mutator, gens
     ) | {"repo": repo, "ref": ref}
@@ -129,12 +127,12 @@ def submit(  # noqa: PLR0913
         ref=ref,
     )
 
-    created = submit_task(gw, task)
+    created = submit_task(ctx.obj["rpc"], task)
     typer.echo(f"Submitted task {created['id']}")
 
     if watch:
         while True:
-            cur = get_task(gw, created["id"])
+            cur = get_task(ctx.obj["rpc"], created["id"])
             if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)

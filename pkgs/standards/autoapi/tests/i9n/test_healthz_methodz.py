@@ -59,7 +59,7 @@ async def test_methodz_endpoint_comprehensive(api_client):
         assert isinstance(method_name, str)
         assert "." in method_name  # Should follow Model.operation pattern
 
-    # Should have methods for Items and Tenants (from conftest)
+    # Should have methods for Item and Tenant (from conftest)
     expected_methods = [
         "Items.create",
         "Items.read",

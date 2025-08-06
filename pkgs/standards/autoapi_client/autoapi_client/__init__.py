@@ -48,6 +48,7 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
         *,
         client: httpx.Client | None = None,
         headers: dict[str, str] | None = None,
+        api_key: str | None = None,
     ) -> None:
         """
         Initialize the AutoAPIClient.
@@ -55,11 +56,15 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
         Args:
             endpoint: Base URL for the API
             client: Optional httpx.Client instance. If not provided, a new one will be created.
+            headers: Optional default headers for all requests.
+            api_key: Optional API key for authenticated requests. The key is
+                sent using the ``x-api-key`` header.
         """
         self._endpoint = endpoint
         self._own = client is None  # whether we manage its lifecycle
         self._client = client or httpx.Client(timeout=10.0)
-        self._headers = headers or {}
+        self._headers = headers.copy() if headers else {}
+        self.api_key = api_key
 
         # Create async client for async operations
         self._async_client = httpx.AsyncClient(timeout=10.0)
@@ -67,6 +72,19 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
 
         # Initialize nested CRUD placeholder
         NestedCRUDMixin.__init__(self)
+
+    @property
+    def api_key(self) -> str | None:
+        """Return the currently configured API key, if any."""
+        return self._headers.get("x-api-key")
+
+    @api_key.setter
+    def api_key(self, value: str | None) -> None:
+        """Set or remove the API key used for requests."""
+        if value is None:
+            self._headers.pop("x-api-key", None)
+        else:
+            self._headers["x-api-key"] = value
 
     def _get_endpoint(self) -> str:
         """Get the endpoint URL."""

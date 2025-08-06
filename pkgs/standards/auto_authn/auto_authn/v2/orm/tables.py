@@ -29,18 +29,19 @@ from autoapi.v2.types import (
     relationship,
     mapped_column,
     Column,
-    hybrid_property,
     PgUUID,
     ForeignKey,
+    HookProvider,
 )
 from autoapi.v2.tables import (
-    Tenant,
+    Tenant as TenantBase,
     Client as ClientBase,
     User as UserBase,
     ApiKey as ApiKeyBase,
 )
 from autoapi.v2.mixins import (
     GUIDPk,
+    Bootstrappable,
     Timestamped,
     TenantBound,
     Principal,
@@ -51,8 +52,10 @@ from autoapi.v2.mixins import (
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
-from hashlib import blake2b
+from hashlib import sha256
 from secrets import token_urlsafe
+from datetime import datetime, timezone
+from fastapi import HTTPException
 
 # ────────────────────────────────────────────────────────────────────
 # Utility type alias for 36-char UUID strings
@@ -60,6 +63,17 @@ _UUID = Annotated[str, mapped_column(String(36), default=lambda: str(uuid.uuid4(
 
 # Regular-expression for a valid client_id (RFC 6749 allows many forms)
 _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
+
+
+class Tenant(TenantBase, Bootstrappable):
+    DEFAULT_ROWS = [
+        {
+            "id": uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),
+            "email": "tenant@example.com",
+            "name": "Public",
+            "slug": "public",
+        }
+    ]
 
 
 # --------------------------------------------------------------------
@@ -130,58 +144,86 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     )
 
 
-class ApiKey(ApiKeyBase):
+class ApiKey(ApiKeyBase, HookProvider):
     user = relationship(
         "auto_authn.v2.orm.tables.User",
         back_populates="api_keys",
         lazy="joined",  # optional: eager load to avoid N+1
     )
 
-    @hybrid_property
-    def raw_key(self) -> str:
-        """Write-only virtual attribute (never returned)."""
-        raise AttributeError("raw_key is write-only")
-
-    @raw_key.setter
-    def raw_key(self, value: str) -> None:
-        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
-
     @staticmethod
     def digest_of(value: str) -> None:
-        return blake2b(value.encode(), digest_size=32).hexdigest()
+        return sha256(value.encode()).hexdigest()
 
-    # attach ColumnInfo so AutoAPI knows to expose it
-    raw_key.default = token_urlsafe(8)
-    raw_key.nullable = True
-    raw_key.oncreate = token_urlsafe(8)
-    raw_key.onupdate = token_urlsafe(8)
-    raw_key.info = {
-        "autoapi": {
-            "hybrid": True,  # ← opt-in
-            "write_only": True,  # hide on READ/LIST
-            "py_type": str,
-            "default_factory": token_urlsafe(8),
-            "examples": [token_urlsafe(8)],  # Swagger placeholder
-        }
-    }
+    @classmethod
+    async def _pre_create_generate(cls, ctx):
+        params = ctx["env"].params
+        raw = token_urlsafe(32)
+        digest = sha256(raw.encode()).hexdigest()
+        now = datetime.now(timezone.utc)
+        if hasattr(params, "model_dump"):
+            if getattr(params, "raw_key", None) or getattr(params, "digest", None):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params = params.model_copy(update={"digest": digest, "last_used_at": now})
+            ctx["env"].params = params
+        elif isinstance(params, dict):
+            if params.get("raw_key") or params.get("digest"):
+                raise HTTPException(
+                    status_code=422, detail="raw_key/digest are server generated"
+                )
+            params["digest"] = digest
+            params["last_used_at"] = now
+        ctx["raw_api_key"] = raw
+
+    @classmethod
+    async def _post_create_inject_key(cls, ctx):
+        raw = ctx.get("raw_api_key")
+        if not raw:
+            return
+        result = dict(ctx.get("result", {}))
+        result["api_key"] = raw
+        ctx["result"] = result
+
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import Phase
+
+        api.register_hook(Phase.PRE_TX_BEGIN, model="ApiKey", op="create")(
+            cls._pre_create_generate
+        )
+        api.register_hook(Phase.POST_COMMIT, model="ApiKey", op="create")(
+            cls._post_create_inject_key
+        )
 
 
-class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow):
-    """API key bound to a service principal."""
-
+class ServiceKey(
+    Base,
+    GUIDPk,
+    Created,
+    LastUsed,
+    ValidityWindow,
+    HookProvider,
+):
     __tablename__ = "service_keys"
 
     service_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("services.id"), index=True, nullable=False
+        PgUUID(as_uuid=True),
+        ForeignKey("services.id"),
+        index=True,
+        nullable=False,
     )
     label = Column(String(120), nullable=False)
+
     digest = Column(
         String(64),
         nullable=False,
         unique=True,
         info={
             "autoapi": {
-                "disable_on": ["create", "update", "replace"],
+                # excluded from update/replace request bodies
+                "disable_on": ["update", "replace"],
                 "read_only": True,
             }
         },
@@ -193,31 +235,55 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow):
         lazy="joined",
     )
 
-    @hybrid_property
-    def raw_key(self) -> str:
-        raise AttributeError("raw_key is write-only")
-
-    @raw_key.setter
-    def raw_key(self, value: str) -> None:
-        self.digest = blake2b(value.encode(), digest_size=32).hexdigest()
-
     @staticmethod
     def digest_of(value: str) -> str:
-        return blake2b(value.encode(), digest_size=32).hexdigest()
+        return sha256(value.encode()).hexdigest()
 
-    raw_key.default = token_urlsafe(8)
-    raw_key.nullable = True
-    raw_key.oncreate = token_urlsafe(8)
-    raw_key.onupdate = token_urlsafe(8)
-    raw_key.info = {
-        "autoapi": {
-            "hybrid": True,
-            "write_only": True,
-            "py_type": str,
-            "default_factory": token_urlsafe(8),
-            "examples": [token_urlsafe(8)],
-        }
-    }
+    # ──────────────────────────────────────────────────────────
+    # Hooks
+    # ──────────────────────────────────────────────────────────
+    @classmethod
+    async def _pre_create_generate(cls, ctx):
+        params = ctx["env"].params
+        raw = token_urlsafe(32)
+        digest = cls.digest_of(raw)
+        if hasattr(params, "model_dump"):
+            if getattr(params, "digest", None):
+                raise HTTPException(
+                    status_code=422, detail="digest is server generated"
+                )
+            params = params.model_copy(update={"digest": digest})
+            ctx["env"].params = params
+        elif isinstance(params, dict):
+            if params.get("digest"):
+                raise HTTPException(
+                    status_code=422, detail="digest is server generated"
+                )
+            params["digest"] = digest
+        ctx["raw_service_key"] = raw
+
+    @classmethod
+    async def _post_commit_inject(cls, ctx):
+        raw = ctx.pop("raw_service_key", None)
+        if not raw:
+            return
+        result = dict(ctx.get("result", {}))
+        result["service_key"] = raw
+        ctx["result"] = result
+
+    # ──────────────────────────────────────────────────────────
+    # Hook registration
+    # ──────────────────────────────────────────────────────────
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import Phase
+
+        api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
+            cls._pre_create_generate
+        )
+        api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
+            cls._post_commit_inject
+        )
 
 
 __all__ = [

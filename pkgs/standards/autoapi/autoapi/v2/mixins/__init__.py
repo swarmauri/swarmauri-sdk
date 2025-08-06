@@ -1,5 +1,4 @@
 # mixins_generic.py ───── all mix-ins live here
-from uuid import uuid4, UUID
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
 from ..types import (
@@ -19,12 +18,19 @@ from ..types import (
     JSONB,
     TSVECTOR,
     Boolean,
+    UUID,
+    uuid4,
 )
 
 
 def tzutcnow() -> dt.datetime:  # default/on‑update factory
     """Return an **aware** UTC `datetime`."""
     return dt.datetime.now(dt.timezone.utc)
+
+
+def tzutcnow_plus_day() -> dt.datetime:
+    """Return an aware UTC ``datetime`` one day in the future."""
+    return tzutcnow() + dt.timedelta(days=1)
 
 
 # ----------------------------------------------------------------------
@@ -149,12 +155,15 @@ class Created:
 
 @declarative_mixin
 class LastUsed:
-    last_used_at = Column(TZDateTime, nullable=True)
-
+    last_used_at = Column(
+        TZDateTime,
+        nullable=True,
+        onupdate=tzutcnow,
+        info=dict(no_create=True, no_update=True),
+    )
     def touch(self) -> None:
-        """Update `last_used_at` on successful authentication."""
+        """Mark the object as used now."""
         self.last_used_at = tzutcnow()
-
 
 @declarative_mixin
 class Timestamped:
@@ -311,7 +320,7 @@ class StatusMixin:
 @declarative_mixin
 class ValidityWindow:
     valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
-    valid_to = Column(TZDateTime)
+    valid_to = Column(TZDateTime, default=tzutcnow_plus_day)
 
 
 # ----------------------------------------------------------------------

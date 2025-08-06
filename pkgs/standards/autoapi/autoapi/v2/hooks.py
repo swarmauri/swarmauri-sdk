@@ -61,13 +61,18 @@ def _init_hooks(self) -> None:
             if model is not None and op is not None:
                 # Model + op parameters
                 if isinstance(model, str):
-                    model_name = model
+                    tab = model if model.endswith(("s", "S")) else f"{model}s"
                 else:
-                    # Handle object reference - use table name and convert to canonical form
-                    # to match the method naming convention used by _canonical()
-                    table_name = getattr(model, "__tablename__", model.__name__.lower())
-                    # Convert table_name to canonical form (e.g., "items" -> "Items")
-                    model_name = "".join(w.title() for w in table_name.split("_"))
+                    tab = getattr(model, "__tablename__", model.__name__)
+                # Preserve existing camelCase while upper-casing only the first
+                # letter of underscore-delimited segments. This avoids
+                # lowercasing already-camelcased portions like "ServiceKeys".
+                if "_" in tab:
+                    model_name = "".join(
+                        part[:1].upper() + part[1:] for part in tab.split("_")
+                    )
+                else:
+                    model_name = tab
                 hook_key = f"{model_name}.{op}"
             elif model is not None or op is not None:
                 # Error: both model and op must be provided together
@@ -87,12 +92,9 @@ def _init_hooks(self) -> None:
 
 
 async def _run(self, phase: Phase, ctx: Dict[str, Any]) -> None:
-    """
-    Fire hooks for *phase*.  First those bound to the specific
-    RPC method (if any), then the catch-all hooks.
-    """
+    """Run hooks for *phase* in order and stop on the first error."""
     m = getattr(ctx.get("env"), "method", None)
-    for fn in self._hook_registry[phase].get(m, []):
-        await fn(ctx)
-    for fn in self._hook_registry[phase].get(None, []):
+    hooks = list(self._hook_registry[phase].get(m, []))
+    hooks.extend(self._hook_registry[phase].get(None, []))
+    for fn in hooks:
         await fn(ctx)

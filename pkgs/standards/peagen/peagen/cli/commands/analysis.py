@@ -9,7 +9,6 @@ import typer
 from peagen.handlers.analysis_handler import analysis_handler
 from peagen.cli.task_helpers import build_task, submit_task
 
-DEFAULT_GATEWAY = "http://localhost:8000/rpc"
 local_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 remote_analysis_app = typer.Typer(help="Aggregate run evaluation results.")
 
@@ -45,7 +44,7 @@ def submit(
     if repo:
         args.update({"repo": repo, "ref": ref})
     task = build_task("analysis", args, pool=ctx.obj.get("pool", "default"))
-    reply = submit_task(ctx.obj.get("gateway_url"), task)
+    reply = submit_task(ctx.obj["rpc"], task)
     if "error" in reply:
         typer.secho(
             f"Remote error {reply['error']['code']}: {reply['error']['message']}",

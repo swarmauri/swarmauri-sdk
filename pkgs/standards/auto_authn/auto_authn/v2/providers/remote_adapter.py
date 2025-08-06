@@ -44,7 +44,8 @@ class RemoteAuthNAdapter(AuthNProvider):
         cache_size: int = 10_000,
         client: httpx.AsyncClient | None = None,
     ) -> None:
-        self._introspect = f"{base_url.rstrip('/')}/apikeys/introspect"
+        self.base_url = base_url.rstrip("/")
+        self._introspect = f"{self.base_url}/apikeys/introspect"
         self._client = client or httpx.AsyncClient(
             timeout=timeout,
             headers={"User-Agent": "autoauthn-remote-adapter"},
@@ -84,7 +85,12 @@ class RemoteAuthNAdapter(AuthNProvider):
     # AuthNProvider : hook bootstrap                                     #
     # ------------------------------------------------------------------ #
     def register_inject_hook(self, api) -> None:  # noqa: D401
-        """Idempotently register the PRE_TX_BEGIN injection hook."""
+        """Register the PRE_TX_BEGIN injection hook without assuming shadow tables.
+
+        The hook merely injects ``tenant_id`` and ``owner_id`` fields when they
+        exist on the target models; it does not require the consumer to create
+        local shadow ``Tenant`` or ``User`` tables.
+        """
         register_inject_hook(api)
 
     # ------------------------------------------------------------------ #

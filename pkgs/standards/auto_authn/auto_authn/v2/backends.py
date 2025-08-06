@@ -22,13 +22,13 @@ is handled in `fastapi_deps.py` or route handlers.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Iterable
 
 from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .crypto import verify_pw
-from .orm.tables import ApiKey, ServiceKey, User
+from .orm.tables import ApiKey, Client, ServiceKey, User
 from .typing import Principal
 
 
@@ -73,7 +73,7 @@ class PasswordBackend:
 # ---------------------------------------------------------------------
 class ApiKeyBackend:
     """
-    Authenticate a user via raw API key string.
+    Authenticate a principal via raw API key string.
 
     * Only active, non-expired keys are valid.
     * The raw secret is never stored; verification is via BLAKE2b-256 digest.
@@ -93,21 +93,32 @@ class ApiKeyBackend:
             or_(ServiceKey.valid_to.is_(None), ServiceKey.valid_to > now),
         )
 
-    async def authenticate(self, db: AsyncSession, api_key: str) -> Principal:
+    async def _get_client_stmt(self) -> Select[tuple[Client]]:
+        return select(Client).where(Client.is_active.is_(True))
+
+    async def authenticate(
+        self, db: AsyncSession, api_key: str
+    ) -> tuple[Principal, str]:
         digest = ApiKey.digest_of(api_key)
         key_row: Optional[ApiKey] = await db.scalar(await self._get_key_stmt(digest))
         if key_row and key_row.user:
             if not key_row.user.is_active:
                 raise AuthError("user is inactive")
             key_row.touch()
-            return key_row.user
+            return key_row.user, "user"
 
         svc_row: Optional[ServiceKey] = await db.scalar(
             await self._get_service_key_stmt(digest)
         )
-        if not svc_row:
-            raise AuthError("API key invalid, revoked, or expired")
-        if not svc_row.service.is_active:
-            raise AuthError("service is inactive")
-        svc_row.touch()
-        return svc_row.service
+        if svc_row:
+            if not svc_row.service.is_active:
+                raise AuthError("service is inactive")
+            svc_row.touch()
+            return svc_row.service, "service"
+
+        clients: Iterable[Client] = await db.scalars(await self._get_client_stmt())
+        for client in clients:
+            if client.verify_secret(api_key):
+                return client, "client"
+
+        raise AuthError("API key invalid, revoked, or expired")

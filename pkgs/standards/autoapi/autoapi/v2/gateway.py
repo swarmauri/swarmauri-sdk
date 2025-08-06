@@ -40,16 +40,15 @@ def build_gateway(api) -> APIRouter:
             "/rpc",
             response_model=_RPCRes,
             tags=["rpc"],
-            dependencies=[api._authn_dep],
         )
         async def _gateway(
             req: Request,
             env: _RPCReq = Body(..., embed=False),
-            db: Session = Depends(
-                api.get_db,
-            ),
+            db: Session = Depends(api.get_db),
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
+            if api._authn and env.method not in api._allow_anon:
+                await api._authn.get_principal(req)
 
             # Authorisation --------------------------------------------------
             if api.authorize and not api.authorize(env.method, req):
@@ -77,13 +76,15 @@ def build_gateway(api) -> APIRouter:
     # ───────── asynchronous SQLAlchemy branch ──────────────────────────────
     else:
 
-        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"], dependencies=[api._authn_dep],)
+        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
         async def _gateway(
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
+            if api._authn and env.method not in api._allow_anon:
+                await api._authn.get_principal(req)
 
             if api.authorize and not api.authorize(env.method, req):
                 return _err(403, "Forbidden", env)

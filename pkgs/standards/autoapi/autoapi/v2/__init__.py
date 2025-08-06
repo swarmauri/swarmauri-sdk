@@ -10,10 +10,10 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
@@ -32,8 +32,12 @@ from .types import (
     _Op,  # pure metadata
     _SchemaVerb,
     AuthNProvider,
+    MethodType,
+    SimpleNamespace,
 )
-from .schema import _SchemaNS
+from .schema import _SchemaNS, get_autoapi_schema as get_schema
+from .transactional import transactional as _register_tx
+
 
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
@@ -64,10 +68,10 @@ class AutoAPI:
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
-        self._schemas:     OrderedDict[str, Type["BaseModel"]]   = OrderedDict()
+        self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
+        self._allow_anon: set[str] = set()
 
         # attribute-style access, e.g.  api.methods.UserCreate(...)
-        from types import SimpleNamespace
         self.methods: SimpleNamespace = SimpleNamespace()
 
         # public Schemas namespace
@@ -79,6 +83,26 @@ class AutoAPI:
 
         self.get_db = get_db
         self.get_async_db = get_async_db
+
+        # ---------- add register_transactional---------------------
+        self.transactional = MethodType(_register_tx, self)
+
+        # ─── convenience: explicit registration ----------------------
+        def _register_existing_tx(
+            self, fn: Callable[..., Any], **kw
+        ) -> Callable[..., Any]:
+            """
+            Register *fn* as a transactional handler *after* it was defined.
+
+            Example
+            -------
+                def bundle_create(p, db): ...
+                api.register_transactional(bundle_create,
+                                           name='bundle.create')
+            """
+            return self.transactional(fn, **kw)
+
+        self.register_transactional = MethodType(_register_existing_tx, self)
 
         # ---------- create schema once ---------------------------
         if include:
@@ -150,7 +174,7 @@ class AutoAPI:
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
     # schema = staticmethod(_schema)   # <- prevents self-binding
-    _schema = _schema                # keep the private alias if you still need it
+    _schema = _schema  # keep the private alias if you still need it
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc
@@ -160,9 +184,7 @@ class AutoAPI:
 
     @classmethod
     def get_schema(cls, orm_cls: type, op: _SchemaVerb):
-        from .schema import get_autoapi_schema
-
-        return get_autoapi_schema(orm_cls, op)
+        return get_schema(orm_cls, op)
 
 
 # keep __all__ tidy for `from autoapi import *` users
@@ -171,4 +193,5 @@ __all__ = [
     "Phase",
     "_Hook",
     "Base",
+    "get_schema",
 ]

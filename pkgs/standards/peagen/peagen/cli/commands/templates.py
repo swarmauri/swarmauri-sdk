@@ -9,8 +9,6 @@ import typer
 from peagen.handlers.templates_handler import templates_handler
 from peagen.cli.task_helpers import build_task, submit_task
 
-from peagen.defaults import DEFAULT_GATEWAY
-
 # ────────────────────────── apps ───────────────────────────────
 local_template_sets_app = typer.Typer(
     help="Manage Peagen template-sets locally.",
@@ -46,17 +44,15 @@ def run_list():
 
 @remote_template_sets_app.command("list", help="Submit a list task via gateway.")
 def submit_list(
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
+    ctx: typer.Context,
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-):
+) -> None:
     """Enqueue a template-set listing task on the gateway."""
     args = {"operation": "list", "repo": repo, "ref": ref}
     try:
         task = build_task("templates", args, pool="default")
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
@@ -94,18 +90,16 @@ def run_show(
 
 @remote_template_sets_app.command("show", help="Submit a show task via gateway.")
 def submit_show(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-):
+) -> None:
     """Request detailed information about a template-set."""
     args = {"operation": "show", "name": name, "repo": repo, "ref": ref}
     try:
         task = build_task("templates", args, pool="default")
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
@@ -178,6 +172,7 @@ def run_add(
 
 @remote_template_sets_app.command("add", help="Submit an add task via gateway.")
 def submit_add(
+    ctx: typer.Context,
     source: str = typer.Argument(..., metavar="PKG|WHEEL|DIR"),
     from_bundle: Optional[str] = typer.Option(
         None, "--from-bundle", help="Install from bundled archive"
@@ -188,12 +183,9 @@ def submit_add(
     force: bool = typer.Option(
         False, "--force", help="Re-install even if already present"
     ),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-):
+) -> None:
     """Submit a template-set installation job via JSON-RPC."""
     args = {
         "operation": "add",
@@ -206,7 +198,7 @@ def submit_add(
     }
     try:
         task = build_task("templates", args, pool="default")
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)
@@ -246,14 +238,12 @@ def run_remove(
 
 @remote_template_sets_app.command("remove", help="Submit a remove task via gateway.")
 def submit_remove(
+    ctx: typer.Context,
     name: str = typer.Argument(..., metavar="SET_NAME"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompt."),
-    gateway_url: str = typer.Option(
-        DEFAULT_GATEWAY, "--gateway-url", help="JSON-RPC gateway endpoint"
-    ),
     repo: str = typer.Option(..., "--repo", help="Git repository URI"),
     ref: str = typer.Option("HEAD", "--ref", help="Git ref or commit SHA"),
-):
+) -> None:
     """Submit a template-set removal job via JSON-RPC."""
     if not yes:
         if not typer.confirm(f"Uninstall template-set '{name}' ?"):
@@ -263,7 +253,7 @@ def submit_remove(
     args = {"operation": "remove", "name": name, "repo": repo, "ref": ref}
     try:
         task = build_task("templates", args, pool="default")
-        reply = submit_task(gateway_url, task)
+        reply = submit_task(ctx.obj["rpc"], task)
         if "error" in reply:
             raise RuntimeError(reply["error"]["message"])
         task_id = reply.get("result", {}).get("taskId", task.id)

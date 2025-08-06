@@ -26,7 +26,7 @@ from peagen.cli.task_helpers import (
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.orm import Status
-from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -118,7 +118,7 @@ def submit_gen(  # noqa: PLR0913
     ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     """Submit a DOE generation task to the gateway."""
-    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
+    rpc = ctx.obj["rpc"]
 
     args = _assemble_args(
         spec,
@@ -139,7 +139,7 @@ def submit_gen(  # noqa: PLR0913
         ref=ref,
     )
 
-    reply = submit_task(gw, task)
+    reply = submit_task(rpc, task)
     typer.echo(f"Submitted task {reply['id']} (status={reply['status']})")
 
 
@@ -204,7 +204,7 @@ def submit_process(  # noqa: PLR0913
     ref: str = typer.Option("HEAD", "--ref"),
 ) -> None:
     """Submit DOE processing to the gateway and optionally watch progress."""
-    gw = ctx.obj.get("gateway_url", DEFAULT_GATEWAY)
+    rpc = ctx.obj["rpc"]
 
     def _rel(p: Path) -> str:
         try:
@@ -233,12 +233,12 @@ def submit_process(  # noqa: PLR0913
         ref=ref,
     )
 
-    created = submit_task(gw, task)
+    created = submit_task(rpc, task)
     typer.echo(f"Submitted task {created['id']}")
 
     if watch:
         while True:
-            cur = get_task(gw, created["id"])
+            cur = get_task(rpc, created["id"])
             if Status.is_terminal(cur.status):
                 break
             time.sleep(interval)

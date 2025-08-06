@@ -4,9 +4,9 @@ Key-pair helpers driven by `peagen.plugins.cryptography`.
 Exports
 -------
 create_keypair()      – ensure local key-pair, return fingerprint + pubkey
-upload_public_key()   – POST DeployKeys.create → dict
-remove_public_key()   – DELETE DeployKeys.delete → dict
-fetch_server_keys()   – GET   DeployKeys.list   → [dict]
+upload_public_key()   – POST DeployKey.create → dict
+remove_public_key()   – DELETE DeployKey.delete → dict
+fetch_server_keys()   – GET   DeployKey.list   → [dict]
 """
 
 from __future__ import annotations
