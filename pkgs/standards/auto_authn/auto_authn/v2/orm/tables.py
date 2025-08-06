@@ -130,7 +130,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     __tablename__ = "services"
 
     name = Column(String(120), unique=True, nullable=False)
-    api_keys = relationship(
+    service_keys = relationship(
         "auto_authn.v2.orm.tables.ServiceKey",
         back_populates="service",
         cascade="all, delete-orphan",
@@ -150,16 +150,9 @@ class ApiKey(ApiKeyBase, UserMixin):
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
 
-    service_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("services.id"),
-        index=True,
-        nullable=False,
-    )
-
     service = relationship(
         "auto_authn.v2.orm.tables.Service",
-        back_populates="api_keys",
+        back_populates="service_keys",
         lazy="joined",
     )
 
