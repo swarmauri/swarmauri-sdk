@@ -161,9 +161,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             )
             key_resp.raise_for_status()
             body = key_resp.json()
-            ctx["raw_worker_key"] = (
-                body.get("api_key") or body.get("raw_key") or body.get("service_key")
-            )
+            ctx["raw_worker_key"] = body.get("api_key")
         except Exception as exc:  # pragma: no cover
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
