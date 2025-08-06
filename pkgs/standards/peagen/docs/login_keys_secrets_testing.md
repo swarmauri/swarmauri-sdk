@@ -1,6 +1,6 @@
-# Testing `peagen` login, keys, and secrets
+# Testing `peagen` public key, deploy key, and secrets
 
-This note describes how to verify that the `login`, `keys`, and `secrets` CLI commands interact with a running gateway and worker using a Postgres backend.
+This note describes how to verify that the `publickey`, `deploykey`, and `secrets` CLI commands interact with a running gateway and worker using a Postgres backend.
 
 1. Start Postgres and Redis locally and create a minimal `.peagen.toml` pointing to them.
 2. Launch the gateway:
@@ -11,10 +11,10 @@ This note describes how to verify that the `login`, `keys`, and `secrets` CLI co
    ```bash
    uvicorn peagen.worker:app --host 0.0.0.0 --port 8001
    ```
-4. Login and upload your public key:
+4. Upload your public key and view available deploy keys:
    ```bash
-   peagen login --gateway-url http://localhost:8000/rpc
-   peagen keys list
+   peagen remote publickey upload --gateway-url http://localhost:8000/rpc
+   peagen local deploykey list
    ```
 5. Add a secret via the gateway and confirm it in Postgres:
    ```bash
