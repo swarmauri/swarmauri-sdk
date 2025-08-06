@@ -103,11 +103,6 @@ class User(UserBase):
     __table_args__ = {"extend_existing": True}
     email = Column(String(120), unique=True)
     password_hash = Column(LargeBinary(60))
-    api_keys = relationship(
-        "auto_authn.v2.orm.tables.ApiKey",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
 
     # ----------------------------------------------------------------
     @classmethod
