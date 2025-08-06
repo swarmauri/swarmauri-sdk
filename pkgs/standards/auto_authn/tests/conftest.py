@@ -376,7 +376,7 @@ class AuthTestClient:
     async def introspect_api_key(self, api_key: str):
         """Helper to introspect an API key."""
         introspect_data = {"api_key": api_key}
-        return await self.client.post("/apikeys/introspect", json=introspect_data)
+        return await self.client.post("/api_keys/introspect", json=introspect_data)
 
 
 @pytest_asyncio.fixture

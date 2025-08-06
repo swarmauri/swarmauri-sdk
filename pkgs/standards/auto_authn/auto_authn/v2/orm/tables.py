@@ -31,7 +31,6 @@ from autoapi.v2.types import (
     Column,
     PgUUID,
     ForeignKey,
-    HookProvider,
 )
 from autoapi.v2.tables import (
     Tenant as TenantBase,
@@ -46,16 +45,10 @@ from autoapi.v2.mixins import (
     TenantBound,
     Principal,
     ActiveToggle,
-    Created,
-    LastUsed,
-    ValidityWindow,
+    UserMixin,
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
 
-from hashlib import sha256
-from secrets import token_urlsafe
-from datetime import datetime, timezone
-from fastapi import HTTPException
 
 # ────────────────────────────────────────────────────────────────────
 # Utility type alias for 36-char UUID strings
@@ -144,66 +137,24 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     )
 
 
-class ApiKey(ApiKeyBase, HookProvider):
+class ApiKey(ApiKeyBase, UserMixin):
+    __table_args__ = {"extend_existing": True}
+
     user = relationship(
         "auto_authn.v2.orm.tables.User",
         back_populates="api_keys",
         lazy="joined",  # optional: eager load to avoid N+1
     )
 
-    @staticmethod
-    def digest_of(value: str) -> None:
-        return sha256(value.encode()).hexdigest()
 
-    @classmethod
-    async def _pre_create_generate(cls, ctx):
-        params = ctx["env"].params
-        raw = token_urlsafe(32)
-        digest = sha256(raw.encode()).hexdigest()
-        now = datetime.now(timezone.utc)
-        if hasattr(params, "model_dump"):
-            params = params.model_dump()
-        else:
-            params = dict(params)
-        if params.get("raw_key") or params.get("digest"):
-            raise HTTPException(
-                status_code=422, detail="raw_key/digest are server generated"
-            )
-        params["digest"] = digest
-        params["last_used_at"] = now
-        ctx["env"].params = params
-        ctx["raw_api_key"] = raw
-
-    @classmethod
-    async def _post_response_inject_key(cls, ctx):
-        raw = ctx.get("raw_api_key")
-        if not raw:
-            return
-        result = dict(getattr(ctx.get("response"), "result", {}))
-        result["api_key"] = raw
-        ctx["response"].result = result
-
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
-
-        api.register_hook(Phase.PRE_TX_BEGIN, model="ApiKey", op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="ApiKey", op="create")(
-            cls._post_response_inject_key
-        )
-
-
-class ServiceKey(
-    Base,
-    GUIDPk,
-    Created,
-    LastUsed,
-    ValidityWindow,
-    HookProvider,
-):
+class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
+
+    id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("api_keys.id"),
+        primary_key=True,
+    )
 
     service_id = Column(
         PgUUID(as_uuid=True),
@@ -211,78 +162,12 @@ class ServiceKey(
         index=True,
         nullable=False,
     )
-    label = Column(String(120), nullable=False)
-
-    digest = Column(
-        String(64),
-        nullable=False,
-        unique=True,
-        info={
-            "autoapi": {
-                # excluded from update/replace request bodies
-                "disable_on": ["update", "replace"],
-                "read_only": True,
-            }
-        },
-    )
 
     service = relationship(
         "auto_authn.v2.orm.tables.Service",
         back_populates="api_keys",
         lazy="joined",
     )
-
-    @staticmethod
-    def digest_of(value: str) -> str:
-        return sha256(value.encode()).hexdigest()
-
-    # ──────────────────────────────────────────────────────────
-    # Hooks
-    # ──────────────────────────────────────────────────────────
-    @classmethod
-    async def _pre_create_generate(cls, ctx):
-        params = ctx["env"].params
-        raw = token_urlsafe(32)
-        digest = cls.digest_of(raw)
-        if hasattr(params, "model_dump"):
-            params = params.model_dump()
-        else:
-            params = dict(params)
-        if params.get("digest"):
-            raise HTTPException(status_code=422, detail="digest is server generated")
-        params["digest"] = digest
-        ctx["env"].params = params
-        ctx["raw_service_key"] = raw
-
-    @classmethod
-    async def _post_response_inject(cls, ctx):
-        raw = ctx.pop("raw_service_key", None)
-        if not raw:
-            return
-        res = getattr(ctx.get("response"), "result", None)
-        if isinstance(res, dict):
-            result = dict(res)
-        elif hasattr(res, "__dict__"):
-            result = {k: v for k, v in res.__dict__.items() if not k.startswith("_")}
-        else:
-            result = {"result": res}
-        result = {k: v for k, v in result.items() if v is not None}
-        result["service_key"] = raw
-        ctx["response"].result = result
-
-    # ──────────────────────────────────────────────────────────
-    # Hook registration
-    # ──────────────────────────────────────────────────────────
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
-
-        api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="ServiceKey", op="create")(
-            cls._post_response_inject
-        )
 
 
 __all__ = [
