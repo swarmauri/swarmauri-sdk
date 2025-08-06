@@ -92,7 +92,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
 
     def _create(p: SCreate, db: Session):
         """Create a new model instance."""
-        data = p.model_dump()
+        data = p.model_dump() if hasattr(p, "model_dump") else dict(p)
         col_kwargs = {
             k: v for k, v in data.items() if k in {c.key for c in mapper.attrs}
         }

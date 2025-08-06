@@ -40,6 +40,9 @@ async def _invoke(
         # ─── PRE hook ────────────────────────────────────────────────────────
         await api._run(Phase.PRE_TX_BEGIN, ctx)
 
+        # Allow hooks to mutate request parameters via ``ctx['env'].params``
+        params = ctx["env"].params
+
         # ─── business logic call -------------------------------------------
         if exec_fn is not None:  # custom executor
             maybe = exec_fn(method, params, db)
@@ -61,6 +64,8 @@ async def _invoke(
                 db.commit()  # plain Session
 
             await api._run(Phase.POST_COMMIT, ctx)
+
+        result = ctx.get("result", result)
 
         # ─── POST hook ------------------------------------------------------
         ctx["response"] = SimpleNamespace(result=result)

@@ -162,29 +162,26 @@ class ApiKey(ApiKeyBase, HookProvider):
         digest = sha256(raw.encode()).hexdigest()
         now = datetime.now(timezone.utc)
         if hasattr(params, "model_dump"):
-            if getattr(params, "raw_key", None) or getattr(params, "digest", None):
-                raise HTTPException(
-                    status_code=422, detail="raw_key/digest are server generated"
-                )
-            params = params.model_copy(update={"digest": digest, "last_used_at": now})
-            ctx["env"].params = params
-        elif isinstance(params, dict):
-            if params.get("raw_key") or params.get("digest"):
-                raise HTTPException(
-                    status_code=422, detail="raw_key/digest are server generated"
-                )
-            params["digest"] = digest
-            params["last_used_at"] = now
+            params = params.model_dump()
+        else:
+            params = dict(params)
+        if params.get("raw_key") or params.get("digest"):
+            raise HTTPException(
+                status_code=422, detail="raw_key/digest are server generated"
+            )
+        params["digest"] = digest
+        params["last_used_at"] = now
+        ctx["env"].params = params
         ctx["raw_api_key"] = raw
 
     @classmethod
-    async def _post_create_inject_key(cls, ctx):
+    async def _post_response_inject_key(cls, ctx):
         raw = ctx.get("raw_api_key")
         if not raw:
             return
-        result = dict(ctx.get("result", {}))
+        result = dict(getattr(ctx.get("response"), "result", {}))
         result["api_key"] = raw
-        ctx["result"] = result
+        ctx["response"].result = result
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
@@ -193,8 +190,8 @@ class ApiKey(ApiKeyBase, HookProvider):
         api.register_hook(Phase.PRE_TX_BEGIN, model="ApiKey", op="create")(
             cls._pre_create_generate
         )
-        api.register_hook(Phase.POST_COMMIT, model="ApiKey", op="create")(
-            cls._post_create_inject_key
+        api.register_hook(Phase.POST_RESPONSE, model="ApiKey", op="create")(
+            cls._post_response_inject_key
         )
 
 
@@ -248,28 +245,30 @@ class ServiceKey(
         raw = token_urlsafe(32)
         digest = cls.digest_of(raw)
         if hasattr(params, "model_dump"):
-            if getattr(params, "digest", None):
-                raise HTTPException(
-                    status_code=422, detail="digest is server generated"
-                )
-            params = params.model_copy(update={"digest": digest})
-            ctx["env"].params = params
-        elif isinstance(params, dict):
-            if params.get("digest"):
-                raise HTTPException(
-                    status_code=422, detail="digest is server generated"
-                )
-            params["digest"] = digest
+            params = params.model_dump()
+        else:
+            params = dict(params)
+        if params.get("digest"):
+            raise HTTPException(status_code=422, detail="digest is server generated")
+        params["digest"] = digest
+        ctx["env"].params = params
         ctx["raw_service_key"] = raw
 
     @classmethod
-    async def _post_commit_inject(cls, ctx):
+    async def _post_response_inject(cls, ctx):
         raw = ctx.pop("raw_service_key", None)
         if not raw:
             return
-        result = dict(ctx.get("result", {}))
+        res = getattr(ctx.get("response"), "result", None)
+        if isinstance(res, dict):
+            result = dict(res)
+        elif hasattr(res, "__dict__"):
+            result = {k: v for k, v in res.__dict__.items() if not k.startswith("_")}
+        else:
+            result = {"result": res}
+        result = {k: v for k, v in result.items() if v is not None}
         result["service_key"] = raw
-        ctx["result"] = result
+        ctx["response"].result = result
 
     # ──────────────────────────────────────────────────────────
     # Hook registration
@@ -281,8 +280,8 @@ class ServiceKey(
         api.register_hook(Phase.PRE_TX_BEGIN, model="ServiceKey", op="create")(
             cls._pre_create_generate
         )
-        api.register_hook(Phase.POST_COMMIT, model="ServiceKey", op="create")(
-            cls._post_commit_inject
+        api.register_hook(Phase.POST_RESPONSE, model="ServiceKey", op="create")(
+            cls._post_response_inject
         )
 
 
