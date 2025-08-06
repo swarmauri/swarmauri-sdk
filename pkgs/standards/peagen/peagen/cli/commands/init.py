@@ -9,12 +9,18 @@ from typing import Any, Dict, Optional, List
 
 import typer
 from swarmauri_standard.loggers.Logger import Logger
+from autoapi.v2 import AutoAPI
 
 from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
 from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
-from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import (
+    DEFAULT_POOL_ID,
+    DEFAULT_SUPER_USER_ID,
+    DEFAULT_TENANT_ID,
+)
+from peagen.orm import Repository
 
 
 # --------------------------------------------------------------------- helpers
@@ -320,32 +326,37 @@ def remote_init_ci(  # noqa: PLR0913
 
 
 @remote_init_app.command("repo")
-def remote_init_repo(  # noqa: PLR0913
+def remote_init_repo(
     ctx: typer.Context,
     repo_slug: str = typer.Argument(..., help="tenant/repo"),
-    pat: str = typer.Option(..., envvar="GITHUB_PAT"),
-    description: str = typer.Option(""),
-    deploy_key: Path = typer.Option(None, "--deploy-key"),
-    path: Path = typer.Option(None, "--path"),
-    origin: str = typer.Option(None, "--origin"),
-    upstream: str = typer.Option(None, "--upstream"),
-    repo: str = typer.Option(..., "--repo"),
-    ref: str = typer.Option("HEAD", "--ref"),
+    url: str = typer.Option(None, "--url", help="Repository URL"),
+    default_branch: str = typer.Option("main", "--default-branch"),
+    remote_name: str = typer.Option("origin", "--remote-name"),
 ) -> None:
-    args = {
-        "kind": "repo",
-        "repo": repo_slug,
-        "pat": pat,
-        "description": description,
-        "deploy_key": str(deploy_key) if deploy_key else None,
-    }
-    if path:
-        args["path"] = str(path)
-    if origin or upstream:
-        remotes = {}
-        if origin:
-            remotes["origin"] = origin
-        if upstream:
-            remotes["upstream"] = upstream
-        args["remotes"] = remotes
-    _remote_task("init", args, ctx, repo, ref)
+    """Register *repo_slug* with the gateway via JSON-RPC."""
+    self = Logger(name="init_repo")
+    self.logger.info("Entering remote init_repo command")
+    try:
+        tenant, name = repo_slug.split("/", 1)
+    except ValueError:
+        typer.echo("❌  repo must be in 'tenant/name' format", err=True)
+        raise typer.Exit(1)
+    repo_url = url or f"https://github.com/{tenant}/{name}"
+    SCreate = AutoAPI.get_schema(Repository, "create")
+    SRead = AutoAPI.get_schema(Repository, "read")
+    params = SCreate(
+        name=name,
+        url=repo_url,
+        default_branch=default_branch,
+        remote_name=remote_name,
+        tenant_id=str(DEFAULT_TENANT_ID),
+        owner_id=str(DEFAULT_SUPER_USER_ID),
+    )
+    rpc = ctx.obj["rpc"]
+    try:
+        res = rpc.call("Repositories.create", params=params, out_schema=SRead)
+        typer.echo(f"✅  registered repository '{res.name}' ({res.url})")
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"❌  {exc}", err=True)
+        raise typer.Exit(1)
+    self.logger.info("Exiting remote init_repo command")
