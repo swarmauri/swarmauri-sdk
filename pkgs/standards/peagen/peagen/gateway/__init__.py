@@ -155,9 +155,6 @@ queue: QueueBase = (
     queue_plugin.get_client() if hasattr(queue_plugin, "get_client") else queue_plugin
 )
 
-# ─────────── NOQA Import ─────────────────────
-# Must import after api and queue are defined due to prevent circular imports.
-
 # ─────────── OpenAPI tags configuration ─────────────────────────────────
 # Extract all unique tags from routes and sort them alphabetically
 all_tags = set()
