@@ -315,7 +315,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 setattr(self.schemas, name, s)
 
         # JSON-RPC shim
-        rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
+        rpc_in = In or dict
+        if verb == "update":
+            rpc_in = self._schema(model, verb="update")
+        elif verb == "replace":
+            rpc_in = self._schema(model, verb="create")
+        rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
