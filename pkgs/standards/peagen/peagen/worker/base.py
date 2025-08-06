@@ -141,17 +141,16 @@ class WorkerBase:
             )
             created = self._client.call("Workers.create", params=payload)
             self.log.info("registered @ gateway as %s", self.worker_id)
-            api_key = None
-            if isinstance(created, dict):
-                api_key = created.get("api_key") or created.get("service_key")
-            if not api_key:
-                api_key = getattr(created, "api_key", None) or getattr(
-                    created, "service_key", None
-                )
+            api_key = created.get("api_key") or created.get("service_key")
             if api_key:
                 self._api_key = api_key
                 os.environ["DQ_API_KEY"] = api_key
                 self._client.api_key = api_key
+            else:
+                try:
+                    SWorkerRead.model_validate(created)
+                except Exception as exc:
+                    self.log.warning("worker create validation failed: %s", exc)
         except Exception as exc:  # pragma: no cover
             self.log.error("registration failed: %s", exc, exc_info=True)
 
