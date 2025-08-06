@@ -18,8 +18,14 @@ from peagen.cli.commands.templates import (
 )
 from peagen.cli.commands.tui import dashboard_app
 from peagen.cli.commands.validate import local_validate_app, remote_validate_app
-from peagen.cli.commands.login import login_app
-from peagen.cli.commands.keys import keys_app
+from peagen.cli.commands.publickey import (
+    local_publickey_app,
+    remote_publickey_app,
+)
+from peagen.cli.commands.deploykey import (
+    local_deploykey_app,
+    remote_deploykey_app,
+)
 from peagen.cli.commands.secrets import local_secrets_app, remote_secrets_app
 from peagen.cli.commands.show import show_app
 
@@ -52,8 +58,10 @@ __all__ = [
     "remote_validate_app",
     "show_app",
     "dashboard_app",
-    "login_app",
-    "keys_app",
+    "local_publickey_app",
+    "remote_publickey_app",
+    "local_deploykey_app",
+    "remote_deploykey_app",
     "local_secrets_app",
     "remote_secrets_app",
 ]

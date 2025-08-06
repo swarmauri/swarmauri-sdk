@@ -92,7 +92,7 @@ with r.config_writer() as cw:
     cw.set_value('remote "origin"', 'push', 'refs/pea/*:refs/pea/*')
 ```
 
-## Using `peagen login` with a GitHub PAT
+## Using `peagen remote publickey upload` with a GitHub PAT
 
 Follow these steps when your repository lives on GitHub and Peagen tasks should
 push results back to it.
@@ -112,10 +112,10 @@ push results back to it.
    can verify your requests.
 
    ```bash
-   peagen login --gateway-url https://gw.peagen.com
+   peagen remote publickey upload --gateway-url https://gw.peagen.com
    ```
 
-   After logging in you can run remote commands that operate on the GitHub
+   After uploading you can run remote commands that operate on the GitHub
    repository, for example:
 
    ```bash
