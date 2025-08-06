@@ -64,7 +64,7 @@ class WorkerBase:
         # ----- env / defaults --------------------------------------
         self.pool = pool or os.getenv("DQ_POOL", DEFAULT_POOL_NAME)
         self.gateway = gateway or os.getenv("DQ_GATEWAY", DEFAULT_GATEWAY)
-        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", str(uuid.uuid4()))
+        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", None)
         self.port = port or int(os.getenv("PORT", 8001))
         self.host = host or os.getenv("DQ_HOST") or _local_ip()
         self.listen_at = f"http://{self.host}:{self.port}/rpc"
@@ -133,7 +133,6 @@ class WorkerBase:
         """
         try:
             payload = SWorkerCreate(
-                id=self.worker_id,
                 pool_id=DEFAULT_POOL_ID,
                 url=self.listen_at,
                 advertises={"cpu": True},
@@ -142,8 +141,7 @@ class WorkerBase:
             created = self._client.call(
                 "Workers.create", params=payload.model_dump(mode="json")
             )
-            self.worker_id = str(created.get("id", self.worker_id))
-            self.log.info("registered @ gateway as %s", self.worker_id)
+            self.worker_id = created.get("id")
             api_key = created.get("api_key") or created.get("service_key")
             if api_key:
                 self._api_key = api_key
