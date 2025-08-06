@@ -87,8 +87,22 @@ def _schema(
             continue
         if meta.get("write_only") and verb == "read":
             continue
-        if meta.get("read_only") and verb != "read":
-            continue
+
+        ro = meta.get("read_only")
+        if ro:
+            if isinstance(ro, dict):
+                ro_flag = ro.get(verb, ro.get("*", False))
+            elif isinstance(ro, (set, list, tuple)):
+                ro_flag = verb in ro
+            else:
+                ro_flag = True
+            if ro_flag and verb != "read":
+                if not (
+                    col is not None
+                    and col.primary_key
+                    and verb in {"update", "replace"}
+                ):
+                    continue
         if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
             continue
         if include and attr_name not in include:
@@ -109,7 +123,10 @@ def _schema(
             py_t = getattr(attr, "python_type", meta.get("py_type", Any))
             required = False
 
-        if "default_factory" in meta:
+        if col is not None and col.primary_key and verb in {"update", "replace"}:
+            fld = Field(...)
+            required = True
+        elif "default_factory" in meta:
             fld = Field(default_factory=meta["default_factory"])
             required = False
         else:

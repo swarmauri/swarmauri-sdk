@@ -133,13 +133,14 @@ class WorkerBase:
         """
         try:
             payload = SWorkerCreate(
-                id=self.worker_id,
                 pool_id=DEFAULT_POOL_ID,
                 url=self.listen_at,
                 advertises={"cpu": True},
                 handlers={"handlers": list(self._handlers)},
             )
             created = self._client.call("Workers.create", params=payload)
+            if created_id := created.get("id"):
+                self.worker_id = str(created_id)
             self.log.info("registered @ gateway as %s", self.worker_id)
             api_key = created.get("api_key") or created.get("service_key")
             if api_key:

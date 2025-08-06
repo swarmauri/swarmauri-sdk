@@ -26,6 +26,15 @@ async def test_schema_generation(api_client):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+async def test_update_schema_requires_pk(api_client):
+    _, _, Item = api_client
+    update_model = AutoAPI.get_schema(Item, "update")
+    fld = update_model.model_fields.get("id")
+    assert fld is not None and fld.is_required
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
 async def test_bulk_operation_schema(api_client):
     client, _, _ = api_client
     spec = (await client.get("/openapi.json")).json()
