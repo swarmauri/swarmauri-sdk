@@ -17,7 +17,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
 from github import Github
 
 from peagen.core.git_repo_core import open_repo
-from peagen.defaults import GIT_SHADOW_BASE
 
 from peagen.plugins import (
     PluginManager,
@@ -262,9 +261,7 @@ def init_repo(
         path = Path(".")
 
     final_remotes = remotes.copy() if remotes else {}
-    shadow_url = f"{GIT_SHADOW_BASE.rstrip('/')}/{tenant}/{name}.git"
-    final_remotes.setdefault("origin", shadow_url)
-    final_remotes.setdefault("upstream", repo_obj.ssh_url)
+    final_remotes.setdefault("origin", repo_obj.ssh_url)
     configure_repo(path=path, remotes=final_remotes)
     vcs = open_repo(path, remotes=final_remotes)
     for remote_name in final_remotes:

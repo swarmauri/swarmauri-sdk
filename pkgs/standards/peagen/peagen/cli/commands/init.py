@@ -99,11 +99,9 @@ def local_init_repo(
     if origin:
         remotes["origin"] = origin
     else:
-        remotes["origin"] = f"{GIT_SHADOW_BASE.rstrip('/')}/{principal}/{name}.git"
+        remotes["origin"] = f"git@github.com:{principal}/{name}.git"
     if upstream:
         remotes["upstream"] = upstream
-    else:
-        remotes["upstream"] = f"git@github.com:{principal}/{name}.git"
     args["remotes"] = remotes
     result = _call_handler(args)
     _summary(Path("."), result["next"])
@@ -335,11 +333,11 @@ def remote_init_ci(  # noqa: PLR0913
 def remote_init_repo(
     ctx: typer.Context,
     repo_slug: str = typer.Argument(..., help="principal/repo"),
-    url: str = typer.Option(None, "--url", help="Repository URL"),
+    origin: str = typer.Option(None, "--origin", help="Origin remote URL"),
+    upstream: str = typer.Option(None, "--upstream", help="Upstream remote URL"),
     default_branch: str = typer.Option("main", "--default-branch"),
-    remote_name: str = typer.Option("origin", "--remote-name"),
 ) -> None:
-    """Register *repo_slug* with the gateway via JSON-RPC."""
+    """Register *repo_slug* with the gateway and configure remotes."""
     self = Logger(name="init_repo")
     self.logger.info("Entering remote init_repo command")
     try:
@@ -347,14 +345,15 @@ def remote_init_repo(
     except ValueError:
         typer.echo("❌  repo must be in 'principal/name' format", err=True)
         raise typer.Exit(1)
-    repo_url = url or f"https://github.com/{principal}/{name}"
+    origin_url = origin or f"{GIT_SHADOW_BASE.rstrip('/')}/{principal}/{name}.git"
+    upstream_url = upstream or f"git@github.com:{principal}/{name}.git"
     SCreate = AutoAPI.get_schema(Repository, "create")
     SRead = AutoAPI.get_schema(Repository, "read")
     params = SCreate(
         name=name,
-        url=repo_url,
+        url=origin_url,
         default_branch=default_branch,
-        remote_name=remote_name,
+        remote_name="origin",
         tenant_id=str(DEFAULT_TENANT_ID),
         owner_id=str(DEFAULT_SUPER_USER_ID),
         status="queued",
@@ -366,4 +365,10 @@ def remote_init_repo(
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
         raise typer.Exit(1)
+    args = {
+        "kind": "repo-config",
+        "path": ".",
+        "remotes": {"origin": origin_url, "upstream": upstream_url},
+    }
+    _remote_task("init", args, ctx, origin_url, default_branch)
     self.logger.info("Exiting remote init_repo command")
