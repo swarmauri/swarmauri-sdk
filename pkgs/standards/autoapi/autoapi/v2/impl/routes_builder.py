@@ -185,7 +185,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     inspect.Parameter(
                         "item_id",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=pk_type,
+                        annotation=Annotated[pk_type, Path(...)],
                     )
                 )
 
