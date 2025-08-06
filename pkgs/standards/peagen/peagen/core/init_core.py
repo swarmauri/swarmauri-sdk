@@ -21,6 +21,7 @@ from peagen.plugins import (
     discover_and_register_plugins,
     registry,
 )
+from peagen._utils.config_loader import resolve_cfg
 from peagen.core.doe_core import _sha256
 
 
@@ -262,4 +263,15 @@ def init_repo(
 
 def configure_repo(*, path: Path, remotes: dict[str, str]) -> Dict[str, Any]:
     """Configure an existing repository with additional remotes."""
+    cfg = resolve_cfg()
+    vcs_cfg = cfg.setdefault("vcs", {})
+    adapters = vcs_cfg.setdefault("adapters", {})
+    default = vcs_cfg.get("default_vcs", "git")
+    adapter_cfg = adapters.setdefault(default, {})
+    adapter_cfg["path"] = str(path)
+    if remotes:
+        adapter_cfg.setdefault("remotes", {})
+        adapter_cfg["remotes"].update(remotes)
+    pm = PluginManager(cfg)
+    pm.get("vcs", default)
     return {"configured": str(path), "remotes": remotes}
