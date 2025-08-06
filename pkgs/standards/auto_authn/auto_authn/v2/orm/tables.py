@@ -150,12 +150,6 @@ class ApiKey(ApiKeyBase, UserMixin):
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
 
-    id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("api_keys.id"),
-        primary_key=True,
-    )
-
     service_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("services.id"),
