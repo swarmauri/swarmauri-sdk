@@ -26,7 +26,7 @@ from typing import Optional
 
 import typer
 
-from ..config import Settings, settings as _settings
+from ..v2.runtime_cfg import Settings, settings as _settings
 
 ###############################################################################
 # Banner & Logging helpers                                                    #

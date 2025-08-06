@@ -46,10 +46,12 @@ def hash_pw(plain: str) -> bytes:
 
 def verify_pw(plain: str, hashed: bytes) -> bool:
     """Constant-time verification of plaintext against stored bcrypt hash."""
+    if hashed is None:
+        return False
     try:
         return bcrypt.checkpw(plain.encode(), hashed)
-    except ValueError:
-        # Occurs if *hashed* is invalid bcrypt format
+    except (ValueError, TypeError):
+        # Occurs if *hashed* is invalid bcrypt format or wrong type
         return False
 
 

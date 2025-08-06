@@ -5,7 +5,6 @@ def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
 
     allow_anon = api._allow_anon
-
     @api.hook(Phase.PRE_TX_BEGIN)  # PRE‑DB, works for CRUD & RPC
     async def _inject(ctx):
         if getattr(ctx.get("env"), "method", None) in allow_anon:

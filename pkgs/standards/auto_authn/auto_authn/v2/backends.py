@@ -101,7 +101,7 @@ class ApiKeyBackend:
     ) -> tuple[Principal, str]:
         digest = ApiKey.digest_of(api_key)
         key_row: Optional[ApiKey] = await db.scalar(await self._get_key_stmt(digest))
-        if key_row:
+        if key_row and key_row.user:
             if not key_row.user.is_active:
                 raise AuthError("user is inactive")
             key_row.touch()
