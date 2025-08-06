@@ -87,7 +87,10 @@ def _schema(
             continue
         if meta.get("write_only") and verb == "read":
             continue
-        if meta.get("read_only") and verb != "read":
+        ro = meta.get("read_only")
+        if (ro is True and verb != "read") or (
+            isinstance(ro, (list, tuple, set)) and verb in ro
+        ):
             continue
         if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
             continue

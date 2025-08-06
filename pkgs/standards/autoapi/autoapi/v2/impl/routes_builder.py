@@ -13,6 +13,7 @@ import re
 from typing import Annotated, Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Request
+from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -315,7 +316,20 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 setattr(self.schemas, name, s)
 
         # JSON-RPC shim
-        rpc_fn = _wrap_rpc(core, In or dict, Out, pk, model)
+        rpc_in = In or dict
+        if (
+            verb in {"update", "replace"}
+            and isinstance(In, type)
+            and issubclass(In, BaseModel)
+        ):
+            if pk not in In.model_fields:
+                fld_spec = {pk: (pk_type, Field(...))}
+                for n, fld in In.model_fields.items():
+                    fld_spec[n] = (fld.annotation, fld)
+                cfg = getattr(In, "model_config", ConfigDict())
+                rpc_in = create_model(f"{In.__name__}RPC", __config__=cfg, **fld_spec)
+                rpc_in.model_rebuild(force=True)
+        rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────

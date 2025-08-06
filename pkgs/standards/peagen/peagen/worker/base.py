@@ -174,7 +174,7 @@ class WorkerBase:
                     advertises={"cpu": True},
                     handlers={"handlers": list(self._handlers)},
                 )  # last_seen handled server-side
-                self._client.call("Workers.update", params=upd)
+                self._client.call("Workers.update", params=upd.model_dump())
                 self.log.debug("heartbeat ok")
             except Exception as exc:  # pragma: no cover
                 self.log.warning("heartbeat failed: %s", exc)
