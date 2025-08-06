@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 from autoapi.v2.tables import Base
-from autoapi.v2.types import Column, String, UniqueConstraint, relationship
+from autoapi.v2.types import (
+    Column,
+    String,
+    UniqueConstraint,
+    relationship,
+    HookProvider,
+)
 from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin
 
 
-class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
+class Repository(
+    Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin, HookProvider
+):
     """
     A code or data repository that lives under a tenant.
     – parent of Secrets & DeployKeys
@@ -33,6 +41,24 @@ class Repository(Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin):
         back_populates="repository",
         cascade="all, delete-orphan",
     )
+
+    @classmethod
+    async def _post_create(cls, ctx):
+        from peagen.gateway import log
+
+        log.info("entering post_repository_create")
+        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        log.info("repository created: %s (%s)", created.name, created.url)
+        ctx["result"] = created.model_dump()
+
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import AutoAPI, Phase
+
+        cls._SRead = AutoAPI.get_schema(cls, "read")
+        api.register_hook(Phase.POST_COMMIT, model="Repository", op="create")(
+            cls._post_create
+        )
 
 
 __all__ = ["Repository"]
