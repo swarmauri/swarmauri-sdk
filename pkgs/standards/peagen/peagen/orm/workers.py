@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime as dt
 
 from autoapi.v2.types import (
     JSON,
@@ -16,7 +15,7 @@ from autoapi.v2.types import (
 )
 from autoapi.v2.tables import Base
 
-from autoapi.v2.mixins import GUIDPk, Timestamped, tzutcnow
+from autoapi.v2.mixins import GUIDPk, Timestamped
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool
@@ -162,7 +161,9 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             )
             key_resp.raise_for_status()
             body = key_resp.json()
-            ctx["raw_worker_key"] = body.get("api_key") or body.get("raw_key")
+            ctx["raw_worker_key"] = (
+                body.get("api_key") or body.get("raw_key") or body.get("service_key")
+            )
         except Exception as exc:  # pragma: no cover
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
@@ -178,6 +179,9 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         result = dict(ctx.get("result", {}))
         result["api_key"] = raw
         ctx["result"] = result
+        resp = ctx.get("response")
+        if resp is not None:
+            resp.result = result
 
     @classmethod
     async def _pre_update_policy_gate(cls, ctx):
