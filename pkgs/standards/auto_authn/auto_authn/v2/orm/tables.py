@@ -149,6 +149,13 @@ class ApiKey(ApiKeyBase, UserMixin):
 
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
+    
+    service_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("services.id"),
+        index=True,
+        nullable=False,
+    )
 
     service = relationship(
         "auto_authn.v2.orm.tables.Service",
