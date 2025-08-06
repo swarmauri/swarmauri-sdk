@@ -64,7 +64,15 @@ def _init_hooks(self) -> None:
                     tab = model if model.endswith(("s", "S")) else f"{model}s"
                 else:
                     tab = getattr(model, "__tablename__", model.__name__)
-                model_name = "".join(w.title() for w in tab.split("_"))
+                # Preserve existing camelCase while upper-casing only the first
+                # letter of underscore-delimited segments. This avoids
+                # lowercasing already-camelcased portions like "ServiceKeys".
+                if "_" in tab:
+                    model_name = "".join(
+                        part[:1].upper() + part[1:] for part in tab.split("_")
+                    )
+                else:
+                    model_name = tab
                 hook_key = f"{model_name}.{op}"
             elif model is not None or op is not None:
                 # Error: both model and op must be provided together
