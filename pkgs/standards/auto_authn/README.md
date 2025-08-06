@@ -5,6 +5,11 @@ Identity‑Provider written in Python 3.11+.
 It is designed for SaaS vendors who need per‑customer (tenant) isolation while
 running a single scalable cluster.
 
+### Terminology
+
+- **Tenant** – a namespace used to group related resources such as repositories or clients.
+- **Principal** – an owner of resources, for example an individual user or an organization.
+
 ---
 
 ## ✨ Features
