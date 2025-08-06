@@ -76,7 +76,8 @@ class RPCMixin:
         if isinstance(params, _Schema):  # pydantic in → dump to dict
             params_dict = json.loads(params.model_dump_json())
         else:
-            params_dict = params or {}
+            # ensure plain dicts contain only JSON-serializable values
+            params_dict = json.loads(json.dumps(params or {}, default=str))
 
         req = {
             "jsonrpc": "2.0",
