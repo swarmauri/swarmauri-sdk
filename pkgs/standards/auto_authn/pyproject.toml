@@ -107,5 +107,5 @@ postgres = [ "asyncpg>=0.29,<1.0" ]
 #  > pip install auto-authn[sqlite]
 sqlite   = [ "aiosqlite>=0.19,<1.0" ]
 
-[project.scripts]
-auto-authn = "auto_authn.cli.__init__:app"   # Typer CLI (if you keep it)
+# [project.scripts]
+# auto-authn = "auto_authn.cli.__init__:app"   # Typer CLI (if you keep it)
