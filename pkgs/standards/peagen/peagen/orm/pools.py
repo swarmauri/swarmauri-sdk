@@ -19,7 +19,7 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider)
     name = Column(String, nullable=False, unique=True)
     policy = Column(
         MutableDict.as_mutable(JSON),
-        default=lambda: {"allowed_cidrs": ["0.0.0.0/0"], "max_instances": 10},
+        default=lambda: {"allowed_cidrs": ["0.0.0.0/0"], "max_instances": 100},
         nullable=True,
     )
     DEFAULT_ROWS = [
