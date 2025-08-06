@@ -139,11 +139,15 @@ class WorkerBase:
                 advertises={"cpu": True},
                 handlers={"handlers": list(self._handlers)},
             )
-            created = self._client.call(
-                "Workers.create", params=payload, out_schema=SWorkerRead
-            )
+            created = self._client.call("Workers.create", params=payload)
             self.log.info("registered @ gateway as %s", self.worker_id)
-            api_key = getattr(created, "service_key", None)
+            api_key = None
+            if isinstance(created, dict):
+                api_key = created.get("api_key") or created.get("service_key")
+            if not api_key:
+                api_key = getattr(created, "api_key", None) or getattr(
+                    created, "service_key", None
+                )
             if api_key:
                 self._api_key = api_key
                 os.environ["DQ_API_KEY"] = api_key
