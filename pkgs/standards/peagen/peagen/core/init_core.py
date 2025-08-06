@@ -214,7 +214,11 @@ def init_repo(
     try:
         owner = gh.get_organization(tenant)
     except Exception:
-        owner = gh.get_user(tenant)
+        auth_user = gh.get_user()
+        if auth_user.login.lower() == tenant.lower():
+            owner = auth_user
+        else:
+            owner = gh.get_user(tenant)
 
     try:
         repo_obj = owner.create_repo(name, private=True, description=description)

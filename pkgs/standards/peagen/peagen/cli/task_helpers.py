@@ -19,6 +19,7 @@ def build_task(
     ref: str,
     args: Dict[str, Any] | None = None,
     # Optional columns
+    owner_id: Optional[str] = None,
     repository_id: Optional[str] = None,  # slug-only flow leaves this None
     config_toml: Optional[str] = None,
     spec_kind: Optional[SpecKind | str] = None,
@@ -39,6 +40,7 @@ def build_task(
         tenant_id=tenant_id,
         pool_id=pool_id,
         action=action,
+        owner_id=owner_id,
         repository_id=repository_id,  # may be None → pre-hook resolves it
         repo=repo,
         ref=ref,

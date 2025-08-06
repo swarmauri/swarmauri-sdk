@@ -48,7 +48,7 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     from peagen.cli.task_helpers import build_task
 
     task = build_task(
-        action=Action.PROCESS,
+        action=Action.FETCH,
         args=args,
         tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
