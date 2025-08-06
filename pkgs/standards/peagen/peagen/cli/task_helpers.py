@@ -27,6 +27,7 @@ def build_task(
     note: Optional[str] = None,
     labels: Optional[Dict[str, Any]] = None,
     status: Status = Status.WAITING,
+    owner_id: Optional[str] = None,
 ):
     """
     Return a TaskCreate Pydantic instance that matches AutoAPI's
@@ -50,6 +51,7 @@ def build_task(
         labels=labels or {},
         note=note,
         status=status,
+        owner_id=owner_id,
     )
 
 

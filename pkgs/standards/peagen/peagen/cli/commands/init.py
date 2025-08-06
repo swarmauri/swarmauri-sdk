@@ -351,6 +351,7 @@ def remote_init_repo(
         remote_name=remote_name,
         tenant_id=str(DEFAULT_TENANT_ID),
         owner_id=str(DEFAULT_SUPER_USER_ID),
+        status="queued",
     )
     rpc = ctx.obj["rpc"]
     try:
