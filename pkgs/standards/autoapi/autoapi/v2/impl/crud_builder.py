@@ -19,13 +19,15 @@ from ..types import Session
 # ----------------------------------------------------------------------
 def _invoke_all_registrars(model: type, api) -> None:
     """
-    Walk the model’s MRO *bottom-up* (parents first) and invoke
-    each distinct  __autoapi_register_hooks__(api)  exactly once.
+    Walk the model’s MRO and call *each* distinct registrar exactly once.
+    Uses getattr() so the classmethod descriptor yields a callable.
     """
-    seen: set[int] = set()                       # avoid dup calls
-    for base in reversed(model.__mro__):         # Ownable first, Repo last
-        fn = base.__dict__.get("__autoapi_register_hooks__")
-        if fn and id(fn) not in seen:
+    seen: set[int] = set()
+    for base in reversed(model.__mro__):              # parents first
+        if "__autoapi_register_hooks__" not in base.__dict__:
+            continue
+        fn = getattr(base, "__autoapi_register_hooks__")   # ← bound function
+        if callable(fn) and id(fn) not in seen:
             fn(api)
             seen.add(id(fn))
 # ----------------------------------------------------------------------
