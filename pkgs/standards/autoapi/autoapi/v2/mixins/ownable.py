@@ -1,13 +1,16 @@
 from enum import Enum
 
 from ..hooks import Phase
-from ..jsonrpc_models import create_standardized_error   # <── built-in helper
+from ..info_schema import check as _info_check
+from ..jsonrpc_models import create_standardized_error  # <── built-in helper
 from ..types import Column, ForeignKey, PgUUID
 
+
 class OwnerPolicy(str, Enum):
-    CLIENT_SET      = "client"
+    CLIENT_SET = "client"
     DEFAULT_TO_USER = "default"
-    STRICT_SERVER   = "strict"
+    STRICT_SERVER = "strict"
+
 
 class Ownable:
     """
@@ -20,7 +23,7 @@ class Ownable:
         ForeignKey("users.id"),
         nullable=False,
         index=True,
-        info={},                    # schema flags will be inserted here
+        info={},  # schema flags will be inserted here
     )
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.CLIENT_SET
 
@@ -35,9 +38,14 @@ class Ownable:
 
         # 1️⃣  Schema flags so Pydantic ignores owner_id when appropriate
         col_info = cls.__table__.c.owner_id.info
+        meta = col_info.setdefault("autoapi", {})
         if pol != OwnerPolicy.CLIENT_SET:
-            col_info.setdefault("no_create", True)
-            col_info.setdefault("no_update", True)
+            disable = meta.setdefault("disable_on", [])
+            if "create" not in disable:
+                disable.append("create")
+            if "update" not in disable:
+                disable.append("update")
+        _info_check(meta, "owner_id", cls.__name__)
 
         # 2️⃣  Helper to raise typed HTTP errors
         def _err(status: int, msg: str):
@@ -55,8 +63,16 @@ class Ownable:
                 if pol != OwnerPolicy.CLIENT_SET:
                     _err(400, "owner_id is immutable.")
                 new_val = ctx.params["owner_id"]
-                if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
+                if (
+                    new_val != obj.owner_id
+                    and new_val != ctx.user_id
+                    and not ctx.is_admin
+                ):
                     _err(403, "Cannot transfer ownership.")
 
-        api.add_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create", fn=_before_create)
-        api.add_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update", fn=_before_update)
+        api.add_hook(
+            model=cls, phase=Phase.PRE_TX_BEGIN, op="create", fn=_before_create
+        )
+        api.add_hook(
+            model=cls, phase=Phase.PRE_TX_BEGIN, op="update", fn=_before_update
+        )
