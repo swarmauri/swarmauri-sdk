@@ -1,7 +1,7 @@
 # mixins_generic.py ───── all mix-ins live here
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
-from .ownable import Ownable as Ownable
+from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from ..types import (
     Column,
     TZDateTime,
