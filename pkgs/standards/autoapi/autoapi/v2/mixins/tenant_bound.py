@@ -103,8 +103,8 @@ class TenantBound(_RowBound):
             new_val = params["tenant_id"]
             if (
                 new_val != obj.tenant_id
-                and new_val != ctx.tenant_id
-                and not ctx.is_admin
+                and new_val != ctx.get("tenant_id")
+                and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")
 
