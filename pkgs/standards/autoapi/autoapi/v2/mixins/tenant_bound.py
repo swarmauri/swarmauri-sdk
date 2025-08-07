@@ -18,9 +18,9 @@ from ..info_schema import check as _info_check
 
 
 class TenantPolicy(str, Enum):
-    CLIENT_SET     = "client"   # client may supply tenant_id on create/update
+    CLIENT_SET = "client"  # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
-    STRICT_SERVER  = "strict"   # server forces tenant_id and forbids changes
+    STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
 
 
 class TenantBound(_RowBound):
@@ -81,21 +81,24 @@ class TenantBound(_RowBound):
 
         # INSERT
         def _before_create(ctx):
-            if "tenant_id" in ctx.params and pol == TenantPolicy.STRICT_SERVER:
+            params = ctx.get("params", {})
+            if "tenant_id" in params and pol == TenantPolicy.STRICT_SERVER:
                 _err(400, "tenant_id cannot be set explicitly.")
-            ctx.params.setdefault("tenant_id", ctx.tenant_id)
+            params.setdefault("tenant_id", ctx.get("tenant_id"))
+            ctx["params"] = params
 
         # UPDATE
         def _before_update(ctx, obj):
-            if "tenant_id" not in ctx.params:
+            params = ctx.get("params")
+            if not params or "tenant_id" not in params:
                 return
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
-            new_val = ctx.params["tenant_id"]
+            new_val = params["tenant_id"]
             if (
                 new_val != obj.tenant_id
-                and new_val != ctx.tenant_id
-                and not ctx.is_admin
+                and new_val != ctx.get("tenant_id")
+                and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")
 
