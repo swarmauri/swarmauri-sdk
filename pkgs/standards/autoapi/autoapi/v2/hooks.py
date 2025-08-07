@@ -49,11 +49,13 @@ def _init_hooks(self) -> None:
         """
 
         def _reg(f: _Hook) -> _Hook:
-            async_f = (
-                f
-                if callable(getattr(f, "__await__", None))
-                else (lambda ctx, f=f: f(ctx))  # sync-to-async shim
-            )
+            async def _async_wrapper(ctx, _f=f):
+                result = _f(ctx)
+                if callable(getattr(result, "__await__", None)):
+                    return await result
+                return result
+
+            async_f = f if callable(getattr(f, "__await__", None)) else _async_wrapper
 
             # Preserve the original function name for registry visibility
             async_f.__name__ = getattr(f, "__name__", repr(f))
