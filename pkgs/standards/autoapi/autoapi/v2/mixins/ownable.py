@@ -34,10 +34,13 @@ class Ownable:
         pol = cls.__autoapi_owner_policy__
 
         # 1️⃣  Schema flags so Pydantic ignores owner_id when appropriate
-        col_info = cls.__table__.c.owner_id.info
+        col_info = cls.__table__.c.owner_id.info.setdefault("autoapi", {})
         if pol != OwnerPolicy.CLIENT_SET:
-            col_info.setdefault("no_create", True)
-            col_info.setdefault("no_update", True)
+            disable_on = col_info.setdefault("disable_on", [])
+            for verb in ("create", "update", "replace"):
+                if verb not in disable_on:
+                    disable_on.append(verb)
+        _info_check(col_info, "owner_id", cls.__name__)
 
         # 2️⃣  Helper to raise typed HTTP errors
         def _err(status: int, msg: str):
