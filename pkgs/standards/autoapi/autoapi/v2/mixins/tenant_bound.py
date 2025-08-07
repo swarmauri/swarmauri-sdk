@@ -86,9 +86,14 @@ class TenantBound(_RowBound):
             except KeyError:
                 params = {}
                 ctx.params = params
-            if "tenant_id" in params and pol == TenantPolicy.STRICT_SERVER:
-                _err(400, "tenant_id cannot be set explicitly.")
-            params.setdefault("tenant_id", ctx.tenant_id)
+            if "tenant_id" in params:
+                if pol == TenantPolicy.STRICT_SERVER:
+                    _err(400, "tenant_id cannot be set explicitly.")
+            else:
+                tenant_id = ctx.get("tenant_id")
+                if tenant_id is None:
+                    _err(400, "tenant_id is required.")
+                params["tenant_id"] = tenant_id
 
         # UPDATE
         def _before_update(ctx, obj):
