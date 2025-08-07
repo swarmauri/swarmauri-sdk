@@ -353,7 +353,6 @@ def remote_init_repo(
         url=origin_url,
         default_branch=default_branch,
         remote_name="origin",
-        tenant_id=str(DEFAULT_TENANT_ID),
         status="queued",
     )
     rpc = ctx.obj["rpc"]
