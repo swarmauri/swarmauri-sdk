@@ -5,6 +5,7 @@ Tests that healthz, methodz and hookz endpoints are properly attached and behave
 """
 
 import pytest
+from autoapi.v2 import Phase
 
 
 @pytest.mark.i9n
@@ -83,6 +84,10 @@ async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
 
+    @api.hook(Phase.POST_RESPONSE)
+    def sample_hook(ctx):
+        pass
+
     routes = [route.path for route in api.router.routes]
     assert "/hookz" in routes
 
@@ -92,6 +97,8 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     data = response.json()
     assert isinstance(data, dict)
+    assert "POST_RESPONSE" in data
+    assert "sample_hook" in data["POST_RESPONSE"]["*"]
     for phase, hooks in data.items():
         assert isinstance(phase, str)
         assert isinstance(hooks, dict)
