@@ -1,64 +1,64 @@
-# autoapi/v2/mixins/bound.py  (new file)
-
+# autoapi/v2/mixins/bound.py
 from __future__ import annotations
+
 from typing import Any, Mapping, Sequence
 
 from autoapi.v2.hooks import Phase
 from autoapi.v2.types import HookProvider
+from autoapi.v2.jsonrpc_models import create_standardized_error
 
 
 class _RowBound(HookProvider):
     """
-    Base class for mix-ins that want to trim *read* / *list* results
-    to what the caller is allowed to see.
-    Sub-classes must implement `is_visible(obj, ctx) -> bool`.
+    Base mix-in for row-level visibility.
+
+    Sub-classes must implement:
+
+        @staticmethod
+        def is_visible(obj, ctx) -> bool: ...
+
+    The mix-in registers POST-HANDLER hooks for **read** and **list** so that:
+      • In *list* results, invisible rows are dropped.
+      • In *read*, an invisible row is treated as a 404 (cannot leak existence).
     """
 
-    # ――― AutoAPI bootstrap ―――
+    # ────────────────────────────────────────────────────────────────────
+    # AutoAPI bootstrap: register hooks once per verb
+    # -------------------------------------------------------------------
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        model = cls.__tablename__
-
         for op in ("read", "list"):
-            api.register_hook(Phase.POST_HANDLER, model=model, op=op)(cls._make_hook())
+            api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
+                cls._make_hook()
+            )
 
-    # ――― per-request hook ―――
+    # ────────────────────────────────────────────────────────────────────
+    # Per-request hook factory
+    # -------------------------------------------------------------------
     @classmethod
     def _make_hook(cls):
-        async def _hook(ctx: Mapping[str, Any]) -> None:
-            if "result" not in ctx:  # defensive
+        def _hook(ctx: Mapping[str, Any]) -> None:
+            # Defensive: make sure we even got a result
+            if "result" not in ctx:
                 return
 
             res = ctx["result"]
-            if isinstance(res, Sequence):  # list → drop the invisible rows
-                ctx["result"] = [row for row in res if cls.is_visible(row, ctx)]
-            else:  # single object (read)
-                if not cls.is_visible(res, ctx):
-                    # mimic 404 to avoid leaking existence
-                    from autoapi.v2.jsonrpc_models import create_standardized_error
 
-                    http_exc, _, _ = create_standardized_error(404)
-                    raise http_exc
+            # List → keep only visible rows
+            if isinstance(res, Sequence):
+                ctx["result"] = [row for row in res if cls.is_visible(row, ctx)]
+                return
+
+            # Read → treat invisible as 404
+            if not cls.is_visible(res, ctx):
+                http_exc, _, _ = create_standardized_error(404)
+                raise http_exc
 
         return _hook
 
-    # sub-classes must override
+    # -------------------------------------------------------------------
+    # Sub-classes override this.
+    # -------------------------------------------------------------------
     @staticmethod
-    def is_visible(obj, ctx) -> bool:
+    def is_visible(obj, ctx) -> bool:  # pragma: no cover
         raise NotImplementedError
-
-
-# ----- Examples ----------------------------------------------------
-# Concrete Mixins with one-liner predicates
-# class AuthnBound(_RowBound):
-#     @staticmethod
-#     def is_visible(obj, ctx) -> bool:
-#         # example: only rows belonging to the caller’s tenant
-#         return obj.tenant_id == ctx["request"].state.principal.tenant_id
-
-
-# class MemberBound(_RowBound):
-#     @staticmethod
-#     def is_visible(obj, ctx) -> bool:
-#         # example: rows for Organisations the caller is a member of
-#         return obj.org_id in ctx["request"].state.memberships
