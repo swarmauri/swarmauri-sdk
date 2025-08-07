@@ -61,5 +61,5 @@ class Ownable:
                 if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
                     _err(403, "Cannot transfer ownership.")
 
-        api.add_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create", fn=_before_create)
-        api.add_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update", fn=_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
