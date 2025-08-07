@@ -76,7 +76,7 @@ class TenantBound(_RowBound):
         pol = cls.__autoapi_tenant_policy__
 
         def _err(code: int, msg: str):
-            http_exc, _, _ = create_standardized_error(code, detail=msg)
+            http_exc, _, _ = create_standardized_error(code, message=msg)
             raise http_exc
 
         # INSERT

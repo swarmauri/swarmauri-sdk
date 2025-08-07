@@ -5,7 +5,7 @@ from typing import Any, Mapping, Sequence
 
 from autoapi.v2.hooks import Phase
 from autoapi.v2.types import HookProvider
-from autoapi.v2.jsonrpc_models import create_standardized_error
+from autoapi.v2.jsonrpc_models import HTTP_ERROR_MESSAGES, create_standardized_error
 
 
 class _RowBound(HookProvider):
@@ -28,7 +28,7 @@ class _RowBound(HookProvider):
         # Skip abstract helpers or unmapped mix-ins
         if cls.is_visible is _RowBound.is_visible:
             return
-        if not hasattr(cls, "__table__"):          # not a mapped class
+        if not hasattr(cls, "__table__"):  # not a mapped class
             return
 
         for op in ("read", "list"):
@@ -42,7 +42,7 @@ class _RowBound(HookProvider):
     @classmethod
     def _make_hook(cls):
         def _hook(ctx: Mapping[str, Any]) -> None:
-            if "result" not in ctx:        # nothing to filter
+            if "result" not in ctx:  # nothing to filter
                 return
 
             res = ctx["result"]
@@ -54,7 +54,9 @@ class _RowBound(HookProvider):
 
             # READ → invisible row → pretend 404
             if not cls.is_visible(res, ctx):
-                http_exc, _, _ = create_standardized_error(404)
+                http_exc, _, _ = create_standardized_error(
+                    404, message=HTTP_ERROR_MESSAGES[404]
+                )
                 raise http_exc
 
         return _hook
