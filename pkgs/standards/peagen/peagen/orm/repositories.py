@@ -25,7 +25,7 @@ class Repository(
         UniqueConstraint("tenant_id", "name"),
     )
 
-    __autoapi_tenant_policy__ = TenantPolicy.DEFAULT_TO_CTX
+    __autoapi_tenant_policy__ = TenantPolicy.STRICT_SERVER
 
     # The request must not contain owner_id. The server injects the caller’s user_id automatically.
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
