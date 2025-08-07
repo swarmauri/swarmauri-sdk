@@ -37,7 +37,7 @@ class Ownable:
         col_info = cls.__table__.c.owner_id.info.setdefault("autoapi", {})
         if pol != OwnerPolicy.CLIENT_SET:
             disable_on = col_info.setdefault("disable_on", [])
-            for verb in ("create", "update", "replace"):
+            for verb in ("update", "replace"):
                 if verb not in disable_on:
                     disable_on.append(verb)
         _info_check(col_info, "owner_id", cls.__name__)
