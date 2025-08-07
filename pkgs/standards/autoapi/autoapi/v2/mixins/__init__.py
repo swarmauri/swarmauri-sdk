@@ -2,6 +2,7 @@
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
+from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
 from ..types import (
     Column,
     TZDateTime,
@@ -117,19 +118,6 @@ class UserBound:  # membership rows
     @classmethod
     def filter_for_ctx(cls, q, ctx):
         return q.filter(cls.user_id == ctx.user_id)
-
-
-class TenantBound:
-    tenant_id: Mapped[PgUUID] = mapped_column(
-        PgUUID,
-        ForeignKey("tenants.id"),
-        info=dict(autoapi={"examples": [uuid_example]}),
-    )
-
-    @classmethod
-    def filter_for_ctx(cls, q, ctx):
-        return q.filter(cls.tenant_id == ctx.tenant_id)
-
 
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin
