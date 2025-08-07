@@ -4,13 +4,12 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
- 
 
 
 class OwnerPolicy(str, Enum):
-    CLIENT_SET      = "client"
+    CLIENT_SET = "client"
     DEFAULT_TO_USER = "default"
-    STRICT_SERVER   = "strict"
+    STRICT_SERVER = "strict"
 
 
 class Ownable:
@@ -32,8 +31,11 @@ class Ownable:
         autoapi_meta = {}
         if pol != OwnerPolicy.CLIENT_SET:
             # Hide on write verbs (create/update/replace) and mark read-only
-            autoapi_meta["disable_on"] = ["update", "replace"]   # add "create" if desired
-            autoapi_meta["read_only"]  = True
+            autoapi_meta["disable_on"] = [
+                "update",
+                "replace",
+            ]  # add "create" if desired
+            autoapi_meta["read_only"] = True
 
         # Validate the metadata keys
         _info_check(autoapi_meta, "owner_id", cls.__name__)
@@ -50,8 +52,12 @@ class Ownable:
     # Runtime hooks – unchanged, still need the `api` instance.
     # -------------------------------------------------------------------
     @classmethod
-    def __autoapi_register_hooks__(cls, api):
-        pol = cls.__autoapi_owner_policy__
+    def __autoapi_register_hooks__(cls, api, concrete_model=None):
+        # Use the concrete model if provided, otherwise fall back to cls
+        target_model = concrete_model if concrete_model is not None else cls
+        pol = getattr(
+            target_model, "__autoapi_owner_policy__", cls.__autoapi_owner_policy__
+        )
 
         def _err(status: int, msg: str):
             http_exc, _, _ = create_standardized_error(status, detail=msg)
@@ -74,5 +80,9 @@ class Ownable:
             if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
                 _err(403, "Cannot transfer ownership.")
 
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+            _before_create
+        )
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+            _before_update
+        )

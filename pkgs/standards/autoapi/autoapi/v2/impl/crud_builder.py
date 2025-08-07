@@ -7,6 +7,7 @@ models, including database operations and schema generation.
 
 from __future__ import annotations
 
+import logging
 from typing import Dict
 
 from sqlalchemy import inspect as _sa_inspect
@@ -16,6 +17,7 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
+
 # ----------------------------------------------------------------------
 def _invoke_all_registrars(model: type, api) -> None:
     """
@@ -23,13 +25,23 @@ def _invoke_all_registrars(model: type, api) -> None:
     Uses getattr() so the classmethod descriptor yields a callable.
     """
     seen: set[int] = set()
-    for base in reversed(model.__mro__):              # parents first
+    for base in reversed(model.__mro__):  # parents first
         if "__autoapi_register_hooks__" not in base.__dict__:
             continue
-        fn = getattr(base, "__autoapi_register_hooks__")   # ← bound function
+        fn = getattr(base, "__autoapi_register_hooks__")  # ← bound function
         if callable(fn) and id(fn) not in seen:
-            fn(api)
+            # Check if the method accepts the concrete_model parameter
+            import inspect
+
+            sig = inspect.signature(fn)
+            if "concrete_model" in sig.parameters:
+                fn(api, concrete_model=model)
+            else:
+                fn(api)
             seen.add(id(fn))
+            print(f"Registered hooks for {base.__name__}")
+
+
 # ----------------------------------------------------------------------
 
 

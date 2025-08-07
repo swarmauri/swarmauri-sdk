@@ -18,9 +18,9 @@ from ..info_schema import check as _info_check
 
 
 class TenantPolicy(str, Enum):
-    CLIENT_SET     = "client"   # client may supply tenant_id on create/update
+    CLIENT_SET = "client"  # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
-    STRICT_SERVER  = "strict"   # server forces tenant_id and forbids changes
+    STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
 
 
 class TenantBound(_RowBound):
@@ -45,8 +45,11 @@ class TenantBound(_RowBound):
         autoapi_meta = {}
         if pol != TenantPolicy.CLIENT_SET:
             # Hide field on write verbs and mark as read-only
-            autoapi_meta["disable_on"] = ["update", "replace"]  # add "create" if desired
-            autoapi_meta["read_only"]  = True
+            autoapi_meta["disable_on"] = [
+                "update",
+                "replace",
+            ]  # add "create" if desired
+            autoapi_meta["read_only"] = True
 
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
 
@@ -69,8 +72,12 @@ class TenantBound(_RowBound):
     # Runtime hooks (needs api instance)
     # -------------------------------------------------------------------
     @classmethod
-    def __autoapi_register_hooks__(cls, api):
-        pol = cls.__autoapi_tenant_policy__
+    def __autoapi_register_hooks__(cls, api, concrete_model=None):
+        # Use the concrete model if provided, otherwise fall back to cls
+        target_model = concrete_model if concrete_model is not None else cls
+        pol = getattr(
+            target_model, "__autoapi_tenant_policy__", cls.__autoapi_tenant_policy__
+        )
 
         def _err(code: int, msg: str):
             http_exc, _, _ = create_standardized_error(code, detail=msg)
@@ -97,5 +104,9 @@ class TenantBound(_RowBound):
                 _err(403, "Cannot switch tenant context.")
 
         # Register hooks
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+            _before_create
+        )
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+            _before_update
+        )
