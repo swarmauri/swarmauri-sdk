@@ -196,4 +196,4 @@ async def test_endpoints_are_synchronous(api_client):
     # Responses should be immediate and not require async database operations
     assert healthz_response.json()
     assert methodz_response.json()
-    assert hookz_response.json()
+    assert isinstance(hookz_response.json(), dict)
