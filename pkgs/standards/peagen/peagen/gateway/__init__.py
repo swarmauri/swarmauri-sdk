@@ -35,6 +35,8 @@ from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 from peagen.orm import (
     Base,
     DeployKey,
+    PublicKey,
+    GPGKey,
     Org,
     Pool,
     RawBlob,
@@ -93,6 +95,8 @@ api = AutoAPI(
         UserRepository,
         RepoSecret,
         DeployKey,
+        PublicKey,
+        GPGKey,
         Pool,
         Worker,
         Task,
