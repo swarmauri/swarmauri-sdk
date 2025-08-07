@@ -22,7 +22,6 @@ class Repository(
     __tablename__ = "repositories"
     __table_args__ = (
         UniqueConstraint("url"),
-        UniqueConstraint("tenant_id", "name"),
     )
 
     __autoapi_tenant_policy__ = TenantPolicy.STRICT_SERVER
@@ -34,7 +33,6 @@ class Repository(
     url = Column(String, unique=True, nullable=False)
     default_branch = Column(String, default="main")
     commit_sha = Column(String(length=40), nullable=True)
-    remote_name = Column(String, nullable=False, default="origin")
 
     secrets = relationship(
         "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
