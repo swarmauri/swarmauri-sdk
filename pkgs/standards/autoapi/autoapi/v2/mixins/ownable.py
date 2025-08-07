@@ -4,6 +4,7 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID
+from ..info_schema import check as _info_check
 
 
 class OwnerPolicy(str, Enum):
