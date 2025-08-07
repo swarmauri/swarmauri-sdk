@@ -64,12 +64,12 @@ class Upsertable(HookProvider):
 
         for op in ("create", "update", "replace"):
             api.register_hook(Phase.PRE_TX_BEGIN, model=model, op=op)(
-                cls._make_hook(op)
+                cls._make_upsert_method_rewrite_hook(op)
             )
 
     # ─── hook factory -----------------------------------------------------
     @classmethod
-    def _make_hook(cls, verb: str):
+    def _make_upsert_method_rewrite_hook(cls, verb: str):
         """
         Returns an async hook function bound to *verb*.
         The hook mutates ``ctx["env"].method`` so AutoAPI re-routes
@@ -78,7 +78,7 @@ class Upsertable(HookProvider):
 
         tab = "".join(w.title() for w in cls.__tablename__.split("_"))
 
-        async def _hook(ctx: Mapping[str, Any]) -> None:  # noqa: D401
+        async def _rewrite_method_for_upsert(ctx: Mapping[str, Any]) -> None:  # noqa: D401
             p: dict = ctx["payload"]  # request body
             db: Session = ctx["db"]  # current Tx
 
@@ -98,7 +98,7 @@ class Upsertable(HookProvider):
 
             # Otherwise keep original verb (normal path)
 
-        return _hook
+        return _rewrite_method_for_upsert
 
     # ─── helpers ----------------------------------------------------------
     @classmethod

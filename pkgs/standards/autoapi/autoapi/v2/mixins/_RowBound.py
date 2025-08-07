@@ -33,15 +33,15 @@ class _RowBound(HookProvider):
 
         for op in ("read", "list"):
             api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
-                cls._make_hook()
+                cls._make_row_visibility_hook()
             )
 
     # ────────────────────────────────────────────────────────────────────
     # Per-request hook
     # -------------------------------------------------------------------
     @classmethod
-    def _make_hook(cls):
-        def _hook(ctx: Mapping[str, Any]) -> None:
+    def _make_row_visibility_hook(cls):
+        def _row_visibility_hook(ctx: Mapping[str, Any]) -> None:
             if "result" not in ctx:  # nothing to filter
                 return
 
@@ -59,7 +59,7 @@ class _RowBound(HookProvider):
                 )
                 raise http_exc
 
-        return _hook
+        return _row_visibility_hook
 
     # -------------------------------------------------------------------
     # Must be overridden
