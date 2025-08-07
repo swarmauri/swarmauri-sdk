@@ -41,7 +41,7 @@ class ApiKey(
         unique=True,
         info={
             "autoapi": {
-                # hide from Create / Update / Replace verbs
+                # hide from Update / Replace verbs
                 "disable_on": ["update", "replace"],
                 # show in READ / LIST responses only
                 "read_only": True,
