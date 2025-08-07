@@ -8,7 +8,15 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
 )
-from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, TenantPolicy, Ownable, OwnerPolicy, StatusMixin
+from autoapi.v2.mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    TenantPolicy,
+    Ownable,
+    OwnerPolicy,
+    StatusMixin,
+)
 
 
 class Repository(
@@ -20,9 +28,7 @@ class Repository(
     """
 
     __tablename__ = "repositories"
-    __table_args__ = (
-        UniqueConstraint("url"),
-    )
+    __table_args__ = (UniqueConstraint("url"),)
 
     __autoapi_tenant_policy__ = TenantPolicy.STRICT_SERVER
 
@@ -60,9 +66,7 @@ class Repository(
         from autoapi.v2 import AutoAPI, Phase
 
         cls._SRead = AutoAPI.get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model="Repository", op="create")(
-            cls._post_create
-        )
+        api.register_hook(Phase.POST_COMMIT, model=cls, op="create")(cls._post_create)
 
 
 __all__ = ["Repository"]
