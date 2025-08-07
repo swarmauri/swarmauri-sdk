@@ -9,7 +9,7 @@ import typer
 from httpx import HTTPError
 
 from peagen.plugins.cryptos import ParamikoCrypto
-from peagen.core.login_core import login as core_login
+from peagen.core.publickey_core import login as core_login
 from peagen.defaults import DEFAULT_GATEWAY
 
 
