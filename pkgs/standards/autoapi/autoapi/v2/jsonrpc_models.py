@@ -70,14 +70,19 @@ HTTP_ERROR_MESSAGES: dict[int, str] = {
 }
 
 
-def _http_exc_to_rpc(exc: HTTPException) -> tuple[int, str]:
+def _http_exc_to_rpc(exc: HTTPException) -> tuple[int, str, Any | None]:
+    """Convert :class:`HTTPException` to ``(rpc_code, message, data)``.
+
+    Any non-string detail on the ``HTTPException`` is propagated via the
+    ``data`` field of the JSON-RPC error response so callers can inspect
+    validation issues such as missing parameters.
     """
-    Convert FastAPI HTTPException -> (jsonrpc_code, message)
-    Returns the RPC error code and preserves the original error message.
-    """
-    code = _HTTP_TO_RPC.get(exc.status_code, -32603)  # Default to Internal error
-    message = exc.detail or ERROR_MESSAGES.get(code, "Unknown error")
-    return code, message
+
+    code = _HTTP_TO_RPC.get(exc.status_code, -32603)  # default → Internal error
+    detail = exc.detail
+    if isinstance(detail, (dict, list)):
+        return code, ERROR_MESSAGES.get(code, "Unknown error"), detail
+    return code, detail or ERROR_MESSAGES.get(code, "Unknown error"), None
 
 
 def _rpc_error_to_http(rpc_code: int, message: str | None = None) -> HTTPException:

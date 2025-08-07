@@ -6,13 +6,23 @@ from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.tables import ApiKey
 
 
+class ConcreteApiKey(ApiKey):
+    """Concrete table for testing API key generation."""
+
+    __abstract__ = False
+
+
+# Ensure hooks register under expected model name
+ConcreteApiKey.__name__ = "ApiKey"
+
+
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_api_key_creation_returns_raw_key(sync_db_session):
     """Creating an API key returns the raw key once."""
     _, get_sync_db = sync_db_session
     Base.metadata.clear()
-    api = AutoAPI(base=Base, include={ApiKey}, get_db=get_sync_db)
+    api = AutoAPI(base=Base, include={ConcreteApiKey}, get_db=get_sync_db)
     api.initialize_sync()
 
     app = FastAPI()
