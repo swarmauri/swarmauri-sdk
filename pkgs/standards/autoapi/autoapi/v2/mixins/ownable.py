@@ -46,7 +46,7 @@ class Ownable:
         if pol != OwnerPolicy.CLIENT_SET:
             # Hide the field on *all* write verbs
             disable = set(meta.get("disable_on", []))
-            disable.update({"create", "update", "replace"})
+            disable.update({"update", "replace"})
             meta["disable_on"] = list(disable)
             # Make it read-only from the client's perspective
             meta.setdefault("read_only", True)
