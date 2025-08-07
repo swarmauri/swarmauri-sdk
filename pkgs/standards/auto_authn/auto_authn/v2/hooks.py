@@ -5,6 +5,7 @@ def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
 
     allow_anon = api._allow_anon
+
     @api.hook(Phase.PRE_TX_BEGIN)  # PRE‑DB, works for CRUD & RPC
     async def _inject(ctx):
         if getattr(ctx.get("env"), "method", None) in allow_anon:
@@ -13,8 +14,13 @@ def register_inject_hook(api):
         if not p:
             return
 
+        ctx["tenant_id"] = p.get("tid")
+        ctx["user_id"] = p.get("sub")
+        ctx["is_admin"] = p.get("is_admin", False)
+
         prm = ctx["env"].params  # Pydantic model OR raw dict
-        for fld, val in (("tenant_id", p["tid"]), ("owner_id", p["sub"])):
+        ctx["params"] = prm
+        for fld, val in (("tenant_id", ctx["tenant_id"]), ("owner_id", ctx["user_id"])):
             if hasattr(prm, "__pydantic_fields__"):
                 if fld in prm.model_fields and getattr(prm, fld, None) in (None, val):
                     setattr(prm, fld, val)

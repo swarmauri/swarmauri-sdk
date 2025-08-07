@@ -93,7 +93,7 @@ def _init_hooks(self) -> None:
 async def _run(self, phase: Phase, ctx: Dict[str, Any]) -> None:
     """Run hooks for *phase* in order and stop on the first error."""
     m = getattr(ctx.get("env"), "method", None)
-    hooks = list(self._hook_registry[phase].get(m, []))
-    hooks.extend(self._hook_registry[phase].get(None, []))
+    hooks = list(self._hook_registry[phase].get(None, []))
+    hooks.extend(self._hook_registry[phase].get(m, []))
     for fn in hooks:
         await fn(ctx)
