@@ -1,11 +1,11 @@
 """
 Tenant-level row security mix-in for AutoAPI.
 
-Any model that inherits **TenantBound** gains:
+A table that inherits **TenantBound** gets:
 
-• automatic scoping of *read* / *list* results to ctx.tenant_id (via _RowBound)
-• server-side injection of ctx.tenant_id on insert
-• selectable policy for whether clients may set / patch tenant_id
+• tenant-scoped *read* / *list* results (via _RowBound.is_visible override)
+• automatic injection of ctx.tenant_id on inserts
+• policy-driven control over whether the client can set / patch tenant_id
 """
 
 from enum import Enum
@@ -25,28 +25,27 @@ class TenantPolicy(str, Enum):
 
 class TenantBound(_RowBound):
     """
-    Mix-in that plugs tenant isolation into AutoAPI.
+    Plug-and-play tenant isolation.
 
-    • Column metadata is produced with @declared_attr, so the schema builder
-      sees the correct flags before caching.
-    • _RowBound supplies the read/list visibility filter; we only need to
-      point it at the right column.
+    • `tenant_id` column is defined per subclass (declared_attr) so the schema
+      builder sees the right flags before caching.
+    • _RowBound’s read/list filters work because we implement `is_visible`.
     """
 
     __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.CLIENT_SET
 
     # ────────────────────────────────────────────────────────────────────
-    # Column definition (per-subclass)
+    # tenant_id column
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
         pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
 
-        autoapi_meta = {}
+        autoapi_meta: dict[str, object] = {}
         if pol != TenantPolicy.CLIENT_SET:
-            # Hide field on write verbs and mark as read-only
-            autoapi_meta["disable_on"] = ["update", "replace"]  # add "create" if desired
-            autoapi_meta["read_only"]  = True
+            # Hide field on *all* write verbs and mark as read-only
+            autoapi_meta["disable_on"] = ["update", "replace"]
+            autoapi_meta["read_only"] = True
 
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
 
@@ -59,11 +58,15 @@ class TenantBound(_RowBound):
         )
 
     # -------------------------------------------------------------------
-    # Tell _RowBound which FK to use for visibility filtering
+    # Row-level visibility for _RowBound
     # -------------------------------------------------------------------
-    @classmethod
-    def _bound_column(cls):
-        return cls.tenant_id
+    @staticmethod
+    def is_visible(obj, ctx) -> bool:
+        """
+        A row is visible iff it belongs to the caller’s tenant.
+        `ctx.tenant_id` is expected to be set by your authn middleware.
+        """
+        return getattr(obj, "tenant_id", None) == getattr(ctx, "tenant_id", None)
 
     # -------------------------------------------------------------------
     # Runtime hooks (needs api instance)
@@ -76,13 +79,13 @@ class TenantBound(_RowBound):
             http_exc, _, _ = create_standardized_error(code, detail=msg)
             raise http_exc
 
-        # INSERT logic
+        # INSERT
         def _before_create(ctx):
             if "tenant_id" in ctx.params and pol == TenantPolicy.STRICT_SERVER:
                 _err(400, "tenant_id cannot be set explicitly.")
             ctx.params.setdefault("tenant_id", ctx.tenant_id)
 
-        # UPDATE logic
+        # UPDATE
         def _before_update(ctx, obj):
             if "tenant_id" not in ctx.params:
                 return
@@ -97,5 +100,9 @@ class TenantBound(_RowBound):
                 _err(403, "Cannot switch tenant context.")
 
         # Register hooks
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+            _before_create
+        )
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+            _before_update
+        )
