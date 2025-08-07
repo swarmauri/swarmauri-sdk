@@ -16,6 +16,20 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
+# ----------------------------------------------------------------------
+def _invoke_all_registrars(model: type, api) -> None:
+    """
+    Walk the model’s MRO *bottom-up* (parents first) and invoke
+    each distinct  __autoapi_register_hooks__(api)  exactly once.
+    """
+    seen: set[int] = set()                       # avoid dup calls
+    for base in reversed(model.__mro__):         # Ownable first, Repo last
+        fn = base.__dict__.get("__autoapi_register_hooks__")
+        if fn and id(fn) not in seen:
+            fn(api)
+            seen.add(id(fn))
+# ----------------------------------------------------------------------
+
 
 def _not_found() -> None:
     """Raise a standardized 404 error."""
@@ -234,7 +248,4 @@ def _crud(self, model: type) -> None:
     #     def __autoapi_register_hooks__(api): ...
     # will be handed **this** AutoAPI instance so it can attach its
     # hooks directly (Upsertable, audit mixins, etc.).
-    # >>> NEW
-    register_cb = getattr(model, "__autoapi_register_hooks__", None)
-    if callable(register_cb):
-        register_cb(self)
+    _invoke_all_registrars(model, self)
