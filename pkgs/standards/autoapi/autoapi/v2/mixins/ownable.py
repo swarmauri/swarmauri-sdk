@@ -56,7 +56,7 @@ class Ownable:
         pol = cls.__autoapi_owner_policy__
 
         def _err(status: int, msg: str):
-            http_exc, _, _ = create_standardized_error(status, detail=msg)
+            http_exc, _, _ = create_standardized_error(status, message=msg)
             raise http_exc
 
         # PRE-TX hooks ----------------------------------------------------
