@@ -16,20 +16,29 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
+
 # ----------------------------------------------------------------------
 def _invoke_all_registrars(model: type, api) -> None:
+    """Invoke ``__autoapi_register_hooks__`` on each class in *model*'s MRO.
+
+    The registrar on a mixin typically wants the **final subclass** as ``cls`` so
+    that any hooks it registers are keyed to the concrete model (``Repository``
+    instead of ``TenantBound``).  We therefore retrieve the raw function from the
+    class ``__dict__`` and bind it to *model* before invocation.
+
+    Each registrar is called at most once even if it appears multiple times in
+    the MRO.
     """
-    Walk the model’s MRO and call *each* distinct registrar exactly once.
-    Uses getattr() so the classmethod descriptor yields a callable.
-    """
+
     seen: set[int] = set()
-    for base in reversed(model.__mro__):              # parents first
-        if "__autoapi_register_hooks__" not in base.__dict__:
+    for base in reversed(model.__mro__):  # parents first
+        fn = base.__dict__.get("__autoapi_register_hooks__")
+        if not fn or id(fn) in seen:
             continue
-        fn = getattr(base, "__autoapi_register_hooks__")   # ← bound function
-        if callable(fn) and id(fn) not in seen:
-            fn(api)
-            seen.add(id(fn))
+        fn.__get__(model, base)(api)
+        seen.add(id(fn))
+
+
 # ----------------------------------------------------------------------
 
 

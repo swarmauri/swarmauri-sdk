@@ -4,13 +4,12 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
- 
 
 
 class OwnerPolicy(str, Enum):
-    CLIENT_SET      = "client"
+    CLIENT_SET = "client"
     DEFAULT_TO_USER = "default"
-    STRICT_SERVER   = "strict"
+    STRICT_SERVER = "strict"
 
 
 class Ownable:
@@ -31,9 +30,11 @@ class Ownable:
 
         autoapi_meta = {}
         if pol != OwnerPolicy.CLIENT_SET:
-            # Hide on write verbs (create/update/replace) and mark read-only
-            autoapi_meta["disable_on"] = ["update", "replace"]   # add "create" if desired
-            autoapi_meta["read_only"]  = True
+            # Hide on update/replace but allow server-side injection on create
+            autoapi_meta["disable_on"] = [
+                "update",
+                "replace",
+            ]  # add "create" if desired
 
         # Validate the metadata keys
         _info_check(autoapi_meta, "owner_id", cls.__name__)
@@ -74,5 +75,9 @@ class Ownable:
             if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
                 _err(403, "Cannot transfer ownership.")
 
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+            _before_create
+        )
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+            _before_update
+        )

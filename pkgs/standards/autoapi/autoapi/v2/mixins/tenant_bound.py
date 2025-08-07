@@ -18,9 +18,9 @@ from ..info_schema import check as _info_check
 
 
 class TenantPolicy(str, Enum):
-    CLIENT_SET     = "client"   # client may supply tenant_id on create/update
+    CLIENT_SET = "client"  # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
-    STRICT_SERVER  = "strict"   # server forces tenant_id and forbids changes
+    STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
 
 
 class TenantBound(_RowBound):
@@ -44,9 +44,11 @@ class TenantBound(_RowBound):
 
         autoapi_meta = {}
         if pol != TenantPolicy.CLIENT_SET:
-            # Hide field on write verbs and mark as read-only
-            autoapi_meta["disable_on"] = ["update", "replace"]  # add "create" if desired
-            autoapi_meta["read_only"]  = True
+            # Hide field on update/replace but allow server-side injection on create
+            autoapi_meta["disable_on"] = [
+                "update",
+                "replace",
+            ]  # add "create" if desired
 
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
 
@@ -97,5 +99,9 @@ class TenantBound(_RowBound):
                 _err(403, "Cannot switch tenant context.")
 
         # Register hooks
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(_before_create)
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(_before_update)
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+            _before_create
+        )
+        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+            _before_update
+        )
