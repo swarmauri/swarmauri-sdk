@@ -26,7 +26,7 @@ class Repository(
     )
 
     # The request must not contain owner_id. The server injects the caller’s user_id automatically.
-    __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.DEFAULT_TO_USER
+    __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
 
     name = Column(String, nullable=False)
     url = Column(String, unique=True, nullable=False)
