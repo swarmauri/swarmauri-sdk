@@ -7,6 +7,11 @@ from types import SimpleNamespace
 from .hooks import Phase
 
 
+class _Ctx(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+
+
 # ---------------------------------------------------------------------------#
 async def _invoke(
     api,
@@ -34,6 +39,7 @@ async def _invoke(
     -------
     The raw result (dict / list / pydantic dump) produced by the business func.
     """
+    ctx = _Ctx(ctx)
     db = ctx["db"]
 
     try:
