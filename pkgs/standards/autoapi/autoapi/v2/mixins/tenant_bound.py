@@ -66,7 +66,12 @@ class TenantBound(_RowBound):
         A row is visible iff it belongs to the caller’s tenant.
         `ctx.tenant_id` is expected to be set by your authn middleware.
         """
-        return getattr(obj, "tenant_id", None) == getattr(ctx, "tenant_id", None)
+        ctx_tenant_id = (
+            ctx.get("tenant_id")
+            if hasattr(ctx, "get")
+            else getattr(ctx, "tenant_id", None)
+        )
+        return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
     # -------------------------------------------------------------------
     # Runtime hooks (needs api instance)
