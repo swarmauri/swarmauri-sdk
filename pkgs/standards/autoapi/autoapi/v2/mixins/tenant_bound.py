@@ -57,7 +57,7 @@ class TenantBound(_RowBound):
         meta = cls.tenant_id.info.setdefault("autoapi", {})
         if pol != TenantPolicy.CLIENT_SET:
             disables = set(meta.get("disable_on", []))
-            disables.update({"create", "update", "replace"})
+            disables.update({"update", "replace"})
             meta["disable_on"] = list(disables)
             meta.setdefault("read_only", True)
 
