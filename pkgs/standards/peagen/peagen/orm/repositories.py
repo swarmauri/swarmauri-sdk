@@ -8,7 +8,7 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
 )
-from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable, OwnerPolicy, StatusMixin
+from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, TenantPolicy, Ownable, OwnerPolicy, StatusMixin
 
 
 class Repository(
@@ -24,6 +24,8 @@ class Repository(
         UniqueConstraint("url"),
         UniqueConstraint("tenant_id", "name"),
     )
+
+    __autoapi_tenant_policy__ = TenantPolicy.DEFAULT_TO_CTX
 
     # The request must not contain owner_id. The server injects the caller’s user_id automatically.
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
