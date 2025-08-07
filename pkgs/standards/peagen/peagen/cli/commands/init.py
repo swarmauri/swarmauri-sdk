@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional, List
 import typer
 from swarmauri_standard.loggers.Logger import Logger
 from autoapi.v2 import AutoAPI
+from autoapi.v2.tables.user import User
 
 from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
@@ -17,7 +18,6 @@ from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
 from peagen.defaults import (
     DEFAULT_POOL_ID,
-    DEFAULT_SUPER_USER_ID,
     DEFAULT_TENANT_ID,
     GIT_SHADOW_BASE,
 )
@@ -349,16 +349,22 @@ def remote_init_repo(
     upstream_url = upstream or f"git@github.com:{principal}/{name}.git"
     SCreate = AutoAPI.get_schema(Repository, "create")
     SRead = AutoAPI.get_schema(Repository, "read")
+    SURead = AutoAPI.get_schema(User, "read")
+    rpc = ctx.obj["rpc"]
+    try:
+        me = rpc.call("Users.me", out_schema=SURead)
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"❌  failed to resolve current user: {exc}", err=True)
+        raise typer.Exit(1)
     params = SCreate(
         name=name,
         url=origin_url,
         default_branch=default_branch,
         remote_name="origin",
         tenant_id=str(DEFAULT_TENANT_ID),
-        owner_id=str(DEFAULT_SUPER_USER_ID),
+        owner_id=str(me.id),
         status="queued",
     )
-    rpc = ctx.obj["rpc"]
     try:
         res = rpc.call("Repositories.create", params=params, out_schema=SRead)
         typer.echo(f"✅  registered repository '{res.name}' ({res.url})")
