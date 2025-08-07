@@ -26,6 +26,7 @@ from peagen.orm.mixins import RepositoryRefMixin
 
 
 class Action(str, Enum):
+    INIT = auto()
     SORT = auto()
     PROCESS = auto()
     MUTATE = auto()

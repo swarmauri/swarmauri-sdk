@@ -17,7 +17,6 @@ from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
 from peagen.defaults import (
     DEFAULT_POOL_ID,
-    DEFAULT_SUPER_USER_ID,
     DEFAULT_TENANT_ID,
     GIT_SHADOW_BASE,
 )
@@ -355,7 +354,6 @@ def remote_init_repo(
         default_branch=default_branch,
         remote_name="origin",
         tenant_id=str(DEFAULT_TENANT_ID),
-        owner_id=str(DEFAULT_SUPER_USER_ID),
         status="queued",
     )
     rpc = ctx.obj["rpc"]

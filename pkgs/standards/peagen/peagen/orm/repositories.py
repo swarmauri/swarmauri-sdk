@@ -8,7 +8,7 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
 )
-from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin
+from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable, OwnerPolicy, StatusMixin
 
 
 class Repository(
@@ -24,6 +24,10 @@ class Repository(
         UniqueConstraint("url"),
         UniqueConstraint("tenant_id", "name"),
     )
+
+    # The request must not contain owner_id. The server injects the caller’s user_id automatically.
+    __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
+
     name = Column(String, nullable=False)
     url = Column(String, unique=True, nullable=False)
     default_branch = Column(String, default="main")

@@ -1,6 +1,7 @@
 # mixins_generic.py ───── all mix-ins live here
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
+from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from ..types import (
     Column,
     TZDateTime,
@@ -87,18 +88,6 @@ class OrgMixin:
         nullable=False,
         info=dict(autoapi={"examples": [uuid_example]}),
     )
-
-
-@declarative_mixin
-class Ownable:
-    owner_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("users.id"),
-        index=True,
-        nullable=False,
-        info=dict(autoapi={"examples": [uuid_example]}),
-    )
-
 
 @declarative_mixin
 class Principal:  # concrete table marker
