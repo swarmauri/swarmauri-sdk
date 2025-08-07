@@ -19,7 +19,7 @@ from autoapi_client import AutoAPIClient  # ← new client
 from autoapi.v2 import AutoAPI  # ← for .get_schema()
 from peagen.orm import PublicKey  # ORM resource
 
-from peagen.defaults import DEFAULT_GATEWAY
+from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID
 from peagen.plugins.cryptos import ParamikoCrypto
 
 __all__ = ["login"]
@@ -49,13 +49,17 @@ def login(
     """
     # 1 ─ ensure local SSH key-pair
     drv = ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
-    public_key = drv.public_key_str()          # returns single-line OpenSSH key
+    public_key = drv.public_key_str()  # returns single-line OpenSSH key
 
     # 2 ─ build request/response schemas dynamically
     SCreate = _schema("create")
     SRead = _schema("read")
 
-    params = SCreate(public_key=public_key, title="default")
+    params = SCreate(
+        public_key=public_key,
+        title="default",
+        user_id=str(DEFAULT_SUPER_USER_ID),
+    )
 
     # 3 ─ JSON-RPC call via AutoAPIClient
     with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
