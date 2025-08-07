@@ -81,16 +81,22 @@ class TenantBound(_RowBound):
 
         # INSERT
         def _before_create(ctx):
-            params = ctx.get("params", {})
+            try:
+                params = ctx.params
+            except KeyError:
+                params = {}
+                ctx.params = params
             if "tenant_id" in params and pol == TenantPolicy.STRICT_SERVER:
                 _err(400, "tenant_id cannot be set explicitly.")
-            params.setdefault("tenant_id", ctx.get("tenant_id"))
-            ctx["params"] = params
+            params.setdefault("tenant_id", ctx.tenant_id)
 
         # UPDATE
         def _before_update(ctx, obj):
-            params = ctx.get("params")
-            if not params or "tenant_id" not in params:
+            try:
+                params = ctx.params
+            except KeyError:
+                return
+            if "tenant_id" not in params:
                 return
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
