@@ -105,13 +105,19 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     data = response.json()
     assert isinstance(data, dict)
-    assert "*" in data
-    assert data["*"]["POST_RESPONSE"] == ["first_hook", "second_hook"]
-    assert "Items.create" in data
-    assert data["Items.create"]["POST_RESPONSE"] == ["item_hook"]
+
+    expected_global_hooks = ["first_hook", "second_hook"]
     for method, phases in data.items():
         assert isinstance(method, str)
         assert isinstance(phases, dict)
+        assert phases["POST_RESPONSE"][:2] == expected_global_hooks
+
+    assert "Items.create" in data
+    assert data["Items.create"]["POST_RESPONSE"] == expected_global_hooks + [
+        "item_hook"
+    ]
+    assert "Tenants.create" in data
+    assert data["Tenants.create"]["POST_RESPONSE"] == expected_global_hooks
 
 
 @pytest.mark.i9n
