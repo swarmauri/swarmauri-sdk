@@ -15,7 +15,7 @@ lives in autoapi.v2._runner._invoke.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Security
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from typing import Any, Dict
@@ -40,11 +40,20 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
+    if api._authn:
+
+        async def _auth_dep(request: Request) -> Dict | None:
+            try:
+                return await api._authn.get_principal(request)
+            except HTTPException:
+                return None
+
+        auth_dep = Depends(_auth_dep)
+    else:
+        auth_dep = None
+
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
-        auth_dep = (
-            Security(api._authn.get_principal, auto_error=False) if api._authn else None
-        )
 
         @r.post(
             "/rpc",
@@ -90,9 +99,6 @@ def build_gateway(api) -> APIRouter:
 
     # ───────── asynchronous SQLAlchemy branch ──────────────────────────────
     else:
-        auth_dep = (
-            Security(api._authn.get_principal, auto_error=False) if api._authn else None
-        )
 
         @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
         async def _gateway(
