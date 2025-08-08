@@ -145,7 +145,7 @@ class TestAPIKeyUserResolution:
         raw_key = "valid-api-key-12345"
 
         with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
-            mock_backend.authenticate = AsyncMock(return_value=mock_user)
+            mock_backend.authenticate = AsyncMock(return_value=(mock_user, "user"))
 
             user = await _user_from_api_key(raw_key, mock_db)
 

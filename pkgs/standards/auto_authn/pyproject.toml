@@ -83,6 +83,8 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+addopts = "-m 'not integration'"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
