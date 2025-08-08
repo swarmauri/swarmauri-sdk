@@ -4,17 +4,21 @@ Tenant-level row security mix-in for AutoAPI.
 A table that inherits **TenantBound** gets:
 
 • tenant-scoped *read* / *list* results (via _RowBound.is_visible override)
-• automatic injection of ctx.tenant_id on inserts
+• automatic injection of the authenticated tenant id on inserts
 • policy-driven control over whether the client can set / patch tenant_id
 """
 
 from enum import Enum
+import logging
 
 from ._RowBound import _RowBound
 from ..types import Column, ForeignKey, PgUUID, declared_attr
 from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
+
+
+log = logging.getLogger(__name__)
 
 
 class TenantPolicy(str, Enum):
@@ -64,13 +68,10 @@ class TenantBound(_RowBound):
     def is_visible(obj, ctx) -> bool:
         """
         A row is visible iff it belongs to the caller’s tenant.
-        `ctx.tenant_id` is expected to be set by your authn middleware.
+        The tenant id is provided via ``__autoapi_injected_fields__``.
         """
-        ctx_tenant_id = (
-            ctx.get("tenant_id")
-            if hasattr(ctx, "get")
-            else getattr(ctx, "tenant_id", None)
-        )
+        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        ctx_tenant_id = auto_fields.get("tenant_id")
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
     # -------------------------------------------------------------------
@@ -90,53 +91,53 @@ class TenantBound(_RowBound):
 
         # INSERT
         def _tenantbound_before_create(ctx):
-            try:
-                params = ctx.params
-            except KeyError:
-                params = {}
-                ctx.params = params
-            auto_fields = (
-                ctx.get("__autoapi_injected_fields__", set())
-                if hasattr(ctx, "get")
-                else getattr(ctx, "__autoapi_injected_fields__", set())
+            params = ctx["env"].params if ctx.get("env") else {}
+            if hasattr(params, "model_dump"):
+                params = params.model_dump()
+            auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            tenant_id = auto_fields.get("tenant_id")
+            log.info(
+                "TenantBound before_create policy=%s params=%s auto_fields=%s",
+                pol,
+                params,
+                auto_fields,
             )
-            tenant_id = ctx.get("tenant_id")
             if pol == TenantPolicy.STRICT_SERVER:
-                if "tenant_id" in auto_fields:
-                    if "tenant_id" in params and params["tenant_id"] not in (
-                        None,
-                        tenant_id,
-                    ):
-                        _err(400, "tenant_id mismatch.")
-                    if tenant_id is None:
-                        _err(400, "tenant_id is required.")
-                    params["tenant_id"] = tenant_id
-                elif "tenant_id" in params:
-                    _err(400, "tenant_id cannot be set explicitly.")
-                else:
-                    if tenant_id is None:
-                        _err(400, "tenant_id is required.")
+                if tenant_id is None:
+                    _err(400, "tenant_id is required.")
+                if "tenant_id" in params and params["tenant_id"] not in (
+                    None,
+                    tenant_id,
+                ):
+                    _err(400, "tenant_id mismatch.")
+                if "tenant_id" in auto_fields or "tenant_id" not in params:
                     params["tenant_id"] = tenant_id
             else:
                 if "tenant_id" not in params:
                     if tenant_id is None:
                         _err(400, "tenant_id is required.")
                     params["tenant_id"] = tenant_id
+            ctx["env"].params = params
 
         # UPDATE
         def _tenantbound_before_update(ctx, obj):
-            try:
-                params = ctx.params
-            except KeyError:
-                return
-            if "tenant_id" not in params:
+            params = getattr(ctx.get("env"), "params", None)
+            if not params or "tenant_id" not in params:
                 return
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
             new_val = params["tenant_id"]
+            auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            tenant_id = auto_fields.get("tenant_id")
+            log.info(
+                "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
+                new_val,
+                getattr(obj, "tenant_id", None),
+                tenant_id,
+            )
             if (
                 new_val != obj.tenant_id
-                and new_val != ctx.get("tenant_id")
+                and new_val != tenant_id
                 and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")

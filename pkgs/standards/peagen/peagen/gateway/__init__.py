@@ -112,18 +112,22 @@ api = AutoAPI(
 async def _shadow_principal(ctx):
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
+        log.info("Shadow principal: no principal on request")
         return
     db = ctx["db"]
     tid = p.get("tid")
     uid = p.get("sub")
     if not tid or not uid:
+        log.info("Shadow principal missing tid or uid: %s", p)
         return
     try:
         tid = uuid.UUID(str(tid))
         uid = uuid.UUID(str(uid))
     except (ValueError, AttributeError):
+        log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
         return
     slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
+    log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
     if await db.get(Tenant, tid) is None:
         db.add(
             Tenant(
@@ -133,11 +137,14 @@ async def _shadow_principal(ctx):
                 email=p.get("tenant_email"),
             )
         )
+        log.info("Inserted shadow tenant %s", tid)
     if await db.get(User, uid) is None:
         db.add(User(id=uid, tenant_id=tid, username=p.get("username") or str(uid)))
+        log.info("Inserted shadow user %s", uid)
     try:
         await db.commit()
     except IntegrityError:
+        log.info("Shadow principal commit failed, rolling back")
         await db.rollback()
 
 
@@ -275,6 +282,16 @@ async def _startup() -> None:
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
+    log.info(api.router)
+    log.info(api.rpc)
+    log.info(api._registered_tables)
+    log.info(api._method_ids)
+    log.info(api._schemas)
+    log.info(api._allow_anon)
+    log.info(api.methods)
+    log.info(api.schemas)
+
+
     log.info("gateway ready")
 
 
@@ -286,3 +303,4 @@ async def _shutdown() -> None:
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
+

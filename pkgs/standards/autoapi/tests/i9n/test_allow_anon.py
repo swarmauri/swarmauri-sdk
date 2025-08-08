@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security
 from fastapi.testclient import TestClient
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Column, String, ForeignKey, create_engine
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
@@ -8,12 +9,14 @@ from sqlalchemy.orm import sessionmaker
 from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.mixins import GUIDPk
 from autoapi.v2.types import AuthNProvider
-from fastapi import Request
 
 
 class DummyAuth(AuthNProvider):
-    async def get_principal(self, request: Request):
-        if request.headers.get("Authorization") != "Bearer secret":
+    async def get_principal(
+        self,
+        creds: HTTPAuthorizationCredentials = Security(HTTPBearer()),
+    ):
+        if creds.credentials != "secret":
             raise HTTPException(status_code=401)
         return {"sub": "user"}
 

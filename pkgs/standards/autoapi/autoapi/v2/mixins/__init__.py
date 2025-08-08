@@ -90,6 +90,7 @@ class OrgMixin:
         info=dict(autoapi={"examples": [uuid_example]}),
     )
 
+
 @declarative_mixin
 class Principal:  # concrete table marker
     __abstract__ = True
@@ -105,7 +106,8 @@ class OwnerBound:
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        return q.filter(cls.owner_id == ctx.user_id)
+        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        return q.filter(cls.owner_id == auto_fields.get("user_id"))
 
 
 class UserBound:  # membership rows
@@ -117,7 +119,9 @@ class UserBound:  # membership rows
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        return q.filter(cls.user_id == ctx.user_id)
+        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        return q.filter(cls.user_id == auto_fields.get("user_id"))
+
 
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin

@@ -1,9 +1,13 @@
 from enum import Enum
+import logging
 
 from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
+
+
+log = logging.getLogger(__name__)
 
 
 class OwnerPolicy(str, Enum):
@@ -65,49 +69,53 @@ class Ownable:
 
         # PRE-TX hooks ----------------------------------------------------
         def _ownable_before_create(ctx):
-            try:
-                params = ctx.params
-            except KeyError:
-                params = {}
-                ctx.params = params
-            auto_fields = (
-                ctx.get("__autoapi_injected_fields__", set())
-                if hasattr(ctx, "get")
-                else getattr(ctx, "__autoapi_injected_fields__", set())
+            params = ctx["env"].params if ctx.get("env") else {}
+            if hasattr(params, "model_dump"):
+                params = params.model_dump()
+            auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            user_id = auto_fields.get("user_id")
+            log.info(
+                "Ownable before_create policy=%s params=%s auto_fields=%s",
+                pol,
+                params,
+                auto_fields,
             )
-            user_id = ctx.user_id
             if pol == OwnerPolicy.STRICT_SERVER:
-                if "owner_id" in auto_fields:
-                    if "owner_id" in params and params["owner_id"] not in (
-                        None,
-                        user_id,
-                    ):
-                        _err(400, "owner_id mismatch.")
-                    if user_id is None:
-                        _err(400, "owner_id is required.")
-                    params["owner_id"] = user_id
-                elif "owner_id" in params:
-                    _err(400, "owner_id cannot be set explicitly.")
-                else:
-                    if user_id is None:
-                        _err(400, "owner_id is required.")
+                if user_id is None:
+                    _err(400, "owner_id is required.")
+                if "owner_id" in params and params["owner_id"] not in (
+                    None,
+                    user_id,
+                ):
+                    _err(400, "owner_id mismatch.")
+                if "user_id" in auto_fields or "owner_id" not in params:
                     params["owner_id"] = user_id
             else:
                 params.setdefault("owner_id", user_id)
+            ctx["env"].params = params
 
         def _ownable_before_update(ctx, obj):
-            try:
-                params = ctx.params
-            except KeyError:
-                return
-            if "owner_id" not in params:
+            params = getattr(ctx.get("env"), "params", None)
+            if not params or "owner_id" not in params:
                 return
 
             if pol != OwnerPolicy.CLIENT_SET:
                 _err(400, "owner_id is immutable.")
 
             new_val = params["owner_id"]
-            if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
+            auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            user_id = auto_fields.get("user_id")
+            log.info(
+                "Ownable before_update new_val=%s obj_owner=%s injected=%s",
+                new_val,
+                getattr(obj, "owner_id", None),
+                user_id,
+            )
+            if (
+                new_val != obj.owner_id
+                and new_val != user_id
+                and not ctx.get("is_admin")
+            ):
                 _err(403, "Cannot transfer ownership.")
 
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(

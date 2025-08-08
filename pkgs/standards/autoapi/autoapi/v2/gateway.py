@@ -21,7 +21,14 @@ from sqlalchemy.orm import Session
 from typing import Any, Dict
 
 from ._runner import _invoke  # ← central lifecycle engine
-from .jsonrpc_models import _RPCReq, _RPCRes, _err, _ok, _http_exc_to_rpc
+from .jsonrpc_models import (
+    _RPCReq,
+    _RPCRes,
+    _err,
+    _ok,
+    _http_exc_to_rpc,
+    HTTP_ERROR_MESSAGES,
+)
 from pydantic import ValidationError
 
 
@@ -32,6 +39,18 @@ def build_gateway(api) -> APIRouter:
     through AutoAPI.  Works for both sync and async SQLAlchemy sessions.
     """
     r = APIRouter()
+
+    if api._authn:
+
+        async def _auth_dep(request: Request) -> Dict | None:
+            try:
+                return await api._authn.get_principal(request)
+            except HTTPException:
+                return None
+
+        auth_dep = Depends(_auth_dep)
+    else:
+        auth_dep = None
 
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
@@ -45,10 +64,11 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
+            principal: Dict | None = auth_dep,
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
-            if api._authn and env.method not in api._allow_anon:
-                await api._authn.get_principal(req)
+            if api._authn and env.method not in api._allow_anon and principal is None:
+                return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
             # Authorisation --------------------------------------------------
             if api.authorize and not api.authorize(env.method, req):
@@ -85,10 +105,11 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
+            principal: Dict | None = auth_dep,
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
-            if api._authn and env.method not in api._allow_anon:
-                await api._authn.get_principal(req)
+            if api._authn and env.method not in api._allow_anon and principal is None:
+                return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
             if api.authorize and not api.authorize(env.method, req):
                 return _err(403, "Forbidden", env)
