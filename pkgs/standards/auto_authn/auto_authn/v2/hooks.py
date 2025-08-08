@@ -29,7 +29,7 @@ def register_inject_hook(api):
         log.debug("Injected fields: %s", injected)
 
 
-__all__ = ["register_inject_hook"]
+__all__ = ["register_inject_hook", "log"]
 
 
 for _name in list(globals()):
