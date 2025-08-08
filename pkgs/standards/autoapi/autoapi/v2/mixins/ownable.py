@@ -1,9 +1,13 @@
 from enum import Enum
+import logging
 
 from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
+
+
+log = logging.getLogger(__name__)
 
 
 class OwnerPolicy(str, Enum):
@@ -66,6 +70,12 @@ class Ownable:
                 params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             user_id = auto_fields.get("user_id")
+            log.debug(
+                "Ownable before_create policy=%s params=%s auto_fields=%s",
+                pol,
+                params,
+                auto_fields,
+            )
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
@@ -91,6 +101,12 @@ class Ownable:
             new_val = params["owner_id"]
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             user_id = auto_fields.get("user_id")
+            log.debug(
+                "Ownable before_update new_val=%s obj_owner=%s injected=%s",
+                new_val,
+                getattr(obj, "owner_id", None),
+                user_id,
+            )
             if (
                 new_val != obj.owner_id
                 and new_val != user_id

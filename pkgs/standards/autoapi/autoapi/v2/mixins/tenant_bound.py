@@ -9,12 +9,16 @@ A table that inherits **TenantBound** gets:
 """
 
 from enum import Enum
+import logging
 
 from ._RowBound import _RowBound
 from ..types import Column, ForeignKey, PgUUID, declared_attr
 from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
+
+
+log = logging.getLogger(__name__)
 
 
 class TenantPolicy(str, Enum):
@@ -88,6 +92,12 @@ class TenantBound(_RowBound):
                 params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             tenant_id = auto_fields.get("tenant_id")
+            log.debug(
+                "TenantBound before_create policy=%s params=%s auto_fields=%s",
+                pol,
+                params,
+                auto_fields,
+            )
             if pol == TenantPolicy.STRICT_SERVER:
                 if tenant_id is None:
                     _err(400, "tenant_id is required.")
@@ -115,6 +125,12 @@ class TenantBound(_RowBound):
             new_val = params["tenant_id"]
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             tenant_id = auto_fields.get("tenant_id")
+            log.debug(
+                "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
+                new_val,
+                getattr(obj, "tenant_id", None),
+                tenant_id,
+            )
             if (
                 new_val != obj.tenant_id
                 and new_val != tenant_id

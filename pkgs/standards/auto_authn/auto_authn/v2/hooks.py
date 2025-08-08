@@ -1,5 +1,9 @@
 # auto_authn/hooks.py  (inside the AuthN package)
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
@@ -17,10 +21,12 @@ def register_inject_hook(api):
         injected = ctx.setdefault("__autoapi_injected_fields__", {})
         tid = p.get("tid")
         sub = p.get("sub")
+        log.debug("Injecting principal tid=%s sub=%s", tid, sub)
         if tid is not None:
             injected["tenant_id"] = tid
         if sub is not None:
             injected["user_id"] = sub
+        log.debug("Injected fields: %s", injected)
 
 
 __all__ = ["register_inject_hook"]
