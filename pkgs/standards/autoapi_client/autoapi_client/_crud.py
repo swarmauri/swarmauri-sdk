@@ -45,7 +45,7 @@ class CRUDMixin:
         if data is None:
             return None
         if isinstance(data, _Schema):
-            return json.loads(data.model_dump_json())
+            return json.loads(data.model_dump_json(exclude_none=True))
         return data
 
     def _process_response(
