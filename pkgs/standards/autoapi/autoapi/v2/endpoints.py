@@ -20,15 +20,25 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
 
     @r.get("/hookz", tags=["hooks"])
     def _hookz() -> dict[str, dict[str, list[str]]]:
-        """Expose the current hook registry organized by method."""
+        """Expose hook execution order for each method."""
         registry: dict[str, dict[str, list[str]]] = {}
-        for phase, hooks in api._hook_registry.items():
-            for method, fns in hooks.items():
-                key = method if method is not None else "*"
-                method_hooks = registry.setdefault(key, {})
-                method_hooks[phase.name] = [
-                    getattr(fn, "__name__", repr(fn)) for fn in fns
-                ]
+
+        methods = set(api._method_ids.keys())
+        for hooks in api._hook_registry.values():
+            methods.update(m for m in hooks.keys() if m is not None)
+
+        for method in sorted(methods):
+            method_hooks: dict[str, list[str]] = {}
+            for phase, hooks in api._hook_registry.items():
+                global_hooks = hooks.get(None, [])
+                specific_hooks = hooks.get(method, [])
+                if global_hooks or specific_hooks:
+                    method_hooks[phase.name] = [
+                        getattr(fn, "__name__", repr(fn))
+                        for fn in (global_hooks + specific_hooks)
+                    ]
+            if method_hooks:
+                registry[method] = method_hooks
         return registry
 
     # Choose the appropriate health endpoint based on available DB provider
