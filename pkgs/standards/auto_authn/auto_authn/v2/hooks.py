@@ -14,22 +14,16 @@ def register_inject_hook(api):
         if not p:
             return
 
-        ctx["tenant_id"] = p.get("tid")
-        ctx["user_id"] = p.get("sub")
         ctx["is_admin"] = p.get("is_admin", False)
 
-        prm = ctx["env"].params  # Pydantic model OR raw dict
-        ctx["params"] = prm
-        injected = ctx.setdefault("__autoapi_injected_fields__", set())
-        for fld, val in (("tenant_id", ctx["tenant_id"]), ("owner_id", ctx["user_id"])):
-            if hasattr(prm, "__pydantic_fields__"):
-                if fld in prm.model_fields and getattr(prm, fld, None) in (None, val):
-                    setattr(prm, fld, val)
-                    injected.add(fld)
-            elif isinstance(prm, dict):
-                if fld not in prm or prm.get(fld) in (None, val):
-                    prm[fld] = val
-                    injected.add(fld)
+        injected = ctx.setdefault("__autoapi_injected_fields__", {})
+        tid = p.get("tid")
+        sub = p.get("sub")
+        if tid is not None:
+            injected["tenant_id"] = tid
+        if sub is not None:
+            injected["user_id"] = sub
+            injected["owner_id"] = sub
 
 
 __all__ = ["register_inject_hook"]
