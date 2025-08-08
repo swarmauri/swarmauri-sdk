@@ -9,6 +9,7 @@ from .users import User
 
 class AnalysisResult(Base, GUIDPk, Timestamped, Ownable):
     __tablename__ = "analysis_results"
+    __table_args__= {"schema": "peagen"}
     eval_result_id = Column(
         PgUUID(as_uuid=True), ForeignKey("eval_results.id", ondelete="CASCADE")
     )

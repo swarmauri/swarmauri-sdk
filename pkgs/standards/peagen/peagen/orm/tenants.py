@@ -12,6 +12,7 @@ from peagen.defaults import (
 class Tenant(TenantBase, Bootstrappable, Upsertable):
     __table_args__ = (
         {"extend_existing": True},
+        {"schema": "peagen"},
     )    
     __upsert_keys__ = ("slug",)
     DEFAULT_ROWS = [

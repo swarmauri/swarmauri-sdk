@@ -20,6 +20,7 @@ from .users import User
 class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "project_payloads"
 
+    __table_args__= {"schema": "peagen"}
     tenant_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),

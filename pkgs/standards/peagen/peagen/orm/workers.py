@@ -23,6 +23,7 @@ from .pools import Pool
 
 class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __tablename__ = "workers"
+    __table_args__= {"schema": "peagen"}
     pool_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("pools.id"),

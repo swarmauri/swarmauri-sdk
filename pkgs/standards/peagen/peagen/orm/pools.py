@@ -15,7 +15,7 @@ from peagen.defaults import DEFAULT_POOL_NAME, DEFAULT_POOL_ID, DEFAULT_TENANT_I
 
 class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider):
     __tablename__ = "pools"
-    __table_args__ = (UniqueConstraint("tenant_id", "name"),)
+    __table_args__ = (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
     name = Column(String, nullable=False, unique=True)
     policy = Column(
         MutableDict.as_mutable(JSON),

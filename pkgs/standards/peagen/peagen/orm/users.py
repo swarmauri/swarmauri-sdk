@@ -7,6 +7,6 @@ from autoapi.v2.mixins.upsertable import Upsertable
 
 class User(UserBase, Bootstrappable, Upsertable):
     __upsert_keys__ = ("tenant_id", "username")
-
+    __table_args__= {"schema": "peagen"}
 
 __all__ = ["User"]

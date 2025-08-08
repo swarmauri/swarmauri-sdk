@@ -17,6 +17,7 @@ from .tasks import Task
 
 class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
     __tablename__ = "works"
+    __table_args__= {"schema": "peagen"}
     task_id = Column(PgUUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
     result = Column(JSON, nullable=True)
     duration_s = Column(Integer)

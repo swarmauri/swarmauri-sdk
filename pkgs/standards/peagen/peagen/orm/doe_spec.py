@@ -19,6 +19,7 @@ from .users import User
 
 class DoeSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "doe_specs"
+    __table_args__= {"schema": "peagen"}
 
     tenant_id = Column(
         PgUUID(as_uuid=True),

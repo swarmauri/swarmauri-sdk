@@ -28,7 +28,10 @@ class Repository(
     """
 
     __tablename__ = "repositories"
-    __table_args__ = (UniqueConstraint("url"),)
+    __table_args__ = (
+        UniqueConstraint("url"),
+        {"schema": "peagen"},
+        )
 
     __autoapi_tenant_policy__ = TenantPolicy.STRICT_SERVER
 

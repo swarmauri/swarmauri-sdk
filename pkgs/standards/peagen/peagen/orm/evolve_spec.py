@@ -19,7 +19,7 @@ from .users import User
 
 class EvolveSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "evolve_specs"
-
+    __table_args__= {"schema": "peagen"}
     tenant_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),

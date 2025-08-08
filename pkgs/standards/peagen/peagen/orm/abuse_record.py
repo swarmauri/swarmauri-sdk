@@ -17,6 +17,7 @@ class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
     """
 
     __tablename__ = "abuse_records"
+    __table_args__= {"schema": "peagen"}
 
     ip = Column(String, nullable=False, unique=True, index=True)
     count = Column(Integer, nullable=False, default=0)

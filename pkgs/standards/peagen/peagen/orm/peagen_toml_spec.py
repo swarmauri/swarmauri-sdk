@@ -19,7 +19,8 @@ from .users import User
 
 class PeagenTomlSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "peagen_toml_specs"
-
+    __table_args__= {"schema": "peagen"}
+    
     tenant_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
