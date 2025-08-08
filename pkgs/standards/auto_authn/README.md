@@ -25,11 +25,23 @@ It provides per-tenant isolation and is designed to scale for SaaS deployments.
 - Per-tenant issuer URLs with isolated user and client tables.
 - RSA-based JWT signing with helpers for key rotation.
 - FastAPI and SQLAlchemy 2.0 async stack.
+- OIDC discovery endpoints and JWKS generation.
+- Configurable PostgreSQL or SQLite storage with optional Redis support.
 
 ## Installation
 
 ```bash
 pip install auto_authn
+```
+
+Extras are available for common database drivers:
+
+```bash
+# PostgreSQL
+pip install auto_authn[postgres]
+
+# SQLite
+pip install auto_authn[sqlite]
 ```
 
 ## Quick Start
@@ -41,4 +53,44 @@ app = create_app()
 ```
 
 Check the documentation for detailed setup and configuration.
+
+To run the API locally with Uvicorn:
+
+```bash
+uvicorn auto_authn.v2.app:app --reload
+```
+
+The service exposes an OpenID Connect discovery document at
+`/.well-known/openid-configuration` and publishes its JSON Web Key Set at
+`/.well-known/jwks.json`.
+
+## Configuration
+
+`Auto Authn` reads settings from environment variables. Common options include:
+
+- `PG_DSN` or the combination of `PG_HOST`, `PG_PORT`, `PG_DB`, `PG_USER`, `PG_PASS`
+  for database connectivity.
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, and `REDIS_PASSWORD` for Redis session
+  storage (optional).
+- `JWT_SECRET` for token signing and `LOG_LEVEL` to control logging verbosity.
+
+## Docker
+
+A lightweight Dockerfile is provided. Build and run the service with:
+
+```bash
+docker build -t auto-authn .
+docker run -p 8000:8000 auto-authn
+```
+
+Visit `http://localhost:8000/docs` to explore the interactive API documentation.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request to
+discuss improvements.
+
+## License
+
+Apache-2.0
 
