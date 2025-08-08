@@ -50,7 +50,13 @@ def build_gateway(api) -> APIRouter:
 
         auth_dep = Depends(_auth_dep)
     else:
-        auth_dep = None
+        # Without an AuthN provider, ``principal`` should still be injected via
+        # dependency resolution rather than treated as an extra body parameter.
+        # Using ``Depends`` with a no-op callable preserves the expected
+        # function signature and avoids FastAPI interpreting ``principal`` as a
+        # required body field, which previously caused 422 responses when the
+        # request body lacked a top-level ``principal`` key.
+        auth_dep = Depends(lambda: None)
 
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
