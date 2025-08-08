@@ -31,6 +31,7 @@ from autoapi.v2.types import (
     Column,
     PgUUID,
     ForeignKey,
+    UniqueConstraint,
 )
 from autoapi.v2.tables import (
     Tenant as TenantBase,
