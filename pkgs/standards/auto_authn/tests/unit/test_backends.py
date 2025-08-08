@@ -263,9 +263,10 @@ class TestApiKeyBackend:
         # Mock database to return the API key on first call, None on second
         self.mock_db.scalar.side_effect = [mock_api_key, None]
 
-        result = await self.backend.authenticate(self.mock_db, raw_key)
+        principal, key_type = await self.backend.authenticate(self.mock_db, raw_key)
 
-        assert result == mock_user
+        assert principal == mock_user
+        assert key_type == "user"
         mock_api_key.touch.assert_called_once()
         assert self.mock_db.scalar.call_count == 1  # Only user key query needed
 
@@ -281,9 +282,10 @@ class TestApiKeyBackend:
         # Mock database to return None for user key, service key on second call
         self.mock_db.scalar.side_effect = [None, mock_service_key]
 
-        result = await self.backend.authenticate(self.mock_db, raw_key)
+        principal, key_type = await self.backend.authenticate(self.mock_db, raw_key)
 
-        assert result == mock_service
+        assert principal == mock_service
+        assert key_type == "service"
         mock_service_key.touch.assert_called_once()
         assert self.mock_db.scalar.call_count == 2  # Both queries needed
 

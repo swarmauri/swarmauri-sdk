@@ -116,6 +116,9 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
     except IntegrityError as exc:
         await db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "duplicate key") from exc
+    except HTTPException:
+        await db.rollback()
+        raise
     except Exception as exc:
         await db.rollback()
         raise HTTPException(
