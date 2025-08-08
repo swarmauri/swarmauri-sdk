@@ -14,8 +14,7 @@ T = TypeVar("T")
 class _Schema(Protocol[T]):  # anything with Pydantic-v2 interface
     @classmethod
     def model_validate(cls, data: Any) -> T: ...
-    @classmethod
-    def model_dump_json(cls, **kw) -> str: ...
+    def model_dump_json(self, *, exclude_none: bool = False, **kw) -> str: ...
 
 
 class RPCMixin:
@@ -74,7 +73,7 @@ class RPCMixin:
         """
         # ----- payload build ------------------------------------------------
         if isinstance(params, _Schema):  # pydantic in → dump to dict
-            params_dict = json.loads(params.model_dump_json())
+            params_dict = json.loads(params.model_dump_json(exclude_none=True))
         else:
             # ensure plain dicts contain only JSON-serializable values
             params_dict = json.loads(json.dumps(params or {}, default=str))
