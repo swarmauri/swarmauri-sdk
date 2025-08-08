@@ -7,6 +7,7 @@ from ..types import Column, String
 
 class Tenant(Base, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
+    __abstract__  = True
 
 __all__ = ["Tenant"]
 
