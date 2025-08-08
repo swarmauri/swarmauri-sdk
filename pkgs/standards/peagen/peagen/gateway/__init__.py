@@ -131,8 +131,6 @@ async def _shadow_principal(ctx):
     tenant_payload = api.schemas.TenantCreate(
         id=tid,
         slug=slug,
-        name=p.get("tenant_name"),
-        email=p.get("tenant_email"),
     )
     user_payload = api.schemas.UserCreate(
         id=uid,

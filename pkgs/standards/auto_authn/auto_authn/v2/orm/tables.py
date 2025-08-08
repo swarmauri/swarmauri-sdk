@@ -59,6 +59,8 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 
 class Tenant(TenantBase, Bootstrappable):
+    name = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
         {
             "id": uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),
