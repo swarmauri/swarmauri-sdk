@@ -23,7 +23,6 @@ def register_inject_hook(api):
             injected["tenant_id"] = tid
         if sub is not None:
             injected["user_id"] = sub
-            injected["owner_id"] = sub
 
 
 __all__ = ["register_inject_hook"]
