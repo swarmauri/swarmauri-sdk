@@ -10,9 +10,7 @@ from ..mixins import ActiveToggle, GUIDPk, Timestamped, TenantBound
 
 class Client(Base, GUIDPk, Timestamped, TenantBound, ActiveToggle):
     __tablename__ = "clients"
-    __mapper_args__ = {
-        'concrete': True  # Ensures UserBase is treated as a concrete class (not an abstract base)
-    }
+    __abstract__  = True
     # ---------------------------------------------------------------- columns --
     client_secret_hash = Column(LargeBinary(60), nullable=False)
     redirect_uris = Column(String(1000), nullable=False)
