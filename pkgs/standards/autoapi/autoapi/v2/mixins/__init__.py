@@ -107,7 +107,7 @@ class OwnerBound:
     @classmethod
     def filter_for_ctx(cls, q, ctx):
         auto_fields = ctx.get("__autoapi_injected_fields__", {})
-        return q.filter(cls.owner_id == auto_fields.get("owner_id"))
+        return q.filter(cls.owner_id == auto_fields.get("user_id"))
 
 
 class UserBound:  # membership rows
