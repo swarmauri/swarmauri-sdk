@@ -10,7 +10,7 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -123,7 +123,7 @@ class AutoAPI:
         # ---------------- AuthN wiring -----------------
         if authn is not None:  # preferred path
             self._authn = authn
-            self._authn_dep = Depends(authn.get_principal)
+            self._authn_dep = Security(authn.get_principal)
             # Late‑binding of the injection hook
             authn.register_inject_hook(self)
         else:
