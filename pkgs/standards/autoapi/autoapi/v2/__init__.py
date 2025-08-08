@@ -10,7 +10,7 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -128,7 +128,7 @@ class AutoAPI:
             authn.register_inject_hook(self)
         else:
             self._authn = None
-            self._authn_dep = Depends(lambda: None)
+            self._authn_dep = Security(lambda: None)
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
