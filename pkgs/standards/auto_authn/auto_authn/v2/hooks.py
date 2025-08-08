@@ -20,7 +20,7 @@ def register_inject_hook(api):
 
         prm = ctx["env"].params  # Pydantic model OR raw dict
         ctx["params"] = prm
-        injected = ctx.setdefault("__autoapi_injected_fields_", set())
+        injected = ctx.setdefault("__autoapi_injected_fields__", set())
         for fld, val in (("tenant_id", ctx["tenant_id"]), ("owner_id", ctx["user_id"])):
             if hasattr(prm, "__pydantic_fields__"):
                 if fld in prm.model_fields and getattr(prm, fld, None) in (None, val):

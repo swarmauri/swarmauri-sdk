@@ -67,9 +67,9 @@ class Ownable:
                 params = {}
                 ctx.params = params
             auto_fields = (
-                ctx.get("__autoapi_injected_fields_", set())
+                ctx.get("__autoapi_injected_fields__", set())
                 if hasattr(ctx, "get")
-                else getattr(ctx, "__autoapi_injected_fields_", set())
+                else getattr(ctx, "__autoapi_injected_fields__", set())
             )
             if (
                 "owner_id" in params

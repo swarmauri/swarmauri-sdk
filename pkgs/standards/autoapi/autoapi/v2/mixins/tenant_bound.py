@@ -92,9 +92,9 @@ class TenantBound(_RowBound):
                 params = {}
                 ctx.params = params
             auto_fields = (
-                ctx.get("__autoapi_injected_fields_", set())
+                ctx.get("__autoapi_injected_fields__", set())
                 if hasattr(ctx, "get")
-                else getattr(ctx, "__autoapi_injected_fields_", set())
+                else getattr(ctx, "__autoapi_injected_fields__", set())
             )
             if "tenant_id" in params:
                 if pol == TenantPolicy.STRICT_SERVER and "tenant_id" not in auto_fields:
