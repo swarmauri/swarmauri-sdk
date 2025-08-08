@@ -19,16 +19,16 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
         return list(api._method_ids.keys())
 
     @r.get("/hookz", tags=["hooks"])
-    def _hookz() -> dict[str, dict[str | None, list[str]]]:
-        """Expose the current hook registry."""
-        registry: dict[str, dict[str | None, list[str]]] = {}
+    def _hookz() -> dict[str, dict[str, list[str]]]:
+        """Expose the current hook registry organized by method."""
+        registry: dict[str, dict[str, list[str]]] = {}
         for phase, hooks in api._hook_registry.items():
-            registry[phase.name] = {
-                (k if k is not None else "*"): [
-                    getattr(f, "__name__", repr(f)) for f in v
+            for method, fns in hooks.items():
+                key = method if method is not None else "*"
+                method_hooks = registry.setdefault(key, {})
+                method_hooks[phase.name] = [
+                    getattr(fn, "__name__", repr(fn)) for fn in fns
                 ]
-                for k, v in hooks.items()
-            }
         return registry
 
     # Choose the appropriate health endpoint based on available DB provider
