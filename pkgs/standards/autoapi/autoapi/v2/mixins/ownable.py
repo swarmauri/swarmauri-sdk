@@ -60,7 +60,7 @@ class Ownable:
             raise http_exc
 
         # PRE-TX hooks ----------------------------------------------------
-        def _before_create(ctx):
+        def _ownable_before_create(ctx):
             try:
                 params = ctx.params
             except KeyError:
@@ -79,7 +79,7 @@ class Ownable:
                 _err(400, "owner_id cannot be set explicitly.")
             params.setdefault("owner_id", ctx.user_id)
 
-        def _before_update(ctx, obj):
+        def _ownable_before_update(ctx, obj):
             try:
                 params = ctx.params
             except KeyError:

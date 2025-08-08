@@ -85,7 +85,7 @@ class TenantBound(_RowBound):
             raise http_exc
 
         # INSERT
-        def _before_create(ctx):
+        def _tenantbound_before_create(ctx):
             try:
                 params = ctx.params
             except KeyError:
@@ -106,7 +106,7 @@ class TenantBound(_RowBound):
                 params["tenant_id"] = tenant_id
 
         # UPDATE
-        def _before_update(ctx, obj):
+        def _tenantbound_before_update(ctx, obj):
             try:
                 params = ctx.params
             except KeyError:
