@@ -91,8 +91,13 @@ class TenantBound(_RowBound):
             except KeyError:
                 params = {}
                 ctx.params = params
+            auto_fields = (
+                ctx.get("__autoapi_injected_fields_", set())
+                if hasattr(ctx, "get")
+                else getattr(ctx, "__autoapi_injected_fields_", set())
+            )
             if "tenant_id" in params:
-                if pol == TenantPolicy.STRICT_SERVER:
+                if pol == TenantPolicy.STRICT_SERVER and "tenant_id" not in auto_fields:
                     _err(400, "tenant_id cannot be set explicitly.")
             else:
                 tenant_id = ctx.get("tenant_id")
