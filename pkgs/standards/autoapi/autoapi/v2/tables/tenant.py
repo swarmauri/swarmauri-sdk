@@ -7,8 +7,8 @@ from ..types import Column, String
 
 class Tenant(Base, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
-    name = Column(String, unique=True)
-    email = Column(String, unique=True)
+    name = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
 
 
 __all__ = ["Tenant"]

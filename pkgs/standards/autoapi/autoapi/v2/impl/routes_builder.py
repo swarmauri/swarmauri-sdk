@@ -246,7 +246,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     rpc_params.update(parent_kw)
 
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
-                ctx = {"request": req, "db": db, "env": env}
+                ctx = {"request": req, "db": db, "env": env, "params": env.params}
 
                 def _build_args(_p):
                     match verb:

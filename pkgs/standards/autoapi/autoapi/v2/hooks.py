@@ -49,11 +49,17 @@ def _init_hooks(self) -> None:
         """
 
         def _reg(f: _Hook) -> _Hook:
-            async_f = (
-                f
-                if callable(getattr(f, "__await__", None))
-                else (lambda ctx, f=f: f(ctx))  # sync-to-async shim
-            )
+            async def _async_wrapper(ctx, _f=f):
+                result = _f(ctx)
+                if callable(getattr(result, "__await__", None)):
+                    return await result
+                return result
+
+            async_f = f if callable(getattr(f, "__await__", None)) else _async_wrapper
+
+            # Preserve the original function name for registry visibility
+            async_f.__name__ = getattr(f, "__name__", repr(f))
+            async_f.__qualname__ = getattr(f, "__qualname__", async_f.__name__)
 
             # Determine the hook key based on parameters
             hook_key = None
@@ -93,7 +99,7 @@ def _init_hooks(self) -> None:
 async def _run(self, phase: Phase, ctx: Dict[str, Any]) -> None:
     """Run hooks for *phase* in order and stop on the first error."""
     m = getattr(ctx.get("env"), "method", None)
-    hooks = list(self._hook_registry[phase].get(m, []))
-    hooks.extend(self._hook_registry[phase].get(None, []))
+    hooks = list(self._hook_registry[phase].get(None, []))
+    hooks.extend(self._hook_registry[phase].get(m, []))
     for fn in hooks:
         await fn(ctx)

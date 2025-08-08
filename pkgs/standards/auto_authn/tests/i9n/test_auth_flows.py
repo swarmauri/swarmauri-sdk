@@ -25,7 +25,9 @@ class TestRegistrationFlow:
     ):
         """Test successful user registration."""
         # Create a tenant first
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -70,7 +72,9 @@ class TestRegistrationFlow:
     ):
         """Test registration with duplicate username."""
         # Create tenant and existing user
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -100,7 +104,9 @@ class TestRegistrationFlow:
     ):
         """Test registration with duplicate email."""
         # Create tenant and existing user
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -128,7 +134,9 @@ class TestRegistrationFlow:
         self, async_client: AsyncClient, db_session: AsyncSession
     ):
         """Test registration with invalid email format."""
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -147,7 +155,9 @@ class TestRegistrationFlow:
         self, async_client: AsyncClient, db_session: AsyncSession
     ):
         """Test registration with weak password."""
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -169,7 +179,9 @@ class TestLoginFlow:
 
     async def setup_test_user(self, db_session: AsyncSession):
         """Helper to create test tenant and user."""
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -281,7 +293,9 @@ class TestTokenRefresh:
     ):
         """Test token refresh with valid refresh token."""
         # Create test user and get tokens
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -329,7 +343,9 @@ class TestTokenRefresh:
     ):
         """Test token refresh with access token (should fail)."""
         # Create test user and get tokens
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -376,7 +392,9 @@ class TestApiKeyIntrospection:
     ):
         """Test API key introspection with valid key."""
         # Create test tenant and user
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -398,7 +416,7 @@ class TestApiKeyIntrospection:
 
         introspect_data = {"api_key": raw_key}
 
-        response = await async_client.post("/api_keys/introspect", json=introspect_data)
+        response = await async_client.post("/apikeys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -410,7 +428,7 @@ class TestApiKeyIntrospection:
         """Test API key introspection with invalid key."""
         introspect_data = {"api_key": "invalid-api-key"}
 
-        response = await async_client.post("/api_keys/introspect", json=introspect_data)
+        response = await async_client.post("/apikeys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -421,7 +439,9 @@ class TestApiKeyIntrospection:
         from datetime import datetime, timezone, timedelta
 
         # Create test tenant and user
-        tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
+        tenant = Tenant(
+            slug="test-tenant", name="Test Tenant", email="tenant_test@example.com"
+        )
         db_session.add(tenant)
         await db_session.commit()
 
@@ -448,7 +468,7 @@ class TestApiKeyIntrospection:
 
         introspect_data = {"api_key": raw_key}
 
-        response = await async_client.post("/api_keys/introspect", json=introspect_data)
+        response = await async_client.post("/apikeys/introspect", json=introspect_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

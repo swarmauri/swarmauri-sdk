@@ -17,31 +17,25 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
-
+# ----------------------------------------------------------------------
 # ----------------------------------------------------------------------
 def _invoke_all_registrars(model: type, api) -> None:
     """
-    Walk the model’s MRO and call *each* distinct registrar exactly once.
-    Uses getattr() so the classmethod descriptor yields a callable.
+    Call every distinct  __autoapi_register_hooks__  found in the MRO,
+    but bind each descriptor to *model*, so cls-param is correct.
     """
-    seen: set[int] = set()
-    for base in reversed(model.__mro__):  # parents first
+    seen: set[type] = set()                       # guard: one call per base
+
+    for base in reversed(model.__mro__):          # parents first
         if "__autoapi_register_hooks__" not in base.__dict__:
             continue
-        fn = getattr(base, "__autoapi_register_hooks__")  # ← bound function
-        if callable(fn) and id(fn) not in seen:
-            # Check if the method accepts the concrete_model parameter
-            import inspect
+        if base in seen:                          # already invoked
+            continue
 
-            sig = inspect.signature(fn)
-            if "concrete_model" in sig.parameters:
-                fn(api, concrete_model=model)
-            else:
-                fn(api)
-            seen.add(id(fn))
-            print(f"Registered hooks for {base.__name__}")
-
-
+        raw = base.__dict__["__autoapi_register_hooks__"]  # the descriptor
+        bound_fn = raw.__get__(None, model)       # bind to *model* 🔑
+        bound_fn(api)
+        seen.add(base)
 # ----------------------------------------------------------------------
 
 

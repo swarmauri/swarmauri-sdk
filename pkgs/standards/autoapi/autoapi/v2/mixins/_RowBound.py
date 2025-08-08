@@ -5,59 +5,64 @@ from typing import Any, Mapping, Sequence
 
 from autoapi.v2.hooks import Phase
 from autoapi.v2.types import HookProvider
-from autoapi.v2.jsonrpc_models import create_standardized_error
+from autoapi.v2.jsonrpc_models import HTTP_ERROR_MESSAGES, create_standardized_error
 
 
 class _RowBound(HookProvider):
     """
     Base mix-in for row-level visibility.
 
-    Sub-classes must implement:
+    Concrete subclasses **must** override:
 
         @staticmethod
-        def is_visible(obj, ctx) -> bool: ...
+        def is_visible(obj, ctx) -> bool
 
-    The mix-in registers POST-HANDLER hooks for **read** and **list** so that:
-      • In *list* results, invisible rows are dropped.
-      • In *read*, an invisible row is treated as a 404 (cannot leak existence).
+    Hooks are wired only if the subclass actually provides an implementation.
     """
 
     # ────────────────────────────────────────────────────────────────────
-    # AutoAPI bootstrap: register hooks once per verb
+    # AutoAPI bootstrap
     # -------------------------------------------------------------------
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
+        # Skip abstract helpers or unmapped mix-ins
+        if cls.is_visible is _RowBound.is_visible:
+            return
+        if not hasattr(cls, "__table__"):  # not a mapped class
+            return
+
         for op in ("read", "list"):
             api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
-                cls._make_hook()
+                cls._make_row_visibility_hook()
             )
 
     # ────────────────────────────────────────────────────────────────────
-    # Per-request hook factory
+    # Per-request hook
     # -------------------------------------------------------------------
     @classmethod
-    def _make_hook(cls):
-        def _hook(ctx: Mapping[str, Any]) -> None:
-            # Defensive: make sure we even got a result
-            if "result" not in ctx:
+    def _make_row_visibility_hook(cls):
+        def _row_visibility_hook(ctx: Mapping[str, Any]) -> None:
+            if "result" not in ctx:  # nothing to filter
                 return
 
             res = ctx["result"]
 
-            # List → keep only visible rows
+            # LIST → keep only visible rows
             if isinstance(res, Sequence):
                 ctx["result"] = [row for row in res if cls.is_visible(row, ctx)]
                 return
 
-            # Read → treat invisible as 404
+            # READ → invisible row → pretend 404
             if not cls.is_visible(res, ctx):
-                http_exc, _, _ = create_standardized_error(404)
+                http_exc, _, _ = create_standardized_error(
+                    404, message=HTTP_ERROR_MESSAGES[404]
+                )
                 raise http_exc
 
-        return _hook
+        return _row_visibility_hook
 
     # -------------------------------------------------------------------
-    # Sub-classes override this.
+    # Must be overridden
     # -------------------------------------------------------------------
     @staticmethod
     def is_visible(obj, ctx) -> bool:  # pragma: no cover

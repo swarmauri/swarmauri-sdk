@@ -60,29 +60,59 @@ class Ownable:
         )
 
         def _err(status: int, msg: str):
-            http_exc, _, _ = create_standardized_error(status, detail=msg)
+            http_exc, _, _ = create_standardized_error(status, message=msg)
             raise http_exc
 
         # PRE-TX hooks ----------------------------------------------------
-        def _before_create(ctx):
-            if "owner_id" in ctx.params and pol == OwnerPolicy.STRICT_SERVER:
-                _err(400, "owner_id cannot be set explicitly.")
-            ctx.params.setdefault("owner_id", ctx.user_id)
+        def _ownable_before_create(ctx):
+            try:
+                params = ctx.params
+            except KeyError:
+                params = {}
+                ctx.params = params
+            auto_fields = (
+                ctx.get("__autoapi_injected_fields__", set())
+                if hasattr(ctx, "get")
+                else getattr(ctx, "__autoapi_injected_fields__", set())
+            )
+            user_id = ctx.user_id
+            if pol == OwnerPolicy.STRICT_SERVER:
+                if "owner_id" in auto_fields:
+                    if "owner_id" in params and params["owner_id"] not in (
+                        None,
+                        user_id,
+                    ):
+                        _err(400, "owner_id mismatch.")
+                    if user_id is None:
+                        _err(400, "owner_id is required.")
+                    params["owner_id"] = user_id
+                elif "owner_id" in params:
+                    _err(400, "owner_id cannot be set explicitly.")
+                else:
+                    if user_id is None:
+                        _err(400, "owner_id is required.")
+                    params["owner_id"] = user_id
+            else:
+                params.setdefault("owner_id", user_id)
 
-        def _before_update(ctx, obj):
-            if "owner_id" not in ctx.params:
+        def _ownable_before_update(ctx, obj):
+            try:
+                params = ctx.params
+            except KeyError:
+                return
+            if "owner_id" not in params:
                 return
 
             if pol != OwnerPolicy.CLIENT_SET:
                 _err(400, "owner_id is immutable.")
 
-            new_val = ctx.params["owner_id"]
+            new_val = params["owner_id"]
             if new_val != obj.owner_id and new_val != ctx.user_id and not ctx.is_admin:
                 _err(403, "Cannot transfer ownership.")
 
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _before_create
+            _ownable_before_create
         )
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _before_update
+            _ownable_before_update
         )

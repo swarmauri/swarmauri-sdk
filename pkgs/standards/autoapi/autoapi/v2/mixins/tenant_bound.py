@@ -1,11 +1,11 @@
 """
 Tenant-level row security mix-in for AutoAPI.
 
-Any model that inherits **TenantBound** gains:
+A table that inherits **TenantBound** gets:
 
-• automatic scoping of *read* / *list* results to ctx.tenant_id (via _RowBound)
-• server-side injection of ctx.tenant_id on insert
-• selectable policy for whether clients may set / patch tenant_id
+• tenant-scoped *read* / *list* results (via _RowBound.is_visible override)
+• automatic injection of ctx.tenant_id on inserts
+• policy-driven control over whether the client can set / patch tenant_id
 """
 
 from enum import Enum
@@ -25,30 +25,26 @@ class TenantPolicy(str, Enum):
 
 class TenantBound(_RowBound):
     """
-    Mix-in that plugs tenant isolation into AutoAPI.
+    Plug-and-play tenant isolation.
 
-    • Column metadata is produced with @declared_attr, so the schema builder
-      sees the correct flags before caching.
-    • _RowBound supplies the read/list visibility filter; we only need to
-      point it at the right column.
+    • `tenant_id` column is defined per subclass (declared_attr) so the schema
+      builder sees the right flags before caching.
+    • _RowBound’s read/list filters work because we implement `is_visible`.
     """
 
     __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.CLIENT_SET
 
     # ────────────────────────────────────────────────────────────────────
-    # Column definition (per-subclass)
+    # tenant_id column
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
         pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
 
-        autoapi_meta = {}
+        autoapi_meta: dict[str, object] = {}
         if pol != TenantPolicy.CLIENT_SET:
-            # Hide field on write verbs and mark as read-only
-            autoapi_meta["disable_on"] = [
-                "update",
-                "replace",
-            ]  # add "create" if desired
+            # Hide field on *all* write verbs and mark as read-only
+            autoapi_meta["disable_on"] = ["update", "replace"]
             autoapi_meta["read_only"] = True
 
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
@@ -62,11 +58,20 @@ class TenantBound(_RowBound):
         )
 
     # -------------------------------------------------------------------
-    # Tell _RowBound which FK to use for visibility filtering
+    # Row-level visibility for _RowBound
     # -------------------------------------------------------------------
-    @classmethod
-    def _bound_column(cls):
-        return cls.tenant_id
+    @staticmethod
+    def is_visible(obj, ctx) -> bool:
+        """
+        A row is visible iff it belongs to the caller’s tenant.
+        `ctx.tenant_id` is expected to be set by your authn middleware.
+        """
+        ctx_tenant_id = (
+            ctx.get("tenant_id")
+            if hasattr(ctx, "get")
+            else getattr(ctx, "tenant_id", None)
+        )
+        return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
     # -------------------------------------------------------------------
     # Runtime hooks (needs api instance)
@@ -80,33 +85,66 @@ class TenantBound(_RowBound):
         )
 
         def _err(code: int, msg: str):
-            http_exc, _, _ = create_standardized_error(code, detail=msg)
+            http_exc, _, _ = create_standardized_error(code, message=msg)
             raise http_exc
 
-        # INSERT logic
-        def _before_create(ctx):
-            if "tenant_id" in ctx.params and pol == TenantPolicy.STRICT_SERVER:
-                _err(400, "tenant_id cannot be set explicitly.")
-            ctx.params.setdefault("tenant_id", ctx.tenant_id)
+        # INSERT
+        def _tenantbound_before_create(ctx):
+            try:
+                params = ctx.params
+            except KeyError:
+                params = {}
+                ctx.params = params
+            auto_fields = (
+                ctx.get("__autoapi_injected_fields__", set())
+                if hasattr(ctx, "get")
+                else getattr(ctx, "__autoapi_injected_fields__", set())
+            )
+            tenant_id = ctx.get("tenant_id")
+            if pol == TenantPolicy.STRICT_SERVER:
+                if "tenant_id" in auto_fields:
+                    if "tenant_id" in params and params["tenant_id"] not in (
+                        None,
+                        tenant_id,
+                    ):
+                        _err(400, "tenant_id mismatch.")
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
+                elif "tenant_id" in params:
+                    _err(400, "tenant_id cannot be set explicitly.")
+                else:
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
+            else:
+                if "tenant_id" not in params:
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
 
-        # UPDATE logic
-        def _before_update(ctx, obj):
-            if "tenant_id" not in ctx.params:
+        # UPDATE
+        def _tenantbound_before_update(ctx, obj):
+            try:
+                params = ctx.params
+            except KeyError:
+                return
+            if "tenant_id" not in params:
                 return
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
-            new_val = ctx.params["tenant_id"]
+            new_val = params["tenant_id"]
             if (
                 new_val != obj.tenant_id
-                and new_val != ctx.tenant_id
-                and not ctx.is_admin
+                and new_val != ctx.get("tenant_id")
+                and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")
 
         # Register hooks
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _before_create
+            _tenantbound_before_create
         )
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _before_update
+            _tenantbound_before_update
         )

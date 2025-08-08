@@ -15,8 +15,11 @@ class DummySchema:
     def model_validate(cls, data):
         return cls(**data)
 
-    def model_dump_json(self):
-        return json.dumps(self._data)
+    def model_dump_json(self, **kw):
+        data = self._data
+        if kw.get("exclude_none"):
+            data = {k: v for k, v in data.items() if v is not None}
+        return json.dumps(data)
 
 
 # GET Tests
@@ -136,6 +139,24 @@ def test_post_with_schema_data():
 
     expected_data = {"name": "Test User", "email": "test@example.com", "age": 25}
     assert captured["json"] == expected_data
+
+
+@pytest.mark.unit
+def test_post_excludes_none_fields():
+    """Ensure None fields in schema data are excluded."""
+    captured = {}
+    schema_data = DummySchema(name="Test User", email=None)
+
+    def fake_post(self, url, *, json=None, headers=None):
+        captured.update(json=json)
+        request = httpx.Request("POST", url)
+        return httpx.Response(201, request=request, json={"id": 1, "status": "created"})
+
+    with patch.object(httpx.Client, "post", new=fake_post):
+        client = AutoAPIClient("http://example.com/api")
+        client.post("/users", data=schema_data)
+
+    assert captured["json"] == {"name": "Test User"}
 
 
 # PUT Tests

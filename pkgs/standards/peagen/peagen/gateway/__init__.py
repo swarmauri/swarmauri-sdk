@@ -143,9 +143,10 @@ async def _shadow_principal(ctx):
 
 # ensure our hook runs second after the AuthN injection hook
 _pre = api._hook_registry[Phase.PRE_TX_BEGIN][None]
-if _shadow_principal in _pre:
-    _pre.remove(_shadow_principal)
-_pre.insert(1, _shadow_principal)
+for idx, fn in enumerate(_pre):
+    if getattr(fn, "__name__", "") == "_shadow_principal":
+        _pre.insert(1, _pre.pop(idx))
+        break
 
 
 app.include_router(api.router)

@@ -59,12 +59,16 @@ def build_gateway(api) -> APIRouter:
                 return _ok(result, env)
 
             except HTTPException as exc:
-                rpc_code, rpc_message = _http_exc_to_rpc(exc)
-                return _err(rpc_code, rpc_message, env)
+                rpc_code, rpc_message, data = _http_exc_to_rpc(exc)
+                return _err(rpc_code, rpc_message, env, data=data)
 
             except ValidationError as exc:
-                # Handle Pydantic validation errors
-                return _err(-32602, str(exc), env)
+                errors = exc.errors()
+                missing = [e["loc"][-1] for e in errors if e["type"] == "missing"]
+                msg = "Validation error"
+                if missing:
+                    msg += ": missing parameter(s): " + ", ".join(missing)
+                return _err(-32602, msg, env, data=errors)
 
             except Exception as exc:
                 # _invoke() has already rolled back & fired ON_ERROR hook.
@@ -104,12 +108,16 @@ def build_gateway(api) -> APIRouter:
                 return _ok(result, env)
 
             except HTTPException as exc:
-                rpc_code, rpc_message = _http_exc_to_rpc(exc)
-                return _err(rpc_code, rpc_message, env)
+                rpc_code, rpc_message, data = _http_exc_to_rpc(exc)
+                return _err(rpc_code, rpc_message, env, data=data)
 
             except ValidationError as exc:
-                # Handle Pydantic validation errors
-                return _err(-32602, str(exc), env)
+                errors = exc.errors()
+                missing = [e["loc"][-1] for e in errors if e["type"] == "missing"]
+                msg = "Validation error"
+                if missing:
+                    msg += ": missing parameter(s): " + ", ".join(missing)
+                return _err(-32602, msg, env, data=errors)
 
             except Exception as exc:
                 return _err(-32000, str(exc), env)

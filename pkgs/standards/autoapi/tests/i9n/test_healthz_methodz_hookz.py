@@ -1,10 +1,11 @@
 """
-Healthz and Methodz Endpoints Tests for AutoAPI v2
+Healthz, Methodz and Hookz Endpoints Tests for AutoAPI v2
 
-Tests that healthz and methodz endpoints are properly attached and behave as expected.
+Tests that healthz, methodz and hookz endpoints are properly attached and behave as expected.
 """
 
 import pytest
+from autoapi.v2 import Phase
 
 
 @pytest.mark.i9n
@@ -79,6 +80,32 @@ async def test_methodz_endpoint_comprehensive(api_client):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+async def test_hookz_endpoint_comprehensive(api_client):
+    """Test hookz endpoint attachment, behavior, and response format."""
+    client, api, _ = api_client
+
+    @api.hook(Phase.POST_RESPONSE)
+    def sample_hook(ctx):
+        pass
+
+    routes = [route.path for route in api.router.routes]
+    assert "/hookz" in routes
+
+    response = await client.get("/hookz")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/json")
+
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "POST_RESPONSE" in data
+    assert "sample_hook" in data["POST_RESPONSE"]["*"]
+    for phase, hooks in data.items():
+        assert isinstance(phase, str)
+        assert isinstance(hooks, dict)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
 async def test_methodz_basic_functionality(api_client):
     """Test that methodz endpoint provides basic method information."""
     client, api, _ = api_client
@@ -98,8 +125,8 @@ async def test_methodz_basic_functionality(api_client):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_healthz_methodz_in_openapi_schema(api_client):
-    """Test that healthz and methodz endpoints are included in OpenAPI schema."""
+async def test_healthz_methodz_hookz_in_openapi_schema(api_client):
+    """Test that healthz, methodz and hookz endpoints are included in OpenAPI schema."""
     client, api, _ = api_client
 
     # Get OpenAPI schema
@@ -107,9 +134,10 @@ async def test_healthz_methodz_in_openapi_schema(api_client):
     spec = spec_response.json()
     paths = spec["paths"]
 
-    # healthz and methodz should be in OpenAPI spec
+    # healthz, methodz and hookz should be in OpenAPI spec
     assert "/healthz" in paths
     assert "/methodz" in paths
+    assert "/hookz" in paths
 
 
 @pytest.mark.i9n
@@ -152,7 +180,7 @@ async def test_methodz_reflects_dynamic_models(api_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_endpoints_are_synchronous(api_client):
-    """Test that healthz and methodz endpoints work in sync mode."""
+    """Test that healthz, methodz and hookz endpoints work in sync mode."""
     client, api, _ = api_client
 
     # These endpoints should work regardless of async/sync context
@@ -162,6 +190,10 @@ async def test_endpoints_are_synchronous(api_client):
     methodz_response = await client.get("/methodz")
     assert methodz_response.status_code == 200
 
+    hookz_response = await client.get("/hookz")
+    assert hookz_response.status_code == 200
+
     # Responses should be immediate and not require async database operations
     assert healthz_response.json()
     assert methodz_response.json()
+    assert isinstance(hookz_response.json(), dict)

@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 
 
 def attach_health_and_methodz(api, get_async_db=None, get_db=None):
-    """
-    Adds /healthz and /methodz to *api.router*.
-    *api* is the AutoAPI instance (needed for method list).
+    """Add diagnostic endpoints to *api.router*.
+
+    Adds ``/healthz``, ``/methodz`` and ``/hookz`` to the router. ``api`` is
+    the :class:`~autoapi.v2.AutoAPI` instance and provides access to the method
+    list and hook registry.
     """
     r = APIRouter()
 
@@ -15,6 +17,19 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
     def _methodz() -> list[str]:
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
+
+    @r.get("/hookz", tags=["hooks"])
+    def _hookz() -> dict[str, dict[str | None, list[str]]]:
+        """Expose the current hook registry."""
+        registry: dict[str, dict[str | None, list[str]]] = {}
+        for phase, hooks in api._hook_registry.items():
+            registry[phase.name] = {
+                (k if k is not None else "*"): [
+                    getattr(f, "__name__", repr(f)) for f in v
+                ]
+                for k, v in hooks.items()
+            }
+        return registry
 
     # Choose the appropriate health endpoint based on available DB provider
     if get_db:
