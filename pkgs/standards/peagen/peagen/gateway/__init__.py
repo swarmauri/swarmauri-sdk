@@ -112,22 +112,22 @@ api = AutoAPI(
 async def _shadow_principal(ctx):
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
-        log.debug("Shadow principal: no principal on request")
+        log.info("Shadow principal: no principal on request")
         return
     db = ctx["db"]
     tid = p.get("tid")
     uid = p.get("sub")
     if not tid or not uid:
-        log.debug("Shadow principal missing tid or uid: %s", p)
+        log.info("Shadow principal missing tid or uid: %s", p)
         return
     try:
         tid = uuid.UUID(str(tid))
         uid = uuid.UUID(str(uid))
     except (ValueError, AttributeError):
-        log.debug("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
+        log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
         return
     slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
-    log.debug("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
+    log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
     if await db.get(Tenant, tid) is None:
         db.add(
             Tenant(
@@ -137,14 +137,14 @@ async def _shadow_principal(ctx):
                 email=p.get("tenant_email"),
             )
         )
-        log.debug("Inserted shadow tenant %s", tid)
+        log.info("Inserted shadow tenant %s", tid)
     if await db.get(User, uid) is None:
         db.add(User(id=uid, tenant_id=tid, username=p.get("username") or str(uid)))
-        log.debug("Inserted shadow user %s", uid)
+        log.info("Inserted shadow user %s", uid)
     try:
         await db.commit()
     except IntegrityError:
-        log.debug("Shadow principal commit failed, rolling back")
+        log.info("Shadow principal commit failed, rolling back")
         await db.rollback()
 
 

@@ -70,7 +70,7 @@ class Ownable:
                 params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             user_id = auto_fields.get("user_id")
-            log.debug(
+            log.info(
                 "Ownable before_create policy=%s params=%s auto_fields=%s",
                 pol,
                 params,
@@ -101,7 +101,7 @@ class Ownable:
             new_val = params["owner_id"]
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             user_id = auto_fields.get("user_id")
-            log.debug(
+            log.info(
                 "Ownable before_update new_val=%s obj_owner=%s injected=%s",
                 new_val,
                 getattr(obj, "owner_id", None),

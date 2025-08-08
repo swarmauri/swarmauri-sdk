@@ -92,7 +92,7 @@ class TenantBound(_RowBound):
                 params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             tenant_id = auto_fields.get("tenant_id")
-            log.debug(
+            log.info(
                 "TenantBound before_create policy=%s params=%s auto_fields=%s",
                 pol,
                 params,
@@ -125,7 +125,7 @@ class TenantBound(_RowBound):
             new_val = params["tenant_id"]
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             tenant_id = auto_fields.get("tenant_id")
-            log.debug(
+            log.info(
                 "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
                 new_val,
                 getattr(obj, "tenant_id", None),
