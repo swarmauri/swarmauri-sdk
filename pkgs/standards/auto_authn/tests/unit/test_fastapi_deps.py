@@ -11,7 +11,6 @@ import contextvars
 
 import pytest
 from fastapi import HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from jwt import InvalidTokenError
 
@@ -203,7 +202,7 @@ class TestGetCurrentPrincipal:
             "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
         ):
             principal = await get_current_principal(
-                credentials=None, api_key=api_key, db=mock_db
+                authorization="", api_key=api_key, db=mock_db
             )
 
             assert principal is not None
@@ -216,13 +215,11 @@ class TestGetCurrentPrincipal:
         mock_user.id = uuid.uuid4()
 
         mock_db = AsyncMock(spec=AsyncSession)
-        credentials = HTTPAuthorizationCredentials(
-            scheme="Bearer", credentials="valid.jwt.token"
-        )
+        authorization = "Bearer valid.jwt.token"
 
         with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user):
             principal = await get_current_principal(
-                credentials=credentials, api_key=None, db=mock_db
+                authorization=authorization, api_key=None, db=mock_db
             )
 
             assert principal is not None
@@ -236,9 +233,7 @@ class TestGetCurrentPrincipal:
 
         mock_db = AsyncMock(spec=AsyncSession)
         api_key = "valid-api-key-12345"
-        credentials = HTTPAuthorizationCredentials(
-            scheme="Bearer", credentials="valid.jwt.token"
-        )
+        authorization = "Bearer valid.jwt.token"
 
         with patch(
             "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
@@ -247,7 +242,7 @@ class TestGetCurrentPrincipal:
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ) as mock_jwt:
                 principal = await get_current_principal(
-                    credentials=credentials, api_key=api_key, db=mock_db
+                    authorization=authorization, api_key=api_key, db=mock_db
                 )
 
                 assert principal is not None
@@ -266,16 +261,14 @@ class TestGetCurrentPrincipal:
 
         mock_db = AsyncMock(spec=AsyncSession)
         api_key = "invalid-api-key"
-        credentials = HTTPAuthorizationCredentials(
-            scheme="Bearer", credentials="valid.jwt.token"
-        )
+        authorization = "Bearer valid.jwt.token"
 
         with patch("auto_authn.v2.fastapi_deps._user_from_api_key", return_value=None):
             with patch(
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ):
                 principal = await get_current_principal(
-                    credentials=credentials, api_key=api_key, db=mock_db
+                    authorization=authorization, api_key=api_key, db=mock_db
                 )
 
                 assert principal is not None
@@ -287,7 +280,7 @@ class TestGetCurrentPrincipal:
         mock_db = AsyncMock(spec=AsyncSession)
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_principal(credentials=None, api_key=None, db=mock_db)
+            await get_current_principal(authorization="", api_key=None, db=mock_db)
 
         assert exc_info.value.status_code == 401
         assert "invalid or missing credentials" in exc_info.value.detail
@@ -297,13 +290,11 @@ class TestGetCurrentPrincipal:
     async def test_get_current_principal_with_invalid_bearer_format(self):
         """Test principal resolution with malformed Bearer token."""
         mock_db = AsyncMock(spec=AsyncSession)
-        credentials = HTTPAuthorizationCredentials(
-            scheme="InvalidFormat", credentials="token"
-        )
+        authorization = "InvalidFormat token"
 
         with pytest.raises(HTTPException) as exc_info:
             await get_current_principal(
-                credentials=credentials, api_key=None, db=mock_db
+                authorization=authorization, api_key=None, db=mock_db
             )
 
         assert exc_info.value.status_code == 401
@@ -313,15 +304,13 @@ class TestGetCurrentPrincipal:
         """Test principal resolution with invalid API key and JWT."""
         mock_db = AsyncMock(spec=AsyncSession)
         api_key = "invalid-api-key"
-        credentials = HTTPAuthorizationCredentials(
-            scheme="Bearer", credentials="invalid.jwt.token"
-        )
+        authorization = "Bearer invalid.jwt.token"
 
         with patch("auto_authn.v2.fastapi_deps._user_from_api_key", return_value=None):
             with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=None):
                 with pytest.raises(HTTPException) as exc_info:
                     await get_current_principal(
-                        credentials=credentials, api_key=api_key, db=mock_db
+                        authorization=authorization, api_key=api_key, db=mock_db
                     )
 
                 assert exc_info.value.status_code == 401
@@ -350,7 +339,7 @@ class TestGetPrincipal:
             "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
         ):
             principal = await get_principal(
-                request=mock_request, credentials=None, api_key=api_key, db=mock_db
+                request=mock_request, authorization="", api_key=api_key, db=mock_db
             )
 
             assert principal == {"sub": str(mock_user.id), "tid": str(tenant_id)}
@@ -370,12 +359,9 @@ class TestGetPrincipal:
         with patch(
             "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
         ):
-            credentials = HTTPAuthorizationCredentials(
-                scheme="Bearer", credentials="valid.jwt.token"
-            )
             await get_principal(
                 request=mock_request,
-                credentials=credentials,
+                authorization="Bearer valid.jwt.token",
                 api_key=None,
                 db=mock_db,
             )
@@ -402,12 +388,9 @@ class TestGetPrincipal:
         with patch(
             "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
         ):
-            credentials = HTTPAuthorizationCredentials(
-                scheme="Bearer", credentials="valid.jwt.token"
-            )
             await get_principal(
                 request=mock_request,
-                credentials=credentials,
+                authorization="Bearer valid.jwt.token",
                 api_key=None,
                 db=mock_db,
             )
@@ -432,7 +415,7 @@ class TestGetPrincipal:
 
             with pytest.raises(HTTPException) as exc_info:
                 await get_principal(
-                    request=mock_request, credentials=None, api_key=None, db=mock_db
+                    request=mock_request, authorization="", api_key=None, db=mock_db
                 )
 
             assert exc_info.value.status_code == 401

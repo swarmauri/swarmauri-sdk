@@ -17,12 +17,7 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, Request, Security, status
-from fastapi.security import (
-    APIKeyHeader,
-    HTTPAuthorizationCredentials,
-    HTTPBearer,
-)
+from fastapi import Depends, Header, HTTPException, Request, status
 import contextvars
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -81,14 +76,10 @@ async def _user_from_api_key(raw_key: str, db: AsyncSession) -> Principal | None
 # ---------------------------------------------------------------------
 # NEW — AuthNProvider‑compatible helper
 # ---------------------------------------------------------------------
-_bearer_scheme = HTTPBearer(auto_error=False)
-_api_key_scheme = APIKeyHeader(name="x-api-key", auto_error=False)
-
-
 async def get_principal(  # <-- AutoAPI calls this
     request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Security(_bearer_scheme),
-    api_key: str | None = Security(_api_key_scheme),
+    authorization: str = Header("", alias="Authorization"),
+    api_key: str | None = Header(None, alias="x-api-key"),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     """
@@ -97,7 +88,7 @@ async def get_principal(  # <-- AutoAPI calls this
     Raises HTTP 401 on failure.
     """
     user = await get_current_principal(  # reuse the existing logic
-        credentials=credentials, api_key=api_key, db=db
+        authorization=authorization, api_key=api_key, db=db
     )
     principal = {"sub": str(user.id), "tid": str(user.tenant_id)}
 
@@ -108,8 +99,8 @@ async def get_principal(  # <-- AutoAPI calls this
 
 
 async def get_current_principal(  # type: ignore[override]
-    credentials: HTTPAuthorizationCredentials | None = Security(_bearer_scheme),
-    api_key: str | None = Security(_api_key_scheme),
+    authorization: str = Header("", alias="Authorization"),
+    api_key: str | None = Header(None, alias="x-api-key"),
     db: AsyncSession = Depends(get_async_db),
 ) -> Principal:
     """
@@ -130,8 +121,8 @@ async def get_current_principal(  # type: ignore[override]
         if user := await _user_from_api_key(api_key, db):
             return user
 
-    if credentials:
-        if user := await _user_from_jwt(credentials.credentials, db):
+    if authorization.startswith("Bearer "):
+        if user := await _user_from_jwt(authorization.split()[1], db):
             return user
 
     raise HTTPException(
