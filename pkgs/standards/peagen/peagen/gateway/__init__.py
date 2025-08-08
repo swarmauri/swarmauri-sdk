@@ -128,11 +128,11 @@ async def _shadow_principal(ctx):
         return
     slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
     log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
-    tenant_payload = api.schemas.TenantsCreate(
+    tenant_payload = api.schemas.TenantCreate(
         id=tid,
         slug=slug,
     )
-    user_payload = api.schemas.UsersCreate(
+    user_payload = api.schemas.UserCreate(
         id=uid,
         tenant_id=tid,
         username=p.get("username") or str(uid),
