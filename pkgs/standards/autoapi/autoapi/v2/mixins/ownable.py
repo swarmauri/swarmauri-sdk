@@ -95,8 +95,8 @@ class Ownable:
                 _err(403, "Cannot transfer ownership.")
 
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _before_create
+            _ownable_before_create
         )
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _before_update
+            _ownable_before_update
         )

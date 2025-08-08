@@ -125,8 +125,8 @@ class TenantBound(_RowBound):
 
         # Register hooks
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _before_create
+            _tenantbound_before_create
         )
         api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _before_update
+            _tenantbound_before_update
         )
