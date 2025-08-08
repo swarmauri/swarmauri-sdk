@@ -96,14 +96,28 @@ class TenantBound(_RowBound):
                 if hasattr(ctx, "get")
                 else getattr(ctx, "__autoapi_injected_fields__", set())
             )
-            if "tenant_id" in params:
-                if pol == TenantPolicy.STRICT_SERVER and "tenant_id" not in auto_fields:
+            tenant_id = ctx.get("tenant_id")
+            if pol == TenantPolicy.STRICT_SERVER:
+                if "tenant_id" in auto_fields:
+                    if "tenant_id" in params and params["tenant_id"] not in (
+                        None,
+                        tenant_id,
+                    ):
+                        _err(400, "tenant_id mismatch.")
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
+                elif "tenant_id" in params:
                     _err(400, "tenant_id cannot be set explicitly.")
+                else:
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
             else:
-                tenant_id = ctx.get("tenant_id")
-                if tenant_id is None:
-                    _err(400, "tenant_id is required.")
-                params["tenant_id"] = tenant_id
+                if "tenant_id" not in params:
+                    if tenant_id is None:
+                        _err(400, "tenant_id is required.")
+                    params["tenant_id"] = tenant_id
 
         # UPDATE
         def _tenantbound_before_update(ctx, obj):

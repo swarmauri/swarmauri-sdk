@@ -71,13 +71,25 @@ class Ownable:
                 if hasattr(ctx, "get")
                 else getattr(ctx, "__autoapi_injected_fields__", set())
             )
-            if (
-                "owner_id" in params
-                and pol == OwnerPolicy.STRICT_SERVER
-                and "owner_id" not in auto_fields
-            ):
-                _err(400, "owner_id cannot be set explicitly.")
-            params.setdefault("owner_id", ctx.user_id)
+            user_id = ctx.user_id
+            if pol == OwnerPolicy.STRICT_SERVER:
+                if "owner_id" in auto_fields:
+                    if "owner_id" in params and params["owner_id"] not in (
+                        None,
+                        user_id,
+                    ):
+                        _err(400, "owner_id mismatch.")
+                    if user_id is None:
+                        _err(400, "owner_id is required.")
+                    params["owner_id"] = user_id
+                elif "owner_id" in params:
+                    _err(400, "owner_id cannot be set explicitly.")
+                else:
+                    if user_id is None:
+                        _err(400, "owner_id is required.")
+                    params["owner_id"] = user_id
+            else:
+                params.setdefault("owner_id", user_id)
 
         def _ownable_before_update(ctx, obj):
             try:
