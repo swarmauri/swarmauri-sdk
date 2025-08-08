@@ -282,6 +282,13 @@ async def _startup() -> None:
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
+    log.info(api._router)
+    log.info(api.rpc)
+    log.info(api._registered_tables)
+    log.info(api._method_ids)
+    log.info(api._schemas)
+    log.info(api._allow_anon)
+
     log.info("gateway ready")
 
 
@@ -293,3 +300,4 @@ async def _shutdown() -> None:
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
+
