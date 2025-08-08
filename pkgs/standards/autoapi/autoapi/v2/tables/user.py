@@ -16,10 +16,8 @@ class User(
     Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle
 ):
     __tablename__ = "users"
+    __abstract__ = True
     username = Column(String(80), nullable=False)
-    __mapper_args__ = {
-        'concrete': True  # Ensures UserBase is treated as a concrete class (not an abstract base)
-    }
 
 __all__ = ["User"]
 
