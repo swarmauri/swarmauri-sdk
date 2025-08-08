@@ -282,12 +282,15 @@ async def _startup() -> None:
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
-    log.info(api._router)
+    log.info(api.router)
     log.info(api.rpc)
     log.info(api._registered_tables)
     log.info(api._method_ids)
     log.info(api._schemas)
     log.info(api._allow_anon)
+    log.info(api.methods)
+    log.info(api.schemas)
+
 
     log.info("gateway ready")
 
