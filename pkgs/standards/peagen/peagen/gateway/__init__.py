@@ -128,23 +128,20 @@ async def _shadow_principal(ctx):
         return
     slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
     log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
-    if await db.get(Tenant, tid) is None:
-        db.add(
-            Tenant(
-                id=tid,
-                slug=slug,
-                name=p.get("tenant_name"),
-                email=p.get("tenant_email"),
-            )
-        )
-        log.info("Inserted shadow tenant %s", tid)
-    if await db.get(User, uid) is None:
-        db.add(User(id=uid, tenant_id=tid, username=p.get("username") or str(uid)))
-        log.info("Inserted shadow user %s", uid)
+    tenant_payload = api.schemas.TenantCreate(
+        id=tid,
+        slug=slug,
+    )
+    user_payload = api.schemas.UserCreate(
+        id=uid,
+        tenant_id=tid,
+        username=p.get("username") or str(uid),
+    )
     try:
-        await db.commit()
+        await db.run_sync(lambda s: api.methods.TenantsCreate(tenant_payload, db=s))
+        await db.run_sync(lambda s: api.methods.UsersCreate(user_payload, db=s))
     except IntegrityError:
-        log.info("Shadow principal commit failed, rolling back")
+        log.info("Shadow principal upsert failed due to integrity error")
         await db.rollback()
 
 
@@ -291,7 +288,6 @@ async def _startup() -> None:
     log.info(api.methods)
     log.info(api.schemas)
 
-
     log.info("gateway ready")
 
 
@@ -303,4 +299,3 @@ async def _shutdown() -> None:
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
-
