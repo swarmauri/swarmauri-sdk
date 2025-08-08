@@ -108,7 +108,7 @@ class Client(ClientBase):  # Tenant FK via mix-in
 class User(UserBase):
     """Human principal with authentication credentials."""
     __table_args__ = {"extend_existing": True, "schema": "authn"}
-    
+
     email = Column(String(120), nullable=False, unique=True)
     password_hash = Column(LargeBinary(60))
     api_keys = relationship(
@@ -146,7 +146,10 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 
 
 class ApiKey(ApiKeyBase, UserMixin):
-    __table_args__ = {"extend_existing": True, "schema": "authn"}
+    __table_args__ = (
+        UniqueConstraint("digest"),
+        {"extend_existing": True, "schema": "authn"}
+    )
 
     user = relationship(
         "auto_authn.v2.orm.tables.User",
@@ -157,7 +160,10 @@ class ApiKey(ApiKeyBase, UserMixin):
 
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
-    __table_args__ = {"schema": "authn"}
+    __table_args__ = (
+        UniqueConstraint("digest"),
+        {"extend_existing": True, "schema": "authn"}
+    )
     service_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("services.id"),
