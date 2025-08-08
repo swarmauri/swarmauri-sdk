@@ -62,6 +62,8 @@ class Ownable:
         # PRE-TX hooks ----------------------------------------------------
         def _ownable_before_create(ctx):
             params = ctx["env"].params if ctx.get("env") else {}
+            if hasattr(params, "model_dump"):
+                params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             user_id = auto_fields.get("user_id")
             if pol == OwnerPolicy.STRICT_SERVER:
@@ -76,6 +78,7 @@ class Ownable:
                     params["owner_id"] = user_id
             else:
                 params.setdefault("owner_id", user_id)
+            ctx["env"].params = params
 
         def _ownable_before_update(ctx, obj):
             params = getattr(ctx.get("env"), "params", None)

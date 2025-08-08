@@ -84,6 +84,8 @@ class TenantBound(_RowBound):
         # INSERT
         def _tenantbound_before_create(ctx):
             params = ctx["env"].params if ctx.get("env") else {}
+            if hasattr(params, "model_dump"):
+                params = params.model_dump()
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             tenant_id = auto_fields.get("tenant_id")
             if pol == TenantPolicy.STRICT_SERVER:
@@ -101,6 +103,7 @@ class TenantBound(_RowBound):
                     if tenant_id is None:
                         _err(400, "tenant_id is required.")
                     params["tenant_id"] = tenant_id
+            ctx["env"].params = params
 
         # UPDATE
         def _tenantbound_before_update(ctx, obj):
