@@ -390,7 +390,6 @@ async def auth_test_client(async_client: AsyncClient):
 # =============================================================================
 
 # Test markers configuration
-pytest_plugins = ["pytest_asyncio"]
 
 
 # Custom markers
