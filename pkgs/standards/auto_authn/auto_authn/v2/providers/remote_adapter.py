@@ -9,7 +9,7 @@ from fastapi import HTTPException, Request, status
 
 from autoapi.v2.types.authn_abc import AuthNProvider
 from ..hooks import register_inject_hook  # ← existing helper
-from ..fastapi_deps import principal_var  # ← ContextVar used by filters
+from ..principal_ctx import principal_var
 
 
 class RemoteAuthNAdapter(AuthNProvider):

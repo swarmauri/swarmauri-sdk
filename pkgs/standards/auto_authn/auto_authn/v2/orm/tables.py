@@ -1,5 +1,5 @@
 """
-autoapi_authn.orm.tables
+autoapi_authn.v2.orm.tables
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Canonical SQLAlchemy models for the authentication service.
