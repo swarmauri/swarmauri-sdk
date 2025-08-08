@@ -16,8 +16,11 @@ class DummySchema:
     def model_validate(cls, data):
         return cls(**data)
 
-    def model_dump_json(self):
-        return json.dumps(self._data)
+    def model_dump_json(self, **kw):
+        data = self._data
+        if kw.get("exclude_none"):
+            data = {k: v for k, v in data.items() if v is not None}
+        return json.dumps(data)
 
 
 @pytest.mark.unit

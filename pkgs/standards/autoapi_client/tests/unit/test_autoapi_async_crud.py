@@ -15,8 +15,11 @@ class DummySchema:
     def model_validate(cls, data):
         return cls(**data)
 
-    def model_dump_json(self):
-        return json.dumps(self._data)
+    def model_dump_json(self, **kw):
+        data = self._data
+        if kw.get("exclude_none"):
+            data = {k: v for k, v in data.items() if v is not None}
+        return json.dumps(data)
 
 
 # Async GET Tests
@@ -115,6 +118,25 @@ async def test_apost_with_schema_data():
 
     expected_data = {"name": "Test User", "email": "test@example.com", "age": 25}
     assert captured["json"] == expected_data
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_apost_excludes_none_fields():
+    """Ensure None fields in schema data are excluded for async POST."""
+    captured = {}
+    schema_data = DummySchema(name="Test User", email=None)
+
+    async def fake_apost(self, url, *, json=None, headers=None):
+        captured.update(json=json)
+        request = httpx.Request("POST", url)
+        return httpx.Response(201, request=request, json={"id": 1, "status": "created"})
+
+    with patch.object(httpx.AsyncClient, "post", new=fake_apost):
+        client = AutoAPIClient("http://example.com/api")
+        await client.apost("/users", data=schema_data)
+
+    assert captured["json"] == {"name": "Test User"}
 
 
 # Async PUT Tests
