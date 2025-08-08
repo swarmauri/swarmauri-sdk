@@ -7,14 +7,12 @@ def register_inject_hook(api):
     allow_anon = api._allow_anon
 
     @api.hook(Phase.PRE_TX_BEGIN)  # PRE‑DB, works for CRUD & RPC
-    async def _inject(ctx):
+    async def _inject_principal(ctx):
         if getattr(ctx.get("env"), "method", None) in allow_anon:
             return
         p = ctx["request"].state.principal
         if not p:
             return
-
-        ctx["is_admin"] = p.get("is_admin", False)
 
         injected = ctx.setdefault("__autoapi_injected_fields__", {})
         tid = p.get("tid")
