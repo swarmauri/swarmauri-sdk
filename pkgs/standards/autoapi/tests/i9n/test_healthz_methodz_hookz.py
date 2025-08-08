@@ -85,7 +85,15 @@ async def test_hookz_endpoint_comprehensive(api_client):
     client, api, _ = api_client
 
     @api.hook(Phase.POST_RESPONSE)
-    def sample_hook(ctx):
+    def first_hook(ctx):
+        pass
+
+    @api.hook(Phase.POST_RESPONSE)
+    def second_hook(ctx):
+        pass
+
+    @api.hook(Phase.POST_RESPONSE, model="Items", op="create")
+    def item_hook(ctx):
         pass
 
     routes = [route.path for route in api.router.routes]
@@ -97,11 +105,13 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     data = response.json()
     assert isinstance(data, dict)
-    assert "POST_RESPONSE" in data
-    assert "sample_hook" in data["POST_RESPONSE"]["*"]
-    for phase, hooks in data.items():
-        assert isinstance(phase, str)
-        assert isinstance(hooks, dict)
+    assert "*" in data
+    assert data["*"]["POST_RESPONSE"] == ["first_hook", "second_hook"]
+    assert "Items.create" in data
+    assert data["Items.create"]["POST_RESPONSE"] == ["item_hook"]
+    for method, phases in data.items():
+        assert isinstance(method, str)
+        assert isinstance(phases, dict)
 
 
 @pytest.mark.i9n
