@@ -67,6 +67,7 @@ class Ownable:
                 params = {}
                 ctx.params = params
             user_id = ctx.user_id
+            auto_fields = ctx.get("__autoapi_injected_fields__", set())
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
@@ -75,7 +76,8 @@ class Ownable:
                     user_id,
                 ):
                     _err(400, "owner_id mismatch.")
-                params["owner_id"] = user_id
+                if "owner_id" in auto_fields or "owner_id" not in params:
+                    params["owner_id"] = user_id
             else:
                 params.setdefault("owner_id", user_id)
 

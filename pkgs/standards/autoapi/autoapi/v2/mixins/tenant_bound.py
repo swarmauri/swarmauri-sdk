@@ -96,6 +96,7 @@ class TenantBound(_RowBound):
                 if hasattr(ctx, "get")
                 else getattr(ctx, "tenant_id", None)
             )
+            auto_fields = ctx.get("__autoapi_injected_fields__", set())
             if pol == TenantPolicy.STRICT_SERVER:
                 if tenant_id is None:
                     _err(400, "tenant_id is required.")
@@ -104,7 +105,8 @@ class TenantBound(_RowBound):
                     tenant_id,
                 ):
                     _err(400, "tenant_id mismatch.")
-                params["tenant_id"] = tenant_id
+                if "tenant_id" in auto_fields or "tenant_id" not in params:
+                    params["tenant_id"] = tenant_id
             else:
                 if "tenant_id" not in params:
                     if tenant_id is None:
