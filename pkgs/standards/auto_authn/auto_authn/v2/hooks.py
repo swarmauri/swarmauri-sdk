@@ -27,7 +27,7 @@ def register_inject_hook(api):
                     setattr(prm, fld, val)
                     injected.add(fld)
             elif isinstance(prm, dict):
-                if fld not in prm:
+                if fld not in prm or prm.get(fld) in (None, val):
                     prm[fld] = val
                     injected.add(fld)
 

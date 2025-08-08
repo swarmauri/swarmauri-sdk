@@ -66,28 +66,16 @@ class Ownable:
             except KeyError:
                 params = {}
                 ctx.params = params
-            auto_fields = (
-                ctx.get("__autoapi_injected_fields__", set())
-                if hasattr(ctx, "get")
-                else getattr(ctx, "__autoapi_injected_fields__", set())
-            )
             user_id = ctx.user_id
             if pol == OwnerPolicy.STRICT_SERVER:
-                if "owner_id" in auto_fields:
-                    if "owner_id" in params and params["owner_id"] not in (
-                        None,
-                        user_id,
-                    ):
-                        _err(400, "owner_id mismatch.")
-                    if user_id is None:
-                        _err(400, "owner_id is required.")
-                    params["owner_id"] = user_id
-                elif "owner_id" in params:
-                    _err(400, "owner_id cannot be set explicitly.")
-                else:
-                    if user_id is None:
-                        _err(400, "owner_id is required.")
-                    params["owner_id"] = user_id
+                if user_id is None:
+                    _err(400, "owner_id is required.")
+                if "owner_id" in params and params["owner_id"] not in (
+                    None,
+                    user_id,
+                ):
+                    _err(400, "owner_id mismatch.")
+                params["owner_id"] = user_id
             else:
                 params.setdefault("owner_id", user_id)
 
