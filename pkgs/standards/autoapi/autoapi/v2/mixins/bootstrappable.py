@@ -1,102 +1,92 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Iterable, List
+from typing import Any, ClassVar, List
 
 import logging
 import sqlalchemy as sa
-from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 log = logging.getLogger(__name__)
 
 
 class Bootstrappable:
     """
-    Seed DEFAULT_ROWS for *this mapped class only* with zero magic.
+    Seed DEFAULT_ROWS for *this mapped class only*, with zero automation.
 
-    Rules:
-      - Insert ONLY keys present on this class's mapped columns.
-      - No auto defaults, no timestamp injection, no unique probing.
-      - Idempotency only if ALL primary key columns are present in the row.
-      - Listener is attached to cls.__table__ (no cross-class/global effects).
+    - Only inserts the literals you provide in DEFAULT_ROWS (no auto columns).
+    - Per-class, per-table handler (attached to cls.__table__).
+    - Executes once per table creation.
+    - Postgres: INSERT ... ON CONFLICT DO NOTHING
+      SQLite:   INSERT OR IGNORE
+      Others:   plain INSERT; duplicate IntegrityError is swallowed.
+    - Never re-raises from DDL hook (prevents KeyError('error') upstream).
     """
 
     DEFAULT_ROWS: ClassVar[List[dict[str, Any]]] = []
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
-        sa.event.listen(
-            cls.__table__, "after_create", cls._after_create_insert_default_rows
-        )
 
-    # DDL event: log failures, don't bubble arbitrary exceptions
+        # Attach to THIS class's table only; run only once when the table is created
+        sa.event.listen(cls.__table__, "after_create", cls._seed_after_create, once=True)
+
     @classmethod
-    def _after_create_insert_default_rows(cls, target, connection, **_):
-        if not getattr(cls, "DEFAULT_ROWS", None):
+    def _seed_after_create(cls, target, connection, **kw):
+        rows = getattr(cls, "DEFAULT_ROWS", None)
+        if not rows:
             return
-        from sqlalchemy.orm import sessionmaker
 
-        SessionLocal = sessionmaker(bind=connection, future=True)
-        db: Session = SessionLocal()
+        table = cls.__table__
+        dialect = connection.dialect.name
+
         try:
-            cls._insert_rows(db, cls.DEFAULT_ROWS)
-            db.commit()
+            if dialect in ("postgres", "postgresql"):
+                from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+                stmt = pg_insert(table).values(rows).on_conflict_do_nothing()
+                connection.execute(stmt)
+
+            elif dialect == "sqlite":
+                # Works on SQLite >= 3.24; OR IGNORE is widely supported
+                stmt = sa.insert(table).values(rows).prefix_with("OR IGNORE")
+                connection.execute(stmt)
+
+            else:
+                # Generic path: try plain insert, swallow duplicate races
+                try:
+                    connection.execute(sa.insert(table).values(rows))
+                except IntegrityError:
+                    # Some rows may already exist due to concurrent bootstrap; ignore
+                    pass
+
         except Exception as e:
-            db.rollback()
+            # Do not bubble raw exceptions into your error normalizer
             log.warning(
-                "Bootstrappable seed failed for %s: %s",
-                cls.__name__,
-                repr(e),
+                "Bootstrappable seed failed for %s on %s: %s",
+                cls.__name__, dialect, repr(e),
                 exc_info=True,
             )
-        finally:
-            db.close()
+            # continue startup
 
+    # Optional runtime reseed (exact same semantics as above, zero magic)
     @classmethod
-    def ensure_bootstrapped(
-        cls, db: Session, rows: Iterable[dict[str, Any]] | None = None
-    ) -> None:
-        rows = cls.DEFAULT_ROWS if rows is None else list(rows)
-        if rows:
-            cls._insert_rows(db, rows)
-
-    @classmethod
-    def _insert_rows(cls, db: Session, rows: Iterable[dict[str, Any]]) -> None:
-        mapper = sa_inspect(cls)
-        table = mapper.local_table or mapper.persist_selectable
-        col_keys = {c.key for c in mapper.columns}
-        pk_cols = list(table.primary_key.columns) if table.primary_key else []
-        pk_keys = {c.key for c in pk_cols}
-
-        def clean(r: dict[str, Any]) -> dict[str, Any]:
-            # keep only columns mapped on THIS class
-            return {k: r[k] for k in r.keys() & col_keys}
-
-        payloads = [clean(r) for r in rows if r]
-        if not payloads:
+    def ensure_bootstrapped(cls, connection_or_session) -> None:
+        """
+        Manually seed DEFAULT_ROWS using an engine connection or ORM session.
+        """
+        rows = getattr(cls, "DEFAULT_ROWS", None)
+        if not rows:
             return
 
-        # If all PK columns are present, we can do idempotent upsert on Postgres
-        can_upsert = bool(pk_cols) and all(pk_keys <= set(p.keys()) for p in payloads)
+        # Accept either Session or Connection
+        if hasattr(connection_or_session, "connection"):
+            # SQLAlchemy Session; get DB-API connection
+            conn = connection_or_session.connection()
+        else:
+            # Already a Connection / AsyncConnection (sync only here)
+            conn = connection_or_session
 
-        if can_upsert and db.get_bind().dialect.name == "postgresql":
-            from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-            stmt = (
-                pg_insert(table)
-                .values(payloads)
-                .on_conflict_do_nothing(index_elements=[c.name for c in pk_cols])
-            )
-            db.execute(stmt)
-            return
-
-        # Otherwise, plain inserts; swallow duplicate races
-        for p in payloads:
-            try:
-                db.execute(sa.insert(table).values(**p))
-            except IntegrityError:
-                db.rollback()  # treat as already present
+        cls._seed_after_create(cls.__table__, conn)  # reuse the same logic
 
 
 __all__ = ["Bootstrappable"]
