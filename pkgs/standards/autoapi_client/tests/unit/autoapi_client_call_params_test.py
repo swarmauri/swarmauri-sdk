@@ -15,8 +15,13 @@ class DummySchema:
     def model_validate(cls, data):
         return cls(**data)
 
-    def model_dump_json(self):
-        return json.dumps(self._data)
+    def model_dump_json(self, *, exclude_none: bool = False):
+        data = (
+            {k: v for k, v in self._data.items() if v is not None}
+            if exclude_none
+            else self._data
+        )
+        return json.dumps(data)
 
 
 @pytest.mark.unit
@@ -73,3 +78,22 @@ def test_call_defaults_to_empty_params():
         client.call("dummy")
 
     assert captured["json"]["params"] == {}
+
+
+@pytest.mark.unit
+def test_call_excludes_none_values():
+    schema = DummySchema(foo="bar", unused=None)
+    captured = {}
+
+    def fake_post(self, url, *, json=None, headers=None):
+        captured.update(json=json)
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            200, request=request, json={"jsonrpc": "2.0", "result": None}
+        )
+
+    with patch.object(httpx.Client, "post", new=fake_post):
+        client = AutoAPIClient("http://example.com")
+        client.call("dummy", params=schema)
+
+    assert captured["json"]["params"] == {"foo": "bar"}
