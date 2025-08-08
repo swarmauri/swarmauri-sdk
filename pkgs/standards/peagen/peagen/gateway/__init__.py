@@ -21,7 +21,8 @@ import uuid
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v2 import AutoAPI, Phase
 from auto_authn.v2.providers import RemoteAuthNAdapter
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPBearer
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
@@ -106,6 +107,10 @@ api = AutoAPI(
     get_async_db=get_async_db,
     authn=authn_adapter,
 )
+
+# Register a Bearer token security scheme so FastAPI's docs support authentication.
+_bearer_scheme = HTTPBearer(auto_error=False)
+api.router.dependencies.append(Depends(_bearer_scheme))
 
 
 @api.hook(Phase.PRE_TX_BEGIN)
