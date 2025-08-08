@@ -16,10 +16,12 @@ import json
 import logging
 import os
 import uuid
+from types import SimpleNamespace
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v2 import AutoAPI, Phase
+from autoapi.v2._runner import _invoke
 from auto_authn.v2.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
@@ -110,6 +112,9 @@ api = AutoAPI(
 
 @api.hook(Phase.PRE_TX_BEGIN)
 async def _shadow_principal(ctx):
+    method = ctx["env"].method
+    if method.startswith("Tenant.") or method.startswith("User."):
+        return
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
         log.info("Shadow principal: no principal on request")
@@ -128,21 +133,36 @@ async def _shadow_principal(ctx):
         return
     slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
     log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
-    if await db.get(Tenant, tid) is None:
-        db.add(
-            Tenant(
-                id=tid,
-                slug=slug,
-                name=p.get("tenant_name"),
-                email=p.get("tenant_email"),
-            )
-        )
-        log.info("Inserted shadow tenant %s", tid)
-    if await db.get(User, uid) is None:
-        db.add(User(id=uid, tenant_id=tid, username=p.get("username") or str(uid)))
-        log.info("Inserted shadow user %s", uid)
+    tenant_payload = api.schemas.TenantCreate(
+        id=tid,
+        slug=slug,
+        name=p.get("tenant_name"),
+        email=p.get("tenant_email"),
+    )
+    user_payload = api.schemas.UserCreate(
+        id=uid,
+        tenant_id=tid,
+        username=p.get("username") or str(uid),
+    )
     try:
-        await db.commit()
+        t_params = tenant_payload.model_dump()
+        t_env = SimpleNamespace(method="Tenant.create", params=t_params)
+        await _invoke(
+            api,
+            "Tenant.create",
+            params=t_params,
+            ctx={"request": ctx["request"], "db": db, "env": t_env},
+        )
+        log.info("Upserted shadow tenant %s", tid)
+        u_params = user_payload.model_dump()
+        u_env = SimpleNamespace(method="User.create", params=u_params)
+        await _invoke(
+            api,
+            "User.create",
+            params=u_params,
+            ctx={"request": ctx["request"], "db": db, "env": u_env},
+        )
+        log.info("Upserted shadow user %s", uid)
     except IntegrityError:
         log.info("Shadow principal commit failed, rolling back")
         await db.rollback()
@@ -291,7 +311,6 @@ async def _startup() -> None:
     log.info(api.methods)
     log.info(api.schemas)
 
-
     log.info("gateway ready")
 
 
@@ -303,4 +322,3 @@ async def _shutdown() -> None:
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
-
