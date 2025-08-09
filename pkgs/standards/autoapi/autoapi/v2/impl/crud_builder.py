@@ -16,6 +16,7 @@ from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
 
+
 # ----------------------------------------------------------------------
 # ----------------------------------------------------------------------
 def _invoke_all_registrars(model: type, api) -> None:
@@ -23,23 +24,28 @@ def _invoke_all_registrars(model: type, api) -> None:
     Call every distinct  __autoapi_register_hooks__  found in the MRO,
     but bind each descriptor to *model*, so cls-param is correct.
     """
-    seen: set[type] = set()                       # guard: one call per base
+    print(f"_invoke_all_registrars for model={model} api={api}")
+    seen: set[type] = set()  # guard: one call per base
 
-    for base in reversed(model.__mro__):          # parents first
+    for base in reversed(model.__mro__):  # parents first
         if "__autoapi_register_hooks__" not in base.__dict__:
             continue
-        if base in seen:                          # already invoked
+        if base in seen:  # already invoked
             continue
 
+        print(f"Registering hooks from base {base}")
         raw = base.__dict__["__autoapi_register_hooks__"]  # the descriptor
-        bound_fn = raw.__get__(None, model)       # bind to *model* 🔑
+        bound_fn = raw.__get__(None, model)  # bind to *model* 🔑
         bound_fn(api)
         seen.add(base)
+
+
 # ----------------------------------------------------------------------
 
 
 def _not_found() -> None:
     """Raise a standardized 404 error."""
+    print("_not_found called")
     http_exc, _, _ = create_standardized_error(404, rpc_code=-32094)
     raise http_exc
 
@@ -61,11 +67,14 @@ def _commit_or_http(db: Session) -> None:
         r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
     )
 
+    print("_commit_or_http start")
     try:
         db.flush() if db.in_nested_transaction() else db.commit()
+        print("_commit_or_http success")
     except IntegrityError as exc:
         db.rollback()
         raw = str(exc.orig)
+        print(f"IntegrityError encountered: {raw}")
         if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
             m = _DUP_RE.search(raw)
             msg = (
@@ -84,6 +93,7 @@ def _commit_or_http(db: Session) -> None:
         raise http_exc from exc
     except SQLAlchemyError as exc:
         db.rollback()
+        print(f"SQLAlchemyError encountered: {exc}")
         http_exc, _, _ = create_standardized_error(
             500, message=f"Database error: {exc}"
         )
@@ -101,6 +111,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
     Returns:
         Dictionary of CRUD operation functions
     """
+    print(f"create_crud_operations for model={model} pk_name={pk_name}")
     mapper = _sa_inspect(model)
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
@@ -113,6 +124,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
 
     def _create(p: SCreate, db: Session):
         """Create a new model instance."""
+        print(f"_create called with {p}")
         data = p.model_dump() if hasattr(p, "model_dump") else dict(p)
         col_kwargs = {
             k: v for k, v in data.items() if k in {c.key for c in mapper.attrs}
@@ -124,10 +136,12 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
         db.add(obj)
         _commit_or_http(db)
         db.refresh(obj)
+        print(f"_create returning {obj}")
         return obj
 
     def _read(i, db: Session):
         """Read a model instance by ID."""
+        print(f"_read called with id={i}")
         if isinstance(i, str) and pk_type is not str:
             try:
                 i = pk_type(i)
@@ -136,10 +150,12 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
         obj = db.get(model, i)
         if obj is None:
             _not_found()
+        print(f"_read returning {obj}")
         return obj
 
     def _update(i, p: SUpdate, db: Session, *, full=False):
         """Update a model instance."""
+        print(f"_update called with id={i} payload={p} full={full}")
         if isinstance(p, dict):
             p = SUpdate(**p)
         if isinstance(i, str) and pk_type is not str:
@@ -161,10 +177,12 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
 
         _commit_or_http(db)
         db.refresh(obj)
+        print(f"_update returning {obj}")
         return obj
 
     def _delete(i, db: Session):
         """Delete a model instance."""
+        print(f"_delete called with id={i}")
         if isinstance(i, str) and pk_type is not str:
             try:
                 i = pk_type(i)
@@ -175,10 +193,12 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
             _not_found()
         db.delete(obj)
         _commit_or_http(db)
+        print(f"_delete removed {i}")
         return {pk_name: i}
 
     def _list(p: SListIn, db: Session):
         """List model instances with filtering."""
+        print(f"_list called with params={p}")
         d = p.model_dump(exclude_defaults=True, exclude_none=True)
         qry = (
             db.query(model)
@@ -187,12 +207,16 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
         )
         if lim := d.get("limit"):
             qry = qry.limit(lim)
-        return qry.all()
+        result = qry.all()
+        print(f"_list returning {result}")
+        return result
 
     def _clear(db: Session):
         """Clear all instances of the model."""
+        print("_clear called")
         deleted = db.query(model).delete()
         _commit_or_http(db)
+        print(f"_clear removed {deleted} rows")
         return {"deleted": deleted}
 
     return {
@@ -221,12 +245,15 @@ def _crud(self, model: type) -> None:
         model: SQLAlchemy ORM model to create CRUD operations for
     """
     tab = model.__tablename__
+    print(f"_crud called for table={tab}")
 
     if tab in self._registered_tables:
+        print(f"_crud skipping {tab}, already registered")
         return
     self._registered_tables.add(tab)
 
     pk = next(iter(model.__table__.primary_key.columns)).name
+    print(f"Primary key for {tab} is {pk}")
 
     # Create CRUD operations
     crud_ops = create_crud_operations(model, pk)
@@ -248,6 +275,7 @@ def _crud(self, model: type) -> None:
         crud_ops["list"],
         crud_ops["clear"],
     )
+    print(f"_crud registered routes for {tab}")
 
     # ───────────────────────────────────────────────────────────────
     # Support for self-registering models / mixins
