@@ -1,11 +1,14 @@
 """
-autoapi/v2/rpc_adapter.py – RPC adaptation for AutoAPI.
+autoapi/v2/rpc_adapter.py  –  RPC adaptation functionality for AutoAPI.
+
+This module contains the logic for wrapping CRUD functions to work with
+JSON-RPC calls, handling parameter validation and response formatting.
 """
 
 from __future__ import annotations
 
-from inspect import signature, Parameter
-from typing import Any, get_args, get_origin, Iterable
+from inspect import signature
+from typing import Any, get_args, get_origin
 
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -14,109 +17,95 @@ from sqlalchemy import inspect as _sa_inspect
 
 def _wrap_rpc(core, IN, OUT, pk_name: str, model):
     """
-    Wrap a CRUD/core function to work with JSON-RPC calls.
+    Wrap a CRUD function to work with JSON-RPC calls.
 
-    • Validates incoming params against `IN` when available
-    • Ensures CREATE paths preserve server-injected fields (tenant_id/owner_id)
-    • Chooses model vs. dict payload based on `core`'s type hints
+    Args:
+        core: The core CRUD function to wrap
+        IN: Input schema class or dict
+        OUT: Output schema class
+        pk_name: Primary key field name
+        model: SQLAlchemy model class
+
+    Returns:
+        Wrapped function that handles RPC parameter conversion
     """
+    p = iter(signature(core).parameters.values())
+    first = next(p, None)
+    exp_pm = hasattr(IN, "model_validate")
+    out_lst = get_origin(OUT) is list
+    elem = get_args(OUT)[0] if out_lst else None
+    elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
+    single = callable(getattr(OUT, "model_validate", None))
 
-    sig = signature(core)
-    params_sig: list[Parameter] = list(sig.parameters.values())
-
+    # Heuristic: input model for create typically ends with "Create"
     def _is_create_schema() -> bool:
         name = getattr(IN, "__name__", "")
         return isinstance(name, str) and name.endswith("Create")
 
-    def _core_wants_pydantic_model() -> bool:
-        # If any non-db arg is explicitly typed as a Pydantic model, prefer model
-        def _is_db(p: Parameter) -> bool:
-            return p.name == "db"
-
-        def _is_model_type(t) -> bool:
-            return isinstance(t, type) and issubclass(t, BaseModel)
-
-        for p in params_sig:
-            if _is_db(p):
-                continue
-            ann = p.annotation
-            if _is_model_type(ann):
-                return True
-        return False
-
-    # OUT formatting helpers
-    out_is_list = get_origin(OUT) is list
-    out_elem = get_args(OUT)[0] if out_is_list else None
-    elem_has_validate = callable(getattr(out_elem, "model_validate", None)) if out_elem else False
-    out_is_single_model = callable(getattr(OUT, "model_validate", None))
-
     def h(raw: dict, db: Session):
-        # 1) Validate input if schema provided
-        if hasattr(IN, "model_validate"):
-            obj_in = IN.model_validate(raw)
-            data = obj_in.model_dump()
-            exp_pm = True
-        else:
-            obj_in = raw
-            data = raw
-            exp_pm = False
+        """
+        Handle RPC call by converting parameters and formatting response.
 
-        # 2) CREATE: merge server-injected mapped fields from `raw`
+        Args:
+            raw: Raw RPC parameters dict (already mutated by PRE hooks)
+            db: Database session
+
+        Returns:
+            Formatted response data
+        """
+        obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
+        data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+
+        # ---- CREATE special case ------------------------------------------------
+        # Pydantic validation may drop server-injected fields (e.g., tenant_id/owner_id)
+        # if they are not present on the Create schema. Merge mapped columns back from
+        # the raw (post-hook) payload before calling core.
         if _is_create_schema():
+            # Map of ORM column keys for the target model
             col_keys = {c.key for c in _sa_inspect(model).columns}
+
+            # Start from validated payload, then overlay server-injected mapped fields
             enriched = dict(data)
             for k in col_keys:
-                v = raw.get(k, None)  # hooks may have injected these
+                v = raw.get(k, None)  # hooks may have added tenant_id/owner_id, etc.
                 if v is not None and (k not in enriched or enriched[k] is None):
                     enriched[k] = v
-            payload = enriched
-            pass_as_model = False  # pass dict to core.create
-        else:
-            # Non-create: choose model vs dict by core signature
-            pass_as_model = exp_pm and _core_wants_pydantic_model()
-            payload = obj_in if pass_as_model else data
 
-        # 3) Dispatch to core with correct positional layout
-        #    (support patterns like core(id, payload, db=db) vs core(payload, db=db))
-        if pk_name in raw and params_sig and params_sig[0].name != pk_name:
-            # core expects (pk, [payload?], db=...)
-            if len(params_sig) >= 3:
-                r = core(raw[pk_name], payload, db=db)
-            else:
-                r = core(raw[pk_name], db=db)
+            # Call core with a dict payload (crud layer should accept dict or model)
+            r = core(enriched, db=db)
+
+        # ---- Non-create paths (keep existing behavior) --------------------------
         else:
-            # core expects ([payload?], db=...)
-            # For operations that have no payload (e.g., delete by pk only), payload is ignored
-            if pass_as_model or (payload is not raw and payload is not None):
-                # payload is either Pydantic model or dict
-                # Try to match first param if named differently than pk_name
-                first = params_sig[0] if params_sig else None
-                if first and first.name not in (pk_name, "db") and first.kind in (
-                    Parameter.POSITIONAL_ONLY,
-                    Parameter.POSITIONAL_OR_KEYWORD,
-                    Parameter.KEYWORD_ONLY,
-                ):
-                    r = core(payload, db=db)
+            if exp_pm:
+                params = list(signature(core).parameters.values())
+                if pk_name in raw and params and params[0].name != pk_name:
+                    if len(params) >= 3:
+                        r = core(raw[pk_name], obj_in, db=db)
+                    else:
+                        r = core(raw[pk_name], db=db)
                 else:
-                    # No payload parameter; call with db only
-                    r = core(db=db)
+                    r = core(obj_in, db=db)
             else:
-                r = core(db=db)
+                if pk_name in data and first and first.name != pk_name:
+                    r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
+                else:
+                    r = core(raw[pk_name], data, db=db)
 
-        # 4) Format OUT
-        if not out_is_list:
+        # ---- Format response based on output schema -----------------------------
+        if not out_lst:
             if isinstance(r, BaseModel):
                 return r.model_dump()
-            if out_is_single_model:
+            if single:
                 return OUT.model_validate(r).model_dump()
             return r
 
+        # Handle list responses
         out: list[Any] = []
         for itm in r:
             if isinstance(itm, BaseModel):
                 out.append(itm.model_dump())
-            elif elem_has_validate:
-                out.append(out_elem.model_validate(itm).model_dump())
+            elif elem_md:
+                out.append(elem.model_validate(itm).model_dump())
             else:
                 out.append(itm)
         return out
