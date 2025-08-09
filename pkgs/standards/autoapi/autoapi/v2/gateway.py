@@ -55,6 +55,8 @@ def build_gateway(api) -> APIRouter:
             db: Session = Depends(api.get_db),
             principal: Dict | None = api._authn_dep,
         ):
+            print("GW principal:", principal)
+            print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
@@ -96,6 +98,9 @@ def build_gateway(api) -> APIRouter:
             db: AsyncSession = Depends(api.get_async_db),
             principal: Dict | None = api._authn_dep,
         ):
+
+            print("GW principal:", principal)
+            print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)

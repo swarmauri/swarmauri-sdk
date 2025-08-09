@@ -7,26 +7,23 @@ log = logging.getLogger(__name__)
 
 def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
-
-    allow_anon = api._allow_anon
-
-    @api.hook(Phase.PRE_TX_BEGIN)  # PRE‑DB, works for CRUD & RPC
+    @api.hook(Phase.PRE_TX_BEGIN)
     async def _authn_inject_principal(ctx):
-        if getattr(ctx.get("env"), "method", None) in allow_anon:
-            return
-        p = ctx["request"].state.principal
+        p = getattr(ctx["request"].state, "principal", None)
         if not p:
-            return
+            return  # nothing to inject
 
         injected = ctx.setdefault("__autoapi_injected_fields__", {})
-        tid = p.get("tid")
-        sub = p.get("sub")
-        log.info("Injecting principal tid=%s sub=%s", tid, sub)
+        tid = p.get("tid") or p.get("tenant_id")
+        sub = p.get("sub") or p.get("user_id")
         if tid is not None:
             injected["tenant_id"] = tid
         if sub is not None:
             injected["user_id"] = sub
-        log.info("Injected fields: %s", injected)
+
+        log.info("authn hook principal=%s", getattr(ctx["request"].state, "principal", None))
+        log.info("authn hook injected before=%s", ctx.get("__autoapi_injected_fields__"))
+
 
 
 __all__ = ["register_inject_hook", "log"]
