@@ -61,6 +61,20 @@ class TenantBound(_RowBound):
             info={"autoapi": autoapi_meta} if autoapi_meta else {},
         )
 
+
+    tenant_id = Column(PgUUID(as_uuid=True), nullable=False)
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    @declared_attr
+    def tenant_fk(cls):
+        schema = getattr(cls, '__table_args__', None)
+        # Extract the schema from __table_args__, defaulting to 'public' if not set
+        schema = next((arg.get('schema', 'public') for arg in (schema or []) if isinstance(arg, dict)), 'public')
+        return ForeignKey(f"{schema}.tenants.id")
+        
     # -------------------------------------------------------------------
     # Row-level visibility for _RowBound
     # -------------------------------------------------------------------

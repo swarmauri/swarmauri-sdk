@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from autoapi.v2.types import Column, String, JSON, PgUUID, ForeignKey, relationship
 from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable
+from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable, TenantBound
 
 from .users import User
 
 
-class EvalResult(Base, GUIDPk, Timestamped, Ownable):
+class EvalResult(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "eval_results"
     __table_args__= {"schema": "peagen"}
     work_id = Column(PgUUID(as_uuid=True), ForeignKey("works.id", ondelete="CASCADE"))
