@@ -40,23 +40,6 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
-    if api._authn:
-
-        async def _auth_dep(request: Request) -> Dict | None:
-            try:
-                return await api._authn.get_principal(request)
-            except HTTPException:
-                return None
-
-        auth_dep = Depends(_auth_dep)
-    else:
-        # Without an AuthN provider, ``principal`` should still be injected via
-        # dependency resolution rather than treated as an extra body parameter.
-        # Using ``Depends`` with a no-op callable preserves the expected
-        # function signature and avoids FastAPI interpreting ``principal`` as a
-        # required body field, which previously caused 422 responses when the
-        # request body lacked a top-level ``principal`` key.
-        auth_dep = Depends(lambda: None)
 
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
@@ -70,7 +53,7 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
-            principal: Dict | None = auth_dep,
+            principal: Dict | None = api._authn_dep,
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
@@ -111,7 +94,7 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
-            principal: Dict | None = auth_dep,
+            principal: Dict | None = api._authn_dep,
         ):
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
