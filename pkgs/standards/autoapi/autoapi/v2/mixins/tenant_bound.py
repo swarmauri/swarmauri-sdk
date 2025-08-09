@@ -133,6 +133,7 @@ class TenantBound(_RowBound):
                     params["tenant_id"] = _normalize_uuid(provided)
 
             ctx["env"].params = params
+            print(f'\n🚧 params: {ctx["env"].params}')
 
         # UPDATE
         def _tenantbound_before_update(ctx, obj):
