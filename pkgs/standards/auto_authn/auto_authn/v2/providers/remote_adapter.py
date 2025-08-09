@@ -62,7 +62,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         if not api_key:
             request.state.principal = None
             principal_var.set(None)
-            return principal
+            return None
 
         # ------- tiny TTL cache to save RTT ---------------------------
         principal = self._cache_get(api_key)
