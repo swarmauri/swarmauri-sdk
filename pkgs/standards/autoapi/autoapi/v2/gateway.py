@@ -55,6 +55,7 @@ def build_gateway(api) -> APIRouter:
             db: Session = Depends(api.get_db),
             principal: Dict | None = api._authn_dep,
         ):
+            req.state.principal = principal
             print("GW principal:", principal)
             print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
@@ -98,7 +99,7 @@ def build_gateway(api) -> APIRouter:
             db: AsyncSession = Depends(api.get_async_db),
             principal: Dict | None = api._authn_dep,
         ):
-
+            req.state.principal = principal
             print("GW principal:", principal)
             print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
