@@ -28,6 +28,7 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
     Returns:
         Wrapped function that handles RPC parameter conversion
     """
+    print(f"_wrap_rpc core={core} IN={IN} OUT={OUT} pk_name={pk_name} model={model}")
     p = iter(signature(core).parameters.values())
     first = next(p, None)
     exp_pm = hasattr(IN, "model_validate")
@@ -47,8 +48,10 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
         Returns:
             Formatted response data
         """
+        print(f"RPC handler received raw={raw}")
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        print(f"Validated data={data}")
 
         if exp_pm:
             params = list(signature(core).parameters.values())
@@ -65,12 +68,18 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
             else:
                 r = core(raw[pk_name], data, db=db)
 
+        print(f"Core function returned {r}")
         # Format response based on output schema
         if not out_lst:
             if isinstance(r, BaseModel):
-                return r.model_dump()
+                result = r.model_dump()
+                print(f"Returning BaseModel {result}")
+                return result
             if single:
-                return OUT.model_validate(r).model_dump()
+                result = OUT.model_validate(r).model_dump()
+                print(f"Returning single model {result}")
+                return result
+            print(f"Returning raw result {r}")
             return r
 
         # Handle list responses
@@ -82,6 +91,7 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
                 out.append(elem.model_validate(itm).model_dump())
             else:
                 out.append(itm)
+        print(f"Returning list result {out}")
         return out
 
     return h

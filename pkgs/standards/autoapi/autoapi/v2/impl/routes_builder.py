@@ -61,7 +61,9 @@ def _canonical(tab: str, verb: str) -> str:
     operation verb.
     """
     cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
-    return f"{cls_name}.{verb}"
+    name = f"{cls_name}.{verb}"
+    print(f"_canonical generated {name}")
+    return name
 
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
@@ -87,6 +89,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     The REST routes are thin facades: each fabricates a _RPCReq envelope and
     delegates to `_invoke`, ensuring lifecycle parity with /rpc.
     """
+    print(f"_register_routes_and_rpcs model={model} tab={tab} pk={pk}")
     # ---------- sync / async detection --------------------------------
     is_async = (
         bool(self.get_async_db)
@@ -94,6 +97,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         else issubclass(model, AsyncCapable)
     )
     provider = self.get_async_db if is_async else self.get_db
+    print(f"Async mode: {is_async}")
 
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
@@ -108,6 +112,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         ("delete", "DELETE", "/{item_id}", 204, SDel, None, _delete),
     ]
     if issubclass(model, Replaceable):
+        print("Model is Replaceable; adding replace spec")
         spec.append(
             (
                 "replace",
@@ -120,6 +125,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             )
         )
     if issubclass(model, BulkCapable):
+        print("Model is BulkCapable; adding bulk specs")
         spec += [
             ("bulk_create", "POST", "/bulk", 201, List[SCreate], List[SRead], _create),
             ("bulk_delete", "DELETE", "/bulk", 204, List[SDel], None, _delete),
@@ -129,10 +135,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     raw_pref = self._nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
     nested_vars = re.findall(r"{(\w+)}", raw_pref)
+    print(f"Nested prefix: {nested_pref} vars: {nested_vars}")
 
     allow_cb = getattr(model, "__autoapi_allow_anon__", None)
     _allow_verbs = set(allow_cb()) if callable(allow_cb) else set()
     self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    if _allow_verbs:
+        print(f"Anon allowed verbs: {_allow_verbs}")
 
     flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
     routers = (
@@ -145,6 +154,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     def _guard(scope: str):
         async def inner(request: Request):
             if self.authorize and not self.authorize(scope, request):
+                print(f"Authorization failed for scope {scope}")
                 http_exc, _, _ = create_standardized_error(403, rpc_code=-32095)
                 raise http_exc
 
@@ -225,6 +235,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
             # ---- callable body ---------------------------------------
             async def _impl(**kw):
+                print(f"Endpoint {m_id} invoked with {kw}")
                 db: Session | AsyncSession = kw.pop("db")
                 req: Request = kw.pop("request")  # always present
                 p = kw.pop("p", None)
@@ -245,6 +256,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 if parent_kw:
                     rpc_params.update(parent_kw)
 
+                print(f"RPC params built: {rpc_params}")
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
                 ctx = {"request": req, "db": db, "env": env, "params": env.params}
 
@@ -276,9 +288,11 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 def _direct_call(_m, _p, _db=db):
                     return core(*_build_args(_p), _db)
 
-                return await _invoke(
+                result = await _invoke(
                     self, m_id, params=rpc_params, ctx=ctx, exec_fn=_direct_call
                 )
+                print(f"Endpoint {m_id} returning {result}")
+                return result
 
             _impl.__name__ = f"{verb}_{tab}"
             wrapped = functools.wraps(_impl)(_impl)
@@ -301,6 +315,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             deps = [_guard(m_id)]
             if m_id not in self._allow_anon:
                 deps.insert(0, self._authn_dep)
+            print(f"Mounting route {path} for verb {verb} on router {rtr}")
             rtr.add_api_route(
                 path,
                 _factory(rtr is not flat_router),
@@ -322,6 +337,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
+        print(f"Registered RPC method {m_id}")
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
@@ -358,8 +374,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         # (e.g. ``Items.create``) rather than the camel-cased helper name.
         self._method_ids[m_id] = _runner
         setattr(self.methods, camel, _runner)
+        print(f"Registered helper method {camel}")
 
     # include routers
     self.router.include_router(flat_router)
     if len(routers) > 1:
         self.router.include_router(routers[1])
+    print(f"Routes registered for {tab}")
