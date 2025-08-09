@@ -107,31 +107,29 @@ class TenantBound(_RowBound):
         def _tenantbound_before_create(ctx):
             params = ctx["env"].params if ctx.get("env") else {}
             if hasattr(params, "model_dump"):
-                params = params.model_dump()
+                # IMPORTANT: if you DON'T do #2 below, keep exclude_none=False here,
+                # and rely on _is_missing() to decide.
+                params = params.model_dump()  
 
+            print('\n🚧')
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
             injected_tid = auto_fields.get("tenant_id")
+            print('\n🚧🚧')
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
-
-            log.info(
-                "TenantBound before_create policy=%s params=%s injected=%s",
-                pol, params, auto_fields,
-            )
-
-            if pol == TenantPolicy.STRICT_SERVER:
+            print('\n🚧🚧🚧')
+            if cls.__autoapi_tenant_policy__ == TenantPolicy.STRICT_SERVER:
                 if injected_tid is None:
                     _err(400, "tenant_id is required.")
                 if not missing and _normalize_uuid(provided) != _normalize_uuid(injected_tid):
                     _err(400, "tenant_id mismatch.")
-                params["tenant_id"] = injected_tid  # always enforce server value
+                params["tenant_id"] = injected_tid
             else:
                 if missing:
                     if injected_tid is None:
                         _err(400, "tenant_id is required.")
                     params["tenant_id"] = injected_tid
                 else:
-                    # Optional normalization when client supplies it
                     params["tenant_id"] = _normalize_uuid(provided)
 
             ctx["env"].params = params
