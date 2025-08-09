@@ -126,7 +126,7 @@ async def _shadow_principal(ctx):
     except (ValueError, AttributeError):
         log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
         return
-    log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
+    log.info("Shadow principal tid=%s uid=%s", tid, uid)
 
     user_payload = api.schemas.UserCreate(
         id=uid,
