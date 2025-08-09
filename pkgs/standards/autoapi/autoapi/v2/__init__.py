@@ -1,10 +1,9 @@
 # autoapi/v2/__init__.py
 """
 Public façade for the AutoAPI framework.
-
-•  Keeps only lightweight glue code.
-•  Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
-•  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
+• Keeps only lightweight glue code.
+• Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
+• Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
 """
 
 # ─── std / third-party ──────────────────────────────────────────────
@@ -74,7 +73,7 @@ class AutoAPI:
         self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
         self._allow_anon: set[str] = set()
 
-        # attribute-style access, e.g.  api.methods.UserCreate(...)
+        # attribute-style access, e.g. api.methods.UserCreate(...)
         self.methods: SimpleNamespace = SimpleNamespace()
 
         # public Schemas namespace
@@ -87,21 +86,15 @@ class AutoAPI:
         self.get_db = get_db
         self.get_async_db = get_async_db
 
-        # ---------- add register_transactional---------------------
+        # ---------- add register_transactional -------------------
         self.transactional = MethodType(_register_tx, self)
 
-        # ─── convenience: explicit registration ----------------------
+        # ─── convenience: explicit registration -----------------
         def _register_existing_tx(
             self, fn: Callable[..., Any], **kw
         ) -> Callable[..., Any]:
             """
             Register *fn* as a transactional handler *after* it was defined.
-
-            Example
-            -------
-                def bundle_create(p, db): ...
-                api.register_transactional(bundle_create,
-                                           name='bundle.create')
             """
             return self.transactional(fn, **kw)
 
@@ -117,7 +110,7 @@ class AutoAPI:
         # Store DDL creation for later execution
         self._ddl_executed = False
 
-        # ---------- initialise hook subsystem ---------------------
+        # ---------- initialise hook subsystem --------------------
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
@@ -149,14 +142,14 @@ class AutoAPI:
     async def initialize_async(self):
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
-            async for adb in self.get_async_db():
-                aengine = adb.get_bind()  # AsyncEngine
+            async for adb in self.get_async_db():  # AsyncSession
+                aengine = adb.get_bind()  # AsyncConnection or AsyncEngine
 
-                # Run schema bootstrap and DDL on the same sync connection
+                # Run on the corresponding sync connection provided by run_sync
                 def _sync_bootstrap(sync_conn):
-                    # Create/prepare schemas per dialect (Postgres/SQLite)
+                    # 1) ensure schemas using the *Engine* behind the Connection
                     ensure_schemas(sync_conn.engine)
-                    # Create tables limited to the declared include-set
+                    # 2) create tables bound to the same connection
                     self.base.metadata.create_all(
                         bind=sync_conn,
                         checkfirst=True,
@@ -170,11 +163,14 @@ class AutoAPI:
     def initialize_sync(self):
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
-            with next(self.get_db()) as db:
-                engine = db.get_bind()
-                # Create/prepare schemas per dialect (Postgres/SQLite)
+            with next(self.get_db()) as db:  # Session
+                bind = db.get_bind()  # Engine or Connection
+                # If it's a Connection, resolve its Engine; if it's already an Engine, use as-is
+                engine = getattr(bind, "engine", bind)
+
+                # 1) ensure schemas using the Engine
                 ensure_schemas(engine)
-                # Create tables limited to the declared include-set
+                # 2) create tables (bound to the Engine)
                 self.base.metadata.create_all(
                     engine,
                     checkfirst=True,
@@ -183,8 +179,7 @@ class AutoAPI:
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
-    # schema = staticmethod(_schema)   # <- prevents self-binding
-    _schema = _schema  # keep the private alias if you still need it
+    _schema = _schema
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc
