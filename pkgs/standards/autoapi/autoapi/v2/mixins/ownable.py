@@ -6,15 +6,12 @@ from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
 
-
 log = logging.getLogger(__name__)
-
 
 class OwnerPolicy(str, Enum):
     CLIENT_SET = "client"
     DEFAULT_TO_USER = "default"
     STRICT_SERVER = "strict"
-
 
 class Ownable:
     """
@@ -32,21 +29,23 @@ class Ownable:
     def owner_id(cls):
         pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
 
+        # Extract schema from __table_args__, default to 'public'
+        schema = getattr(cls, '__table_args__', None)
+        schema = next((arg.get('schema', 'public') for arg in (schema or []) if isinstance(arg, dict)), 'public')
+
+        # Prepare metadata for the column based on owner policy
         autoapi_meta = {}
         if pol != OwnerPolicy.CLIENT_SET:
-            # Hide on write verbs (create/update/replace) and mark read-only
-            autoapi_meta["disable_on"] = [
-                "update",
-                "replace",
-            ]  # add "create" if desired
+            autoapi_meta["disable_on"] = ["update", "replace"]  # add "create" if needed
             autoapi_meta["read_only"] = True
 
-        # Validate the metadata keys
+        # Validate metadata
         _info_check(autoapi_meta, "owner_id", cls.__name__)
 
+        # Define the column with schema-aware ForeignKey
         return Column(
             PgUUID,
-            ForeignKey("users.id"),
+            ForeignKey(f"{schema}.users.id"),  # Fully qualified ForeignKey with schema
             nullable=False,
             index=True,
             info={"autoapi": autoapi_meta} if autoapi_meta else {},
@@ -79,10 +78,7 @@ class Ownable:
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
-                if "owner_id" in params and params["owner_id"] not in (
-                    None,
-                    user_id,
-                ):
+                if "owner_id" in params and params["owner_id"] not in (None, user_id):
                     _err(400, "owner_id mismatch.")
                 if "user_id" in auto_fields or "owner_id" not in params:
                     params["owner_id"] = user_id
