@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import FrozenSet
 
+#from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import Role, RoleGrant, RolePerm, Status, Base
 
 # Import table classes. Ensure Tenant is imported before Pool so bootstrapping
@@ -44,9 +45,9 @@ __all__ = [
     "Tenant",
     "User",
     "Org",
-    "Role",
-    "RoleGrant",
-    "RolePerm",
+    # "Role",
+    # "RoleGrant",
+    # "RolePerm",
     "Status",
     "Base",
     "Repository",
