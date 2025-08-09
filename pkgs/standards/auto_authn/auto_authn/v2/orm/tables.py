@@ -63,7 +63,7 @@ class Tenant(TenantBase, Bootstrappable):
     # __mapper_args__ = {"concrete": True}
     __table_args__ = ({
         "extend_existing": True,
-        "schema": "peagen",
+        "schema": "authn",
     },)
     name = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
