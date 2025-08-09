@@ -111,13 +111,13 @@ class TenantBound(_RowBound):
                 # and rely on _is_missing() to decide.
                 params = params.model_dump()  
 
-            print('\n🚧')
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            print(f'\n🚧{auto_fields}')
             injected_tid = auto_fields.get("tenant_id")
-            print('\n🚧🚧')
+            print(f'\n🚧🚧{injected_tid}')
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
-            print('\n🚧🚧🚧')
+            print(f'\n🚧🚧🚧{provided}')
             if cls.__autoapi_tenant_policy__ == TenantPolicy.STRICT_SERVER:
                 if injected_tid is None:
                     _err(400, "tenant_id is required.")
