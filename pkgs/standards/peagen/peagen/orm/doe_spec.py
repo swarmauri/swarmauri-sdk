@@ -19,7 +19,7 @@ from .users import User
 
 class DoeSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "doe_specs"
-    __table_args__= (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
+    __table_args__= (UniqueConstraint("tenant_id", "name"), {"schema": "peagen"},)
 
  
     name = Column(String, nullable=False)

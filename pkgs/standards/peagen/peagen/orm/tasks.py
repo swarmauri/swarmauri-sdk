@@ -52,7 +52,7 @@ class Task(
     HookProvider,
 ):
     __tablename__ = "tasks"
-    __table_args__= {"schema": "peagen"}
+    __table_args__= ({"schema": "peagen"},)
     action = Column(PgEnum(Action, name="task_action"), nullable=False)
     pool_id = Column(PgUUID(as_uuid=True), ForeignKey("peagen.pools.id"), nullable=False)
     config_toml = Column(String)
