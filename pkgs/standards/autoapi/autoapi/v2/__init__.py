@@ -1,4 +1,4 @@
-# autoapi.py
+# autoapi/v2/__init__.py
 """
 Public façade for the AutoAPI framework.
 
@@ -37,6 +37,9 @@ from .types import (
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
+
+# ─── db schema bootstrap (dialect-aware; no flags required) ─────────
+from .bootstrap_dbschema import ensure_schemas
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -115,16 +118,14 @@ class AutoAPI:
         self._ddl_executed = False
 
         # ---------- initialise hook subsystem ---------------------
-
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
-
         # ---------------- AuthN wiring -----------------
         if authn is not None:  # preferred path
             self._authn = authn
             self._authn_dep = Security(authn.get_principal)
-            # Late‑binding of the injection hook
+            # Late-binding of the injection hook
             authn.register_inject_hook(self)
         else:
             self._authn = None
@@ -149,15 +150,20 @@ class AutoAPI:
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
             async for adb in self.get_async_db():
-                # Get the engine from the session
-                engine = adb.get_bind()
-                await adb.run_sync(
-                    lambda _: self.base.metadata.create_all(
-                        engine,
+                aengine = adb.get_bind()  # AsyncEngine
+
+                # Run schema bootstrap and DDL on the same sync connection
+                def _sync_bootstrap(sync_conn):
+                    # Create/prepare schemas per dialect (Postgres/SQLite)
+                    ensure_schemas(sync_conn.engine)
+                    # Create tables limited to the declared include-set
+                    self.base.metadata.create_all(
+                        bind=sync_conn,
                         checkfirst=True,
                         tables=self.tables,
                     )
-                )
+
+                await adb.run_sync(_sync_bootstrap)
                 break
             self._ddl_executed = True
 
@@ -165,8 +171,12 @@ class AutoAPI:
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
             with next(self.get_db()) as db:
+                engine = db.get_bind()
+                # Create/prepare schemas per dialect (Postgres/SQLite)
+                ensure_schemas(engine)
+                # Create tables limited to the declared include-set
                 self.base.metadata.create_all(
-                    db.get_bind(),
+                    engine,
                     checkfirst=True,
                     tables=self.tables,
                 )
