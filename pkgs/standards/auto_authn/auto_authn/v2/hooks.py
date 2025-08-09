@@ -10,6 +10,7 @@ def register_inject_hook(api):
     @api.hook(Phase.PRE_TX_BEGIN)
     async def _authn_inject_principal(ctx):
         p = getattr(ctx["request"].state, "principal", None)
+        log.info("anon authn hook principal")
         if not p:
             return  # nothing to inject
 

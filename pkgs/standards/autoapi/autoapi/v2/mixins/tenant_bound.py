@@ -1,5 +1,6 @@
 from enum import Enum
 import logging
+from uuid import UUID
 
 from ._RowBound import _RowBound
 from ..types import Column, ForeignKey, PgUUID, declared_attr
@@ -7,19 +8,49 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 
-
 log = logging.getLogger(__name__)
 
+
 class TenantPolicy(str, Enum):
-    CLIENT_SET = "client"  # client may supply tenant_id on create/update
+    CLIENT_SET = "client"       # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
-    STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
+    STRICT_SERVER = "strict"    # server forces tenant_id and forbids changes
+
+
+def _infer_schema(cls, default: str = "public") -> str:
+    args = getattr(cls, "__table_args__", None)
+    if not args:
+        return default
+    if isinstance(args, dict):
+        return args.get("schema", default)
+    if isinstance(args, (tuple, list)):
+        for elem in args:
+            if isinstance(elem, dict) and "schema" in elem:
+                return elem["schema"]
+    return default
+
+
+def _is_missing(value) -> bool:
+    """Treat None or empty strings as 'not provided'."""
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
+def _normalize_uuid(val):
+    if isinstance(val, UUID):
+        return val
+    if isinstance(val, str):
+        try:
+            return UUID(val)
+        except ValueError:
+            return val  # let model validation surface the error
+    return val
+
 
 class TenantBound(_RowBound):
     """
     Plug-and-play tenant isolation.
 
-    • `tenant_id` column is defined per subclass (declared_attr) so the schema
+    • tenant_id column is defined per subclass (declared_attr) so the schema
       builder sees the right flags before caching.
     • _RowBound’s read/list filters work because we implement `is_visible`.
     """
@@ -27,38 +58,27 @@ class TenantBound(_RowBound):
     __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.CLIENT_SET
 
     # ────────────────────────────────────────────────────────────────────
-    # tenant_id column (Schema-Aware)
+    # tenant_id column (Schema-Aware; PgUUID(as_uuid=True))
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
         pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
+        schema = _infer_schema(cls, default="public")
 
-        # Extract schema from __table_args__, defaulting to 'public' if not set
-        schema = getattr(cls, '__table_args__', None)
-        schema = next((arg.get('schema', 'public') for arg in (schema or []) if isinstance(arg, dict)), 'public')
-
-        # Prepare metadata for the column based on tenant policy
         autoapi_meta: dict[str, object] = {}
         if pol != TenantPolicy.CLIENT_SET:
-            # Hide field on *all* write verbs and mark as read-only
             autoapi_meta["disable_on"] = ["update", "replace"]
             autoapi_meta["read_only"] = True
-
-        # Validate metadata
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
 
-        # Define the column with schema-aware ForeignKey
         return Column(
             PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.tenants.id"),  # Fully qualified ForeignKey with schema
+            ForeignKey(f"{schema}.tenants.id"),
             nullable=False,
             index=True,
             info={"autoapi": autoapi_meta} if autoapi_meta else {},
         )
 
-    # ────────────────────────────────────────────────────────────────────
-    # Schema for table (using dynamic schema configuration)
-    # -------------------------------------------------------------------
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
@@ -68,10 +88,6 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @staticmethod
     def is_visible(obj, ctx) -> bool:
-        """
-        A row is visible iff it belongs to the caller’s tenant.
-        The tenant id is provided via ``__autoapi_injected_fields__``.
-        """
         auto_fields = ctx.get("__autoapi_injected_fields__", {})
         ctx_tenant_id = auto_fields.get("tenant_id")
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
@@ -92,29 +108,32 @@ class TenantBound(_RowBound):
             params = ctx["env"].params if ctx.get("env") else {}
             if hasattr(params, "model_dump"):
                 params = params.model_dump()
+
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
-            tenant_id = auto_fields.get("tenant_id")
+            injected_tid = auto_fields.get("tenant_id")
+            provided = params.get("tenant_id")
+            missing = _is_missing(provided)
+
             log.info(
-                "TenantBound before_create policy=%s params=%s auto_fields=%s",
-                pol,
-                params,
-                auto_fields,
+                "TenantBound before_create policy=%s params=%s injected=%s",
+                pol, params, auto_fields,
             )
+
             if pol == TenantPolicy.STRICT_SERVER:
-                if tenant_id is None:
+                if injected_tid is None:
                     _err(400, "tenant_id is required.")
-                if "tenant_id" in params and params["tenant_id"] not in (
-                    None,
-                    tenant_id,
-                ):
+                if not missing and _normalize_uuid(provided) != _normalize_uuid(injected_tid):
                     _err(400, "tenant_id mismatch.")
-                if "tenant_id" in auto_fields or "tenant_id" not in params:
-                    params["tenant_id"] = tenant_id
+                params["tenant_id"] = injected_tid  # always enforce server value
             else:
-                if "tenant_id" not in params:
-                    if tenant_id is None:
+                if missing:
+                    if injected_tid is None:
                         _err(400, "tenant_id is required.")
-                    params["tenant_id"] = tenant_id
+                    params["tenant_id"] = injected_tid
+                else:
+                    # Optional normalization when client supplies it
+                    params["tenant_id"] = _normalize_uuid(provided)
+
             ctx["env"].params = params
 
         # UPDATE
@@ -122,20 +141,29 @@ class TenantBound(_RowBound):
             params = getattr(ctx.get("env"), "params", None)
             if not params or "tenant_id" not in params:
                 return
+
+            provided = params.get("tenant_id")
+            if _is_missing(provided):
+                # treat None/empty as not provided → drop and ignore
+                params.pop("tenant_id", None)
+                ctx["env"].params = params
+                return
+
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
-            new_val = params["tenant_id"]
+
+            new_val = _normalize_uuid(provided)
             auto_fields = ctx.get("__autoapi_injected_fields__", {})
-            tenant_id = auto_fields.get("tenant_id")
+            injected_tid = _normalize_uuid(auto_fields.get("tenant_id"))
+
             log.info(
                 "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
-                new_val,
-                getattr(obj, "tenant_id", None),
-                tenant_id,
+                new_val, getattr(obj, "tenant_id", None), injected_tid,
             )
+
             if (
                 new_val != obj.tenant_id
-                and new_val != tenant_id
+                and new_val != injected_tid
                 and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")
