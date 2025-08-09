@@ -61,10 +61,10 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 class Tenant(TenantBase, Bootstrappable):
     # __mapper_args__ = {"concrete": True}
-    __table_args__ = {
+    __table_args__ = ({
         "extend_existing": True,
         "schema": "peagen",
-    } 
+    },)
     name = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
@@ -79,7 +79,7 @@ class Tenant(TenantBase, Bootstrappable):
 
 # --------------------------------------------------------------------
 class Client(ClientBase):  # Tenant FK via mix-in
-    __table_args__ = {"schema": "authn"}
+    __table_args__ = ({"schema": "authn"},)
     # ----------------------------------------------------------------
     @classmethod
     def new(
@@ -108,7 +108,7 @@ class Client(ClientBase):  # Tenant FK via mix-in
 # --------------------------------------------------------------------
 class User(UserBase):
     """Human principal with authentication credentials."""
-    __table_args__ = {"extend_existing": True, "schema": "authn"}
+    __table_args__ = ({"extend_existing": True, "schema": "authn"},)
     email = Column(String(120), nullable=False, unique=True)
     password_hash = Column(LargeBinary(60))
     api_keys = relationship(
@@ -136,7 +136,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     """Machine principal representing an automated service."""
 
     __tablename__ = "services"
-    __table_args__ = {"schema": "authn"}
+    __table_args__ = ({"schema": "authn"},)
     name = Column(String(120), unique=True, nullable=False)
     service_keys = relationship(
         "auto_authn.v2.orm.tables.ServiceKey",
@@ -166,7 +166,7 @@ class ServiceKey(ApiKeyBase):
     )
     service_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("services.id"),
+        ForeignKey("authn.services.id"),
         index=True,
         nullable=False,
     )
