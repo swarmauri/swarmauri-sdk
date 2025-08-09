@@ -1,9 +1,10 @@
 # autoapi/v2/__init__.py
 """
 Public façade for the AutoAPI framework.
-• Keeps only lightweight glue code.
-• Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
-• Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
+
+•  Keeps only lightweight glue code.
+•  Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
+•  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
 """
 
 # ─── std / third-party ──────────────────────────────────────────────
@@ -73,7 +74,7 @@ class AutoAPI:
         self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
         self._allow_anon: set[str] = set()
 
-        # attribute-style access, e.g. api.methods.UserCreate(...)
+        # attribute-style access, e.g.  api.methods.UserCreate(...)
         self.methods: SimpleNamespace = SimpleNamespace()
 
         # public Schemas namespace
@@ -86,15 +87,21 @@ class AutoAPI:
         self.get_db = get_db
         self.get_async_db = get_async_db
 
-        # ---------- add register_transactional -------------------
+        # ---------- add register_transactional---------------------
         self.transactional = MethodType(_register_tx, self)
 
-        # ─── convenience: explicit registration -----------------
+        # ─── convenience: explicit registration ----------------------
         def _register_existing_tx(
             self, fn: Callable[..., Any], **kw
         ) -> Callable[..., Any]:
             """
             Register *fn* as a transactional handler *after* it was defined.
+
+            Example
+            -------
+                def bundle_create(p, db): ...
+                api.register_transactional(bundle_create,
+                                           name='bundle.create')
             """
             return self.transactional(fn, **kw)
 
@@ -110,10 +117,11 @@ class AutoAPI:
         # Store DDL creation for later execution
         self._ddl_executed = False
 
-        # ---------- initialise hook subsystem --------------------
+        # ---------- initialise hook subsystem ---------------------
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
+
         # ---------------- AuthN wiring -----------------
         if authn is not None:  # preferred path
             self._authn = authn
@@ -142,16 +150,18 @@ class AutoAPI:
     async def initialize_async(self):
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
-            async for adb in self.get_async_db():  # AsyncSession
-                aengine = adb.get_bind()  # AsyncConnection or AsyncEngine
+            async for adb in self.get_async_db():  # adb is an AsyncSession
+                def _sync_bootstrap(arg):
+                    # arg is a sync Session (AsyncSession.run_sync) or a Connection (AsyncConnection.run_sync)
+                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg   # Session -> (Connection/Engine), else Connection
+                    engine = getattr(bind, "engine", bind)                       # Connection -> Engine, Engine -> Engine
 
-                # Run on the corresponding sync connection provided by run_sync
-                def _sync_bootstrap(sync_conn):
-                    # 1) ensure schemas using the *Engine* behind the Connection
-                    ensure_schemas(sync_conn.engine)
-                    # 2) create tables bound to the same connection
+                    # 1) ensure schemas (handles Postgres + SQLite attach)
+                    ensure_schemas(engine)
+
+                    # 2) create tables using the same bind/connection
                     self.base.metadata.create_all(
-                        bind=sync_conn,
+                        bind=bind,
                         checkfirst=True,
                         tables=self.tables,
                     )
@@ -163,23 +173,24 @@ class AutoAPI:
     def initialize_sync(self):
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
-            with next(self.get_db()) as db:  # Session
-                bind = db.get_bind()  # Engine or Connection
-                # If it's a Connection, resolve its Engine; if it's already an Engine, use as-is
-                engine = getattr(bind, "engine", bind)
+            with next(self.get_db()) as db:  # db is a sync Session
+                bind = db.get_bind()                     # -> Connection or Engine
+                engine = getattr(bind, "engine", bind)   # -> Engine
 
-                # 1) ensure schemas using the Engine
+                # 1) ensure schemas (Postgres + SQLite attach)
                 ensure_schemas(engine)
-                # 2) create tables (bound to the Engine)
+
+                # 2) create tables on the same bind/connection
                 self.base.metadata.create_all(
-                    engine,
+                    bind=bind,
                     checkfirst=True,
                     tables=self.tables,
                 )
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
-    _schema = _schema
+    # schema = staticmethod(_schema)   # <- prevents self-binding
+    _schema = _schema  # keep the private alias if you still need it
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc
