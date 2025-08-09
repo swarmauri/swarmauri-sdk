@@ -64,25 +64,26 @@ class Bootstrappable:
     @classmethod
     def _insert_rows(cls, db: Session, rows: Iterable[dict[str, Any]]) -> None:
         mapper = sa_inspect(cls)
-        table = mapper.local_table or mapper.persist_selectable
+
+        # never put SA clause objects in boolean context
+        local = mapper.local_table
+        table = local if local is not None else mapper.persist_selectable
+
         col_keys = {c.key for c in mapper.columns}
         pk_cols = list(table.primary_key.columns) if table.primary_key else []
         pk_keys = {c.key for c in pk_cols}
 
         def clean(r: dict[str, Any]) -> dict[str, Any]:
-            # keep only columns mapped on THIS class
             return {k: r[k] for k in r.keys() & col_keys}
 
         payloads = [clean(r) for r in rows if r]
         if not payloads:
             return
 
-        # If all PK columns are present, we can do idempotent upsert on Postgres
         can_upsert = bool(pk_cols) and all(pk_keys <= set(p.keys()) for p in payloads)
 
         if can_upsert and db.get_bind().dialect.name == "postgresql":
             from sqlalchemy.dialects.postgresql import insert as pg_insert
-
             stmt = (
                 pg_insert(table)
                 .values(payloads)
@@ -91,12 +92,12 @@ class Bootstrappable:
             db.execute(stmt)
             return
 
-        # Otherwise, plain inserts; swallow duplicate races
         for p in payloads:
             try:
                 db.execute(sa.insert(table).values(**p))
             except IntegrityError:
                 db.rollback()  # treat as already present
+
 
 
 __all__ = ["Bootstrappable"]
