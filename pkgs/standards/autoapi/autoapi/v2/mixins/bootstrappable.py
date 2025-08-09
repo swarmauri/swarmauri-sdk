@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Iterable, List
-
 import logging
 import sqlalchemy as sa
 from sqlalchemy import inspect as sa_inspect
@@ -9,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 log = logging.getLogger(__name__)
-
 
 class Bootstrappable:
     """
@@ -30,7 +28,6 @@ class Bootstrappable:
             cls.__table__, "after_create", cls._after_create_insert_default_rows
         )
 
-    # DDL event: log failures, don't bubble arbitrary exceptions
     @classmethod
     def _after_create_insert_default_rows(cls, target, connection, **_):
         if not getattr(cls, "DEFAULT_ROWS", None):
@@ -65,25 +62,32 @@ class Bootstrappable:
     def _insert_rows(cls, db: Session, rows: Iterable[dict[str, Any]]) -> None:
         mapper = sa_inspect(cls)
 
-        # never put SA clause objects in boolean context
+        # --- pick an insertable target (avoid boolean eval + avoid JOINs) ---
         local = mapper.local_table
         table = local if local is not None else mapper.persist_selectable
+        if not hasattr(table, "insert"):  # e.g., persist_selectable is a JOIN
+            table = mapper.local_table
 
         col_keys = {c.key for c in mapper.columns}
         pk_cols = list(table.primary_key.columns) if table.primary_key else []
         pk_keys = {c.key for c in pk_cols}
 
         def clean(r: dict[str, Any]) -> dict[str, Any]:
+            # keep only columns mapped on THIS class
             return {k: r[k] for k in r.keys() & col_keys}
 
         payloads = [clean(r) for r in rows if r]
         if not payloads:
             return
 
+        # Idempotent path if all PK columns are provided (per row)
         can_upsert = bool(pk_cols) and all(pk_keys <= set(p.keys()) for p in payloads)
 
-        if can_upsert and db.get_bind().dialect.name == "postgresql":
+        dialect = db.get_bind().dialect.name
+
+        if can_upsert and dialect == "postgresql":
             from sqlalchemy.dialects.postgresql import insert as pg_insert
+
             stmt = (
                 pg_insert(table)
                 .values(payloads)
@@ -92,12 +96,15 @@ class Bootstrappable:
             db.execute(stmt)
             return
 
+        if can_upsert and dialect == "sqlite":
+            # Best-effort idempotency for SQLite
+            from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+            db.execute(sqlite_insert(table).values(payloads).prefix_with("OR IGNORE"))
+            return
+
+        # Fallback: plain inserts; swallow duplicate races
         for p in payloads:
             try:
                 db.execute(sa.insert(table).values(**p))
             except IntegrityError:
                 db.rollback()  # treat as already present
-
-
-
-__all__ = ["Bootstrappable"]
