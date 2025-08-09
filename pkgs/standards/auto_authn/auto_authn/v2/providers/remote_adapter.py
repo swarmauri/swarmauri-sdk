@@ -60,9 +60,9 @@ class RemoteAuthNAdapter(AuthNProvider):
     async def get_principal(self, request: Request) -> dict:  # noqa: D401
         api_key: str | None = request.headers.get("x-api-key")
         if not api_key:
-            raise HTTPException(
-                status.HTTP_401_UNAUTHORIZED, "x-api-key header required"
-            )
+            request.state.principal = None
+            principal_var.set(principal)
+            return principal
 
         # ------- tiny TTL cache to save RTT ---------------------------
         principal = self._cache_get(api_key)
