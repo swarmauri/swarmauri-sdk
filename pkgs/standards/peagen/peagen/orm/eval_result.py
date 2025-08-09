@@ -10,7 +10,7 @@ from .users import User
 class EvalResult(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "eval_results"
     __table_args__= {"schema": "peagen"}
-    work_id = Column(PgUUID(as_uuid=True), ForeignKey("works.id", ondelete="CASCADE"))
+    work_id = Column(PgUUID(as_uuid=True), ForeignKey("peagen.works.id", ondelete="CASCADE"))
     label = Column(String)
     metrics = Column(JSON, nullable=False)
     owner = relationship(User, lazy="selectin")

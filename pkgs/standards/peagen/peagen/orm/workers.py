@@ -26,7 +26,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __table_args__= {"schema": "peagen"}
     pool_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("pools.id"),
+        ForeignKey("peagen.pools.id"),
         nullable=False,
         default=DEFAULT_POOL_ID,
     )

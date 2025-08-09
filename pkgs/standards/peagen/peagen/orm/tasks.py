@@ -54,7 +54,7 @@ class Task(
     __tablename__ = "tasks"
     __table_args__= {"schema": "peagen"}
     action = Column(PgEnum(Action, name="task_action"), nullable=False)
-    pool_id = Column(PgUUID(as_uuid=True), ForeignKey("pools.id"), nullable=False)
+    pool_id = Column(PgUUID(as_uuid=True), ForeignKey("peagen.pools.id"), nullable=False)
     config_toml = Column(String)
     spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
     spec_uuid = Column(PgUUID(as_uuid=True), nullable=True)
