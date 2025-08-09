@@ -21,3 +21,4 @@ class AnalysisResult(Base, GUIDPk, Timestamped, TenantBound, Ownable):
 
 
 __all__ = ["AnalysisResult"]
+    

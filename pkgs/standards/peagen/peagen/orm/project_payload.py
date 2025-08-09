@@ -24,7 +24,7 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     
     doe_spec_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("doe_specs.id", ondelete="SET NULL"),
+        ForeignKey("peagen.doe_specs.id", ondelete="SET NULL"),
         nullable=True,
     )
     name = Column(String, nullable=False)
