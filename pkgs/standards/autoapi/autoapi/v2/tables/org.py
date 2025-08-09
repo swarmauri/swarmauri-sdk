@@ -7,6 +7,7 @@ from ..types import Column, String
 
 class Org(Base, GUIDPk, Timestamped, TenantBound, Principal):
     __tablename__ = "orgs"
+    __abstract__ = True
     name = Column(String)
 
 
