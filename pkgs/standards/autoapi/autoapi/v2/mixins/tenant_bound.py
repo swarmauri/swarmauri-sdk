@@ -1,13 +1,3 @@
-"""
-Tenant-level row security mix-in for AutoAPI.
-
-A table that inherits **TenantBound** gets:
-
-• tenant-scoped *read* / *list* results (via _RowBound.is_visible override)
-• automatic injection of the authenticated tenant id on inserts
-• policy-driven control over whether the client can set / patch tenant_id
-"""
-
 from enum import Enum
 import logging
 
@@ -20,12 +10,10 @@ from ..info_schema import check as _info_check
 
 log = logging.getLogger(__name__)
 
-
 class TenantPolicy(str, Enum):
     CLIENT_SET = "client"  # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
     STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
-
 
 class TenantBound(_RowBound):
     """
@@ -39,42 +27,42 @@ class TenantBound(_RowBound):
     __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.CLIENT_SET
 
     # ────────────────────────────────────────────────────────────────────
-    # tenant_id column
+    # tenant_id column (Schema-Aware)
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
         pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
 
+        # Extract schema from __table_args__, defaulting to 'public' if not set
+        schema = getattr(cls, '__table_args__', None)
+        schema = next((arg.get('schema', 'public') for arg in (schema or []) if isinstance(arg, dict)), 'public')
+
+        # Prepare metadata for the column based on tenant policy
         autoapi_meta: dict[str, object] = {}
         if pol != TenantPolicy.CLIENT_SET:
             # Hide field on *all* write verbs and mark as read-only
             autoapi_meta["disable_on"] = ["update", "replace"]
             autoapi_meta["read_only"] = True
 
+        # Validate metadata
         _info_check(autoapi_meta, "tenant_id", cls.__name__)
 
+        # Define the column with schema-aware ForeignKey
         return Column(
             PgUUID,
-            ForeignKey("tenants.id"),
+            ForeignKey(f"{schema}.tenants.id"),  # Fully qualified ForeignKey with schema
             nullable=False,
             index=True,
             info={"autoapi": autoapi_meta} if autoapi_meta else {},
         )
 
-
-    tenant_id = Column(PgUUID(as_uuid=True), nullable=False)
-
+    # ────────────────────────────────────────────────────────────────────
+    # Schema for table (using dynamic schema configuration)
+    # -------------------------------------------------------------------
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
 
-    @declared_attr
-    def tenant_fk(cls):
-        schema = getattr(cls, '__table_args__', None)
-        # Extract the schema from __table_args__, defaulting to 'public' if not set
-        schema = next((arg.get('schema', 'public') for arg in (schema or []) if isinstance(arg, dict)), 'public')
-        return ForeignKey(f"{schema}.tenants.id")
-        
     # -------------------------------------------------------------------
     # Row-level visibility for _RowBound
     # -------------------------------------------------------------------
