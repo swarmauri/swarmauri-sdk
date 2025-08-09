@@ -99,6 +99,7 @@ class Ownable:
                     params["owner_id"] = _normalize_uuid(provided)
 
             ctx["env"].params = params
+            print(f'\n🚧 ownable params: {ctx["env"].params}')
 
         def _ownable_before_update(ctx, obj):
             params = getattr(ctx.get("env"), "params", None)
