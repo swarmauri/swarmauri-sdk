@@ -28,12 +28,24 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
         # --- Normalize `raw` to a dict (handles Pydantic models) ---
         raw_map = raw.model_dump() if hasattr(raw, "model_dump") else raw
 
-        # 1) Validate if schema exists; always derive a dict payload
-        obj_in = IN.model_validate(raw_map) if hasattr(IN, "model_validate") else raw_map
-        data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
+        # --- NEW: filter extras before validation to avoid Pydantic "extra=forbid" errors
+        if hasattr(IN, "model_validate"):
+            try:
+                allowed = set(getattr(IN, "model_fields", {}).keys())
+            except Exception:
+                allowed = None
+            if isinstance(raw_map, dict) and allowed:
+                raw_for_validate = {k: raw_map[k] for k in raw_map.keys() & allowed}
+            else:
+                raw_for_validate = raw_map
+            obj_in = IN.model_validate(raw_for_validate)
+            data = obj_in.model_dump()
+        else:
+            obj_in = raw_map
+            data = raw_map
 
-        # 2) Overlay ANY server-injected mapped columns from raw → payload
-        #    Only overwrite when payload is missing or None.
+        # Overlay ANY server-injected mapped columns from raw → payload
+        # Only overwrite when payload is missing or None.
         payload = dict(data)
         if _col_keys and isinstance(raw_map, dict):
             for k in _col_keys:
@@ -41,7 +53,7 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
                 if rv is not None and (k not in payload or payload.get(k) is None):
                     payload[k] = rv
 
-        # 3) Dispatch to core (preserve prior calling convention), always using dict payload
+        # Dispatch to core (preserve prior calling convention), always using dict payload
         if exp_pm:
             params = list(signature(core).parameters.values())
             if isinstance(raw_map, dict) and pk_name in raw_map and params and params[0].name != pk_name:
@@ -58,7 +70,7 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
                 pk_val = raw_map.get(pk_name) if isinstance(raw_map, dict) else None
                 r = core(pk_val, payload, db=db)
 
-        # 4) Format response
+        # Format response
         if not out_lst:
             if isinstance(r, BaseModel):
                 return r.model_dump()
