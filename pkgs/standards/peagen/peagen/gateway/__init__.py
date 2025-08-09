@@ -126,19 +126,14 @@ async def _shadow_principal(ctx):
     except (ValueError, AttributeError):
         log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
         return
-    slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
     log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
-    tenant_payload = api.schemas.TenantCreate(
-        id=tid,
-        slug=slug,
-    )
+
     user_payload = api.schemas.UserCreate(
         id=uid,
         tenant_id=tid,
         username=p.get("username") or str(uid),
     )
     try:
-        await db.run_sync(lambda s: api.methods.TenantsCreate(tenant_payload, db=s))
         await db.run_sync(lambda s: api.methods.UsersCreate(user_payload, db=s))
     except IntegrityError:
         log.info("Shadow principal upsert failed due to integrity error")
