@@ -12,7 +12,6 @@ from typing import Any, get_args, get_origin
 
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect as _sa_inspect
 
 
 def _wrap_rpc(core, IN, OUT, pk_name: str, model):
@@ -37,17 +36,12 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
     elem_md = callable(getattr(elem, "model_validate", None)) if elem else False
     single = callable(getattr(OUT, "model_validate", None))
 
-    # Heuristic: input model for create typically ends with "Create"
-    def _is_create_schema() -> bool:
-        name = getattr(IN, "__name__", "")
-        return isinstance(name, str) and name.endswith("Create")
-
     def h(raw: dict, db: Session):
         """
         Handle RPC call by converting parameters and formatting response.
 
         Args:
-            raw: Raw RPC parameters dict (already mutated by PRE hooks)
+            raw: Raw RPC parameters dict
             db: Database session
 
         Returns:
@@ -56,42 +50,22 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
         obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
 
-        # ---- CREATE special case ------------------------------------------------
-        # Pydantic validation may drop server-injected fields (e.g., tenant_id/owner_id)
-        # if they are not present on the Create schema. Merge mapped columns back from
-        # the raw (post-hook) payload before calling core.
-        if _is_create_schema():
-            # Map of ORM column keys for the target model
-            col_keys = {c.key for c in _sa_inspect(model).columns}
-
-            # Start from validated payload, then overlay server-injected mapped fields
-            enriched = dict(data)
-            for k in col_keys:
-                v = raw.get(k, None)  # hooks may have added tenant_id/owner_id, etc.
-                if v is not None and (k not in enriched or enriched[k] is None):
-                    enriched[k] = v
-
-            # Call core with a dict payload (crud layer should accept dict or model)
-            r = core(enriched, db=db)
-
-        # ---- Non-create paths (keep existing behavior) --------------------------
-        else:
-            if exp_pm:
-                params = list(signature(core).parameters.values())
-                if pk_name in raw and params and params[0].name != pk_name:
-                    if len(params) >= 3:
-                        r = core(raw[pk_name], obj_in, db=db)
-                    else:
-                        r = core(raw[pk_name], db=db)
+        if exp_pm:
+            params = list(signature(core).parameters.values())
+            if pk_name in raw and params and params[0].name != pk_name:
+                if len(params) >= 3:
+                    r = core(raw[pk_name], obj_in, db=db)
                 else:
-                    r = core(obj_in, db=db)
+                    r = core(raw[pk_name], db=db)
             else:
-                if pk_name in data and first and first.name != pk_name:
-                    r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
-                else:
-                    r = core(raw[pk_name], data, db=db)
+                r = core(obj_in, db=db)
+        else:
+            if pk_name in data and first and first.name != pk_name:
+                r = core(**{first.name: data.pop(pk_name)}, db=db, **data)
+            else:
+                r = core(raw[pk_name], data, db=db)
 
-        # ---- Format response based on output schema -----------------------------
+        # Format response based on output schema
         if not out_lst:
             if isinstance(r, BaseModel):
                 return r.model_dump()
