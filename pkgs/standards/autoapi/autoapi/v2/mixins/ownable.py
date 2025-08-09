@@ -44,7 +44,7 @@ class Ownable:
 
         # Define the column with schema-aware ForeignKey
         return Column(
-            PgUUID,
+            PgUUID(as_uuid=True),
             ForeignKey(f"{schema}.users.id"),  # Fully qualified ForeignKey with schema
             nullable=False,
             index=True,
