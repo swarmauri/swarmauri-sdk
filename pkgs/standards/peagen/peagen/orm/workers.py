@@ -175,12 +175,27 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         raw = ctx.get("raw_worker_key")
         if not raw:
             return
-        result = dict(ctx.get("result", {}))
-        result["api_key"] = raw
-        ctx["result"] = result
+
+        res = ctx.get("result")
+        if res is None:
+            return
+
+        # Normalize ctx["result"] -> plain dict
+        if isinstance(res, dict):
+            out = dict(res)  # copy
+        elif hasattr(res, "model_dump"):  # Pydantic model
+            out = res.model_dump(mode="json")
+        else:  # ORM instance
+            out = cls._SRead.model_validate(res, from_attributes=True).model_dump(mode="json")
+
+        # Inject the key into the response payload only (not persisted)
+        out["api_key"] = raw
+
+        ctx["result"] = out
         resp = ctx.get("response")
         if resp is not None:
-            resp.result = result
+            resp.result = out
+
 
     @classmethod
     async def _pre_update_policy_gate(cls, ctx):
