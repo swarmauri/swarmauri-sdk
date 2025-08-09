@@ -25,34 +25,38 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
         _col_keys = set()
 
     def h(raw: dict, db: Session):
+        # --- Normalize `raw` to a dict (handles Pydantic models) ---
+        raw_map = raw.model_dump() if hasattr(raw, "model_dump") else raw
+
         # 1) Validate if schema exists; always derive a dict payload
-        obj_in = IN.model_validate(raw) if hasattr(IN, "model_validate") else raw
+        obj_in = IN.model_validate(raw_map) if hasattr(IN, "model_validate") else raw_map
         data = obj_in.model_dump() if isinstance(obj_in, BaseModel) else obj_in
 
         # 2) Overlay ANY server-injected mapped columns from raw → payload
         #    Only overwrite when payload is missing or None.
         payload = dict(data)
-        if _col_keys:
+        if _col_keys and isinstance(raw_map, dict):
             for k in _col_keys:
-                rv = raw.get(k, None)
+                rv = raw_map.get(k, None)
                 if rv is not None and (k not in payload or payload.get(k) is None):
                     payload[k] = rv
 
         # 3) Dispatch to core (preserve prior calling convention), always using dict payload
         if exp_pm:
             params = list(signature(core).parameters.values())
-            if pk_name in raw and params and params[0].name != pk_name:
+            if isinstance(raw_map, dict) and pk_name in raw_map and params and params[0].name != pk_name:
                 if len(params) >= 3:
-                    r = core(raw[pk_name], payload, db=db)
+                    r = core(raw_map[pk_name], payload, db=db)
                 else:
-                    r = core(raw[pk_name], db=db)
+                    r = core(raw_map[pk_name], db=db)
             else:
                 r = core(payload, db=db)
         else:
-            if pk_name in payload and first and first.name != pk_name:
+            if isinstance(payload, dict) and pk_name in payload and first and first.name != pk_name:
                 r = core(**{first.name: payload.pop(pk_name)}, db=db, **payload)
             else:
-                r = core(raw.get(pk_name), payload, db=db)
+                pk_val = raw_map.get(pk_name) if isinstance(raw_map, dict) else None
+                r = core(pk_val, payload, db=db)
 
         # 4) Format response
         if not out_lst:
