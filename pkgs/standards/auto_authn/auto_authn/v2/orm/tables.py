@@ -60,7 +60,7 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 
 class Tenant(TenantBase, Bootstrappable):
-    __mapper_args__ = {"concrete": True}
+    # __mapper_args__ = {"concrete": True}
     __table_args__ = {
         "extend_existing": True,
         "schema": "peagen",

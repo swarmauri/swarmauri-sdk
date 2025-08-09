@@ -10,7 +10,7 @@ from peagen.defaults import (
 
 
 class Tenant(TenantBase, Bootstrappable, Upsertable):
-    __mapper_args__ = {"concrete": True}
+    # __mapper_args__ = {"concrete": True}
     __table_args__ = {
         "extend_existing": True,
         "schema": "peagen",
