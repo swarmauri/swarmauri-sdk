@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from autoapi.v2.tables import User as UserBase
-from autoapi.v2.mixins import Bootstrappable
-from autoapi.v2.mixins.upsertable import Upsertable
-
+from autoapi.v2.mixins import Bootstrappable, Upsertable, uuid_example
+from autoapi.v2.types import Column, PgUUID, uuid4
 
 class User(UserBase, Bootstrappable, Upsertable):
     __upsert_keys__ = ("tenant_id", "username")
@@ -20,5 +19,5 @@ class User(UserBase, Bootstrappable, Upsertable):
             }
         ),
     )
-    
+
 __all__ = ["User"]
