@@ -366,8 +366,66 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
+        setattr(self.cores, camel, core)
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")
+
+
+        # Ensure container for core_exec
+        if not hasattr(self, "core_exec"):
+            class _CE: pass
+            self.core_exec = _CE()
+
+        async def _core_exec(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
+            # Build args in the same way your RPC shim would
+            def _build_args(_p):
+                match _verb:
+                    case "create" | "bulk_create":
+                        return (_p,)
+                    case "clear":
+                        return ()
+                    case "list":
+                        return (_p,)  # already a schema/dict matching list input
+                    case "read" | "delete":
+                        if hasattr(_p, "model_dump"):    # pydantic model
+                            d = _p.model_dump()
+                        else:
+                            d = dict(_p)
+                        return (d[_pk],)
+                    case "update" | "replace":
+                        if hasattr(_p, "model_dump"):
+                            d = _p.model_dump(exclude_unset=True)
+                        else:
+                            d = dict(_p)
+                        body = {k: v for k, v in d.items() if k != _pk}
+                        return (d[_pk], body)
+                return ()
+
+            # 1) Caller supplied a DB
+            if db is not None:
+                if hasattr(db, "run_sync"):                         # AsyncSession
+                    return await db.run_sync(lambda s: _core(*_build_args(payload), s))
+                # Plain Session
+                return _core(*_build_args(payload), db)
+
+            # 2) No DB supplied: auto-open a sync session only if available
+            if self.get_db is None:
+                raise TypeError("core_exec requires a DB (AsyncSession or Session) when get_db is not configured")
+
+            gen = self.get_db()
+            s = next(gen)
+            try:
+                return _core(*_build_args(payload), s)
+            finally:
+                try:
+                    next(gen)   # close
+                except StopIteration:
+                    pass
+
+        # Register helper name (CamelCase like UsersCreate)
+        camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
+        setattr(self.core_exec, camel, _core_exec)
+
 
     # include routers
     self.router.include_router(flat_router)

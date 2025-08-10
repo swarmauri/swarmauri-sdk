@@ -45,7 +45,7 @@ def _not_found() -> None:
     raise http_exc
 
 
-def _commit_or_http(db: Session) -> None:
+def _flush_or_http(db: Session) -> None:
     """
     Flush pending changes and translate SQLAlchemy errors into standardized HTTP errors.
 
@@ -59,11 +59,11 @@ def _commit_or_http(db: Session) -> None:
         r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
     )
 
-    print("_commit_or_http (flush-only) start")
+    print("_flush_or_http (flush-only) start")
     try:
         # Always flush; outer transaction (in _invoke) will commit/rollback.
         db.flush()
-        print("_commit_or_http flush success")
+        print("_flush_or_http flush success")
     except IntegrityError as exc:
         # Do NOT rollback here; let the outer transaction manager handle it.
         raw = str(exc.orig)
@@ -121,7 +121,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
         for k, v in virt_kwargs.items():
             setattr(obj, k, v)
         db.add(obj)
-        _commit_or_http(db)
+        _flush_or_http(db)
         db.refresh(obj)
         print(f"_create returning {obj}")
         return obj
@@ -160,7 +160,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
             for k, v in p.model_dump(exclude_unset=True).items():
                 setattr(obj, k, v)
 
-        _commit_or_http(db)
+        _flush_or_http(db)
         db.refresh(obj)
         print(f"_update returning {obj}")
         return obj
@@ -176,13 +176,13 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
         if obj is None:
             _not_found()
         db.delete(obj)
-        _commit_or_http(db)
+        _flush_or_http(db)
         print(f"_delete removed {i}")
         return {pk_name: i}
 
     def _list(p: SListIn, db: Session):
         print(f"_list called with params={p}")
-        d = p.model_dump(exclude_defaults=True, exclude_none=True)
+        d = p.model_dump(exclude_defaults=True, exclude_none=True) if hasattr(p, "model_dump") else dict(p)
         qry = (
             db.query(model)
             .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
@@ -197,7 +197,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
     def _clear(db: Session):
         print("_clear called")
         deleted = db.query(model).delete()
-        _commit_or_http(db)
+        _flush_or_http(db)
         print(f"_clear removed {deleted} rows")
         return {"deleted": deleted}
 

@@ -69,16 +69,25 @@ class AutoAPI:
         self.router = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
+
+        # Cores
+        self.cores: SimpleNamespace = SimpleNamespace(name="core")
+        self.core_exec: SimpleNamespace = SimpleNamespace(name="core_exec")
+
+
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
         self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
-        self._allow_anon: set[str] = set()
 
         # attribute-style access, e.g.  api.methods.UserCreate(...)
-        self.methods: SimpleNamespace = SimpleNamespace()
+        self.methods: SimpleNamespace = SimpleNamespace(name="methods")
 
         # public Schemas namespace
         self.schemas: _SchemaNS = _SchemaNS(self)
+
+        # Anonymous Routes
+        self._allow_anon: set[str] = set()
+
 
         # ---------- choose providers -----------------------------
         if (get_db is None) and (get_async_db is None):
