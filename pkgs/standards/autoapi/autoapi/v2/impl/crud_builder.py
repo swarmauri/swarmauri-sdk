@@ -47,21 +47,27 @@ def _not_found() -> None:
 
 def _commit_or_http(db: Session) -> None:
     """
-    Flush/commit and translate SQLAlchemy errors into standardized HTTP errors.
+    Flush pending changes and translate SQLAlchemy errors into standardized HTTP errors.
+
+    NOTE: We do NOT commit here. The transaction boundary is owned by _invoke(),
+    which will run PRE_COMMIT/POST_COMMIT hooks around the commit.
     """
     from sqlalchemy.exc import IntegrityError, SQLAlchemyError
     import re
 
-    _DUP_RE = re.compile(r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I)
+    _DUP_RE = re.compile(
+        r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
+    )
 
-    print("_commit_or_http start")
+    print("_commit_or_http (flush-only) start")
     try:
-        db.flush() if db.in_nested_transaction() else db.commit()
-        print("_commit_or_http success")
+        # Always flush; outer transaction (in _invoke) will commit/rollback.
+        db.flush()
+        print("_commit_or_http flush success")
     except IntegrityError as exc:
-        db.rollback()
+        # Do NOT rollback here; let the outer transaction manager handle it.
         raw = str(exc.orig)
-        print(f"IntegrityError encountered: {raw}")
+        print(f"IntegrityError encountered during flush: {raw}")
         if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
             m = _DUP_RE.search(raw)
             msg = (
@@ -77,10 +83,11 @@ def _commit_or_http(db: Session) -> None:
         http_exc, _, _ = create_standardized_error(422, message=raw, rpc_code=-32098)
         raise http_exc from exc
     except SQLAlchemyError as exc:
-        db.rollback()
-        print(f"SQLAlchemyError encountered: {exc}")
+        # Do NOT rollback here; let the outer transaction manager handle it.
+        print(f"SQLAlchemyError encountered during flush: {exc}")
         http_exc, _, _ = create_standardized_error(500, message=f"Database error: {exc}")
         raise http_exc from exc
+
 
 
 def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:

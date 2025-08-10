@@ -11,13 +11,31 @@ from typing import Any, Dict, Protocol, Union
 
 # ───────────────────────── public types ─────────────────────────
 class Phase(Enum):
+    # Pre-transaction (no DB tx yet)
     PRE_TX_BEGIN = auto()
+
+    # Inside an open DB transaction
+    PRE_HANDLER = auto()
     POST_HANDLER = auto()
     PRE_COMMIT = auto()
     POST_COMMIT = auto()
-    POST_RESPONSE = auto()
-    ON_ERROR = auto()
 
+    # After the result has been assembled (non-fatal by design)
+    POST_RESPONSE = auto()
+
+    # Rollback + granular error phases
+    ON_ROLLBACK = auto()
+
+    ON_PRE_HANDLER_ERROR = auto()
+    ON_HANDLER_ERROR = auto()
+    ON_POST_HANDLER_ERROR = auto()
+    ON_PRE_COMMIT_ERROR = auto()
+    ON_COMMIT_ERROR = auto()
+    ON_POST_COMMIT_ERROR = auto()
+    ON_POST_RESPONSE_ERROR = auto()
+
+    # Generic catch-all
+    ON_ERROR = auto()
 
 class _Hook(Protocol):
     async def __call__(self, ctx: Dict[str, Any]) -> None: ...

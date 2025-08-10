@@ -16,7 +16,7 @@ from fastapi import APIRouter, Body, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .._runner import _invoke
+from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc

@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from typing import Any, Dict
 
-from ._runner import _invoke  # ← central lifecycle engine
+from .impl._runner import _invoke  # ← central lifecycle engine
 from .jsonrpc_models import (
     _RPCReq,
     _RPCRes,
