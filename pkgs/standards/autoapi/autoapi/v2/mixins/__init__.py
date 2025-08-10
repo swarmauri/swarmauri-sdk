@@ -1,6 +1,7 @@
 # mixins_generic.py ───── all mix-ins live here
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
+from .upsertable import Upsertable as Upsertable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
 from ..types import (
