@@ -18,6 +18,7 @@ from .schema import _schema
 from .crud_builder import _crud
 from .rpc_adapter import _wrap_rpc
 from .routes_builder import _register_routes_and_rpcs
+from ._runner import _invoke, _Ctx
 
 # Legacy helpers (kept for backward compatibility)
 from inspect import isawaitable
@@ -50,4 +51,6 @@ __all__ = [
     "_register_routes_and_rpcs",
     "_run",
     "_commit_or_flush",
+    "_Ctx",
+    "_invoke",
 ]

@@ -331,6 +331,7 @@ def remote_init_ci(  # noqa: PLR0913
 def remote_init_repo(
     ctx: typer.Context,
     repo_slug: str = typer.Argument(..., help="principal/repo"),
+    pat: str = typer.Option(..., envvar="GITHUB_PAT"),
     origin: str = typer.Option(None, "--origin", help="Origin remote URL"),
     upstream: str = typer.Option(None, "--upstream", help="Upstream remote URL"),
     default_branch: str = typer.Option("main", "--default-branch"),
@@ -349,6 +350,7 @@ def remote_init_repo(
     SRead = AutoAPI.get_schema(Repository, "read")
     params = SCreate(
         name=name,
+        github_pat=pat,
         url=origin_url,
         default_branch=default_branch,
         remote_name="origin",

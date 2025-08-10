@@ -16,7 +16,7 @@ from fastapi import APIRouter, Body, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .._runner import _invoke
+from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
@@ -53,13 +53,7 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
 
 
 def _canonical(tab: str, verb: str) -> str:
-    """Return canonical RPC method name.
-
-    Canonical identifiers use the ORM *table* name so methods align with the
-    pluralised table, e.g. ``Items.create``.  If ``tab`` is provided in
-    snake_case it is converted to ``PascalCase`` before joining with the
-    operation verb.
-    """
+    """Return canonical RPC method name."""
     cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
     name = f"{cls_name}.{verb}"
     print(f"_canonical generated {name}")
@@ -72,8 +66,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     tab: str,
     pk: str,
     SCreate,
-    SRead,
-    SDel,
+    SReadOut,     # ← read OUTPUT schema
+    SReadIn,      # ← read INPUT (pk-only) schema
+    SDeleteIn,    # ← delete INPUT (pk-only) schema
     SUpdate,
     SListIn,
     _create,
@@ -90,6 +85,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     delegates to `_invoke`, ensuring lifecycle parity with /rpc.
     """
     print(f"_register_routes_and_rpcs model={model} tab={tab} pk={pk}")
+
     # ---------- sync / async detection --------------------------------
     is_async = (
         bool(self.get_async_db)
@@ -104,12 +100,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
-        ("create", "POST", "", 201, SCreate, SRead, _create),
-        ("list", "GET", "", 200, SListIn, List[SRead], _list),
-        ("clear", "DELETE", "", 204, None, None, _clear),
-        ("read", "GET", "/{item_id}", 200, SDel, SRead, _read),
-        ("update", "PATCH", "/{item_id}", 200, SUpdate, SRead, _update),
-        ("delete", "DELETE", "/{item_id}", 204, SDel, None, _delete),
+        ("create", "POST",  "",          201, SCreate,             SReadOut,         _create),
+        ("list",   "GET",   "",          200, SListIn,             List[SReadOut],   _list),
+        ("clear",  "DELETE","",          204, None,                None,             _clear),
+        ("read",   "GET",   "/{item_id}",200, SReadIn,             SReadOut,         _read),
+        ("update", "PATCH", "/{item_id}",200, SUpdate,             SReadOut,         _update),
+        ("delete", "DELETE","/{item_id}",204, SDeleteIn,           None,             _delete),
     ]
     if issubclass(model, Replaceable):
         print("Model is Replaceable; adding replace spec")
@@ -120,15 +116,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 "/{item_id}",
                 200,
                 SCreate,
-                SRead,
+                SReadOut,
                 functools.partial(_update, full=True),
             )
         )
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
         spec += [
-            ("bulk_create", "POST", "/bulk", 201, List[SCreate], List[SRead], _create),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDel], None, _delete),
+            ("bulk_create", "POST",   "/bulk", 201, List[SCreate],   List[SReadOut], _create),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None,           _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -163,22 +159,25 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
+
+        # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
         if verb in {"update", "replace"}:
+            # For update/replace we want the verb-specific model (respects no_update flags)
             rpc_in = _schema(model, verb=verb)
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
         ):
             params: list[inspect.Parameter] = [
-                inspect.Parameter(  # ← request always first
+                inspect.Parameter(  # request always first
                     "request",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Request,
                 )
             ]
 
-            # parent keys become path vars
+            # parent keys become path vars on nested router
             if is_nested_router:
                 for nv in nested_vars:
                     params.append(
@@ -199,7 +198,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     )
                 )
 
-            # payload (query for list, body for others)
+            # payload (query for list, body for create/update/replace; none for read/delete/clear)
             def _visible(t: type) -> type:
                 return (
                     _strip_parent_fields(t, drop=set(nested_vars))
@@ -237,7 +236,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             async def _impl(**kw):
                 print(f"Endpoint {m_id} invoked with {kw}")
                 db: Session | AsyncSession = kw.pop("db")
-                req: Request = kw.pop("request")  # always present
+                req: Request = kw.pop("request")
                 p = kw.pop("p", None)
                 item_id = kw.pop("item_id", None)
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -326,7 +325,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 dependencies=deps,
             )
 
-        # ─── register on parent API (makes it available under api.schemas.*) ──
+        # ─── register schemas on API namespace (for discovery / testing) ──
         for s in (In, Out, rpc_in):
             if not isinstance(s, type):
                 continue
@@ -337,7 +336,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
-        print(f"Registered RPC method {m_id}")
+        print(f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}")
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
@@ -345,9 +344,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         def _runner(payload, *, db=None, _method=m_id, _api=self):
             """
-            Synchronous helper so you can write
-                api.methods.UserCreate(SUserCreate(...))
-            without having to open a DB session by hand.
+            Helper so you can call:  api.methods.UserCreate(SUserCreate(...))
             """
             if db is None:  # auto-open sync session
                 if _api.get_db is None:
@@ -361,17 +358,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     return _api.rpc[_method](payload, db)
                 finally:
                     try:
-                        next(gen)  # finish generator → close
+                        next(gen)  # finish generator → close
                     except StopIteration:
                         pass
-            else:  # caller supplied session
+            else:
                 return _api.rpc[_method](payload, db)
 
-        # register under ._method_ids and .methods.<CamelName>
-        # ``_method_ids`` is used by the ``/methodz`` endpoint and by the hook
-        # subsystem to look up handlers based on their canonical RPC name.  It
-        # should therefore store entries keyed by the canonical identifier
-        # (e.g. ``Items.create``) rather than the camel-cased helper name.
+        # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")

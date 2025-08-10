@@ -21,7 +21,7 @@ from fastapi import Body, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from ._runner import _invoke  # central lifecycle engine
+from .impl._runner import _invoke  # central lifecycle engine
 
 
 def transactional(  # ← bound per-instance in AutoAPI.__init__
