@@ -120,9 +120,16 @@ class Repository(
         if not repo:
             return None  # nothing to do
 
+        # STRICT: only accept client-provided PAT; treat empty string as None
+        pat_raw = params.get("github_pat", None)
+        pat = None
+        if pat_raw is not None:
+            s = str(pat_raw).strip()
+            pat = s or None
+
         spec: Dict[str, Any] = {
             "repo": repo,
-            "pat": params.get("github_pat"),  # init_core expects 'pat'
+            "pat": pat,
             "description": params.get("description", ""),
             "deploy_key": params.get("deploy_key"),
             "path": params.get("path"),
@@ -165,7 +172,7 @@ class Repository(
         async def _run():
             if spec.get("pat"):
                 # full remote init (GH repo + deploy key, optional local config)
-                return await asyncio.to_thread(init_core.init_repo, **spec)1
+                return await asyncio.to_thread(init_core.init_repo, **spec)
             # no PAT: optionally just configure local remotes if provided
             remotes = spec.get("remotes") or {}
             path = spec.get("path")
