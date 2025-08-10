@@ -19,27 +19,13 @@ from .users import User
 
 class PeagenTomlSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "peagen_toml_specs"
-
-    tenant_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("tenants.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    repository_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("repositories.id", ondelete="SET NULL"),
-        nullable=True,
-    )
+    __table_args__= (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
+      
     name = Column(String, nullable=False)
     schema_version = Column(String, nullable=False, default="1.0.0")
     raw_toml = Column(Text, nullable=False)
     parsed = Column(JSON, nullable=False, default=dict)
 
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "name", name="uq_peagen_toml_specs_tenant_name"),
-    )
-
-    tenant = relationship(Tenant, lazy="selectin")
     owner = relationship(User, lazy="selectin")
 
 

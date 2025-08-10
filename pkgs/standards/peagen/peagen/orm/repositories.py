@@ -37,6 +37,7 @@ class Repository(
         UniqueConstraint("url"),
         {"schema": "peagen"},
     )
+
     # The request must not contain owner_id. The server injects the caller’s user_id automatically.
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
     # The request must not contain tenant_id. The server injects the caller’s tenant_id automatically.

@@ -16,8 +16,8 @@ class User(
     Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle
 ):
     __tablename__ = "users"
+    __abstract__ = True
     username = Column(String(80), nullable=False)
-
 
 __all__ = ["User"]
 

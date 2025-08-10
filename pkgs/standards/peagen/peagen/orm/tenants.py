@@ -2,23 +2,26 @@ from __future__ import annotations
 
 from autoapi.v2.tables import Tenant as TenantBase
 from autoapi.v2.mixins import Bootstrappable
+from autoapi.v2.mixins.upsertable import Upsertable
 from peagen.defaults import (
     DEFAULT_TENANT_ID,
-    DEFAULT_TENANT_EMAIL,
-    DEFAULT_TENANT_NAME,
     DEFAULT_TENANT_SLUG,
 )
 
 
-class Tenant(TenantBase, Bootstrappable):
+class Tenant(TenantBase, Bootstrappable, Upsertable):
+    # __mapper_args__ = {"concrete": True}
+    __table_args__ = ({
+        "extend_existing": True,
+        "schema": "peagen",
+    },)
     DEFAULT_ROWS = [
         {
             "id": DEFAULT_TENANT_ID,
-            "email": DEFAULT_TENANT_EMAIL,
-            "name": DEFAULT_TENANT_NAME,
             "slug": DEFAULT_TENANT_SLUG,
         }
     ]
 
+    __upsert_keys__ = ("slug",)
 
 __all__ = ["Tenant"]

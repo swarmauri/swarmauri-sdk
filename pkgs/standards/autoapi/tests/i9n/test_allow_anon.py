@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security
 from fastapi.testclient import TestClient
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Column, String, ForeignKey, create_engine
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
@@ -8,12 +9,14 @@ from sqlalchemy.orm import sessionmaker
 from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.mixins import GUIDPk
 from autoapi.v2.types import AuthNProvider
-from fastapi import Request
 
 
 class DummyAuth(AuthNProvider):
-    async def get_principal(self, request: Request):
-        if request.headers.get("Authorization") != "Bearer secret":
+    async def get_principal(
+        self,
+        creds: HTTPAuthorizationCredentials = Security(HTTPBearer()),
+    ):
+        if creds.credentials != "secret":
             raise HTTPException(status_code=401)
         return {"sub": "user"}
 
@@ -69,4 +72,8 @@ def test_allow_anon_list_and_read():
     )
     iid = res.json()["id"]
     assert client.get(f"/items/{iid}").status_code == 200
-    assert client.post("/items", json=payload).status_code == 401
+    # FastAPI's HTTPBearer returns 403 when the Authorization header is
+    # completely missing (as opposed to a malformed token).  The AutoAPI
+    # endpoint mirrors this behaviour for unauthenticated access to routes
+    # that are not whitelisted via ``__autoapi_allow_anon__``.
+    assert client.post("/items", json=payload).status_code == 403
