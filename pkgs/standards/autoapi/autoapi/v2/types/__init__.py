@@ -40,6 +40,9 @@ from sqlalchemy.orm import (
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 
+
+from pydantic import Field
+
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
@@ -104,4 +107,6 @@ __all__: list[str] = [
     # uuid convenience
     "uuid4",
     "UUID",
+    # pydantic schema support
+    "Field",
 ]

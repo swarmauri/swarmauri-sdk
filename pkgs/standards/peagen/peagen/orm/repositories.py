@@ -13,6 +13,7 @@ from autoapi.v2.types import (
     UniqueConstraint,
     relationship,
     HookProvider,
+    Field,
 )
 from autoapi.v2.mixins import (
     GUIDPk,
