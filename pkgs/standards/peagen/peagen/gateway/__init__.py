@@ -111,84 +111,95 @@ api = AutoAPI(
 @api.hook(Phase.PRE_TX_BEGIN)
 async def _shadow_principal(ctx):
     import uuid
+    import logging
     from sqlalchemy.exc import IntegrityError
+    from autoapi.v2 import AutoAPI
+    from peagen.orm import User  # your ORM class
 
-    # Pull principal off the request (already set by your auth_dep)
+    log = logging.getLogger(__name__)
+
+    # 1) pull principal from request (auth_dep already put it on state)
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
-        log.info("Shadow principal: no principal on request")
+        log.info("shadow_principal: no principal on request")
         return
 
     tid = p.get("tid")
     uid = p.get("sub")
     if not tid or not uid:
-        log.info("Shadow principal missing tid or uid: %s", p)
+        log.info("shadow_principal: missing tid or sub in principal: %s", p)
         return
 
     try:
         tid = uuid.UUID(str(tid))
         uid = uuid.UUID(str(uid))
     except (ValueError, AttributeError):
-        log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
+        log.info("shadow_principal: invalid UUIDs tid=%s sub=%s", tid, uid)
         return
 
     username = p.get("username") or str(uid)
     db = ctx["db"]
 
-    # Build schema instances when possible
-    UCreate = getattr(api.schemas, "UserCreate", None)
-    UUpdate = getattr(api.schemas, "UserUpdate", None)
-
-    def _mk_create_payload():
-        if UCreate is not None:
-            return UCreate(id=uid, tenant_id=tid, username=username, is_active=True)
-        # Fallback if schema not present
-        return {"id": uid, "tenant_id": tid, "username": username, "is_active": True}
-
-    def _mk_update_payload():
-        # Keep this minimal & safe for SUpdate (which usually excludes PK)
-        base = {"tenant_id": tid, "username": username, "is_active": True}
-        if UUpdate is not None:
-            try:
-                return UUpdate(**base)
-            except Exception:
-                pass
-        return base
+    # 2) Strict typed schemas direct from the model (no name guessing)
+    #    - UReadIn := delete-verb schema (id only)
+    #    - UUpdateIn := update-verb schema (includes id)
+    #    - UCreateIn := create-verb schema
+    UReadIn   = AutoAPI.get_schema(User, verb="delete")
+    UUpdateIn = AutoAPI.get_schema(User, verb="update")
+    UCreateIn = AutoAPI.get_schema(User, verb="create")
 
     def _upsert_sync(s):
-        # 1) Existence check by PK via read method (no model import needed)
+        log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
+
+        # 3) Existence check via typed read input (id-only)
         exists = False
         try:
-            api.methods.UsersRead(uid, db=s)
+            api.methods.UsersRead(UReadIn(id=uid), db=s)
             exists = True
-        except Exception:
-            # Not found or read path raised; ensure clean state
+            log.info("shadow_principal: user exists uid=%s", uid)
+        except Exception as exc:
             if s.in_transaction():
                 s.rollback()
-            exists = False
+            log.info("shadow_principal: UsersRead miss uid=%s (%s)", uid, exc)
 
-        # 2) Update if exists
         if exists:
-            upd = _mk_update_payload()
-            return api.methods.UsersUpdate(uid, upd, db=s)
+            # 4) Strict typed update, includes id inside the payload
+            upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+            log.info("shadow_principal: updating uid=%s", uid)
+            return api.methods.UsersUpdate(upd, db=s)
 
-        # 3) Otherwise create; handle race with duplicate PK as update
+        # 5) Otherwise create; handle PK race -> retry update
         try:
-            cre = _mk_create_payload()
+            cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+            log.info("shadow_principal: creating uid=%s", uid)
             return api.methods.UsersCreate(cre, db=s)
-        except IntegrityError:
-            # Someone else created concurrently; retry as update
+        except IntegrityError as exc:
             if s.in_transaction():
                 s.rollback()
-            upd = _mk_update_payload()
-            return api.methods.UsersUpdate(uid, upd, db=s)
+            log.info("shadow_principal: create raced, retrying update uid=%s (%s)", uid, exc)
+            upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+            return api.methods.UsersUpdate(upd, db=s)
 
+    # 6) Execute against the right session type
     try:
-        await db.run_sync(_upsert_sync)
-    except Exception as exc:  # keep the outer RPC robust
-        log.info("Shadow principal upsert failed: %s", exc)
-        if hasattr(db, "rollback"):
-            await db.rollback()
+        if hasattr(db, "run_sync"):     # AsyncSession
+            await db.run_sync(_upsert_sync)
+        else:                           # plain Session
+            _upsert_sync(db)
+    except Exception as exc:            # keep outer RPC robust
+        log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
+        try:
+            if hasattr(db, "rollback"):
+                # Async vs sync rollback
+                if getattr(db, "sync_session", None) is None:
+                    await db.rollback()
+                else:
+                    db.rollback()
+        except Exception:
+            pass
+
+
+
 
 
 # ensure our hook runs second after the AuthN injection hook
