@@ -18,6 +18,11 @@
 
 # Peagen: a Template‑Driven Workflow
 
+## Terminology
+
+- **Tenant** – a namespace used to group related resources, such as repositories.
+- **Principal** – an owner of resources (for example, an individual user or an organization).
+
 ## Why Use the Peagen CLI?
 
 #### Reduced Variance in LLM‑Driven Generation  
