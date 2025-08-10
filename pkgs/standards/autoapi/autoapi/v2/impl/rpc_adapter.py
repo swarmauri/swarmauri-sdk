@@ -20,66 +20,54 @@ from sqlalchemy import inspect as _sa_inspect
 
 
 def _wrap_rpc(core, IN, OUT, pk_name: str, model):
-    """
-    Wrap a CRUD function to work with JSON-RPC calls.
+    fn_name = getattr(core, "__name__", "")
+    print(f"[rpc_adapter] _wrap_rpc: core={fn_name} IN={getattr(IN,'__name__',IN)} "
+          f"OUT={OUT} pk_name={pk_name} model={getattr(model,'__name__',model)}")
 
-    Args:
-        core:  core CRUD function
-        IN:    input schema class (Pydantic) or dict-like
-        OUT:   output schema class
-        pk_name: primary key parameter name
-        model: SQLAlchemy model class (for mapped column discovery)
-    """
-    print(f"[rpc_adapter] _wrap_rpc: core={getattr(core,'__name__',core)} "
-          f"IN={getattr(IN,'__name__',IN)} OUT={OUT} pk_name={pk_name} model={getattr(model,'__name__',model)}")
+    # classify verb from core name (we generate _create/_read/_update/_delete/_list/_clear)
+    lower = fn_name.lower()
+    verb = (
+        "create" if "create" in lower else
+        "update" if "update" in lower else
+        "read"   if "read"   in lower else
+        "delete" if "delete" in lower else
+        "list"   if "list"   in lower else
+        "clear"  if "clear"  in lower else
+        "unknown"
+    )
+    print(f"[rpc_adapter] detected verb={verb}")
 
-    # Precompute some adapter metadata
-    sig = signature(core)
-    params_list = list(sig.parameters.values())
-    first_param = params_list[0] if params_list else None
-
-    expects_pydantic = hasattr(IN, "model_validate")
+    # OUT typing info
     out_is_list = get_origin(OUT) is list
     out_elem = get_args(OUT)[0] if out_is_list else None
     elem_has_validate = callable(getattr(out_elem, "model_validate", None)) if out_elem else False
     out_is_single_model = callable(getattr(OUT, "model_validate", None))
 
-    print(f"[rpc_adapter] core signature: {sig}")
-    print(f"[rpc_adapter] expects_pydantic={expects_pydantic} out_is_list={out_is_list} "
-          f"elem_has_validate={elem_has_validate} out_is_single_model={out_is_single_model} "
-          f"first_param={getattr(first_param,'name',None)}")
-
-    # Discover mapped column keys so server-injected fields can be restored post-validation
+    # discover mapped columns so we can re-overlay server-injected fields
     try:
         _col_keys = {c.key for c in _sa_inspect(model).columns}
         print(f"[rpc_adapter] mapped column keys: {_col_keys}")
     except Exception as e:
         _col_keys = set()
-        print(f"[rpc_adapter] WARNING: could not inspect model columns: {e!r}")
-
-    # Helpers -----------------------------------------------------------------
+        print(f"[rpc_adapter] WARN: inspect(model) failed: {e!r}")
 
     def _normalize_raw(raw: Any) -> dict:
-        """Ensure we have a plain dict for safe .get / membership."""
         out = raw.model_dump() if hasattr(raw, "model_dump") else raw
-        print(f"[rpc_adapter] _normalize_raw -> type={type(out).__name__} value={out}")
+        print(f"[rpc_adapter] _normalize_raw -> {type(out).__name__}: {out}")
         return out
 
     def _forbid_extras(IN) -> bool:
-        """Detect pydantic v2 extra='forbid' in model_config (enum or str)."""
         cfg = getattr(IN, "model_config", None)
         extra = getattr(cfg, "extra", None) if cfg else None
-        value = getattr(extra, "value", extra)
-        flag = (value == "forbid")
-        print(f"[rpc_adapter] _forbid_extras: model_config.extra={value!r} -> {flag}")
+        val = getattr(extra, "value", extra)
+        flag = (val == "forbid")
+        print(f"[rpc_adapter] _forbid_extras: {val!r} -> {flag}")
         return flag
 
     def _allowed_input_keys(IN) -> set[str]:
-        """Collect canonical field names + common alias surfaces."""
         fields = getattr(IN, "model_fields", {}) or {}
         allowed = set(fields.keys())
-        # add alias and validation_alias (best-effort)
-        for name, fi in fields.items():
+        for fi in fields.values():
             alias = getattr(fi, "alias", None)
             if isinstance(alias, str):
                 allowed.add(alias)
@@ -95,13 +83,12 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
                     allowed.add(alias_attr)
             except Exception:
                 pass
-        print(f"[rpc_adapter] _allowed_input_keys: {allowed}")
+        print(f"[rpc_adapter] allowed input keys: {allowed}")
         return allowed
 
     def _overlay_mapped(payload: dict, raw_map: dict) -> dict:
-        """Overlay any mapped column from raw_map into payload when missing/None."""
         if not (_col_keys and isinstance(raw_map, dict)):
-            print("[rpc_adapter] _overlay_mapped: skip (no column keys or raw_map not dict)")
+            print("[rpc_adapter] overlay: skip (no columns or raw_map not dict)")
             return payload
         out = dict(payload)
         applied = {}
@@ -110,104 +97,107 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
             if rv is not None and (k not in out or out.get(k) is None):
                 out[k] = rv
                 applied[k] = rv
-        print(f"[rpc_adapter] _overlay_mapped applied: {applied} -> payload={out}")
+        print(f"[rpc_adapter] overlay applied: {applied}")
         return out
 
-    # Adapter -----------------------------------------------------------------
+    expects_pydantic = hasattr(IN, "model_validate")
 
     def h(raw: dict, db: Session):
-        """
-        Handle RPC call by converting parameters and formatting response.
-
-        Args:
-            raw: incoming RPC params (dict or Pydantic model)
-            db:  SQLAlchemy Session
-        """
-        print(f"[rpc_adapter] handler(raw type={type(raw).__name__}): raw={raw}")
+        print(f"[rpc_adapter] handler: raw type={type(raw).__name__} raw={raw}")
         raw_map = _normalize_raw(raw)
 
-        # 1) Validate (or pass-through) input
+        # 1) validate / normalize to dict
         if expects_pydantic:
-            # only pre-filter if model truly forbids extras
             if _forbid_extras(IN) and isinstance(raw_map, dict):
                 allowed = _allowed_input_keys(IN)
                 raw_for_validate = {k: raw_map[k] for k in raw_map.keys() & allowed}
-                print(f"[rpc_adapter] pre-filter (extra=forbid): raw_for_validate={raw_for_validate}")
+                print(f"[rpc_adapter] pre-filtered for forbid: {raw_for_validate}")
             else:
                 raw_for_validate = raw_map
-                print(f"[rpc_adapter] no pre-filter: raw_for_validate={raw_for_validate}")
-
+                print(f"[rpc_adapter] no pre-filter (forbid inactive): {raw_for_validate}")
             try:
                 obj_in = IN.model_validate(raw_for_validate)
                 validated = obj_in.model_dump()
-                print(f"[rpc_adapter] validated={validated}")
             except Exception as ve:
-                print(f"[rpc_adapter] VALIDATION ERROR: {ve!r} for input={raw_for_validate}")
+                print(f"[rpc_adapter] VALIDATION ERROR: {ve!r}")
                 raise
         else:
             obj_in = raw_map
             validated = raw_map
-            print(f"[rpc_adapter] bypass validation; validated={validated}")
 
-        # 2) Restore ANY server-injected mapped columns (e.g., tenant_id/owner_id)
-        before_overlay = validated if isinstance(validated, dict) else dict(validated)
-        print(f"[rpc_adapter] payload before overlay: {before_overlay}")
-        payload = _overlay_mapped(before_overlay, raw_map)
-        print(f"[rpc_adapter] payload after overlay: {payload}")
+        print(f"[rpc_adapter] validated payload: {validated}")
 
-        # 3) Dispatch to core – always pass a dict payload
-        print(f"[rpc_adapter] dispatch: params_list={[p.name for p in params_list]} "
-              f"pk_in_raw={isinstance(raw_map, dict) and (pk_name in raw_map)}")
-        if expects_pydantic:
-            if isinstance(raw_map, dict) and pk_name in raw_map and params_list and params_list[0].name != pk_name:
-                if len(params_list) >= 3:
-                    print(f"[rpc_adapter] calling core(pk, payload, db) -> pk={raw_map[pk_name]}")
-                    r = core(raw_map[pk_name], payload, db=db)
+        # 2) overlay server-injected mapped fields (tenant_id/owner_id/etc.)
+        base_payload = validated if isinstance(validated, dict) else dict(validated)
+        payload = _overlay_mapped(base_payload, raw_map)
+        print(f"[rpc_adapter] final payload: {payload}")
+
+        # 3) extract pk when needed
+        pk_val = None
+        if isinstance(raw_map, dict):
+            pk_val = raw_map.get(pk_name)
+        if pk_val is None and isinstance(payload, dict):
+            pk_val = payload.get(pk_name)
+        print(f"[rpc_adapter] resolved pk_val={pk_val}")
+
+        # 4) dispatch strictly by verb to avoid misrouting creates
+        if verb == "create":
+            print("[rpc_adapter] call core(payload, db)")
+            r = core(payload, db=db)
+        elif verb == "list":
+            print("[rpc_adapter] call core(payload, db) [list]")
+            r = core(payload, db=db)
+        elif verb == "update":
+            print("[rpc_adapter] call core(pk, payload, db)")
+            r = core(pk_val, payload, db=db)
+        elif verb == "read":
+            print("[rpc_adapter] call core(pk, db)")
+            r = core(pk_val, db=db)
+        elif verb == "delete":
+            print("[rpc_adapter] call core(pk, db) [delete]")
+            r = core(pk_val, db=db)
+        elif verb == "clear":
+            print("[rpc_adapter] call core(db) [clear]")
+            r = core(db=db)
+        else:
+            # conservative fallback: behave like old adapter but with dicts
+            params = list(signature(core).parameters.values())
+            print(f"[rpc_adapter] fallback dispatch, params={[p.name for p in params]}")
+            if isinstance(raw_map, dict) and (pk_name in raw_map) and params and params[0].name != pk_name:
+                if len(params) >= 3:
+                    r = core(pk_val, payload, db=db)
                 else:
-                    print(f"[rpc_adapter] calling core(pk, db) -> pk={raw_map[pk_name]}")
-                    r = core(raw_map[pk_name], db=db)
+                    r = core(pk_val, db=db)
             else:
-                if first_param and first_param.name not in (None, pk_name, "db"):
-                    print("[rpc_adapter] calling core(payload, db)")
+                if params and params[0].name not in (None, pk_name, "db"):
                     r = core(payload, db=db)
                 else:
-                    print("[rpc_adapter] calling core(db=db)")
                     r = core(db=db)
-        else:
-            if isinstance(payload, dict) and pk_name in payload and first_param and first_param.name != pk_name:
-                pd = dict(payload)
-                pk_val = pd.pop(pk_name)
-                print(f"[rpc_adapter] calling core({first_param.name}=..., db, **payload) with pk from payload={pk_val}")
-                r = core(**{first_param.name: pk_val}, db=db, **pd)
-            else:
-                pk_val = raw_map.get(pk_name) if isinstance(raw_map, dict) else None
-                print(f"[rpc_adapter] calling core(pk, payload, db) -> pk={pk_val}")
-                r = core(pk_val, payload, db=db)
 
         print(f"[rpc_adapter] core returned type={type(r).__name__} value={r}")
 
-        # 4) Shape output per OUT schema
+        # 5) shape output
         if not out_is_list:
             if isinstance(r, BaseModel):
                 dumped = r.model_dump()
-                print(f"[rpc_adapter] return BaseModel.dump={dumped}")
+                print(f"[rpc_adapter] return BaseModel -> {dumped}")
                 return dumped
             if out_is_single_model:
                 dumped = OUT.model_validate(r).model_dump()
-                print(f"[rpc_adapter] return OUT.model_validate().dump={dumped}")
+                print(f"[rpc_adapter] return OUT.model_validate() -> {dumped}")
                 return dumped
-            print(f"[rpc_adapter] return raw={r}")
+            print(f"[rpc_adapter] return raw -> {r}")
             return r
 
-        out: list[Any] = []
+        out_items = []
         for itm in r:
             if isinstance(itm, BaseModel):
-                out.append(itm.model_dump())
+                out_items.append(itm.model_dump())
             elif elem_has_validate:
-                out.append(out_elem.model_validate(itm).model_dump())
+                out_items.append(out_elem.model_validate(itm).model_dump())
             else:
-                out.append(itm)
-        print(f"[rpc_adapter] return list[{len(out)}]={out}")
-        return out
+                out_items.append(itm)
+        print(f"[rpc_adapter] return list[{len(out_items)}] -> {out_items}")
+        return out_items
 
     return h
