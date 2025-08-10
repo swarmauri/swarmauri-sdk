@@ -9,4 +9,16 @@ class User(UserBase, Bootstrappable, Upsertable):
     __upsert_keys__ = ("tenant_id", "username")
     __table_args__ = ({"extend_existing": True, "schema": "peagen"},)
 
+    id = Column(
+        PgUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+        info=dict(
+            autoapi={
+                "default_factory": uuid4,
+                "examples": [uuid_example],
+            }
+        ),
+    )
+    
 __all__ = ["User"]
