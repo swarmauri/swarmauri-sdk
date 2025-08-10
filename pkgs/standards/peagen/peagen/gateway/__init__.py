@@ -144,9 +144,9 @@ async def _shadow_principal(ctx):
     #    - UReadIn := delete-verb schema (id only)
     #    - UUpdateIn := update-verb schema (includes id)
     #    - UCreateIn := create-verb schema
-    UReadIn   = AutoAPI.get_schema(User, verb="delete")
-    UUpdateIn = AutoAPI.get_schema(User, verb="update")
-    UCreateIn = AutoAPI.get_schema(User, verb="create")
+    UReadIn   = AutoAPI.get_schema(User, op="delete")
+    UUpdateIn = AutoAPI.get_schema(User, op="update")
+    UCreateIn = AutoAPI.get_schema(User, op="create")
 
     def _upsert_sync(s):
         log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
