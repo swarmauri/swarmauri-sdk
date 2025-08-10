@@ -132,6 +132,7 @@ async def _shadow_principal(ctx):
         id=uid,
         tenant_id=tid,
         username=p.get("username") or str(uid),
+        is_active=True,
     )
     try:
         await db.run_sync(lambda s: api.methods.UsersCreate(user_payload, db=s))
