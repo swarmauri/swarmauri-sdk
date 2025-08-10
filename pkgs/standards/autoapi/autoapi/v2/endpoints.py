@@ -31,9 +31,8 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
         """
         def label(fn) -> str:
             n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
-            return n
-            # m = getattr(fn, "__module__", None)
-            # return f"{m}.{n}" if m else n
+            m = getattr(fn, "__module__", None)
+            return f"{m}.{n}" if m else n
 
         # Methods = declared RPC methods ∪ any method that has at least one hook
         methods = set(api._method_ids.keys())
