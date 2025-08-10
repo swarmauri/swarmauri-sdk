@@ -17,7 +17,7 @@ class RepositoryMixin:
 
     repository_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("repositories.id"),
+        ForeignKey("peagen.repositories.id"),
         nullable=False,
     )
 
@@ -28,7 +28,7 @@ class RepositoryRefMixin:
 
     repository_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("repositories.id", ondelete="CASCADE"),
+        ForeignKey("peagen.repositories.id", ondelete="CASCADE"),
         nullable=True,
     )
     repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"

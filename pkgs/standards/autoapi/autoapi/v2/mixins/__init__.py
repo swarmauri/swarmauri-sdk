@@ -1,6 +1,7 @@
 # mixins_generic.py ───── all mix-ins live here
 import datetime as dt
 from .bootstrappable import Bootstrappable as Bootstrappable
+from .upsertable import Upsertable as Upsertable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
 from ..types import (
@@ -35,6 +36,20 @@ def tzutcnow_plus_day() -> dt.datetime:
     return tzutcnow() + dt.timedelta(days=1)
 
 
+def _infer_schema(cls, default: str = "public") -> str:
+    """Extract schema from __table_args__ in dict or tuple/list form."""
+    args = getattr(cls, "__table_args__", None)
+    if not args:
+        return default
+    if isinstance(args, dict):
+        return args.get("schema", default)
+    if isinstance(args, (tuple, list)):
+        for elem in args:
+            if isinstance(elem, dict) and "schema" in elem:
+                return elem["schema"]
+    return default
+
+
 # ----------------------------------------------------------------------
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
@@ -58,37 +73,70 @@ class GUIDPk:
     )
 
 
+
 # ────────── principals -----------------------------------------
 
-
+@declarative_mixin
 class TenantMixin:
-    tenant_id: Mapped[PgUUID] = mapped_column(
-        PgUUID,
-        ForeignKey("tenants.id"),
-        info=dict(autoapi={"examples": [uuid_example]}),
-    )
+    """
+    Adds tenant_id with a schema-qualified FK to <schema>.tenants.id.
+    Schema is inferred from the mapped subclass's __table_args__ unless
+    overridden by __tenant_table_schema__ on the subclass.
+    """
+
+    @declared_attr
+    def tenant_id(cls) -> Mapped[PgUUID]:
+        schema = getattr(cls, "__tenant_table_schema__", None) or _infer_schema(cls)
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.tenants.id"),
+            nullable=False,
+            index=True,
+            info=dict(autoapi={"examples": [uuid_example]}),
+        )
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# User FK mixin
+# ──────────────────────────────────────────────────────────────────────────────
 @declarative_mixin
 class UserMixin:
-    user_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("users.id"),
-        index=True,
-        nullable=False,
-        info=dict(autoapi={"examples": [uuid_example]}),
-    )
+    """
+    Adds user_id with a schema-qualified FK to <schema>.users.id.
+    Schema is inferred from the mapped subclass's __table_args__ unless
+    overridden by __user_table_schema__ on the subclass.
+    """
+
+    @declared_attr
+    def user_id(cls) -> Mapped[PgUUID]:
+        schema = getattr(cls, "__user_table_schema__", None) or _infer_schema(cls)
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.users.id"),
+            nullable=False,
+            index=True,
+            info=dict(autoapi={"examples": [uuid_example]}),
+        )
 
 
 @declarative_mixin
 class OrgMixin:
-    org_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("orgs.id"),
-        index=True,
-        nullable=False,
-        info=dict(autoapi={"examples": [uuid_example]}),
-    )
+    """
+    Adds user_id with a schema-qualified FK to <schema>.users.id.
+    Schema is inferred from the mapped subclass's __table_args__ unless
+    overridden by __user_table_schema__ on the subclass.
+    """
+
+    @declared_attr
+    def org_id(cls) -> Mapped[PgUUID]:
+        schema = getattr(cls, "__org_table_schema__", None) or _infer_schema(cls)
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.orgs.id"),
+            nullable=False,
+            index=True,
+            info=dict(autoapi={"examples": [uuid_example]}),
+        )
 
 
 @declarative_mixin

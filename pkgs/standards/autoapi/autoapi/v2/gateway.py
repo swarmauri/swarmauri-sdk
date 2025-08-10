@@ -40,17 +40,6 @@ def build_gateway(api) -> APIRouter:
     """
     r = APIRouter()
 
-    if api._authn:
-
-        async def _auth_dep(request: Request) -> Dict | None:
-            try:
-                return await api._authn.get_principal(request)
-            except HTTPException:
-                return None
-
-        auth_dep = Depends(_auth_dep)
-    else:
-        auth_dep = None
 
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
@@ -64,8 +53,11 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
-            principal: Dict | None = auth_dep,
+            principal: Dict | None = api._authn_dep,
         ):
+            req.state.principal = principal
+            print("GW principal:", principal)
+            print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
@@ -105,8 +97,11 @@ def build_gateway(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
-            principal: Dict | None = auth_dep,
+            principal: Dict | None = api._authn_dep,
         ):
+            req.state.principal = principal
+            print("GW principal:", principal)
+            print("GW allow_anon:", api._allow_anon)            
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)

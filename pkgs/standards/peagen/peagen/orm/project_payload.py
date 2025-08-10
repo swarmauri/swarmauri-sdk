@@ -20,14 +20,11 @@ from .users import User
 class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "project_payloads"
 
-    tenant_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("tenants.id", ondelete="CASCADE"),
-        nullable=False,
-    )
+    __table_args__= (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
+    
     doe_spec_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("doe_specs.id", ondelete="SET NULL"),
+        ForeignKey("peagen.doe_specs.id", ondelete="SET NULL"),
         nullable=True,
     )
     name = Column(String, nullable=False)
@@ -35,9 +32,6 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     description = Column(Text, nullable=True)
     payload = Column(JSON, nullable=False)
 
-    __table_args__ = (UniqueConstraint("tenant_id", "name"),)
-
-    tenant = relationship(Tenant, lazy="selectin")
     owner = relationship(User, lazy="selectin")
     doe_spec = relationship(
         "DoeSpec", back_populates="project_payloads", lazy="selectin"
