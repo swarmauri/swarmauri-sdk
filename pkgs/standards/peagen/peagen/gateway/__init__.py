@@ -112,13 +112,13 @@ api = AutoAPI(
 async def _shadow_principal(ctx):
     import uuid
     import logging
+    from fastapi import HTTPException
     from sqlalchemy.exc import IntegrityError
     from autoapi.v2 import AutoAPI
-    from peagen.orm import User  # your ORM class
+    from peagen.orm import User
 
     log = logging.getLogger(__name__)
 
-    # 1) pull principal from request (auth_dep already put it on state)
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
         log.info("shadow_principal: no principal on request")
@@ -140,64 +140,64 @@ async def _shadow_principal(ctx):
     username = p.get("username") or str(uid)
     db = ctx["db"]
 
-    # 2) Strict typed schemas direct from the model (no name guessing)
-    #    - UReadIn := delete-verb schema (id only)
-    #    - UUpdateIn := update-verb schema (includes id)
-    #    - UCreateIn := create-verb schema
-    UReadIn   = AutoAPI.get_schema(User, op="delete")
-    UUpdateIn = AutoAPI.get_schema(User, op="update")
+    # Strict typed schemas
+    UReadIn   = AutoAPI.get_schema(User, op="delete")   # id-only
+    UUpdateIn = AutoAPI.get_schema(User, op="update")   # includes id in our setup
     UCreateIn = AutoAPI.get_schema(User, op="create")
+
+    def _is_duplicate(exc: Exception) -> bool:
+        # Catch both raw DB conflicts and standardized HTTP 409 from _commit_or_http
+        if isinstance(exc, IntegrityError):
+            return True
+        if isinstance(exc, HTTPException) and getattr(exc, "status_code", None) == 409:
+            return True
+        msg = (getattr(exc, "detail", "") or str(exc)).lower()
+        return "duplicate key" in msg or "already exists" in msg
 
     def _upsert_sync(s):
         log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
 
-        # 3) Existence check via typed read input (id-only)
+        # 1) Existence check by PK
         exists = False
         try:
             api.methods.UsersRead(UReadIn(id=uid), db=s)
             exists = True
             log.info("shadow_principal: user exists uid=%s", uid)
         except Exception as exc:
+            # Not found (or error); reset sync session if needed
             if s.in_transaction():
                 s.rollback()
             log.info("shadow_principal: UsersRead miss uid=%s (%s)", uid, exc)
 
         if exists:
-            # 4) Strict typed update, includes id inside the payload
+            # 2) Update in place (typed)
             upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: updating uid=%s", uid)
             return api.methods.UsersUpdate(upd, db=s)
 
-        # 5) Otherwise create; handle PK race -> retry update
+        # 3) Create, but treat duplicate as “already created” and retry update
         try:
             cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: creating uid=%s", uid)
             return api.methods.UsersCreate(cre, db=s)
-        except IntegrityError as exc:
-            if s.in_transaction():
-                s.rollback()
-            log.info("shadow_principal: create raced, retrying update uid=%s (%s)", uid, exc)
-            upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
-            return api.methods.UsersUpdate(upd, db=s)
+        except Exception as exc:
+            if _is_duplicate(exc):
+                if s.in_transaction():
+                    s.rollback()
+                log.info("shadow_principal: create raced, retrying update uid=%s", uid)
+                upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+                return api.methods.UsersUpdate(upd, db=s)
+            # unexpected error – re-raise to let outer handler log it
+            raise
 
-    # 6) Execute against the right session type
     try:
-        if hasattr(db, "run_sync"):     # AsyncSession
+        if hasattr(db, "run_sync"):   # AsyncSession
             await db.run_sync(_upsert_sync)
-        else:                           # plain Session
+        else:                         # plain Session
             _upsert_sync(db)
-    except Exception as exc:            # keep outer RPC robust
+    except Exception as exc:
+        # Soft-fail – don’t break the main RPC; just log what happened
         log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
-        try:
-            if hasattr(db, "rollback"):
-                # Async vs sync rollback
-                if getattr(db, "sync_session", None) is None:
-                    await db.rollback()
-                else:
-                    db.rollback()
-        except Exception:
-            pass
-
 
 
 
