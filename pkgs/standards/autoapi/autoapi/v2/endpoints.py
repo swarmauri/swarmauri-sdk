@@ -17,28 +17,62 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
     def _methodz() -> list[str]:
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
-
+        
     @r.get("/hookz", tags=["hooks"])
     def _hookz() -> dict[str, dict[str, list[str]]]:
-        """Expose hook execution order for each method."""
+        """
+        Expose hook execution order for each method.
+
+        - Phases appear in runner order; error phases trail.
+        - Within each phase, hooks are listed in execution order:
+          global (None) hooks, then method-specific hooks.
+        """
+        def label(fn) -> str:
+            n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+            m = getattr(fn, "__module__", None)
+            return f"{m}.{n}" if m else n
+
+        # Methods = declared RPC methods ∪ any method that has at least one hook
+        methods = set(api._method_ids.keys())
+        for hooks_by_method in api._hook_registry.values():
+            methods.update(m for m in hooks_by_method.keys() if m is not None)
+
+        # Execution-ordered phases (commit itself is not a hook phase)
+        normal_phases = [
+            getattr(Phase, "PRE_TX_BEGIN", None),
+            getattr(Phase, "PRE_HANDLER", None),
+            getattr(Phase, "POST_HANDLER", None),
+            getattr(Phase, "PRE_COMMIT", None),
+            getattr(Phase, "POST_COMMIT", None),
+            getattr(Phase, "POST_RESPONSE", None),
+        ]
+        error_phases = [
+            getattr(Phase, "ON_ROLLBACK", None),            # fired before specific ON_*_ERROR
+            getattr(Phase, "ON_PRE_HANDLER_ERROR", None),
+            getattr(Phase, "ON_HANDLER_ERROR", None),
+            getattr(Phase, "ON_POST_HANDLER_ERROR", None),
+            getattr(Phase, "ON_PRE_COMMIT_ERROR", None),
+            getattr(Phase, "ON_COMMIT_ERROR", None),
+            getattr(Phase, "ON_POST_COMMIT_ERROR", None),
+            getattr(Phase, "ON_POST_RESPONSE_ERROR", None),
+            getattr(Phase, "ON_ERROR", None),               # generic catch-all
+        ]
+        phase_order = [p for p in normal_phases + error_phases if p is not None]
+
         registry: dict[str, dict[str, list[str]]] = {}
 
-        methods = set(api._method_ids.keys())
-        for hooks in api._hook_registry.values():
-            methods.update(m for m in hooks.keys() if m is not None)
-
         for method in sorted(methods):
-            method_hooks: dict[str, list[str]] = {}
-            for phase, hooks in api._hook_registry.items():
-                global_hooks = hooks.get(None, [])
-                specific_hooks = hooks.get(method, [])
+            phase_map: dict[str, list[str]] = {}
+            for phase in phase_order:
+                hooks_by_method = api._hook_registry.get(phase, {})
+                global_hooks = hooks_by_method.get(None, [])
+                specific_hooks = hooks_by_method.get(method, [])
                 if global_hooks or specific_hooks:
-                    method_hooks[phase.name] = [
-                        getattr(fn, "__name__", repr(fn))
-                        for fn in (global_hooks + specific_hooks)
-                    ]
-            if method_hooks:
-                registry[method] = method_hooks
+                    # Execution order: global → specific
+                    phase_map[phase.name] = [label(fn) for fn in (global_hooks + specific_hooks)]
+            if phase_map:
+                registry[method] = phase_map
+
         return registry
 
     # Choose the appropriate health endpoint based on available DB provider
