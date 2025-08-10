@@ -17,7 +17,8 @@ class _SecretCoreMixin:
     name = Column(String(128), nullable=False)
     data = Column(String, nullable=False)
     desc = Column(String, nullable=True)
-    __table_args__ = (CheckConstraint("length(name) > 0", name="chk_name_nonempty"),)
+    __table_args__ = (CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
+        {"schema": "peagen"},)
 
 
 class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):

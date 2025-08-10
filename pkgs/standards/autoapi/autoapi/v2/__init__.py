@@ -1,4 +1,4 @@
-# autoapi.py
+# autoapi/v2/__init__.py
 """
 Public façade for the AutoAPI framework.
 
@@ -10,7 +10,7 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -37,6 +37,9 @@ from .types import (
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
+
+# ─── db schema bootstrap (dialect-aware; no flags required) ─────────
+from .bootstrap_dbschema import ensure_schemas
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -115,7 +118,6 @@ class AutoAPI:
         self._ddl_executed = False
 
         # ---------- initialise hook subsystem ---------------------
-
         _init_hooks(self)
 
         # ---------- collect models, build routes, etc. -----------
@@ -123,12 +125,12 @@ class AutoAPI:
         # ---------------- AuthN wiring -----------------
         if authn is not None:  # preferred path
             self._authn = authn
-            self._authn_dep = Depends(authn.get_principal)
-            # Late‑binding of the injection hook
+            self._authn_dep = Security(authn.get_principal)
+            # Late-binding of the injection hook
             authn.register_inject_hook(self)
         else:
             self._authn = None
-            self._authn_dep = Depends(lambda: None)
+            self._authn_dep = Security(lambda: None)
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
@@ -148,25 +150,39 @@ class AutoAPI:
     async def initialize_async(self):
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
-            async for adb in self.get_async_db():
-                # Get the engine from the session
-                engine = adb.get_bind()
-                await adb.run_sync(
-                    lambda _: self.base.metadata.create_all(
-                        engine,
+            async for adb in self.get_async_db():  # adb is an AsyncSession
+                def _sync_bootstrap(arg):
+                    # arg is a sync Session (AsyncSession.run_sync) or a Connection (AsyncConnection.run_sync)
+                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg   # Session -> (Connection/Engine), else Connection
+                    engine = getattr(bind, "engine", bind)                       # Connection -> Engine, Engine -> Engine
+
+                    # 1) ensure schemas (handles Postgres + SQLite attach)
+                    ensure_schemas(engine)
+
+                    # 2) create tables using the same bind/connection
+                    self.base.metadata.create_all(
+                        bind=bind,
                         checkfirst=True,
                         tables=self.tables,
                     )
-                )
+
+                await adb.run_sync(_sync_bootstrap)
                 break
             self._ddl_executed = True
 
     def initialize_sync(self):
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
-            with next(self.get_db()) as db:
+            with next(self.get_db()) as db:  # db is a sync Session
+                bind = db.get_bind()                     # -> Connection or Engine
+                engine = getattr(bind, "engine", bind)   # -> Engine
+
+                # 1) ensure schemas (Postgres + SQLite attach)
+                ensure_schemas(engine)
+
+                # 2) create tables on the same bind/connection
                 self.base.metadata.create_all(
-                    db.get_bind(),
+                    bind=bind,
                     checkfirst=True,
                     tables=self.tables,
                 )

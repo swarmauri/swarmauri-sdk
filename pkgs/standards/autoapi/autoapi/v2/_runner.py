@@ -47,7 +47,8 @@ async def _invoke(
         await api._run(Phase.PRE_TX_BEGIN, ctx)
 
         # Allow hooks to mutate request parameters via ``ctx['env'].params``
-        params = ctx["env"].params
+        method = getattr(ctx["env"], "method", method) or method
+        params = getattr(ctx["env"], "params", params)
 
         # ─── business logic call -------------------------------------------
         if exec_fn is not None:  # custom executor

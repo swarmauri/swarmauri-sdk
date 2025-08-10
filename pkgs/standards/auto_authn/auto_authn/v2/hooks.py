@@ -1,38 +1,33 @@
 # auto_authn/hooks.py  (inside the AuthN package)
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
-
-    allow_anon = api._allow_anon
-
-    @api.hook(Phase.PRE_TX_BEGIN)  # PRE‑DB, works for CRUD & RPC
-    async def _inject_principal(ctx):
-        if getattr(ctx.get("env"), "method", None) in allow_anon:
-            return
-        p = ctx["request"].state.principal
+    @api.hook(Phase.PRE_TX_BEGIN)
+    async def _authn_inject_principal(ctx):
+        p = getattr(ctx["request"].state, "principal", None)
+        log.info("anon authn hook principal")
         if not p:
-            return
+            return  # nothing to inject
 
-        tenant_id = p.get("tid")
-        user_id = p.get("sub")
-        is_admin = p.get("is_admin", False)
+        injected = ctx.setdefault("__autoapi_injected_fields__", {})
+        tid = p.get("tid") or p.get("tenant_id")
+        sub = p.get("sub") or p.get("user_id")
+        if tid is not None:
+            injected["tenant_id"] = tid
+        if sub is not None:
+            injected["user_id"] = sub
 
-        prm = ctx["env"].params  # Pydantic model OR raw dict
-        ctx["params"] = prm
-        injected = ctx.setdefault("__autoapi_injected_fields__", set())
-        for fld, val in (("tenant_id", tenant_id),("user_id", user_id), ("owner_id", user_id)):
-            if hasattr(prm, "__pydantic_fields__"):
-                if fld in prm.model_fields and getattr(prm, fld, None) in (None, val):
-                    setattr(prm, fld, val)
-                    injected.add(fld)
-            elif isinstance(prm, dict):
-                if fld not in prm:
-                    prm[fld] = val
-                    injected.add(fld)
+        log.info("authn hook principal=%s", getattr(ctx["request"].state, "principal", None))
+        log.info("authn hook injected before=%s", ctx.get("__autoapi_injected_fields__"))
 
 
-__all__ = ["register_inject_hook"]
+
+__all__ = ["register_inject_hook", "log"]
 
 
 for _name in list(globals()):

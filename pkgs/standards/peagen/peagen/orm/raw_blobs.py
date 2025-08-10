@@ -7,6 +7,7 @@ from autoapi.v2.mixins import GUIDPk, Timestamped, BlobRef
 
 class RawBlob(Base, GUIDPk, Timestamped, BlobRef):
     __tablename__ = "raw_blobs"
+    __table_args__= ({"schema": "peagen"},)
     mime_type = Column(String, nullable=False)
     size = Column(Integer, nullable=False)
 

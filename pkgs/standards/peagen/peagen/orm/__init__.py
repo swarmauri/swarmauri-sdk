@@ -6,12 +6,14 @@ from __future__ import annotations
 
 from typing import FrozenSet
 
-from autoapi.v2.tables import Org, Role, RoleGrant, RolePerm, Status, Base
+#from autoapi.v2.tables import Role, RoleGrant, RolePerm
+from autoapi.v2.tables import Status, Base
 
 # Import table classes. Ensure Tenant is imported before Pool so bootstrapping
 # default rows inserts the default tenant prior to default pools.
 from .tenants import Tenant
 from .users import User
+from .orgs import Org
 from .repositories import Repository
 from .user_repositories import UserRepository
 from .raw_blobs import RawBlob
@@ -43,9 +45,9 @@ __all__ = [
     "Tenant",
     "User",
     "Org",
-    "Role",
-    "RoleGrant",
-    "RolePerm",
+    # "Role",
+    # "RoleGrant",
+    # "RolePerm",
     "Status",
     "Base",
     "Repository",
