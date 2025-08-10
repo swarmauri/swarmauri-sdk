@@ -102,7 +102,8 @@ def build_gateway(api) -> APIRouter:
         ):
             req.state.principal = principal
             print("GW principal:", principal)
-            print("GW allow_anon:", api._allow_anon)            
+            print("GW allow_anon:", api._allow_anon)
+            print("GW method called:", env.method)      
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
