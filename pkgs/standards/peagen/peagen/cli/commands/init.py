@@ -220,7 +220,6 @@ def _remote_task(
     task = build_task(
         action=action,
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -367,5 +366,5 @@ def remote_init_repo(
         "path": ".",
         "remotes": {"origin": origin_url, "upstream": upstream_url},
     }
-    _remote_task("init", args, ctx, origin_url, default_branch)
+    
     self.logger.info("Exiting remote init_repo command")
