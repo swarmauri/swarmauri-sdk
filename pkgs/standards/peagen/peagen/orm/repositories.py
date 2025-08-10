@@ -1,10 +1,10 @@
 # peagen/orm/repositories.py
 from __future__ import annotations
 
-import asyncio
 import os
-from pathlib import Path
-from typing import Any, Dict, Mapping
+import asyncio
+from urllib.parse import urlparse
+from typing import Any, Dict, Mapping, Optional
 
 from autoapi.v2.tables import Base
 from autoapi.v2.types import (
@@ -23,6 +23,7 @@ from autoapi.v2.mixins import (
     OwnerPolicy,
     StatusMixin,
 )
+from autoapi.v2.hooks import Phase
 
 class Repository(
     Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin, HookProvider
@@ -37,6 +38,14 @@ class Repository(
         UniqueConstraint("url"),
         {"schema": "peagen"},
     )
+
+    # Add request extras to all verbs via "*" wildcard
+    __autoapi_request_extras__ = {
+        "*": {
+            "github_pat": (str | None, Field(default=None, exclude=True, description="GitHub PAT (write-only)")),
+        }
+    }
+
 
     # The request must not contain owner_id. The server injects the caller’s user_id automatically.
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
@@ -60,152 +69,157 @@ class Repository(
         cascade="all, delete-orphan",
     )
 
-    # ─────────────────────── init-core integration ───────────────────────
-
+    # ────────────────────────────────────────────────────────────────────
+    # Helpers
+    # -------------------------------------------------------------------
     @staticmethod
-    def _slug_from_url(url: str | None) -> str | None:
-        """Return 'owner/repo' from common Git URLs or None if it can't be derived."""
+    def _slug_from_url(url: str) -> Optional[str]:
+        """
+        Extract `<owner>/<name>` from a Git URL or HTTPS URL.
+        Handles: https://github.com/owner/name(.git), git@github.com:owner/name(.git)
+        """
         if not url:
             return None
-        u = url.strip()
-
-        # git@github.com:owner/repo.git
-        if u.startswith("git@"):
+        if url.startswith("git@"):
+            # git@github.com:owner/name.git
             try:
-                _, tail = u.split(":", 1)
-                if tail.endswith(".git"):
-                    tail = tail[:-4]
-                parts = tail.strip("/").split("/")
-                if len(parts) >= 2:
-                    return "/".join(parts[-2:])
+                host_and_path = url.split(":", 1)[1]
+                parts = host_and_path.split("/")
+            except Exception:
+                return None
+        else:
+            try:
+                p = urlparse(url)
+                parts = [seg for seg in (p.path or "").split("/") if seg]
             except Exception:
                 return None
 
-        # https://github.com/owner/repo(.git)?  or  github.com/owner/repo
-        for prefix in ("https://", "http://"):
-            if u.startswith(prefix):
-                u = u[len(prefix):]
-        if u.startswith("github.com/"):
-            u = u[len("github.com/"):]
-        if u.endswith(".git"):
-            u = u[:-4]
-        parts = u.strip("/").split("/")
-        if len(parts) >= 2:
-            return "/".join(parts[-2:])
-        return None
+        if len(parts) < 2:
+            return None
+        owner, name = parts[-2], parts[-1]
+        if name.endswith(".git"):
+            name = name[:-4]
+        return f"{owner}/{name}"
+
+    @staticmethod
+    def _get_params_map(ctx) -> Mapping[str, Any]:
+        params = ctx["env"].params if ctx.get("env") else {}
+        if hasattr(params, "model_dump"):
+            try:
+                params = params.model_dump()
+            except Exception:
+                pass
+        return params or {}
 
     @classmethod
-    async def _pre_create_capture_init(cls, ctx):
+    def _normalize_init_spec(cls, params: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Capture an optional init spec from the request params and stash it on ctx.
-        Accepted payloads:
-          { ..., "init": { "repo": "owner/name", "pat": "...", "deploy_key": "...",
-                           "path": "...", "remotes": {...}, "description": "..." } }
-        Legacy (Task-style):
-          { ..., "args": { "kind": "repo", "repo": "...", "pat": "...", ... } }
+        Accept either:
+          • params["init"] = {repo, pat, description?, deploy_key?, path?, remotes?}
+          • legacy: params["args"] with args["kind"] == "repo", carrying same keys
+        Derive `repo` from `url` if missing. Pull `pat` from env if absent.
+        """
+        init_spec = None
+
+        if isinstance(params.get("init"), dict):
+            init_spec = dict(params["init"])
+        else:
+            args = params.get("args")
+            if isinstance(args, dict) and args.get("kind") == "repo":
+                init_spec = dict(args)
+
+        if not init_spec:
+            return None
+
+        # Normalize keys
+        repo = init_spec.get("repo") or cls._slug_from_url(params.get("url", ""))
+        pat = init_spec.get("pat") or os.getenv("PEAGEN_GH_PAT") or os.getenv("GITHUB_PAT")
+        description = init_spec.get("description", "")
+        deploy_key = init_spec.get("deploy_key")
+        path = init_spec.get("path")  # may be None on “remote” usage
+        remotes = init_spec.get("remotes")
+
+        if not repo:
+            # Without a repo slug we can’t do remote init; silently skip
+            return None
+
+        out = {
+            "repo": repo,
+            "pat": pat,
+            "description": description,
+            "deploy_key": deploy_key,
+            "path": path,
+            "remotes": remotes,
+        }
+        # Drop Nones except pat (we want to detect “no PAT” later)
+        return {k: v for k, v in out.items() if v is not None or k == "pat"}
+
+    # ────────────────────────────────────────────────────────────────────
+    # Hooks for remote init
+    # -------------------------------------------------------------------
+    @classmethod
+    async def _pre_create_collect_init(cls, ctx):
+        """
+        Capture and normalize any init payload from the RPC request and stash it
+        on the context. This runs before validation drops unknown fields.
         """
         from peagen.gateway import log
 
-        params = ctx["env"].params if ctx.get("env") else {}
-        if hasattr(params, "model_dump"):
-            params = params.model_dump()
-
-        if not isinstance(params, Mapping):
+        params = cls._get_params_map(ctx)
+        spec = cls._normalize_init_spec(params)
+        if not spec:
             return
-
-        init_raw: Dict[str, Any] | None = None
-
-        # Preferred: "init": {...}
-        maybe_init = params.get("init")
-        if isinstance(maybe_init, dict):
-            init_raw = dict(maybe_init)
-
-        # Legacy: "args": {"kind":"repo", ...}
-        if init_raw is None:
-            args = params.get("args")
-            if isinstance(args, dict) and (args.get("kind") == "repo" or "repo" in args):
-                init_raw = dict(args)
-
-        if init_raw is None:
-            return  # nothing to do
-
-        # Derive repo slug if not provided explicitly
-        repo_slug = init_raw.get("repo") or cls._slug_from_url(params.get("url"))
-        if not repo_slug:
-            log.info("Repository.init: no repo slug derivable; skipping init")
-            return
-
-        # PAT can come from init, or env (fallback), or you can later extend to fetch from secrets.
-        pat = init_raw.get("pat") or os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
-
-        init_spec = {
-            "repo": repo_slug,
-            "pat": pat,
-            "description": init_raw.get("description") or params.get("name") or "",
-            "deploy_key": init_raw.get("deploy_key"),
-            "path": Path(init_raw["path"]).expanduser() if init_raw.get("path") else None,
-            "remotes": init_raw.get("remotes") or {},
-        }
-
-        # Stash for POST_COMMIT
-        ctx["__repo_init__"] = init_spec
-        log.info("Repository.init: captured init spec for %s (path=%s, remotes=%s)",
-                 repo_slug, init_spec["path"], bool(init_spec["remotes"]))
+        ctx["__repo_init__"] = spec
+        log.info("Repository.init spec captured: %s", {k: ('***' if k == 'pat' else v) for k, v in spec.items()})
 
     @classmethod
-    async def _post_create_init_repo(cls, ctx):
+    async def _post_commit_maybe_init(cls, ctx):
         """
-        After the repository row is committed, run init_core.init_repo in the background.
+        If an init spec was captured, run repo init after the DB row is created.
+        - If PAT provided: init_repo (creates GH repo, key, optional push)
+        - Else if remotes provided: configure_repo
         """
         from peagen.gateway import log
         from peagen.core import init_core
 
         spec = ctx.get("__repo_init__")
         if not spec:
-            return  # no init requested/captured
+            return
 
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
-        log.info("Repository.init: starting init_repo for %s (%s)", created.name, created.url)
+        # Defensive copy; keep PAT masked in logs
+        log.info("Repository.init begin for repo=%s", spec.get("repo"))
 
-        # Run blocking work off the event loop
         async def _run():
-            try:
-                # Decide between full init_repo or a lightweight configure_repo
-                if spec.get("pat"):
-                    res = await asyncio.to_thread(
-                        init_core.init_repo,
-                        repo=spec["repo"],
-                        pat=spec["pat"],
-                        description=spec.get("description", "") or "",
-                        deploy_key=Path(spec["deploy_key"]).expanduser()
-                                   if spec.get("deploy_key") else None,
-                        path=spec.get("path"),
-                        remotes=spec.get("remotes") or None,
-                    )
-                else:
-                    # No PAT → just local configuration if we have enough info
-                    if spec.get("path") and spec.get("remotes"):
-                        res = await asyncio.to_thread(
-                            init_core.configure_repo,
-                            path=spec["path"],
-                            remotes=spec["remotes"],
-                        )
-                    else:
-                        log.info("Repository.init: missing PAT and insufficient local info; skipping")
-                        return
-                log.info("Repository.init: completed with result: %s", res)
-            except Exception as exc:  # noqa: BLE001
-                log.error("Repository.init: init failed for %s – %s", spec["repo"], exc)
+            if spec.get("pat"):
+                return await asyncio.to_thread(init_core.init_repo, **spec)
+            # Fallback path: just configure remotes (server-side)
+            remotes = spec.get("remotes") or {}
+            path = spec.get("path")
+            if not path:
+                # Nothing to configure without a working directory
+                return {"skipped": "no path/remotes for configure_repo"}
+            return await asyncio.to_thread(init_core.configure_repo, path=path, remotes=remotes)
 
-        await _run()  # fire and wait; switch to `asyncio.create_task(_run())` if you prefer fire-and-forget
+        try:
+            init_result = await _run()
+            log.info("Repository.init done: %s", init_result)
+            # Attach a lightweight summary onto the response
+            result = ctx.get("result")
+            if result and isinstance(result, dict):
+                result.setdefault("_init", init_result)
+                ctx["result"] = result
+            resp = ctx.get("response")
+            if resp is not None and isinstance(resp.result, dict):
+                resp.result.setdefault("_init", init_result)
+        except Exception as exc:  # don’t fail the main RPC
+            log.error("Repository.init failed: %s", exc)
 
-    # ───────────────────────── existing hooks ─────────────────────────
-
+    # ────────────────────────────────────────────────────────────────────
+    # Existing post-create (kept intact, now attaches after commit too)
+    # -------------------------------------------------------------------
     @classmethod
     async def _post_create(cls, ctx):
         from peagen.gateway import log
-
-        log.info("entering post_repository_create")
         created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
         log.info("repository created: %s (%s)", created.name, created.url)
         ctx["result"] = created.model_dump()
@@ -215,12 +229,12 @@ class Repository(
         from autoapi.v2 import AutoAPI, Phase
 
         cls._SRead = AutoAPI.get_schema(cls, "read")
-        # New hooks for init-core integration
-        api.register_hook(Phase.PRE_TX_BEGIN, model=cls, op="create")(cls._pre_create_capture_init)
-        api.register_hook(Phase.POST_COMMIT,   model=cls, op="create")(cls._post_create_init_repo)
 
-        # Keep your existing post-create logging
-        api.register_hook(Phase.POST_COMMIT, model=cls, op="create")(cls._post_create)
-
+        # Capture init payload early (before RPC adapter validation strips it)
+        api.register_hook(Phase.PRE_TX_BEGIN, model=cls, op="create")(cls._pre_create_collect_init)
+        # Do the heavy work only after commit
+        api.register_hook(Phase.POST_COMMIT,   model=cls, op="create")(cls._post_commit_maybe_init)
+        # Keep your existing post-create logging/normalization
+        api.register_hook(Phase.POST_COMMIT,   model=cls, op="create")(cls._post_create)
 
 __all__ = ["Repository"]
