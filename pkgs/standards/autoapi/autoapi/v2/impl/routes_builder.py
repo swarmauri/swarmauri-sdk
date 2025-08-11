@@ -21,6 +21,7 @@ from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+from .call_adapter import OpCall
 
 
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
@@ -66,9 +67,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     tab: str,
     pk: str,
     SCreate,
-    SReadOut,     # ← read OUTPUT schema
-    SReadIn,      # ← read INPUT (pk-only) schema
-    SDeleteIn,    # ← delete INPUT (pk-only) schema
+    SReadOut,  # ← read OUTPUT schema
+    SReadIn,  # ← read INPUT (pk-only) schema
+    SDeleteIn,  # ← delete INPUT (pk-only) schema
     SUpdate,
     SListIn,
     _create,
@@ -100,12 +101,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
-        ("create", "POST",  "",          201, SCreate,             SReadOut,         _create),
-        ("list",   "GET",   "",          200, SListIn,             List[SReadOut],   _list),
-        ("clear",  "DELETE","",          204, None,                None,             _clear),
-        ("read",   "GET",   "/{item_id}",200, SReadIn,             SReadOut,         _read),
-        ("update", "PATCH", "/{item_id}",200, SUpdate,             SReadOut,         _update),
-        ("delete", "DELETE","/{item_id}",204, SDeleteIn,           None,             _delete),
+        ("create", "POST", "", 201, SCreate, SReadOut, _create),
+        ("list", "GET", "", 200, SListIn, List[SReadOut], _list),
+        ("clear", "DELETE", "", 204, None, None, _clear),
+        ("read", "GET", "/{item_id}", 200, SReadIn, SReadOut, _read),
+        ("update", "PATCH", "/{item_id}", 200, SUpdate, SReadOut, _update),
+        ("delete", "DELETE", "/{item_id}", 204, SDeleteIn, None, _delete),
     ]
     if issubclass(model, Replaceable):
         print("Model is Replaceable; adding replace spec")
@@ -123,8 +124,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
         spec += [
-            ("bulk_create", "POST",   "/bulk", 201, List[SCreate],   List[SReadOut], _create),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None,           _delete),
+            (
+                "bulk_create",
+                "POST",
+                "/bulk",
+                201,
+                List[SCreate],
+                List[SReadOut],
+                _create,
+            ),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -336,21 +345,21 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
-        print(f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}")
+        print(
+            f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
+        )
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
         camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
 
         def _runner(payload, *, db=None, _method=m_id, _api=self):
-            """
-            Helper so you can call:  api.methods.UserCreate(SUserCreate(...))
-            """
+            """Helper so you can call:  api.methods.UserCreate(SUserCreate(...))"""
             if db is None:  # auto-open sync session
                 if _api.get_db is None:
                     raise TypeError(
                         "Supply a Session via db=... "
-                        "or register get_db when constructing AutoAPI()"
+                        "or register get_db when constructing AutoAPI()",
                     )
                 gen = _api.get_db()
                 db = next(gen)
@@ -361,19 +370,46 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         next(gen)  # finish generator → close
                     except StopIteration:
                         pass
-            else:
+            return _api.rpc[_method](payload, db)
+
+        async def _core_call(payload, *, db=None, _method=m_id, _api=self):
+            """Async wrapper that mirrors _runner semantics."""
+            if db is not None:
+                if hasattr(db, "run_sync"):
+                    return await db.run_sync(lambda s: _api.rpc[_method](payload, s))
                 return _api.rpc[_method](payload, db)
+
+            if _api.get_async_db is not None:
+                async for adb in _api.get_async_db():
+                    return await adb.run_sync(lambda s: _api.rpc[_method](payload, s))
+
+            if _api.get_db is None:
+                raise TypeError(
+                    "Supply a Session via db=... or register get_db/get_async_db",
+                )
+
+            gen = _api.get_db()
+            db = next(gen)
+            try:
+                return _api.rpc[_method](payload, db)
+            finally:
+                try:
+                    next(gen)  # finish generator → close
+                except StopIteration:
+                    pass
 
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
-        setattr(self.cores, camel, core)
+        setattr(self.cores, camel, OpCall(_core_call))
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")
 
-
         # Ensure container for core_exec
         if not hasattr(self, "core_exec"):
-            class _CE: pass
+
+            class _CE:
+                pass
+
             self.core_exec = _CE()
 
         async def _core_exec(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
@@ -387,7 +423,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     case "list":
                         return (_p,)  # already a schema/dict matching list input
                     case "read" | "delete":
-                        if hasattr(_p, "model_dump"):    # pydantic model
+                        if hasattr(_p, "model_dump"):  # pydantic model
                             d = _p.model_dump()
                         else:
                             d = dict(_p)
@@ -403,14 +439,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
             # 1) Caller supplied a DB
             if db is not None:
-                if hasattr(db, "run_sync"):                         # AsyncSession
+                if hasattr(db, "run_sync"):  # AsyncSession
                     return await db.run_sync(lambda s: _core(*_build_args(payload), s))
                 # Plain Session
                 return _core(*_build_args(payload), db)
 
             # 2) No DB supplied: auto-open a sync session only if available
             if self.get_db is None:
-                raise TypeError("core_exec requires a DB (AsyncSession or Session) when get_db is not configured")
+                raise TypeError(
+                    "core_exec requires a DB (AsyncSession or Session) when get_db is not configured"
+                )
 
             gen = self.get_db()
             s = next(gen)
@@ -418,14 +456,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 return _core(*_build_args(payload), s)
             finally:
                 try:
-                    next(gen)   # close
+                    next(gen)  # close
                 except StopIteration:
                     pass
 
         # Register helper name (CamelCase like UsersCreate)
         camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
-        setattr(self.core_exec, camel, _core_exec)
-
+        setattr(self.core_exec, camel, OpCall(_core_exec))
 
     # include routers
     self.router.include_router(flat_router)
