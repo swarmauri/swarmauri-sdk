@@ -29,7 +29,7 @@ from autoapi.v2.mixins import (
     MetaJSON,
     RelationEdge,
 )
-from autoapi.v2 import Base
+from autoapi.v2 import Base, get_schema
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
@@ -141,12 +141,12 @@ class DummyModelMetaJSON(Base, GUIDPk, MetaJSON):
 @pytest.mark.asyncio
 async def test_timestamped_mixin(create_test_api):
     """Test that Timestamped mixin adds created_at and updated_at fields."""
-    api = create_test_api(DummyModelTimestamped)
+    create_test_api(DummyModelTimestamped)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelTimestamped, "create")
-    read_schema = api.get_schema(DummyModelTimestamped, "read")
-    update_schema = api.get_schema(DummyModelTimestamped, "update")
+    create_schema = get_schema(DummyModelTimestamped, "create")
+    read_schema = get_schema(DummyModelTimestamped, "read")
+    update_schema = get_schema(DummyModelTimestamped, "update")
 
     # created_at and updated_at should be in read schema
     assert "created_at" in read_schema.model_fields
@@ -168,11 +168,11 @@ async def test_timestamped_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_created_mixin(create_test_api):
     """Test that Created mixin adds created_at field."""
-    api = create_test_api(DummyModelCreated)
+    create_test_api(DummyModelCreated)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelCreated, "create")
-    read_schema = api.get_schema(DummyModelCreated, "read")
+    create_schema = get_schema(DummyModelCreated, "create")
+    read_schema = get_schema(DummyModelCreated, "read")
 
     # created_at should be in read schema
     assert "created_at" in read_schema.model_fields
@@ -185,10 +185,10 @@ async def test_created_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_last_used_mixin(create_test_api):
     """Test that LastUsed mixin adds last_used_at field and touch method."""
-    api = create_test_api(DummyModelLastUsed)
+    create_test_api(DummyModelLastUsed)
 
     # Get schemas
-    read_schema = api.get_schema(DummyModelLastUsed, "read")
+    read_schema = get_schema(DummyModelLastUsed, "read")
 
     # last_used_at should be in read schema
     assert "last_used_at" in read_schema.model_fields
@@ -209,11 +209,11 @@ async def test_last_used_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_active_toggle_mixin(create_test_api):
     """Test that ActiveToggle mixin adds is_active field."""
-    api = create_test_api(DummyModelActiveToggle)
+    create_test_api(DummyModelActiveToggle)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelActiveToggle, "create")
-    read_schema = api.get_schema(DummyModelActiveToggle, "read")
+    create_schema = get_schema(DummyModelActiveToggle, "create")
+    read_schema = get_schema(DummyModelActiveToggle, "read")
 
     # is_active should be in schemas
     assert "is_active" in create_schema.model_fields
@@ -228,10 +228,10 @@ async def test_active_toggle_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_soft_delete_mixin(create_test_api):
     """Test that SoftDelete mixin adds deleted_at field."""
-    api = create_test_api(DummyModelSoftDelete)
+    create_test_api(DummyModelSoftDelete)
 
     # Get schemas
-    read_schema = api.get_schema(DummyModelSoftDelete, "read")
+    read_schema = get_schema(DummyModelSoftDelete, "read")
 
     # deleted_at should be in read schema
     assert "deleted_at" in read_schema.model_fields
@@ -241,11 +241,11 @@ async def test_soft_delete_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_versioned_mixin(create_test_api):
     """Test that Versioned mixin adds revision and prev_id fields."""
-    api = create_test_api(DummyModelVersioned)
+    create_test_api(DummyModelVersioned)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelVersioned, "create")
-    read_schema = api.get_schema(DummyModelVersioned, "read")
+    create_schema = get_schema(DummyModelVersioned, "create")
+    read_schema = get_schema(DummyModelVersioned, "read")
 
     # revision and prev_id should be in schemas
     assert "revision" in read_schema.model_fields
@@ -273,11 +273,11 @@ async def test_bulk_capable_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_replaceable_mixin(create_test_api):
     """Test that Replaceable mixin enables replacement operations."""
-    api = create_test_api(DummyModelReplaceable)
+    create_test_api(DummyModelReplaceable)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelReplaceable, "create")
-    read_schema = api.get_schema(DummyModelReplaceable, "read")
+    create_schema = get_schema(DummyModelReplaceable, "create")
+    read_schema = get_schema(DummyModelReplaceable, "read")
 
     # Should have basic fields
     assert "name" in create_schema.model_fields
@@ -294,10 +294,10 @@ async def test_replaceable_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_async_capable_mixin(create_test_api):
     """Test that AsyncCapable mixin is a marker mixin."""
-    api = create_test_api(DummyModelAsyncCapable)
+    create_test_api(DummyModelAsyncCapable)
 
     # Get schemas
-    read_schema = api.get_schema(DummyModelAsyncCapable, "read")
+    read_schema = get_schema(DummyModelAsyncCapable, "read")
 
     # AsyncCapable is a marker mixin - doesn't add fields
     expected_fields = {"id", "name"}
@@ -309,11 +309,11 @@ async def test_async_capable_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_slugged_mixin(create_test_api):
     """Test that Slugged mixin adds slug field."""
-    api = create_test_api(DummyModelSlugged)
+    create_test_api(DummyModelSlugged)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelSlugged, "create")
-    read_schema = api.get_schema(DummyModelSlugged, "read")
+    create_schema = get_schema(DummyModelSlugged, "create")
+    read_schema = get_schema(DummyModelSlugged, "read")
 
     # slug should be in schemas
     assert "slug" in create_schema.model_fields
@@ -324,11 +324,11 @@ async def test_slugged_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_status_mixin(create_test_api):
     """Test that StatusMixin adds status field."""
-    api = create_test_api(DummyModelStatusMixin)
+    create_test_api(DummyModelStatusMixin)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelStatusMixin, "create")
-    read_schema = api.get_schema(DummyModelStatusMixin, "read")
+    create_schema = get_schema(DummyModelStatusMixin, "create")
+    read_schema = get_schema(DummyModelStatusMixin, "read")
 
     # status should be in schemas
     assert "status" in create_schema.model_fields
@@ -343,11 +343,11 @@ async def test_status_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_validity_window_mixin(create_test_api):
     """Test that ValidityWindow mixin adds valid_from and valid_until fields."""
-    api = create_test_api(DummyModelValidityWindow)
+    create_test_api(DummyModelValidityWindow)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelValidityWindow, "create")
-    read_schema = api.get_schema(DummyModelValidityWindow, "read")
+    create_schema = get_schema(DummyModelValidityWindow, "create")
+    read_schema = get_schema(DummyModelValidityWindow, "read")
 
     # validity fields should be in schemas
     assert "valid_from" in create_schema.model_fields
@@ -378,11 +378,11 @@ async def test_validity_window_default(create_test_api):
 @pytest.mark.asyncio
 async def test_monetary_mixin(create_test_api):
     """Test that Monetary mixin adds currency and amount fields."""
-    api = create_test_api(DummyModelMonetary)
+    create_test_api(DummyModelMonetary)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelMonetary, "create")
-    read_schema = api.get_schema(DummyModelMonetary, "read")
+    create_schema = get_schema(DummyModelMonetary, "create")
+    read_schema = get_schema(DummyModelMonetary, "read")
 
     # monetary fields should be in schemas
     assert "currency" in create_schema.model_fields
@@ -399,11 +399,11 @@ async def test_monetary_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_ext_ref_mixin(create_test_api):
     """Test that ExtRef mixin adds external_id field."""
-    api = create_test_api(DummyModelExtRef)
+    create_test_api(DummyModelExtRef)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelExtRef, "create")
-    read_schema = api.get_schema(DummyModelExtRef, "read")
+    create_schema = get_schema(DummyModelExtRef, "create")
+    read_schema = get_schema(DummyModelExtRef, "read")
 
     # external_id should be in schemas
     assert "external_id" in create_schema.model_fields
@@ -415,11 +415,11 @@ async def test_ext_ref_mixin(create_test_api):
 @pytest.mark.skip(reason="JSONB type not supported in SQLite test environment")
 async def test_meta_json_mixin(create_test_api):
     """Test that MetaJSON mixin adds meta field."""
-    api = create_test_api(DummyModelMetaJSON)
+    create_test_api(DummyModelMetaJSON)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelMetaJSON, "create")
-    read_schema = api.get_schema(DummyModelMetaJSON, "read")
+    create_schema = get_schema(DummyModelMetaJSON, "create")
+    read_schema = get_schema(DummyModelMetaJSON, "read")
 
     # meta should be in schemas
     assert "meta" in create_schema.model_fields
@@ -451,9 +451,9 @@ async def test_marker_mixins(create_test_api):
     marker_models = [DummyAudited, DummyStreamable, DummyRelationEdge]
 
     for model in marker_models:
-        api = create_test_api(model)
+        create_test_api(model)
 
-        read_schema = api.get_schema(model, "read")
+        read_schema = get_schema(model, "read")
 
         # Should only have id and name fields (no extra fields from marker mixins)
         expected_fields = {"id", "name"}
@@ -472,11 +472,11 @@ async def test_multiple_mixins_combination(create_test_api):
         __tablename__ = "dummy_multiple_mixins"
         name = Column(String)
 
-    api = create_test_api(DummyMultipleMixins)
+    create_test_api(DummyMultipleMixins)
 
     # Get schemas
-    create_schema = api.get_schema(DummyMultipleMixins, "create")
-    read_schema = api.get_schema(DummyMultipleMixins, "read")
+    create_schema = get_schema(DummyMultipleMixins, "create")
+    read_schema = get_schema(DummyMultipleMixins, "read")
 
     # Should have fields from all mixins
     # From ActiveToggle

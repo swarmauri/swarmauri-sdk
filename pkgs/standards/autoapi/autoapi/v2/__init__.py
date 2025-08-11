@@ -4,7 +4,7 @@ Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
 •  Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
-•  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
+•  Preserves the historical surface: AutoAPI._crud, …
 """
 
 # ─── std / third-party ──────────────────────────────────────────────
@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
 from .gateway import build_gateway
-from .hooks import Phase, _Hook, _init_hooks, _run
+from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
     _register_routes_and_rpcs,
@@ -30,13 +30,13 @@ from .tables._base import Base as Base
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
 from .types import (
     _Op,  # pure metadata
-    _SchemaVerb,
     AuthNProvider,
     MethodType,
     SimpleNamespace,
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
+from . import tables as tables
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
@@ -45,10 +45,6 @@ from .bootstrap_dbschema import ensure_schemas
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""
-
-    # re-export public enums / protocols so callers retain old dotted paths
-    Phase = Phase
-    _Hook = _Hook
 
     # ───────── constructor ─────────────────────────────────────────
     def __init__(
@@ -64,7 +60,7 @@ class AutoAPI:
     ):
         # lightweight state
         self.base = base
-        self.include = include
+        self._include = include
         self.authorize = authorize
         self.router = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
@@ -73,7 +69,6 @@ class AutoAPI:
         # Cores
         self.cores: SimpleNamespace = SimpleNamespace(name="core")
         self.core_exec: SimpleNamespace = SimpleNamespace(name="core_exec")
-
 
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
@@ -88,7 +83,6 @@ class AutoAPI:
         # Anonymous Routes
         self._allow_anon: set[str] = set()
 
-
         # ---------- choose providers -----------------------------
         if (get_db is None) and (get_async_db is None):
             raise ValueError("provide get_db or get_async_db")
@@ -98,30 +92,20 @@ class AutoAPI:
 
         # ---------- add register_transactional---------------------
         self.transactional = MethodType(_register_tx, self)
-
-        # ─── convenience: explicit registration ----------------------
-        def _register_existing_tx(
-            self, fn: Callable[..., Any], **kw
-        ) -> Callable[..., Any]:
-            """
-            Register *fn* as a transactional handler *after* it was defined.
-
-            Example
-            -------
-                def bundle_create(p, db): ...
-                api.register_transactional(bundle_create,
-                                           name='bundle.create')
-            """
-            return self.transactional(fn, **kw)
-
-        self.register_transactional = MethodType(_register_existing_tx, self)
+        self.register_transaction = self.transactional
+        self.register_transactional = self.transactional
 
         # ---------- create schema once ---------------------------
-        if include:
-            self.tables = {cls.__table__ for cls in include}  # deduplicate via set
+        if self._include:
+            self._tables = {
+                cls.__table__ for cls in self._include
+            }  # deduplicate via set
         else:
             raise ValueError("must declare tables to be created")
-            self.tables = set(self.base.metadata.tables.values())
+            self._tables = set(self.base.metadata.tables.values())
+
+        # expose tables namespace
+        self.tables = tables
 
         # Store DDL creation for later execution
         self._ddl_executed = False
@@ -152,7 +136,7 @@ class AutoAPI:
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
             cls = m.class_
-            if include and cls not in include:
+            if self._include and cls not in self._include:
                 continue
             self._crud(cls)
 
@@ -160,10 +144,15 @@ class AutoAPI:
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
             async for adb in self.get_async_db():  # adb is an AsyncSession
+
                 def _sync_bootstrap(arg):
                     # arg is a sync Session (AsyncSession.run_sync) or a Connection (AsyncConnection.run_sync)
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg   # Session -> (Connection/Engine), else Connection
-                    engine = getattr(bind, "engine", bind)                       # Connection -> Engine, Engine -> Engine
+                    bind = (
+                        arg.get_bind() if hasattr(arg, "get_bind") else arg
+                    )  # Session -> (Connection/Engine), else Connection
+                    engine = getattr(
+                        bind, "engine", bind
+                    )  # Connection -> Engine, Engine -> Engine
 
                     # 1) ensure schemas (handles Postgres + SQLite attach)
                     ensure_schemas(engine)
@@ -172,7 +161,7 @@ class AutoAPI:
                     self.base.metadata.create_all(
                         bind=bind,
                         checkfirst=True,
-                        tables=self.tables,
+                        tables=self._tables,
                     )
 
                 await adb.run_sync(_sync_bootstrap)
@@ -183,8 +172,8 @@ class AutoAPI:
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
             with next(self.get_db()) as db:  # db is a sync Session
-                bind = db.get_bind()                     # -> Connection or Engine
-                engine = getattr(bind, "engine", bind)   # -> Engine
+                bind = db.get_bind()  # -> Connection or Engine
+                engine = getattr(bind, "engine", bind)  # -> Engine
 
                 # 1) ensure schemas (Postgres + SQLite attach)
                 ensure_schemas(engine)
@@ -193,7 +182,7 @@ class AutoAPI:
                 self.base.metadata.create_all(
                     bind=bind,
                     checkfirst=True,
-                    tables=self.tables,
+                    tables=self._tables,
                 )
             self._ddl_executed = True
 
@@ -207,16 +196,11 @@ class AutoAPI:
     _nested_prefix = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
-    @classmethod
-    def get_schema(cls, orm_cls: type, op: _SchemaVerb):
-        return get_schema(orm_cls, op)
-
 
 # keep __all__ tidy for `from autoapi import *` users
 __all__ = [
     "AutoAPI",
     "Phase",
-    "_Hook",
     "Base",
     "get_schema",
 ]

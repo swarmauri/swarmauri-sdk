@@ -18,7 +18,6 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
-import contextvars
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .backends import (
@@ -31,6 +30,7 @@ from .typing import Principal
 from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
+from .principal_ctx import principal_var
 
 
 # ---------------------------------------------------------------------
@@ -38,13 +38,6 @@ from .crypto import public_key, signing_key
 # ---------------------------------------------------------------------
 _api_key_backend = ApiKeyBackend()
 _jwt_coder = JWTCoder(public_key, signing_key)
-
-# ---------------------------------------------------------------------
-# Public ContextVar – used by AutoAPI row filters
-# ---------------------------------------------------------------------
-principal_var: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
-    "principal", default=None
-)
 
 
 # ---------------------------------------------------------------------

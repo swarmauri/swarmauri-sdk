@@ -52,9 +52,11 @@ class Task(
     HookProvider,
 ):
     __tablename__ = "tasks"
-    __table_args__= ({"schema": "peagen"},)
+    __table_args__ = ({"schema": "peagen"},)
     action = Column(PgEnum(Action, name="task_action"), nullable=False)
-    pool_id = Column(PgUUID(as_uuid=True), ForeignKey("peagen.pools.id"), nullable=False)
+    pool_id = Column(
+        PgUUID(as_uuid=True), ForeignKey("peagen.pools.id"), nullable=False
+    )
     config_toml = Column(String)
     spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
     spec_uuid = Column(PgUUID(as_uuid=True), nullable=True)
@@ -184,11 +186,11 @@ class Task(
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import AutoAPI, Phase
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SCreate = AutoAPI.get_schema(cls, "create")
-        cls._SRead = AutoAPI.get_schema(cls, "read")
-        cls._SUpdate = AutoAPI.get_schema(cls, "update")
+        cls._SCreate = get_schema(cls, "create")
+        cls._SRead = get_schema(cls, "read")
+        cls._SUpdate = get_schema(cls, "update")
         api.register_hook(Phase.PRE_TX_BEGIN, model="Task", op="create")(
             cls._pre_create
         )

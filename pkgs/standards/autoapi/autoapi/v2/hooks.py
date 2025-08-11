@@ -37,6 +37,7 @@ class Phase(Enum):
     # Generic catch-all
     ON_ERROR = auto()
 
+
 class _Hook(Protocol):
     async def __call__(self, ctx: Dict[str, Any]) -> None: ...
 
@@ -45,7 +46,7 @@ class _Hook(Protocol):
 def _init_hooks(self) -> None:
     """
     Injects a fresh registry into *self* and publishes
-    `self.hook` / `self.register_hook` decorators.
+    a `self.register_hook` decorator.
     """
     self._hook_registry: Dict[Phase, Dict[str | None, list[_Hook]]] = defaultdict(
         lambda: defaultdict(list)
@@ -61,9 +62,9 @@ def _init_hooks(self) -> None:
         """
         Hook decorator supporting model and op parameters:
 
-        Usage: @api.hook(Phase.POST_COMMIT, model="DeployKeys", op="create")
-        Usage: @api.hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
-        Usage: @api.hook(Phase.POST_COMMIT)  # catch-all hook
+        Usage: @api.register_hook(Phase.POST_COMMIT, model="DeployKeys", op="create")
+        Usage: @api.register_hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
+        Usage: @api.register_hook(Phase.POST_COMMIT)  # catch-all hook
         """
 
         def _reg(f: _Hook) -> _Hook:
@@ -110,8 +111,8 @@ def _init_hooks(self) -> None:
 
         return _reg if fn is None else _reg(fn)
 
-    # expose decorators on the instance
-    self.hook = self.register_hook = _hook
+    # expose decorator on the instance
+    self.register_hook = _hook
 
 
 async def _run(self, phase: Phase, ctx: Dict[str, Any]) -> None:

@@ -17,30 +17,30 @@ async def test_hook_phases_execution_order(api_client):
     execution_order = []
 
     # Register hooks for all phases
-    @api.hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
+    @api.register_hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
     async def pre_tx_begin(ctx):
         execution_order.append("PRE_TX_BEGIN")
         ctx["test_data"] = {"started": True}
 
-    @api.hook(Phase.POST_HANDLER, model="Item", op="create")
+    @api.register_hook(Phase.POST_HANDLER, model="Item", op="create")
     async def post_handler(ctx):
         execution_order.append("POST_HANDLER")
         assert ctx["test_data"]["started"] is True
         ctx["test_data"]["handler_done"] = True
 
-    @api.hook(Phase.PRE_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.PRE_COMMIT, model="Item", op="create")
     async def pre_commit(ctx):
         execution_order.append("PRE_COMMIT")
         assert ctx["test_data"]["handler_done"] is True
         ctx["test_data"]["pre_commit_done"] = True
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def post_commit(ctx):
         execution_order.append("POST_COMMIT")
         assert ctx["test_data"]["pre_commit_done"] is True
         ctx["test_data"]["committed"] = True
 
-    @api.hook(Phase.POST_RESPONSE, model="Item", op="create")
+    @api.register_hook(Phase.POST_RESPONSE, model="Item", op="create")
     async def post_response(ctx):
         execution_order.append("POST_RESPONSE")
         assert ctx["test_data"]["committed"] is True
@@ -82,14 +82,14 @@ async def test_hook_parity_crud_vs_rpc(api_client):
     crud_hooks = []
     rpc_hooks = []
 
-    @api.hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
+    @api.register_hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
     async def track_hooks(ctx):
         if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
             rpc_hooks.append("PRE_TX_BEGIN")
         else:
             crud_hooks.append("PRE_TX_BEGIN")
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def track_post_commit(ctx):
         logging.info(f">>>>>>>>>>>>>>>>>POST_COMMIT {ctx}")
         if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
@@ -125,12 +125,12 @@ async def test_hook_error_handling(api_client):
     client, api, _ = api_client
     error_hooks = []
 
-    @api.hook(Phase.ON_ERROR)
+    @api.register_hook(Phase.ON_ERROR)
     async def error_handler(ctx):
         error_hooks.append("ERROR_HANDLED")
         ctx["error_data"] = {"handled": True}
 
-    @api.hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
+    @api.register_hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
     async def failing_hook(ctx):
         raise ValueError("Intentional test error")
 
@@ -160,20 +160,20 @@ async def test_hook_context_modification(api_client):
 
     hook_executions = []
 
-    @api.hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
+    @api.register_hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
     async def modify_params(ctx):
         # Track hook execution and add custom data
         hook_executions.append("PRE_TX_BEGIN")
         ctx["custom_data"] = {"modified": True}
 
-    @api.hook(Phase.POST_HANDLER, model="Item", op="create")
+    @api.register_hook(Phase.POST_HANDLER, model="Item", op="create")
     async def verify_modification(ctx):
         # Verify the modification was applied and add more data
         hook_executions.append("POST_HANDLER")
         assert ctx["custom_data"]["modified"] is True
         ctx["custom_data"]["verified"] = True
 
-    @api.hook(Phase.POST_RESPONSE, model="Item", op="create")
+    @api.register_hook(Phase.POST_RESPONSE, model="Item", op="create")
     async def enrich_response(ctx):
         # Add custom data to response
         hook_executions.append("POST_RESPONSE")
@@ -204,12 +204,12 @@ async def test_catch_all_hooks(api_client):
     client, api, _ = api_client
     catch_all_executions = []
 
-    @api.hook(Phase.POST_COMMIT)  # Catch-all hook for most operations
+    @api.register_hook(Phase.POST_COMMIT)  # Catch-all hook for most operations
     async def catch_all_hook(ctx):
         method = getattr(ctx.get("env"), "method", "unknown")
         catch_all_executions.append(method)
 
-    @api.hook(
+    @api.register_hook(
         Phase.POST_HANDLER
     )  # Fallback for operations that don't reach POST_COMMIT
     async def post_handler_hook(ctx):
@@ -267,11 +267,11 @@ async def test_hook_model_object_reference(api_client):
     string_hooks = []
     object_hooks = []
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def string_model_hook(ctx):
         string_hooks.append("executed")
 
-    @api.hook(Phase.POST_COMMIT, model=Item, op="create")
+    @api.register_hook(Phase.POST_COMMIT, model=Item, op="create")
     async def object_model_hook(ctx):
         object_hooks.append("executed")
 
@@ -293,15 +293,15 @@ async def test_multiple_hooks_same_phase(api_client):
     client, api, _ = api_client
     executions = []
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def first_hook(ctx):
         executions.append("first")
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def second_hook(ctx):
         executions.append("second")
 
-    @api.hook(Phase.POST_COMMIT, model="Item", op="create")
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
     async def third_hook(ctx):
         executions.append("third")
 

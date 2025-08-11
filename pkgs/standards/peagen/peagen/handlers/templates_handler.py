@@ -1,7 +1,7 @@
 """
 Async entry-point for template-set management.
 
-Input : TaskRead  – AutoAPI schema bound to the Task ORM table  
+Input : TaskRead  – AutoAPI schema bound to the Task ORM table
 Output: dict      – JSON-serialisable result from templates_core helpers
 """
 
@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
+from autoapi.v2 import get_schema
+from peagen.orm import Task
 
-from peagen._utils               import maybe_clone_repo
-from peagen.core.templates_core  import (
+from peagen._utils import maybe_clone_repo
+from peagen.core.templates_core import (
     list_template_sets,
     show_template_set,
     add_template_set,
@@ -21,7 +21,7 @@ from peagen.core.templates_core  import (
 )
 
 # ─────────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")   # incoming model
+TaskRead = get_schema(Task, "read")  # incoming model
 
 
 # ─────────────────────────── main coroutine ───────────────────────────
@@ -41,12 +41,12 @@ async def templates_handler(task: TaskRead) -> Dict[str, Any]:
         }
     """
     args: Dict[str, Any] = task.args or {}
-    action: str | None   = args.get("action")
+    action: str | None = args.get("action")
     if action is None:
         raise ValueError("templates_handler: missing 'action' in task.args")
 
     repo_url = args.get("repo")
-    ref      = args.get("ref", "HEAD")
+    ref = args.get("ref", "HEAD")
 
     # Clone repo (if provided) for template-set operations that require a VCS tree
     with maybe_clone_repo(repo_url, ref):
@@ -59,9 +59,9 @@ async def templates_handler(task: TaskRead) -> Dict[str, Any]:
         if action == "add":
             return add_template_set(
                 args["source"],
-                from_bundle = args.get("from_bundle"),
-                editable    = args.get("editable", False),
-                force       = args.get("force", False),
+                from_bundle=args.get("from_bundle"),
+                editable=args.get("editable", False),
+                force=args.get("force", False),
             )
 
         if action == "remove":

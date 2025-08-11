@@ -16,7 +16,7 @@ from pathlib import Path
 
 import httpx
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen._utils.config_loader import (
     load_peagen_toml,
     resolve_cfg,
@@ -57,7 +57,7 @@ def _rpc(gateway: str = DEFAULT_GATEWAY, timeout: float = 30.0):
 
 def _schema(verb: str):
     """Helper for DeployKey schema look-ups (create/read/delete/list)."""
-    return AutoAPI.get_schema(DeployKey, verb)  # type: ignore[arg-type]
+    return get_schema(DeployKey, verb)  # type: ignore[arg-type]
 
 
 # -----------------------------------------------------------------------#

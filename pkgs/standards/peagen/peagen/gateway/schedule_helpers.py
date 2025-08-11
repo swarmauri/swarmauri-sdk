@@ -17,7 +17,7 @@ import json
 import time
 from typing import Any, Dict, List, Optional, Protocol
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from autoapi.v2.tables.status import Status
 from autoapi_client import AutoAPIClient
 
@@ -33,9 +33,9 @@ class Logger(Protocol):
 
 
 # ───────────────── Pydantic schema handles ─────────────────────────────
-TaskCreate = AutoAPI.get_schema(Task, "create")
-TaskRead = AutoAPI.get_schema(Task, "read")
-WorkerRead = AutoAPI.get_schema(Worker, "read")
+TaskCreate = get_schema(Task, "create")
+TaskRead = get_schema(Task, "read")
+WorkerRead = get_schema(Worker, "read")
 
 
 # ───────────────────────── Queue helpers ──────────────────────────────
