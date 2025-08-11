@@ -182,6 +182,82 @@ def test_rpc_call_filter_params():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("status_code", [False, True])
+@pytest.mark.parametrize("error_code", [False, True])
+def test_rpc_call_success_combinations(status_code, error_code):
+    """Successful RPC call under various flag combinations."""
+
+    def fake_post(self, url, *, json=None, headers=None):
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            200, request=request, json={"jsonrpc": "2.0", "result": {"ok": True}}
+        )
+
+    with patch.object(httpx.Client, "post", new=fake_post):
+        client = AutoAPIClient("http://example.com/api")
+        result = client.call("ping", status_code=status_code, error_code=error_code)
+
+    expected = {"ok": True}
+    if status_code and error_code:
+        assert result == (expected, 200, None)
+    elif status_code:
+        assert result == (expected, 200)
+    elif error_code:
+        assert result == (expected, None)
+    else:
+        assert result == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("status_code", [False, True])
+@pytest.mark.parametrize("error_code", [False, True])
+@pytest.mark.parametrize("raise_status", [True, False])
+@pytest.mark.parametrize("raise_error", [True, False])
+def test_rpc_call_error_combinations(
+    status_code, error_code, raise_status, raise_error
+):
+    """RPC call flag combinations when both HTTP and RPC errors occur."""
+
+    def fake_post(self, url, *, json=None, headers=None):
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            500,
+            request=request,
+            json={"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid"}},
+        )
+
+    with patch.object(httpx.Client, "post", new=fake_post):
+        client = AutoAPIClient("http://example.com/api")
+
+        def call():
+            return client.call(
+                "bad",
+                status_code=status_code,
+                error_code=error_code,
+                raise_status=raise_status,
+                raise_error=raise_error,
+            )
+
+        if raise_status:
+            with pytest.raises(httpx.HTTPStatusError):
+                call()
+            return
+
+        if raise_error:
+            with pytest.raises(RuntimeError, match="RPC error -32602: Invalid"):
+                call()
+            return
+
+        result = call()
+        expected = [None]
+        if status_code:
+            expected.append(500)
+        if error_code:
+            expected.append(-32602)
+        assert result == (expected[0] if len(expected) == 1 else tuple(expected))
+
+
+@pytest.mark.unit
 def test_rpc_call_generates_unique_ids():
     """Test that RPC calls generate unique IDs."""
     captured_ids = []
