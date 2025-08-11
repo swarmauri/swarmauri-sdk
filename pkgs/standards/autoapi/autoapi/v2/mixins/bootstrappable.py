@@ -1,49 +1,110 @@
-# autoapi/v2/mixins/bootstrappable.py
-from typing import Any, ClassVar, List
+from __future__ import annotations
 
-from ..types import TableConfigProvider
+from typing import Any, ClassVar, Iterable, List
+import logging
+import sqlalchemy as sa
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+log = logging.getLogger(__name__)
 
-class Bootstrappable(TableConfigProvider):
-    """Inherit to auto-insert ``DEFAULT_ROWS`` right after table creation."""
+class Bootstrappable:
+    """
+    Seed DEFAULT_ROWS for *this mapped class only* with zero magic.
+
+    Rules:
+      - Insert ONLY keys present on this class's mapped columns.
+      - No auto defaults, no timestamp injection, no unique probing.
+      - Idempotency only if ALL primary key columns are present in the row.
+      - Listener is attached to cls.__table__ (no cross-class/global effects).
+    """
 
     DEFAULT_ROWS: ClassVar[List[dict[str, Any]]] = []
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
-        from autoapi.v2.types import event
+        sa.event.listen(
+            cls.__table__, "after_create", cls._after_create_insert_default_rows
+        )
 
-        if cls.DEFAULT_ROWS:
+    @classmethod
+    def _after_create_insert_default_rows(cls, target, connection, **_):
+        if not getattr(cls, "DEFAULT_ROWS", None):
+            return
+        from sqlalchemy.orm import sessionmaker
 
-            @event.listens_for(cls.__table__, "after_create", once=True)
-            def _seed(target, connection, **kw):
-                dialect = connection.dialect.name
+        SessionLocal = sessionmaker(bind=connection, future=True)
+        db: Session = SessionLocal()
+        try:
+            cls._insert_rows(db, cls.DEFAULT_ROWS)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            log.warning(
+                "Bootstrappable seed failed for %s: %s",
+                cls.__name__,
+                repr(e),
+                exc_info=True,
+            )
+        finally:
+            db.close()
 
-                if dialect in ("postgres", "postgresql"):
-                    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    @classmethod
+    def ensure_bootstrapped(
+        cls, db: Session, rows: Iterable[dict[str, Any]] | None = None
+    ) -> None:
+        rows = cls.DEFAULT_ROWS if rows is None else list(rows)
+        if rows:
+            cls._insert_rows(db, rows)
 
-                    stmt = (
-                        pg_insert(cls).values(cls.DEFAULT_ROWS).on_conflict_do_nothing()
-                    )
-                else:  # SQLite ≥ 3.35 or anything that accepts OR IGNORE
-                    import sqlalchemy as sa
+    @classmethod
+    def _insert_rows(cls, db: Session, rows: Iterable[dict[str, Any]]) -> None:
+        mapper = sa_inspect(cls)
 
-                    stmt = (
-                        sa.insert(cls).values(cls.DEFAULT_ROWS).prefix_with("OR IGNORE")
-                    )
+        # --- pick an insertable target (avoid boolean eval + avoid JOINs) ---
+        local = mapper.local_table
+        table = local if local is not None else mapper.persist_selectable
+        if not hasattr(table, "insert"):  # e.g., persist_selectable is a JOIN
+            table = mapper.local_table
 
-                connection.execute(stmt)
+        col_keys = {c.key for c in mapper.columns}
+        pk_cols = list(table.primary_key.columns) if table.primary_key else []
+        pk_keys = {c.key for c in pk_cols}
 
+        def clean(r: dict[str, Any]) -> dict[str, Any]:
+            # keep only columns mapped on THIS class
+            return {k: r[k] for k in r.keys() & col_keys}
 
-__all__ = ["Bootstrappable"]
+        payloads = [clean(r) for r in rows if r]
+        if not payloads:
+            return
 
+        # Idempotent path if all PK columns are provided (per row)
+        can_upsert = bool(pk_cols) and all(pk_keys <= set(p.keys()) for p in payloads)
 
-for _name in list(globals()):
-    if _name not in __all__ and not _name.startswith("__"):
-        del globals()[_name]
+        dialect = db.get_bind().dialect.name
 
+        if can_upsert and dialect == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-def __dir__():
-    """Tighten ``dir()`` output for interactive sessions."""
+            stmt = (
+                pg_insert(table)
+                .values(payloads)
+                .on_conflict_do_nothing(index_elements=[c.name for c in pk_cols])
+            )
+            db.execute(stmt)
+            return
 
-    return sorted(__all__)
+        if can_upsert and dialect == "sqlite":
+            # Best-effort idempotency for SQLite
+            from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+            db.execute(sqlite_insert(table).values(payloads).prefix_with("OR IGNORE"))
+            return
+
+        # Fallback: plain inserts; swallow duplicate races
+        for p in payloads:
+            try:
+                db.execute(sa.insert(table).values(**p))
+            except IntegrityError:
+                db.rollback()  # treat as already present

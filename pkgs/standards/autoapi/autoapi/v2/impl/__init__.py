@@ -18,6 +18,7 @@ from .schema import _schema
 from .crud_builder import _crud
 from .rpc_adapter import _wrap_rpc
 from .routes_builder import _register_routes_and_rpcs
+from ._runner import _invoke, _Ctx
 
 # Legacy helpers (kept for backward compatibility)
 from inspect import isawaitable
@@ -25,13 +26,21 @@ from inspect import isawaitable
 
 async def _run(core, *a):
     """Legacy helper for running potentially async functions."""
+    print(f"_run invoked with core={core} args={a}")
     rv = core(*a)
-    return await rv if isawaitable(rv) else rv
+    if isawaitable(rv):
+        print("_run awaiting async result")
+        rv = await rv
+    print(f"_run returning {rv}")
+    return rv
 
 
 def _commit_or_flush(self, db) -> None:
     """Legacy helper for commit or flush."""
+    action = "flush" if db.in_nested_transaction() else "commit"
+    print(f"_commit_or_flush performing {action}")
     db.flush() if db.in_nested_transaction() else db.commit()
+    print("_commit_or_flush done")
 
 
 # Export only the main functions that are needed by the AutoAPI class
@@ -42,4 +51,6 @@ __all__ = [
     "_register_routes_and_rpcs",
     "_run",
     "_commit_or_flush",
+    "_Ctx",
+    "_invoke",
 ]

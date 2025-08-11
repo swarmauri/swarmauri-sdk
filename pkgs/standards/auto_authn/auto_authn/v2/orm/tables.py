@@ -1,5 +1,5 @@
 """
-autoapi_authn.orm.tables
+autoapi_authn.v2.orm.tables
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Canonical SQLAlchemy models for the authentication service.
@@ -31,6 +31,7 @@ from autoapi.v2.types import (
     Column,
     PgUUID,
     ForeignKey,
+    UniqueConstraint,
 )
 from autoapi.v2.tables import (
     Tenant as TenantBase,
@@ -59,9 +60,11 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 
 class Tenant(TenantBase, Bootstrappable):
-    __table_args__ = (
-        {"extend_existing": True},
-    )
+    # __mapper_args__ = {"concrete": True}
+    __table_args__ = ({
+        "extend_existing": True,
+        "schema": "authn",
+    },)
     name = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
@@ -76,6 +79,7 @@ class Tenant(TenantBase, Bootstrappable):
 
 # --------------------------------------------------------------------
 class Client(ClientBase):  # Tenant FK via mix-in
+    __table_args__ = ({"schema": "authn"},)
     # ----------------------------------------------------------------
     @classmethod
     def new(
@@ -104,8 +108,7 @@ class Client(ClientBase):  # Tenant FK via mix-in
 # --------------------------------------------------------------------
 class User(UserBase):
     """Human principal with authentication credentials."""
-
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = ({"extend_existing": True, "schema": "authn"},)
     email = Column(String(120), nullable=False, unique=True)
     password_hash = Column(LargeBinary(60))
     api_keys = relationship(
@@ -133,7 +136,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     """Machine principal representing an automated service."""
 
     __tablename__ = "services"
-
+    __table_args__ = ({"schema": "authn"},)
     name = Column(String(120), unique=True, nullable=False)
     service_keys = relationship(
         "auto_authn.v2.orm.tables.ServiceKey",
@@ -143,7 +146,10 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 
 
 class ApiKey(ApiKeyBase, UserMixin):
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = (
+        UniqueConstraint("digest"),
+        {"extend_existing": True, "schema": "authn"}
+    )
 
     user = relationship(
         "auto_authn.v2.orm.tables.User",
@@ -154,10 +160,13 @@ class ApiKey(ApiKeyBase, UserMixin):
 
 class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
-    
+    __table_args__ = (
+        UniqueConstraint("digest"),
+        {"extend_existing": True, "schema": "authn"}
+    )
     service_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("services.id"),
+        ForeignKey("authn.services.id"),
         index=True,
         nullable=False,
     )

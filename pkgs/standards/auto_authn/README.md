@@ -13,6 +13,11 @@
         <img src="https://img.shields.io/pypi/v/auto_authn?label=auto_authn&color=green" alt="PyPI - auto_authn"/></a>
 </p>
 
+### Terminology
+
+- **Tenant** – a namespace used to group related resources such as repositories or clients.
+- **Principal** – an owner of resources, for example an individual user or an organization.
+
 ---
 
 # Auto Authn: Multi-Tenant OpenID Connect Provider

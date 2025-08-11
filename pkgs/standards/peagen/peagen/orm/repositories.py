@@ -1,72 +1,140 @@
+# peagen/orm/repositories.py
 from __future__ import annotations
+
+from urllib.parse import urlparse
+from typing import Any, Dict, Mapping, Optional
 
 from autoapi.v2.tables import Base
 from autoapi.v2.types import (
-    Column,
-    String,
-    UniqueConstraint,
-    relationship,
-    HookProvider,
+    Column, String, UniqueConstraint, relationship, HookProvider, Field,
 )
 from autoapi.v2.mixins import (
-    GUIDPk,
-    Timestamped,
-    TenantBound,
-    TenantPolicy,
-    Ownable,
-    OwnerPolicy,
-    StatusMixin,
+    GUIDPk, Timestamped, TenantBound, TenantPolicy, Ownable, OwnerPolicy, StatusMixin,
 )
+from autoapi.v2.hooks import Phase
+from autoapi.v2.jsonrpc_models import create_standardized_error
 
 
 class Repository(
-    Base, GUIDPk, Timestamped, TenantBound, Ownable, StatusMixin, HookProvider
+    Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin, HookProvider
 ):
-    """
-    A code or data repository that lives under a tenant.
-    – parent of Secrets & DeployKeys
-    """
-
     __tablename__ = "repositories"
-    __table_args__ = (UniqueConstraint("url"),)
+    __table_args__ = (UniqueConstraint("url"), {"schema": "peagen"})
 
-    __autoapi_tenant_policy__ = TenantPolicy.STRICT_SERVER
+    # Only request-extra we allow: caller's GitHub PAT (write-only)
+    __autoapi_request_extras__ = {
+        "*": {
+            "github_pat": (str | None, Field(default=None, exclude=True, description="GitHub PAT (write-only)")),
+        }
+    }
 
-    # The request must not contain owner_id. The server injects the caller’s user_id automatically.
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
+    __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
 
     name = Column(String, nullable=False)
     url = Column(String, unique=True, nullable=False)
     default_branch = Column(String, default="main")
     commit_sha = Column(String(length=40), nullable=True)
 
-    secrets = relationship(
-        "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
-    )
-    deploy_keys = relationship(
-        "DeployKey", back_populates="repository", cascade="all, delete-orphan"
-    )
-    tasks = relationship(
-        "Task",
-        back_populates="repository",
-        cascade="all, delete-orphan",
-    )
+    secrets = relationship("RepoSecret", back_populates="repository", cascade="all, delete-orphan")
+    deploy_keys = relationship("DeployKey", back_populates="repository", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="repository", cascade="all, delete-orphan")
+
+    # ─────────────── helpers ───────────────
+
+    @staticmethod
+    def _params(ctx) -> Mapping[str, Any]:
+        params = ctx["env"].params if ctx.get("env") else {}
+        if hasattr(params, "model_dump"):
+            try:
+                params = params.model_dump()
+            except Exception:
+                pass
+        return params or {}
+
+    @staticmethod
+    def _slug_from_url(url: str) -> Optional[str]:
+        if not url:
+            return None
+        if url.startswith("git@"):
+            try:
+                part = url.split(":", 1)[1]
+                owner, name = part.split("/")[-2], part.split("/")[-1]
+            except Exception:
+                return None
+        else:
+            try:
+                p = urlparse(url)
+                segs = [s for s in (p.path or "").split("/") if s]
+                if len(segs) < 2:
+                    return None
+                owner, name = segs[-2], segs[-1]
+            except Exception:
+                return None
+        if name.endswith(".git"):
+            name = name[:-4]
+        return f"{owner}/{name}"
+
+    # ─────────────── PRE_HANDLER (provision remotes) ───────────────
 
     @classmethod
-    async def _post_create(cls, ctx):
-        from peagen.gateway import log
+    async def _pre_handler_provision(cls, ctx):
+        """
+        Before DB create: ensure both remotes exist and are linked
+        (GitHub via caller PAT, shadow mirror via server token).
+        """
+        from peagen.core import git_shadow_core as gsc
 
-        log.info("entering post_repository_create")
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
-        log.info("repository created: %s (%s)", created.name, created.url)
-        ctx["result"] = created.model_dump()
+        p = cls._params(ctx)
+        slug = cls._slug_from_url(p.get("url", ""))
+        gh_pat = (p.get("github_pat") or "").strip()
+
+        if not slug:
+            http_exc, *_ = create_standardized_error(400, message="url must include owner/name")
+            raise http_exc
+        if not gh_pat:
+            http_exc, *_ = create_standardized_error(400, message="github_pat is required")
+            raise http_exc
+
+        # Optional description from name
+        desc = (p.get("name") or "").strip()
+
+        try:
+            result = await gsc.ensure_repo_and_mirror(slug=slug, github_pat=gh_pat, description=desc)
+        except Exception as exc:
+            # Map provisioning failure to 502 (bad upstream)
+            http_exc, *_ = create_standardized_error(502, message=f"remote provisioning failed: {exc}")
+            raise http_exc
+        finally:
+            # scrub the PAT as soon as possible
+            if isinstance(p, dict):
+                p.pop("github_pat", None)
+            ctx.get("env").params = p
+
+        # park a tiny (redacted) summary; attached after handler
+        ctx["__repo_init__"] = {
+            "origin": result.get("origin"),
+            "upstream": result.get("upstream"),
+            "created": result.get("created"),
+        }
+
+    @classmethod
+    async def _post_response_attach(cls, ctx):
+        summary = ctx.get("__repo_init__")
+        if not summary:
+            return
+        if isinstance(ctx.get("result"), dict):
+            ctx["result"].setdefault("_init", summary)
+        if ctx.get("response") is not None and isinstance(ctx["response"].result, dict):
+            ctx["response"].result.setdefault("_init", summary)
+
+    # ─────────────── register hooks ───────────────
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import AutoAPI, Phase
-
-        cls._SRead = AutoAPI.get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model=cls, op="create")(cls._post_create)
+        # Run provisioning before the DB handler; attach a tiny summary after
+        api.register_hook(Phase.PRE_HANDLER,   model=cls, op="create")(cls._pre_handler_provision)
+        api.register_hook(Phase.POST_RESPONSE, model=cls, op="create")(cls._post_response_attach)
 
 
 __all__ = ["Repository"]

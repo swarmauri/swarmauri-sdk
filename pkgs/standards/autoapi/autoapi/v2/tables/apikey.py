@@ -28,10 +28,6 @@ class ApiKey(
 ):
     __tablename__ = "api_keys"
     __abstract__ = True
-    __table_args__ = (
-        UniqueConstraint("digest"),
-        {"extend_existing": True},
-    )
 
     label = Column(String(120), nullable=False)
 

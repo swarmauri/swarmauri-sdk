@@ -2,6 +2,11 @@
 
 A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near zero boiler plate.
 
+## Terminology
+
+- **Tenant** – a namespace used to group related resources.
+- **Principal** – an owner of resources, such as an individual user or an organization.
+
 ## Features
 - Unified invocation 
 - Automated REST & RPC symmetry and parity

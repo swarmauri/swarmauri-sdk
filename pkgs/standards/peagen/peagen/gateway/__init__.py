@@ -41,9 +41,9 @@ from peagen.orm import (
     Pool,
     RawBlob,
     Repository,
-    Role,
-    RoleGrant,
-    RolePerm,
+    # Role,
+    # RoleGrant,
+    # RolePerm,
     RepoSecret,
     Task,
     Tenant,
@@ -88,9 +88,9 @@ api = AutoAPI(
         Tenant,
         User,
         Org,
-        Role,
-        RoleGrant,
-        RolePerm,
+        # Role,
+        # RoleGrant,
+        # RolePerm,
         Repository,
         UserRepository,
         RepoSecret,
@@ -110,39 +110,96 @@ api = AutoAPI(
 
 @api.hook(Phase.PRE_TX_BEGIN)
 async def _shadow_principal(ctx):
+    import uuid
+    import logging
+    from fastapi import HTTPException
+    from sqlalchemy.exc import IntegrityError
+    from autoapi.v2 import AutoAPI
+    from peagen.orm import User
+
+    log = logging.getLogger(__name__)
+
     p = getattr(ctx["request"].state, "principal", None)
     if not p:
-        log.info("Shadow principal: no principal on request")
+        log.info("shadow_principal: no principal on request")
         return
-    db = ctx["db"]
+
     tid = p.get("tid")
     uid = p.get("sub")
     if not tid or not uid:
-        log.info("Shadow principal missing tid or uid: %s", p)
+        log.info("shadow_principal: missing tid or sub in principal: %s", p)
         return
+
     try:
         tid = uuid.UUID(str(tid))
         uid = uuid.UUID(str(uid))
     except (ValueError, AttributeError):
-        log.info("Shadow principal invalid UUIDs: tid=%s uid=%s", tid, uid)
+        log.info("shadow_principal: invalid UUIDs tid=%s sub=%s", tid, uid)
         return
-    slug = p.get("tenant_slug") or p.get("tenant") or str(tid)
-    log.info("Shadow principal tid=%s uid=%s slug=%s", tid, uid, slug)
-    tenant_payload = api.schemas.TenantCreate(
-        id=tid,
-        slug=slug,
-    )
-    user_payload = api.schemas.UserCreate(
-        id=uid,
-        tenant_id=tid,
-        username=p.get("username") or str(uid),
-    )
+
+    username = p.get("username") or str(uid)
+    db = ctx["db"]
+
+    # Strict typed schemas
+    UReadIn   = AutoAPI.get_schema(User, op="delete")   # id-only
+    UUpdateIn = AutoAPI.get_schema(User, op="update")   # includes id in our setup
+    UCreateIn = AutoAPI.get_schema(User, op="create")
+
+    def _is_duplicate(exc: Exception) -> bool:
+        # Catch both raw DB conflicts and standardized HTTP 409 from _commit_or_http
+        if isinstance(exc, IntegrityError):
+            return True
+        if isinstance(exc, HTTPException) and getattr(exc, "status_code", None) == 409:
+            return True
+        msg = (getattr(exc, "detail", "") or str(exc)).lower()
+        return "duplicate key" in msg or "already exists" in msg
+
+    def _upsert_sync(s):
+        log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
+
+        # 1) Existence check by PK
+        exists = False
+        try:
+            api.methods.UsersRead(UReadIn(id=uid), db=s)
+            exists = True
+            log.info("shadow_principal: user exists uid=%s", uid)
+        except Exception as exc:
+            # Not found (or error); reset sync session if needed
+            if s.in_transaction():
+                s.rollback()
+            log.info("shadow_principal: UsersRead miss uid=%s (%s)", uid, exc)
+
+        if exists:
+            # 2) Update in place (typed)
+            upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+            log.info("shadow_principal: updating uid=%s", uid)
+            return api.methods.UsersUpdate(upd, db=s)
+
+        # 3) Create, but treat duplicate as “already created” and retry update
+        try:
+            cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+            log.info("shadow_principal: creating uid=%s", uid)
+            return api.methods.UsersCreate(cre, db=s)
+        except Exception as exc:
+            if _is_duplicate(exc):
+                if s.in_transaction():
+                    s.rollback()
+                log.info("shadow_principal: create raced, retrying update uid=%s", uid)
+                upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+                return api.methods.UsersUpdate(upd, db=s)
+            # unexpected error – re-raise to let outer handler log it
+            raise
+
     try:
-        await db.run_sync(lambda s: api.methods.TenantsCreate(tenant_payload, db=s))
-        await db.run_sync(lambda s: api.methods.UsersCreate(user_payload, db=s))
-    except IntegrityError:
-        log.info("Shadow principal upsert failed due to integrity error")
-        await db.rollback()
+        if hasattr(db, "run_sync"):   # AsyncSession
+            await db.run_sync(_upsert_sync)
+        else:                         # plain Session
+            _upsert_sync(db)
+    except Exception as exc:
+        # Soft-fail – don’t break the main RPC; just log what happened
+        log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
+
+
 
 
 # ensure our hook runs second after the AuthN injection hook

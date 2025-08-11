@@ -72,4 +72,8 @@ def test_allow_anon_list_and_read():
     )
     iid = res.json()["id"]
     assert client.get(f"/items/{iid}").status_code == 200
-    assert client.post("/items", json=payload).status_code == 401
+    # FastAPI's HTTPBearer returns 403 when the Authorization header is
+    # completely missing (as opposed to a malformed token).  The AutoAPI
+    # endpoint mirrors this behaviour for unauthenticated access to routes
+    # that are not whitelisted via ``__autoapi_allow_anon__``.
+    assert client.post("/items", json=payload).status_code == 403

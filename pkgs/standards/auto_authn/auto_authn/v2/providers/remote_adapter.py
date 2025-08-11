@@ -9,7 +9,7 @@ from fastapi import HTTPException, Request, status
 
 from autoapi.v2.types.authn_abc import AuthNProvider
 from ..hooks import register_inject_hook  # ← existing helper
-from ..fastapi_deps import principal_var  # ← ContextVar used by filters
+from ..principal_ctx import principal_var
 
 
 class RemoteAuthNAdapter(AuthNProvider):
@@ -60,9 +60,9 @@ class RemoteAuthNAdapter(AuthNProvider):
     async def get_principal(self, request: Request) -> dict:  # noqa: D401
         api_key: str | None = request.headers.get("x-api-key")
         if not api_key:
-            raise HTTPException(
-                status.HTTP_401_UNAUTHORIZED, "x-api-key header required"
-            )
+            request.state.principal = None
+            principal_var.set(None)
+            return None
 
         # ------- tiny TTL cache to save RTT ---------------------------
         principal = self._cache_get(api_key)
