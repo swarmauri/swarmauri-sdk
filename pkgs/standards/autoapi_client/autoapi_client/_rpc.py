@@ -109,3 +109,63 @@ class RPCMixin:
         if out_schema is not None and result is not None:
             return out_schema.model_validate(result)  # type: ignore[return-value]
         return result
+
+    # -------------------- async RPC call helpers -------------------- #
+    @overload
+    async def acall(
+        self,
+        method: str,
+        *,
+        params: _Schema[Any] | dict | None = None,
+        out_schema: type[_Schema[T]],
+    ) -> T: ...
+
+    @overload
+    async def acall(
+        self,
+        method: str,
+        *,
+        params: dict | None = None,
+        out_schema: None = None,
+    ) -> Any: ...
+
+    async def acall(
+        self,
+        method: str,
+        *,
+        params: _Schema[Any] | dict | None = None,
+        out_schema: type[_Schema[T]] | None = None,
+    ) -> Any:
+        """Asynchronously make a JSON-RPC call."""
+
+        if isinstance(params, _Schema):
+            params_dict = json.loads(params.model_dump_json(exclude_none=True))
+        else:
+            params_dict = json.loads(json.dumps(params or {}, default=str))
+
+        req = {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params_dict,
+            "id": str(uuid.uuid4()),
+        }
+
+        headers = {"Content-Type": "application/json"}
+        headers.update(getattr(self, "_headers", {}))
+        r = await self._get_async_client().post(
+            self._get_endpoint(),
+            json=req,
+            headers=headers,
+        )
+
+        r.raise_for_status()
+        res = r.json()
+        if err := res.get("error"):
+            code = err.get("code", -32000)
+            msg = err.get("message", "Unknown error")
+            raise RuntimeError(f"RPC error {code}: {msg}")
+
+        result = res["result"]
+        if out_schema is not None and result is not None:
+            return out_schema.model_validate(result)  # type: ignore[return-value]
+        return result

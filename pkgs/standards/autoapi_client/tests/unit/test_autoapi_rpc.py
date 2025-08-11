@@ -240,3 +240,24 @@ def test_rpc_call_nested_filter_params():
         client.call("elasticsearch.search", params=nested_params)
 
     assert captured["json"]["params"] == nested_params
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_rpc_acall_basic():
+    """Test basic async RPC call functionality."""
+    captured = {}
+
+    async def fake_post(self, url, *, json=None, headers=None):
+        captured.update(json=json, url=url, headers=headers)
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            200, request=request, json={"jsonrpc": "2.0", "result": {"ok": True}}
+        )
+
+    with patch.object(httpx.AsyncClient, "post", new=fake_post):
+        client = AutoAPIClient("http://example.com/api")
+        result = await client.acall("test.method")
+
+    assert captured["json"]["method"] == "test.method"
+    assert result == {"ok": True}
