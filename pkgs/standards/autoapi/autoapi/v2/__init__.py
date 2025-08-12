@@ -87,7 +87,7 @@ class AutoAPI:
         self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
 
         # attribute-style access, e.g.  api.methods.UserCreate(...)
-        self.methods: SimpleNamespace = SimpleNamespace()
+        self.methods: SimpleNamespace = SimpleNamespace(name="methods")
 
         # public Schemas namespace
         self.schemas: _SchemaNS = _SchemaNS(self)
