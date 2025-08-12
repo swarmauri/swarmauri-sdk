@@ -58,9 +58,9 @@ class AutoAPI:
         authn: "AuthNProvider | None" = None,
     ):
         # lightweight state
-        self.base = base
+        self._base = base
         self._include = include
-        self.authorize = authorize
+        self._authorize = authorize
         self.router = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
@@ -90,8 +90,7 @@ class AutoAPI:
         self.get_async_db = get_async_db
 
         # ---------- register transactions ------------------------
-        self.transactional = MethodType(_register_tx, self)
-        self.register_transaction = self.transactional
+        self.register_transaction = MethodType(_register_tx, self)
 
         # ---------- create schema once ---------------------------
         if self._include:
@@ -100,7 +99,7 @@ class AutoAPI:
             }  # deduplicate via set
         else:
             raise ValueError("must declare tables to be created")
-            self._tables = set(self.base.metadata.tables.values())
+            self._tables = set(self._base.metadata.tables.values())
 
         # expose included model classes (by class name)
         self.models = SimpleNamespace(**{cls.__name__: cls for cls in self._include})
@@ -160,7 +159,7 @@ class AutoAPI:
                     ensure_schemas(engine)
 
                     # 2) create tables using the same bind/connection
-                    self.base.metadata.create_all(
+                    self._base.metadata.create_all(
                         bind=bind,
                         checkfirst=True,
                         tables=self._tables,
@@ -185,7 +184,7 @@ class AutoAPI:
                 ensure_schemas(engine)
 
                 # 2) create tables on the same bind/connection
-                self.base.metadata.create_all(
+                self._base.metadata.create_all(
                     bind=bind,
                     checkfirst=True,
                     tables=self._tables,
