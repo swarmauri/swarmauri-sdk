@@ -53,6 +53,9 @@ from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
 
+from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
+
+
 
 # ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
@@ -129,4 +132,9 @@ __all__: list[str] = [
     "Path",
     "Body",
     "HTTPException",
+]
+
+__all__ += [
+    "OpVerbAliasProvider",
+    "list_verb_alias_providers",
 ]
