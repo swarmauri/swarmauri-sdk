@@ -416,15 +416,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _attach(self.methods, resource, verb, _runner)
         print(f"Registered helper method {camel}")
 
-        # Ensure container for core_exec
-        if not hasattr(self, "core_exec"):
+        # Ensure container for core_raw
+        if not hasattr(self, "core_raw"):
 
             class _CE:
                 pass
 
-            self.core_exec = _CE()
+            self.core_raw = _CE()
 
-        async def _core_exec(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
+        async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
             # Build args in the same way your RPC shim would
             def _build_args(_p):
                 match _verb:
@@ -459,7 +459,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # 2) No DB supplied: auto-open a sync session only if available
             if self.get_db is None:
                 raise TypeError(
-                    "core_exec requires a DB (AsyncSession or Session) when get_db is not configured"
+                    "core_raw requires a DB (AsyncSession or Session) when get_db is not configured"
                 )
 
             gen = self.get_db()
@@ -474,8 +474,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register helper name (CamelCase like UsersCreate)
         camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
-        setattr(self.core_exec, camel, _core_exec)
-        _attach(self.core_exec, resource, verb, _core_exec)
+        setattr(self.core_raw, camel, _core_raw)
+        _attach(self.core_raw, resource, verb, _core_raw)
 
     # include routers
     self.router.include_router(flat_router)
