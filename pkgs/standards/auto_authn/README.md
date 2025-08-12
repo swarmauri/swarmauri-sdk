@@ -58,7 +58,7 @@ app = create_app()
 ```
 
 The embedded ``crud_api`` exposes resource operations for in-process usage via
-namespaces like ``crud_api.core.Users.create``.
+namespaces like ``crud_api.core.User.create``.
 
 Check the documentation for detailed setup and configuration.
 
