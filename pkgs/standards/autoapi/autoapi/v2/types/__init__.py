@@ -50,6 +50,8 @@ from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
+from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
+
 
 
 # ── Generics / Extensions ─────────────────────────────────────────────────
@@ -117,4 +119,9 @@ __all__: list[str] = [
     "UUID",
     # pydantic schema support
     "Field",
+]
+
+__all__ += [
+    "OpVerbAliasProvider",
+    "list_verb_alias_providers",
 ]
