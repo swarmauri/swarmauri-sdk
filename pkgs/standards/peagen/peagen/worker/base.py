@@ -213,7 +213,7 @@ class WorkerBase:
     ) -> None:
         try:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
-            self._client.call("Work.update", params=upd.model_dump(mode="json"))
-            self.log.info("Work.update %s → %s", work_id, status)
+            self._client.call("Works.update", params=upd.model_dump(mode="json"))
+            self.log.info("Works.update %s → %s", work_id, status)
         except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)
