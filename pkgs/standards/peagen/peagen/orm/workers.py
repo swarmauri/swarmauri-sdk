@@ -24,7 +24,11 @@ from .pools import Pool
 class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __tablename__ = "workers"
     __table_args__ = ({"schema": "peagen"},)
-    __autoapi_allow_anon__ = {"create"}
+
+    @classmethod
+    def __autoapi_allow_anon__(cls) -> set[str]:
+        return {"create"}
+
     pool_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("peagen.pools.id"),
