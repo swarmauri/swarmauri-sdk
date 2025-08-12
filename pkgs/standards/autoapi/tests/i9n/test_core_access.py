@@ -46,6 +46,13 @@ async def async_api(async_db_session):
     return api, get_async_db
 
 
+def test_schemas_dir_contains_operation_names(sync_api):
+    api, _ = sync_api
+    names = dir(api.schemas)
+    assert "CoreTestUserCreateIn" in names
+    assert "CoreTestUser" not in names
+
+
 class TestApiCore:
     """Test cases for api.core direct access (manual session management)."""
 

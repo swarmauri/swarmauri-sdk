@@ -362,18 +362,23 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
-        for s in (In, Out, rpc_in):
+        verb_camel = "".join(w.title() for w in verb.split("_"))
+        for s, suffix in ((In, "In"), (Out, "Out")):
             if not isinstance(s, type) or s is dict:
                 continue
+            canon = f"{resource}{verb_camel}{suffix}"
+            if canon not in self._schemas:
+                self._schemas[canon] = s
+                setattr(self.schemas, canon, s)
+
+            # Preserve legacy nested access (api.schemas.User.create)
             name = s.__name__
-            if name not in self._schemas:
-                self._schemas[name] = s
-                base = model.__name__
-                if not name.startswith(base):
-                    base = resource
-                op = name[len(base) :]
-                op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
-                _attach(self.schemas, base, op, s)
+            base = model.__name__
+            if not name.startswith(base):
+                base = resource
+            op = name[len(base) :]
+            op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
+            _attach(self.schemas, base, op, s)
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
