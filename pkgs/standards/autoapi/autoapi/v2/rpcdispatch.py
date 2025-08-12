@@ -52,7 +52,7 @@ def build_rpcdispatch(api) -> APIRouter:
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
-            principal: Dict | None = api._authn_dep,
+            principal: Dict | None = api._optional_authn_dep,
         ):
             req.state.principal = principal
             print("RPCD principal:", principal)
@@ -96,8 +96,8 @@ def build_rpcdispatch(api) -> APIRouter:
         async def _rpcdispatch(
             req: Request,
             env: _RPCReq = Body(..., embed=False),
-            db: AsyncSession = Depends(api.get_async_db),
-            principal: Dict | None = api._authn_dep,
+            db: Session = Depends(api.get_db),
+            principal: Dict | None = api._optional_authn_dep,
         ):
             req.state.principal = principal
             print("RPCD principal:", principal)

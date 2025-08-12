@@ -40,7 +40,7 @@ from .transactional import transactional as _register_tx
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
 
-
+from fastapi import APIRouter, Security, Depends
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""
@@ -119,12 +119,46 @@ class AutoAPI:
         # ---------------- AuthN wiring -----------------
         if authn is not None:  # preferred path
             self._authn = authn
-            self._authn_dep = Security(authn.get_principal)
-            # Late-binding of the injection hook
-            authn.register_inject_hook(self)
+
+            # Security dependency that also seeds request.state.ctx["__autoapi_auth_context__"]
+            from fastapi import Request
+
+            async def _security_dep(request: Request, principal=Security(authn.get_principal)):
+                # ensure a ctx dict exists for downstream hooks / cores
+                ctx = getattr(request.state, "ctx", None)
+                if ctx is None or not isinstance(ctx, dict):
+                    request.state.ctx = ctx = {}
+                # stash principal into the standardized auth context slot
+                try:
+                    if isinstance(principal, dict):
+                        ac = ctx.setdefault("__autoapi_auth_context__", {} if not isinstance(ctx.get("__autoapi_auth_context__"), dict) else ctx["__autoapi_auth_context__"])
+                        ac.update(principal)
+                except Exception:
+                    pass
+                # keep legacy attribute too
+                request.state.principal = principal
+                # best-effort: propagate to contextvar if available
+                try:
+                    from auto_authn.v2.principal_ctx import principal_var  # optional
+                    principal_var.set(principal)
+                except Exception:
+                    pass
+                return principal
+
+            # Optional variant that never raises (for /rpc where anonymous methods are allowed)
+            async def _optional_security_dep(request: Request, principal=Security(authn.get_principal, auto_error=False)):
+                if not principal:
+                    return None
+                return await _security_dep(request, principal=principal)
+
+            # expose dependency callables for use in routes & rpc
+            self._authn_dep = Depends(_security_dep)
+            self._optional_authn_dep = Depends(_optional_security_dep)
         else:
             self._authn = None
-            self._authn_dep = Security(lambda: None)
+            # NOP dependencies
+            self._authn_dep = Depends(lambda: None)
+            self._optional_authn_dep = Depends(lambda: None)
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
