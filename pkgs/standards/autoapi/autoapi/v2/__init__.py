@@ -35,7 +35,7 @@ from .types import (
     SimpleNamespace,
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
-from .transactional import transactional as _register_tx
+from .transactional import register_transaction, transactional
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
@@ -90,7 +90,8 @@ class AutoAPI:
         self.get_async_db = get_async_db
 
         # ---------- register transactions ------------------------
-        self.register_transaction = MethodType(_register_tx, self)
+        self.register_transaction = MethodType(register_transaction, self)
+        self.transactional = MethodType(transactional, self)
 
         # ---------- create schema once ---------------------------
         if self._include:
