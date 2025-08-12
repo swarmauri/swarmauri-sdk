@@ -50,13 +50,17 @@ class TestApiCore:
     """Test cases for api.core direct access (manual session management)."""
 
     def test_sync_core_create_success(self, sync_api):
-        """Test successful creation using api.core with sync database."""
+        """Test successful creation using api.core with schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "John Doe", "email": "john@example.com", "age": 30}
+
+        # Use api.schemas for proper validation
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="John Doe", email="john@example.com", age=30
+        )
 
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.TestUsersCreate(user_data, db)
+                user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
 
                 assert user.name == "John Doe"
@@ -65,18 +69,22 @@ class TestApiCore:
                 assert user.id is not None
 
     def test_sync_core_read_success(self, sync_api):
-        """Test successful read using api.core with sync database."""
+        """Test successful read using api.core with schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "Jane Doe", "email": "jane@example.com"}
+
+        # Use schema for creation
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Jane Doe", email="jane@example.com"
+        )
 
         # First create a user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.TestUsersCreate(user_data, db)
+                user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
                 user_id = user.id
 
-        # Then read it back
+        # Then read it back - core.Read takes ID directly, not schema
         with next(get_db()) as db:
             retrieved_user = api.core.TestUsersRead(user_id, db)
             assert retrieved_user.name == "Jane Doe"
@@ -84,22 +92,26 @@ class TestApiCore:
             assert retrieved_user.id == user_id
 
     def test_sync_core_update_success(self, sync_api):
-        """Test successful update using api.core with sync database."""
+        """Test successful update using api.core with schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "Bob Smith", "email": "bob@example.com"}
+
+        # Create user using schema
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Bob Smith", email="bob@example.com"
+        )
 
         # Create user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.TestUsersCreate(user_data, db)
+                user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
                 user_id = user.id
 
-        # Update user
-        update_data = {"name": "Robert Smith", "age": 25}
+        # Update user using schema for payload validation
+        update_schema = api.schemas.CoreTestUserUpdate(name="Robert Smith", age=25)
         with next(get_db()) as db:
             with db.begin():
-                updated_user = api.core.TestUsersUpdate(user_id, update_data, db)
+                updated_user = api.core.TestUsersUpdate(user_id, update_schema, db)
                 db.flush()
 
                 assert updated_user.name == "Robert Smith"
@@ -107,18 +119,22 @@ class TestApiCore:
                 assert updated_user.age == 25
 
     def test_sync_core_delete_success(self, sync_api):
-        """Test successful deletion using api.core with sync database."""
+        """Test successful deletion using api.core with schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "Delete Me", "email": "delete@example.com"}
+
+        # Create user using schema
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Delete Me", email="delete@example.com"
+        )
 
         # Create user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.TestUsersCreate(user_data, db)
+                user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
                 user_id = user.id
 
-        # Delete user
+        # Delete user - core.Delete takes ID directly
         with next(get_db()) as db:
             with db.begin():
                 result = api.core.TestUsersDelete(user_id, db)
@@ -127,46 +143,48 @@ class TestApiCore:
                 assert result == {"id": user_id}
 
     def test_sync_core_list_success(self, sync_api):
-        """Test successful listing using api.core with sync database."""
+        """Test successful listing using api.core with schema validation."""
         api, get_db = sync_api
 
-        # Create multiple users
-        users_data = [
-            {"name": "User 1", "email": "user1@example.com"},
-            {"name": "User 2", "email": "user2@example.com"},
-            {"name": "User 3", "email": "user3@example.com"},
+        # Create multiple users using schemas
+        user_schemas = [
+            api.schemas.CoreTestUserCreate(name="User 1", email="user1@example.com"),
+            api.schemas.CoreTestUserCreate(name="User 2", email="user2@example.com"),
+            api.schemas.CoreTestUserCreate(name="User 3", email="user3@example.com"),
         ]
 
         with next(get_db()) as db:
             with db.begin():
-                for user_data in users_data:
-                    api.core.TestUsersCreate(user_data, db)
+                for user_schema in user_schemas:
+                    api.core.TestUsersCreate(user_schema, db)
                 db.flush()
 
-        # List users
+        # List users using schema
         with next(get_db()) as db:
-            list_params = {"skip": 0, "limit": 10}
-            users = api.core.TestUsersList(list_params, db)
+            list_schema = api.schemas.TestUsersListParams(skip=0, limit=10)
+            users = api.core.TestUsersList(list_schema, db)
 
             assert len(users) == 3
             assert all(user.name.startswith("User") for user in users)
 
     def test_sync_core_clear_success(self, sync_api):
-        """Test successful clear using api.core with sync database."""
+        """Test successful clear using api.core with schema validation."""
         api, get_db = sync_api
 
-        # Create users
+        # Create users using schemas
         with next(get_db()) as db:
             with db.begin():
-                api.core.TestUsersCreate(
-                    {"name": "User 1", "email": "user1@example.com"}, db
+                user1_schema = api.schemas.CoreTestUserCreate(
+                    name="User 1", email="user1@example.com"
                 )
-                api.core.TestUsersCreate(
-                    {"name": "User 2", "email": "user2@example.com"}, db
+                user2_schema = api.schemas.CoreTestUserCreate(
+                    name="User 2", email="user2@example.com"
                 )
+                api.core.TestUsersCreate(user1_schema, db)
+                api.core.TestUsersCreate(user2_schema, db)
                 db.flush()
 
-        # Clear all users
+        # Clear all users (clear only takes db parameter)
         with next(get_db()) as db:
             with db.begin():
                 result = api.core.TestUsersClear(db)
@@ -174,13 +192,14 @@ class TestApiCore:
 
                 assert result["deleted"] == 2
 
-        # Verify empty
+        # Verify empty using schema
         with next(get_db()) as db:
-            users = api.core.TestUsersList({}, db)
+            list_schema = api.schemas.TestUsersListParams()
+            users = api.core.TestUsersList(list_schema, db)
             assert len(users) == 0
 
     def test_sync_core_read_not_found(self, sync_api):
-        """Test reading non-existent record raises HTTPException."""
+        """Test reading non-existent record raises HTTPException with schema validation."""
         api, get_db = sync_api
         fake_id = "00000000-0000-0000-0000-000000000000"
 
@@ -191,20 +210,21 @@ class TestApiCore:
         assert exc_info.value.status_code == 404
 
     def test_sync_core_update_not_found(self, sync_api):
-        """Test updating non-existent record raises HTTPException."""
+        """Test updating non-existent record raises HTTPException with schema validation."""
         api, get_db = sync_api
         fake_id = "00000000-0000-0000-0000-000000000000"
-        update_data = {"name": "Updated"}
+
+        update_schema = api.schemas.CoreTestUserUpdate(name="Updated")
 
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
                 with db.begin():
-                    api.core.TestUsersUpdate(fake_id, update_data, db)
+                    api.core.TestUsersUpdate(fake_id, update_schema, db)
 
         assert exc_info.value.status_code == 404
 
     def test_sync_core_delete_not_found(self, sync_api):
-        """Test deleting non-existent record raises HTTPException."""
+        """Test deleting non-existent record raises HTTPException with schema validation."""
         api, get_db = sync_api
         fake_id = "00000000-0000-0000-0000-000000000000"
 
@@ -216,35 +236,43 @@ class TestApiCore:
         assert exc_info.value.status_code == 404
 
     def test_sync_core_create_duplicate_email(self, sync_api):
-        """Test creating user with duplicate email raises HTTPException."""
+        """Test creating user with duplicate email raises HTTPException with schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "First User", "email": "duplicate@example.com"}
+
+        first_user_schema = api.schemas.CoreTestUserCreate(
+            name="First User", email="duplicate@example.com"
+        )
 
         # Create first user
         with next(get_db()) as db:
             with db.begin():
-                api.core.TestUsersCreate(user_data, db)
+                api.core.TestUsersCreate(first_user_schema, db)
                 db.flush()
 
-        # Try to create duplicate
-        duplicate_data = {"name": "Second User", "email": "duplicate@example.com"}
+        # Try to create duplicate using schema
+        duplicate_schema = api.schemas.CoreTestUserCreate(
+            name="Second User", email="duplicate@example.com"
+        )
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
                 with db.begin():
-                    api.core.TestUsersCreate(duplicate_data, db)
+                    api.core.TestUsersCreate(duplicate_schema, db)
                     db.flush()
 
         # SQLite returns 422 for constraint violations, PostgreSQL returns 409
         assert exc_info.value.status_code in (409, 422)
 
     def test_sync_core_manual_transaction_rollback(self, sync_api):
-        """Test manual transaction rollback with api.core."""
+        """Test manual transaction rollback with api.core and schema validation."""
         api, get_db = sync_api
-        user_data = {"name": "Rollback User", "email": "rollback@example.com"}
+
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Rollback User", email="rollback@example.com"
+        )
 
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.TestUsersCreate(user_data, db)
+                user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
                 user_id = user.id
 
@@ -258,14 +286,17 @@ class TestApiCore:
 
     @pytest.mark.asyncio
     async def test_async_db_with_core_via_run_sync(self, async_api):
-        """Test using api.core with async database via run_sync."""
+        """Test using api.core with async database via run_sync and schema validation."""
         api, get_async_db = async_api
-        user_data = {"name": "Async User", "email": "async@example.com"}
+
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Async User", email="async@example.com"
+        )
 
         async for db in get_async_db():
-            # Use run_sync to call sync CRUD function
+            # Use run_sync to call sync CRUD function with schema
             result = await db.run_sync(
-                lambda sync_db: api.core.TestUsersCreate(user_data, sync_db)
+                lambda sync_db: api.core.TestUsersCreate(user_schema, sync_db)
             )
             await db.commit()
 
@@ -551,16 +582,18 @@ class TestCoreVsCoreRawComparison:
         """Test that core and core_raw produce consistent results."""
         api, get_db = sync_api
 
-        # Create user with api.core
-        user_data = {"name": "Consistency Test", "email": "consistency@example.com"}
+        # Create user with api.core using schema validation
+        user_schema = api.schemas.CoreTestUserCreate(
+            name="Consistency Test", email="consistency@example.com"
+        )
 
         with next(get_db()) as db:
             with db.begin():
-                core_user = api.core.TestUsersCreate(user_data, db)
+                core_user = api.core.TestUsersCreate(user_schema, db)
                 db.flush()
                 core_user_id = core_user.id
 
-        # Create user with api.core_raw using manual session to ensure it's committed
+        # Create user with api.core_raw using raw dict (no schema validation)
         user_data2 = {"name": "Consistency Test 2", "email": "consistency2@example.com"}
         with next(get_db()) as db:
             raw_user = await api.core_raw.TestUsersCreate(user_data2, db=db)
@@ -568,12 +601,12 @@ class TestCoreVsCoreRawComparison:
             raw_user_id = raw_user.id
 
         # Both should have similar structure
-        assert core_user.name == user_data["name"]
-        assert raw_user.name == user_data2["name"]
-        assert core_user.email == user_data["email"]
-        assert raw_user.email == user_data2["email"]
+        assert core_user.name == "Consistency Test"
+        assert raw_user.name == "Consistency Test 2"
+        assert core_user.email == "consistency@example.com"
+        assert raw_user.email == "consistency2@example.com"
 
-        # Read back with both methods
+        # Read back with both methods - core takes ID directly, core_raw uses dict
         with next(get_db()) as db:
             core_read = api.core.TestUsersRead(core_user_id, db)
 
@@ -582,5 +615,5 @@ class TestCoreVsCoreRawComparison:
         # Results should be structurally similar
         assert core_read.id == core_user_id
         assert raw_read.id == raw_user_id
-        assert core_read.name == user_data["name"]
-        assert raw_read.name == user_data2["name"]
+        assert core_read.name == "Consistency Test"
+        assert raw_read.name == "Consistency Test 2"
