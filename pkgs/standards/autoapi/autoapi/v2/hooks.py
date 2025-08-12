@@ -78,7 +78,8 @@ def _init_hooks(self) -> None:
 
             # Preserve the original function name for registry visibility
             async_f.__name__ = getattr(f, "__name__", repr(f))
-            async_f.__qualname__ = getattr(f, "__qualname__", async_f.__name__)
+            async_f.__qualname__ = async_f.__name__
+            async_f.__module__ = None
 
             # Determine the hook key based on parameters
             hook_key = None

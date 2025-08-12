@@ -36,7 +36,6 @@ from .types import (
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
-from . import tables as tables
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
@@ -104,8 +103,8 @@ class AutoAPI:
             raise ValueError("must declare tables to be created")
             self._tables = set(self.base.metadata.tables.values())
 
-        # expose tables namespace
-        self.tables = tables
+        # expose only the included tables
+        self.tables = SimpleNamespace(**{cls.__name__: cls for cls in self._include})
 
         # Store DDL creation for later execution
         self._ddl_executed = False
