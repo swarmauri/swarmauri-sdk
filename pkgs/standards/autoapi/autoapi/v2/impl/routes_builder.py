@@ -2,7 +2,8 @@
 autoapi/v2/routes_builder.py  –  Route building functionality for AutoAPI.
 
 This module contains the logic for building both REST and RPC routes from
-CRUD operations, including nested routing and RBAC guards.
+CRUD operations, including nested routing, RBAC guards, and per-table
+ephemeral (skip-persist) handling.
 """
 
 from __future__ import annotations
@@ -10,7 +11,8 @@ from __future__ import annotations
 import functools
 import inspect
 import re
-from typing import Annotated, Any, List
+from typing import Annotated, Any, List, Iterable, Optional
+from uuid import uuid4
 
 from fastapi import APIRouter, Body, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,8 +23,12 @@ from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+from ..types import SkipPersistProvider
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     """
     Return a shallow clone of *base* with every field in *drop* removed, so that
@@ -60,6 +66,105 @@ def _canonical(tab: str, verb: str) -> str:
     return name
 
 
+def _model_columns(model: type) -> set[str]:
+    return {c.name for c in model.__table__.columns}
+
+
+def _synth_pk_value(pk_pytype: type) -> Any:
+    try:
+        import uuid as _uuid  # lazy import for clarity
+        if pk_pytype is _uuid.UUID:
+            return uuid4()
+    except Exception:
+        pass
+    # fallbacks
+    if pk_pytype is int:
+        return 0
+    if pk_pytype is str:
+        return str(uuid4())
+    try:
+        return pk_pytype()  # best-effort default ctor
+    except Exception:
+        return str(uuid4())
+
+
+def _filter_to_columns(data: dict[str, Any], allowed: set[str]) -> dict[str, Any]:
+    return {k: v for k, v in data.items() if k in allowed}
+
+
+def _make_ephemeral_core(
+    *,
+    verb: str,
+    model: type,
+    pk_name: str,
+    pk_pytype: type,
+) -> Any:
+    """
+    Build a core function that *does not touch the DB* but returns shapes
+    compatible with the normal cores for the given verb.
+    """
+    cols = _model_columns(model)
+
+    print(f"[ephemeral] building ephemeral core for {model.__name__}.{verb}")
+
+    if verb == "create":
+        def _core(payload: dict, s: Session | None) -> Any:
+            print(f"[ephemeral] create payload={payload}")
+            data = _filter_to_columns(payload or {}, cols)
+            data.setdefault(pk_name, _synth_pk_value(pk_pytype))
+            return model(**data)
+        return _core
+
+    if verb == "bulk_create":
+        def _core(payloads: list[dict], s: Session | None) -> Any:
+            print(f"[ephemeral] bulk_create n={len(payloads or [])}")
+            out = []
+            for p in payloads or []:
+                data = _filter_to_columns(p or {}, cols)
+                data.setdefault(pk_name, _synth_pk_value(pk_pytype))
+                out.append(model(**data))
+            return out
+        return _core
+
+    if verb in ("update", "replace"):
+        def _core(item_id: Any, body: dict, s: Session | None) -> Any:
+            print(f"[ephemeral] {verb} id={item_id} body={body}")
+            data = _filter_to_columns(body or {}, cols)
+            data[pk_name] = item_id
+            return model(**data)
+        return _core
+
+    if verb == "read":
+        def _core(item_id: Any, s: Session | None) -> Any:
+            print(f"[ephemeral] read id={item_id} → 404 (no persistence)")
+            http_exc, _, _ = create_standardized_error(404, rpc_code=-32004)
+            raise http_exc
+        return _core
+
+    if verb == "list":
+        def _core(list_params: Any, s: Session | None) -> Any:
+            # list_params may be a Pydantic model or dict; we don't need it here.
+            print(f"[ephemeral] list → [] (no persistence)")
+            return []
+        return _core
+
+    if verb in ("delete", "bulk_delete", "clear"):
+        def _core(*_args, **_kw) -> Any:
+            print(f"[ephemeral] {verb} → no-op")
+            return None
+        return _core
+
+    # Fallback: no-op
+    def _noop(*_a, **_k):
+        print(f"[ephemeral] {verb} (unhandled) → no-op")
+        return None
+
+    return _noop
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Main registrar
+# ──────────────────────────────────────────────────────────────────────
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
     model: type,
@@ -135,6 +240,23 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
+    # ---------- resolve skip-persist ops ------------------------------
+    verbs_in_spec = [v for (v, *_rest) in spec]
+    skip_ops = SkipPersistProvider.resolve_for_ops(model, verbs_in_spec)
+    if skip_ops:
+        print(f"Skip-persist enabled for {model.__name__}: {sorted(skip_ops)}")
+
+    # swap cores for ephemeral ones where needed
+    new_spec: List[tuple] = []
+    for (verb, http, path, status, In, Out, core) in spec:
+        if verb in skip_ops:
+            print(f"Installing ephemeral core for {model.__name__}.{verb}")
+            core = _make_ephemeral_core(
+                verb=verb, model=model, pk_name=pk, pk_pytype=pk_type
+            )
+        new_spec.append((verb, http, path, status, In, Out, core))
+    spec = new_spec
+
     # ---------- nested routing ---------------------------------------
     raw_pref = self._nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
@@ -170,6 +292,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
         m_id = _canonical(tab, verb)
+        is_ephemeral = verb in skip_ops
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -178,7 +301,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             rpc_in = _schema(model, verb=verb)
 
         def _factory(
-            is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
+            is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id, is_ephemeral=is_ephemeral
         ):
             params: list[inspect.Parameter] = [
                 inspect.Parameter(  # request always first
@@ -205,7 +328,11 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     inspect.Parameter(
                         "item_id",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=pk_type,
+                        annotation=getattr(
+                            next(iter(model.__table__.primary_key.columns)).type,
+                            "python_type",
+                            str,
+                        ),
                     )
                 )
 
@@ -269,6 +396,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 print(f"RPC params built: {rpc_params}")
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
                 ctx = {"request": req, "db": db, "env": env, "params": env.params}
+                if is_ephemeral:
+                    # Advertise to hooks/runner that this invocation will not persist.
+                    ctx["ephemeral"] = True
 
                 def _build_args(_p):
                     match verb:
@@ -287,7 +417,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                             return ()
 
                 if isinstance(db, AsyncSession):
-
+                    # Execute inside the standard _invoke flow (even if ephemeral),
+                    # to preserve lifecycle hooks and error shaping.
                     def exec_fn(_m, _p, _db=db):
                         return _db.run_sync(lambda s: core(*_build_args(_p), s))
 
@@ -352,7 +483,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         )
         self.rpc[m_id] = rpc_fn
 
-        # ── in-process convenience wrapper ────────────────────────────────
+        # ── in-process convenience wrapper ───────────────────────────────
         camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
 
         def _runner(payload, *, db=None, _method=m_id, _api=self):
