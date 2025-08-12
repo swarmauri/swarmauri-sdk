@@ -5,7 +5,7 @@ import subprocess
 import httpx
 import pytest
 
-WORKER_LIST = "Workers.list"
+WORKER_LIST = "Worker.list"
 
 pytestmark = pytest.mark.smoke
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")
