@@ -11,7 +11,7 @@ from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from autoapi.v2.mixins import GUIDPk
-from autoapi.v2 import Base
+from autoapi.v2 import Base, get_schema
 
 
 class DummyModelDisableOn(Base, GUIDPk):
@@ -104,12 +104,12 @@ class DummyModelPyType(Base, GUIDPk):
 @pytest.mark.asyncio
 async def test_disable_on_key(create_test_api):
     """Test that disable_on key excludes fields from specified verbs."""
-    api = create_test_api(DummyModelDisableOn)
+    create_test_api(DummyModelDisableOn)
 
     # Get schemas for different verbs
-    create_schema = api.get_schema(DummyModelDisableOn, "create")
-    update_schema = api.get_schema(DummyModelDisableOn, "update")
-    read_schema = api.get_schema(DummyModelDisableOn, "read")
+    create_schema = get_schema(DummyModelDisableOn, "create")
+    update_schema = get_schema(DummyModelDisableOn, "update")
+    read_schema = get_schema(DummyModelDisableOn, "read")
 
     # name should be in create and read schemas
     assert "name" in create_schema.model_fields
@@ -128,11 +128,11 @@ async def test_disable_on_key(create_test_api):
 @pytest.mark.asyncio
 async def test_write_only_key(create_test_api):
     """Test that write_only key excludes fields from read operations."""
-    api = create_test_api(DummyModelWriteOnly)
+    create_test_api(DummyModelWriteOnly)
 
     # Get schemas for different verbs
-    create_schema = api.get_schema(DummyModelWriteOnly, "create")
-    read_schema = api.get_schema(DummyModelWriteOnly, "read")
+    create_schema = get_schema(DummyModelWriteOnly, "create")
+    read_schema = get_schema(DummyModelWriteOnly, "read")
 
     # secret should be in create schema (write operation)
     assert "secret" in create_schema.model_fields
@@ -149,12 +149,12 @@ async def test_write_only_key(create_test_api):
 @pytest.mark.asyncio
 async def test_read_only_key(create_test_api):
     """Test that read_only key excludes fields from write operations."""
-    api = create_test_api(DummyModelReadOnly)
+    create_test_api(DummyModelReadOnly)
 
     # Get schemas for different verbs
-    create_schema = api.get_schema(DummyModelReadOnly, "create")
-    update_schema = api.get_schema(DummyModelReadOnly, "update")
-    read_schema = api.get_schema(DummyModelReadOnly, "read")
+    create_schema = get_schema(DummyModelReadOnly, "create")
+    update_schema = get_schema(DummyModelReadOnly, "update")
+    read_schema = get_schema(DummyModelReadOnly, "read")
 
     # computed_field should be in read schema
     assert "computed_field" in read_schema.model_fields
@@ -173,10 +173,10 @@ async def test_read_only_key(create_test_api):
 @pytest.mark.asyncio
 async def test_default_factory_key(create_test_api):
     """Test that default_factory key provides default values."""
-    api = create_test_api(DummyModelDefaultFactory)
+    create_test_api(DummyModelDefaultFactory)
 
     # Get create schema
-    create_schema = api.get_schema(DummyModelDefaultFactory, "create")
+    create_schema = get_schema(DummyModelDefaultFactory, "create")
 
     # timestamp field should be present
     assert "timestamp" in create_schema.model_fields
@@ -197,10 +197,10 @@ async def test_default_factory_key(create_test_api):
 @pytest.mark.asyncio
 async def test_examples_key(create_test_api):
     """Test that examples key provides example values in schema."""
-    api = create_test_api(DummyModelExamples)
+    create_test_api(DummyModelExamples)
 
     # Get create schema
-    create_schema = api.get_schema(DummyModelExamples, "create")
+    create_schema = get_schema(DummyModelExamples, "create")
 
     # Check that fields have examples
     name_field = create_schema.model_fields["name"]
@@ -216,11 +216,11 @@ async def test_examples_key(create_test_api):
 @pytest.mark.asyncio
 async def test_hybrid_key(create_test_api):
     """Test that hybrid key enables hybrid properties in schemas."""
-    api = create_test_api(DummyModelHybrid)
+    create_test_api(DummyModelHybrid)
 
     # Get schemas for different verbs
-    create_schema = api.get_schema(DummyModelHybrid, "create")
-    read_schema = api.get_schema(DummyModelHybrid, "read")
+    create_schema = get_schema(DummyModelHybrid, "create")
+    read_schema = get_schema(DummyModelHybrid, "read")
 
     # full_name should be in schemas because hybrid=True
     assert "full_name" in create_schema.model_fields
@@ -235,10 +235,10 @@ async def test_hybrid_key(create_test_api):
 @pytest.mark.asyncio
 async def test_py_type_key(create_test_api):
     """Test that py_type key specifies Python type for hybrid properties."""
-    api = create_test_api(DummyModelPyType)
+    create_test_api(DummyModelPyType)
 
     # Get read schema
-    read_schema = api.get_schema(DummyModelPyType, "read")
+    read_schema = get_schema(DummyModelPyType, "read")
 
     # computed_value should be present due to hybrid=True
     assert "computed_value" in read_schema.model_fields
@@ -299,12 +299,12 @@ async def test_combined_info_schema_keys(create_test_api):
 
         computed.info = {"autoapi": {"hybrid": True, "read_only": True, "py_type": str}}
 
-    api = create_test_api(DummyModelCombined)
+    create_test_api(DummyModelCombined)
 
     # Get schemas
-    create_schema = api.get_schema(DummyModelCombined, "create")
-    update_schema = api.get_schema(DummyModelCombined, "update")
-    read_schema = api.get_schema(DummyModelCombined, "read")
+    create_schema = get_schema(DummyModelCombined, "create")
+    update_schema = get_schema(DummyModelCombined, "update")
+    read_schema = get_schema(DummyModelCombined, "read")
 
     # secret should be in create (write_only=True allows writes, disable_on excludes update)
     assert "secret" in create_schema.model_fields

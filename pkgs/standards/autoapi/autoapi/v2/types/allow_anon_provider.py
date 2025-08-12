@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from typing import Callable, ClassVar, Iterable
 
 from .table_config_provider import TableConfigProvider
 
@@ -8,10 +8,7 @@ _ALLOW_ANON_PROVIDERS: set[type] = set()
 class AllowAnonProvider(TableConfigProvider):
     """Models that expose operations without authentication."""
 
-    @classmethod
-    @abstractmethod
-    def __autoapi_allow_anon__(cls) -> set[str]:
-        """Return a set of CRUD verb names that allow anonymous access."""
+    __autoapi_allow_anon__: ClassVar[Iterable[str] | Callable[[], Iterable[str]]] = ()
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)

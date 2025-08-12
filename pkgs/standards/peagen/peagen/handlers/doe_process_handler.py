@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task, Status, Action
 
 from peagen.defaults import ROOT_DIR
@@ -36,7 +36,8 @@ from peagen.plugins.vcs import pea_ref
 from .fanout import fan_out
 
 # ─────────────────────────── schema handle ──────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ─────────────────────────── helpers ────────────────────────────────
 def _resolve_in_tree(p: str | Path, tree: Path) -> Path:
@@ -134,7 +135,8 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901
     if vcs:
         repo_root = Path(vcs.repo.working_tree_dir)
         rel_outputs = [
-            str(Path(p).resolve().relative_to(repo_root)) for p in result.get("outputs", [])
+            str(Path(p).resolve().relative_to(repo_root))
+            for p in result.get("outputs", [])
         ]
         if rel_outputs:
             commit_sha = vcs.commit(rel_outputs, f"doe_process {spec_path.stem}")

@@ -22,7 +22,7 @@ from sqlalchemy.dialects.postgresql import (
     ARRAY,
     ENUM as PgEnum,
     JSONB,
-    UUID as PgUUID,
+    UUID as _PgUUID,
     TSVECTOR,
 )
 from sqlalchemy.orm import (
@@ -51,8 +51,16 @@ from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
 
+
+# ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
+
+class PgUUID(_PgUUID):
+    @property
+    def hex(self):
+        return self.as_uuid.hex
+
 
 # ── public re-exports ─────────────────────────────────────────────────────
 __all__: list[str] = [

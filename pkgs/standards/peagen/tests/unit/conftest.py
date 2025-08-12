@@ -27,9 +27,7 @@ class DummyTaskModel(BaseModel):
 
 @pytest.fixture(autouse=True)
 def patch_build_task_schema(monkeypatch):
-    original = task_helpers.AutoAPI.get_schema
-    monkeypatch.setattr(
-        task_helpers.AutoAPI, "get_schema", lambda *a, **k: DummyTaskModel
-    )
+    original = task_helpers.get_schema
+    monkeypatch.setattr(task_helpers, "get_schema", lambda *a, **k: DummyTaskModel)
     yield
-    monkeypatch.setattr(task_helpers.AutoAPI, "get_schema", original)
+    monkeypatch.setattr(task_helpers, "get_schema", original)
