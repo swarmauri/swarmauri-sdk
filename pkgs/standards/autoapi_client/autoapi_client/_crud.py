@@ -49,36 +49,45 @@ class CRUDMixin:
         return data
 
     def _process_response(
-        self, response: httpx.Response, out_schema: type[_Schema[T]] | None = None
+        self,
+        response: httpx.Response,
+        out_schema: type[_Schema[T]] | None = None,
+        *,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """Process HTTP response."""
-        try:
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            if response.status_code == 422:
-                try:
-                    detail = response.json()
-                except ValueError:
-                    detail = response.text
-                raise httpx.HTTPStatusError(
-                    f"Unprocessable Entity: {detail}",
-                    request=exc.request,
-                    response=exc.response,
-                ) from None
-            raise
+        if raise_status:
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                if response.status_code == 422:
+                    try:
+                        detail = response.json()
+                    except ValueError:
+                        detail = response.text
+                    raise httpx.HTTPStatusError(
+                        f"Unprocessable Entity: {detail}",
+                        request=exc.request,
+                        response=exc.response,
+                    ) from None
+                raise
 
         # Handle empty responses (like 204 No Content)
         if response.status_code == 204 or not response.content:
-            return None
+            result: Any = None
+        else:
+            try:
+                result = response.json()
+            except ValueError:
+                # If response is not JSON, return raw content as string
+                result = response.text
 
-        try:
-            result = response.json()
-        except ValueError:
-            # If response is not JSON, return raw content as string
-            return response.text
+        if out_schema is not None and result is not None:
+            result = out_schema.model_validate(result)
 
-        if out_schema is not None:
-            return out_schema.model_validate(result)
+        if status_code:
+            return result, response.status_code
         return result
 
     # ─────────── GET methods ────────────────────────────────────────── #
@@ -106,6 +115,8 @@ class CRUDMixin:
         *,
         params: dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make a GET request.
@@ -121,7 +132,9 @@ class CRUDMixin:
         url = self._build_url(path)
         headers = getattr(self, "_headers", {})
         response = self._get_client().get(url, params=params, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── POST methods ───────────────────────────────────────── #
     @overload
@@ -148,6 +161,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make a POST request.
@@ -165,7 +180,9 @@ class CRUDMixin:
         headers = {"Content-Type": "application/json"}
         headers.update(getattr(self, "_headers", {}))
         response = self._get_client().post(url, json=json_data, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── PUT methods ────────────────────────────────────────── #
     @overload
@@ -192,6 +209,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make a PUT request.
@@ -209,7 +228,9 @@ class CRUDMixin:
         headers = {"Content-Type": "application/json"}
         headers.update(getattr(self, "_headers", {}))
         response = self._get_client().put(url, json=json_data, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── PATCH methods ──────────────────────────────────────── #
     @overload
@@ -236,6 +257,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make a PATCH request.
@@ -253,7 +276,9 @@ class CRUDMixin:
         headers = {"Content-Type": "application/json"}
         headers.update(getattr(self, "_headers", {}))
         response = self._get_client().patch(url, json=json_data, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── DELETE methods ─────────────────────────────────────── #
     @overload
@@ -277,6 +302,8 @@ class CRUDMixin:
         path: str,
         *,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make a DELETE request.
@@ -291,7 +318,9 @@ class CRUDMixin:
         url = self._build_url(path)
         headers = getattr(self, "_headers", {})
         response = self._get_client().delete(url, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── Async GET methods ──────────────────────────────────── #
     @overload
@@ -318,6 +347,8 @@ class CRUDMixin:
         *,
         params: dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make an async GET request.
@@ -335,7 +366,9 @@ class CRUDMixin:
         response = await self._get_async_client().get(
             url, params=params, headers=headers
         )
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── Async POST methods ─────────────────────────────────── #
     @overload
@@ -362,6 +395,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make an async POST request.
@@ -381,7 +416,9 @@ class CRUDMixin:
         response = await self._get_async_client().post(
             url, json=json_data, headers=headers
         )
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── Async PUT methods ──────────────────────────────────── #
     @overload
@@ -408,6 +445,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make an async PUT request.
@@ -427,7 +466,9 @@ class CRUDMixin:
         response = await self._get_async_client().put(
             url, json=json_data, headers=headers
         )
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── Async PATCH methods ────────────────────────────────── #
     @overload
@@ -454,6 +495,8 @@ class CRUDMixin:
         *,
         data: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make an async PATCH request.
@@ -473,7 +516,9 @@ class CRUDMixin:
         response = await self._get_async_client().patch(
             url, json=json_data, headers=headers
         )
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )
 
     # ─────────── Async DELETE methods ──────────────────────────────── #
     @overload
@@ -497,6 +542,8 @@ class CRUDMixin:
         path: str,
         *,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        raise_status: bool = True,
     ) -> Any:
         """
         Make an async DELETE request.
@@ -511,4 +558,6 @@ class CRUDMixin:
         url = self._build_url(path)
         headers = getattr(self, "_headers", {})
         response = await self._get_async_client().delete(url, headers=headers)
-        return self._process_response(response, out_schema)
+        return self._process_response(
+            response, out_schema, status_code=status_code, raise_status=raise_status
+        )

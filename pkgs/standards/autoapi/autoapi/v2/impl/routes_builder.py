@@ -12,10 +12,12 @@ import inspect
 import re
 from typing import Annotated, Any, List
 
+import anyio
 from fastapi import APIRouter, Body, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from ._dual_call import CallableOp
 from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
@@ -66,9 +68,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     tab: str,
     pk: str,
     SCreate,
-    SReadOut,     # ← read OUTPUT schema
-    SReadIn,      # ← read INPUT (pk-only) schema
-    SDeleteIn,    # ← delete INPUT (pk-only) schema
+    SReadOut,  # ← read OUTPUT schema
+    SReadIn,  # ← read INPUT (pk-only) schema
+    SDeleteIn,  # ← delete INPUT (pk-only) schema
     SUpdate,
     SListIn,
     _create,
@@ -100,12 +102,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
-        ("create", "POST",  "",          201, SCreate,             SReadOut,         _create),
-        ("list",   "GET",   "",          200, SListIn,             List[SReadOut],   _list),
-        ("clear",  "DELETE","",          204, None,                None,             _clear),
-        ("read",   "GET",   "/{item_id}",200, SReadIn,             SReadOut,         _read),
-        ("update", "PATCH", "/{item_id}",200, SUpdate,             SReadOut,         _update),
-        ("delete", "DELETE","/{item_id}",204, SDeleteIn,           None,             _delete),
+        ("create", "POST", "", 201, SCreate, SReadOut, _create),
+        ("list", "GET", "", 200, SListIn, List[SReadOut], _list),
+        ("clear", "DELETE", "", 204, None, None, _clear),
+        ("read", "GET", "/{item_id}", 200, SReadIn, SReadOut, _read),
+        ("update", "PATCH", "/{item_id}", 200, SUpdate, SReadOut, _update),
+        ("delete", "DELETE", "/{item_id}", 204, SDeleteIn, None, _delete),
     ]
     if issubclass(model, Replaceable):
         print("Model is Replaceable; adding replace spec")
@@ -123,8 +125,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
         spec += [
-            ("bulk_create", "POST",   "/bulk", 201, List[SCreate],   List[SReadOut], _create),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None,           _delete),
+            (
+                "bulk_create",
+                "POST",
+                "/bulk",
+                201,
+                List[SCreate],
+                List[SReadOut],
+                _create,
+            ),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -336,7 +346,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
-        print(f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}")
+        print(
+            f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
+        )
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
@@ -366,14 +378,21 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
-        setattr(self.cores, camel, core)
+
+        @functools.wraps(core)
+        async def _core_async(*a, _core=core, **kw):
+            return await anyio.to_thread.run_sync(_core, *a, **kw)
+
+        setattr(self.cores, camel, CallableOp(_core_async))
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")
 
-
         # Ensure container for core_exec
         if not hasattr(self, "core_exec"):
-            class _CE: pass
+
+            class _CE:
+                pass
+
             self.core_exec = _CE()
 
         async def _core_exec(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
@@ -387,7 +406,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     case "list":
                         return (_p,)  # already a schema/dict matching list input
                     case "read" | "delete":
-                        if hasattr(_p, "model_dump"):    # pydantic model
+                        if hasattr(_p, "model_dump"):  # pydantic model
                             d = _p.model_dump()
                         else:
                             d = dict(_p)
@@ -403,14 +422,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
             # 1) Caller supplied a DB
             if db is not None:
-                if hasattr(db, "run_sync"):                         # AsyncSession
+                if hasattr(db, "run_sync"):  # AsyncSession
                     return await db.run_sync(lambda s: _core(*_build_args(payload), s))
                 # Plain Session
                 return _core(*_build_args(payload), db)
 
             # 2) No DB supplied: auto-open a sync session only if available
             if self.get_db is None:
-                raise TypeError("core_exec requires a DB (AsyncSession or Session) when get_db is not configured")
+                raise TypeError(
+                    "core_exec requires a DB (AsyncSession or Session) when get_db is not configured"
+                )
 
             gen = self.get_db()
             s = next(gen)
@@ -418,14 +439,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 return _core(*_build_args(payload), s)
             finally:
                 try:
-                    next(gen)   # close
+                    next(gen)  # close
                 except StopIteration:
                     pass
 
         # Register helper name (CamelCase like UsersCreate)
         camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
-        setattr(self.core_exec, camel, _core_exec)
-
+        setattr(self.core_exec, camel, CallableOp(_core_exec))
 
     # include routers
     self.router.include_router(flat_router)

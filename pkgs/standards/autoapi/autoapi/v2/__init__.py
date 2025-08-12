@@ -3,7 +3,7 @@
 Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
-•  Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
+•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatch, …).
 •  Preserves the historical surface: AutoAPI._crud, …
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
-from .gateway import build_gateway
+from .rpcdispatch import build_rpcdispatch
 from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
@@ -129,8 +129,8 @@ class AutoAPI:
         else:
             attach_health_and_methodz(self, get_async_db=self.get_async_db)
 
-        # attach JSON-RPC gateway
-        self.router.include_router(build_gateway(self))
+        # attach JSON-RPC dispatch
+        self.router.include_router(build_rpcdispatch(self))
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
