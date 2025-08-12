@@ -63,7 +63,7 @@ from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
 # ─────────── logging setup ─────────────────────────────────────────────
-LOG_LEVEL = os.getenv("DQ_LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.getenv("PEAGEN_LOG_LEVEL", "INFO").upper()
 log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
 sched_log = Logger(
     name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)

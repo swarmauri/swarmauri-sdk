@@ -8,7 +8,7 @@ This document records the steps to verify `peagen` CLI public key, deploy key, a
 export PG_DSN="postgresql://peagen:peagen@localhost:5432/peagen"
 export REDIS_URL="redis://localhost:6379/0"
 uvicorn peagen.gateway:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips="*" &
-DQ_GATEWAY=http://127.0.0.1:8000/rpc uvicorn peagen.worker:app --host 127.0.0.1 --port 8001 &
+PEAGEN_GATEWAY=http://127.0.0.1:8000/rpc uvicorn peagen.worker:app --host 127.0.0.1 --port 8001 &
 ```
 
 A `.peagen.toml` referencing Redis and Postgres was placed in `/tmp/peagen_demo`.

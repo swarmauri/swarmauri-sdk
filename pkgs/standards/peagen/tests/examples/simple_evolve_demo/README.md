@@ -10,7 +10,7 @@ Winning mutants are committed to the repository when a VCS is configured. The ta
 Run the spec locally using the `local` subcommand:
 
 ```bash
-DQ_GATEWAY=http://127.0.0.1:8000/rpc \
+PEAGEN_GATEWAY=http://127.0.0.1:8000/rpc \
 uv run --package peagen --directory pkgs/standards/peagen \
   peagen local -q evolve tests/examples/simple_evolve_demo/evolve_spec_local.yaml
 ```

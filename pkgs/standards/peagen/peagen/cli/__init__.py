@@ -133,7 +133,7 @@ def _global_remote_ctx(  # noqa: D401
     api_key: str | None = typer.Option(
         None,
         "--api-key",
-        envvar="DQ_API_KEY",
+        envvar="PEAGEN_API_KEY",
         help="API key for authenticated gateway access",
     ),
     override: str = typer.Option(
@@ -148,7 +148,7 @@ def _global_remote_ctx(  # noqa: D401
         help="Path to a *second* .peagen.toml that is sent to the worker.",
     ),
     pool: str = typer.Option(
-        os.getenv("DQ_POOL", defaults.DEFAULT_POOL),
+        os.getenv("PEAGEN_POOL", defaults.DEFAULT_POOL),
         "--pool",
         help="Tenant or pool for multi-tenant deployments",
     ),

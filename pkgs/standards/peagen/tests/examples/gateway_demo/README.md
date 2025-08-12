@@ -11,7 +11,7 @@ This example demonstrates a minimal setup for running the Peagen gateway and wor
 2. Launch a worker connected to the gateway:
 
    ```bash
-   DQ_GATEWAY=http://127.0.0.1:8000/rpc \
+   PEAGEN_GATEWAY=http://127.0.0.1:8000/rpc \
    uvicorn peagen.worker:app --host 0.0.0.0 --port 8001
    ```
 

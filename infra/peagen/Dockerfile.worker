@@ -23,8 +23,8 @@ RUN uv pip install --directory pkgs/standards/peagen --system .
 EXPOSE 8001
 
 ENV \
-    DQ_POOL=""\
-    DQ_GATEWAY=""\
+    PEAGEN_POOL=""\
+    PEAGEN_GATEWAY=""\
     PORT="8001" \
     PG_PORT="5432"
 
