@@ -13,7 +13,7 @@ def build_rpcdispatch(api) -> APIRouter:
 
     DBDep = (
         Annotated[AsyncSession, Depends(api.get_async_db)]
-        if getattr(api, "get_async_db", None)
+        if callable(getattr(api, "get_async_db", None))
         else Annotated[Session, Depends(api.get_db)]
     )
 
@@ -21,9 +21,13 @@ def build_rpcdispatch(api) -> APIRouter:
     async def _rpcdispatch(
         req: Request,
         env: _RPCReq = Body(..., embed=False),
-        db: DBDep = None,  # injected via Depends; value is Session or AsyncSession
+        db: DBDep,  # injected via Depends; value is Session or AsyncSession
         principal: Dict | None = api._optional_authn_dep,
     ):
+        # Defensive: if DI failed, fail fast rather than passing None through.
+        if db is None:  # pragma: no cover
+            raise RuntimeError("DB dependency did not inject; check get_db/get_async_db wiring")
+            
         if getattr(req.state, "ctx", None) is None:
             req.state.ctx = {}
         req.state.principal = principal
@@ -54,3 +58,4 @@ def build_rpcdispatch(api) -> APIRouter:
             return _err(-32000, str(exc), env)
 
     return r
+
