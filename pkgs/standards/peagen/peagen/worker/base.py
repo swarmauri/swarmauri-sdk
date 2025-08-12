@@ -86,7 +86,7 @@ class WorkerBase:
         # ----- JSON-RPC dispatcher --------------------------------
         self.rpc = RPCDispatcher()
 
-        @self.rpc.method("Works.create")
+        @self.rpc.method("Work.create")
         async def _on_work_start(payload: dict) -> dict:
             asyncio.create_task(self._run_work(payload))
             return {"accepted": True}
@@ -213,7 +213,7 @@ class WorkerBase:
     ) -> None:
         try:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
-            self._client.call("Works.update", params=upd.model_dump(mode="json"))
-            self.log.info("Works.update %s → %s", work_id, status)
+            self._client.call("Work.update", params=upd.model_dump(mode="json"))
+            self.log.info("Work.update %s → %s", work_id, status)
         except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)
