@@ -66,8 +66,8 @@ class AutoAPI:
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
 
         # Cores
-        self.cores: SimpleNamespace = SimpleNamespace(name="core")
-        self.core_exec: SimpleNamespace = SimpleNamespace(name="core_exec")
+        self.core: SimpleNamespace = SimpleNamespace(name="core")
+        self.core_raw: SimpleNamespace = SimpleNamespace(name="core_raw")
 
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()

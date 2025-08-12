@@ -369,17 +369,17 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
-        setattr(self.cores, camel, core)
+        setattr(self.core, camel, core)
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")
 
 
         # Ensure container for core_exec
-        if not hasattr(self, "core_exec"):
-            class _CE: pass
-            self.core_exec = _CE()
+        if not hasattr(self, "core_raw"):
+            class _CR: pass
+            self.core_raw = _CR()
 
-        async def _core_exec(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
+        async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
             # Build args in the same way your RPC shim would
             def _build_args(_p):
                 match _verb:
@@ -427,7 +427,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register helper name (CamelCase like UsersCreate)
         camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
-        setattr(self.core_exec, camel, _core_exec)
+        setattr(self.core_raw, camel, _core_raw)
 
 
     # include routers
