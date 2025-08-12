@@ -117,24 +117,22 @@ class AutoAPI:
         # ---------- collect models, build routes, etc. -----------
 
         # ---------------- AuthN wiring -----------------
-        if authn is not None:  # preferred path
+        if authn is not None:
             self._authn = authn
 
-            # Security dependency that also seeds request.state.ctx["__autoapi_auth_context__"]
-            from fastapi import Request
-
-            async def _security_dep(request: Request, principal=Security(authn.get_principal)):
+            # Strict auth: provider dep embeds the security scheme via Security(<scheme auto_error=True>)
+            async def _strict_auth_dep(
+                request: Request,
+                principal = Depends(authn.get_principal),
+            ):
                 # ensure a ctx dict exists for downstream hooks / cores
                 ctx = getattr(request.state, "ctx", None)
                 if ctx is None or not isinstance(ctx, dict):
                     request.state.ctx = ctx = {}
                 # stash principal into the standardized auth context slot
-                try:
-                    if isinstance(principal, dict):
-                        ac = ctx.setdefault("__autoapi_auth_context__", {} if not isinstance(ctx.get("__autoapi_auth_context__"), dict) else ctx["__autoapi_auth_context__"])
-                        ac.update(principal)
-                except Exception:
-                    pass
+                if isinstance(principal, dict):
+                    ac = ctx.setdefault("__autoapi_auth_context__", {})
+                    ac.update(principal)
                 # keep legacy attribute too
                 request.state.principal = principal
                 # best-effort: propagate to contextvar if available
@@ -145,18 +143,25 @@ class AutoAPI:
                     pass
                 return principal
 
-            # Optional variant that never raises (for /rpc where anonymous methods are allowed)
-            async def _optional_security_dep(request: Request, principal=Security(authn.get_principal)):
-                if not principal:
-                    return None
-                return await _security_dep(request, principal=principal)
+            # Optional auth: provider dep embeds the SAME scheme but with auto_error=False
+            if hasattr(authn, "get_principal_optional"):
+                async def _optional_auth_dep(
+                    request: Request,
+                    principal = Depends(authn.get_principal_optional),
+                ):
+                    if not principal:
+                        return None
+                    return await _strict_auth_dep(request, principal=principal)
+            else:
+                # Fallback: if optional dep not provided, reuse strict dep
+                _optional_auth_dep = _strict_auth_dep
 
             # expose dependency callables for use in routes & rpc
-            self._authn_dep = Depends(_security_dep)
-            self._optional_authn_dep = Depends(_optional_security_dep)
+            self._authn_dep = Depends(_strict_auth_dep)
+            self._optional_authn_dep = Depends(_optional_auth_dep)
         else:
             self._authn = None
-            # NOP dependencies
+            # NOOP dependencies
             self._authn_dep = Depends(lambda: None)
             self._optional_authn_dep = Depends(lambda: None)
 

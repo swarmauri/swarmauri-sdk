@@ -2,14 +2,20 @@
 from __future__ import annotations
 
 import time
+import warnings
 from typing import Final
 
 import httpx
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, Request, Security, status
+from fastapi.security import APIKeyHeader
 
 from autoapi.v2.types.authn_abc import AuthNProvider
-from ..hooks import register_inject_hook  # ← existing helper
 from ..principal_ctx import principal_var
+
+
+# OpenAPI-advertised security scheme (header-based API key)
+_API_KEY_REQUIRED = APIKeyHeader(name="X-API-Key", auto_error=True)
+_API_KEY_OPTIONAL = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 class RemoteAuthNAdapter(AuthNProvider):
@@ -22,14 +28,13 @@ class RemoteAuthNAdapter(AuthNProvider):
         Full origin of the AuthN deployment, *without* trailing slash,
         e.g. ``"https://authn.internal:8080"``.
     timeout:
-        Float seconds for the outbound HTTP POST (default **0.4 s**).
+        Float seconds for the outbound HTTP POST (default **0.4 s**).
     cache_ttl:
-        TTL in seconds for the in‑process API‑key cache (default **10 s**).
+        TTL in seconds for the in-process API-key cache (default **10 s**).
     cache_size:
-        Maximum number of distinct API‑keys to cache (default **10 000**).
+        Maximum number of distinct API-keys to cache (default **10,000**).
     client:
-        Optional pre‑configured ``httpx.AsyncClient``.
-        If omitted, one is created with the given *timeout* and shared.
+        Optional pre-configured ``httpx.AsyncClient``. If omitted, one is created.
     """
 
     # ------------------------------------------------------------------ #
@@ -55,47 +60,97 @@ class RemoteAuthNAdapter(AuthNProvider):
         self._cache: dict[str, tuple[dict, float]] = {}  # api_key -> (principal, ts)
 
     # ------------------------------------------------------------------ #
-    # AuthNProvider : FastAPI dependency                                 #
+    # AuthNProvider : FastAPI dependencies                                #
     # ------------------------------------------------------------------ #
-    async def get_principal(self, request: Request) -> dict:  # noqa: D401
-        api_key: str | None = request.headers.get("x-api-key")
+    async def get_principal(  # strict: header is required (401 on invalid)
+        self,
+        request: Request,
+        api_key: str = Security(_API_KEY_REQUIRED),
+    ) -> dict:
+        """
+        Resolve and return the principal for a required API key.
+
+        Emits a 401 when the key is invalid/expired. Missing header is handled
+        by the security scheme (auto_error=True).
+        """
+        principal = self._cache_get(api_key)
+        if principal is None:
+            principal = await self._introspect_key(api_key)
+            if principal is None:
+                raise HTTPException(
+                    status.HTTP_401_UNAUTHORIZED, "Invalid or expired API key"
+                )
+            self._cache_put(api_key, principal)
+
+        request.state.principal = principal
+        principal_var.set(principal)
+        return principal
+
+    async def get_principal_optional(  # optional: header may be absent
+        self,
+        request: Request,
+        api_key: str | None = Security(_API_KEY_OPTIONAL),
+    ) -> dict | None:
+        """
+        Resolve and return the principal when the API key header is optional.
+
+        Returns ``None`` when no API key is provided or when introspection fails.
+        Never raises due to missing header (auto_error=False).
+        """
         if not api_key:
             request.state.principal = None
             principal_var.set(None)
             return None
 
-        # ------- tiny TTL cache to save RTT ---------------------------
         principal = self._cache_get(api_key)
         if principal is None:
-            resp = await self._client.post(self._introspect, json={"api_key": api_key})
-            if resp.status_code != 200:
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED,
-                    "Invalid or expired API key",
-                )
-            principal = resp.json()
+            principal = await self._introspect_key(api_key)
+            if principal is None:
+                # For optional auth we do not raise; return None to allow anon flows.
+                request.state.principal = None
+                principal_var.set(None)
+                return None
             self._cache_put(api_key, principal)
 
-        # make principal visible to hooks and row filters
         request.state.principal = principal
         principal_var.set(principal)
         return principal
 
     # ------------------------------------------------------------------ #
-    # AuthNProvider : hook bootstrap                                     #
+    # Deprecated PRE_TX injection hook (no-op)                            #
     # ------------------------------------------------------------------ #
     def register_inject_hook(self, api) -> None:  # noqa: D401
-        """Register the PRE_TX_BEGIN injection hook without assuming shadow tables.
-
-        The hook merely injects ``tenant_id`` and ``owner_id`` fields when they
-        exist on the target models; it does not require the consumer to create
-        local shadow ``Tenant`` or ``User`` tables.
         """
-        register_inject_hook(api)
+        Deprecated: PRE_TX principal injection is no longer used.
+        Security dependencies now inject principal and OpenAPI scheme.
+        """
+        warnings.warn(
+            "RemoteAuthNAdapter.register_inject_hook is deprecated and a no-op. "
+            "Use the Security-based dependencies instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     # ------------------------------------------------------------------ #
-    # internal cache helpers                                             #
+    # internal helpers                                                    #
     # ------------------------------------------------------------------ #
+    async def _introspect_key(self, api_key: str) -> dict | None:
+        try:
+            resp = await self._client.post(self._introspect, json={"api_key": api_key})
+        except Exception:
+            return None
+
+        if resp.status_code != 200:
+            return None
+
+        try:
+            principal = resp.json()
+            if not isinstance(principal, dict):
+                return None
+            return principal
+        except Exception:
+            return None
+
     def _cache_get(self, key: str) -> dict | None:
         hit = self._cache.get(key)
         if hit and time.monotonic() - hit[1] < self._ttl:
@@ -105,7 +160,8 @@ class RemoteAuthNAdapter(AuthNProvider):
 
     def _cache_put(self, key: str, principal: dict) -> None:
         if len(self._cache) >= self._max:
-            self._cache.pop(next(iter(self._cache)))  # FIFO eviction
+            # FIFO eviction
+            self._cache.pop(next(iter(self._cache)))
         self._cache[key] = (principal, time.monotonic())
 
 
