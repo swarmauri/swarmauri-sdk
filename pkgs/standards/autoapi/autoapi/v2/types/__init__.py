@@ -50,7 +50,7 @@ from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
-
+from .skip_persist_provider import SkipPersistProvider, SKIP_PERSIST_KEY
 
 # ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
@@ -118,3 +118,4 @@ __all__: list[str] = [
     # pydantic schema support
     "Field",
 ]
+__all__ += ["SkipPersistProvider", "SKIP_PERSIST_KEY"]
