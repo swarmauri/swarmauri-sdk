@@ -14,7 +14,7 @@ import pytest
 
 # ❶ ------------------------------------------------------------------------
 # Runtime wiring
-from autoapi.v2 import AutoAPI  # your AutoAutoAPI import
+from autoapi.v2 import get_schema  # your AutoAutoAPI import
 from peagen.orm import Worker  # ORM class
 from peagen.defaults import DEFAULT_POOL_ID
 from autoapi_client import AutoAPIClient  # JSON-RPC helper
@@ -35,9 +35,9 @@ def _gateway_available(url: str) -> bool:
 
 # ❷ ------------------------------------------------------------------------
 # Schemas generated on-the-fly so the test never drifts from the server
-SWorkerCreate = AutoAPI.get_schema(Worker, "create")
-SWorkerUpdate = AutoAPI.get_schema(Worker, "update")
-SWorkerRead = AutoAPI.get_schema(Worker, "read")
+SWorkerCreate = get_schema(Worker, "create")
+SWorkerUpdate = get_schema(Worker, "update")
+SWorkerRead = get_schema(Worker, "read")
 
 
 # ❸ ------------------------------------------------------------------------

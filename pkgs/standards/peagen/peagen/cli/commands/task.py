@@ -9,7 +9,7 @@ import time
 
 import typer
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Status, Task
 from peagen.cli.task_helpers import get_task, build_task, submit_task
 
@@ -23,7 +23,7 @@ def _rpc(ctx: typer.Context) -> AutoAPIClient:
 
 def _schema(tag: str):
     # shortcut to the Pydantic model generated for <Task, tag>
-    return AutoAPI.get_schema(Task, tag)
+    return get_schema(Task, tag)
 
 
 # ───────────────────────── commands ───────────────────────────────────

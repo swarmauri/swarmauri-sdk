@@ -9,7 +9,6 @@ from typing import Any, Dict, Optional, List
 
 import typer
 from swarmauri_standard.loggers.Logger import Logger
-from autoapi.v2 import AutoAPI
 
 from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
@@ -17,7 +16,6 @@ from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
 from peagen.defaults import (
     DEFAULT_POOL_ID,
-    DEFAULT_TENANT_ID,
     GIT_SHADOW_BASE,
 )
 from peagen.orm import Repository
@@ -330,32 +328,43 @@ def remote_init_ci(  # noqa: PLR0913
 @remote_init_app.command("repo")
 def remote_init_repo(
     ctx: typer.Context,
-    repo_slug: str = typer.Argument(..., help="principal/repo"),
+    repo: str = typer.Argument(..., help="owner/name"),
     pat: str = typer.Option(..., envvar="GITHUB_PAT"),
-    origin: str = typer.Option(None, "--origin", help="Origin remote URL"),
-    upstream: str = typer.Option(None, "--upstream", help="Upstream remote URL"),
+    path: str = typer.Option(".", "--path", help="Local repository path"),
     default_branch: str = typer.Option("main", "--default-branch"),
 ) -> None:
-    """Register *repo_slug* with the gateway and configure remotes."""
+    """
+    Register *repo* with the gateway (provisions origin on git-shadow and mirror on GitHub),
+    then push the local repo at --path to both remotes.
+    """
     self = Logger(name="init_repo")
     self.logger.info("Entering remote init_repo command")
+
+    # Parse slug
     try:
-        principal, name = repo_slug.split("/", 1)
+        owner, name = repo.split("/", 1)
     except ValueError:
-        typer.echo("❌  repo must be in 'principal/name' format", err=True)
+        typer.echo("❌  repo must be in 'owner/name' format", err=True)
         raise typer.Exit(1)
-    origin_url = origin or f"{GIT_SHADOW_BASE.rstrip('/')}/{principal}/{name}.git"
-    upstream_url = upstream or f"git@github.com:{principal}/{name}.git"
-    SCreate = AutoAPI.get_schema(Repository, "create")
-    SRead = AutoAPI.get_schema(Repository, "read")
+
+    # Remote URLs
+
+    origin_url = f"{GIT_SHADOW_BASE.rstrip('/')}/{owner}/{name}.git"
+    upstream_url = f"https://github.com/{owner}/{name}.git"
+
+    # Build RPC params using the GitHub URL
+    from autoapi.v2 import get_schema
+
+    SCreate = get_schema(Repository, "create")
+    SRead = get_schema(Repository, "read")
+
     params = SCreate(
         name=name,
-        github_pat=pat,
-        url=origin_url,
+        url=upstream_url,  # server derives owner/name from GitHub URL
         default_branch=default_branch,
-        remote_name="origin",
-        status="queued",
+        github_pat=pat,  # MUST be present; schema must not exclude it
     )
+
     rpc = ctx.obj["rpc"]
     try:
         res = rpc.call("Repositories.create", params=params, out_schema=SRead)
@@ -363,10 +372,60 @@ def remote_init_repo(
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
         raise typer.Exit(1)
-    args = {
-        "kind": "repo-config",
-        "path": ".",
-        "remotes": {"origin": origin_url, "upstream": upstream_url},
-    }
-    
+
+    # ---- Configure local repo and push content ----
+    try:
+        from peagen.core.init_core import configure_repo
+        from peagen.core.git_repo_core import open_repo
+    except Exception as exc:
+        typer.echo(f"❌  missing VCS plumbing: {exc}", err=True)
+        raise typer.Exit(1)
+
+    # Configure remotes in the client’s workspace
+    try:
+        configure_repo(
+            path=Path(path), remotes={"origin": origin_url, "upstream": upstream_url}
+        )
+    except Exception as exc:
+        typer.echo(f"❌  failed configuring remotes: {exc}", err=True)
+        raise typer.Exit(1)
+
+    # Open repo and push
+    try:
+        vcs = open_repo(
+            Path(path), remotes={"origin": origin_url, "upstream": upstream_url}
+        )
+
+        # Ensure a commit exists
+        try:
+            if not getattr(vcs, "has_commits", None) or not vcs.has_commits():
+                vcs.commit(["."], "initial commit")
+        except Exception:
+            # Fallback: try to commit blindly (no-op if clean)
+            try:
+                vcs.commit(["."], "initial commit")
+            except Exception:
+                pass
+
+        # Ensure branch
+        try:
+            # Common VCS adapters support checkout; ignore if already on branch
+            vcs.checkout(default_branch, create=True)
+        except Exception:
+            pass
+
+        # Push HEAD to both remotes
+        for remote in ("origin", "upstream"):
+            try:
+                vcs.push("HEAD", remote=remote)
+                typer.echo(f"↗️  pushed HEAD to {remote}")
+            except Exception as exc:
+                typer.echo(f"⚠️  push to {remote} failed: {exc}", err=True)
+
+        typer.echo("✅  remote init complete")
+
+    except Exception as exc:
+        typer.echo(f"❌  local push stage failed: {exc}", err=True)
+        raise typer.Exit(1)
+
     self.logger.info("Exiting remote init_repo command")

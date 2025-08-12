@@ -19,7 +19,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 from peagen.core.mutate_core import mutate_workspace
 from peagen._utils.config_loader import resolve_cfg
@@ -27,7 +27,8 @@ from peagen.plugins import PluginManager
 from peagen.plugins.vcs import GitVCS, pea_ref
 
 # ─────────────────────────── schema handle ──────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ─────────────────────────── coroutine ──────────────────────────────
 async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
@@ -51,9 +52,7 @@ async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
     repo: str = args["repo"]
     ref: str = args.get("ref", "HEAD")
 
-    cfg_path = (
-        Path(args["config"]).expanduser() if args.get("config") else None
-    )
+    cfg_path = Path(args["config"]).expanduser() if args.get("config") else None
 
     # ── 1. run mutation --------------------------------------------------
     result = mutate_workspace(

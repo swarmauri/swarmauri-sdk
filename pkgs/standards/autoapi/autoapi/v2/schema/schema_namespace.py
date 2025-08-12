@@ -19,6 +19,7 @@ class _SchemaNS(SimpleNamespace):
     def __init__(self, api: "AutoAPI"):
         super().__init__()
         self._api = api  # back-reference to parent
+        self.name = "schemas"
 
     def __getattr__(self, item: str):  # lazy lookup / build
         # already cached on the namespace?

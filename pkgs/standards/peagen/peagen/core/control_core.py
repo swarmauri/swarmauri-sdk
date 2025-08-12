@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.orm import Status, Task
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 
-SUpdate = AutoAPI.get_schema(Task, "update")
+SUpdate = get_schema(Task, "update")
 
 
 def pause(tasks: Iterable[SUpdate]) -> int:

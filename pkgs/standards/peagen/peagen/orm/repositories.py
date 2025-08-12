@@ -24,7 +24,7 @@ class Repository(
     # Only request-extra we allow: caller's GitHub PAT (write-only)
     __autoapi_request_extras__ = {
         "*": {
-            "github_pat": (str | None, Field(default=None, exclude=True, description="GitHub PAT (write-only)")),
+            "github_pat": (str | None, Field(default=None, description="GitHub PAT (write-only)")),
         }
     }
 

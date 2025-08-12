@@ -1,6 +1,6 @@
 """
-autoapi.v2.gateway  – JSON-RPC façade for AutoAPI
--------------------------------------------------
+autoapi.v2.rpcdispatch  – JSON-RPC façade for AutoAPI
+-----------------------------------------------------
 Exposes a single /rpc endpoint that validates a JSON-RPC-2.0 envelope
 and forwards execution to the unified hook-aware runner.
 
@@ -33,13 +33,12 @@ from pydantic import ValidationError
 
 
 # ────────────────────────────────────────────────────────────────────────────
-def build_gateway(api) -> APIRouter:
+def build_rpcdispatch(api) -> APIRouter:
     """
     Return a router exposing a single `/rpc` endpoint that drives JSON-RPC
     through AutoAPI.  Works for both sync and async SQLAlchemy sessions.
     """
     r = APIRouter()
-
 
     # ───────── synchronous SQLAlchemy branch ───────────────────────────────
     if api.get_db:
@@ -49,22 +48,22 @@ def build_gateway(api) -> APIRouter:
             response_model=_RPCRes,
             tags=["rpc"],
         )
-        async def _gateway(
+        async def _rpcdispatch(
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: Session = Depends(api.get_db),
             principal: Dict | None = api._authn_dep,
         ):
             req.state.principal = principal
-            print("GW principal:", principal)
-            print("GW allow_anon:", api._allow_anon)
-            print("GW method called:", env.method)
+            print("RPCD principal:", principal)
+            print("RPCD allow_anon:", api._allow_anon)
+            print("RPCD method called:", env.method)
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
             # Authorisation --------------------------------------------------
-            if api.authorize and not api.authorize(env.method, req):
+            if api._authorize and not api._authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
             try:
@@ -94,20 +93,21 @@ def build_gateway(api) -> APIRouter:
     else:
 
         @r.post("/rpc", response_model=_RPCRes, tags=["rpc"])
-        async def _gateway(
+        async def _rpcdispatch(
             req: Request,
             env: _RPCReq = Body(..., embed=False),
             db: AsyncSession = Depends(api.get_async_db),
             principal: Dict | None = api._authn_dep,
         ):
             req.state.principal = principal
-            print("GW principal:", principal)
-            print("GW allow_anon:", api._allow_anon)            
+            print("RPCD principal:", principal)
+            print("RPCD allow_anon:", api._allow_anon)
+            print("RPCD method called:", env.method)
             ctx: Dict[str, Any] = {"request": req, "db": db, "env": env}
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
-            if api.authorize and not api.authorize(env.method, req):
+            if api._authorize and not api._authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
             try:

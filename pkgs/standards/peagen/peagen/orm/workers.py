@@ -23,8 +23,10 @@ from .pools import Pool
 
 class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __tablename__ = "workers"
-    __table_args__= ({"schema": "peagen"},)
+    __table_args__ = ({"schema": "peagen"},)
+
     __autoapi_allow_anon__ = {"create"}
+
     pool_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("peagen.pools.id"),
@@ -187,7 +189,9 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         elif hasattr(res, "model_dump"):  # Pydantic model
             out = res.model_dump(mode="json")
         else:  # ORM instance
-            out = cls._SRead.model_validate(res, from_attributes=True).model_dump(mode="json")
+            out = cls._SRead.model_validate(res, from_attributes=True).model_dump(
+                mode="json"
+            )
 
         # Inject the key into the response payload only (not persisted)
         out["api_key"] = raw
@@ -196,7 +200,6 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         resp = ctx.get("response")
         if resp is not None:
             resp.result = out
-
 
     @classmethod
     async def _pre_update_policy_gate(cls, ctx):
@@ -297,14 +300,10 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             log.info("failure to _publish_event for: `Worker.delete` err: %s", exc)
 
     @classmethod
-    def __autoapi_allow_anon__(cls) -> set[str]:
-        return {"create"}
-
-    @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, AutoAPI
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SRead = AutoAPI.get_schema(cls, "read")
+        cls._SRead = get_schema(cls, "read")
         api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="create")(
             cls._pre_create_policy_gate
         )

@@ -3,10 +3,10 @@ autoapi.v2.transactional
 ========================
 A single decorator that
 
-• wraps a handler in an explicit SQLAlchemy transaction (sync *and* async)
-• registers it in ``api.rpc["<name>"]``
+• registers the handler in ``api.rpc["<name>"]``
 • exposes a thin REST façade (default ``POST /<name>``) that forwards
-  to the same RPC through the unified `_invoke` lifecycle engine.
+  to the same RPC through the unified `_invoke` lifecycle engine,
+  which now owns the transaction lifecycle
 
 Nothing else in AutoAPI needs to change.
 """
@@ -14,7 +14,6 @@ Nothing else in AutoAPI needs to change.
 from __future__ import annotations
 
 from functools import wraps
-from inspect import isawaitable
 from typing import Any, Callable, Mapping, MutableMapping
 
 from fastapi import Body, Depends, Request
@@ -63,23 +62,10 @@ def transactional(  # ← bound per-instance in AutoAPI.__init__
     rpc_id = name or fn.__name__
     rest_uri = rest_path or f"/{rpc_id.replace('.', '/')}"
 
-    # ❶  atomic-DB wrapper (sync + async) ──────────────────────────────
-    def _sync(params: Mapping[str, Any], db: Session, *a, **k):
-        with db.begin():
-            return fn(params, db, *a, **k)
-
-    async def _async(params: Mapping[str, Any], db: AsyncSession, *a, **k):
-        async with db.begin():
-            result = fn(params, db, *a, **k)
-            return await result if isawaitable(result) else result
-
+    # ❶  simple wrapper – transaction handled by `_invoke` ────────────
     @wraps(fn)
     def _wrapped(params: Mapping[str, Any], db: Session | AsyncSession, *a, **k):
-        return (
-            _async(params, db, *a, **k)
-            if isinstance(db, AsyncSession)
-            else _sync(params, db, *a, **k)
-        )
+        return fn(params, db, *a, **k)
 
     # ❷  RPC registration ─────────────────────────────────────────────
     if rpc_id in self.rpc:

@@ -24,12 +24,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, Any
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 from peagen.core.validate_core import validate_artifact
 
 # ───────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ───────────────────────── main coroutine ───────────────────────────
 async def validate_handler(task: TaskRead) -> Dict[str, Any]:

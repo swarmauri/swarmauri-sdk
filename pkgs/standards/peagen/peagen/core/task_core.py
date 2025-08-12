@@ -8,7 +8,7 @@ import httpx
 from typing import Any, Dict
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 
 from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
@@ -17,7 +17,7 @@ from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
 # ────────────────────────── internal helpers ───────────────────────── #
 def _schema(tag: str):
     """Return the server-generated schema for <Task, tag>."""
-    return AutoAPI.get_schema(Task, tag)  # classmethod
+    return get_schema(Task, tag)
 
 
 def _rpc(url: str, *, timeout: float = RPC_TIMEOUT) -> AutoAPIClient:

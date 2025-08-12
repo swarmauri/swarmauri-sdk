@@ -66,9 +66,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     tab: str,
     pk: str,
     SCreate,
-    SReadOut,     # ← read OUTPUT schema
-    SReadIn,      # ← read INPUT (pk-only) schema
-    SDeleteIn,    # ← delete INPUT (pk-only) schema
+    SReadOut,  # ← read OUTPUT schema
+    SReadIn,  # ← read INPUT (pk-only) schema
+    SDeleteIn,  # ← delete INPUT (pk-only) schema
     SUpdate,
     SListIn,
     _create,
@@ -100,12 +100,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
-        ("create", "POST",  "",          201, SCreate,             SReadOut,         _create),
-        ("list",   "GET",   "",          200, SListIn,             List[SReadOut],   _list),
-        ("clear",  "DELETE","",          204, None,                None,             _clear),
-        ("read",   "GET",   "/{item_id}",200, SReadIn,             SReadOut,         _read),
-        ("update", "PATCH", "/{item_id}",200, SUpdate,             SReadOut,         _update),
-        ("delete", "DELETE","/{item_id}",204, SDeleteIn,           None,             _delete),
+        ("create", "POST", "", 201, SCreate, SReadOut, _create),
+        ("list", "GET", "", 200, SListIn, List[SReadOut], _list),
+        ("clear", "DELETE", "", 204, None, None, _clear),
+        ("read", "GET", "/{item_id}", 200, SReadIn, SReadOut, _read),
+        ("update", "PATCH", "/{item_id}", 200, SUpdate, SReadOut, _update),
+        ("delete", "DELETE", "/{item_id}", 204, SDeleteIn, None, _delete),
     ]
     if issubclass(model, Replaceable):
         print("Model is Replaceable; adding replace spec")
@@ -123,8 +123,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
         spec += [
-            ("bulk_create", "POST",   "/bulk", 201, List[SCreate],   List[SReadOut], _create),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None,           _delete),
+            (
+                "bulk_create",
+                "POST",
+                "/bulk",
+                201,
+                List[SCreate],
+                List[SReadOut],
+                _create,
+            ),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -134,7 +142,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     print(f"Nested prefix: {nested_pref} vars: {nested_vars}")
 
     allow_cb = getattr(model, "__autoapi_allow_anon__", None)
-    _allow_verbs = set(allow_cb()) if callable(allow_cb) else set()
+    if callable(allow_cb):
+        _allow_verbs = set(allow_cb())
+    else:
+        _allow_verbs = set(allow_cb or [])
     self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
@@ -149,7 +160,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     # ---------- RBAC guard -------------------------------------------
     def _guard(scope: str):
         async def inner(request: Request):
-            if self.authorize and not self.authorize(scope, request):
+            if self._authorize and not self._authorize(scope, request):
                 print(f"Authorization failed for scope {scope}")
                 http_exc, _, _ = create_standardized_error(403, rpc_code=-32095)
                 raise http_exc
@@ -336,7 +347,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
-        print(f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}")
+        print(
+            f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
+        )
         self.rpc[m_id] = rpc_fn
 
         # ── in-process convenience wrapper ────────────────────────────────
@@ -366,8 +379,69 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
+        setattr(self.core, camel, core)
         setattr(self.methods, camel, _runner)
         print(f"Registered helper method {camel}")
+
+        # Ensure container for core_exec
+        if not hasattr(self, "core_raw"):
+
+            class _CR:
+                pass
+
+            self.core_raw = _CR()
+
+        async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
+            # Build args in the same way your RPC shim would
+            def _build_args(_p):
+                match _verb:
+                    case "create" | "bulk_create":
+                        return (_p,)
+                    case "clear":
+                        return ()
+                    case "list":
+                        return (_p,)  # already a schema/dict matching list input
+                    case "read" | "delete":
+                        if hasattr(_p, "model_dump"):  # pydantic model
+                            d = _p.model_dump()
+                        else:
+                            d = dict(_p)
+                        return (d[_pk],)
+                    case "update" | "replace":
+                        if hasattr(_p, "model_dump"):
+                            d = _p.model_dump(exclude_unset=True)
+                        else:
+                            d = dict(_p)
+                        body = {k: v for k, v in d.items() if k != _pk}
+                        return (d[_pk], body)
+                return ()
+
+            # 1) Caller supplied a DB
+            if db is not None:
+                if hasattr(db, "run_sync"):  # AsyncSession
+                    return await db.run_sync(lambda s: _core(*_build_args(payload), s))
+                # Plain Session
+                return _core(*_build_args(payload), db)
+
+            # 2) No DB supplied: auto-open a sync session only if available
+            if self.get_db is None:
+                raise TypeError(
+                    "core_exec requires a DB (AsyncSession or Session) when get_db is not configured"
+                )
+
+            gen = self.get_db()
+            s = next(gen)
+            try:
+                return _core(*_build_args(payload), s)
+            finally:
+                try:
+                    next(gen)  # close
+                except StopIteration:
+                    pass
+
+        # Register helper name (CamelCase like UsersCreate)
+        camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
+        setattr(self.core_raw, camel, _core_raw)
 
     # include routers
     self.router.include_router(flat_router)

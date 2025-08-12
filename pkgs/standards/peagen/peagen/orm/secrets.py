@@ -17,8 +17,10 @@ class _SecretCoreMixin:
     name = Column(String(128), nullable=False)
     data = Column(String, nullable=False)
     desc = Column(String, nullable=True)
-    __table_args__ = (CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
-        {"schema": "peagen"},)
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
+        {"schema": "peagen"},
+    )
 
 
 class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
@@ -66,9 +68,9 @@ class RepoSecret(
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import AutoAPI, Phase
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SRead = AutoAPI.get_schema(cls, "read")
+        cls._SRead = get_schema(cls, "read")
         api.register_hook(Phase.POST_COMMIT, model="RepoSecret", op="create")(
             cls._post_create
         )

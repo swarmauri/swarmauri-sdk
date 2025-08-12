@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from autoapi import AutoAPI
+from autoapi.v2 import get_schema
 from autoapi.v2.tables.task import Task  # SQLAlchemy model row
 
 from peagen.core import control_core
@@ -24,7 +24,7 @@ from peagen.plugins.queues import QueueBase
 from peagen.gateway.schedule_helpers import _save_task  # ← single source of truth
 
 # ─────────────────────────── schemas ────────────────────────────────
-TaskUpdate = AutoAPI.get_schema(Task, "update")  # validated Pydantic model
+TaskUpdate = get_schema(Task, "update")  # validated Pydantic model
 
 
 # ─────────────────────────── entry-point ────────────────────────────

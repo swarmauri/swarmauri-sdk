@@ -5,7 +5,7 @@ Generate JSON-Schema files from template-set ``EXTRAS.md`` sources.
 
 Updates
 -------
-* **No `maybe_clone_repo`** or ad-hoc cloning logic.  
+* **No `maybe_clone_repo`** or ad-hoc cloning logic.
   Caller **must** supply the current task *work-tree* via
   ``task.args["worktree"]``.
 * No storage-adapter uploads – files are written directly inside the
@@ -25,12 +25,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 from peagen.core.extras_core import generate_schemas
 
 # ───────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
 
 
 # ───────────────────────── main coroutine ───────────────────────────
