@@ -15,7 +15,6 @@ class _Ctx(dict):
 
 # ───────────────────────── helpers ─────────────────────────
 
-
 def _is_async_session(db) -> bool:
     # AsyncSession exposes run_sync; plain Session does not
     return hasattr(db, "run_sync")
@@ -107,12 +106,14 @@ async def _invoke(
     ctx["payload"] = params  # legacy alias used by some hooks
 
     # ─── Ensure a transaction is active for handler phases ───────────────
+    started_here = False
     try:
         if not _in_tx(db):
             if _is_async_session(db):
                 await db.begin()
             else:
                 db.begin()
+            started_here = True
     except Exception as exc:  # unlikely, but treat as pre-handler error
         ctx["exc"] = exc
         # cannot rollback a tx we failed to begin; just signal error
@@ -150,9 +151,7 @@ async def _invoke(
     except Exception as exc:
         ctx["exc"] = exc
         await _rollback_safely(api, db, ctx)
-        await _run_phase(
-            api, _phase("ON_POST_HANDLER_ERROR") or _phase("ON_ERROR"), ctx
-        )
+        await _run_phase(api, _phase("ON_POST_HANDLER_ERROR") or _phase("ON_ERROR"), ctx)
         raise
 
     # ─── PRE_COMMIT ──────────────────────────────────────────────────────
@@ -195,7 +194,5 @@ async def _invoke(
     except Exception as exc:
         # Do not break the request; report via hook and return prior result
         ctx["exc"] = exc
-        await _run_phase(
-            api, _phase("ON_POST_RESPONSE_ERROR") or _phase("ON_ERROR"), ctx
-        )
+        await _run_phase(api, _phase("ON_POST_RESPONSE_ERROR") or _phase("ON_ERROR"), ctx)
         return ctx["response"].result
