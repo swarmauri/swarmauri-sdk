@@ -12,15 +12,16 @@ import inspect
 import re
 from typing import Annotated, Any, List
 
-from fastapi import APIRouter, Body, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from ..types import APIRouter, Security, Depends, Request, Response, Path
 from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+
 
 
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
@@ -94,6 +95,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     )
     provider = self.get_async_db if is_async else self.get_db
     print(f"Async mode: {is_async}")
+    # Choose a concrete DB dependency type per mode (no unions, no Optional)
+    DBDep = (
+        Annotated[AsyncSession, Depends(provider)]
+        if is_async
+        else Annotated[Session, Depends(provider)]
+    )
 
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
@@ -199,7 +206,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         )
                     )
 
-            # primary key path var
+            # primary key path var (must be a Path param, not a query)
             if "{item_id}" in path:
                 params.append(
                     inspect.Parameter(
@@ -234,7 +241,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     )
                 )
 
-            # DB session
+            # DB session (dependency, not a query param; no Optional/union)
             params.append(
                 inspect.Parameter(
                     "db",
@@ -246,7 +253,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # ---- callable body ---------------------------------------
             async def _impl(**kw):
                 print(f"Endpoint {m_id} invoked with {kw}")
-                db: Session | AsyncSession = kw.pop("db")
+                # do NOT annotate with a union here; keep it untyped
+                db = kw.pop("db")
                 req: Request = kw.pop("request")
                 p = kw.pop("p", None)
                 item_id = kw.pop("item_id", None)
@@ -268,7 +276,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
                 print(f"RPC params built: {rpc_params}")
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
+                # Ensure a ctx dict exists and merge it into the call ctx
+                if getattr(req.state, "ctx", None) is None:
+                    req.state.ctx = {}
                 ctx = {"request": req, "db": db, "env": env, "params": env.params}
+                _ext = getattr(req.state, "ctx", None)
+                if isinstance(_ext, dict):
+                    ctx.update(_ext)
 
                 def _build_args(_p):
                     match verb:
