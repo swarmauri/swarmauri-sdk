@@ -147,6 +147,11 @@ async def _invoke(
                 result = await maybe if isawaitable(maybe) else maybe
 
         ctx["result"] = result
+    except Exception as exc:
+        ctx["exc"] = exc
+        await _rollback_safely(api, db, ctx)
+        await _run_phase(api, _phase("ON_HANDLER_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
     # ─── POST_HANDLER (still in transaction; may flush) ──────────────────
     try:
