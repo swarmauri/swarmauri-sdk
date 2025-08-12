@@ -157,7 +157,7 @@ async def _shadow_principal(ctx):
         # 1) Existence check by PK
         exists = False
         try:
-            api.methods.Users.read(UReadIn(id=uid), db=s)
+            api.methods.User.read(UReadIn(id=uid), db=s)
             exists = True
             log.info("shadow_principal: user exists uid=%s", uid)
         except Exception as exc:
@@ -170,13 +170,13 @@ async def _shadow_principal(ctx):
             # 2) Update in place (typed)
             upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: updating uid=%s", uid)
-            return api.methods.Users.update(upd, db=s)
+            return api.methods.User.update(upd, db=s)
 
         # 3) Create, but treat duplicate as “already created” and retry update
         try:
             cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: creating uid=%s", uid)
-            return api.methods.Users.create(cre, db=s)
+            return api.methods.User.create(cre, db=s)
         except Exception as exc:
             if _is_duplicate(exc):
                 if s.in_transaction():
@@ -185,7 +185,7 @@ async def _shadow_principal(ctx):
                 upd = UUpdateIn(
                     id=uid, tenant_id=tid, username=username, is_active=True
                 )
-                return api.methods.Users.update(upd, db=s)
+                return api.methods.User.update(upd, db=s)
             # unexpected error – re-raise to let outer handler log it
             raise
 
