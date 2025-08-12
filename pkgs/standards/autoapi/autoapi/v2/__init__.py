@@ -3,7 +3,7 @@
 Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
-•  Delegates real work to sub-modules (impl, hooks, endpoints, gateway, …).
+•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatch, …).
 •  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
-from .gateway import build_gateway
+from .rpcdispatch import build_rpcdispatch
 from .hooks import Phase, _Hook, _init_hooks, _run
 from .impl import (
     _crud,
@@ -74,7 +74,6 @@ class AutoAPI:
         self.cores: SimpleNamespace = SimpleNamespace(name="core")
         self.core_exec: SimpleNamespace = SimpleNamespace(name="core_exec")
 
-
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
         self._schemas: OrderedDict[str, Type["BaseModel"]] = OrderedDict()
@@ -87,7 +86,6 @@ class AutoAPI:
 
         # Anonymous Routes
         self._allow_anon: set[str] = set()
-
 
         # ---------- choose providers -----------------------------
         if (get_db is None) and (get_async_db is None):
@@ -146,8 +144,8 @@ class AutoAPI:
         else:
             attach_health_and_methodz(self, get_async_db=self.get_async_db)
 
-        # attach JSON-RPC gateway
-        self.router.include_router(build_gateway(self))
+        # attach JSON-RPC dispatch
+        self.router.include_router(build_rpcdispatch(self))
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
@@ -160,10 +158,15 @@ class AutoAPI:
         """Initialize async database schema. Call this during app startup."""
         if not self._ddl_executed and self.get_async_db:
             async for adb in self.get_async_db():  # adb is an AsyncSession
+
                 def _sync_bootstrap(arg):
                     # arg is a sync Session (AsyncSession.run_sync) or a Connection (AsyncConnection.run_sync)
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg   # Session -> (Connection/Engine), else Connection
-                    engine = getattr(bind, "engine", bind)                       # Connection -> Engine, Engine -> Engine
+                    bind = (
+                        arg.get_bind() if hasattr(arg, "get_bind") else arg
+                    )  # Session -> (Connection/Engine), else Connection
+                    engine = getattr(
+                        bind, "engine", bind
+                    )  # Connection -> Engine, Engine -> Engine
 
                     # 1) ensure schemas (handles Postgres + SQLite attach)
                     ensure_schemas(engine)
@@ -183,8 +186,8 @@ class AutoAPI:
         """Initialize sync database schema."""
         if not self._ddl_executed and self.get_db:
             with next(self.get_db()) as db:  # db is a sync Session
-                bind = db.get_bind()                     # -> Connection or Engine
-                engine = getattr(bind, "engine", bind)   # -> Engine
+                bind = db.get_bind()  # -> Connection or Engine
+                engine = getattr(bind, "engine", bind)  # -> Engine
 
                 # 1) ensure schemas (Postgres + SQLite attach)
                 ensure_schemas(engine)
