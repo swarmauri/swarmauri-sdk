@@ -106,7 +106,7 @@ async def test_hookz_endpoint_comprehensive(api_client):
     data = response.json()
     assert isinstance(data, dict)
 
-    expected_global_hooks = ["first_hook", "second_hook"]
+    expected_global_hooks = ["autoapi.v2.hooks.test_hookz_endpoint_comprehensive.<locals>.first_hook", "autoapi.v2.hooks.test_hookz_endpoint_comprehensive.<locals>.second_hook"]
     for method, phases in data.items():
         assert isinstance(method, str)
         assert isinstance(phases, dict)
