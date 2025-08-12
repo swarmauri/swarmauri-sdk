@@ -10,7 +10,6 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-from fastapi import APIRouter, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -33,6 +32,11 @@ from .types import (
     AuthNProvider,
     MethodType,
     SimpleNamespace,
+    Request,
+    APIRouter,
+    Security,
+    Depends,
+
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import transactional as _register_tx
@@ -40,7 +44,7 @@ from .transactional import transactional as _register_tx
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
 
-from fastapi import APIRouter, Security, Depends
+
 # ────────────────────────────────────────────────────────────────────
 class AutoAPI:
     """High-level façade class exposed to user code."""

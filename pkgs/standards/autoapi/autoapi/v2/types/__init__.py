@@ -43,6 +43,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from pydantic import Field
 
+from fastapi import APIRouter, Security, Depends, Request, Response
+
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
@@ -117,4 +119,10 @@ __all__: list[str] = [
     "UUID",
     # pydantic schema support
     "Field",
+    # fastapi support
+    "Request",
+    "Response",
+    "APIRouter",
+    "Security",
+    "Depends",
 ]
