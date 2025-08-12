@@ -1,6 +1,6 @@
 """
 tests/test_worker_crud.py
-End-to-end CRUD check for the Workers table.
+End-to-end CRUD check for the Worker table.
 
 Requires:
     • A running gateway at http://127.0.0.1:8000/v1
@@ -25,7 +25,7 @@ GATEWAY_RPC = "http://127.0.0.1:8000/rpc"
 
 def _gateway_available(url: str) -> bool:
     """Return ``True`` if the gateway RPC endpoint accepts POST requests."""
-    envelope = {"jsonrpc": "2.0", "method": "Workers.list", "params": {}, "id": 0}
+    envelope = {"jsonrpc": "2.0", "method": "Worker.list", "params": {}, "id": 0}
     try:
         response = httpx.post(url, json=envelope, timeout=5)
     except Exception:
@@ -58,7 +58,7 @@ def test_worker_create_and_update():
     with AutoAPIClient(GATEWAY_RPC) as c:
         # --- CREATE -------------------------------------------------------
         created = c.call(
-            "Workers.create",
+            "Worker.create",
             params=create_payload,
             out_schema=SWorkerRead,
         )
@@ -74,7 +74,7 @@ def test_worker_create_and_update():
             # pool_id omitted → immutable (info={"no_update": True})
         )
         updated = c.call(
-            "Workers.update",
+            "Worker.update",
             params=upd_payload,
             out_schema=SWorkerRead,
         )
@@ -83,7 +83,7 @@ def test_worker_create_and_update():
 
         # --- READ back ----------------------------------------------------
         reread = c.call(
-            "Workers.read",
+            "Worker.read",
             params={"id": worker_id},
             out_schema=SWorkerRead,
         )
@@ -92,7 +92,7 @@ def test_worker_create_and_update():
 
         # --- LIST filter --------------------------------------------------
         listed = c.call(
-            "Workers.list",
+            "Worker.list",
             params={"skip": 0, "limit": 10},
         )
         assert any(w["id"] == str(worker_id) for w in listed)
