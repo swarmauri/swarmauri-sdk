@@ -146,7 +146,7 @@ class AutoAPI:
                 return principal
 
             # Optional variant that never raises (for /rpc where anonymous methods are allowed)
-            async def _optional_security_dep(request: Request, principal=Security(authn.get_principal, auto_error=False)):
+            async def _optional_security_dep(request: Request, principal=Security(authn.get_principal)):
                 if not principal:
                     return None
                 return await _security_dep(request, principal=principal)
