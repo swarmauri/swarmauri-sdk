@@ -84,15 +84,15 @@ async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
 
-    @api.hook(Phase.POST_RESPONSE)
+    @api.register_hook(Phase.POST_RESPONSE)
     def first_hook(ctx):
         pass
 
-    @api.hook(Phase.POST_RESPONSE)
+    @api.register_hook(Phase.POST_RESPONSE)
     def second_hook(ctx):
         pass
 
-    @api.hook(Phase.POST_RESPONSE, model="Items", op="create")
+    @api.register_hook(Phase.POST_RESPONSE, model="Items", op="create")
     def item_hook(ctx):
         pass
 

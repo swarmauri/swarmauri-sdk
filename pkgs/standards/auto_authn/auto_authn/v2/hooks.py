@@ -7,7 +7,8 @@ log = logging.getLogger(__name__)
 
 def register_inject_hook(api):
     from autoapi.v2.hooks import Phase
-    @api.hook(Phase.PRE_TX_BEGIN)
+
+    @api.register_hook(Phase.PRE_TX_BEGIN)
     async def _authn_inject_principal(ctx):
         p = getattr(ctx["request"].state, "principal", None)
         log.info("anon authn hook principal")
@@ -22,9 +23,12 @@ def register_inject_hook(api):
         if sub is not None:
             injected["user_id"] = sub
 
-        log.info("authn hook principal=%s", getattr(ctx["request"].state, "principal", None))
-        log.info("authn hook injected before=%s", ctx.get("__autoapi_injected_fields__"))
-
+        log.info(
+            "authn hook principal=%s", getattr(ctx["request"].state, "principal", None)
+        )
+        log.info(
+            "authn hook injected before=%s", ctx.get("__autoapi_injected_fields__")
+        )
 
 
 __all__ = ["register_inject_hook", "log"]

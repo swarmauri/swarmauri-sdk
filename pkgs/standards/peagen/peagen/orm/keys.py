@@ -17,7 +17,10 @@ from peagen.orm.mixins import RepositoryRefMixin
 
 class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "public_keys"
-    __table_args__ = (UniqueConstraint("user_id", "public_key"), {"schema": "peagen"},)
+    __table_args__ = (
+        UniqueConstraint("user_id", "public_key"),
+        {"schema": "peagen"},
+    )
     title = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
@@ -25,13 +28,19 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
 
 class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
     __tablename__ = "gpg_keys"
-    __table_args__ = (UniqueConstraint("user_id", "gpg_key"),{"schema": "peagen"},)
+    __table_args__ = (
+        UniqueConstraint("user_id", "gpg_key"),
+        {"schema": "peagen"},
+    )
     gpg_key = Column(String, nullable=False)
 
 
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
     __tablename__ = "deploy_keys"
-    __table_args__ = (UniqueConstraint("repository_id", "public_key"),{"schema": "peagen"},)
+    __table_args__ = (
+        UniqueConstraint("repository_id", "public_key"),
+        {"schema": "peagen"},
+    )
     title = Column(String, nullable=False)
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
@@ -89,11 +98,11 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import AutoAPI, Phase
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SCreate = AutoAPI.get_schema(cls, "create")
-        cls._SRead = AutoAPI.get_schema(cls, "read")
-        cls._SDelete = AutoAPI.get_schema(cls, "delete")
+        cls._SCreate = get_schema(cls, "create")
+        cls._SRead = get_schema(cls, "read")
+        cls._SDelete = get_schema(cls, "delete")
         api.register_hook(Phase.PRE_TX_BEGIN, model="DeployKey", op="create")(
             cls._pre_create
         )

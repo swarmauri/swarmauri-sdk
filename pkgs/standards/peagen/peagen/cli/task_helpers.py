@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Status, Task, Action, SpecKind
 
 
@@ -16,6 +16,7 @@ def build_task(
     action: Action | str,
     repo: str,
     ref: str,
+    repository_id: str | None = None,
     args: Dict[str, Any] | None = None,
     # Optional columns
     config_toml: Optional[str] = None,
@@ -29,7 +30,7 @@ def build_task(
     Return a TaskCreate Pydantic instance that matches AutoAPI's
     current schema (no 'payload' column any more).
     """
-    SCreate = AutoAPI.get_schema(Task, "create")
+    SCreate = get_schema(Task, "create")
 
     return SCreate(
         id=uuid.uuid4(),
@@ -54,7 +55,7 @@ def submit_task(
     task_model: Any,  # instance from build_task()
 ) -> Dict[str, Any]:
     """POST ``tasks.create`` and return the validated TaskRead dict."""
-    SRead = AutoAPI.get_schema(Task, "read")
+    SRead = get_schema(Task, "read")
     res = rpc.call(
         "tasks.create",
         params=task_model.model_dump(),  # AutoAPIClient expects dict
@@ -68,7 +69,7 @@ def get_task(
     task_id: str,
 ):
     """Return a validated TaskRead Pydantic object for *task_id*."""
-    SRead = AutoAPI.get_schema(Task, "read")
+    SRead = get_schema(Task, "read")
     result = rpc.call(
         "tasks.read",
         params={"id": task_id},

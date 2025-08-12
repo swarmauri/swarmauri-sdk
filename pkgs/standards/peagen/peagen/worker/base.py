@@ -15,17 +15,17 @@ from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
 
 # ─── AutoAPI & client ────────────────────────────────────────────────
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Worker, Work, Status  # Status enum for updates
 
 
 # Generated schemas
-SWorkerCreate = AutoAPI.get_schema(Worker, "create")
-SWorkerRead = AutoAPI.get_schema(Worker, "read")
-SWorkerUpdate = AutoAPI.get_schema(Worker, "update")
+SWorkerCreate = get_schema(Worker, "create")
+SWorkerRead = get_schema(Worker, "read")
+SWorkerUpdate = get_schema(Worker, "update")
 
-SWorkCreate = AutoAPI.get_schema(Work, "create")
-SWorkUpdate = AutoAPI.get_schema(Work, "update")
+SWorkCreate = get_schema(Work, "create")
+SWorkUpdate = get_schema(Work, "update")
 
 
 # --------------------------------------------------------------------

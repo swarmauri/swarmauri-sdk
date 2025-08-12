@@ -20,12 +20,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 from peagen.core.fetch_core import fetch_many
 
 # ────────────────────────── schema handle ───────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ─────────────────────────── coroutine ──────────────────────────────
 async def fetch_handler(task: TaskRead) -> Dict[str, Any]:

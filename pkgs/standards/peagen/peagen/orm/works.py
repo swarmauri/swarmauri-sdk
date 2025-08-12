@@ -17,8 +17,10 @@ from .tasks import Task
 
 class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
     __tablename__ = "works"
-    __table_args__= ({"schema": "peagen"},)
-    task_id = Column(PgUUID(as_uuid=True), ForeignKey("peagen.tasks.id"), nullable=False)
+    __table_args__ = ({"schema": "peagen"},)
+    task_id = Column(
+        PgUUID(as_uuid=True), ForeignKey("peagen.tasks.id"), nullable=False
+    )
     result = Column(JSON, nullable=True)
     duration_s = Column(Integer)
 
@@ -63,9 +65,9 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import AutoAPI, Phase
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SRead = AutoAPI.get_schema(cls, "read")
+        cls._SRead = get_schema(cls, "read")
         api.register_hook(Phase.POST_COMMIT, model="Work", op="update")(
             cls._post_update
         )

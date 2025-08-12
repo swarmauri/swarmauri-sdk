@@ -18,7 +18,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task
 
 from peagen._utils.config_loader import resolve_cfg
@@ -31,7 +31,8 @@ from peagen.core.process_core import (
 )
 
 # ───────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ───────────────────────── main coroutine ───────────────────────────
 async def process_handler(task: TaskRead) -> Dict[str, Any]:

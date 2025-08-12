@@ -12,13 +12,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
+from autoapi.v2 import get_schema
+from peagen.orm import Task
 
 from peagen.core import secrets_core
 
 # ─────────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ─────────────────────────── main coroutine ───────────────────────────
 async def secrets_handler(task: TaskRead) -> Dict[str, Any]:
@@ -32,7 +33,7 @@ async def secrets_handler(task: TaskRead) -> Dict[str, Any]:
         }
     """
     args: Dict[str, Any] = task.args or {}
-    action: str | None   = args.get("action")
+    action: str | None = args.get("action")
 
     # ───── local operations ───────────────────────────────────────────
     if action == "local-add":
@@ -49,33 +50,33 @@ async def secrets_handler(task: TaskRead) -> Dict[str, Any]:
 
     # ───── remote (gateway) operations ────────────────────────────────
     gw_url = args.get("gateway_url", secrets_core.DEFAULT_GATEWAY)
-    pool   = args.get("pool", "default")
+    pool = args.get("pool", "default")
 
     if action == "remote-add":
         recipients = [Path(p).expanduser() for p in args.get("recipient", [])]
         return secrets_core.add_remote_secret(
-            secret_id = args["secret_id"],
-            value     = args["value"],
-            gateway_url = gw_url,
-            version   = int(args.get("version", 0)),
-            recipients= recipients,
-            pool      = pool,
+            secret_id=args["secret_id"],
+            value=args["value"],
+            gateway_url=gw_url,
+            version=int(args.get("version", 0)),
+            recipients=recipients,
+            pool=pool,
         )
 
     if action == "remote-get":
         secret_val = secrets_core.get_remote_secret(
-            secret_id  = args["secret_id"],
-            gateway_url= gw_url,
-            pool       = pool,
+            secret_id=args["secret_id"],
+            gateway_url=gw_url,
+            pool=pool,
         )
         return {"secret": secret_val}
 
     if action == "remote-remove":
         return secrets_core.remove_remote_secret(
-            secret_id   = args["secret_id"],
-            gateway_url = gw_url,
-            version     = args.get("version"),
-            pool        = pool,
+            secret_id=args["secret_id"],
+            gateway_url=gw_url,
+            version=args.get("version"),
+            pool=pool,
         )
 
     # ───── unknown action ─────────────────────────────────────────────

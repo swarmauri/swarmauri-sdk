@@ -17,7 +17,7 @@ from typing import List, Optional
 
 import typer
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import RepoSecret
 from peagen.core import secrets_core
 
@@ -33,7 +33,7 @@ def _rpc(ctx: typer.Context) -> AutoAPIClient:
 
 
 def _schema(tag: str):
-    return AutoAPI.get_schema(RepoSecret, tag)
+    return get_schema(RepoSecret, tag)
 
 
 # ─────────────────────── LOCAL COMMANDS (unchanged) ───────────────────

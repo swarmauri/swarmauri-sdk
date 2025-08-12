@@ -19,7 +19,7 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v2 import AutoAPI, Phase
+from autoapi.v2 import AutoAPI, Phase, get_schema
 from auto_authn.v2.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
@@ -108,13 +108,10 @@ api = AutoAPI(
 )
 
 
-@api.hook(Phase.PRE_TX_BEGIN)
+@api.register_hook(Phase.PRE_TX_BEGIN)
 async def _shadow_principal(ctx):
-    import uuid
     import logging
     from fastapi import HTTPException
-    from sqlalchemy.exc import IntegrityError
-    from autoapi.v2 import AutoAPI
     from peagen.orm import User
 
     log = logging.getLogger(__name__)
@@ -141,9 +138,9 @@ async def _shadow_principal(ctx):
     db = ctx["db"]
 
     # Strict typed schemas
-    UReadIn   = AutoAPI.get_schema(User, op="delete")   # id-only
-    UUpdateIn = AutoAPI.get_schema(User, op="update")   # includes id in our setup
-    UCreateIn = AutoAPI.get_schema(User, op="create")
+    UReadIn = get_schema(User, op="delete")  # id-only
+    UUpdateIn = get_schema(User, op="update")  # includes id in our setup
+    UCreateIn = get_schema(User, op="create")
 
     def _is_duplicate(exc: Exception) -> bool:
         # Catch both raw DB conflicts and standardized HTTP 409 from _commit_or_http
@@ -185,21 +182,21 @@ async def _shadow_principal(ctx):
                 if s.in_transaction():
                     s.rollback()
                 log.info("shadow_principal: create raced, retrying update uid=%s", uid)
-                upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
+                upd = UUpdateIn(
+                    id=uid, tenant_id=tid, username=username, is_active=True
+                )
                 return api.methods.UsersUpdate(upd, db=s)
             # unexpected error – re-raise to let outer handler log it
             raise
 
     try:
-        if hasattr(db, "run_sync"):   # AsyncSession
+        if hasattr(db, "run_sync"):  # AsyncSession
             await db.run_sync(_upsert_sync)
-        else:                         # plain Session
+        else:  # plain Session
             _upsert_sync(db)
     except Exception as exc:
         # Soft-fail – don’t break the main RPC; just log what happened
         log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
-
-
 
 
 # ensure our hook runs second after the AuthN injection hook

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import RepoSecret, Worker
 
 from peagen.plugins.secret_drivers import AutoGpgDriver
@@ -19,7 +19,7 @@ STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
 
 # ─────────────────────── internal helpers ────────────────────────────
 def _schema(model, tag: str):
-    return AutoAPI.get_schema(model, tag)  # classmethod
+    return get_schema(model, tag)
 
 
 def _rpc(url: str, *, timeout: float = 30.0) -> AutoAPIClient:

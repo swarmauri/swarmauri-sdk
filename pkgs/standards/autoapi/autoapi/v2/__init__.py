@@ -4,7 +4,7 @@ Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
 •  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatch, …).
-•  Preserves the historical surface:  AutoAPI.Phase, AutoAPI._Hook, ._crud, …
+•  Preserves the historical surface: AutoAPI._crud, …
 """
 
 # ─── std / third-party ──────────────────────────────────────────────
@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from .endpoints import attach_health_and_methodz
 from .rpcdispatch import build_rpcdispatch
-from .hooks import Phase, _Hook, _init_hooks, _run
+from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
     _register_routes_and_rpcs,
@@ -30,7 +30,6 @@ from .tables._base import Base as Base
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
 from .types import (
     _Op,  # pure metadata
-    _SchemaVerb,
     AuthNProvider,
     MethodType,
     SimpleNamespace,
@@ -46,10 +45,6 @@ from .bootstrap_dbschema import ensure_schemas
 class AutoAPI:
     """High-level façade class exposed to user code."""
 
-    # re-export public enums / protocols so callers retain old dotted paths
-    Phase = Phase
-    _Hook = _Hook
-
     # ───────── constructor ─────────────────────────────────────────
     def __init__(
         self,
@@ -64,7 +59,7 @@ class AutoAPI:
     ):
         # lightweight state
         self.base = base
-        self.include = include
+        self._include = include
         self.authorize = authorize
         self.router = APIRouter(prefix=prefix)
         self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
@@ -94,32 +89,21 @@ class AutoAPI:
         self.get_db = get_db
         self.get_async_db = get_async_db
 
-        # ---------- add register_transactional---------------------
+        # ---------- register transactions ------------------------
         self.transactional = MethodType(_register_tx, self)
-
-        # ─── convenience: explicit registration ----------------------
-        def _register_existing_tx(
-            self, fn: Callable[..., Any], **kw
-        ) -> Callable[..., Any]:
-            """
-            Register *fn* as a transactional handler *after* it was defined.
-
-            Example
-            -------
-                def bundle_create(p, db): ...
-                api.register_transactional(bundle_create,
-                                           name='bundle.create')
-            """
-            return self.transactional(fn, **kw)
-
-        self.register_transactional = MethodType(_register_existing_tx, self)
+        self.register_transaction = self.transactional
 
         # ---------- create schema once ---------------------------
-        if include:
-            self.tables = {cls.__table__ for cls in include}  # deduplicate via set
+        if self._include:
+            self._tables = {
+                cls.__table__ for cls in self._include
+            }  # deduplicate via set
         else:
             raise ValueError("must declare tables to be created")
-            self.tables = set(self.base.metadata.tables.values())
+            self._tables = set(self.base.metadata.tables.values())
+
+        # expose only the included tables
+        self.tables = SimpleNamespace(**{cls.__name__: cls for cls in self._include})
 
         # Store DDL creation for later execution
         self._ddl_executed = False
@@ -150,7 +134,7 @@ class AutoAPI:
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
             cls = m.class_
-            if include and cls not in include:
+            if self._include and cls not in self._include:
                 continue
             self._crud(cls)
 
@@ -175,7 +159,7 @@ class AutoAPI:
                     self.base.metadata.create_all(
                         bind=bind,
                         checkfirst=True,
-                        tables=self.tables,
+                        tables=self._tables,
                     )
 
                 await adb.run_sync(_sync_bootstrap)
@@ -196,7 +180,7 @@ class AutoAPI:
                 self.base.metadata.create_all(
                     bind=bind,
                     checkfirst=True,
-                    tables=self.tables,
+                    tables=self._tables,
                 )
             self._ddl_executed = True
 
@@ -210,16 +194,11 @@ class AutoAPI:
     _nested_prefix = _nested_prefix
     _register_routes_and_rpcs = _register_routes_and_rpcs
 
-    @classmethod
-    def get_schema(cls, orm_cls: type, op: _SchemaVerb):
-        return get_schema(orm_cls, op)
-
 
 # keep __all__ tidy for `from autoapi import *` users
 __all__ = [
     "AutoAPI",
     "Phase",
-    "_Hook",
     "Base",
     "get_schema",
 ]

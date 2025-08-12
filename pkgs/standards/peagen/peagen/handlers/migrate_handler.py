@@ -12,8 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import AutoAPI
-from peagen.orm  import Task
+from autoapi.v2 import get_schema
+from peagen.orm import Task
 
 from peagen.core.migrate_core import (
     ALEMBIC_CFG,
@@ -23,7 +23,7 @@ from peagen.core.migrate_core import (
 )
 
 # ───────────────────────── Schema handle ──────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")        # incoming Pydantic model
+TaskRead = get_schema(Task, "read")  # incoming Pydantic model
 
 
 # ───────────────────────── Main coroutine ─────────────────────────────
@@ -37,7 +37,7 @@ async def migrate_handler(task: TaskRead) -> Dict[str, Any]:
             "message"    : "<rev-message, for revision only>"
         }
     """
-    args: Dict[str, Any] = task.args or {}         # ← no more payload
+    args: Dict[str, Any] = task.args or {}  # ← no more payload
     op: str | None = args.get("op")
 
     if op not in {"upgrade", "downgrade", "revision"}:

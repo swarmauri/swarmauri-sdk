@@ -16,7 +16,7 @@ from typing import Any, Optional
 import httpx
 
 from autoapi_client import AutoAPIClient  # ← new client
-from autoapi.v2 import AutoAPI  # ← for .get_schema()
+from autoapi.v2 import get_schema  # ← schema helper
 from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID
@@ -28,7 +28,7 @@ __all__ = ["login"]
 # ----------------------------------------------------------------------
 def _schema(tag: str):
     """Shortcut to the server-generated schema for the PublicKey resource."""
-    return AutoAPI.get_schema(PublicKey, tag)
+    return get_schema(PublicKey, tag)
 
 
 def login(

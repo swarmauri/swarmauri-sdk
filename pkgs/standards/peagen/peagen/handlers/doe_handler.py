@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task, Status, Action
 
 from peagen.core.git_repo_core import (
@@ -39,8 +39,10 @@ from peagen._utils.config_loader import resolve_cfg
 from peagen.plugins import PluginManager
 
 from .fanout import fan_out
+
 # ───────────────────────── schema handle ────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
+
 
 # ───────────────────────── helper -----------------------------------
 def _write_inline(text: str, name: str, worktree: Path) -> Path:
@@ -48,6 +50,7 @@ def _write_inline(text: str, name: str, worktree: Path) -> Path:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8")
     return p
+
 
 # ───────────────────────── handler ----------------------------------
 async def doe_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901 – orchestrator
@@ -78,7 +81,9 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901 – orche
     if "spec_text" in args:
         args["spec"] = str(_write_inline(args["spec_text"], "spec.yaml", worktree))
     if "template_text" in args:
-        args["template"] = str(_write_inline(args["template_text"], "template.yaml", worktree))
+        args["template"] = str(
+            _write_inline(args["template_text"], "template.yaml", worktree)
+        )
 
     spec_path = Path(args["spec"]).expanduser()
     template_path = Path(args["template"]).expanduser()

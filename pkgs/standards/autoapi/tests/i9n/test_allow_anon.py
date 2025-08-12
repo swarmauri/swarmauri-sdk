@@ -58,6 +58,38 @@ def _build_client():
     return TestClient(app)
 
 
+def _build_client_attr():
+    Base.metadata.clear()
+
+    class Tenant(Base, GUIDPk):
+        __tablename__ = "tenants"
+        name = Column(String, nullable=False)
+
+    class Item(Base, GUIDPk):
+        __tablename__ = "items"
+        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        name = Column(String, nullable=False)
+
+        __autoapi_allow_anon__ = {"list", "read"}
+
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+    def get_db():
+        with SessionLocal() as session:
+            yield session
+
+    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db, authn=DummyAuth())
+    app = FastAPI()
+    app.include_router(api.router)
+    api.initialize_sync()
+    return TestClient(app)
+
+
 def test_allow_anon_list_and_read():
     client = _build_client()
     assert client.get("/items").status_code == 200
@@ -76,4 +108,21 @@ def test_allow_anon_list_and_read():
     # completely missing (as opposed to a malformed token).  The AutoAPI
     # endpoint mirrors this behaviour for unauthenticated access to routes
     # that are not whitelisted via ``__autoapi_allow_anon__``.
+    assert client.post("/items", json=payload).status_code == 403
+
+
+def test_allow_anon_list_and_read_attr():
+    client = _build_client_attr()
+    assert client.get("/items").status_code == 200
+    tenant = {"name": "acme"}
+    res = client.post(
+        "/tenants", json=tenant, headers={"Authorization": "Bearer secret"}
+    )
+    tid = res.json()["id"]
+    payload = {"tenant_id": tid, "name": "thing"}
+    res = client.post(
+        "/items", json=payload, headers={"Authorization": "Bearer secret"}
+    )
+    iid = res.json()["id"]
+    assert client.get(f"/items/{iid}").status_code == 200
     assert client.post("/items", json=payload).status_code == 403

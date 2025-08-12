@@ -9,7 +9,6 @@ from typing import Any, Dict, Optional, List
 
 import typer
 from swarmauri_standard.loggers.Logger import Logger
-from autoapi.v2 import AutoAPI
 
 from peagen._utils._init import _call_handler, _summary
 from peagen._utils.git_filter import add_filter, init_git_filter
@@ -17,7 +16,6 @@ from peagen.cli.task_helpers import build_task, submit_task
 from peagen.errors import PATNotAllowedError
 from peagen.defaults import (
     DEFAULT_POOL_ID,
-    DEFAULT_TENANT_ID,
     GIT_SHADOW_BASE,
 )
 from peagen.orm import Repository
@@ -350,22 +348,21 @@ def remote_init_repo(
         raise typer.Exit(1)
 
     # Remote URLs
-    from peagen.defaults import GIT_SHADOW_BASE
+
     origin_url = f"{GIT_SHADOW_BASE.rstrip('/')}/{owner}/{name}.git"
     upstream_url = f"https://github.com/{owner}/{name}.git"
 
     # Build RPC params using the GitHub URL
-    from autoapi.v2 import AutoAPI
-    from peagen.orm import Repository
+    from autoapi.v2 import get_schema
 
-    SCreate = AutoAPI.get_schema(Repository, "create")
-    SRead   = AutoAPI.get_schema(Repository, "read")
+    SCreate = get_schema(Repository, "create")
+    SRead = get_schema(Repository, "read")
 
     params = SCreate(
         name=name,
-        url=upstream_url,          # server derives owner/name from GitHub URL
+        url=upstream_url,  # server derives owner/name from GitHub URL
         default_branch=default_branch,
-        github_pat=pat,            # MUST be present; schema must not exclude it
+        github_pat=pat,  # MUST be present; schema must not exclude it
     )
 
     rpc = ctx.obj["rpc"]
@@ -386,14 +383,18 @@ def remote_init_repo(
 
     # Configure remotes in the client’s workspace
     try:
-        configure_repo(path=Path(path), remotes={"origin": origin_url, "upstream": upstream_url})
+        configure_repo(
+            path=Path(path), remotes={"origin": origin_url, "upstream": upstream_url}
+        )
     except Exception as exc:
         typer.echo(f"❌  failed configuring remotes: {exc}", err=True)
         raise typer.Exit(1)
 
     # Open repo and push
     try:
-        vcs = open_repo(Path(path), remotes={"origin": origin_url, "upstream": upstream_url})
+        vcs = open_repo(
+            Path(path), remotes={"origin": origin_url, "upstream": upstream_url}
+        )
 
         # Ensure a commit exists
         try:

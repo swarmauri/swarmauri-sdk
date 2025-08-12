@@ -20,7 +20,7 @@ import yaml
 from pathlib import Path
 from typing import Any, Dict, List
 
-from autoapi.v2 import AutoAPI
+from autoapi.v2 import get_schema
 from peagen.orm import Task, Status, Action
 from peagen.core.git_repo_core import (
     repo_lock,
@@ -35,7 +35,7 @@ from peagen.plugins.vcs import pea_ref
 from .fanout import fan_out
 
 # ────────────────────────────── schema ──────────────────────────────
-TaskRead = AutoAPI.get_schema(Task, "read")
+TaskRead = get_schema(Task, "read")
 
 
 # ───────────────────────────── helpers ──────────────────────────────
