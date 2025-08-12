@@ -11,7 +11,7 @@ import functools
 import inspect
 import re
 from types import SimpleNamespace
-from typing import Annotated, Any, List
+from typing import Annotated, Any, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -23,6 +23,10 @@ from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────────────
 
 def _attach(root: Any, resource: str, op: str, fn: Any) -> None:
     """Attach *fn* under ``root.resource.op`` creating namespaces as needed."""
@@ -69,6 +73,59 @@ def _canonical(tab: str, verb: str) -> str:
     print(f"_canonical generated {name}")
     return name
 
+
+def _resource_pascal(tab_or_cls: str) -> str:
+    return "".join(w.title() for w in tab_or_cls.split("_")) if tab_or_cls.islower() else tab_or_cls
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Verb aliasing (RPC exposure + helper names; REST paths unchanged)
+# ──────────────────────────────────────────────────────────────────────────────
+
+_VALID_VERBS = {
+    "create", "read", "update", "delete", "list", "clear", "replace",
+    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+}
+
+_alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
+
+def _get_verb_alias_map(model) -> dict[str, str]:
+    raw = getattr(model, "__autoapi_verb_aliases__", None)
+    if callable(raw):
+        raw = raw()
+    return dict(raw or {})
+
+def _alias_policy(model) -> str:
+    # "both" | "alias_only" | "canonical_only"
+    return getattr(model, "__autoapi_verb_alias_policy__", "both")
+
+def _public_verb(model, canonical: str) -> str:
+    ali = _get_verb_alias_map(model).get(canonical)
+    if not ali or ali == canonical:
+        return canonical
+    if canonical not in _VALID_VERBS:
+        raise RuntimeError(f"{model.__name__}: unsupported verb {canonical!r}")
+    if not _alias_re.match(ali):
+        raise RuntimeError(
+            f"{model.__name__}.__autoapi_verb_aliases__: bad alias {ali!r} for {canonical!r} "
+            "(must be lowercase [a-z0-9_], start with a letter)"
+        )
+    return ali
+
+def _route_label(resource_name: str, verb: str, model) -> str:
+    """Return '{Resource} - {verb/alias}' per policy."""
+    pol = _alias_policy(model)
+    pub = _public_verb(model, verb)
+    if pol == "alias_only" and pub != verb:
+        lab = pub
+    elif pol == "both" and pub != verb:
+        lab = f"{verb}/{pub}"
+    else:
+        lab = verb
+    return f"{_resource_pascal(resource_name)} - {lab}"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
@@ -140,17 +197,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         )
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
+        # keep REST path style aligned with current codebase ("/bulk")
         spec += [
-            (
-                "bulk_create",
-                "POST",
-                "/bulk",
-                201,
-                List[SCreate],
-                List[SReadOut],
-                _create,
-            ),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
+            ("bulk_create", "POST", "/bulk", 201, List[SCreate],   List[SReadOut], _create),
+            ("bulk_update", "PATCH", "/bulk", 200, List[SUpdate],  List[SReadOut], _update),
+            ("bulk_replace","PUT",   "/bulk", 200, List[SCreate],  List[SReadOut], functools.partial(_update, full=True)),
+            ("bulk_delete", "DELETE","/bulk", 204, List[SDeleteIn], None,            _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -187,7 +239,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id = _canonical(resource, verb)
+        m_id_canon = _canonical(resource, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -195,8 +247,11 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # For update/replace we want the verb-specific model (respects no_update flags)
             rpc_in = _schema(model, verb=verb)
 
+        # Route label (name/summary) using alias policy
+        route_name = _route_label(resource, verb, model)
+
         def _factory(
-            is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id
+            is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
         ):
             params: list[inspect.Parameter] = [
                 inspect.Parameter(  # request always first
@@ -243,6 +298,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         annotation=Annotated[_visible(In), Depends()],
                     )
                 )
+            elif verb == "clear" and issubclass(model, BulkCapable) and path == "":
+                # allow optional body for bulk_delete on the "/" route if you adopt unified semantics later
+                params.append(
+                    inspect.Parameter(
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Optional[List[SDeleteIn]], Body(default=None)],
+                    )
+                )
             elif In is not None and verb not in ("read", "delete", "clear"):
                 params.append(
                     inspect.Parameter(
@@ -272,18 +336,35 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}
 
                 # assemble RPC-style param dict
-                match verb:
-                    case "read" | "delete":
-                        rpc_params = {pk: item_id}
-                    case "update" | "replace":
-                        rpc_params = {pk: item_id, **p.model_dump(exclude_unset=True)}
-                    case "list":
-                        rpc_params = p.model_dump()
-                    case _:
-                        rpc_params = p.model_dump() if p is not None else {}
+                def _dump(obj):
+                    if hasattr(obj, "model_dump"):
+                        return obj.model_dump(exclude_unset=True)
+                    return obj
+
+                if verb in {"bulk_create", "bulk_update", "bulk_replace", "bulk_delete"}:
+                    # p is a list of models/dicts
+                    lst = []
+                    for it in (p or []):
+                        lst.append(_dump(it))
+                    rpc_params = lst
+                else:
+                    match verb:
+                        case "read" | "delete":
+                            rpc_params = {pk: item_id}
+                        case "update" | "replace":
+                            rpc_params = {pk: item_id, **_dump(p)}
+                        case "list":
+                            rpc_params = _dump(p)
+                        case "clear":
+                            rpc_params = {}
+                        case _:
+                            rpc_params = _dump(p) if p is not None else {}
 
                 if parent_kw:
-                    rpc_params.update(parent_kw)
+                    if isinstance(rpc_params, dict):
+                        rpc_params.update(parent_kw)
+                    elif isinstance(rpc_params, list):
+                        rpc_params = [{**parent_kw, **(e if isinstance(e, dict) else _dump(e))} for e in rpc_params]
 
                 print(f"RPC params built: {rpc_params}")
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
@@ -297,9 +378,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
                 def _build_args(_p):
                     match verb:
-                        case "create" | "bulk_create" | "bulk_delete" | "list":
-                            if verb == "list":
-                                return (In(**_p),)
+                        case "create" | "bulk_create" | "bulk_update" | "bulk_replace" | "bulk_delete" | "list":
                             return (_p,)
                         case "clear":
                             return ()
@@ -347,8 +426,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # mount on routers
         for rtr in routers:
-            deps = [_guard(m_id)]
-            if m_id not in self._allow_anon:
+            deps = [_guard(m_id_canon)]
+            if m_id_canon not in self._allow_anon:
                 deps.insert(0, self._authn_dep)
             print(f"Mounting route {path} for verb {verb} on router {rtr}")
             rtr.add_api_route(
@@ -359,11 +438,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
+                name=_route_label(resource, verb, model),   # ← route name reflects alias policy
+                summary=_route_label(resource, verb, model),# ← docs summary ditto
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
         verb_camel = "".join(w.title() for w in verb.split("_"))
-        for s, suffix in ((In, "In"), (Out, "Out")):
+        for s, suffix in ((In, "In"), (Out, "Out"), (rpc_in, "RpcIn")):
             if not isinstance(s, type) or s is dict:
                 continue
             canon = f"{resource}{verb_camel}{suffix}"
@@ -380,74 +461,72 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
             _attach(self.schemas, base, op, s)
 
-        # JSON-RPC shim
+        # JSON-RPC shim (single callable for this canonical op)
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         print(
-            f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
+            f"Registered RPC method {m_id_canon} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
         )
-        self.rpc.add(m_id, rpc_fn)
+        self.rpc.add(m_id_canon, rpc_fn)
 
-        # ── in-process convenience wrapper ────────────────────────────────
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
-
-        def _runner(payload, *, db=None, _method=m_id, _api=self):
-            """
-            Helper so you can call:  api.methods.UserCreate(SUserCreate(...))
-            """
-            if db is None:  # auto-open sync session
-                if _api.get_db is None:
-                    raise TypeError(
-                        "Supply a Session via db=... "
-                        "or register get_db when constructing AutoAPI()"
-                    )
-                gen = _api.get_db()
-                db = next(gen)
-                try:
-                    return _api.rpc[_method](payload, db)
-                finally:
+        # ── in-process convenience wrappers (canonical + alias) ────────
+        def _make_runner(bound_method: str):
+            def _runner(payload, *, db=None, _method=bound_method, _api=self):
+                """
+                Helper so you can call:  api.methods.User.Create(...), api.methods.User.Register(...)
+                """
+                if db is None:  # auto-open sync session
+                    if _api.get_db is None:
+                        raise TypeError(
+                            "Supply a Session via db=... "
+                            "or register get_db when constructing AutoAPI()"
+                        )
+                    gen = _api.get_db()
+                    db_ = next(gen)
                     try:
-                        next(gen)  # finish generator → close
-                    except StopIteration:
-                        pass
-            else:
-                return _api.rpc[_method](payload, db)
+                        return _api.rpc[_method](payload, db_)
+                    finally:
+                        try:
+                            next(gen)  # finish generator → close
+                        except StopIteration:
+                            pass
+                else:
+                    return _api.rpc[_method](payload, db)
+            return _runner
 
-        # Register under canonical id and camel helper
-        self._method_ids[m_id] = _runner
+        # Register canonical
+        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
+        _runner_canon = _make_runner(m_id_canon)
+        self._method_ids[m_id_canon] = _runner_canon
         setattr(self.core, camel, core)
         _attach(self.core, resource, verb, core)
-        _attach(self.methods, resource, verb, _runner)
+        _attach(self.methods, resource, verb, _runner_canon)
         print(f"Registered helper method {camel}")
 
         # Ensure container for core_raw
         if not hasattr(self, "core_raw"):
-
-            class _CE:
-                pass
-
+            class _CE: ...
             self.core_raw = _CE()
 
         async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
             # Build args in the same way your RPC shim would
             def _build_args(_p):
+                def _dump(o):
+                    return o.model_dump(exclude_unset=True) if hasattr(o, "model_dump") else o
+
                 match _verb:
-                    case "create" | "bulk_create":
+                    case "create" | "list":
                         return (_p,)
+                    case "bulk_create" | "bulk_update" | "bulk_replace" | "bulk_delete":
+                        if isinstance(_p, list):
+                            return ([ _dump(x) for x in _p ],)
+                        return (_dump(_p),)
                     case "clear":
                         return ()
-                    case "list":
-                        return (_p,)  # already a schema/dict matching list input
                     case "read" | "delete":
-                        if hasattr(_p, "model_dump"):  # pydantic model
-                            d = _p.model_dump()
-                        else:
-                            d = dict(_p)
+                        d = _dump(_p)
                         return (d[_pk],)
                     case "update" | "replace":
-                        if hasattr(_p, "model_dump"):
-                            d = _p.model_dump(exclude_unset=True)
-                        else:
-                            d = dict(_p)
+                        d = _dump(_p)
                         body = {k: v for k, v in d.items() if k != _pk}
                         return (d[_pk], body)
                 return ()
@@ -475,10 +554,30 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 except StopIteration:
                     pass
 
-        # Register helper name (CamelCase like UsersCreate)
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
+
+        # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
+        pol = _alias_policy(model)
+        pub = _public_verb(model, verb)
+        if pub != verb and pol in ("both", "alias_only"):
+            m_id_alias = _canonical(resource, pub)
+            # Same rpc_fn handles alias
+            self.rpc.add(m_id_alias, rpc_fn)
+
+            alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
+            _runner_alias = _make_runner(m_id_alias)
+            self._method_ids[m_id_alias] = _runner_alias
+
+            # Attach alias helpers (both global CamelCase and namespaced)
+            setattr(self.core, alias_camel, core)
+            _attach(self.core, resource, pub, core)
+
+            _attach(self.methods, resource, pub, _runner_alias)
+            setattr(self.core_raw, alias_camel, _core_raw)
+            _attach(self.core_raw, resource, pub, _core_raw)
+
+            print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
 
     # include routers
     self.router.include_router(flat_router)
