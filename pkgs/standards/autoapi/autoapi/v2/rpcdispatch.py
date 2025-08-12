@@ -26,10 +26,7 @@ def build_rpcdispatch(api) -> APIRouter:
 
     if callable(getattr(api, "get_async_db", None)):
         # Async engine: inject AsyncSession directly (no alias, no forward-ref)
-        @r.post("/rpc", response_model=_RPCRes, tags=["rpc"],
-                        tags=["system"],
-            name="RPC Dispatcher",
-        )
+        @r.post("/rpc", response_model=_RPCRes, tags=["system"], name="RPC Dispatcher")
         async def _rpcdispatch(
             req: Request,
             db: AsyncSession = Depends(api.get_async_db),
