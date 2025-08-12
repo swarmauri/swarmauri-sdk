@@ -39,6 +39,10 @@ class RPCMixin:
         *,
         params: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]],
+        status_code: bool = False,
+        error_code: bool = False,
+        raise_status: bool = True,
+        raise_error: bool = True,
     ) -> T: ...
 
     @overload
@@ -48,6 +52,10 @@ class RPCMixin:
         *,
         params: dict | None = None,
         out_schema: None = None,
+        status_code: bool = False,
+        error_code: bool = False,
+        raise_status: bool = True,
+        raise_error: bool = True,
     ) -> Any: ...
 
     def call(
@@ -56,6 +64,10 @@ class RPCMixin:
         *,
         params: _Schema[Any] | dict | None = None,
         out_schema: type[_Schema[T]] | None = None,
+        status_code: bool = False,
+        error_code: bool = False,
+        raise_status: bool = True,
+        raise_error: bool = True,
     ) -> Any:
         """
         Make a JSON-RPC call.
@@ -95,17 +107,25 @@ class RPCMixin:
             headers=headers,
         )
 
-        r.raise_for_status()
+        if raise_status:
+            r.raise_for_status()
         res = r.json()
-        # ----- JSON-RPC error handling -------------------------------------
-        if err := res.get("error"):
-            code = err.get("code", -32000)
+        err = res.get("error")
+        err_code: int | None = None
+        if err:
+            err_code = err.get("code", -32000)
             msg = err.get("message", "Unknown error")
-            raise RuntimeError(f"RPC error {code}: {msg}")
+            if raise_error:
+                raise RuntimeError(f"RPC error {err_code}: {msg}")
 
-        result = res["result"]
+        result = res.get("result")
 
-        # ----- optional pydantic validation --------------------------------
         if out_schema is not None and result is not None:
-            return out_schema.model_validate(result)  # type: ignore[return-value]
-        return result
+            result = out_schema.model_validate(result)  # type: ignore[assignment]
+
+        parts = [result]
+        if status_code:
+            parts.append(r.status_code)
+        if error_code:
+            parts.append(err_code)
+        return parts[0] if len(parts) == 1 else tuple(parts)
