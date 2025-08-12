@@ -63,7 +63,7 @@ def build_rpcdispatch(api) -> APIRouter:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
             # Authorisation --------------------------------------------------
-            if api.authorize and not api.authorize(env.method, req):
+            if api._authorize and not api._authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
             try:
@@ -107,7 +107,7 @@ def build_rpcdispatch(api) -> APIRouter:
             if api._authn and env.method not in api._allow_anon and principal is None:
                 return _err(-32001, HTTP_ERROR_MESSAGES[401], env)
 
-            if api.authorize and not api.authorize(env.method, req):
+            if api._authorize and not api._authorize(env.method, req):
                 return _err(403, "Forbidden", env)
 
             try:
