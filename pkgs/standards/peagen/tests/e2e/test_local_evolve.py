@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-WORKER_LIST = "Worker.list"
+WORKER_LIST = "Workers.list"
 
 pytestmark = pytest.mark.e2e
 

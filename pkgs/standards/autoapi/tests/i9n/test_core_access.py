@@ -60,7 +60,7 @@ class TestApiCore:
 
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.CoreTestUser.create(user_schema, db)
+                user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
 
                 assert user.name == "John Doe"
@@ -80,13 +80,13 @@ class TestApiCore:
         # First create a user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.CoreTestUser.create(user_schema, db)
+                user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
                 user_id = user.id
 
         # Then read it back - core.Read takes ID directly, not schema
         with next(get_db()) as db:
-            retrieved_user = api.core.CoreTestUser.read(user_id, db)
+            retrieved_user = api.core.TestUsers.read(user_id, db)
             assert retrieved_user.name == "Jane Doe"
             assert retrieved_user.email == "jane@example.com"
             assert retrieved_user.id == user_id
@@ -103,7 +103,7 @@ class TestApiCore:
         # Create user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.CoreTestUser.create(user_schema, db)
+                user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
                 user_id = user.id
 
@@ -111,7 +111,7 @@ class TestApiCore:
         update_schema = api.schemas.CoreTestUser.update(name="Robert Smith", age=25)
         with next(get_db()) as db:
             with db.begin():
-                updated_user = api.core.CoreTestUser.update(user_id, update_schema, db)
+                updated_user = api.core.TestUsers.update(user_id, update_schema, db)
                 db.flush()
 
                 assert updated_user.name == "Robert Smith"
@@ -130,14 +130,14 @@ class TestApiCore:
         # Create user
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.CoreTestUser.create(user_schema, db)
+                user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
                 user_id = user.id
 
         # Delete user - core.Delete takes ID directly
         with next(get_db()) as db:
             with db.begin():
-                result = api.core.CoreTestUser.delete(user_id, db)
+                result = api.core.TestUsers.delete(user_id, db)
                 db.flush()
 
                 assert result == {"id": user_id}
@@ -156,13 +156,13 @@ class TestApiCore:
         with next(get_db()) as db:
             with db.begin():
                 for user_schema in user_schemas:
-                    api.core.CoreTestUser.create(user_schema, db)
+                    api.core.TestUsers.create(user_schema, db)
                 db.flush()
 
         # List users using schema
         with next(get_db()) as db:
-            list_schema = api.schemas.CoreTestUser.list_params(skip=0, limit=10)
-            users = api.core.CoreTestUser.list(list_schema, db)
+            list_schema = api.schemas.TestUsers.list_params(skip=0, limit=10)
+            users = api.core.TestUsers.list(list_schema, db)
 
             assert len(users) == 3
             assert all(user.name.startswith("User") for user in users)
@@ -180,22 +180,22 @@ class TestApiCore:
                 user2_schema = api.schemas.CoreTestUser.create(
                     name="User 2", email="user2@example.com"
                 )
-                api.core.CoreTestUser.create(user1_schema, db)
-                api.core.CoreTestUser.create(user2_schema, db)
+                api.core.TestUsers.create(user1_schema, db)
+                api.core.TestUsers.create(user2_schema, db)
                 db.flush()
 
         # Clear all users (clear only takes db parameter)
         with next(get_db()) as db:
             with db.begin():
-                result = api.core.CoreTestUser.clear(db)
+                result = api.core.TestUsers.clear(db)
                 db.flush()
 
                 assert result["deleted"] == 2
 
         # Verify empty using schema
         with next(get_db()) as db:
-            list_schema = api.schemas.CoreTestUser.list_params()
-            users = api.core.CoreTestUser.list(list_schema, db)
+            list_schema = api.schemas.TestUsers.list_params()
+            users = api.core.TestUsers.list(list_schema, db)
             assert len(users) == 0
 
     def test_sync_core_read_not_found(self, sync_api):
@@ -205,7 +205,7 @@ class TestApiCore:
 
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
-                api.core.CoreTestUser.read(fake_id, db)
+                api.core.TestUsers.read(fake_id, db)
 
         assert exc_info.value.status_code == 404
 
@@ -219,7 +219,7 @@ class TestApiCore:
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
                 with db.begin():
-                    api.core.CoreTestUser.update(fake_id, update_schema, db)
+                    api.core.TestUsers.update(fake_id, update_schema, db)
 
         assert exc_info.value.status_code == 404
 
@@ -231,7 +231,7 @@ class TestApiCore:
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
                 with db.begin():
-                    api.core.CoreTestUser.delete(fake_id, db)
+                    api.core.TestUsers.delete(fake_id, db)
 
         assert exc_info.value.status_code == 404
 
@@ -246,7 +246,7 @@ class TestApiCore:
         # Create first user
         with next(get_db()) as db:
             with db.begin():
-                api.core.CoreTestUser.create(first_user_schema, db)
+                api.core.TestUsers.create(first_user_schema, db)
                 db.flush()
 
         # Try to create duplicate using schema
@@ -256,7 +256,7 @@ class TestApiCore:
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
                 with db.begin():
-                    api.core.CoreTestUser.create(duplicate_schema, db)
+                    api.core.TestUsers.create(duplicate_schema, db)
                     db.flush()
 
         # SQLite returns 422 for constraint violations, PostgreSQL returns 409
@@ -272,7 +272,7 @@ class TestApiCore:
 
         with next(get_db()) as db:
             with db.begin():
-                user = api.core.CoreTestUser.create(user_schema, db)
+                user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
                 user_id = user.id
 
@@ -282,7 +282,7 @@ class TestApiCore:
         # Verify user was not persisted
         with pytest.raises(HTTPException):
             with next(get_db()) as db:
-                api.core.CoreTestUser.read(user_id, db)
+                api.core.TestUsers.read(user_id, db)
 
     @pytest.mark.asyncio
     async def test_async_db_with_core_via_run_sync(self, async_api):
@@ -296,7 +296,7 @@ class TestApiCore:
         async for db in get_async_db():
             # Use run_sync to call sync CRUD function with schema
             result = await db.run_sync(
-                lambda sync_db: api.core.CoreTestUser.create(user_schema, sync_db)
+                lambda sync_db: api.core.TestUsers.create(user_schema, sync_db)
             )
             await db.commit()
 
@@ -315,7 +315,7 @@ class TestApiCoreRaw:
         user_data = {"name": "Auto Session", "email": "auto@example.com"}
 
         # No manual session management required
-        user = await api.core_raw.CoreTestUser.create(user_data)
+        user = await api.core_raw.TestUsers.create(user_data)
 
         assert user.name == "Auto Session"
         assert user.email == "auto@example.com"
@@ -328,7 +328,7 @@ class TestApiCoreRaw:
         user_data = {"name": "Manual Session", "email": "manual@example.com"}
 
         with next(get_db()) as db:
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             db.commit()  # Manual commit required
 
             assert user.name == "Manual Session"
@@ -342,12 +342,12 @@ class TestApiCoreRaw:
 
         # Create user with manual session to ensure it's committed
         with next(get_db()) as db:
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             db.commit()  # Ensure it's persisted
             user_id = user.id
 
         # Read user back
-        retrieved_user = await api.core_raw.CoreTestUser.read({"id": user_id})
+        retrieved_user = await api.core_raw.TestUsers.read({"id": user_id})
 
         assert retrieved_user.name == "Read Me"
         assert retrieved_user.email == "read@example.com"
@@ -361,14 +361,14 @@ class TestApiCoreRaw:
 
         # Create user with manual session to ensure it's committed
         with next(get_db()) as db:
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             db.commit()  # Ensure it's persisted
             user_id = user.id
 
         # Update user with manual session
         with next(get_db()) as db:
             update_data = {"id": user_id, "name": "Updated Name", "age": 35}
-            updated_user = await api.core_raw.CoreTestUser.update(update_data, db=db)
+            updated_user = await api.core_raw.TestUsers.update(update_data, db=db)
             db.commit()  # Ensure update is persisted
 
         assert updated_user.name == "Updated Name"
@@ -383,13 +383,13 @@ class TestApiCoreRaw:
 
         # Create user with manual session to ensure it's committed
         with next(get_db()) as db:
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             db.commit()  # Ensure it's persisted
             user_id = user.id
 
         # Delete user with manual session
         with next(get_db()) as db:
-            result = await api.core_raw.CoreTestUser.delete({"id": user_id}, db=db)
+            result = await api.core_raw.TestUsers.delete({"id": user_id}, db=db)
             db.commit()  # Ensure deletion is persisted
 
         assert result == {"id": user_id}
@@ -401,17 +401,17 @@ class TestApiCoreRaw:
 
         # Create multiple users with manual session to ensure they're committed
         with next(get_db()) as db:
-            await api.core_raw.CoreTestUser.create(
+            await api.core_raw.TestUsers.create(
                 {"name": "List User 1", "email": "list1@example.com"}, db=db
             )
-            await api.core_raw.CoreTestUser.create(
+            await api.core_raw.TestUsers.create(
                 {"name": "List User 2", "email": "list2@example.com"}, db=db
             )
             db.commit()  # Ensure they're persisted
 
         # List users
         list_params = {"skip": 0, "limit": 10}
-        users = await api.core_raw.CoreTestUser.list(list_params)
+        users = await api.core_raw.TestUsers.list(list_params)
 
         assert len(users) >= 2
         user_names = [u.name for u in users]
@@ -425,23 +425,23 @@ class TestApiCoreRaw:
 
         # Create users first with manual session to ensure they're committed
         with next(get_db()) as db:
-            await api.core_raw.CoreTestUser.create(
+            await api.core_raw.TestUsers.create(
                 {"name": "Clear User 1", "email": "clear1@example.com"}, db=db
             )
-            await api.core_raw.CoreTestUser.create(
+            await api.core_raw.TestUsers.create(
                 {"name": "Clear User 2", "email": "clear2@example.com"}, db=db
             )
             db.commit()  # Ensure they're persisted
 
         # Clear all users with manual session
         with next(get_db()) as db:
-            result = await api.core_raw.CoreTestUser.clear({}, db=db)
+            result = await api.core_raw.TestUsers.clear({}, db=db)
             db.commit()  # Ensure clear is persisted
 
         assert result["deleted"] >= 2
 
         # Verify empty
-        users = await api.core_raw.CoreTestUser.list({})
+        users = await api.core_raw.TestUsers.list({})
         assert len(users) == 0
 
     @pytest.mark.asyncio
@@ -452,7 +452,7 @@ class TestApiCoreRaw:
 
         # Since async-only API doesn't have sync get_db, we need to provide a manual session
         async for db in get_async_db():
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             await db.commit()  # Ensure it's persisted
 
             assert user.name == "Async Auto"
@@ -467,7 +467,7 @@ class TestApiCoreRaw:
         user_data = {"name": "Async Manual", "email": "asyncmanual@example.com"}
 
         async for db in get_async_db():
-            user = await api.core_raw.CoreTestUser.create(user_data, db=db)
+            user = await api.core_raw.TestUsers.create(user_data, db=db)
             await db.commit()
 
             assert user.name == "Async Manual"
@@ -492,7 +492,7 @@ class TestCoreRawEdgeCases:
 
         # Should raise TypeError when trying to auto-acquire session
         with pytest.raises(TypeError, match="core_raw requires a DB"):
-            await api.core_raw.CoreTestUser.create(user_data)
+            await api.core_raw.TestUsers.create(user_data)
 
     @pytest.mark.asyncio
     async def test_core_raw_read_not_found(self, sync_api):
@@ -501,7 +501,7 @@ class TestCoreRawEdgeCases:
         fake_id = "00000000-0000-0000-0000-000000000000"
 
         with pytest.raises(HTTPException) as exc_info:
-            await api.core_raw.CoreTestUser.read({"id": fake_id})
+            await api.core_raw.TestUsers.read({"id": fake_id})
 
         assert exc_info.value.status_code == 404
 
@@ -513,7 +513,7 @@ class TestCoreRawEdgeCases:
         update_data = {"id": fake_id, "name": "Updated"}
 
         with pytest.raises(HTTPException) as exc_info:
-            await api.core_raw.CoreTestUser.update(update_data)
+            await api.core_raw.TestUsers.update(update_data)
 
         assert exc_info.value.status_code == 404
 
@@ -524,7 +524,7 @@ class TestCoreRawEdgeCases:
         fake_id = "00000000-0000-0000-0000-000000000000"
 
         with pytest.raises(HTTPException) as exc_info:
-            await api.core_raw.CoreTestUser.delete({"id": fake_id})
+            await api.core_raw.TestUsers.delete({"id": fake_id})
 
         assert exc_info.value.status_code == 404
 
@@ -535,7 +535,7 @@ class TestCoreRawEdgeCases:
 
         # Create first user with manual session to ensure it's committed
         with next(get_db()) as db:
-            await api.core_raw.CoreTestUser.create(
+            await api.core_raw.TestUsers.create(
                 {"name": "First", "email": "dup@example.com"}, db=db
             )
             db.commit()  # Ensure it's persisted
@@ -543,7 +543,7 @@ class TestCoreRawEdgeCases:
         # Try to create duplicate with manual session to trigger constraint
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
-                await api.core_raw.CoreTestUser.create(
+                await api.core_raw.TestUsers.create(
                     {"name": "Second", "email": "dup@example.com"}, db=db
                 )
                 db.commit()  # This should trigger the constraint violation
@@ -561,23 +561,23 @@ class TestCoreVsCoreRawComparison:
 
         # Check that core exists and exposes resource operations
         assert hasattr(api, "core")
-        assert hasattr(api.core, "CoreTestUser")
-        assert hasattr(api.core.CoreTestUser, "create")
-        assert hasattr(api.core.CoreTestUser, "read")
-        assert hasattr(api.core.CoreTestUser, "update")
-        assert hasattr(api.core.CoreTestUser, "delete")
-        assert hasattr(api.core.CoreTestUser, "list")
-        assert hasattr(api.core.CoreTestUser, "clear")
+        assert hasattr(api.core, "TestUsers")
+        assert hasattr(api.core.TestUsers, "create")
+        assert hasattr(api.core.TestUsers, "read")
+        assert hasattr(api.core.TestUsers, "update")
+        assert hasattr(api.core.TestUsers, "delete")
+        assert hasattr(api.core.TestUsers, "list")
+        assert hasattr(api.core.TestUsers, "clear")
 
         # Check that core_raw exists and exposes resource operations
         assert hasattr(api, "core_raw")
-        assert hasattr(api.core_raw, "CoreTestUser")
-        assert hasattr(api.core_raw.CoreTestUser, "create")
-        assert hasattr(api.core_raw.CoreTestUser, "read")
-        assert hasattr(api.core_raw.CoreTestUser, "update")
-        assert hasattr(api.core_raw.CoreTestUser, "delete")
-        assert hasattr(api.core_raw.CoreTestUser, "list")
-        assert hasattr(api.core_raw.CoreTestUser, "clear")
+        assert hasattr(api.core_raw, "TestUsers")
+        assert hasattr(api.core_raw.TestUsers, "create")
+        assert hasattr(api.core_raw.TestUsers, "read")
+        assert hasattr(api.core_raw.TestUsers, "update")
+        assert hasattr(api.core_raw.TestUsers, "delete")
+        assert hasattr(api.core_raw.TestUsers, "list")
+        assert hasattr(api.core_raw.TestUsers, "clear")
 
     @pytest.mark.asyncio
     async def test_core_vs_core_raw_consistency(self, sync_api):
@@ -591,14 +591,14 @@ class TestCoreVsCoreRawComparison:
 
         with next(get_db()) as db:
             with db.begin():
-                core_user = api.core.CoreTestUser.create(user_schema, db)
+                core_user = api.core.TestUsers.create(user_schema, db)
                 db.flush()
                 core_user_id = core_user.id
 
         # Create user with api.core_raw using raw dict (no schema validation)
         user_data2 = {"name": "Consistency Test 2", "email": "consistency2@example.com"}
         with next(get_db()) as db:
-            raw_user = await api.core_raw.CoreTestUser.create(user_data2, db=db)
+            raw_user = await api.core_raw.TestUsers.create(user_data2, db=db)
             db.commit()  # Ensure it's persisted
             raw_user_id = raw_user.id
 
@@ -610,9 +610,9 @@ class TestCoreVsCoreRawComparison:
 
         # Read back with both methods - core takes ID directly, core_raw uses dict
         with next(get_db()) as db:
-            core_read = api.core.CoreTestUser.read(core_user_id, db)
+            core_read = api.core.TestUsers.read(core_user_id, db)
 
-        raw_read = await api.core_raw.CoreTestUser.read({"id": raw_user_id})
+        raw_read = await api.core_raw.TestUsers.read({"id": raw_user_id})
 
         # Results should be structurally similar
         assert core_read.id == core_user_id

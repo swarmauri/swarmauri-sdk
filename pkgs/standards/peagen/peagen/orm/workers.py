@@ -132,9 +132,9 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         try:
             from peagen.gateway._publish import _publish_event
 
-            await _publish_event(queue, "Worker.create", created)
+            await _publish_event(queue, "Workers.create", created)
         except Exception as exc:  # noqa: BLE001
-            log.error("failure to _publish_event for: `Worker.create` err: %s", exc)
+            log.error("failure to _publish_event for: `Workers.create` err: %s", exc)
 
     @classmethod
     async def _post_create_auto_register(cls, ctx):

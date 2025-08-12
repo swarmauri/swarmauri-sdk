@@ -7,7 +7,7 @@ import yaml
 import pytest
 import httpx
 
-WORKER_LIST = "Worker.list"
+WORKER_LIST = "Workers.list"
 
 EXAMPLES = Path(__file__).resolve().parent / "examples"
 GATEWAY = os.environ.get("PEAGEN_TEST_GATEWAY", "http://localhost:8000/rpc")

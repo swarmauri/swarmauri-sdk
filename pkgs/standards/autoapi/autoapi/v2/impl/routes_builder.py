@@ -114,8 +114,6 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
 
-    resource = model.__name__
-
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
         ("create", "POST", "", 201, SCreate, SReadOut, _create),
@@ -164,7 +162,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(resource, v) for v in _allow_verbs})
+    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
@@ -187,7 +185,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id = _canonical(resource, verb)
+        m_id = _canonical(tab, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -361,13 +359,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 dependencies=deps,
             )
 
+        resource = "".join(w.title() for w in tab.split("_"))
+
         # ─── register schemas on API namespace (for discovery / testing) ──
         for s in (In, Out, rpc_in):
-            if not isinstance(s, type) or s is dict:
+            if not isinstance(s, type):
                 continue
             name = s.__name__
             if name not in self._schemas:
                 self._schemas[name] = s
+                setattr(self.schemas, name, s)
                 base = model.__name__
                 if not name.startswith(base):
                     base = resource
@@ -410,6 +411,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         # Register under canonical id and camel helper
         self._method_ids[m_id] = _runner
         setattr(self.core, camel, core)
+        setattr(self.methods, camel, _runner)
         _attach(self.core, resource, verb, core)
         _attach(self.methods, resource, verb, _runner)
         print(f"Registered helper method {camel}")

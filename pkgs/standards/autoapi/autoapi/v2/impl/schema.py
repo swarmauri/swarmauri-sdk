@@ -211,7 +211,7 @@ def create_list_schema(model: type) -> Type[BaseModel]:
     """
     Create a list/filter schema for the given model.
     """
-    tab = model.__name__
+    tab = "".join(w.title() for w in model.__tablename__.split("_"))
     print(f"create_list_schema for {tab}")
     base = dict(
         skip=(int | None, Field(None, ge=0)),
