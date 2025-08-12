@@ -89,10 +89,9 @@ class AutoAPI:
         self.get_db = get_db
         self.get_async_db = get_async_db
 
-        # ---------- add register_transactional---------------------
+        # ---------- add register_transaction---------------------
         self.transactional = MethodType(_register_tx, self)
         self.register_transaction = self.transactional
-        self.register_transactional = self.transactional
 
         # ---------- create schema once ---------------------------
         if self._include:

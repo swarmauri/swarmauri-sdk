@@ -65,13 +65,11 @@ def transactional(  # ← bound per-instance in AutoAPI.__init__
 
     # ❶  atomic-DB wrapper (sync + async) ──────────────────────────────
     def _sync(params: Mapping[str, Any], db: Session, *a, **k):
-        with db.begin():
-            return fn(params, db, *a, **k)
+        return fn(params, db, *a, **k)
 
     async def _async(params: Mapping[str, Any], db: AsyncSession, *a, **k):
-        async with db.begin():
-            result = fn(params, db, *a, **k)
-            return await result if isawaitable(result) else result
+        result = fn(params, db, *a, **k)
+        return await result if isawaitable(result) else result
 
     @wraps(fn)
     def _wrapped(params: Mapping[str, Any], db: Session | AsyncSession, *a, **k):

@@ -1,6 +1,5 @@
 import pytest
 import uuid
-from autoapi.v2.transactional import transactional
 
 
 @pytest.mark.i9n
@@ -8,6 +7,7 @@ from autoapi.v2.transactional import transactional
 async def test_transaction_decorator(api_client):
     client, api, Item = api_client
 
+    @api.register_transaction(name="Items.fail")
     def fail(params, db):
         obj = Item(tenant_id=uuid.UUID(params["tenant_id"]), name=params["name"])
         db.add(obj)
@@ -15,11 +15,6 @@ async def test_transaction_decorator(api_client):
         if params.get("fail"):
             raise ValueError("boom")
         return {"id": obj.id}
-
-    fail = transactional(api, fail)
-
-    api.rpc["Items.fail"] = fail
-    api._method_ids["Items.fail"] = None
 
     t = await client.post("/tenants", json={"name": "tx"})
     tid = t.json()["id"]

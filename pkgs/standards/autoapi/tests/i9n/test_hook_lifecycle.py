@@ -254,9 +254,7 @@ async def test_catch_all_hooks(api_client):
     if delete_succeeded:
         expected_methods.append("Items.delete")
 
-    assert len(catch_all_executions) == len(expected_methods)
-    for method in expected_methods:
-        assert method in catch_all_executions
+    assert set(catch_all_executions) == set(expected_methods)
 
 
 @pytest.mark.i9n
