@@ -66,14 +66,7 @@ def build_rpcdispatch(api) -> APIRouter:
 
         try:
             # If AsyncSession, run sync cores in the async engine's run_sync
-            if isinstance(db, AsyncSession):
-                exec_fn = lambda m, p, s=db: s.run_sync(
-                    lambda sync_sess: api.rpc[m](p, sync_sess)
-                )
-                result = await _invoke(api, env.method, params=env.params, ctx=ctx, exec_fn=exec_fn)
-            else:
-                # Plain Session path
-                result = await _invoke(api, env.method, params=env.params, ctx=ctx)
+            result = await _invoke(api, env.method, params=env.params, ctx=ctx)
 
             return _ok(result, env)
 
