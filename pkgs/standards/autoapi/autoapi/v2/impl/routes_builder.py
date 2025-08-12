@@ -144,7 +144,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     print(f"Nested prefix: {nested_pref} vars: {nested_vars}")
 
     allow_cb = getattr(model, "__autoapi_allow_anon__", None)
-    _allow_verbs = set(allow_cb()) if callable(allow_cb) else set()
+    if callable(allow_cb):
+        _allow_verbs = set(allow_cb())
+    else:
+        _allow_verbs = set(allow_cb or [])
     self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
