@@ -341,3 +341,43 @@ def test_post_with_nested_data():
         client.post("/users", data=nested_data)
 
     assert captured["json"] == nested_data
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("status_code", [False, True])
+@pytest.mark.parametrize("raise_status", [True, False])
+@pytest.mark.parametrize("is_error", [False, True])
+def test_get_status_combinations(status_code, raise_status, is_error):
+    """Cover all flag combinations for GET status handling."""
+
+    def fake_get(self, url, *, params=None, headers=None):
+        code = 404 if is_error else 200
+        payload = {"detail": "Not found"} if is_error else {"ok": True}
+        request = httpx.Request("GET", url)
+        return httpx.Response(code, request=request, json=payload)
+
+    with patch.object(httpx.Client, "get", new=fake_get):
+        client = AutoAPIClient("http://example.com/api")
+
+        def call():
+            return client.get(
+                "/ping", status_code=status_code, raise_status=raise_status
+            )
+
+        if is_error and raise_status:
+            with pytest.raises(httpx.HTTPStatusError):
+                call()
+            return
+
+        result = call()
+        expected_payload = {
+            False: {"ok": True},
+            True: {"detail": "Not found"},
+        }[is_error]
+        expected_status = 404 if is_error else 200
+        if status_code:
+            payload, status = result
+            assert status == expected_status
+        else:
+            payload = result
+        assert payload == expected_payload
