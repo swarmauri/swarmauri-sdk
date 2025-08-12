@@ -43,7 +43,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from pydantic import Field
 
-from fastapi import APIRouter, Security, Depends, Request, Response, Path, Body
+from fastapi import APIRouter, Security, Depends, Request, Response, Path, Body, HTTPException
 
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -127,4 +127,5 @@ __all__: list[str] = [
     "Depends",
     "Path",
     "Body",
+    "HTTPException",
 ]
