@@ -15,7 +15,7 @@ from typing import Annotated, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from ..types import APIRouter, Security, Depends, Request, Response, Path
+from ..types import APIRouter, Security, Depends, Request, Response, Path, Body
 from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
