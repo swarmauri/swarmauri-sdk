@@ -61,15 +61,15 @@ class WorkerBase:
         heartbeat_interval: float = 5.0,
     ) -> None:
         # ----- env / defaults --------------------------------------
-        self.pool = pool or os.getenv("DQ_POOL", DEFAULT_POOL_NAME)
-        self.gateway = gateway or os.getenv("DQ_GATEWAY", DEFAULT_GATEWAY)
-        self.worker_id = worker_id or os.getenv("DQ_WORKER_ID", None)
+        self.pool = pool or os.getenv("PEAGEN_POOL", DEFAULT_POOL_NAME)
+        self.gateway = gateway or os.getenv("PEAGEN_GATEWAY", DEFAULT_GATEWAY)
+        self.worker_id = worker_id or os.getenv("PEAGEN_WORKER_ID", None)
         self.port = port or int(os.getenv("PORT", 8001))
-        self.host = host or os.getenv("DQ_HOST") or _local_ip()
+        self.host = host or os.getenv("PEAGEN_HOST") or _local_ip()
         self.listen_at = f"http://{self.host}:{self.port}/rpc"
-        self._api_key = api_key or os.getenv("DQ_API_KEY")
+        self._api_key = api_key or os.getenv("PEAGEN_API_KEY")
 
-        lvl = (log_level or os.getenv("DQ_LOG_LEVEL", "INFO")).upper()
+        lvl = (log_level or os.getenv("PEAGEN_LOG_LEVEL", "INFO")).upper()
         level = getattr(logging, lvl, logging.INFO)
         self.log = Logger(name="worker", default_level=level)
 
@@ -144,7 +144,7 @@ class WorkerBase:
             api_key = created.get("api_key")
             if api_key:
                 self._api_key = api_key
-                os.environ["DQ_API_KEY"] = api_key
+                os.environ["PEAGEN_API_KEY"] = api_key
                 self._client.api_key = api_key
             else:
                 try:

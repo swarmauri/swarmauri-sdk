@@ -31,7 +31,7 @@ def test_local_evolve(tmp_path: Path) -> None:
     shutil.copytree(EXAMPLES, demo)
     env = os.environ.copy()
     env.setdefault("GROQ_API_KEY", "dummy")
-    env.setdefault("DQ_GATEWAY", GATEWAY)
+    env.setdefault("PEAGEN_GATEWAY", GATEWAY)
     spec = demo / "test_evolve_spec.yaml"
     result = subprocess.run(
         ["peagen", "local", "-q", "evolve", str(spec)],

@@ -165,7 +165,7 @@ class GitVCS:
         secret_name = os.getenv("DEPLOY_KEY_SECRET")
         if secret_name:
             gateway = gateway_url or os.getenv(
-                "DQ_GATEWAY", "http://localhost:8000/rpc"
+                "PEAGEN_GATEWAY", "http://localhost:8000/rpc"
             )
             self.push_with_secret(ref, secret_name, remote=remote, gateway_url=gateway)
             return

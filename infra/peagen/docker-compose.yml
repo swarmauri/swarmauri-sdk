@@ -203,8 +203,8 @@ services:
       gateway:
         condition: service_healthy
     environment:
-      DQ_GATEWAY: "http://gateway:8000/rpc"
-      DQ_POOL: "default"
+      PEAGEN_GATEWAY: "http://gateway:8000/rpc"
+      PEAGEN_POOL: "default"
       GROQ_API_KEY: ${GROQ_API_KEY}
       MINIO_ENDPOINT: "minio:9000"
       MINIO_BUCKET: "test"
