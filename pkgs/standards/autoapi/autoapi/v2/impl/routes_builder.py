@@ -10,18 +10,28 @@ from __future__ import annotations
 import functools
 import inspect
 import re
+from types import SimpleNamespace
 from typing import Annotated, Any, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from ..types import APIRouter, Security, Depends, Request, Response, Path, Body
+from ..types import APIRouter, Depends, Request, Path, Body
 from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
+from pydantic import BaseModel
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
 
+
+def _attach(root: Any, resource: str, op: str, fn: Any) -> None:
+    """Attach *fn* under ``root.resource.op`` creating namespaces as needed."""
+    ns = getattr(root, resource, None)
+    if ns is None:
+        ns = SimpleNamespace()
+        setattr(root, resource, ns)
+    setattr(ns, op, fn)
 
 
 def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
@@ -153,7 +163,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    self._allow_anon.update({_canonical(model.__name__, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
@@ -176,7 +186,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id = _canonical(tab, verb)
+        m_id = _canonical(model.__name__, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -350,25 +360,28 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 dependencies=deps,
             )
 
+        resource = model.__name__
+
         # ─── register schemas on API namespace (for discovery / testing) ──
         for s in (In, Out, rpc_in):
-            if not isinstance(s, type):
+            if not (isinstance(s, type) and issubclass(s, BaseModel)):
                 continue
             name = s.__name__
             if name not in self._schemas:
                 self._schemas[name] = s
-                setattr(self.schemas, name, s)
+                base = model.__name__
+                op = name[len(base) :]
+                op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
+                _attach(self.schemas, base, op, s)
 
         # JSON-RPC shim
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         print(
             f"Registered RPC method {m_id} with IN={getattr(rpc_in, '__name__', rpc_in)} OUT={getattr(Out, '__name__', Out)}"
         )
-        self.rpc[m_id] = rpc_fn
+        self.rpc.add(m_id, rpc_fn)
 
         # ── in-process convenience wrapper ────────────────────────────────
-        camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
-
         def _runner(payload, *, db=None, _method=m_id, _api=self):
             """
             Helper so you can call:  api.methods.UserCreate(SUserCreate(...))
@@ -391,19 +404,11 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             else:
                 return _api.rpc[_method](payload, db)
 
-        # Register under canonical id and camel helper
+        # Register under canonical id
         self._method_ids[m_id] = _runner
-        setattr(self.core, camel, core)
-        setattr(self.methods, camel, _runner)
-        print(f"Registered helper method {camel}")
-
-        # Ensure container for core_exec
-        if not hasattr(self, "core_raw"):
-
-            class _CR:
-                pass
-
-            self.core_raw = _CR()
+        _attach(self.core, resource, verb, core)
+        _attach(self.methods, resource, verb, _runner)
+        print(f"Registered helper for {resource}.{verb}")
 
         async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
             # Build args in the same way your RPC shim would
@@ -440,7 +445,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # 2) No DB supplied: auto-open a sync session only if available
             if self.get_db is None:
                 raise TypeError(
-                    "core_exec requires a DB (AsyncSession or Session) when get_db is not configured"
+                    "core_raw requires a DB (AsyncSession or Session) when get_db is not configured"
                 )
 
             gen = self.get_db()
@@ -453,9 +458,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 except StopIteration:
                     pass
 
-        # Register helper name (CamelCase like UsersCreate)
-        camel = f"{''.join(w.title() for w in tab.split('_'))}{''.join(w.title() for w in verb.split('_'))}"
-        setattr(self.core_raw, camel, _core_raw)
+        # Register helper
+        _attach(self.core_raw, resource, verb, _core_raw)
 
     # include routers
     self.router.include_router(flat_router)
