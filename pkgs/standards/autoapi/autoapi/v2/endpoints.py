@@ -15,12 +15,12 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
     """
     r = APIRouter()
 
-    @r.get("/methodz", tags=["rpc"])
+    @r.get("/methodz", tags=["system"], name="Methods")
     def _methodz() -> list[str]:
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
         
-    @r.get("/hookz", tags=["hooks"])
+    @r.get("/hookz", tags=["system"], name="Hooks")
     def _hookz() -> dict[str, dict[str, list[str]]]:
         """
         Expose hook execution order for each method.
@@ -79,9 +79,8 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
 
     # Choose the appropriate health endpoint based on available DB provider
     if get_db:
-
-        @r.get("/healthz", tags=["health"])
-        def _health(db: Session = Depends(get_db)):
+        @r.get("/healthz", tags=["system"], name="Health")
+        def _sync_healthz(db: Session = Depends(get_db)):
             try:
                 res = db.execute(text("select 1"))
                 if res.fetchall()[0][0]:
@@ -92,8 +91,8 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
                 db.close()
     elif get_async_db:
 
-        @r.get("/healthz", tags=["health"])
-        async def _health(db: AsyncSession = Depends(get_async_db)):
+        @r.get("/healthz", tags=["system"], name="Health")
+        async def _async_healthz(db: AsyncSession = Depends(get_async_db)):
             try:
                 result = await db.execute(text("select 1"))
                 row = result.fetchone()
