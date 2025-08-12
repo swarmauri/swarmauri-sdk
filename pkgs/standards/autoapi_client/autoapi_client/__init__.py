@@ -26,6 +26,8 @@ class AutoAPIClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
     * Connection pooling via httpx.Client
     * Optional Pydantic schema validation for requests and responses
     * Placeholder for future nested CRUD operations
+    * Works with AutoAPI services that expose operations via resource-based
+      namespaces (e.g., ``api.core.Users.create`` or ``api.rpc.Users.login``)
 
     Examples:
         # JSON-RPC usage
