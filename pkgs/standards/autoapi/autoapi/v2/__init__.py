@@ -102,8 +102,12 @@ class AutoAPI:
             raise ValueError("must declare tables to be created")
             self._tables = set(self.base.metadata.tables.values())
 
-        # expose only the included tables
-        self.tables = SimpleNamespace(**{cls.__name__: cls for cls in self._include})
+        # expose included model classes (by class name)
+        self.models = SimpleNamespace(**{cls.__name__: cls for cls in self._include})
+
+        # tables namespace is populated with actual SQLAlchemy Table objects
+        # AFTER initialize_sync()/initialize_async() applies DDL.
+        self.tables: SimpleNamespace = SimpleNamespace()
 
         # Store DDL creation for later execution
         self._ddl_executed = False
@@ -163,6 +167,10 @@ class AutoAPI:
                     )
 
                 await adb.run_sync(_sync_bootstrap)
+                # now that DDL is applied, expose table objects by class name
+                self.tables = SimpleNamespace(
+                    **{cls.__name__: cls.__table__ for cls in self._include}
+                )
                 break
             self._ddl_executed = True
 
@@ -182,6 +190,10 @@ class AutoAPI:
                     checkfirst=True,
                     tables=self._tables,
                 )
+            # now that DDL is applied, expose table objects by class name
+            self.tables = SimpleNamespace(
+                **{cls.__name__: cls.__table__ for cls in self._include}
+            )
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
