@@ -106,7 +106,10 @@ async def test_hookz_endpoint_comprehensive(api_client):
     data = response.json()
     assert isinstance(data, dict)
 
-    expected_global_hooks = ["first_hook", "second_hook"]
+    expected_global_hooks = [
+        f"autoapi.v2.hooks.{first_hook.__qualname__}",
+        f"autoapi.v2.hooks.{second_hook.__qualname__}",
+    ]
     for method, phases in data.items():
         assert isinstance(method, str)
         assert isinstance(phases, dict)
@@ -114,7 +117,7 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     assert "Items.create" in data
     assert data["Items.create"]["POST_RESPONSE"] == expected_global_hooks + [
-        "item_hook"
+        f"autoapi.v2.hooks.{item_hook.__qualname__}",
     ]
     assert "Tenants.create" in data
     assert data["Tenants.create"]["POST_RESPONSE"] == expected_global_hooks
