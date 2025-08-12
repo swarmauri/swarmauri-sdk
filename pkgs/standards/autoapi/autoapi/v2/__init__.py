@@ -9,7 +9,7 @@ Public façade for the AutoAPI framework.
 
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
+from typing import Any, AsyncIterator, Callable, Iterator, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ from .impl import (
     _schema,
     _wrap_rpc,
 )
+from .impl.routes_builder import _attach
 from .routes import _nested_prefix  # path builder
 from .tables._base import Base as Base
 
@@ -34,15 +35,23 @@ from .types import (
     SimpleNamespace,
     Request,
     APIRouter,
-    Security,
     Depends,
-
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import register_transaction, transactional
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
+
+
+class _RpcNamespace(dict):
+    """Mapping of ``resource.op`` → callable with attribute traversal."""
+
+    def add(self, method_id: str, fn: Callable[[dict, Session], Any]) -> None:
+        """Register *fn* under ``resource.op`` and expose as attributes."""
+        self[method_id] = fn
+        resource, op = method_id.split(".")
+        _attach(self, resource, op, fn)
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -66,12 +75,12 @@ class AutoAPI:
         self._include = include
         self._authorize = authorize
         self.router = APIRouter(prefix=prefix)
-        self.rpc: Dict[str, Callable[[dict, Session], Any]] = {}
+        self.rpc: _RpcNamespace = _RpcNamespace()
         self._registered_tables: set[str] = set()  # ❶ guard against re-adds
 
         # Cores
         self.core: SimpleNamespace = SimpleNamespace(name="core")
-        self.core_raw: SimpleNamespace = SimpleNamespace(name="core_raw")
+        self.core_exec: SimpleNamespace = SimpleNamespace(name="core_exec")
 
         # maps "UserCreate" → <callable>; populated lazily by routes_builder
         self._method_ids: OrderedDict[str, Callable[..., Any]] = OrderedDict()
@@ -128,7 +137,7 @@ class AutoAPI:
             # Strict auth: provider dep embeds the security scheme via Security(<scheme auto_error=True>)
             async def _strict_auth_dep(
                 request: Request,
-                principal = Depends(authn.get_principal),
+                principal=Depends(authn.get_principal),
             ):
                 # ensure a ctx dict exists for downstream hooks / cores
                 ctx = getattr(request.state, "ctx", None)
@@ -143,6 +152,7 @@ class AutoAPI:
                 # best-effort: propagate to contextvar if available
                 try:
                     from auto_authn.v2.principal_ctx import principal_var  # optional
+
                     principal_var.set(principal)
                 except Exception:
                     pass
@@ -150,9 +160,10 @@ class AutoAPI:
 
             # Optional auth: provider dep embeds the SAME scheme but with auto_error=False
             if hasattr(authn, "get_principal_optional"):
+
                 async def _optional_auth_dep(
                     request: Request,
-                    principal = Depends(authn.get_principal_optional),
+                    principal=Depends(authn.get_principal_optional),
                 ):
                     if not principal:
                         return None
