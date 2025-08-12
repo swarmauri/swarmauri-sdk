@@ -142,7 +142,7 @@ async def dispatch_work(
         try:
             with AutoAPIClient(endpoint) as rpc:
                 rpc.call(
-                    "Works.create",
+                    "Work.create",
                     params={
                         "task_id": str(task.id),
                         "repository_id": str(task.repository_id)
