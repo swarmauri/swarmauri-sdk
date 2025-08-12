@@ -134,15 +134,19 @@ async def _invoke(
             maybe = exec_fn(method, params, db)
             result = await maybe if isawaitable(maybe) else maybe
         else:
-            maybe = api.rpc[method](params, db)
-            result = await maybe if isawaitable(maybe) else maybe
+            # Default adapter:
+            # - If we are in async mode and the RPC handler is sync, execute it
+            #   inside the engine’s sync context via AsyncSession.run_sync(...),
+            #   passing a real sync Session.
+            # - Otherwise, call directly and await if needed.
+            handler = api.rpc[method]
+            if _is_async_session(db) and not iscoroutinefunction(handler):
+                result = await db.run_sync(lambda s: handler(params, s))
+            else:
+                maybe = handler(params, db)
+                result = await maybe if isawaitable(maybe) else maybe
 
         ctx["result"] = result
-    except Exception as exc:
-        ctx["exc"] = exc
-        await _rollback_safely(api, db, ctx)
-        await _run_phase(api, _phase("ON_HANDLER_ERROR") or _phase("ON_ERROR"), ctx)
-        raise
 
     # ─── POST_HANDLER (still in transaction; may flush) ──────────────────
     try:
