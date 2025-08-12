@@ -154,7 +154,7 @@ class OwnerBound:
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        auto_fields = ctx.get("__autoapi_auth_context__", {})
         return q.filter(cls.owner_id == auto_fields.get("user_id"))
 
 
@@ -167,7 +167,7 @@ class UserBound:  # membership rows
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        auto_fields = ctx.get("__autoapi_auth_context__", {})
         return q.filter(cls.user_id == auto_fields.get("user_id"))
 
 

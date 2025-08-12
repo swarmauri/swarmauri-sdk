@@ -76,7 +76,7 @@ class Ownable:
                 # keep None so we can treat it as "missing" explicitly
                 params = params.model_dump()
 
-            auto_fields = ctx.get("__autoapi_injected_fields__", {})
+            auto_fields = ctx.get("__autoapi_auth_context__", {})
             user_id = auto_fields.get("user_id")
             provided = params.get("owner_id")
             missing = _is_missing(provided)

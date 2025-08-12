@@ -88,7 +88,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @staticmethod
     def is_visible(obj, ctx) -> bool:
-        auto_fields = ctx.get("__autoapi_injected_fields__", {})
+        auto_fields = ctx.get("__autoapi_auth_context__", {})
         ctx_tenant_id = auto_fields.get("tenant_id")
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
 

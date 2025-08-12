@@ -41,7 +41,9 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 
 
-from pydantic import Field
+from pydantic import Field, ValidationError
+
+from fastapi import APIRouter, Security, Depends, Request, Response, Path, Body, HTTPException
 
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -117,4 +119,14 @@ __all__: list[str] = [
     "UUID",
     # pydantic schema support
     "Field",
+    "ValidationError",
+    # fastapi support
+    "Request",
+    "Response",
+    "APIRouter",
+    "Security",
+    "Depends",
+    "Path",
+    "Body",
+    "HTTPException",
 ]

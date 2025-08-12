@@ -10,7 +10,6 @@ Public façade for the AutoAPI framework.
 # ─── std / third-party ──────────────────────────────────────────────
 from collections import OrderedDict
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, Type
-from fastapi import APIRouter, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -33,6 +32,11 @@ from .types import (
     AuthNProvider,
     MethodType,
     SimpleNamespace,
+    Request,
+    APIRouter,
+    Security,
+    Depends,
+
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import register_transaction, transactional
@@ -118,14 +122,53 @@ class AutoAPI:
         # ---------- collect models, build routes, etc. -----------
 
         # ---------------- AuthN wiring -----------------
-        if authn is not None:  # preferred path
+        if authn is not None:
             self._authn = authn
-            self._authn_dep = Security(authn.get_principal)
-            # Late-binding of the injection hook
-            authn.register_inject_hook(self)
+
+            # Strict auth: provider dep embeds the security scheme via Security(<scheme auto_error=True>)
+            async def _strict_auth_dep(
+                request: Request,
+                principal = Depends(authn.get_principal),
+            ):
+                # ensure a ctx dict exists for downstream hooks / cores
+                ctx = getattr(request.state, "ctx", None)
+                if ctx is None or not isinstance(ctx, dict):
+                    request.state.ctx = ctx = {}
+                # stash principal into the standardized auth context slot
+                if isinstance(principal, dict):
+                    ac = ctx.setdefault("__autoapi_auth_context__", {})
+                    ac.update(principal)
+                # keep legacy attribute too
+                request.state.principal = principal
+                # best-effort: propagate to contextvar if available
+                try:
+                    from auto_authn.v2.principal_ctx import principal_var  # optional
+                    principal_var.set(principal)
+                except Exception:
+                    pass
+                return principal
+
+            # Optional auth: provider dep embeds the SAME scheme but with auto_error=False
+            if hasattr(authn, "get_principal_optional"):
+                async def _optional_auth_dep(
+                    request: Request,
+                    principal = Depends(authn.get_principal_optional),
+                ):
+                    if not principal:
+                        return None
+                    return await _strict_auth_dep(request, principal=principal)
+            else:
+                # Fallback: if optional dep not provided, reuse strict dep
+                _optional_auth_dep = _strict_auth_dep
+
+            # expose dependency callables for use in routes & rpc
+            self._authn_dep = Depends(_strict_auth_dep)
+            self._optional_authn_dep = Depends(_optional_auth_dep)
         else:
             self._authn = None
-            self._authn_dep = Security(lambda: None)
+            # NOOP dependencies
+            self._authn_dep = Depends(lambda: None)
+            self._optional_authn_dep = Depends(lambda: None)
 
         if self.get_db:
             attach_health_and_methodz(self, get_db=self.get_db)
