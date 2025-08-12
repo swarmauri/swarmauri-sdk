@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-WORKER_LIST = "Workers.list"
+WORKER_LIST = "Worker.list"
 
 pytestmark = pytest.mark.smoke
 
