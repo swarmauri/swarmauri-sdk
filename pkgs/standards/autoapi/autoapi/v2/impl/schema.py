@@ -70,6 +70,36 @@ def _merge_request_extras(
             print(f"Added request-extra field {name} type={py_t} verb={verb}")
 
 
+def _merge_response_extras(
+    orm_cls: type,
+    verb: _SchemaVerb,
+    fields: Dict[str, Tuple[type, Field]],
+    *,
+    include: Set[str] | None,
+    exclude: Set[str] | None,
+) -> None:
+    """Merge **response-only** virtual fields into the output schema."""
+
+    buckets = getattr(orm_cls, "__autoapi_response_extras__", None)
+    if not buckets:
+        return
+
+    for bucket in (buckets.get("*", {}), buckets.get(verb, {})):
+        for name, spec in (bucket or {}).items():
+            if include and name not in include:
+                continue
+            if exclude and name in exclude:
+                continue
+
+            if isinstance(spec, tuple) and len(spec) == 2:
+                py_t, fld = spec
+            else:
+                py_t, fld = (spec or Any), Field(None)
+
+            fields[name] = (py_t, fld)
+            print(f"Added response-extra field {name} type={py_t} verb={verb}")
+
+
 def _schema(
     orm_cls: type,
     *,
@@ -190,8 +220,9 @@ def _schema(
         fields[attr_name] = (py_t, fld)
         print(f"Added field {attr_name} type={py_t} required={required}")
 
-    # Merge request-only extras (create/update/replace/delete only)
+    # Merge request-only and response-only extras
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)
+    _merge_response_extras(orm_cls, verb, fields, include=include, exclude=exclude)
 
     model_name = name or f"{orm_cls.__name__}{verb.capitalize()}"
     cfg = ConfigDict(from_attributes=True)

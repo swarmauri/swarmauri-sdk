@@ -7,7 +7,13 @@ from secrets import token_urlsafe
 
 from fastapi import HTTPException
 
-from ..types import Column, String, UniqueConstraint, HookProvider
+from ..types import (
+    Column,
+    String,
+    HookProvider,
+    Field,
+    ResponseExtrasProvider,
+)
 from ._base import Base
 from ..mixins import (
     GUIDPk,
@@ -25,6 +31,7 @@ class ApiKey(
     LastUsed,
     ValidityWindow,
     HookProvider,
+    ResponseExtrasProvider,
 ):
     __tablename__ = "api_keys"
     __abstract__ = True
@@ -44,6 +51,8 @@ class ApiKey(
             }
         },
     )
+
+    __autoapi_response_extras__ = {"*": {"api_key": (str | None, Field(None))}}
 
     # ------------------------------------------------------------------
     # Digest helpers

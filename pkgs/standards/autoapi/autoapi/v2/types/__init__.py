@@ -43,7 +43,16 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from pydantic import Field, ValidationError
 
-from fastapi import APIRouter, Security, Depends, Request, Response, Path, Body, HTTPException
+from fastapi import (
+    APIRouter,
+    Security,
+    Depends,
+    Request,
+    Response,
+    Path,
+    Body,
+    HTTPException,
+)
 
 # ── local package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -52,14 +61,18 @@ from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
+from .response_extras_provider import (
+    ResponseExtrasProvider,
+    list_response_extras_providers,
+)
 
 from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
-
 
 
 # ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
+
 
 class PgUUID(_PgUUID):
     @property
@@ -77,6 +90,7 @@ __all__: list[str] = [
     "HookProvider",
     "NestedPathProvider",
     "AllowAnonProvider",
+    "ResponseExtrasProvider",
     # builtin types
     "MethodType",
     "SimpleNamespace",
@@ -137,4 +151,5 @@ __all__: list[str] = [
 __all__ += [
     "OpVerbAliasProvider",
     "list_verb_alias_providers",
+    "list_response_extras_providers",
 ]
