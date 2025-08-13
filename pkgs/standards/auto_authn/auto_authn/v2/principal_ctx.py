@@ -1,4 +1,5 @@
 import contextvars
+
 principal_var: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
     "principal", default=None
 )
