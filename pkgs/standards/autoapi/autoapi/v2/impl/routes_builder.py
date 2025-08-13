@@ -287,8 +287,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
         if verb in {"update", "replace"}:
-            # For update/replace we want the verb-specific model (respects no_update flags)
-            rpc_in = _schema(model, verb=verb)
+            # For update/replace we want the verb-specific model without the PK
+            # (it's supplied separately via the path parameter)
+            rpc_in = _schema(model, verb=verb, exclude={pk})
 
         # Route label (name/summary) using alias policy
         _route_label(resource, verb, model)
