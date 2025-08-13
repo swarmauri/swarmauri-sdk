@@ -39,6 +39,22 @@ from .types import (
 )
 from .schema import _SchemaNS, get_autoapi_schema as get_schema
 from .transactional import register_transaction, transactional
+from .cfgs import (  # noqa: F401
+    COL_LEVEL_CFGS,
+    TAB_LEVEL_CFGS,
+    ROUTING_CFGS,
+    PERSISTENCE_CFGS,
+    PRINCIPAL_CFGS,
+    SECURITY_CFGS,
+    DEPS_CFGS,
+    ROUTING_VERBS,
+    BULK_VERBS,
+    ALL_VERBS,
+    AUTH_CONTEXT_KEY,
+    INJECTED_FIELDS_KEY,
+    TENANT_ID_KEY,
+    USER_ID_KEY,
+)
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
@@ -145,7 +161,7 @@ class AutoAPI:
                     request.state.ctx = ctx = {}
                 # stash principal into the standardized auth context slot
                 if isinstance(principal, dict):
-                    ac = ctx.setdefault("__autoapi_auth_context__", {})
+                    ac = ctx.setdefault(AUTH_CONTEXT_KEY, {})
                     ac.update(principal)
                 # keep legacy attribute too
                 request.state.principal = principal

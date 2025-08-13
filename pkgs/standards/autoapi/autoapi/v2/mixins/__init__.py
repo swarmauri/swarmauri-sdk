@@ -24,6 +24,7 @@ from ..types import (
     UUID,
     uuid4,
 )
+from ..cfgs import AUTH_CONTEXT_KEY, USER_ID_KEY
 
 
 def tzutcnow() -> dt.datetime:  # default/on‑update factory
@@ -73,8 +74,8 @@ class GUIDPk:
     )
 
 
-
 # ────────── principals -----------------------------------------
+
 
 @declarative_mixin
 class TenantMixin:
@@ -154,8 +155,8 @@ class OwnerBound:
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get("__autoapi_auth_context__", {})
-        return q.filter(cls.owner_id == auto_fields.get("user_id"))
+        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
+        return q.filter(cls.owner_id == auto_fields.get(USER_ID_KEY))
 
 
 class UserBound:  # membership rows
@@ -167,8 +168,8 @@ class UserBound:  # membership rows
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get("__autoapi_auth_context__", {})
-        return q.filter(cls.user_id == auto_fields.get("user_id"))
+        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
+        return q.filter(cls.user_id == auto_fields.get(USER_ID_KEY))
 
 
 # ────────── lifecycle --------------------------------------------------
