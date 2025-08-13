@@ -129,6 +129,20 @@ class TestJWTUserResolution:
             assert user is None
             mock_db.scalar.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_user_from_jwt_missing_sub_claim(self):
+        """Test JWT payload missing required 'sub' claim raises KeyError."""
+        mock_db = AsyncMock(spec=AsyncSession)
+
+        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.decode.return_value = {
+                "iat": 1234567890,
+                "exp": 9999999999,
+            }
+
+            with pytest.raises(KeyError):
+                await _user_from_jwt("malformed.jwt.token", mock_db)
+
 
 @pytest.mark.unit
 class TestAPIKeyUserResolution:
@@ -183,6 +197,42 @@ class TestAPIKeyUserResolution:
             user = await _user_from_api_key(raw_key, mock_db)
 
             assert user is None
+
+    @pytest.mark.asyncio
+    async def test_user_from_api_key_with_service_principal(self):
+        """Test resolution of service principal via API key."""
+        mock_service = MagicMock()
+        mock_service.id = uuid.uuid4()
+
+        mock_db = AsyncMock(spec=AsyncSession)
+        raw_key = "service-api-key"
+
+        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+            mock_backend.authenticate = AsyncMock(
+                return_value=(mock_service, "service")
+            )
+
+            principal = await _user_from_api_key(raw_key, mock_db)
+
+            assert principal is mock_service
+            mock_backend.authenticate.assert_called_once_with(mock_db, raw_key)
+
+    @pytest.mark.asyncio
+    async def test_user_from_api_key_with_client_principal(self):
+        """Test resolution of client principal via API key."""
+        mock_client = MagicMock()
+        mock_client.id = uuid.uuid4()
+
+        mock_db = AsyncMock(spec=AsyncSession)
+        raw_key = "client-api-key"
+
+        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+            mock_backend.authenticate = AsyncMock(return_value=(mock_client, "client"))
+
+            principal = await _user_from_api_key(raw_key, mock_db)
+
+            assert principal is mock_client
+            mock_backend.authenticate.assert_called_once_with(mock_db, raw_key)
 
 
 @pytest.mark.unit
