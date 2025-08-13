@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import FrozenSet
 
-#from autoapi.v2.tables import Role, RoleGrant, RolePerm
+# from autoapi.v2.tables import Role, RoleGrant, RolePerm
 from autoapi.v2.tables import Status, Base
 
 # Import table classes. Ensure Tenant is imported before Pool so bootstrapping
@@ -40,6 +40,13 @@ def _is_terminal(cls, state: str | Status) -> bool:
 
 
 Status.is_terminal = classmethod(_is_terminal)
+
+# Convenience aliases for lowercase access
+for _member in Status:
+    setattr(Status, _member.value, _member)
+
+# Legacy alias used by CLI for retries
+setattr(Status, "retry", Status.queued)
 
 __all__ = [
     "Tenant",
