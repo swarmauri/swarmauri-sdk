@@ -106,3 +106,5 @@ class ResourceTypes(Enum):
     SEMINORM = "SemiNorm"
     ENSEMBLE = "Ensemble"
     MIDDLEWARE = "Middleware"
+    SECRET_DRIVE = "SecretDrive"
+    CRYPTO = "Crypto"

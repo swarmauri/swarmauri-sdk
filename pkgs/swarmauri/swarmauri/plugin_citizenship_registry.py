@@ -45,6 +45,10 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.crypto.ICrypto": "swarmauri_core.crypto.ICrypto",
+        "swarmauri.crypto.CryptoBase": "swarmauri_base.crypto.CryptoBase",
+        "swarmauri.secrets.ISecretDrive": "swarmauri_core.secrets.ISecretDrive",
+        "swarmauri.secrets.SecretDriveBase": "swarmauri_base.secrets.SecretDriveBase",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
