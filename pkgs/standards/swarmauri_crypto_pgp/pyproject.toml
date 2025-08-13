@@ -63,4 +63,5 @@ dev = [
 [project.entry-points.'swarmauri.cryptos']
 PGPCrypto = "swarmauri_crypto_pgp:PGPCrypto"
 
-
+[project.entry-points."peagen.plugins.cryptos"]
+pgp = "swarmauri_crypto_pgp:PGPCrypto"

@@ -63,5 +63,8 @@ dev = [
 [project.entry-points.'swarmauri.cryptos']
 ParamikoCrypto = "swarmauri_crypto_paramiko:ParamikoCrypto"
 
+[project.entry-points."peagen.plugins.cryptos"]
+paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
+
 
 
