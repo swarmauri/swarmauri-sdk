@@ -17,7 +17,7 @@ async def test_schema_generation(api_client):
     assert read_model.__name__ == "ItemRead"
     assert update_model.__name__ == "ItemUpdate"
     assert delete_model.__name__ == "ItemDelete"
-    assert list_model.__name__ == "ItemsListParams"
+    assert list_model.__name__ == "ItemListParams"
 
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]
@@ -29,6 +29,6 @@ async def test_schema_generation(api_client):
 async def test_bulk_operation_schema(api_client):
     client, _, _ = api_client
     spec = (await client.get("/openapi.json")).json()
-    assert "/items/bulk" in spec["paths"]
-    ops = spec["paths"]["/items/bulk"]
+    assert "/item/bulk" in spec["paths"]
+    ops = spec["paths"]["/item/bulk"]
     assert "post" in ops and "delete" in ops
