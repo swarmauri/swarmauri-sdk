@@ -62,8 +62,8 @@ def _init_hooks(self) -> None:
         """
         Hook decorator supporting model and op parameters:
 
-        Usage: @api.register_hook(Phase.POST_COMMIT, model="DeployKeys", op="create")
-        Usage: @api.register_hook(Phase.POST_COMMIT, model=DeployKeys, op="create")
+        Usage: @api.register_hook(Phase.POST_COMMIT, model="DeployKey", op="create")
+        Usage: @api.register_hook(Phase.POST_COMMIT, model=DeployKey, op="create")
         Usage: @api.register_hook(Phase.POST_COMMIT)  # catch-all hook
         """
 
