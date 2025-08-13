@@ -47,14 +47,14 @@ async def test_hook_phases_execution_order(api_client):
         ctx["response"].result["hook_completed"] = True
 
     # Create a tenant first
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Create an item via RPC
     res = await client.post(
         "/rpc",
         json={
-            "method": "Item.create",
+            "method": "Items.create",
             "params": {"tenant_id": tid, "name": "test-item"},
         },
     )
@@ -98,17 +98,17 @@ async def test_hook_parity_crud_vs_rpc(api_client):
             crud_hooks.append("POST_COMMIT")
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Test via REST CRUD
-    await client.post("/item", json={"tenant_id": tid, "name": "crud-item"})
+    await client.post("/items", json={"tenant_id": tid, "name": "crud-item"})
 
     # Test via RPC
     await client.post(
         "/rpc",
         json={
-            "method": "Item.create",
+            "method": "Items.create",
             "params": {"tenant_id": tid, "name": "rpc-item"},
         },
     )
@@ -135,13 +135,13 @@ async def test_hook_error_handling(api_client):
         raise ValueError("Intentional test error")
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # This should trigger the error hook - expect the exception to propagate
     # but the error hook should still execute
     try:
-        res = await client.post("/item", json={"tenant_id": tid, "name": "error-item"})
+        res = await client.post("/items", json={"tenant_id": tid, "name": "error-item"})
         # If no exception, should have error status code
         assert res.status_code >= 400
     except Exception:
@@ -183,11 +183,11 @@ async def test_hook_context_modification(api_client):
         assert hasattr(ctx["response"].result, "name")
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Create item
-    res = await client.post("/item", json={"tenant_id": tid, "name": "test-item"})
+    res = await client.post("/items", json={"tenant_id": tid, "name": "test-item"})
 
     assert res.status_code == 201
     data = res.json()
@@ -219,40 +219,40 @@ async def test_catch_all_hooks(api_client):
             catch_all_executions.append(method)
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Create item
-    await client.post("/item", json={"tenant_id": tid, "name": "test-item"})
+    await client.post("/items", json={"tenant_id": tid, "name": "test-item"})
 
     # Read item
-    items = await client.get("/item")
+    items = await client.get("/items")
     item_id = items.json()[0]["id"]
-    await client.get(f"/item/{item_id}")
+    await client.get(f"/items/{item_id}")
 
     # Update item - need to provide tenant_id as well
     update_res = await client.patch(
-        f"/item/{item_id}", json={"tenant_id": tid, "name": "updated-item"}
+        f"/items/{item_id}", json={"tenant_id": tid, "name": "updated-item"}
     )
     update_succeeded = update_res.status_code < 400
 
     # Delete item
-    delete_res = await client.delete(f"/item/{item_id}")
+    delete_res = await client.delete(f"/items/{item_id}")
     delete_succeeded = delete_res.status_code < 400
 
     # Verify catch-all hook was called for successful operations
     expected_methods = [
-        "Tenant.create",
-        "Item.create",
-        "Item.list",
-        "Item.read",
+        "Tenants.create",
+        "Items.create",
+        "Items.list",
+        "Items.read",
     ]
 
     # Add update and delete to expected methods if they succeeded
     if update_succeeded:
-        expected_methods.append("Item.update")
+        expected_methods.append("Items.update")
     if delete_succeeded:
-        expected_methods.append("Item.delete")
+        expected_methods.append("Items.delete")
 
     # Deduplicate because the fallback POST_HANDLER hook runs before POST_COMMIT
     unique_methods = list(dict.fromkeys(catch_all_executions))
@@ -277,11 +277,11 @@ async def test_hook_model_object_reference(api_client):
         object_hooks.append("executed")
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Create item - both hooks should execute
-    await client.post("/item", json={"tenant_id": tid, "name": "test-item"})
+    await client.post("/items", json={"tenant_id": tid, "name": "test-item"})
 
     assert string_hooks == ["executed"]
     assert object_hooks == ["executed"]
@@ -307,11 +307,11 @@ async def test_multiple_hooks_same_phase(api_client):
         executions.append("third")
 
     # Create tenant
-    t = await client.post("/tenant", json={"name": "test-tenant"})
+    t = await client.post("/tenants", json={"name": "test-tenant"})
     tid = t.json()["id"]
 
     # Create item
-    await client.post("/item", json={"tenant_id": tid, "name": "test-item"})
+    await client.post("/items", json={"tenant_id": tid, "name": "test-item"})
 
     # All hooks should have executed
     assert len(executions) == 3

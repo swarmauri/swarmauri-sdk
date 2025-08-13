@@ -189,7 +189,7 @@ async def test_error_parity_crud_vs_rpc(api_client):
 
     # Test 404 error parity
     # Try to read non-existent item via REST
-    rest_response = await client.get("/item/00000000-0000-0000-0000-000000000000")
+    rest_response = await client.get("/items/00000000-0000-0000-0000-000000000000")
     assert rest_response.status_code == 404
     rest_error = rest_response.json()
 
@@ -197,7 +197,7 @@ async def test_error_parity_crud_vs_rpc(api_client):
     rpc_response = await client.post(
         "/rpc",
         json={
-            "method": "Item.read",
+            "method": "Items.read",
             "params": {"id": "00000000-0000-0000-0000-000000000000"},
         },
     )
@@ -221,14 +221,14 @@ async def test_error_parity_validation_errors(api_client):
 
     # Test validation error - missing required field
     # Try via REST
-    rest_response = await client.post("/tenant", json={})  # Missing name
+    rest_response = await client.post("/tenants", json={})  # Missing name
     assert rest_response.status_code == 422
     rest_error = rest_response.json()
 
     # Try via RPC
     rpc_response = await client.post(
         "/rpc",
-        json={"method": "Tenant.create", "params": {}},  # Missing name
+        json={"method": "Tenants.create", "params": {}},  # Missing name
     )
     assert rpc_response.status_code == 200
     rpc_data = rpc_response.json()
@@ -266,7 +266,7 @@ async def test_error_response_structure(api_client):
     client, api, _ = api_client
 
     # Test REST error structure
-    rest_response = await client.get("/item/invalid-uuid")
+    rest_response = await client.get("/items/invalid-uuid")
     rest_error = rest_response.json()
 
     # REST errors should have detail field
@@ -274,7 +274,7 @@ async def test_error_response_structure(api_client):
 
     # Test RPC error structure
     rpc_response = await client.post(
-        "/rpc", json={"method": "Item.read", "params": {"id": "invalid-uuid"}}
+        "/rpc", json={"method": "Items.read", "params": {"id": "invalid-uuid"}}
     )
     rpc_data = rpc_response.json()
 

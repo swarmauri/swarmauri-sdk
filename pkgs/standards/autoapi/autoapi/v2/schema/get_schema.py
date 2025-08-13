@@ -27,7 +27,7 @@ def get_autoapi_schema(
     SUpdate = _schema("update")
     SDelete = _schema("delete")
 
-    tab = orm_cls.__name__
+    tab = "".join(w.title() for w in orm_cls.__tablename__.split("_"))
 
     def _make_list():
         base = dict(

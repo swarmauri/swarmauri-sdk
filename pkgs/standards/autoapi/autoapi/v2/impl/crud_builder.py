@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Dict
 
-import re
-
 from sqlalchemy import inspect as _sa_inspect
 
 from ..jsonrpc_models import create_standardized_error
@@ -77,9 +75,7 @@ def _flush_or_http(db: Session) -> None:
                 if m
                 else "Duplicate key value violates a unique constraint."
             )
-            http_exc, _, _ = create_standardized_error(
-                409, message=msg, rpc_code=-32099
-            )
+            http_exc, _, _ = create_standardized_error(409, message=msg, rpc_code=-32099)
             raise http_exc from exc
         if getattr(exc.orig, "pgcode", None) in ("23503",) or "foreign key" in raw:
             http_exc, _, _ = create_standardized_error(422, rpc_code=-32097)
@@ -89,10 +85,9 @@ def _flush_or_http(db: Session) -> None:
     except SQLAlchemyError as exc:
         # Do NOT rollback here; let the outer transaction manager handle it.
         print(f"SQLAlchemyError encountered during flush: {exc}")
-        http_exc, _, _ = create_standardized_error(
-            500, message=f"Database error: {exc}"
-        )
+        http_exc, _, _ = create_standardized_error(500, message=f"Database error: {exc}")
         raise http_exc from exc
+
 
 
 def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
@@ -112,12 +107,8 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
     SUpdate = _schema(model, verb="update", exclude={pk_name})
     SListIn = create_list_schema(model)
     # Distinct pk-only *input* models for read vs delete (names differ for clarity)
-    SReadIn = _schema(
-        model, verb="delete", include={pk_name}, name=f"{model.__name__}ReadIn"
-    )
-    SDeleteIn = _schema(
-        model, verb="delete", include={pk_name}, name=f"{model.__name__}DeleteIn"
-    )
+    SReadIn = _schema(model, verb="delete", include={pk_name}, name=f"{model.__name__}ReadIn")
+    SDeleteIn = _schema(model, verb="delete", include={pk_name}, name=f"{model.__name__}DeleteIn")
 
     # ── CRUD impls ────────────────────────────────────────────────────────
     def _create(p: SCreate, db: Session):
@@ -191,11 +182,7 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
 
     def _list(p: SListIn, db: Session):
         print(f"_list called with params={p}")
-        d = (
-            p.model_dump(exclude_defaults=True, exclude_none=True)
-            if hasattr(p, "model_dump")
-            else dict(p)
-        )
+        d = p.model_dump(exclude_defaults=True, exclude_none=True) if hasattr(p, "model_dump") else dict(p)
         qry = (
             db.query(model)
             .filter_by(**{k: d[k] for k in d if k not in ("skip", "limit")})
@@ -241,16 +228,16 @@ def _crud(self, model: type) -> None:
     """
     Public entry: call `api._crud(User)` to expose canonical CRUD & list routes.
     """
-    resource = re.sub(r"(?<!^)(?=[A-Z])", "_", model.__name__).lower()
-    print(f"_crud called for model={resource}")
+    tab = model.__tablename__
+    print(f"_crud called for table={tab}")
 
-    if resource in self._registered_tables:
-        print(f"_crud skipping {resource}, already registered")
+    if tab in self._registered_tables:
+        print(f"_crud skipping {tab}, already registered")
         return
-    self._registered_tables.add(resource)
+    self._registered_tables.add(tab)
 
     pk = next(iter(model.__table__.primary_key.columns)).name
-    print(f"Primary key for {resource} is {pk}")
+    print(f"Primary key for {tab} is {pk}")
 
     crud_ops = create_crud_operations(model, pk)
 
@@ -258,12 +245,12 @@ def _crud(self, model: type) -> None:
     # Signature: (model, tab, pk, SCreate, SReadOut, SReadIn, SDeleteIn, SUpdate, SListIn, f_create, f_read, f_update, f_delete, f_list, f_clear)
     self._register_routes_and_rpcs(
         model,
-        resource,
+        tab,
         pk,
         crud_ops["schemas"]["create"],
         crud_ops["schemas"]["read_out"],
-        crud_ops["schemas"]["read_in"],  # NEW: read input (pk-only)
-        crud_ops["schemas"]["delete_in"],  # NEW: delete input (pk-only)
+        crud_ops["schemas"]["read_in"],      # NEW: read input (pk-only)
+        crud_ops["schemas"]["delete_in"],    # NEW: delete input (pk-only)
         crud_ops["schemas"]["update"],
         crud_ops["schemas"]["list"],
         crud_ops["create"],
@@ -273,6 +260,6 @@ def _crud(self, model: type) -> None:
         crud_ops["list"],
         crud_ops["clear"],
     )
-    print(f"_crud registered routes for {resource}")
+    print(f"_crud registered routes for {tab}")
 
     _invoke_all_registrars(model, self)
