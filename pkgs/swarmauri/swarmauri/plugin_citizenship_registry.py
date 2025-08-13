@@ -293,6 +293,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.middlewares.SessionMiddleware": "swarmauri_middleware_session.SessionMiddleware",
         "swarmauri.middlewares.TimerMiddleware": "swarmauri_middleware_time.TimerMiddleware",
         "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
+        "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
+        "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
+        "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
