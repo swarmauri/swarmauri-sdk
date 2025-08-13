@@ -15,6 +15,11 @@ def test_ubc_resource_and_type(drv):
     assert drv.type == "AutoGpgSecretDrive"
 
 
+@pytest.mark.unit
+def test_serialization(drv):
+    assert drv.id == drv.model_validate_json(drv.model_dump_json()).id
+
+
 @pytest.mark.asyncio
 async def test_store_and_load_key(drv, tmp_path):
     desc = await drv.store_key(key_type=KeyType.RSA, uses=(KeyUse.WRAP,))
@@ -24,6 +29,7 @@ async def test_store_and_load_key(drv, tmp_path):
     assert ref.material is not None
 
 
+@pytest.mark.unit
 def test_encrypt_decrypt_roundtrip(drv):
     pt = b"hello secret"
     ct = drv.encrypt(pt, recipients=[str(drv.pub_path)])

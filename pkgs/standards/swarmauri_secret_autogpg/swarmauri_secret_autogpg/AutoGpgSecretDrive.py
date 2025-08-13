@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Literal, Optional
+from typing import Any, Iterable, Literal, Optional
 import warnings
 
 from cryptography.utils import CryptographyDeprecationWarning
@@ -16,6 +16,7 @@ from pgpy.constants import (
 
 from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
 from swarmauri_base.ComponentBase import ComponentBase
+from pydantic import PrivateAttr
 from swarmauri_core.crypto.types import (
     ExportPolicy,
     KeyDescriptor,
@@ -39,20 +40,35 @@ warnings.filterwarnings(
 class AutoGpgSecretDrive(SecretDriveBase):
     type: Literal["AutoGpgSecretDrive"] = "AutoGpgSecretDrive"
 
-    def __init__(
-        self, *, key_dir: str | Path | None = None, passphrase: str | None = None
-    ) -> None:
-        super().__init__()
-        self.key_dir = Path(key_dir or Path.home() / ".swarmauri" / "keys")
-        self.passphrase = passphrase
-        self.priv_path = self.key_dir / "private.asc"
-        self.pub_path = self.key_dir / "public.asc"
+    # Configurable model fields
+    key_dir: Optional[Path] = None
+    passphrase: Optional[str] = None
+
+    # Runtime-only attrs (excluded from serialization)
+    _private: pgpy.PGPKey | None = PrivateAttr(default=None)
+    _public: pgpy.PGPKey | None = PrivateAttr(default=None)
+    _priv_path: Path = PrivateAttr()
+    _pub_path: Path = PrivateAttr()
+
+    def model_post_init(self, __context: Any) -> None:  # pydantic v2 hook
+        base_dir = self.key_dir or (Path.home() / ".swarmauri" / "keys")
+        self.key_dir = base_dir
+        self._priv_path = base_dir / "private.asc"
+        self._pub_path = base_dir / "public.asc"
         self._ensure_keys()
+
+    @property
+    def priv_path(self) -> Path:  # compat for tests/usages
+        return self._priv_path
+
+    @property
+    def pub_path(self) -> Path:  # compat for tests/usages
+        return self._pub_path
 
     # ─── Internal key management ─────────────────────────────────────────
     def _ensure_keys(self) -> None:
         self.key_dir.mkdir(parents=True, exist_ok=True)
-        if self.priv_path.exists() and self.pub_path.exists():
+        if self._priv_path.exists() and self._pub_path.exists():
             self._load_keys()
             return
 
@@ -69,18 +85,18 @@ class AutoGpgSecretDrive(SecretDriveBase):
             key.protect(
                 self.passphrase, SymmetricKeyAlgorithm.AES256, HashAlgorithm.SHA256
             )
-        self.private = key
-        self.public = key.pubkey
-        self.priv_path.write_text(str(self.private))
-        self.pub_path.write_text(str(self.public))
+        self._private = key
+        self._public = key.pubkey
+        self._priv_path.write_text(str(self._private))
+        self._pub_path.write_text(str(self._public))
 
     def _load_keys(self) -> None:
-        self.private = pgpy.PGPKey()
-        self.private.parse(self.priv_path.read_text())
+        self._private = pgpy.PGPKey()
+        self._private.parse(self._priv_path.read_text())
         if self.passphrase:
-            self.private.unlock(self.passphrase)
-        self.public = pgpy.PGPKey()
-        self.public.parse(self.pub_path.read_text())
+            self._private.unlock(self.passphrase)
+        self._public = pgpy.PGPKey()
+        self._public.parse(self._pub_path.read_text())
 
     # ─── SecretDriveBase / ISecretDrive API ──────────────────────────────
     async def store_key(
@@ -263,9 +279,9 @@ class AutoGpgSecretDrive(SecretDriveBase):
     # ─── Convenience encryption helpers (ported) ────────────────────────
     def encrypt(self, plaintext: bytes, recipients: Iterable[str]) -> bytes:
         msg = pgpy.PGPMessage.new(plaintext, compression=CompressionAlgorithm.ZLIB)
-        sig = self.private.sign(msg)
+        sig = self._private.sign(msg)
         msg |= sig
-        keys = [self.public]
+        keys = [self._public]
         for r in recipients:
             k = pgpy.PGPKey()
             try:
@@ -290,12 +306,12 @@ class AutoGpgSecretDrive(SecretDriveBase):
 
     def decrypt(self, ciphertext: bytes) -> bytes:
         enc_msg = pgpy.PGPMessage.from_blob(ciphertext)
-        with self.private.unlock(self.passphrase or ""):
-            decrypted = self.private.decrypt(enc_msg)
+        with self._private.unlock(self.passphrase or ""):
+            decrypted = self._private.decrypt(enc_msg)
         if not decrypted:
             raise ValueError("decryption failed")
         try:
-            verified = self.public.verify(decrypted)
+            verified = self._public.verify(decrypted)
             if not verified:
                 raise ValueError
         except Exception:
