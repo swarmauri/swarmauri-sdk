@@ -24,7 +24,6 @@ def test_ubc_type(paramiko_crypto):
 
 @pytest.mark.unit
 def test_serialization(paramiko_crypto):
-    logging.info(paramiko_crypto.model_dump_json())
     assert (
         paramiko_crypto.id
         == ParamikoCrypto.model_validate_json(paramiko_crypto.model_dump_json()).id

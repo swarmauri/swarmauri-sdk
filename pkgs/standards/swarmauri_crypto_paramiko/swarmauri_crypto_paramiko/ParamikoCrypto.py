@@ -38,10 +38,6 @@ class ParamikoCrypto(CryptoBase):
 
     type: Literal["ParamikoCrypto"] = "ParamikoCrypto"
 
-    @property
-    def name(self) -> str:
-        return "ParamikoCrypto"
-
     def supports(self) -> Dict[str, Iterable[Alg]]:
         return {
             "encrypt": ("AES-256-GCM",),
@@ -235,4 +231,3 @@ class ParamikoCrypto(CryptoBase):
         sig,
     ) -> bool:
         raise UnsupportedAlgorithm("verify not supported by ParamikoCrypto")
-

@@ -41,4 +41,3 @@ pt = await crypto.decrypt(sym, ct)
 ## Entry point
 
 The provider is exported under `swarmauri.cryptos` entry-point as `ParamikoCrypto`.
-

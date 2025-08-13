@@ -16,9 +16,6 @@ from .types import (
 
 
 class ICrypto(ABC):
-    @property
-    @abstractmethod
-    def name(self) -> str: ...
 
     @abstractmethod
     def supports(self) -> Dict[str, Iterable[Alg]]: ...
