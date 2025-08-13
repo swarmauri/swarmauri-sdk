@@ -120,9 +120,10 @@ def retry_from(
     new_task = build_task(
         action=original["action"],
         args=original.get("args", {}),
-        pool=original.get("pool", "default"),
-        tenant_id=original.get("tenant_id", "default"),
+        pool_id=original.get("pool_id", "default"),
         labels=original.get("labels") or [],
+        repo=original.get("repo", ""),
+        ref=original.get("ref", "HEAD"),
     )
     submitted = submit_task(_rpc(ctx), new_task)
     typer.echo(json.dumps(submitted, indent=2))

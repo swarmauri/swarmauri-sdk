@@ -95,7 +95,6 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901
         return {"children": [], "_final_status": Status.success.value, **result}
 
     # ── 4. child PROCESS tasks ---------------------------------------
-    tenant_id = str(getattr(task, "tenant_id", ""))
     pool_id = str(getattr(task, "pool_id", "") or "")
     children: List[Dict[str, Any]] = []
 
@@ -105,7 +104,6 @@ async def doe_process_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901
         children.append(
             {
                 "id": str(uuid.uuid4()),
-                "tenant_id": tenant_id,
                 "pool_id": pool_id,
                 "action": Action.PROCESS,
                 "status": Status.waiting,
