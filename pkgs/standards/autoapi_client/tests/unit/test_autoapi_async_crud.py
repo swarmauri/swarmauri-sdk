@@ -328,3 +328,55 @@ async def test_apost_with_nested_data():
         await client.apost("/users", data=nested_data)
 
     assert captured["json"] == nested_data
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "method,http_method,success_code",
+    [
+        ("apost", "POST", 201),
+        ("aput", "PUT", 202),
+        ("apatch", "PATCH", 202),
+        ("adelete", "DELETE", 202),
+    ],
+)
+@pytest.mark.parametrize("status_code", [False, True])
+@pytest.mark.parametrize("raise_status", [True, False])
+@pytest.mark.parametrize("is_error", [False, True])
+async def test_async_crud_status_combinations(
+    method, http_method, success_code, status_code, raise_status, is_error
+):
+    """Ensure async CRUD helpers handle status_code and raise_status flags."""
+
+    async def fake(self, url, **kw):
+        code = 500 if is_error else success_code
+        payload = {"detail": "fail"} if is_error else {"ok": True}
+        request = httpx.Request(http_method, url)
+        return httpx.Response(code, request=request, json=payload)
+
+    httpx_method = method[1:]
+    with patch.object(httpx.AsyncClient, httpx_method, new=fake):
+        client = AutoAPIClient("http://example.com/api")
+        func = getattr(client, method)
+
+        async def call():
+            kwargs = {"status_code": status_code, "raise_status": raise_status}
+            if method != "adelete":
+                kwargs["data"] = {"foo": "bar"}
+            return await func("/ping", **kwargs)
+
+        if is_error and raise_status:
+            with pytest.raises(httpx.HTTPStatusError):
+                await call()
+            return
+
+        result = await call()
+        expected_payload = {False: {"ok": True}, True: {"detail": "fail"}}[is_error]
+        expected_status = 500 if is_error else success_code
+        if status_code:
+            payload, code = result
+            assert code == expected_status
+        else:
+            payload = result
+        assert payload == expected_payload
