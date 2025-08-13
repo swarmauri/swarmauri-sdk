@@ -61,6 +61,10 @@ from .table_config_provider import TableConfigProvider
 from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
+from .request_extras_provider import (
+    RequestExtrasProvider,
+    list_request_extras_providers,
+)
 from .response_extras_provider import (
     ResponseExtrasProvider,
     list_response_extras_providers,
@@ -90,6 +94,7 @@ __all__: list[str] = [
     "HookProvider",
     "NestedPathProvider",
     "AllowAnonProvider",
+    "RequestExtrasProvider",
     "ResponseExtrasProvider",
     # builtin types
     "MethodType",
@@ -151,5 +156,6 @@ __all__: list[str] = [
 __all__ += [
     "OpVerbAliasProvider",
     "list_verb_alias_providers",
+    "list_request_extras_providers",
     "list_response_extras_providers",
 ]
