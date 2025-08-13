@@ -1,12 +1,12 @@
 import pytest
 
 CRUD_MAP = {
-    "create": ("post", "/items"),
-    "list": ("get", "/items"),
-    "clear": ("delete", "/items"),
-    "read": ("get", "/items/{item_id}"),
-    "update": ("patch", "/items/{item_id}"),
-    "delete": ("delete", "/items/{item_id}"),
+    "create": ("post", "/item"),
+    "list": ("get", "/item"),
+    "clear": ("delete", "/item"),
+    "read": ("get", "/item/{item_id}"),
+    "update": ("patch", "/item/{item_id}"),
+    "delete": ("delete", "/item/{item_id}"),
 }
 
 
@@ -22,13 +22,13 @@ async def test_route_and_method_symmetry(api_client):
     for verb, (http_verb, path) in CRUD_MAP.items():
         assert path in paths
         assert http_verb in paths[path]
-        assert f"Items.{verb}" in method_list
+        assert f"Item.{verb}" in method_list
 
-    nested_base = "/tenants/{tenant_id}"
+    nested_base = "/tenant/{tenant_id}"
     assert nested_base in paths
     for verb in ("create", "list", "clear"):
         assert CRUD_MAP[verb][0] in paths[nested_base]
-    nested_item = "/tenants/{tenant_id}/{item_id}"
+    nested_item = "/tenant/{tenant_id}/{item_id}"
     assert nested_item in paths
     for verb in ("read", "update", "delete"):
         assert CRUD_MAP[verb][0] in paths[nested_item]

@@ -146,7 +146,7 @@ async def api_client(db_mode):
 
         @classmethod
         def __autoapi_nested_paths__(cls):
-            return "/tenants/{tenant_id}"
+            return "/tenant/{tenant_id}"
 
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
