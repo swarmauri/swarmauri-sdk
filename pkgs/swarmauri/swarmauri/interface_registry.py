@@ -17,6 +17,8 @@ from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
+from swarmauri_base.crypto.CryptoBase import CryptoBase
+from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
@@ -105,6 +107,8 @@ class InterfaceRegistry:
         "swarmauri.utils": None,
         "swarmauri.vector_stores": VectorStoreBase,
         "swarmauri.vectors": VectorBase,
+        "swarmauri.crypto": CryptoBase,
+        "swarmauri.secrets": SecretDriveBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
