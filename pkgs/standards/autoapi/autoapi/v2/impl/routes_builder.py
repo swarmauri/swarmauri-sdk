@@ -191,6 +191,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     pk_type = getattr(pk_col.type, "python_type", str)
 
     resource = model.__name__
+    resource_pascal = _resource_pascal(resource)
 
     # ---------- verb specification -----------------------------------
     spec: List[tuple] = [
@@ -263,7 +264,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
-    flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
+    flat_router = APIRouter(prefix=f"/{tab}", tags=[resource])
     routers = (
         (flat_router,)
         if nested_pref is None
@@ -333,32 +334,26 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     else t
                 )
 
+            payload_param = None
             if verb == "list":
-                params.append(
-                    inspect.Parameter(
-                        "p",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Depends()],
-                    )
+                payload_param = inspect.Parameter(
+                    "p",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[_visible(In), Depends()],
                 )
             elif verb == "clear" and issubclass(model, BulkCapable) and path == "":
                 # allow optional body for bulk_delete on the "/" route if you adopt unified semantics later
-                params.append(
-                    inspect.Parameter(
-                        "p",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[
-                            Optional[List[SDeleteIn]], Body(default=None)
-                        ],
-                    )
+                payload_param = inspect.Parameter(
+                    "p",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Optional[List[SDeleteIn]], Body(embed=False)],
+                    default=None,
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
-                params.append(
-                    inspect.Parameter(
-                        "p",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[_visible(In), Body(embed=False)],
-                    )
+                payload_param = inspect.Parameter(
+                    "p",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[_visible(In), Body(embed=False)],
                 )
 
             # DB session (dependency, not a query param; no Optional/union)
@@ -369,6 +364,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     annotation=DBDep,
                 )
             )
+
+            if payload_param is not None:
+                params.append(payload_param)
 
             # ---- callable body ---------------------------------------
             async def _impl(**kw):
@@ -509,7 +507,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         for s, suffix in ((In, "In"), (Out, "Out"), (rpc_in, "RpcIn")):
             if not isinstance(s, type) or s is dict:
                 continue
-            canon = f"{resource}{verb_camel}{suffix}"
+            canon = f"{resource_pascal}{verb_camel}{suffix}"
             if canon not in self._schemas:
                 self._schemas[canon] = s
                 setattr(self.schemas, canon, s)
@@ -518,7 +516,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             name = s.__name__
             base = model.__name__
             if not name.startswith(base):
-                base = resource
+                base = resource_pascal
             op = name[len(base) :]
             op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
             _attach(self.schemas, base, op, s)
@@ -557,12 +555,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             return _runner
 
         # Register canonical
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
+        camel = f"{resource_pascal}{''.join(w.title() for w in verb.split('_'))}"
         _runner_canon = _make_runner(m_id_canon)
         self._method_ids[m_id_canon] = _runner_canon
         setattr(self.core, camel, core)
-        _attach(self.core, resource, verb, core)
-        _attach(self.methods, resource, verb, _runner_canon)
+        _attach(self.core, resource_pascal, verb, core)
+        _attach(self.methods, resource_pascal, verb, _runner_canon)
         print(f"Registered helper method {camel}")
 
         # Ensure container for core_raw
@@ -624,7 +622,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     pass
 
         setattr(self.core_raw, camel, _core_raw)
-        _attach(self.core_raw, resource, verb, _core_raw)
+        _attach(self.core_raw, resource_pascal, verb, _core_raw)
 
         # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
         pol = _alias_policy(model)
@@ -634,17 +632,19 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # Same rpc_fn handles alias
             self.rpc.add(m_id_alias, rpc_fn)
 
-            alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
+            alias_camel = (
+                f"{resource_pascal}{''.join(w.title() for w in pub.split('_'))}"
+            )
             _runner_alias = _make_runner(m_id_alias)
             self._method_ids[m_id_alias] = _runner_alias
 
             # Attach alias helpers (both global CamelCase and namespaced)
             setattr(self.core, alias_camel, core)
-            _attach(self.core, resource, pub, core)
+            _attach(self.core, resource_pascal, pub, core)
 
-            _attach(self.methods, resource, pub, _runner_alias)
+            _attach(self.methods, resource_pascal, pub, _runner_alias)
             setattr(self.core_raw, alias_camel, _core_raw)
-            _attach(self.core_raw, resource, pub, _core_raw)
+            _attach(self.core_raw, resource_pascal, pub, _core_raw)
 
             print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
 
