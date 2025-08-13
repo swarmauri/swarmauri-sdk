@@ -17,7 +17,7 @@ def test_call_handler_invokes_handler(monkeypatch):
     called = {}
 
     async def fake_handler(task):
-        called["payload"] = task.payload
+        called["args"] = task.args
         return {"ok": True}
 
     monkeypatch.setattr("peagen._utils._init.init_handler", fake_handler)
@@ -25,4 +25,4 @@ def test_call_handler_invokes_handler(monkeypatch):
 
     result = _call_handler({"x": 1})
     assert result == {"ok": True}
-    assert called["payload"]["args"] == {"x": 1}
+    assert called["args"] == {"x": 1}

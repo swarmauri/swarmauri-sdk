@@ -11,11 +11,11 @@ import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
 from peagen.defaults import (
-    DEFAULT_TENANT_ID,
     DEFAULT_POOL_ID,
     DEFAULT_SUPER_USER_ID,
+    DEFAULT_TENANT_ID,
 )
-from peagen.orm import Action
+from peagen.orm import Action, Task
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``
@@ -45,18 +45,24 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     """Invoke :func:`init_handler` synchronously."""
 
     discover_and_register_plugins()
-    from peagen.cli.task_helpers import build_task
+    from autoapi.v2 import get_schema
 
-    task = build_task(
-        action=Action.FETCH,
-        args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
-        pool_id=str(DEFAULT_POOL_ID),
-        repo="local",
-        ref="HEAD",
-        owner_id=str(DEFAULT_SUPER_USER_ID),
+    TaskRead = get_schema(Task, "read")
+
+    task = TaskRead.model_validate(
+        {
+            "id": str(_real_uuid4()),
+            "tenant_id": str(DEFAULT_TENANT_ID),
+            "owner_id": str(DEFAULT_SUPER_USER_ID),
+            "pool_id": str(DEFAULT_POOL_ID),
+            "action": Action.FETCH,
+            "repo": "local",
+            "ref": "HEAD",
+            "args": args,
+            "labels": {},
+        }
     )
-    task = task.model_copy(update={"id": str(_uuid_alias.uuid4())})
+    object.__setattr__(task, "id", str(_uuid_alias.uuid4()))
     return asyncio.run(init_handler(task))
 
 
