@@ -24,7 +24,7 @@ from peagen.handlers.evolve_handler import evolve_handler
 from peagen.core.validate_core import validate_evolve_spec
 from peagen.orm import Status, Action
 
-from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -61,7 +61,6 @@ def run(
     task = build_task(
         action=Action.EVOLVE,
         args=_args_for_task(spec, repo, ref),
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -97,7 +96,6 @@ def submit(
     task = build_task(
         action=Action.EVOLVE,
         args=_args_for_task(spec, repo, ref),
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,

@@ -26,7 +26,7 @@ from peagen.cli.task_helpers import (
 from peagen.handlers.doe_handler import doe_handler
 from peagen.handlers.doe_process_handler import doe_process_handler
 from peagen.orm import Status
-from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -90,7 +90,6 @@ def run_gen(  # noqa: PLR0913
     task = build_task(
         action="doe",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -133,7 +132,6 @@ def submit_gen(  # noqa: PLR0913
     task = build_task(
         action="doe",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -176,7 +174,6 @@ def run_process(  # noqa: PLR0913
     task = build_task(
         action="doe_process",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -227,7 +224,6 @@ def submit_process(  # noqa: PLR0913
     task = build_task(
         action="doe_process",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,

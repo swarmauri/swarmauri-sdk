@@ -6,7 +6,6 @@ from peagen.cli import task_helpers
 
 class DummyTaskModel(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    tenant_id: str
     pool_id: str
     action: str
     repo: str

@@ -18,7 +18,6 @@ async def test_eval_handler(monkeypatch):
     params = build_task(
         action="eval",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

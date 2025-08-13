@@ -24,7 +24,7 @@ from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.handlers.process_handler import process_handler
 from peagen.orm import Status
 
-from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID
 
 # ────────────────────────── apps ───────────────────────────────
 
@@ -92,7 +92,6 @@ def run(  # noqa: PLR0913
     task = build_task(
         action="process",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=_determine_pool_id(ctx),
         repo=repo,
         ref=ref,
@@ -152,7 +151,6 @@ def submit(  # noqa: PLR0913
     task = build_task(
         action="process",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=_determine_pool_id(ctx),
         repo=repo,
         ref=ref,
