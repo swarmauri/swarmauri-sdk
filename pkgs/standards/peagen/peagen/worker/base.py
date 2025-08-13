@@ -86,7 +86,7 @@ class WorkerBase:
         # ----- JSON-RPC dispatcher --------------------------------
         self.rpc = RPCDispatcher()
 
-        @self.rpc.method("Works.create")
+        @self.rpc.method("Work.create")
         async def _on_work_start(payload: dict) -> dict:
             asyncio.create_task(self._run_work(payload))
             return {"accepted": True}
