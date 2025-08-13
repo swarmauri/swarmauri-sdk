@@ -341,15 +341,28 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         annotation=Annotated[_visible(In), Depends()],
                     )
                 )
+                params.append(
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=DBDep,
+                    )
+                )
             elif verb == "clear" and issubclass(model, BulkCapable) and path == "":
                 # allow optional body for bulk_delete on the "/" route if you adopt unified semantics later
                 params.append(
                     inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=DBDep,
+                    )
+                )
+                params.append(
+                    inspect.Parameter(
                         "p",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[
-                            Optional[List[SDeleteIn]], Body(default=None)
-                        ],
+                        annotation=Annotated[Optional[List[SDeleteIn]], Body()],
+                        default=None,
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
@@ -360,15 +373,21 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         annotation=Annotated[_visible(In), Body(embed=False)],
                     )
                 )
-
-            # DB session (dependency, not a query param; no Optional/union)
-            params.append(
-                inspect.Parameter(
-                    "db",
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=DBDep,
+                params.append(
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=DBDep,
+                    )
                 )
-            )
+            else:
+                params.append(
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=DBDep,
+                    )
+                )
 
             # ---- callable body ---------------------------------------
             async def _impl(**kw):
@@ -437,9 +456,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                             | "bulk_update"
                             | "bulk_replace"
                             | "bulk_delete"
-                            | "list"
                         ):
                             return (_p,)
+                        case "list":
+                            return (p,)
                         case "clear":
                             return ()
                         case "read" | "delete":
