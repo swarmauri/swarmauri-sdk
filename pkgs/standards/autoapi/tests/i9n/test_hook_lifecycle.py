@@ -22,10 +22,16 @@ async def test_hook_phases_execution_order(api_client):
         execution_order.append("PRE_TX_BEGIN")
         ctx["test_data"] = {"started": True}
 
+    @api.register_hook(Phase.PRE_HANDLER, model="Item", op="create")
+    async def pre_handler(ctx):
+        execution_order.append("PRE_HANDLER")
+        assert ctx["test_data"]["started"] is True
+        ctx["test_data"]["pre_handler_done"] = True
+
     @api.register_hook(Phase.POST_HANDLER, model="Item", op="create")
     async def post_handler(ctx):
         execution_order.append("POST_HANDLER")
-        assert ctx["test_data"]["started"] is True
+        assert ctx["test_data"]["pre_handler_done"] is True
         ctx["test_data"]["handler_done"] = True
 
     @api.register_hook(Phase.PRE_COMMIT, model="Item", op="create")
@@ -66,6 +72,7 @@ async def test_hook_phases_execution_order(api_client):
     # Verify execution order
     expected_order = [
         "PRE_TX_BEGIN",
+        "PRE_HANDLER",
         "POST_HANDLER",
         "PRE_COMMIT",
         "POST_COMMIT",
@@ -150,6 +157,66 @@ async def test_hook_error_handling(api_client):
 
     # Verify error hook was called
     assert error_hooks == ["ERROR_HANDLED"]
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_hook_early_termination_and_cleanup(api_client):
+    """Test early termination when a hook raises and ensure cleanup."""
+    client, api, _ = api_client
+    execution_order: list[str] = []
+
+    @api.register_hook(Phase.PRE_TX_BEGIN, model="Item", op="create")
+    async def pre_tx_begin(ctx):
+        execution_order.append("PRE_TX_BEGIN")
+
+    @api.register_hook(Phase.PRE_HANDLER, model="Item", op="create")
+    async def pre_handler(ctx):
+        execution_order.append("PRE_HANDLER")
+
+    @api.register_hook(Phase.POST_HANDLER, model="Item", op="create")
+    async def post_handler(ctx):
+        execution_order.append("POST_HANDLER")
+
+    @api.register_hook(Phase.PRE_COMMIT, model="Item", op="create")
+    async def pre_commit(ctx):
+        execution_order.append("PRE_COMMIT")
+        raise RuntimeError("boom")
+
+    @api.register_hook(Phase.POST_COMMIT, model="Item", op="create")
+    async def post_commit(ctx):
+        execution_order.append("POST_COMMIT")
+
+    @api.register_hook(Phase.POST_RESPONSE, model="Item", op="create")
+    async def post_response(ctx):
+        execution_order.append("POST_RESPONSE")
+
+    # Create tenant
+    t = await client.post("/tenant", json={"name": "test-tenant"})
+    tid = t.json()["id"]
+
+    # Ensure no items exist before the test
+    before = await client.get("/item")
+    assert before.json() == []
+
+    # Trigger the failing hook
+    try:
+        res = await client.post("/item", json={"tenant_id": tid, "name": "fail-item"})
+        assert res.status_code >= 400
+    except RuntimeError:
+        pass
+
+    # Verify no items were created
+    after = await client.get("/item")
+    assert after.json() == []
+
+    # Ensure execution stopped at the failing hook
+    assert execution_order == [
+        "PRE_TX_BEGIN",
+        "PRE_HANDLER",
+        "POST_HANDLER",
+        "PRE_COMMIT",
+    ]
 
 
 @pytest.mark.i9n
