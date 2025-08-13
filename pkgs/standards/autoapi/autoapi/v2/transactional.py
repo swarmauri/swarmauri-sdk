@@ -67,7 +67,7 @@ def register_transaction(
         async def _rest_endpoint(
             request: Request,
             params: Mapping[str, Any] = Body(...),
-            db: Session = Depends(self.get_db),
+            db: AsyncSession = Depends(self.get_async_db),
         ):
             ctx: MutableMapping[str, Any] = {"request": request, "db": db, "env": {}}
             return await _invoke(self, rpc_id, params=params, ctx=ctx)
