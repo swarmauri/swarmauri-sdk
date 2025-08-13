@@ -19,7 +19,7 @@ import secrets
 from pathlib import Path
 from typing import Final, Iterable
 
-import gnupg                                 # external dependency
+import gnupg  # external dependency
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from .crypto_base import CryptoBase, HybridEnvelope
@@ -28,7 +28,7 @@ from .crypto_base import CryptoBase, HybridEnvelope
 class PGPCrypto(CryptoBase):
     """Concrete OpenPGP provider complying with the `CryptoBase` contract."""
 
-    _PUB_FILE:  Final[str] = "pgp-public.asc"
+    _PUB_FILE: Final[str] = "pgp-public.asc"
     _PRIV_FILE: Final[str] = "pgp-private.asc"
 
     # ───────────────────────────── paths ──────────────────────────────
@@ -99,9 +99,9 @@ class PGPCrypto(CryptoBase):
         gpg = gnupg.GPG(gnupghome=str(self.key_dir / "gpg"))
 
         # symmetric layer
-        key   = secrets.token_bytes(32)
-        iv    = secrets.token_bytes(12)
-        ct    = AESGCM(key).encrypt(iv, plaintext, None)
+        key = secrets.token_bytes(32)
+        iv = secrets.token_bytes(12)
+        ct = AESGCM(key).encrypt(iv, plaintext, None)
 
         # asymmetric wrap
         wraps: dict[str, bytes] = {}
@@ -133,10 +133,10 @@ class PGPCrypto(CryptoBase):
         return AESGCM(bytes(dec.data)).decrypt(env["iv"], env["ct"], None)
 
     # ──────────────────────── convenience API ─────────────────────────
-    def encrypt(self, plaintext: bytes) -> bytes:          # noqa: D401
+    def encrypt(self, plaintext: bytes) -> bytes:  # noqa: D401
         return super().encrypt(plaintext)
 
     # ─────────────────────── STRING-SUGAR ALIASES ───────────────────────
-    encrypt_text       = CryptoBase.encrypt_text               # type: ignore[assignment]
-    encrypt_for_text   = CryptoBase.encrypt_for_text           # type: ignore[assignment]
-    decrypt_text       = CryptoBase.decrypt_text               # type: ignore[assignment]
+    encrypt_text = CryptoBase.encrypt_text  # type: ignore[assignment]
+    encrypt_for_text = CryptoBase.encrypt_for_text  # type: ignore[assignment]
+    decrypt_text = CryptoBase.decrypt_text  # type: ignore[assignment]
