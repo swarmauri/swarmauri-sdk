@@ -535,16 +535,6 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 self._schemas[canon] = s
                 setattr(self.schemas, canon, s)
 
-            if suffix != "RpcIn":
-                # Preserve legacy nested access (api.schemas.User.create)
-                name = s.__name__
-                base = model.__name__
-                if not name.startswith(base):
-                    base = resource
-                op = name[len(base) :]
-                op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
-                _attach(self.schemas, base, op, s)
-
         # JSON-RPC shim (single callable for this canonical op)
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
         print(
