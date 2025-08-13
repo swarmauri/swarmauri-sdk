@@ -51,6 +51,7 @@ def test_schemas_dir_contains_operation_names(sync_api):
     names = dir(api.schemas)
     assert "CoreTestUserCreateIn" in names
     assert "CoreTestUser" not in names
+    assert not hasattr(api.schemas, "CoreTestUser")
 
 
 class TestApiCore:
@@ -61,7 +62,7 @@ class TestApiCore:
         api, get_db = sync_api
 
         # Use api.schemas for proper validation
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="John Doe", email="john@example.com", age=30
         )
 
@@ -80,7 +81,7 @@ class TestApiCore:
         api, get_db = sync_api
 
         # Use schema for creation
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Jane Doe", email="jane@example.com"
         )
 
@@ -103,7 +104,7 @@ class TestApiCore:
         api, get_db = sync_api
 
         # Create user using schema
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Bob Smith", email="bob@example.com"
         )
 
@@ -115,7 +116,7 @@ class TestApiCore:
                 user_id = user.id
 
         # Update user using schema for payload validation
-        update_schema = api.schemas.CoreTestUser.update(name="Robert Smith", age=25)
+        update_schema = api.schemas.CoreTestUserUpdateIn(name="Robert Smith", age=25)
         with next(get_db()) as db:
             with db.begin():
                 updated_user = api.core.CoreTestUser.update(user_id, update_schema, db)
@@ -130,7 +131,7 @@ class TestApiCore:
         api, get_db = sync_api
 
         # Create user using schema
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Delete Me", email="delete@example.com"
         )
 
@@ -155,9 +156,9 @@ class TestApiCore:
 
         # Create multiple users using schemas
         user_schemas = [
-            api.schemas.CoreTestUser.create(name="User 1", email="user1@example.com"),
-            api.schemas.CoreTestUser.create(name="User 2", email="user2@example.com"),
-            api.schemas.CoreTestUser.create(name="User 3", email="user3@example.com"),
+            api.schemas.CoreTestUserCreateIn(name="User 1", email="user1@example.com"),
+            api.schemas.CoreTestUserCreateIn(name="User 2", email="user2@example.com"),
+            api.schemas.CoreTestUserCreateIn(name="User 3", email="user3@example.com"),
         ]
 
         with next(get_db()) as db:
@@ -168,7 +169,7 @@ class TestApiCore:
 
         # List users using schema
         with next(get_db()) as db:
-            list_schema = api.schemas.CoreTestUser.list_params(skip=0, limit=10)
+            list_schema = api.schemas.CoreTestUserListIn(skip=0, limit=10)
             users = api.core.CoreTestUser.list(list_schema, db)
 
             assert len(users) == 3
@@ -181,10 +182,10 @@ class TestApiCore:
         # Create users using schemas
         with next(get_db()) as db:
             with db.begin():
-                user1_schema = api.schemas.CoreTestUser.create(
+                user1_schema = api.schemas.CoreTestUserCreateIn(
                     name="User 1", email="user1@example.com"
                 )
-                user2_schema = api.schemas.CoreTestUser.create(
+                user2_schema = api.schemas.CoreTestUserCreateIn(
                     name="User 2", email="user2@example.com"
                 )
                 api.core.CoreTestUser.create(user1_schema, db)
@@ -201,7 +202,7 @@ class TestApiCore:
 
         # Verify empty using schema
         with next(get_db()) as db:
-            list_schema = api.schemas.CoreTestUser.list_params()
+            list_schema = api.schemas.CoreTestUserListIn()
             users = api.core.CoreTestUser.list(list_schema, db)
             assert len(users) == 0
 
@@ -221,7 +222,7 @@ class TestApiCore:
         api, get_db = sync_api
         fake_id = "00000000-0000-0000-0000-000000000000"
 
-        update_schema = api.schemas.CoreTestUser.update(name="Updated")
+        update_schema = api.schemas.CoreTestUserUpdateIn(name="Updated")
 
         with pytest.raises(HTTPException) as exc_info:
             with next(get_db()) as db:
@@ -246,7 +247,7 @@ class TestApiCore:
         """Test creating user with duplicate email raises HTTPException with schema validation."""
         api, get_db = sync_api
 
-        first_user_schema = api.schemas.CoreTestUser.create(
+        first_user_schema = api.schemas.CoreTestUserCreateIn(
             name="First User", email="duplicate@example.com"
         )
 
@@ -257,7 +258,7 @@ class TestApiCore:
                 db.flush()
 
         # Try to create duplicate using schema
-        duplicate_schema = api.schemas.CoreTestUser.create(
+        duplicate_schema = api.schemas.CoreTestUserCreateIn(
             name="Second User", email="duplicate@example.com"
         )
         with pytest.raises(HTTPException) as exc_info:
@@ -273,7 +274,7 @@ class TestApiCore:
         """Test manual transaction rollback with api.core and schema validation."""
         api, get_db = sync_api
 
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Rollback User", email="rollback@example.com"
         )
 
@@ -296,7 +297,7 @@ class TestApiCore:
         """Test using api.core with async database via run_sync and schema validation."""
         api, get_async_db = async_api
 
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Async User", email="async@example.com"
         )
 
@@ -592,7 +593,7 @@ class TestCoreVsCoreRawComparison:
         api, get_db = sync_api
 
         # Create user with api.core using schema validation
-        user_schema = api.schemas.CoreTestUser.create(
+        user_schema = api.schemas.CoreTestUserCreateIn(
             name="Consistency Test", email="consistency@example.com"
         )
 
