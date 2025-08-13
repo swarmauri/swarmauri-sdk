@@ -16,6 +16,7 @@ from sqlalchemy import inspect as _sa_inspect
 from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
+from ..hooks import Phase
 
 
 # ----------------------------------------------------------------------
@@ -274,5 +275,32 @@ def _crud(self, model: type) -> None:
         crud_ops["clear"],
     )
     print(f"_crud registered routes for {resource}")
+    extras = getattr(model, "__autoapi_response_extras__", None)
+    if extras:
+        print(f"Registering response extras for {resource}: {list(extras)}")
+        for verb, cb in extras.items():
+
+            async def _inject(ctx, _cb=cb):
+                res = getattr(ctx.get("response"), "result", None)
+                data = _cb(ctx, res)
+                if not data:
+                    return
+                data = {k: v for k, v in data.items() if v is not None}
+                if isinstance(res, dict):
+                    merged = {**res, **data}
+                elif hasattr(res, "__dict__"):
+                    merged = {
+                        **{
+                            k: v
+                            for k, v in res.__dict__.items()
+                            if not k.startswith("_")
+                        },
+                        **data,
+                    }
+                else:
+                    merged = {**data, "result": res}
+                ctx["response"].result = merged
+
+            self.register_hook(Phase.POST_RESPONSE, model=model, op=verb)(_inject)
 
     _invoke_all_registrars(model, self)

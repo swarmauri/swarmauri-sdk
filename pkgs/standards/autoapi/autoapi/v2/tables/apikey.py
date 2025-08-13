@@ -7,7 +7,12 @@ from secrets import token_urlsafe
 
 from fastapi import HTTPException
 
-from ..types import Column, String, UniqueConstraint, HookProvider
+from ..types import (
+    Column,
+    String,
+    HookProvider,
+    ResponseExtrasProvider,
+)
 from ._base import Base
 from ..mixins import (
     GUIDPk,
@@ -24,6 +29,7 @@ class ApiKey(
     Created,
     LastUsed,
     ValidityWindow,
+    ResponseExtrasProvider,
     HookProvider,
 ):
     __tablename__ = "api_keys"
@@ -80,21 +86,12 @@ class ApiKey(
         ctx["env"].params = params
         ctx["raw_api_key"] = raw
 
-    @classmethod
-    async def _post_response_inject(cls, ctx):
+    @staticmethod
+    def _inject_raw_key(ctx, res):
         raw = ctx.pop("raw_api_key", None)
-        if not raw:
-            return
-        res = getattr(ctx.get("response"), "result", None)
-        if isinstance(res, dict):
-            result = dict(res)
-        elif hasattr(res, "__dict__"):
-            result = {k: v for k, v in res.__dict__.items() if not k.startswith("_")}
-        else:  # pragma: no cover - defensive
-            result = {"result": res}
-        result = {k: v for k, v in result.items() if v is not None}
-        result["api_key"] = raw
-        ctx["response"].result = result
+        return {"api_key": raw} if raw else {}
+
+    __autoapi_response_extras__ = {"create": _inject_raw_key}
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
@@ -103,7 +100,4 @@ class ApiKey(
         model = cls.__name__
         api.register_hook(Phase.PRE_TX_BEGIN, model=model, op="create")(
             cls._pre_create_generate
-        )
-        api.register_hook(Phase.POST_RESPONSE, model=model, op="create")(
-            cls._post_response_inject
         )
