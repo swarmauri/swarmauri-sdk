@@ -28,7 +28,6 @@ def test_serialization(pgp_crypto):
 
 @pytest.mark.asyncio
 async def test_aead_encrypt_decrypt_roundtrip(pgp_crypto):
-
     sym = KeyRef(
         kid="sym1",
         version=1,

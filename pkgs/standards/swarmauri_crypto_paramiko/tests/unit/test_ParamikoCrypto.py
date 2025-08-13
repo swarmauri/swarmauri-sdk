@@ -1,4 +1,3 @@
-import logging
 import pytest
 import paramiko
 from cryptography.hazmat.primitives import serialization
@@ -32,7 +31,6 @@ def test_serialization(paramiko_crypto):
 
 @pytest.mark.asyncio
 async def test_aead_encrypt_decrypt_roundtrip(paramiko_crypto):
-
     sym = KeyRef(
         kid="sym1",
         version=1,
@@ -50,7 +48,6 @@ async def test_aead_encrypt_decrypt_roundtrip(paramiko_crypto):
 
 @pytest.mark.asyncio
 async def test_encrypt_for_many_and_unwrap(paramiko_crypto):
-
     key = paramiko.RSAKey.generate(2048)
     pub_line = f"{key.get_name()} {key.get_base64()}\n".encode()
     priv_pem = key.key.private_bytes(
