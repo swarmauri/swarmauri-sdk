@@ -61,10 +61,12 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 class Tenant(TenantBase, Bootstrappable):
     # __mapper_args__ = {"concrete": True}
-    __table_args__ = ({
-        "extend_existing": True,
-        "schema": "authn",
-    },)
+    __table_args__ = (
+        {
+            "extend_existing": True,
+            "schema": "authn",
+        },
+    )
     name = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     DEFAULT_ROWS = [
@@ -80,6 +82,7 @@ class Tenant(TenantBase, Bootstrappable):
 # --------------------------------------------------------------------
 class Client(ClientBase):  # Tenant FK via mix-in
     __table_args__ = ({"schema": "authn"},)
+
     # ----------------------------------------------------------------
     @classmethod
     def new(
@@ -108,6 +111,7 @@ class Client(ClientBase):  # Tenant FK via mix-in
 # --------------------------------------------------------------------
 class User(UserBase):
     """Human principal with authentication credentials."""
+
     __table_args__ = ({"extend_existing": True, "schema": "authn"},)
     email = Column(String(120), nullable=False, unique=True)
     password_hash = Column(LargeBinary(60))
@@ -148,7 +152,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 class ApiKey(ApiKeyBase, UserMixin):
     __table_args__ = (
         UniqueConstraint("digest"),
-        {"extend_existing": True, "schema": "authn"}
+        {"extend_existing": True, "schema": "authn"},
     )
 
     user = relationship(
@@ -162,7 +166,7 @@ class ServiceKey(ApiKeyBase):
     __tablename__ = "service_keys"
     __table_args__ = (
         UniqueConstraint("digest"),
-        {"extend_existing": True, "schema": "authn"}
+        {"extend_existing": True, "schema": "authn"},
     )
     service_id = Column(
         PgUUID(as_uuid=True),
