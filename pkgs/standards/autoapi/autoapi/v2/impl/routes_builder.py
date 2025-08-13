@@ -28,6 +28,7 @@ from .schema import _schema
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _attach(root: Any, resource: str, op: str, fn: Any) -> None:
     """Attach *fn* under ``root.resource.op`` creating namespaces as needed."""
     ns = getattr(root, resource, None)
@@ -75,7 +76,11 @@ def _canonical(tab: str, verb: str) -> str:
 
 
 def _resource_pascal(tab_or_cls: str) -> str:
-    return "".join(w.title() for w in tab_or_cls.split("_")) if tab_or_cls.islower() else tab_or_cls
+    return (
+        "".join(w.title() for w in tab_or_cls.split("_"))
+        if tab_or_cls.islower()
+        else tab_or_cls
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -83,11 +88,21 @@ def _resource_pascal(tab_or_cls: str) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 _VALID_VERBS = {
-    "create", "read", "update", "delete", "list", "clear", "replace",
-    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+    "create",
+    "read",
+    "update",
+    "delete",
+    "list",
+    "clear",
+    "replace",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
 }
 
 _alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
+
 
 def _get_verb_alias_map(model) -> dict[str, str]:
     raw = getattr(model, "__autoapi_verb_aliases__", None)
@@ -95,9 +110,11 @@ def _get_verb_alias_map(model) -> dict[str, str]:
         raw = raw()
     return dict(raw or {})
 
+
 def _alias_policy(model) -> str:
     # "both" | "alias_only" | "canonical_only"
     return getattr(model, "__autoapi_verb_alias_policy__", "both")
+
 
 def _public_verb(model, canonical: str) -> str:
     ali = _get_verb_alias_map(model).get(canonical)
@@ -111,6 +128,7 @@ def _public_verb(model, canonical: str) -> str:
             "(must be lowercase [a-z0-9_], start with a letter)"
         )
     return ali
+
 
 def _route_label(resource_name: str, verb: str, model) -> str:
     """Return '{Resource} - {verb/alias}' per policy."""
@@ -126,6 +144,7 @@ def _route_label(resource_name: str, verb: str, model) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self,
@@ -199,10 +218,34 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         print("Model is BulkCapable; adding bulk specs")
         # keep REST path style aligned with current codebase ("/bulk")
         spec += [
-            ("bulk_create", "POST", "/bulk", 201, List[SCreate],   List[SReadOut], _create),
-            ("bulk_update", "PATCH", "/bulk", 200, List[SUpdate],  List[SReadOut], _update),
-            ("bulk_replace","PUT",   "/bulk", 200, List[SCreate],  List[SReadOut], functools.partial(_update, full=True)),
-            ("bulk_delete", "DELETE","/bulk", 204, List[SDeleteIn], None,            _delete),
+            (
+                "bulk_create",
+                "POST",
+                "/bulk",
+                201,
+                List[SCreate],
+                List[SReadOut],
+                _create,
+            ),
+            (
+                "bulk_update",
+                "PATCH",
+                "/bulk",
+                200,
+                List[SUpdate],
+                List[SReadOut],
+                _update,
+            ),
+            (
+                "bulk_replace",
+                "PUT",
+                "/bulk",
+                200,
+                List[SCreate],
+                List[SReadOut],
+                functools.partial(_update, full=True),
+            ),
+            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
     # ---------- nested routing ---------------------------------------
@@ -246,9 +289,6 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         if verb in {"update", "replace"}:
             # For update/replace we want the verb-specific model (respects no_update flags)
             rpc_in = _schema(model, verb=verb)
-
-        # Route label (name/summary) using alias policy
-        route_name = _route_label(resource, verb, model)
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
@@ -304,7 +344,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     inspect.Parameter(
                         "p",
                         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[Optional[List[SDeleteIn]], Body(default=None)],
+                        annotation=Annotated[
+                            Optional[List[SDeleteIn]], Body(default=None)
+                        ],
                     )
                 )
             elif In is not None and verb not in ("read", "delete", "clear"):
@@ -341,10 +383,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                         return obj.model_dump(exclude_unset=True)
                     return obj
 
-                if verb in {"bulk_create", "bulk_update", "bulk_replace", "bulk_delete"}:
+                if verb in {
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                    "bulk_delete",
+                }:
                     # p is a list of models/dicts
                     lst = []
-                    for it in (p or []):
+                    for it in p or []:
                         lst.append(_dump(it))
                     rpc_params = lst
                 else:
@@ -364,7 +411,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                     if isinstance(rpc_params, dict):
                         rpc_params.update(parent_kw)
                     elif isinstance(rpc_params, list):
-                        rpc_params = [{**parent_kw, **(e if isinstance(e, dict) else _dump(e))} for e in rpc_params]
+                        rpc_params = [
+                            {**parent_kw, **(e if isinstance(e, dict) else _dump(e))}
+                            for e in rpc_params
+                        ]
 
                 print(f"RPC params built: {rpc_params}")
                 env = _RPCReq(id=None, method=m_id, params=rpc_params)
@@ -378,7 +428,14 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
                 def _build_args(_p):
                     match verb:
-                        case "create" | "bulk_create" | "bulk_update" | "bulk_replace" | "bulk_delete" | "list":
+                        case (
+                            "create"
+                            | "bulk_create"
+                            | "bulk_update"
+                            | "bulk_replace"
+                            | "bulk_delete"
+                            | "list"
+                        ):
                             return (_p,)
                         case "clear":
                             return ()
@@ -438,8 +495,10 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
-                name=_route_label(resource, verb, model),   # ← route name reflects alias policy
-                summary=_route_label(resource, verb, model),# ← docs summary ditto
+                name=_route_label(
+                    resource, verb, model
+                ),  # ← route name reflects alias policy
+                summary=_route_label(resource, verb, model),  # ← docs summary ditto
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
@@ -491,6 +550,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                             pass
                 else:
                     return _api.rpc[_method](payload, db)
+
             return _runner
 
         # Register canonical
@@ -504,21 +564,27 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Ensure container for core_raw
         if not hasattr(self, "core_raw"):
+
             class _CE: ...
+
             self.core_raw = _CE()
 
         async def _core_raw(payload, *, db=None, _core=core, _verb=verb, _pk=pk):
             # Build args in the same way your RPC shim would
             def _build_args(_p):
                 def _dump(o):
-                    return o.model_dump(exclude_unset=True) if hasattr(o, "model_dump") else o
+                    return (
+                        o.model_dump(exclude_unset=True)
+                        if hasattr(o, "model_dump")
+                        else o
+                    )
 
                 match _verb:
                     case "create" | "list":
                         return (_p,)
                     case "bulk_create" | "bulk_update" | "bulk_replace" | "bulk_delete":
                         if isinstance(_p, list):
-                            return ([ _dump(x) for x in _p ],)
+                            return ([_dump(x) for x in _p],)
                         return (_dump(_p),)
                     case "clear":
                         return ()
