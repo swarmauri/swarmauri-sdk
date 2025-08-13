@@ -68,6 +68,7 @@ The following `col.info["autoapi"]` keys are recognized by AutoAPI and related p
 | `examples` | Provides example values for documentation or schema generation. Used widely in mixins (`tenant_id`, `user_id`, etc.) and explicitly in Peagen's `User.id` column. | autoapi, auto-authn, peagen ORM |
 | `hybrid` | Enables hybrid properties in the schema. Demonstrated with a `full_name` hybrid property marked in tests. | autoapi (tests) |
 | `py_type` | Specifies Python type for hybrids. Shown in tests where a computed field is declared as an `int`. | autoapi (tests) |
+| `response_extras` | Verb-scoped virtual response fields defined on a column, equivalent to table-level `__autoapi_response_extras__`. | autoapi (tests) |
 
 
 ## Glossary

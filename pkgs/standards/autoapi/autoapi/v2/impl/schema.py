@@ -10,7 +10,7 @@ Builds verb-specific Pydantic models from SQLAlchemy ORM classes, with:
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, Set, Tuple, Type, Union
+from typing import Any, Dict, Mapping, Set, Tuple, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from sqlalchemy import inspect as _sa_inspect
@@ -77,10 +77,12 @@ def _merge_response_extras(
     *,
     include: Set[str] | None,
     exclude: Set[str] | None,
+    buckets: Mapping[str, Mapping[str, object]] | None = None,
 ) -> None:
     """Merge **response-only** virtual fields into the output schema."""
 
-    buckets = getattr(orm_cls, "__autoapi_response_extras__", None)
+    if buckets is None:
+        buckets = getattr(orm_cls, "__autoapi_response_extras__", None)
     if not buckets:
         return
 
@@ -219,6 +221,17 @@ def _schema(
 
         fields[attr_name] = (py_t, fld)
         print(f"Added field {attr_name} type={py_t} required={required}")
+
+        col_extras = meta.get("response_extras")
+        if col_extras:
+            _merge_response_extras(
+                orm_cls,
+                verb,
+                fields,
+                include=include,
+                exclude=exclude,
+                buckets=col_extras,
+            )
 
     # Merge request-only and response-only extras
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)

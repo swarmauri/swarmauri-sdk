@@ -9,6 +9,7 @@ import pytest
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.hybrid import hybrid_property
+from pydantic import Field
 
 from autoapi.v2.mixins import GUIDPk
 from autoapi.v2 import Base, get_schema
@@ -167,6 +168,35 @@ async def test_read_only_key(create_test_api):
     assert "name" in create_schema.model_fields
     assert "name" in update_schema.model_fields
     assert "name" in read_schema.model_fields
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_column_level_response_extras(create_test_api):
+    class DummyModelResponseExtras(Base, GUIDPk):
+        __tablename__ = "dummy_col_response_extras"
+
+        name = Column(
+            String,
+            info=dict(
+                autoapi={
+                    "response_extras": {
+                        "*": {"lower_name": (str | None, Field(None))},
+                        "read": {"upper_name": (str | None, Field(None))},
+                    }
+                }
+            ),
+        )
+
+    create_test_api(DummyModelResponseExtras)
+
+    create_schema = get_schema(DummyModelResponseExtras, "create")
+    read_schema = get_schema(DummyModelResponseExtras, "read")
+
+    assert "lower_name" in create_schema.model_fields
+    assert "upper_name" not in create_schema.model_fields
+    assert "lower_name" in read_schema.model_fields
+    assert "upper_name" in read_schema.model_fields
 
 
 @pytest.mark.i9n
