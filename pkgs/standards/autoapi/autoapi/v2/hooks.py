@@ -86,9 +86,9 @@ def _init_hooks(self) -> None:
             if model is not None and op is not None:
                 # Model + op parameters
                 if isinstance(model, str):
-                    tab = model if model.endswith(("s", "S")) else f"{model}s"
+                    tab = model
                 else:
-                    tab = getattr(model, "__tablename__", model.__name__)
+                    tab = getattr(model, "__name__")
                 if tab.islower():
                     model_name = "".join(part.title() for part in tab.split("_"))
                 elif "_" in tab:
