@@ -227,6 +227,33 @@ class TestJWTKeyCrypto:
             with pytest.raises(RuntimeError, match="JWT signing key is not Ed25519"):
                 _load_keypair()
 
+    def test_env_key_path_override(self, monkeypatch, tmp_path):
+        """Test that JWT_ED25519_PRIV_PATH overrides the default key path."""
+        # Generate a key and write to temporary path
+        private = Ed25519PrivateKey.generate()
+        pem_priv = private.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        key_path = tmp_path / "override_key.pem"
+        key_path.write_bytes(pem_priv)
+
+        import auto_authn.v2.crypto as crypto
+        import importlib
+
+        monkeypatch.setenv("JWT_ED25519_PRIV_PATH", str(key_path))
+
+        try:
+            crypto = importlib.reload(crypto)
+            crypto._load_keypair.cache_clear()
+
+            assert crypto._DEFAULT_KEY_PATH == key_path
+            assert crypto.signing_key() == pem_priv
+        finally:
+            monkeypatch.delenv("JWT_ED25519_PRIV_PATH", raising=False)
+            importlib.reload(crypto)
+
 
 @pytest.mark.unit
 class TestSecurityEdgeCases:
