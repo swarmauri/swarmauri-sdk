@@ -63,4 +63,7 @@ dev = [
 [project.entry-points.'swarmauri.secret_drives']
 AutoGpgSecretDrive = "swarmauri_secretdrive_autogpg:AutoGpgSecretDrive"
 
+[project.entry-points."peagen.plugins.secret_drives"]
+autogpg = "swarmauri_secret_autogpg:AutoGpgSecretDrive"
+
 
