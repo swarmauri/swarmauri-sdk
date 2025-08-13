@@ -11,7 +11,7 @@ import pytest
 
 from auto_authn.v2.backends import AuthError, PasswordBackend, ApiKeyBackend
 from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.orm.tables import User, ApiKey, ServiceKey, Service
+from auto_authn.v2.orm.tables import User, ApiKey, ServiceKey, Service, Client
 
 
 @pytest.mark.unit
@@ -249,6 +249,17 @@ class TestApiKeyBackend:
         service_key.touch = MagicMock()
         return service_key
 
+    def create_mock_client(self, mock_data_factory, **overrides):
+        """Create a Client instance with hashed secret."""
+        client_data = mock_data_factory.create_client_data(**overrides)
+        client = Client(
+            tenant_id=uuid4(),
+            client_secret_hash=hash_pw(client_data["client_secret"]),
+            redirect_uris=" ".join(client_data["redirect_uris"]),
+        )
+        client.is_active = client_data["is_active"]
+        return client, client_data["client_secret"]
+
     @pytest.mark.asyncio
     async def test_authenticate_with_valid_api_key(self, mock_data_factory):
         """Test successful authentication with valid API key."""
@@ -386,6 +397,56 @@ class TestApiKeyBackend:
 
         # Verify touch was called to update last_used timestamp
         mock_service_key.touch.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_authenticate_with_valid_client_key(self, mock_data_factory):
+        """Authenticate using a Client's API key."""
+        client, raw_secret = self.create_mock_client(mock_data_factory)
+        self.mock_db.scalar.side_effect = [None, None]
+        self.mock_db.scalars = AsyncMock(return_value=[client])
+        client.verify_secret = MagicMock(wraps=client.verify_secret)
+
+        principal, key_type = await self.backend.authenticate(self.mock_db, raw_secret)
+
+        assert principal == client
+        assert key_type == "client"
+        client.verify_secret.assert_called_once_with(raw_secret)
+        self.mock_db.scalars.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_authenticate_with_invalid_client_secret(self, mock_data_factory):
+        """Invalid secret for a Client should raise AuthError."""
+        client, raw_secret = self.create_mock_client(mock_data_factory)
+        self.mock_db.scalar.side_effect = [None, None]
+        self.mock_db.scalars = AsyncMock(return_value=[client])
+        client.verify_secret = MagicMock(wraps=client.verify_secret)
+
+        with pytest.raises(AuthError) as exc_info:
+            await self.backend.authenticate(self.mock_db, "wrong-secret")
+
+        assert exc_info.value.reason == "API key invalid, revoked, or expired"
+        client.verify_secret.assert_called_once_with("wrong-secret")
+
+    @pytest.mark.asyncio
+    async def test_authenticate_with_inactive_client(self, mock_data_factory):
+        """Inactive clients should not authenticate."""
+        client, raw_secret = self.create_mock_client(mock_data_factory, is_active=False)
+        self.mock_db.scalar.side_effect = [None, None]
+        self.mock_db.scalars = AsyncMock(return_value=[])
+
+        with pytest.raises(AuthError) as exc_info:
+            await self.backend.authenticate(self.mock_db, raw_secret)
+
+        assert exc_info.value.reason == "API key invalid, revoked, or expired"
+        self.mock_db.scalars.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_client_stmt_filters_inactive_clients(self):
+        """_get_client_stmt should select only active clients."""
+        stmt = await self.backend._get_client_stmt()
+        compiled = stmt.compile(compile_kwargs={"literal_binds": True})
+        compiled_str = str(compiled)
+        assert "is_active" in compiled_str
 
     @pytest.mark.asyncio
     async def test_get_key_stmt_filters_expired_keys(self):
