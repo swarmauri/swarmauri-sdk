@@ -32,7 +32,6 @@ async def test_extras_handler_calls_generate_schemas(
     task = build_task(
         action="extras",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

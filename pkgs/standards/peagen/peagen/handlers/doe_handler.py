@@ -137,11 +137,9 @@ async def doe_handler(task: TaskRead) -> Dict[str, Any]:  # noqa: C901 – orche
 
     # ─── 6. create child MUTATE tasks via fan_out -------------------
     pool_id = str(getattr(task, "pool_id", "") or "")
-    tenant_id = str(getattr(task, "tenant_id", "") or "")
     children = [
         {
             "id": str(uuid.uuid4()),
-            "tenant_id": tenant_id,
             "pool_id": pool_id,
             "action": Action.MUTATE,
             "status": Status.waiting,

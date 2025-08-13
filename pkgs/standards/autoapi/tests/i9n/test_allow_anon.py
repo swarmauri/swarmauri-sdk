@@ -92,37 +92,33 @@ def _build_client_attr():
 
 def test_allow_anon_list_and_read():
     client = _build_client()
-    assert client.get("/items").status_code == 200
+    assert client.get("/item").status_code == 200
     tenant = {"name": "acme"}
     res = client.post(
-        "/tenants", json=tenant, headers={"Authorization": "Bearer secret"}
+        "/tenant", json=tenant, headers={"Authorization": "Bearer secret"}
     )
     tid = res.json()["id"]
     payload = {"tenant_id": tid, "name": "thing"}
-    res = client.post(
-        "/items", json=payload, headers={"Authorization": "Bearer secret"}
-    )
+    res = client.post("/item", json=payload, headers={"Authorization": "Bearer secret"})
     iid = res.json()["id"]
-    assert client.get(f"/items/{iid}").status_code == 200
+    assert client.get(f"/item/{iid}").status_code == 200
     # FastAPI's HTTPBearer returns 403 when the Authorization header is
     # completely missing (as opposed to a malformed token).  The AutoAPI
     # endpoint mirrors this behaviour for unauthenticated access to routes
     # that are not whitelisted via ``__autoapi_allow_anon__``.
-    assert client.post("/items", json=payload).status_code == 403
+    assert client.post("/item", json=payload).status_code == 403
 
 
 def test_allow_anon_list_and_read_attr():
     client = _build_client_attr()
-    assert client.get("/items").status_code == 200
+    assert client.get("/item").status_code == 200
     tenant = {"name": "acme"}
     res = client.post(
-        "/tenants", json=tenant, headers={"Authorization": "Bearer secret"}
+        "/tenant", json=tenant, headers={"Authorization": "Bearer secret"}
     )
     tid = res.json()["id"]
     payload = {"tenant_id": tid, "name": "thing"}
-    res = client.post(
-        "/items", json=payload, headers={"Authorization": "Bearer secret"}
-    )
+    res = client.post("/item", json=payload, headers={"Authorization": "Bearer secret"})
     iid = res.json()["id"]
-    assert client.get(f"/items/{iid}").status_code == 200
-    assert client.post("/items", json=payload).status_code == 403
+    assert client.get(f"/item/{iid}").status_code == 200
+    assert client.post("/item", json=payload).status_code == 403

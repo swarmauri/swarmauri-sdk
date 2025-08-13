@@ -10,12 +10,8 @@ import uuid
 import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
-from peagen.defaults import (
-    DEFAULT_POOL_ID,
-    DEFAULT_SUPER_USER_ID,
-    DEFAULT_TENANT_ID,
-)
-from peagen.orm import Action, Task
+from peagen.defaults import DEFAULT_POOL_ID
+from peagen.orm import Action
 
 
 # Allow tests to monkeypatch ``uuid.uuid4`` without affecting the global ``uuid``

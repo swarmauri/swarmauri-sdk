@@ -27,7 +27,6 @@ async def test_fetch_handler_passes_args(monkeypatch):
     task = build_task(
         action="fetch",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="main",

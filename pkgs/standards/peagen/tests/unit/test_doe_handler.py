@@ -67,7 +67,6 @@ async def test_doe_handler_calls_generate_payload(monkeypatch):
     task = build_task(
         action="doe",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

@@ -8,7 +8,6 @@ def test_build_task_creates_task():
     task = build_task(
         action="demo",
         args={"x": 1},
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",
@@ -38,7 +37,6 @@ def test_submit_task_sends_request(monkeypatch):
     task = build_task(
         action="demo",
         args={},
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

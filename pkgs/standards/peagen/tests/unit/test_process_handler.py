@@ -48,7 +48,6 @@ async def test_process_handler_dispatch(monkeypatch, tmp_path, project_name):
     task = build_task(
         action="process",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

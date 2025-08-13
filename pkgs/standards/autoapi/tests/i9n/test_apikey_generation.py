@@ -30,7 +30,7 @@ async def test_api_key_creation_returns_raw_key(sync_db_session):
     transport = ASGITransport(app=app)
 
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        res = await client.post("/api_keys", json={"label": "test"})
+        res = await client.post("/api_key", json={"label": "test"})
 
     assert res.status_code == 201
     data = res.json()

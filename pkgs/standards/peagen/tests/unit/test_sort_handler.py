@@ -32,7 +32,6 @@ async def test_sort_handler_delegates(monkeypatch, tmp_path, project_name):
     task = build_task(
         action="sort",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",
