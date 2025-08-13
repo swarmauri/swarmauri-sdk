@@ -164,7 +164,7 @@ async def refresh(body: RefreshIn):
 # --------------------------------------------------------------------------
 #  API-key introspection – **does not** clash with /authn/api_keys CRUD
 # --------------------------------------------------------------------------
-@router.post("/apikeys/introspect", response_model=IntrospectOut)
+@router.post("/api_key/introspect", response_model=IntrospectOut)
 async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db)):
     try:
         principal, kind = await _api_backend.authenticate(db, body.api_key)

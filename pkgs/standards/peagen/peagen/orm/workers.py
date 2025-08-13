@@ -151,13 +151,13 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             tenant_id = await ctx["db"].run_sync(_tenant_id)
 
             svc_resp = await authn_adapter._client.post(
-                f"{base}/services",
+                f"{base}/service",
                 json={"name": f"worker-{created.id}", "tenant_id": tenant_id},
             )
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
             key_resp = await authn_adapter._client.post(
-                f"{base}/service_keys",
+                f"{base}/service_key",
                 json={
                     "service_id": service_id,
                     "label": "worker",
