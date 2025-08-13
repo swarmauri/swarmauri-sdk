@@ -259,15 +259,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(resource, v) for v in _allow_verbs})
+    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
-    flat_router = APIRouter(prefix=f"/{tab}", tags=[tab])
+    flat_router = APIRouter(prefix=f"/{tab}", tags=[resource])
     routers = (
         (flat_router,)
         if nested_pref is None
-        else (flat_router, APIRouter(prefix=nested_pref, tags=[f"nested-{tab}"]))
+        else (flat_router, APIRouter(prefix=nested_pref, tags=[f"nested-{resource}"]))
     )
 
     # ---------- RBAC guard -------------------------------------------
@@ -282,7 +282,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id_canon = _canonical(resource, verb)
+        m_id_canon = _canonical(tab, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -403,7 +403,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 # assemble RPC-style param dict
                 def _dump(obj):
                     if hasattr(obj, "model_dump"):
-                        return obj.model_dump(exclude_unset=True)
+                        return obj.model_dump(exclude_unset=True, exclude_none=True)
                     return obj
 
                 if verb in {
@@ -535,14 +535,15 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 self._schemas[canon] = s
                 setattr(self.schemas, canon, s)
 
-            # Preserve legacy nested access (api.schemas.User.create)
-            name = s.__name__
-            base = model.__name__
-            if not name.startswith(base):
-                base = resource
-            op = name[len(base) :]
-            op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
-            _attach(self.schemas, base, op, s)
+            if suffix != "RpcIn":
+                # Preserve legacy nested access (api.schemas.User.create)
+                name = s.__name__
+                base = model.__name__
+                if not name.startswith(base):
+                    base = resource
+                op = name[len(base) :]
+                op = re.sub(r"(?<!^)(?=[A-Z])", "_", op).lstrip("_").lower() or "base"
+                _attach(self.schemas, base, op, s)
 
         # JSON-RPC shim (single callable for this canonical op)
         rpc_fn = _wrap_rpc(core, rpc_in, Out, pk, model)
@@ -598,7 +599,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             def _build_args(_p):
                 def _dump(o):
                     return (
-                        o.model_dump(exclude_unset=True)
+                        o.model_dump(exclude_unset=True, exclude_none=True)
                         if hasattr(o, "model_dump")
                         else o
                     )
@@ -651,7 +652,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         pol = _alias_policy(model)
         pub = _public_verb(model, verb)
         if pub != verb and pol in ("both", "alias_only"):
-            m_id_alias = _canonical(resource, pub)
+            m_id_alias = _canonical(tab, pub)
             # Same rpc_fn handles alias
             self.rpc.add(m_id_alias, rpc_fn)
 
@@ -673,4 +674,4 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     self.router.include_router(flat_router)
     if len(routers) > 1:
         self.router.include_router(routers[1])
-    print(f"Routes registered for {tab}")
+    print(f"Routes registered for {resource}")
