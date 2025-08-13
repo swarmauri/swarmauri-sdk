@@ -191,20 +191,21 @@ class Task(
         cls._SCreate = get_schema(cls, "create")
         cls._SRead = get_schema(cls, "read")
         cls._SUpdate = get_schema(cls, "update")
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Task", op="create")(
+        model_name = cls.__name__
+        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="create")(
             cls._pre_create
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Task", op="update")(
+        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="update")(
             cls._pre_update
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Task", op="read")(cls._pre_read)
-        api.register_hook(Phase.POST_COMMIT, model="Task", op="create")(
+        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="read")(cls._pre_read)
+        api.register_hook(Phase.POST_COMMIT, model=model_name, op="create")(
             cls._post_create
         )
-        api.register_hook(Phase.POST_COMMIT, model="Task", op="update")(
+        api.register_hook(Phase.POST_COMMIT, model=model_name, op="update")(
             cls._post_update
         )
-        api.register_hook(Phase.POST_HANDLER, model="Task", op="read")(cls._post_read)
+        api.register_hook(Phase.POST_HANDLER, model=model_name, op="read")(cls._post_read)
 
 
 __all__ = ["Action", "SpecKind", "Task"]

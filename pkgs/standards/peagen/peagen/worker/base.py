@@ -138,7 +138,7 @@ class WorkerBase:
                 handlers={"handlers": list(self._handlers)},
             )
             created = self._client.call(
-                "Workers.create", params=payload.model_dump(mode="json")
+                "Worker.create", params=payload.model_dump(mode="json")
             )
             self.worker_id = created.get("id")
             api_key = created.get("api_key")
@@ -174,7 +174,7 @@ class WorkerBase:
                     advertises={"cpu": True},
                     handlers={"handlers": list(self._handlers)},
                 )  # last_seen handled server-side
-                self._client.call("Workers.update", params=upd.model_dump(mode="json"))
+                self._client.call("Worker.update", params=upd.model_dump(mode="json"))
                 self.log.debug("heartbeat ok")
             except Exception as exc:  # pragma: no cover
                 self.log.warning("heartbeat failed: %s", exc)
@@ -213,7 +213,7 @@ class WorkerBase:
     ) -> None:
         try:
             upd = SWorkUpdate(id=work_id, status=status, result=result)
-            self._client.call("Works.update", params=upd.model_dump(mode="json"))
-            self.log.info("Works.update %s → %s", work_id, status)
+            self._client.call("Work.update", params=upd.model_dump(mode="json"))
+            self.log.info("Work.update %s → %s", work_id, status)
         except Exception as exc:  # pragma: no cover
             self.log.error("notify failed: %s", exc)
