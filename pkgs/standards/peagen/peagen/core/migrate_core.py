@@ -25,6 +25,7 @@ _src_cfg = Path(__file__).resolve().parents[2] / "alembic.ini"
 _pkg_cfg = Path(__file__).resolve().parents[1] / "alembic.ini"
 ALEMBIC_CFG: Path = _src_cfg if _src_cfg.exists() else _pkg_cfg
 
+
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
@@ -46,13 +47,16 @@ def _run_alembic(
         ``{"ok": bool, "stdout": str, "stderr": str, "error": str | None}``
     """
     if stream:
-        proc = subprocess.Popen(
+        popen_kwargs: Dict[str, Any] = {}
+        if env is not None:
+            popen_kwargs["env"] = env
+        proc = subprocess.Popen(  # noqa: S603
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            env=env or None,
+            **popen_kwargs,
         )
 
         stdout_lines: List[str] = []
@@ -66,8 +70,12 @@ def _run_alembic(
             src.close()
 
         threads = [
-            threading.Thread(target=_pump, args=(proc.stdout, sys.stdout, stdout_lines)),
-            threading.Thread(target=_pump, args=(proc.stderr, sys.stderr, stderr_lines)),
+            threading.Thread(
+                target=_pump, args=(proc.stdout, sys.stdout, stdout_lines)
+            ),
+            threading.Thread(
+                target=_pump, args=(proc.stderr, sys.stderr, stderr_lines)
+            ),
         ]
         for t in threads:
             t.start()
@@ -79,27 +87,28 @@ def _run_alembic(
         stdout = "".join(stdout_lines)
         stderr = "".join(stderr_lines)
 
-        return (
-            {"ok": True, "stdout": stdout, "stderr": stderr, "error": None}
-            if proc.returncode == 0
-            else {
-                "ok": False,
-                "stdout": stdout,
-                "stderr": stderr,
-                "error": f"exit code {proc.returncode}",
-            }
-        )
+        if proc.returncode == 0:
+            return {"ok": True, "stdout": stdout, "stderr": stderr}
+        return {
+            "ok": False,
+            "stdout": stdout,
+            "stderr": stderr,
+            "error": f"exit code {proc.returncode}",
+        }
 
     # ------- capture-only branch ------------------------------------------
     try:
-        res = subprocess.run(
-            cmd,  # noqa: S603,S607
+        run_kwargs: Dict[str, Any] = {}
+        if env is not None:
+            run_kwargs["env"] = env
+        res = subprocess.run(  # noqa: S603,S607
+            cmd,
             check=True,
             capture_output=True,
             text=True,
-            env=env or None,
+            **run_kwargs,
         )
-        return {"ok": True, "stdout": res.stdout, "stderr": res.stderr, "error": None}
+        return {"ok": True, "stdout": res.stdout, "stderr": res.stderr}
     except subprocess.CalledProcessError as exc:  # noqa: BLE001
         return {
             "ok": False,
