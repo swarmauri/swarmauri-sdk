@@ -23,7 +23,7 @@ from peagen.handlers.sort_handler import sort_handler
 from peagen.cli.task_helpers import build_task, submit_task, get_task
 from peagen.orm import Status
 
-from peagen.defaults import DEFAULT_POOL_ID, DEFAULT_TENANT_ID
+from peagen.defaults import DEFAULT_POOL_ID
 
 # ────────────────────────── apps ───────────────────────────────
 local_sort_app = typer.Typer(help="Sort generated project files locally.")
@@ -82,7 +82,6 @@ def run_sort(  # noqa: PLR0913
     task = build_task(
         action="sort",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,
@@ -144,7 +143,6 @@ def submit_sort(  # noqa: PLR0913
     task = build_task(
         action="sort",
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo=repo,
         ref=ref,

@@ -10,11 +10,7 @@ import uuid
 import typer
 from peagen.handlers.init_handler import init_handler
 from peagen.plugins import discover_and_register_plugins
-from peagen.defaults import (
-    DEFAULT_TENANT_ID,
-    DEFAULT_POOL_ID,
-    DEFAULT_SUPER_USER_ID,
-)
+from peagen.defaults import DEFAULT_POOL_ID
 from peagen.orm import Action
 
 
@@ -50,11 +46,9 @@ def _call_handler(args: Dict[str, Any]) -> Dict[str, Any]:
     task = build_task(
         action=Action.FETCH,
         args=args,
-        tenant_id=str(DEFAULT_TENANT_ID),
         pool_id=str(DEFAULT_POOL_ID),
         repo="local",
         ref="HEAD",
-        owner_id=str(DEFAULT_SUPER_USER_ID),
     )
     task = task.model_copy(update={"id": str(_uuid_alias.uuid4())})
     return asyncio.run(init_handler(task))

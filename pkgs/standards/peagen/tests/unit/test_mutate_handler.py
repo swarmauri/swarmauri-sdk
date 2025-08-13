@@ -40,7 +40,6 @@ async def test_mutate_handler_invokes_core(monkeypatch):
     task = build_task(
         action="mutate",
         args=args,
-        tenant_id="t",
         pool_id="default",
         repo="repo",
         ref="HEAD",

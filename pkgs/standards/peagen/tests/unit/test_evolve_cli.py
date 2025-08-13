@@ -7,7 +7,6 @@ def test_build_task_payload():
     task = build_task(
         action="evolve",
         args={"evolve_spec": "foo.yaml"},
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

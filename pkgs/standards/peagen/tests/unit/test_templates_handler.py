@@ -33,7 +33,6 @@ async def test_templates_handler_dispatch(monkeypatch, op, func, args):
     task = build_task(
         action="templates",
         args=payload,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",

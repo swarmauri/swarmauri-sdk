@@ -29,7 +29,6 @@ async def test_init_handler_dispatch(monkeypatch, kind, func):
     task = build_task(
         action="init",
         args=args,
-        tenant_id="t",
         pool_id="p",
         repo="repo",
         ref="HEAD",
@@ -48,7 +47,6 @@ async def test_init_handler_errors(monkeypatch):
             build_task(
                 action="init",
                 args={},
-                tenant_id="t",
                 pool_id="p",
                 repo="repo",
                 ref="HEAD",
@@ -60,7 +58,6 @@ async def test_init_handler_errors(monkeypatch):
             build_task(
                 action="init",
                 args={"kind": "unknown"},
-                tenant_id="t",
                 pool_id="p",
                 repo="repo",
                 ref="HEAD",
