@@ -7,14 +7,15 @@ from ..types import Column, ForeignKey, PgUUID, declared_attr
 from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
+from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, TENANT_ID_KEY
 
 log = logging.getLogger(__name__)
 
 
 class TenantPolicy(str, Enum):
-    CLIENT_SET = "client"       # client may supply tenant_id on create/update
+    CLIENT_SET = "client"  # client may supply tenant_id on create/update
     DEFAULT_TO_CTX = "default"  # server fills tenant_id on create; immutable
-    STRICT_SERVER = "strict"    # server forces tenant_id and forbids changes
+    STRICT_SERVER = "strict"  # server forces tenant_id and forbids changes
 
 
 def _infer_schema(cls, default: str = "public") -> str:
@@ -88,8 +89,8 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @staticmethod
     def is_visible(obj, ctx) -> bool:
-        auto_fields = ctx.get("__autoapi_auth_context__", {})
-        ctx_tenant_id = auto_fields.get("tenant_id")
+        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
+        ctx_tenant_id = auto_fields.get(TENANT_ID_KEY)
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
     # -------------------------------------------------------------------
@@ -109,19 +110,21 @@ class TenantBound(_RowBound):
             if hasattr(params, "model_dump"):
                 # IMPORTANT: if you DON'T do #2 below, keep exclude_none=False here,
                 # and rely on _is_missing() to decide.
-                params = params.model_dump()  
+                params = params.model_dump()
 
-            auto_fields = ctx.get("__autoapi_injected_fields__", {})
-            print(f'\n🚧{auto_fields}')
-            injected_tid = auto_fields.get("tenant_id")
-            print(f'\n🚧🚧{injected_tid}')
+            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
+            print(f"\n🚧{auto_fields}")
+            injected_tid = auto_fields.get(TENANT_ID_KEY)
+            print(f"\n🚧🚧{injected_tid}")
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
-            print(f'\n🚧🚧🚧{provided}')
+            print(f"\n🚧🚧🚧{provided}")
             if cls.__autoapi_tenant_policy__ == TenantPolicy.STRICT_SERVER:
                 if injected_tid is None:
                     _err(400, "tenant_id is required.")
-                if not missing and _normalize_uuid(provided) != _normalize_uuid(injected_tid):
+                if not missing and _normalize_uuid(provided) != _normalize_uuid(
+                    injected_tid
+                ):
                     _err(400, "tenant_id mismatch.")
                 params["tenant_id"] = injected_tid
             else:
@@ -133,7 +136,7 @@ class TenantBound(_RowBound):
                     params["tenant_id"] = _normalize_uuid(provided)
 
             ctx["env"].params = params
-            print(f'\n🚧 tenantbound params: {ctx["env"].params}')
+            print(f"\n🚧 tenantbound params: {ctx['env'].params}")
 
         # UPDATE
         def _tenantbound_before_update(ctx, obj):
@@ -152,12 +155,14 @@ class TenantBound(_RowBound):
                 _err(400, "tenant_id is immutable.")
 
             new_val = _normalize_uuid(provided)
-            auto_fields = ctx.get("__autoapi_injected_fields__", {})
-            injected_tid = _normalize_uuid(auto_fields.get("tenant_id"))
+            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
+            injected_tid = _normalize_uuid(auto_fields.get(TENANT_ID_KEY))
 
             log.info(
                 "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
-                new_val, getattr(obj, "tenant_id", None), injected_tid,
+                new_val,
+                getattr(obj, "tenant_id", None),
+                injected_tid,
             )
 
             if (

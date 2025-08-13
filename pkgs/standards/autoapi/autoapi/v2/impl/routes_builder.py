@@ -290,6 +290,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             # For update/replace we want the verb-specific model (respects no_update flags)
             rpc_in = _schema(model, verb=verb)
 
+        # Route label (name/summary) using alias policy
+        _route_label(resource, verb, model)
+
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
         ):
