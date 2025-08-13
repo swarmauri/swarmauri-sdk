@@ -32,6 +32,7 @@ TAB_LEVEL_CFGS: set[str] = {
     "__autoapi_allow_anon__",
     "__autoapi_verb_aliases__",
     "__autoapi_verb_alias_policy__",
+    "__autoapi_security_deps__",
 }
 
 # Routing configuration attributes
