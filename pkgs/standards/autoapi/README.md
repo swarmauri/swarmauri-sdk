@@ -28,7 +28,8 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 ## Configuration Overview
 
 ### Table-Level
-- `__autoapi_request_extras__` – verb-scoped virtual fields.
+- `__autoapi_request_extras__` – verb-scoped virtual request fields.
+- `__autoapi_response_extras__` – verb-scoped virtual response fields.
 - `__autoapi_register_hooks__` – hook registration entry point.
 - `__autoapi_nested_paths__` – nested REST path segments.
 - `__autoapi_allow_anon__` – verbs permitted without auth.

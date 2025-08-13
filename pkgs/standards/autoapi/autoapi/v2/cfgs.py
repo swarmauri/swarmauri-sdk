@@ -24,6 +24,7 @@ COL_LEVEL_CFGS: set[str] = {
 # Table-level configuration attributes on ORM classes
 TAB_LEVEL_CFGS: set[str] = {
     "__autoapi_request_extras__",
+    "__autoapi_response_extras__",
     "__autoapi_register_hooks__",
     "__autoapi_owner_policy__",
     "__autoapi_tenant_policy__",
