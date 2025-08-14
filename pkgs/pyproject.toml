@@ -75,7 +75,9 @@ members = [
     "standards/autoapi_client",
     "standards/peagen",
     "standards/auto_authn",
-    "standards/swarmauri_secret_autogpg",
+    "standards/swarmauri_crypto_paramiko",
+    "standards/swarmauri_crypto_pgp",
+    "standards/swarmauri_secret_autogpg",    
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
@@ -194,6 +196,9 @@ autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 peagen = { workspace = true }
 swarmauri_secret_autogpg = { workspace = true }
+
+swarmauri_crypto_paramiko = { workspace = true }
+swarmauri_crypto_pgp = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
