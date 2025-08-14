@@ -68,6 +68,13 @@ To run the API locally with Uvicorn:
 uvicorn auto_authn.v2.app:app --reload
 ```
 
+## v3 Layout
+
+The `auto_authn.v3` module mirrors the directory structure of `autoapi.v3`,
+re-exporting existing v2 components under `config`, `core`, and `bindings`
+namespaces. This alignment enables projects using AutoAPI v3 to adopt the
+authentication package without rewriting imports.
+
 The service exposes an OpenID Connect discovery document at
 `/.well-known/openid-configuration` and publishes its JSON Web Key Set at
 `/.well-known/jwks.json`.
