@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from fastapi import FastAPI
 from autoapi.v2 import AutoAPI, Phase
 from autoapi.v2.tables import Base
@@ -9,28 +7,8 @@ from autoapi.v2.tables import Base
 from .tables.key import Key
 from .tables.key_version import KeyVersion
 
-
-try:
-    from swarmauri_secret_autogpg import AutoGpgSecretDrive
-except Exception:
-    AutoGpgSecretDrive = None
-
-try:
-    from swarmauri_crypto_paramiko import ParamikoCrypto
-except Exception:
-    ParamikoCrypto = None
-
-
-def _secrets_driver_factory() -> Any:
-    if AutoGpgSecretDrive is None:
-        raise RuntimeError("AutoGpgSecretDrive not available")
-    return AutoGpgSecretDrive()
-
-
-def _crypto_plugin_factory() -> Any:
-    if ParamikoCrypto is None:
-        raise RuntimeError("ParamikoCrypto not available")
-    return ParamikoCrypto()
+from swarmauri_secret_autogpg import AutoGpgSecretDrive
+from swarmauri_crypto_paramiko import ParamikoCrypto
 
 
 # Build AutoAPI and mount on FastAPI app
@@ -43,8 +21,15 @@ api = AutoAPI(
 
 @api.register_hook(Phase.PRE_TX_BEGIN)
 async def _stash_ctx(ctx):
-    ctx["_kms_secrets"] = _secrets_driver_factory()
-    ctx["_kms_crypto"] = _crypto_plugin_factory()
+    global SECRETS, CRYPTO
+    try:
+        SECRETS
+        CRYPTO
+    except NameError:
+        SECRETS = AutoGpgSecretDrive()
+        CRYPTO = ParamikoCrypto()
+    ctx["_kms_secrets"] = SECRETS
+    ctx["_kms_crypto"] = CRYPTO
 
 
 @api.register_hook(Phase.POST_RESPONSE)
