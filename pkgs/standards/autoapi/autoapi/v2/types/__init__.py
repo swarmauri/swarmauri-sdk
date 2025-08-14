@@ -69,6 +69,10 @@ from .response_extras_provider import (
     ResponseExtrasProvider,
     list_response_extras_providers,
 )
+from .security_deps_provider import (
+    SecurityDepsProvider,
+    list_security_deps_providers,
+)
 
 from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
 
@@ -96,6 +100,7 @@ __all__: list[str] = [
     "AllowAnonProvider",
     "RequestExtrasProvider",
     "ResponseExtrasProvider",
+    "SecurityDepsProvider",
     # builtin types
     "MethodType",
     "SimpleNamespace",
@@ -158,4 +163,5 @@ __all__ += [
     "list_verb_alias_providers",
     "list_request_extras_providers",
     "list_response_extras_providers",
+    "list_security_deps_providers",
 ]
