@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v2.types import Column, String, SAEnum
+from autoapi.v2.types import Column, String, SAEnum, Integer, relationship
 from autoapi.v2.tables import Base
 from autoapi.v2.mixins import GUIDPk, Timestamped
 
@@ -11,7 +11,9 @@ class Key(Base, GUIDPk, Timestamped):
     name = Column(String(120), nullable=False, index=True)
     algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg"), nullable=False)
     status = Column(SAEnum("enabled", name="KeyStatus"), nullable=False)
-    primary_version = Column(int, default=1, nullable=False)
+    primary_version = Column(Integer, default=1, nullable=False)
+
+    versions = relationship("KeyVersion", back_populates="key", lazy="selectin")
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:

@@ -11,11 +11,32 @@ from swarmauri_secret_autogpg import AutoGpgSecretDrive
 from swarmauri_crypto_paramiko import ParamikoCrypto
 
 
-# Build AutoAPI and mount on FastAPI app
+# app.py (top-level)
+import os
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
+
+engine = create_async_engine(DB_URL, future=True, echo=False)
+AsyncSessionLocal = async_sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
+)
+
+
+async def get_async_db():
+    async with AsyncSessionLocal() as s:
+        try:
+            yield s
+        finally:
+            await s.close()
+
+
+# when constructing AutoAPI:
 api = AutoAPI(
     base=Base,
     include={Key, KeyVersion},
     prefix="/kms",
+    get_async_db=get_async_db,  # <- add this
 )
 
 
