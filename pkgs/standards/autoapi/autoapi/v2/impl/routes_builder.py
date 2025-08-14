@@ -19,7 +19,9 @@ from sqlalchemy.orm import Session
 from ..types import APIRouter, Depends, Request, Path, Body
 from ..types.op_config_provider import should_wire_canonical
 from ..naming import (
+    alias_policy,
     canonical_name,
+    public_verb,
     route_label,
     snake_to_camel,
 )
@@ -74,56 +76,6 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
         return cls
 
     return base  # primitive / dict / etc.
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Verb aliasing (RPC exposure + helper names; REST paths unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
-
-_VALID_VERBS = {
-    "create",
-    "read",
-    "update",
-    "delete",
-    "list",
-    "clear",
-    "replace",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_delete",
-}
-
-_alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
-
-
-def _get_verb_alias_map(model) -> dict[str, str]:
-    raw = getattr(model, "__autoapi_verb_aliases__", None)
-    if callable(raw):
-        raw = raw()
-    return dict(raw or {})
-
-
-def _alias_policy(model) -> str:
-    # "both" | "alias_only" | "canonical_only"
-    return getattr(model, "__autoapi_verb_alias_policy__", "both")
-
-
-def _public_verb(model, canonical: str) -> str:
-    ali = _get_verb_alias_map(model).get(canonical)
-    if not ali or ali == canonical:
-        return canonical
-    if canonical not in _VALID_VERBS:
-        raise RuntimeError(f"{model.__name__}: unsupported verb {canonical!r}")
-    if not _alias_re.match(ali):
-        raise RuntimeError(
-            f"{model.__name__}.__autoapi_verb_aliases__: bad alias {ali!r} for {canonical!r} "
-            "(must be lowercase [a-z0-9_], start with a letter)"
-        )
-    return ali
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
@@ -276,7 +228,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # Route label (name/summary) using alias policy
         label = route_label(
-            resource, verb, _alias_policy(model), _public_verb(model, verb)
+            resource, verb, alias_policy(model), public_verb(model, verb)
         )
 
         def _factory(
@@ -626,8 +578,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         # OpSpecs
 
         # # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
-        # pol = _alias_policy(model)
-        # pub = _public_verb(model, verb)
+        # pol = alias_policy(model)
+        # pub = public_verb(model, verb)
         # if pub != verb and pol in ("both", "alias_only"):
         #     m_id_alias = _canonical(tab, pub)
         #     # Same rpc_fn handles alias
