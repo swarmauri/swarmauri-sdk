@@ -4,10 +4,9 @@ from uuid import UUID
 
 from ._RowBound import _RowBound
 from ..types import Column, ForeignKey, PgUUID, declared_attr
-from ..hooks import Phase
-from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
-from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, TENANT_ID_KEY
+from ..config.constants import CTX_TENANT_ID_KEY
+from ..impl.runtime.errors import create_standardized_error_from_status
 
 log = logging.getLogger(__name__)
 
@@ -89,8 +88,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @staticmethod
     def is_visible(obj, ctx) -> bool:
-        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
-        ctx_tenant_id = auto_fields.get(TENANT_ID_KEY)
+        ctx_tenant_id = ctx.get(CTX_TENANT_ID_KEY)
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
     # -------------------------------------------------------------------
@@ -101,7 +99,7 @@ class TenantBound(_RowBound):
         pol = cls.__autoapi_tenant_policy__
 
         def _err(code: int, msg: str):
-            http_exc, _, _ = create_standardized_error(code, message=msg)
+            http_exc, _, _ = create_standardized_error_from_status(code, message=msg)
             raise http_exc
 
         # INSERT
@@ -112,9 +110,7 @@ class TenantBound(_RowBound):
                 # and rely on _is_missing() to decide.
                 params = params.model_dump()
 
-            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
-            print(f"\n🚧{auto_fields}")
-            injected_tid = auto_fields.get(TENANT_ID_KEY)
+            injected_tid = ctx.get(CTX_TENANT_ID_KEY)
             print(f"\n🚧🚧{injected_tid}")
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
@@ -155,8 +151,7 @@ class TenantBound(_RowBound):
                 _err(400, "tenant_id is immutable.")
 
             new_val = _normalize_uuid(provided)
-            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
-            injected_tid = _normalize_uuid(auto_fields.get(TENANT_ID_KEY))
+            injected_tid = _normalize_uuid(ctx.get(CTX_TENANT_ID_KEY))
 
             log.info(
                 "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
@@ -173,9 +168,9 @@ class TenantBound(_RowBound):
                 _err(403, "Cannot switch tenant context.")
 
         # Register hooks
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+        api.register_hook(model=cls, phase="PRE_TX_BEGIN", op="create")(
             _tenantbound_before_create
         )
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+        api.register_hook(model=cls, phase="PRE_TX_BEGIN", op="update")(
             _tenantbound_before_update
         )

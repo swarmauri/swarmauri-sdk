@@ -2,11 +2,10 @@ from enum import Enum
 import logging
 from uuid import UUID
 
-from ..hooks import Phase
-from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
-from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, USER_ID_KEY
+from ..config.constants import CTX_USER_ID_KEY
+from ..impl.runtime.errors import create_standardized_error_from_status
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class Ownable:
         pol = cls.__autoapi_owner_policy__
 
         def _err(status: int, msg: str):
-            http_exc, _, _ = create_standardized_error(status, message=msg)
+            http_exc, _, _ = create_standardized_error_from_status(status, message=msg)
             raise http_exc
 
         def _ownable_before_create(ctx):
@@ -82,16 +81,14 @@ class Ownable:
                 # keep None so we can treat it as "missing" explicitly
                 params = params.model_dump()
 
-            auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
-            user_id = auto_fields.get(USER_ID_KEY)
+            user_id = ctx.get(CTX_USER_ID_KEY)
             provided = params.get("owner_id")
             missing = _is_missing(provided)
 
             log.info(
-                "Ownable before_create policy=%s params=%s auto_fields=%s",
+                "Ownable before_create policy=%s params=%s",
                 pol,
                 params,
-                auto_fields,
             )
 
             if pol == OwnerPolicy.STRICT_SERVER:
@@ -126,8 +123,7 @@ class Ownable:
                 _err(400, "owner_id is immutable.")
 
             new_val = _normalize_uuid(params["owner_id"])
-            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
-            user_id = _normalize_uuid(auto_fields.get(USER_ID_KEY))
+            user_id = _normalize_uuid(ctx.get(CTX_USER_ID_KEY))
 
             log.info(
                 "Ownable before_update new_val=%s obj_owner=%s injected=%s",
@@ -142,9 +138,9 @@ class Ownable:
             ):
                 _err(403, "Cannot transfer ownership.")
 
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
+        api.register_hook(model=cls, phase="PRE_TX_BEGIN", op="create")(
             _ownable_before_create
         )
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
+        api.register_hook(model=cls, phase="PRE_TX_BEGIN", op="update")(
             _ownable_before_update
         )
