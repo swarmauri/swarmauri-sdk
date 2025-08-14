@@ -22,6 +22,7 @@ from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+from ..naming import canonical, route_label, snake_to_pascal
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,22 +66,6 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
         return cls
 
     return base  # primitive / dict / etc.
-
-
-def _canonical(tab: str, verb: str) -> str:
-    """Return canonical RPC method name."""
-    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
-    name = f"{cls_name}.{verb}"
-    print(f"_canonical generated {name}")
-    return name
-
-
-def _resource_pascal(tab_or_cls: str) -> str:
-    return (
-        "".join(w.title() for w in tab_or_cls.split("_"))
-        if tab_or_cls.islower()
-        else tab_or_cls
-    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -128,19 +113,6 @@ def _public_verb(model, canonical: str) -> str:
             "(must be lowercase [a-z0-9_], start with a letter)"
         )
     return ali
-
-
-def _route_label(resource_name: str, verb: str, model) -> str:
-    """Return '{Resource} - {verb/alias}' per policy."""
-    pol = _alias_policy(model)
-    pub = _public_verb(model, verb)
-    if pol == "alias_only" and pub != verb:
-        lab = pub
-    elif pol == "both" and pub != verb:
-        lab = f"{verb}/{pub}"
-    else:
-        lab = verb
-    return f"{_resource_pascal(resource_name)} - {lab}"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -259,7 +231,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    self._allow_anon.update({canonical(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
@@ -282,7 +254,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id_canon = _canonical(tab, verb)
+        m_id_canon = canonical(tab, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -292,7 +264,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             rpc_in = _schema(model, verb=verb, exclude={pk})
 
         # Route label (name/summary) using alias policy
-        _route_label(resource, verb, model)
+        _label = route_label(
+            resource, verb, _alias_policy(model), _public_verb(model, verb)
+        )
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
@@ -519,18 +493,16 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
-                name=_route_label(
-                    resource, verb, model
-                ),  # ← route name reflects alias policy
-                summary=_route_label(resource, verb, model),  # ← docs summary ditto
+                name=_label,  # ← route name reflects alias policy
+                summary=_label,  # ← docs summary ditto
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
-        verb_camel = "".join(w.title() for w in verb.split("_"))
+        verb_pascal = snake_to_pascal(verb)
         for s, suffix in ((In, "In"), (Out, "Out"), (rpc_in, "RpcIn")):
             if not isinstance(s, type) or s is dict:
                 continue
-            canon = f"{resource}{verb_camel}{suffix}"
+            canon = f"{resource}{verb_pascal}{suffix}"
             if canon not in self._schemas:
                 self._schemas[canon] = s
                 setattr(self.schemas, canon, s)
@@ -569,7 +541,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             return _runner
 
         # Register canonical
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
+        camel = f"{resource}{snake_to_pascal(verb)}"
         _runner_canon = _make_runner(m_id_canon)
         self._method_ids[m_id_canon] = _runner_canon
         setattr(self.core, camel, core)
@@ -642,11 +614,11 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         pol = _alias_policy(model)
         pub = _public_verb(model, verb)
         if pub != verb and pol in ("both", "alias_only"):
-            m_id_alias = _canonical(tab, pub)
+            m_id_alias = canonical(tab, pub)
             # Same rpc_fn handles alias
             self.rpc.add(m_id_alias, rpc_fn)
 
-            alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
+            alias_camel = f"{resource}{snake_to_pascal(pub)}"
             _runner_alias = _make_runner(m_id_alias)
             self._method_ids[m_id_alias] = _runner_alias
 
