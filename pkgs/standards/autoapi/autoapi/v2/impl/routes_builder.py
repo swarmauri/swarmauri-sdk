@@ -18,6 +18,11 @@ from sqlalchemy.orm import Session
 
 from ..types import APIRouter, Depends, Request, Path, Body
 from ..types.op_config_provider import should_wire_canonical
+from ..naming import (
+    canonical_name,
+    route_label,
+    snake_to_camel,
+)
 
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
@@ -71,22 +76,6 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
     return base  # primitive / dict / etc.
 
 
-def _canonical(tab: str, verb: str) -> str:
-    """Return canonical RPC method name."""
-    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
-    name = f"{cls_name}.{verb}"
-    print(f"_canonical generated {name}")
-    return name
-
-
-def _resource_pascal(tab_or_cls: str) -> str:
-    return (
-        "".join(w.title() for w in tab_or_cls.split("_"))
-        if tab_or_cls.islower()
-        else tab_or_cls
-    )
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Verb aliasing (RPC exposure + helper names; REST paths unchanged)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -132,19 +121,6 @@ def _public_verb(model, canonical: str) -> str:
             "(must be lowercase [a-z0-9_], start with a letter)"
         )
     return ali
-
-
-def _route_label(resource_name: str, verb: str, model) -> str:
-    """Return '{Resource} - {verb/alias}' per policy."""
-    pol = _alias_policy(model)
-    pub = _public_verb(model, verb)
-    if pol == "alias_only" and pub != verb:
-        lab = pub
-    elif pol == "both" and pub != verb:
-        lab = f"{verb}/{pub}"
-    else:
-        lab = verb
-    return f"{_resource_pascal(resource_name)} - {lab}"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -266,7 +242,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    self._allow_anon.update({canonical_name(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
@@ -289,7 +265,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id_canon = _canonical(tab, verb)
+        m_id_canon = canonical_name(tab, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -299,7 +275,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             rpc_in = _schema(model, verb=verb, exclude={pk})
 
         # Route label (name/summary) using alias policy
-        _route_label(resource, verb, model)
+        label = route_label(
+            resource, verb, _alias_policy(model), _public_verb(model, verb)
+        )
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
@@ -526,14 +504,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
-                name=_route_label(
-                    resource, verb, model
-                ),  # ← route name reflects alias policy
-                summary=_route_label(resource, verb, model),  # ← docs summary ditto
+                name=label,  # ← route name reflects alias policy
+                summary=label,  # ← docs summary ditto
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
-        verb_camel = "".join(w.title() for w in verb.split("_"))
+        verb_camel = snake_to_camel(verb)
         for s, suffix in ((In, "In"), (Out, "Out"), (rpc_in, "RpcIn")):
             if not isinstance(s, type) or s is dict:
                 continue
@@ -576,7 +552,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             return _runner
 
         # Register canonical
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
+        camel = f"{resource}{snake_to_camel(verb)}"
         _runner_canon = _make_runner(m_id_canon)
         self._method_ids[m_id_canon] = _runner_canon
         setattr(self.core, camel, core)
@@ -646,7 +622,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _attach(self.core_raw, resource, verb, _core_raw)
 
         # -------------------------------------------------------------------------------
-        # This block is being commented out in support of using verb aliasing via 
+        # This block is being commented out in support of using verb aliasing via
         # OpSpecs
 
         # # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────

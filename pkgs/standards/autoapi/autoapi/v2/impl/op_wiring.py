@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import inspect
 from types import SimpleNamespace
-from typing import Any, Iterable, List, Optional, Type, Annotated
+from typing import Any, List, Type, Annotated
 
 from fastapi import Depends, Request, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,8 +17,7 @@ from ..mixins import AsyncCapable
 from ..ops.spec import OpSpec
 from ..ops.registry import get_registered_ops
 from ..types.op_config_provider import OpConfigProvider
-from ..types.op_verb_alias_provider import OpVerbAliasProvider  # back-compat
-from ..hooks import Phase
+from ..naming import snake_to_camel
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -36,9 +35,20 @@ def _attach_ns(root: Any, resource: str, name: str, fn: Any) -> None:
 # Spec collection (class attr → decorators → registry → legacy alias map)
 # ──────────────────────────────────────────────────────────────────────────────
 def _arity_for(target: str) -> str:
-    return "collection" if target in {
-        "create", "list", "bulk_create", "bulk_update", "bulk_replace", "bulk_delete", "clear"
-    } else "member"
+    return (
+        "collection"
+        if target
+        in {
+            "create",
+            "list",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_delete",
+            "clear",
+        }
+        else "member"
+    )
 
 
 def collect_all_specs_for_table(table: Type) -> List[OpSpec]:
@@ -50,7 +60,10 @@ def collect_all_specs_for_table(table: Type) -> List[OpSpec]:
 
     # 2) method decorators (custom_op)
     for name in dir(table):
-        meth = getattr(table, name, None)
+        try:
+            meth = getattr(table, name, None)
+        except Exception:
+            continue
         tag: OpSpec | None = getattr(meth, "__autoapi_custom_op__", None)
         if tag:
             out.append(OpSpec(**{**tag.__dict__, "table": table, "handler": meth}))
@@ -59,12 +72,23 @@ def collect_all_specs_for_table(table: Type) -> List[OpSpec]:
     out.extend(get_registered_ops(table))
 
     # 4) back-compat: __autoapi_verb_aliases__ → specs (RPC/method aliases only)
-    if issubclass(table, OpVerbAliasProvider):
-        raw = getattr(table, "__autoapi_verb_aliases__", {}) or {}
-        if callable(raw):
-            raw = raw()
-        for tgt, alias in dict(raw).items():
-            out.append(OpSpec(alias=alias, target=tgt, table=table, expose_routes=False))
+    raw = getattr(table, "__autoapi_verb_aliases__", {}) or {}
+    policy = getattr(table, "__autoapi_verb_alias_policy__", "both")
+    if callable(raw):
+        raw = raw()
+    for tgt, alias in dict(raw).items():
+        if policy == "canonical_only":
+            continue
+        out.append(
+            OpSpec(
+                alias=alias,
+                target=tgt,
+                table=table,
+                expose_routes=False,
+                expose_rpc=True,
+                expose_method=True,
+            )
+        )
 
     # Fill defaults & light de-dupe by (alias, target)
     seen: set[tuple[str, str]] = set()
@@ -74,14 +98,27 @@ def collect_all_specs_for_table(table: Type) -> List[OpSpec]:
         if key in seen:
             continue
         seen.add(key)
-        final.append(OpSpec(
-            alias=s.alias, target=s.target, table=table,
-            expose_routes=s.expose_routes, expose_rpc=s.expose_rpc, expose_method=s.expose_method,
-            arity=s.arity or _arity_for(s.target), persist=s.persist, returns=s.returns,
-            handler=s.handler, request_model=s.request_model, response_model=s.response_model,
-            http_methods=s.http_methods, path_suffix=s.path_suffix, tags=s.tags,
-            rbac_guard_op=s.rbac_guard_op or s.target, hooks=s.hooks,
-        ))
+        final.append(
+            OpSpec(
+                alias=s.alias,
+                target=s.target,
+                table=table,
+                expose_routes=s.expose_routes,
+                expose_rpc=s.expose_rpc,
+                expose_method=s.expose_method,
+                arity=s.arity or _arity_for(s.target),
+                persist=s.persist,
+                returns=s.returns,
+                handler=s.handler,
+                request_model=s.request_model,
+                response_model=s.response_model,
+                http_methods=s.http_methods,
+                path_suffix=s.path_suffix,
+                tags=s.tags,
+                rbac_guard_op=s.rbac_guard_op or s.target,
+                hooks=s.hooks,
+            )
+        )
     return final
 
 
@@ -92,9 +129,16 @@ def _http_methods(spec: OpSpec) -> list[str]:
     if spec.http_methods:
         return list(spec.http_methods)
     return {
-        "read": ["GET"], "list": ["GET"], "delete": ["DELETE"],
-        "update": ["PATCH"], "replace": ["PUT"], "create": ["POST"],
-        "bulk_create": ["POST"], "bulk_update": ["PATCH"], "bulk_replace": ["PUT"], "bulk_delete": ["DELETE"],
+        "read": ["GET"],
+        "list": ["GET"],
+        "delete": ["DELETE"],
+        "update": ["PATCH"],
+        "replace": ["PUT"],
+        "create": ["POST"],
+        "bulk_create": ["POST"],
+        "bulk_update": ["PATCH"],
+        "bulk_replace": ["PUT"],
+        "bulk_delete": ["DELETE"],
         "clear": ["DELETE"],
     }.get(spec.target, ["POST"])
 
@@ -114,16 +158,22 @@ def _rest_path(table: Type, spec: OpSpec) -> str:
 
 def _in_model(table: Type, spec: OpSpec):
     # For canonical targets, reuse their input schemas; for custom default to create's shape unless overridden
-    return spec.request_model or _schema(table, verb=(spec.target if spec.target != "custom" else "create"))
+    return spec.request_model or _schema(
+        table, verb=(spec.target if spec.target != "custom" else "create")
+    )
 
 
 def _out_model(table: Type, spec: OpSpec):
     if spec.returns == "raw":
         return spec.response_model or None
-    if spec.target == "create":  # canonical create often uses 201 + body-less response_model
+    if (
+        spec.target == "create"
+    ):  # canonical create often uses 201 + body-less response_model
         return spec.response_model or None
     # default to canonical target (delete returns read_out for parity unless overridden)
-    return spec.response_model or _schema(table, verb=("read" if spec.target == "delete" else spec.target))
+    return spec.response_model or _schema(
+        table, verb=("read" if spec.target == "delete" else spec.target)
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -144,9 +194,17 @@ def attach_op_specs(api, router, table: Type) -> None:
     pk_type = getattr(pk_col.type, "python_type", str)
 
     # detect sync/async DB mode identical to routes_builder
-    is_async = (bool(api.get_async_db) if api.get_db is None else issubclass(table, AsyncCapable))
+    is_async = (
+        bool(api.get_async_db)
+        if api.get_db is None
+        else issubclass(table, AsyncCapable)
+    )
     provider = api.get_async_db if is_async else api.get_db
-    DBDep = Annotated[AsyncSession, Depends(provider)] if is_async else Annotated[Session, Depends(provider)]
+    DBDep = (
+        Annotated[AsyncSession, Depends(provider)]
+        if is_async
+        else Annotated[Session, Depends(provider)]
+    )
 
     # authz guard (re-use same pattern as routes_builder)
     def _guard(scope: str):
@@ -154,16 +212,15 @@ def attach_op_specs(api, router, table: Type) -> None:
             if api._authorize and not api._authorize(scope, request):
                 http_exc, _, _ = create_standardized_error(403, rpc_code=-32095)
                 raise http_exc
+
         return Depends(inner)
 
     resource_name = table.__name__
 
     for spec in specs:
         # Ensure RPC method exists for this alias/custom BEFORE wiring the route & runners
-        verb_camel = "".join(w.title() for w in (spec.alias if spec.target == "custom" else spec.alias).split("_"))
-        target_camel = "".join(w.title() for w in spec.target.split("_"))
-        alias_mid = f"{resource_name}.{verb_camel}"
-        canon_mid = f"{resource_name}.{target_camel}"
+        alias_mid = f"{resource_name}.{spec.alias}"
+        canon_mid = f"{resource_name}.{spec.target}"
 
         if spec.expose_rpc:
             if spec.target == "custom" and spec.handler:
@@ -194,27 +251,49 @@ def attach_op_specs(api, router, table: Type) -> None:
 
             # Build endpoint signature: (request[, item_id][, p], db)
             params: list[inspect.Parameter] = [
-                inspect.Parameter("request", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=Request)
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                )
             ]
 
             if "{item_id}" in path:
                 params.append(
-                    inspect.Parameter("item_id", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                                      annotation=Annotated[pk_type, Path(...)]))
+                    inspect.Parameter(
+                        "item_id",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[pk_type, Path(...)],
+                    )
+                )
 
             needs_query = spec.target == "list"
-            needs_body = (In is not None) and (spec.target not in {"read", "delete", "clear", "list"})
+            needs_body = (In is not None) and (
+                spec.target not in {"read", "delete", "clear", "list"}
+            )
 
             if needs_query:
                 params.append(
-                    inspect.Parameter("p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                                      annotation=Annotated[In, Depends()]))
+                    inspect.Parameter(
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[In, Depends()],
+                    )
+                )
             elif needs_body:
                 params.append(
-                    inspect.Parameter("p", inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                                      annotation=Annotated[In, Body(embed=False)]))
+                    inspect.Parameter(
+                        "p",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[In, Body(embed=False)],
+                    )
+                )
 
-            params.append(inspect.Parameter("db", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=DBDep))
+            params.append(
+                inspect.Parameter(
+                    "db", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=DBDep
+                )
+            )
 
             async def _impl(**kw):
                 req: Request = kw.pop("request")
@@ -232,10 +311,19 @@ def attach_op_specs(api, router, table: Type) -> None:
                     req.state.ctx["__autoapi_skip_persist__"] = True
 
                 def _dump(obj):
-                    return obj.model_dump(exclude_unset=True, exclude_none=True) if hasattr(obj, "model_dump") else obj
+                    return (
+                        obj.model_dump(exclude_unset=True, exclude_none=True)
+                        if hasattr(obj, "model_dump")
+                        else obj
+                    )
 
                 # Build RPC params mirroring routes_builder
-                if spec.target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_delete"}:
+                if spec.target in {
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                    "bulk_delete",
+                }:
                     rpc_params = [_dump(x) for x in (p or [])]
                 elif spec.target == "read":
                     rpc_params = {pk_name: item_id}
@@ -251,31 +339,53 @@ def attach_op_specs(api, router, table: Type) -> None:
                     rpc_params = _dump(p)
                 else:
                     # custom; member gets id alongside payload
-                    rpc_params = ({pk_name: item_id, **(_dump(p) if p else {})}
-                                  if "{item_id}" in path else (_dump(p) if p else {}))
+                    rpc_params = (
+                        {pk_name: item_id, **(_dump(p) if p else {})}
+                        if "{item_id}" in path
+                        else (_dump(p) if p else {})
+                    )
 
-                env = _RPCReq(id=None, method=(alias_mid if spec.target == "custom" else alias_mid), params=rpc_params)
+                env = _RPCReq(
+                    id=None,
+                    method=(alias_mid if spec.target == "custom" else alias_mid),
+                    params=rpc_params,
+                )
                 ctx = {"request": req, "db": db, "env": env, "params": env.params}
                 ctx.update(getattr(req.state, "ctx", {}))
 
                 # Per-verb pre-hooks
-                for h in sorted([x for x in spec.hooks if x.phase.name == "PRE_TX_BEGIN"], key=lambda x: x.order):
+                for h in sorted(
+                    [x for x in spec.hooks if x.phase.name == "PRE_TX_BEGIN"],
+                    key=lambda x: x.order,
+                ):
                     if h.when is None or h.when(ctx):
                         await h.fn(table=table, ctx=ctx, db=db, request=req, payload=p)
 
                 # Execute via same _invoke engine as canonical endpoints
                 if isinstance(db, AsyncSession):
+
                     def exec_fn(_m, _p, _db=db):
                         return _db.run_sync(lambda s: api.rpc[_m](_p, s))
                 else:
+
                     def exec_fn(_m, _p, _db=db):
                         return api.rpc[_m](_p, _db)
 
-                result = await _invoke(api, alias_mid if spec.expose_rpc else (canon_mid if spec.target != "custom" else alias_mid),
-                                       params=rpc_params, ctx=ctx, exec_fn=exec_fn)
+                result = await _invoke(
+                    api,
+                    alias_mid
+                    if spec.expose_rpc
+                    else (canon_mid if spec.target != "custom" else alias_mid),
+                    params=rpc_params,
+                    ctx=ctx,
+                    exec_fn=exec_fn,
+                )
 
                 # Per-verb post-hooks
-                for h in sorted([x for x in spec.hooks if x.phase.name == "POST_TX_END"], key=lambda x: x.order):
+                for h in sorted(
+                    [x for x in spec.hooks if x.phase.name == "POST_TX_END"],
+                    key=lambda x: x.order,
+                ):
                     if h.when is None or h.when(ctx):
                         await h.fn(table=table, ctx=ctx, db=db, request=req, payload=p)
 
@@ -287,7 +397,9 @@ def attach_op_specs(api, router, table: Type) -> None:
             wrapped.__signature__ = inspect.Signature(parameters=params)
 
             # deps (authn + rbac)
-            guard_scope = f"{resource_name}.{''.join(w.title() for w in (spec.rbac_guard_op or spec.target).split('_'))}"
+            guard_scope = (
+                f"{resource_name}.{snake_to_camel(spec.rbac_guard_op or spec.target)}"
+            )
             deps = [_guard(guard_scope)]
             if guard_scope not in api._allow_anon:
                 deps.insert(0, api._authn_dep)
@@ -305,6 +417,7 @@ def attach_op_specs(api, router, table: Type) -> None:
 
         # In-process method runners (api.methods.Resource.<alias>) + convenience core callable
         if spec.expose_method:
+
             def _make_runner(method_id: str):
                 def _runner(payload, *, db=None, _method=method_id, _api=api):
                     """
@@ -327,28 +440,18 @@ def attach_op_specs(api, router, table: Type) -> None:
                                 pass
                     else:
                         return _api.rpc[_method](payload, db)
+
                 return _runner
 
             runner = _make_runner(alias_mid if spec.target == "custom" else alias_mid)
             api._method_ids[alias_mid] = runner
             _attach_ns(api.methods, resource_name, spec.alias, runner)
 
-            # Also attach a flat convenience on api.core: ResourceAlias(payload, db=...)
-            async def _core_callable(payload, *, db=None, _mid=alias_mid, _api=api):
-                if db is None:
-                    if _api.get_db is None:
-                        raise TypeError(
-                            "core callable requires db=... when get_db is not configured"
-                        )
-                    gen = _api.get_db()
-                    s = next(gen)
-                    try:
-                        return _api.rpc[_mid](payload, s)
-                    finally:
-                        try:
-                            next(gen)
-                        except StopIteration:
-                            pass
-                return _api.rpc[_mid](payload, db)
-
-            setattr(api.core, f"{resource_name}{''.join(w.title() for w in spec.alias.split('_'))}", _core_callable)
+            # Also expose a convenience callable on api.core for the alias.
+            canonical_core = getattr(
+                api.core, f"{resource_name}{snake_to_camel(spec.target)}"
+            )
+            setattr(
+                api.core, f"{resource_name}{snake_to_camel(spec.alias)}", canonical_core
+            )
+            _attach_ns(api.core, resource_name, spec.alias, canonical_core)
