@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .hooks import Phase
+from ..hooks import Phase
 
 
 def attach_health_and_methodz(api, get_async_db=None, get_db=None):
@@ -19,7 +19,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
     def _methodz() -> list[str]:
         """Ordered, canonical operation list."""
         return list(api._method_ids.keys())
-        
+
     @r.get("/hookz", tags=["system"], name="Hooks")
     def _hookz() -> dict[str, dict[str, list[str]]]:
         """
@@ -29,6 +29,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
         - Within each phase, hooks are listed in execution order:
           global (None) hooks, then method-specific hooks.
         """
+
         def label(fn) -> str:
             n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
             m = getattr(fn, "__module__", None)
@@ -49,7 +50,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
             getattr(Phase, "POST_RESPONSE", None),
         ]
         error_phases = [
-            getattr(Phase, "ON_ROLLBACK", None),            # fired before specific ON_*_ERROR
+            getattr(Phase, "ON_ROLLBACK", None),  # fired before specific ON_*_ERROR
             getattr(Phase, "ON_PRE_HANDLER_ERROR", None),
             getattr(Phase, "ON_HANDLER_ERROR", None),
             getattr(Phase, "ON_POST_HANDLER_ERROR", None),
@@ -57,7 +58,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
             getattr(Phase, "ON_COMMIT_ERROR", None),
             getattr(Phase, "ON_POST_COMMIT_ERROR", None),
             getattr(Phase, "ON_POST_RESPONSE_ERROR", None),
-            getattr(Phase, "ON_ERROR", None),               # generic catch-all
+            getattr(Phase, "ON_ERROR", None),  # generic catch-all
         ]
         phase_order = [p for p in normal_phases + error_phases if p is not None]
 
@@ -71,7 +72,9 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
                 specific_hooks = hooks_by_method.get(method, [])
                 if global_hooks or specific_hooks:
                     # Execution order: global → specific
-                    phase_map[phase.name] = [label(fn) for fn in (global_hooks + specific_hooks)]
+                    phase_map[phase.name] = [
+                        label(fn) for fn in (global_hooks + specific_hooks)
+                    ]
             if phase_map:
                 registry[method] = phase_map
 
@@ -79,6 +82,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
 
     # Choose the appropriate health endpoint based on available DB provider
     if get_db:
+
         @r.get("/healthz", tags=["system"], name="Health")
         def _sync_healthz(db: Session = Depends(get_db)):
             try:
