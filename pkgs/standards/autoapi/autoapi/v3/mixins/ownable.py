@@ -1,20 +1,26 @@
-from enum import Enum
+# autoapi/v3/mixins/ownable.py
+from __future__ import annotations
+
 import logging
+from enum import Enum
+from typing import Any, Mapping
 from uuid import UUID
 
-from ..hooks import Phase
-from ..jsonrpc_models import create_standardized_error
-from ..info_schema import check as _info_check
-from ..types import Column, ForeignKey, PgUUID, declared_attr
-from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, USER_ID_KEY
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy.orm import declared_attr
+
+from ..runtime.errors import create_standardized_error
+from ..schema.col_info import check as _info_check
+from ..config.constants import CTX_USER_ID_KEY, CTX_AUTH_KEY
 
 log = logging.getLogger(__name__)
 
 
 class OwnerPolicy(str, Enum):
-    CLIENT_SET = "client"
-    DEFAULT_TO_USER = "default"
-    STRICT_SERVER = "strict"
+    CLIENT_SET = "client"     # client may set; validated against user_id if provided
+    DEFAULT_TO_USER = "default"  # if missing, default to user_id
+    STRICT_SERVER = "strict"  # server enforces user_id; client cannot override
 
 
 def _infer_schema(cls, default: str = "public") -> str:
@@ -30,11 +36,11 @@ def _infer_schema(cls, default: str = "public") -> str:
     return default
 
 
-def _is_missing(v) -> bool:
+def _is_missing(v: Any) -> bool:
     return v is None or (isinstance(v, str) and not v.strip())
 
 
-def _normalize_uuid(v):
+def _normalize_uuid(v: Any) -> Any:
     if isinstance(v, UUID):
         return v
     if isinstance(v, str):
@@ -45,7 +51,56 @@ def _normalize_uuid(v):
     return v
 
 
+def _ctx_user_id(ctx: Mapping[str, Any]) -> Any | None:
+    """
+    Best-effort extraction of the caller user_id from ctx.
+    Checks:
+      1) ctx["user_id"] (preferred in v3)
+      2) ctx["auth"]["user_id"] (v3 conventional)
+      3) ctx["injected_fields"]["user_id"] (legacy)
+      4) ctx["auth_context"]["user_id"] (legacy)
+    """
+    # 1) direct
+    u = ctx.get(CTX_USER_ID_KEY) if isinstance(ctx, dict) else getattr(ctx, CTX_USER_ID_KEY, None)
+    if u:
+        return _normalize_uuid(u)
+
+    # 2) auth dict
+    auth = (ctx.get(CTX_AUTH_KEY) if isinstance(ctx, dict) else getattr(ctx, CTX_AUTH_KEY, None)) or {}
+    u = auth.get("user_id")
+    if u:
+        return _normalize_uuid(u)
+
+    # 3 & 4) legacy fallbacks
+    inj = (ctx.get("injected_fields") if isinstance(ctx, dict) else getattr(ctx, "injected_fields", None)) or {}
+    u = inj.get("user_id")
+    if u:
+        return _normalize_uuid(u)
+
+    ac = (ctx.get("auth_context") if isinstance(ctx, dict) else getattr(ctx, "auth_context", None)) or {}
+    u = ac.get("user_id")
+    if u:
+        return _normalize_uuid(u)
+
+    return None
+
+
 class Ownable:
+    """
+    Mixin that adds an `owner_id` column and installs v3 hooks to enforce ownership policy.
+
+    Policy (per `__autoapi_owner_policy__`):
+      • CLIENT_SET:       client may provide `owner_id`; if missing, we leave it as-is.
+      • DEFAULT_TO_USER:  if `owner_id` missing, default to ctx user; if provided, keep it.
+      • STRICT_SERVER:    always enforce `owner_id = ctx user`; reject mismatches.
+
+    Hooks (installed at class creation via __init_subclass__):
+      • PRE_TX_BEGIN on "create": normalize/enforce `owner_id` in ctx.env.params & ctx.payload
+      • PRE_TX_BEGIN on "update": forbid changing `owner_id` unless CLIENT_SET and matches ctx user
+        (note: if you need to compare with the existing DB value, do that in POST_HANDLER where
+         your core sets ctx["result"] or fetch the row here — this version validates intent only)
+    """
+
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.CLIENT_SET
 
     @declared_attr
@@ -53,7 +108,8 @@ class Ownable:
         pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
-        autoapi_meta = {}
+        autoapi_meta: dict[str, Any] = {}
+        # non-client policy means the server controls the value → hide on write verbs
         if pol != OwnerPolicy.CLIENT_SET:
             autoapi_meta["disable_on"] = ["update", "replace"]
             autoapi_meta["read_only"] = True
@@ -68,83 +124,112 @@ class Ownable:
             info={"autoapi": autoapi_meta} if autoapi_meta else {},
         )
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api):
-        pol = cls.__autoapi_owner_policy__
+    # ── hook installers --------------------------------------------------------
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._install_ownable_hooks()
+
+    @classmethod
+    def _install_ownable_hooks(cls) -> None:
+        """
+        Attach PRE_TX_BEGIN hooks to the class under __autoapi_hooks__.
+
+        Structure expected by v3 binder:
+            {
+              "<alias>": {
+                 "PRE_TX_BEGIN": [callable, ...],
+                 ...
+              },
+              ...
+            }
+        """
         def _err(status: int, msg: str):
             http_exc, _, _ = create_standardized_error(status, message=msg)
             raise http_exc
 
-        def _ownable_before_create(ctx):
-            params = ctx["env"].params if ctx.get("env") else {}
+        def _before_create(ctx: dict[str, Any]) -> None:
+            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
             if hasattr(params, "model_dump"):
-                # keep None so we can treat it as "missing" explicitly
                 params = params.model_dump()
 
-            auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
-            user_id = auto_fields.get(USER_ID_KEY)
+            user_id = _ctx_user_id(ctx)
             provided = params.get("owner_id")
             missing = _is_missing(provided)
+            pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
 
-            log.info(
-                "Ownable before_create policy=%s params=%s auto_fields=%s",
-                pol,
-                params,
-                auto_fields,
-            )
+            log.debug("Ownable PRE_TX_BEGIN(create): policy=%s params=%s user_id=%s", pol, params, user_id)
 
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
-                if not missing and _normalize_uuid(provided) != _normalize_uuid(
-                    user_id
-                ):
+                if not missing and _normalize_uuid(provided) != _normalize_uuid(user_id):
                     _err(400, "owner_id mismatch.")
                 params["owner_id"] = user_id  # always enforce server value
-            else:
-                if missing:
+            elif pol == OwnerPolicy.DEFAULT_TO_USER:
+                if missing and user_id is not None:
                     params["owner_id"] = user_id
-                else:
+                elif not missing:
                     params["owner_id"] = _normalize_uuid(provided)
+            else:  # CLIENT_SET
+                if not missing:
+                    params["owner_id"] = _normalize_uuid(provided)
+                # if missing, leave as-is (schema/DB may enforce NOT NULL)
 
-            ctx["env"].params = params
-            print(f"\n🚧 ownable params: {ctx['env'].params}")
+            # write back into both env.params and payload so downstream sees the same view
+            if "env" in ctx and ctx["env"] is not None:
+                ctx["env"].params = params
+            ctx["payload"] = params
 
-        def _ownable_before_update(ctx, obj):
-            params = getattr(ctx.get("env"), "params", None)
-            if not params or "owner_id" not in params:
-                return
+        def _before_update(ctx: dict[str, Any]) -> None:
+            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
+            if hasattr(params, "model_dump"):
+                params = params.model_dump()
 
+            if "owner_id" not in params:
+                return  # nothing to check
+
+            pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
             if _is_missing(params.get("owner_id")):
                 # treat None/"" as not provided → drop it
                 params.pop("owner_id", None)
-                ctx["env"].params = params
+                if "env" in ctx and ctx["env"] is not None:
+                    ctx["env"].params = params
+                ctx["payload"] = params
                 return
 
             if pol != OwnerPolicy.CLIENT_SET:
                 _err(400, "owner_id is immutable.")
 
+            # CLIENT_SET: require new value == caller user_id unless an admin flag is present
             new_val = _normalize_uuid(params["owner_id"])
-            auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
-            user_id = _normalize_uuid(auto_fields.get(USER_ID_KEY))
+            user_id = _ctx_user_id(ctx)
+            is_admin = bool(ctx.get("is_admin"))
 
-            log.info(
-                "Ownable before_update new_val=%s obj_owner=%s injected=%s",
-                new_val,
-                getattr(obj, "owner_id", None),
-                user_id,
-            )
-            if (
-                new_val != obj.owner_id
-                and new_val != user_id
-                and not ctx.get("is_admin")
-            ):
+            log.debug("Ownable PRE_TX_BEGIN(update): new=%s user_id=%s is_admin=%s", new_val, user_id, is_admin)
+
+            if not is_admin and user_id is not None and new_val != user_id:
                 _err(403, "Cannot transfer ownership.")
 
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _ownable_before_create
-        )
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _ownable_before_update
-        )
+            # normalize stored value
+            params["owner_id"] = new_val
+            if "env" in ctx and ctx["env"] is not None:
+                ctx["env"].params = params
+            ctx["payload"] = params
+
+        # Attach (merge) into __autoapi_hooks__ without clobbering existing mappings
+        hooks = getattr(cls, "__autoapi_hooks__", None) or {}
+        hooks = {**hooks}  # shallow copy
+
+        def _append(alias: str, phase: str, fn):
+            phase_map = hooks.get(alias) or {}
+            lst = list(phase_map.get(phase) or [])
+            if fn not in lst:
+                lst.append(fn)
+            phase_map[phase] = tuple(lst)  # tuples are safer against accidental mutation
+            hooks[alias] = phase_map
+
+        _append("create", "PRE_TX_BEGIN", _before_create)
+        _append("update", "PRE_TX_BEGIN", _before_update)
+
+        setattr(cls, "__autoapi_hooks__", hooks)

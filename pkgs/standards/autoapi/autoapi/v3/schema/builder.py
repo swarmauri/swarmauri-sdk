@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union, get_type_hints
+from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union, get_type_hints, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 

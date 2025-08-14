@@ -2,8 +2,8 @@
 from __future__ import annotations
 from typing import Any, Mapping, Sequence, Optional, Tuple
 from sqlalchemy import and_, inspect as sa_inspect
-from autoapi.v2.hooks import Phase
-from autoapi.v2.types import Session, HookProvider
+from autoapi.v3.opspec import HookPhase
+from autoapi.v3.types import Session, HookProvider
 
 class Upsertable(HookProvider):
     """

@@ -4,10 +4,10 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends
+    from fastapi import APIRouter, Request, Body, Depends, HTTPException
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -23,6 +23,13 @@ except Exception:  # pragma: no cover
             self.state = SimpleNamespace()
     def Body(default=None, **kw):  # type: ignore
         return default
+    def Depends(fn):  # type: ignore
+        return fn
+    class HTTPException(Exception):  # type: ignore
+        def __init__(self, status_code: int, detail: Any = None):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
@@ -134,6 +141,55 @@ def _validate_query(model: type, alias: str, target: str, query: Mapping[str, An
 
 
 # ───────────────────────────────────────────────────────────────────────────────
+# Security / dependency helpers
+# ───────────────────────────────────────────────────────────────────────────────
+
+def _router_dependencies(model: type) -> list:
+    """
+    Collect router-level dependencies: auth dep + extra REST deps.
+    Each item may be a Depends(...) or a callable; we wrap callables with Depends.
+    """
+    deps = []
+    auth_dep = getattr(model, "__autoapi_auth_dep__", None)
+    if callable(auth_dep):
+        deps.append(Depends(auth_dep))
+    extra = getattr(model, "__autoapi_rest_dependencies__", None) or []
+    for d in extra:
+        # If it's already a Depends object, let it through; otherwise wrap callable
+        try:
+            is_dep_obj = hasattr(d, "dependency")
+        except Exception:
+            is_dep_obj = False
+        deps.append(d if is_dep_obj else Depends(d))
+    return deps
+
+def _db_dep(model: type):
+    """Return a FastAPI dependency that yields a DB session (async preferred), or None."""
+    return getattr(model, "__autoapi_get_async_db__", None) or getattr(model, "__autoapi_get_db__", None)
+
+def _user_from_request(request: Request) -> Any | None:
+    return getattr(request.state, "user", None)
+
+def _authorize(model: type, request: Request, alias: str, payload: Mapping[str, Any], user: Any | None) -> None:
+    """
+    Call per-model authorize callable if present. On error/False, raise 403.
+    Signature is user-defined; common form is: fn(request, model, alias, payload, user)
+    """
+    fn = getattr(model, "__autoapi_authorize__", None)
+    if not fn:
+        return
+    try:
+        rv = fn(request=request, model=model, alias=alias, payload=payload, user=user)
+        # If an authorize() returns False-ish, treat as forbidden
+        if rv is False:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
+# ───────────────────────────────────────────────────────────────────────────────
 # Routing strategy
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -193,28 +249,68 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
 # Endpoint factories
 # ───────────────────────────────────────────────────────────────────────────────
 
-def _make_collection_endpoint(model: type, sp: OpSpec, *, resource: str) -> Callable[..., Awaitable[Any]]:
+def _make_collection_endpoint(model: type, sp: OpSpec, *, resource: str, dbdep=None) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
 
+    if dbdep is not None:
+        async def _endpoint(
+            request: Request,
+            db: Any = Depends(dbdep),
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            # Build payload from query for list/clear; otherwise from body
+            if target in {"list", "clear"}:
+                raw_query = dict(request.query_params)
+                payload = _validate_query(model, alias, target, raw_query)
+            else:
+                payload = _validate_body(model, alias, target, body)
+
+            # authorize (auth dep may have already raised; user may be on request.state)
+            _authorize(model, request, alias, payload, _user_from_request(request))
+
+            # Compose ctx
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {},  # no member id
+                "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = f"REST collection endpoint for {model.__name__}.{alias} ({target})"
+        return _endpoint
+
+    # No DB dependency configured → fall back to request.state.db
     async def _endpoint(
         request: Request,
-        db: Any,
         body: Mapping[str, Any] | None = Body(default=None),
     ):
-        # Build payload from query for list/clear; otherwise from body
+        db = getattr(request.state, "db", None)
+
         if target in {"list", "clear"}:
             raw_query = dict(request.query_params)
             payload = _validate_query(model, alias, target, raw_query)
         else:
             payload = _validate_body(model, alias, target, body)
 
-        # Compose ctx
+        _authorize(model, request, alias, payload, _user_from_request(request))
+
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {},  # no member id
+            "path_params": {},
             "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
         }
         phases = _get_phase_chains(model, alias)
@@ -233,24 +329,58 @@ def _make_collection_endpoint(model: type, sp: OpSpec, *, resource: str) -> Call
     return _endpoint
 
 
-def _make_member_endpoint(model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk") -> Callable[..., Awaitable[Any]]:
+def _make_member_endpoint(model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk", dbdep=None) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
 
+    if dbdep is not None:
+        async def _endpoint(
+            pk: Any,  # path param captured as a generic 'pk'
+            request: Request,
+            db: Any = Depends(dbdep),
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            payload = _validate_body(model, alias, target, body)
+
+            _authorize(model, request, alias, payload, _user_from_request(request))
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                # map generic pk name to real PK column name for handler resolution
+                "path_params": {real_pk: pk, "pk": pk},
+                "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = f"REST member endpoint for {model.__name__}.{alias} ({target})"
+        return _endpoint
+
     async def _endpoint(
         pk: Any,  # path param captured as a generic 'pk'
         request: Request,
-        db: Any,
         body: Mapping[str, Any] | None = Body(default=None),
     ):
+        db = getattr(request.state, "db", None)
         payload = _validate_body(model, alias, target, body)
+
+        _authorize(model, request, alias, payload, _user_from_request(request))
 
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            # map generic pk name to real PK column name for handler resolution
             "path_params": {real_pk: pk, "pk": pk},
             "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
         }
@@ -276,8 +406,9 @@ def _make_member_endpoint(model: type, sp: OpSpec, *, resource: str, pk_param: s
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
-    router = APIRouter()
+    router = APIRouter(dependencies=_router_dependencies(model) or None)
     pk_param = "pk"
+    dbdep = _db_dep(model)
 
     for sp in specs:
         if not sp.expose_routes:
@@ -292,9 +423,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
         # Build endpoint
         if is_member:
-            endpoint = _make_member_endpoint(model, sp, resource=resource, pk_param=pk_param)
+            endpoint = _make_member_endpoint(model, sp, resource=resource, pk_param=pk_param, dbdep=dbdep)
         else:
-            endpoint = _make_collection_endpoint(model, sp, resource=resource)
+            endpoint = _make_collection_endpoint(model, sp, resource=resource, dbdep=dbdep)
 
         # Default status code (201 for create on collection; else 200)
         status_code = _status.HTTP_201_CREATED if sp.target == "create" and not is_member else _status.HTTP_200_OK

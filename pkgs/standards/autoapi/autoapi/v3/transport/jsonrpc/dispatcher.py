@@ -58,7 +58,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 from ...runtime.errors import (
-    _http_exc_to_rpc,
+    http_exc_to_rpc,
     ERROR_MESSAGES,
 )
 

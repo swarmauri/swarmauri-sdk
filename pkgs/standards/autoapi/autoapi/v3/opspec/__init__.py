@@ -54,7 +54,7 @@ from .model_registry import (
 )
 
 # Decorators
-from .decorators import op_alias, custom_op
+from .decorators import op_alias, op
 
 
 __all__ = [
@@ -78,5 +78,5 @@ __all__ = [
     "clear_registry",
     # decorators
     "op_alias",
-    "custom_op",
+    "op",
 ]

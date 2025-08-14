@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import Iterable, Literal, Type
 from .table_config_provider import TableConfigProvider
-from ..ops.spec import OpSpec
-from ..ops.registry import get_registered_ops
+from ..opspec import OpSpec
+from ..opspec.model_registry import get_registered_ops
+
 
 class OpConfigProvider(TableConfigProvider):
     __autoapi_ops__: Iterable[OpSpec] = ()

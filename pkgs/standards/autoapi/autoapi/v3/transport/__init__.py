@@ -2,20 +2,35 @@
 """
 AutoAPI v3 – Transport package.
 
-Currently provides a JSON-RPC transport. You can either import the router
-factory directly, or use the small convenience helper below to mount it.
+Routers & helpers for exposing your API over JSON-RPC and REST.
 
-Example:
-    from autoapi.v3.transport import mount_jsonrpc
+Quick usage:
+    from autoapi.v3.transport import (
+        build_jsonrpc_router, mount_jsonrpc,
+        build_rest_router,   mount_rest,
+    )
 
+    # JSON-RPC
+    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
+    # or:
     mount_jsonrpc(api, app, prefix="/rpc", get_async_db=get_async_session_dep)
+
+    # REST (aggregate all model routers under one prefix)
+    # after you include models with mount_router=False
+    app.include_router(build_rest_router(api, base_prefix="/api"))
+    # or:
+    mount_rest(api, app, base_prefix="/api")
 """
 
 from __future__ import annotations
 
 from typing import Any, Awaitable, Callable, Optional
 
+# JSON-RPC transport
 from .jsonrpc import build_jsonrpc_router
+
+# REST transport (aggregator over per-model routers)
+from .rest import build_rest_router, mount_rest
 
 
 def mount_jsonrpc(
@@ -39,4 +54,11 @@ def mount_jsonrpc(
     return router
 
 
-__all__ = ["build_jsonrpc_router", "mount_jsonrpc"]
+__all__ = [
+    # JSON-RPC
+    "build_jsonrpc_router",
+    "mount_jsonrpc",
+    # REST
+    "build_rest_router",
+    "mount_rest",
+]

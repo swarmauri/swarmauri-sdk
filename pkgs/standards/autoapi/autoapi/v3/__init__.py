@@ -54,6 +54,7 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 # ── Constants (HTTP method defaults, ctx keys, etc.) ───────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 
+from .autoapi import AutoAPI
 __all__ = [
     # OpSpec
     "OpSpec", "get_registry", "op", "op_alias", "PHASES", "HookPhase",
@@ -71,4 +72,6 @@ __all__ = [
     "ensure_schemas", "register_sqlite_attach", "bootstrap_dbschema",
     # Config
     "DEFAULT_HTTP_METHODS",
+    # Factory"
+    "AutoAPI"
 ]
