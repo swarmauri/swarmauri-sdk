@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Dict
 
-from sqlalchemy import inspect as _sa_inspect
-
 from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
@@ -99,7 +97,6 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
     Create CRUD operations for a given model.
     """
     print(f"create_crud_operations for model={model} pk_name={pk_name}")
-    mapper = _sa_inspect(model)
     pk_col = next(iter(model.__table__.primary_key.columns))
     pk_type = getattr(pk_col.type, "python_type", str)
 
@@ -122,9 +119,10 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
     def _create(p: SCreate, db: Session):
         print(f"_create called with {p}")
         data = p.model_dump() if hasattr(p, "model_dump") else dict(p)
-        col_keys = {c.key for c in mapper.attrs}
-        col_kwargs = {k: v for k, v in data.items() if k in col_keys}
-        virt_kwargs = {k: v for k, v in data.items() if k not in col_keys}
+        # Only use table-backed columns to avoid touching the mapper
+        col_names = {c.name for c in model.__table__.columns}
+        col_kwargs = {k: v for k, v in data.items() if k in col_names}
+        virt_kwargs = {k: v for k, v in data.items() if k not in col_names}
         obj = model(**col_kwargs)
         for k, v in virt_kwargs.items():
             setattr(obj, k, v)

@@ -13,6 +13,7 @@ import re
 from types import SimpleNamespace
 from typing import Annotated, Any, List, Optional
 
+from sqlalchemy import inspect as _sa_inspect  # ← added
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -481,7 +482,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         def _make_runner(bound_method: str):
             def _runner(payload, *, db=None, _method=bound_method, _api=self):
                 """
-                Helper so you can call:  api.methods.User.Create(...), api.methods.User.Register(...)
+                Helper so you can call:  api.methods.User.create(...), etc.
                 """
                 if db is None:  # auto-open sync session
                     if _api.get_db is None:
@@ -573,46 +574,103 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
 
-        # -------------------------------------------------------------------------------
-        # This block is being commented out in support of using verb aliasing via
-        # OpSpecs
 
-        # # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
-        # pol = alias_policy(model)
-        # pub = public_verb(model, verb)
-        # if pub != verb and pol in ("both", "alias_only"):
-        #     m_id_alias = _canonical(tab, pub)
-        #     # Same rpc_fn handles alias
-        #     self.rpc.add(m_id_alias, rpc_fn)
-
-        #     alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
-        #     _runner_alias = _make_runner(m_id_alias)
-        #     self._method_ids[m_id_alias] = _runner_alias
-
-        #     # Attach alias helpers (both global CamelCase and namespaced)
-        #     setattr(self.core, alias_camel, core)
-        #     _attach(self.core, resource, pub, core)
-
-        #     _attach(self.methods, resource, pub, _runner_alias)
-        #     setattr(self.core_raw, alias_camel, _core_raw)
-        #     _attach(self.core_raw, resource, pub, _core_raw)
-
-        #     print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
-
-    # include routers
     # ─── OpSpec-powered verbs (aliases + custom + skip/override) ────
-    # Flat router (/{tab} prefix)
     attach_op_specs(self, flat_router, model)
-    # If your op_wiring supports nested routers, also attach here:
     if len(routers) > 1:
         try:
             attach_op_specs(self, routers[1], model)  # nested router
         except TypeError:
-            # your attach_op_specs may only take (api, router, model) → safe to ignore
             pass
 
     # include routers
     self.router.include_router(flat_router)
     if len(routers) > 1:
         self.router.include_router(routers[1])
+
+    # ─────────────────────────────────────────────────────────────────
+    # Bind per-table namespaces onto the **class object** (not instances)
+    # Exposes: Model.schemas / Model.methods / Model.rpc / Model.core / Model.core_raw
+    # Also expose Model.router (flat/nested) and convenience aliases:
+    #   Model.handlers (→ methods) and Model.raw_handlers (→ core)
+    # ─────────────────────────────────────────────────────────────────
+    decl = model
+
+    # resolve what we already registered on the API object
+    methods_ns  = getattr(self.methods,  resource, SimpleNamespace())
+    core_ns     = getattr(self.core,     resource, SimpleNamespace())
+    core_raw_ns = getattr(self.core_raw, resource, SimpleNamespace())
+
+    # Build a schemas namespace by collecting all schema classes that start with this resource's prefix
+    schemas_ns = SimpleNamespace()
+    _pref = resource
+    for _name, _cls in getattr(self, "_schemas", {}).items():
+        if not isinstance(_cls, type) or _cls is dict:
+            continue
+        if not _name.startswith(_pref):
+            continue
+        short = _name[len(_pref):]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
+        if short and short[0].isupper():
+            setattr(schemas_ns, short, _cls)
+
+    # Build a lightweight rpc namespace: prefer canonical_name(tab, verb) but
+    # also support alias/custom ids like "Resource.alias" registered by op_wiring.
+    rpc_ns = SimpleNamespace()
+    for _verb in dir(methods_ns):
+        if _verb.startswith("_"):
+            continue
+        candidates = (
+            canonical_name(tab, _verb),
+            f"{resource}.{_verb}",
+        )
+        _rpc_fn = None
+        for _mid in candidates:
+            try:
+                _rpc_fn = self.rpc[_mid]
+                break
+            except KeyError:
+                continue
+        if _rpc_fn is not None:
+            setattr(rpc_ns, _verb, _rpc_fn)
+
+    # Routers on the model (latest binding wins on the class; all kept per-API in bindings)
+    router_ns = SimpleNamespace(
+        flat=flat_router,
+        nested=(routers[1] if len(routers) > 1 else None),
+    )
+
+    # Publish onto the un-instantiated declarative model class
+    setattr(decl, "schemas",       schemas_ns)
+    setattr(decl, "methods",       methods_ns)
+    setattr(decl, "rpc",           rpc_ns)
+    setattr(decl, "core",          core_ns)
+    setattr(decl, "core_raw",      core_raw_ns)
+    setattr(decl, "handlers",      methods_ns)   # convenience alias
+    setattr(decl, "raw_handlers",  core_ns)      # convenience alias
+    setattr(decl, "router",        router_ns)
+    # (Optional) columns mirror for quick introspection
+    try:
+        setattr(decl, "columns", {c.key: c for c in model.__table__.columns})
+    except Exception:
+        pass
+
+    # Keep a per-AutoAPI binding registry to avoid collisions when multiple APIs bind the same model
+    _b = getattr(decl, "__autoapi__", None)
+    if _b is None:
+        _b = SimpleNamespace()
+        setattr(decl, "__autoapi__", _b)
+    if not hasattr(_b, "bindings"):
+        _b.bindings = {}
+    _b.bindings[id(self)] = dict(
+        schemas=schemas_ns,
+        methods=methods_ns,
+        rpc=rpc_ns,
+        core=core_ns,
+        core_raw=core_raw_ns,
+        router=router_ns,
+    )
+
+    print(f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router")
+    # ─────────────────────────────────────────────────────────────────
+
     print(f"Routes registered for {resource}")
