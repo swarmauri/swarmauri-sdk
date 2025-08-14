@@ -9,20 +9,12 @@ from __future__ import annotations
 
 from typing import Dict
 
-import re
-
 from sqlalchemy import inspect as _sa_inspect
 
 from ..jsonrpc_models import create_standardized_error
 from .schema import _schema, create_list_schema
 from ..types import Session
-
-
-# ----------------------------------------------------------------------
-def _camel_to_snake(name: str) -> str:
-    """Convert ``CamelCase`` *name* to ``snake_case`` preserving acronyms."""
-    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+from ..naming import camel_to_snake
 
 
 # ----------------------------------------------------------------------
@@ -248,7 +240,7 @@ def _crud(self, model: type) -> None:
     """
     Public entry: call `api._crud(User)` to expose canonical CRUD & list routes.
     """
-    resource = _camel_to_snake(model.__name__)
+    resource = camel_to_snake(model.__name__)
     print(f"_crud called for model={resource}")
 
     if resource in self._registered_tables:
