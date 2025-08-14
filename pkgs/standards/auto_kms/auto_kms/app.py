@@ -10,8 +10,6 @@ from .tables.key_version import KeyVersion
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 from swarmauri_crypto_paramiko import ParamikoCrypto
 
-
-# app.py (top-level)
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
@@ -36,7 +34,7 @@ api = AutoAPI(
     base=Base,
     include={Key, KeyVersion},
     prefix="/kms",
-    get_async_db=get_async_db,  # <- add this
+    get_async_db=get_async_db,
 )
 
 
