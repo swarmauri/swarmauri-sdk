@@ -17,11 +17,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from ..types import APIRouter, Depends, Request, Path, Body
-from ._runner import _invoke
+from ..types.op_config_provider import should_wire_canonical
+
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
+
+from .op_wiring import attach_op_specs
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+from ._runner import _invoke
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -247,6 +251,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             ),
             ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
+
+    # ─── table-level policy: include/exclude canonical verbs ─────────
+    spec = [t for t in spec if should_wire_canonical(model, t[0])]
 
     # ---------- nested routing ---------------------------------------
     raw_pref = self._nested_prefix(model) or ""
@@ -638,27 +645,43 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
 
-        # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
-        pol = _alias_policy(model)
-        pub = _public_verb(model, verb)
-        if pub != verb and pol in ("both", "alias_only"):
-            m_id_alias = _canonical(tab, pub)
-            # Same rpc_fn handles alias
-            self.rpc.add(m_id_alias, rpc_fn)
+        # -------------------------------------------------------------------------------
+        # This block is being commented out in support of using verb aliasing via 
+        # OpSpecs
 
-            alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
-            _runner_alias = _make_runner(m_id_alias)
-            self._method_ids[m_id_alias] = _runner_alias
+        # # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
+        # pol = _alias_policy(model)
+        # pub = _public_verb(model, verb)
+        # if pub != verb and pol in ("both", "alias_only"):
+        #     m_id_alias = _canonical(tab, pub)
+        #     # Same rpc_fn handles alias
+        #     self.rpc.add(m_id_alias, rpc_fn)
 
-            # Attach alias helpers (both global CamelCase and namespaced)
-            setattr(self.core, alias_camel, core)
-            _attach(self.core, resource, pub, core)
+        #     alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
+        #     _runner_alias = _make_runner(m_id_alias)
+        #     self._method_ids[m_id_alias] = _runner_alias
 
-            _attach(self.methods, resource, pub, _runner_alias)
-            setattr(self.core_raw, alias_camel, _core_raw)
-            _attach(self.core_raw, resource, pub, _core_raw)
+        #     # Attach alias helpers (both global CamelCase and namespaced)
+        #     setattr(self.core, alias_camel, core)
+        #     _attach(self.core, resource, pub, core)
 
-            print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
+        #     _attach(self.methods, resource, pub, _runner_alias)
+        #     setattr(self.core_raw, alias_camel, _core_raw)
+        #     _attach(self.core_raw, resource, pub, _core_raw)
+
+        #     print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
+
+    # include routers
+    # ─── OpSpec-powered verbs (aliases + custom + skip/override) ────
+    # Flat router (/{tab} prefix)
+    attach_op_specs(self, flat_router, model)
+    # If your op_wiring supports nested routers, also attach here:
+    if len(routers) > 1:
+        try:
+            attach_op_specs(self, routers[1], model)  # nested router
+        except TypeError:
+            # your attach_op_specs may only take (api, router, model) → safe to ignore
+            pass
 
     # include routers
     self.router.include_router(flat_router)

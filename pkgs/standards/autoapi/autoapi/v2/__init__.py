@@ -56,6 +56,7 @@ from .cfgs import (  # noqa: F401
     USER_ID_KEY,
 )
 
+from .ops import register_ops, OpSpec
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
 
@@ -283,4 +284,6 @@ __all__ = [
     "Phase",
     "Base",
     "get_schema",
+    "register_ops",
+    "OpSpec",
 ]

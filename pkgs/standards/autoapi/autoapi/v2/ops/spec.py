@@ -25,23 +25,33 @@ class OpSpec:
     alias: str
     target: TargetOp
     table: Type
+    
     # facets
     expose_routes: bool = True
     expose_rpc: bool    = True
     expose_method: bool = True
+    
     # semantics
     arity: Optional[Arity] = None
     persist: PersistPolicy = "default"
     returns: ReturnForm    = "model"
+    
     # bindings
     handler: Optional[Callable[..., Any]] = None  # for override/custom
+    
     # schemas & HTTP
     request_model: Optional[Type] = None
     response_model: Optional[Type] = None
     http_methods: Optional[Sequence[str]] = None
     path_suffix: Optional[str] = None
     tags: Optional[Sequence[str]] = None
+    
     # RBAC
     rbac_guard_op: Optional[TargetOp] = None
+    
     # per-verb hooks
     hooks: Sequence[OpHook] = ()
+
+    # core persistence functions
+    core: Optional[Callable[..., Any]] = None
+    core_raw: Optional[Callable[..., Any]] = None
