@@ -101,6 +101,43 @@ class _ResourceProxy:
         _call.__doc__ = f"Helper for RPC call {self._model.__name__}.{alias}"
         return _call
 
+# --- add near top of file ---
+def _seed_security_and_deps(api: Any, model: type) -> None:
+    """
+    Copy API-level dependency hooks onto the model so downstream binders can use them.
+    - __autoapi_get_db__             : sync DB dep (FastAPI Depends-compatible)
+    - __autoapi_get_async_db__       : async DB dep
+    - __autoapi_auth_dep__           : auth dependency (returns user or raises 401)
+    - __autoapi_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
+    - __autoapi_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
+    - __autoapi_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
+    """
+    # DB deps
+    if getattr(api, "get_db", None):
+        setattr(model, "__autoapi_get_db__", api.get_db)
+    if getattr(api, "get_async_db", None):
+        setattr(model, "__autoapi_get_async_db__", api.get_async_db)
+
+    # Authn: prefer required auth if allow_anon is False, else optional if provided
+    auth_dep = None
+    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
+        auth_dep = api._authn
+    elif getattr(api, "_optional_authn_dep", None):
+        auth_dep = api._optional_authn_dep
+    elif getattr(api, "_authn", None):
+        auth_dep = api._authn
+    if auth_dep is not None:
+        setattr(model, "__autoapi_auth_dep__", auth_dep)
+
+    # Authz
+    if getattr(api, "_authorize", None):
+        setattr(model, "__autoapi_authorize__", api._authorize)
+
+    # Extra deps (router-level)
+    if getattr(api, "rest_dependencies", None):
+        setattr(model, "__autoapi_rest_dependencies__", list(api.rest_dependencies))
+    if getattr(api, "rpc_dependencies", None):
+        setattr(model, "__autoapi_rpc_dependencies__", list(api.rpc_dependencies))
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Inclusion logic
@@ -158,6 +195,9 @@ def include_model(
     Returns:
         (model, router) – the model class and its APIRouter (or None if not present).
     """
+    # 0) seed deps/security so binders can see them
+    _seed_security_and_deps(api, model)
+    
     # 1) Build/bind model namespaces (idempotent)
     _binder.bind(model)
 
