@@ -1,11 +1,13 @@
-# autoapi/v2/mixins/bound.py
+# autoapi/v3/mixins/_RowBound.py
 from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from autoapi.v2.hooks import Phase
-from autoapi.v2.types import HookProvider
-from autoapi.v2.jsonrpc_models import HTTP_ERROR_MESSAGES, create_standardized_error
+from ..types import HookProvider
+from ..impl.runtime.errors import (
+    HTTP_ERROR_MESSAGES,
+    create_standardized_error_from_status,
+)
 
 
 class _RowBound(HookProvider):
@@ -32,7 +34,7 @@ class _RowBound(HookProvider):
             return
 
         for op in ("read", "list"):
-            api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
+            api.register_hook(model=cls, phase="POST_HANDLER", op=op)(
                 cls._make_row_visibility_hook()
             )
 
@@ -54,7 +56,7 @@ class _RowBound(HookProvider):
 
             # READ → invisible row → pretend 404
             if not cls.is_visible(res, ctx):
-                http_exc, _, _ = create_standardized_error(
+                http_exc, _, _ = create_standardized_error_from_status(
                     404, message=HTTP_ERROR_MESSAGES[404]
                 )
                 raise http_exc
