@@ -23,8 +23,7 @@ from .impl import (
     _schema,
     _wrap_rpc,
 )
-from .impl.routes_builder import _attach
-from .routes import _nested_prefix  # path builder
+from .impl.routes_builder import _attach, _nested_prefix
 from .tables._base import Base as Base
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
