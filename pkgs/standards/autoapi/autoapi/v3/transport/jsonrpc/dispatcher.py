@@ -160,12 +160,21 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     return out
 
 
-def _authorize(api: Any, request: Request, model: type, alias: str, payload: Mapping[str, Any], user: Any | None):
+def _authorize(
+    api: Any,
+    request: Request,
+    model: type,
+    alias: str,
+    payload: Mapping[str, Any],
+    user: Any | None,
+):
     """
     Call an authorize gate if present. Prefer api._authorize; else model.__autoapi_authorize__.
     Falsy returns or exceptions (non-HTTPException) become 403.
     """
-    fn = getattr(api, "_authorize", None) or getattr(model, "__autoapi_authorize__", None)
+    fn = getattr(api, "_authorize", None) or getattr(
+        model, "__autoapi_authorize__", None
+    )
     if not fn:
         return
     try:
@@ -300,7 +309,9 @@ def build_jsonrpc_router(
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 return responses
@@ -322,7 +333,9 @@ def build_jsonrpc_router(
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 return responses
@@ -351,7 +364,9 @@ def build_jsonrpc_router(
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 return responses
@@ -370,7 +385,9 @@ def build_jsonrpc_router(
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 return responses
