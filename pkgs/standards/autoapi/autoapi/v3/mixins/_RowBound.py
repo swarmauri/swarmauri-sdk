@@ -1,14 +1,12 @@
-# autoapi/v2/mixins/bound.py
+# autoapi/v3/mixins/_RowBound.py
 from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from autoapi.v2.hooks import Phase
-from autoapi.v2.types import HookProvider
-from autoapi.v2.jsonrpc_models import HTTP_ERROR_MESSAGES, create_standardized_error
+from ..runtime.errors import HTTP_ERROR_MESSAGES, create_standardized_error
 
 
-class _RowBound(HookProvider):
+class _RowBound:
     """
     Base mix-in for row-level visibility.
 
@@ -23,18 +21,33 @@ class _RowBound(HookProvider):
     # ────────────────────────────────────────────────────────────────────
     # AutoAPI bootstrap
     # -------------------------------------------------------------------
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        cls._install_rowbound_hooks()
+
     @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
+    def _install_rowbound_hooks(cls) -> None:
         # Skip abstract helpers or unmapped mix-ins
         if cls.is_visible is _RowBound.is_visible:
             return
-        if not hasattr(cls, "__table__"):  # not a mapped class
+        if not hasattr(cls, "__table__"):
             return
 
+        hook = cls._make_row_visibility_hook()
+        hooks = {**getattr(cls, "__autoapi_hooks__", {})}
+
+        def _append(alias: str, phase: str, fn) -> None:
+            phase_map = hooks.get(alias) or {}
+            lst = list(phase_map.get(phase) or [])
+            if fn not in lst:
+                lst.append(fn)
+            phase_map[phase] = tuple(lst)
+            hooks[alias] = phase_map
+
         for op in ("read", "list"):
-            api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
-                cls._make_row_visibility_hook()
-            )
+            _append(op, "POST_HANDLER", hook)
+
+        setattr(cls, "__autoapi_hooks__", hooks)
 
     # ────────────────────────────────────────────────────────────────────
     # Per-request hook
