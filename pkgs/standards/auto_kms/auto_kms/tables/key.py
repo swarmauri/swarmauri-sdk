@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from autoapi.v2.types import Column, String, SAEnum, Integer, relationship, HookProvider
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped
+from autoapi.v3.types import Column, String, SAEnum, Integer, relationship, HookProvider
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk, Timestamped
 from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
 
 
@@ -240,28 +240,15 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         """Register all hooks for the Key model."""
-        from autoapi.v2 import Phase
 
         # Register all the hook methods
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="create")(
-            cls._h_key_create
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="rotate")(
-            cls._h_key_rotate
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="disable")(
-            cls._h_key_disable
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="encrypt")(
-            cls._h_key_encrypt
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="decrypt")(
-            cls._h_key_decrypt
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="wrap")(cls._h_key_wrap)
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="unwrap")(
-            cls._h_key_unwrap
-        )
-        api.register_hook(Phase.PRE_HANDLER, model="Key", op="encrypt_for_many")(
+        api.register_hook("PRE_HANDLER", model="Key", op="create")(cls._h_key_create)
+        api.register_hook("PRE_HANDLER", model="Key", op="rotate")(cls._h_key_rotate)
+        api.register_hook("PRE_HANDLER", model="Key", op="disable")(cls._h_key_disable)
+        api.register_hook("PRE_HANDLER", model="Key", op="encrypt")(cls._h_key_encrypt)
+        api.register_hook("PRE_HANDLER", model="Key", op="decrypt")(cls._h_key_decrypt)
+        api.register_hook("PRE_HANDLER", model="Key", op="wrap")(cls._h_key_wrap)
+        api.register_hook("PRE_HANDLER", model="Key", op="unwrap")(cls._h_key_unwrap)
+        api.register_hook("PRE_HANDLER", model="Key", op="encrypt_for_many")(
             cls._h_key_encrypt_for_many
         )
