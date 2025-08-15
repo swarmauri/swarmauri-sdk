@@ -107,12 +107,10 @@ class ApiKey(
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
-
         model = cls.__name__
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model, op="create")(
+        api.register_hook("PRE_TX_BEGIN", model=model, op="create")(
             cls._pre_create_generate
         )
-        api.register_hook(Phase.POST_RESPONSE, model=model, op="create")(
+        api.register_hook("POST_RESPONSE", model=model, op="create")(
             cls._post_response_inject
         )
