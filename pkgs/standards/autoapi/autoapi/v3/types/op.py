@@ -1,5 +1,5 @@
 """
-autoapi/v2/types/_op.py
+autoapi/v3/types/_op.py
 Pure structural helpers (no FastAPI / DB imports).
 """
 
