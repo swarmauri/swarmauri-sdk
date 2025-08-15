@@ -43,6 +43,7 @@ except Exception:  # pragma: no cover
     class APIRouter:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
+            self.dependencies = kw.get("dependencies", [])  # for parity
 
         def add_api_route(
             self, path: str, endpoint: Callable, methods: Sequence[str], **opts
@@ -76,10 +77,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
-from ...runtime.errors import (
-    ERROR_MESSAGES,
-    http_exc_to_rpc,
-)
+from ...runtime.errors import ERROR_MESSAGES, _http_exc_to_rpc
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +126,58 @@ def _model_for(api: Any, name: str) -> Optional[type]:
     return None
 
 
+def _user_from_request(request: Request) -> Any | None:
+    return getattr(request.state, "user", None)
+
+
+def _select_auth_dep(api: Any):
+    """
+    Choose the appropriate auth dependency based on API flags.
+    Order:
+      1) required when allow_anon == False and _authn exists,
+      2) optional if provided,
+      3) otherwise _authn if present,
+      4) else None.
+    """
+    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
+        return api._authn
+    if getattr(api, "_optional_authn_dep", None):
+        return api._optional_authn_dep
+    if getattr(api, "_authn", None):
+        return api._authn
+    return None
+
+
+def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
+    """Accept either Depends(...) objects or plain callables."""
+    out = []
+    for d in deps or ():
+        try:
+            is_dep_obj = hasattr(d, "dependency")
+        except Exception:
+            is_dep_obj = False
+        out.append(d if is_dep_obj else Depends(d))
+    return out
+
+
+def _authorize(api: Any, request: Request, model: type, alias: str, payload: Mapping[str, Any], user: Any | None):
+    """
+    Call an authorize gate if present. Prefer api._authorize; else model.__autoapi_authorize__.
+    Falsy returns or exceptions (non-HTTPException) become 403.
+    """
+    fn = getattr(api, "_authorize", None) or getattr(model, "__autoapi_authorize__", None)
+    if not fn:
+        return
+    try:
+        rv = fn(request=request, model=model, alias=alias, payload=payload, user=user)
+        if rv is False:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
 async def _dispatch_one(
     *,
     api: Any,
@@ -165,7 +215,7 @@ async def _dispatch_one(
         try:
             params = _normalize_params(obj.get("params"))
         except HTTPException as exc:
-            code, msg, data = http_exc_to_rpc(exc)
+            code, msg, data = _http_exc_to_rpc(exc)
             return _err(code, msg, rid, data)
 
         # Compose a context; allow middlewares to seed request.state.ctx
@@ -174,6 +224,9 @@ async def _dispatch_one(
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
+
+        # Authorize (auth dep may already have raised; user may be on request.state)
+        _authorize(api, request, model, alias, params, _user_from_request(request))
 
         # Execute
         result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
@@ -184,7 +237,7 @@ async def _dispatch_one(
         return _ok(result, rid)
 
     except HTTPException as exc:
-        code, msg, data = http_exc_to_rpc(exc)
+        code, msg, data = _http_exc_to_rpc(exc)
         # Notifications still don't produce output
         if rid is None:
             return None
@@ -215,45 +268,109 @@ def build_jsonrpc_router(
     If `get_async_db` or `get_db` is provided, it will be used as a FastAPI
     dependency for obtaining a DB session/connection. If neither is provided,
     the dispatcher will try to use `request.state.db` (or pass `db=None`).
-    """
-    router = APIRouter()
-    dep = get_async_db or get_db  # Prefer async DB getter if present
 
-    if dep is not None:
-        # Inject DB via FastAPI dependency for proper lifecycle management.
+    Security:
+        • If `api._authn` (or `api._optional_authn_dep`) is set, we inject it as a dependency
+          so it runs before dispatch. It may set `request.state.user` and/or raise 401.
+        • If `api._authorize` is set, we call it before executing the op; False/exception → 403.
+        • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
+    """
+    # Extra router-level deps (e.g., tracing, IP allowlist)
+    extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
+    router = APIRouter(dependencies=extra_router_deps or None)
+
+    dep = get_async_db or get_db  # Prefer async DB getter if present
+    auth_dep = _select_auth_dep(api)
+
+    if dep is not None and auth_dep is not None:
+        # Inject both DB and user via Depends
         async def _endpoint(
-            request: Request, body: Any = Body(...), db: Any = Depends(dep)
+            request: Request,
+            body: Any = Body(...),
+            db: Any = Depends(dep),
+            user: Any = Depends(auth_dep),
         ):
-            # Accept single or batch requests
+            # set state for downstream handlers if dep returned user
+            try:
+                if user is not None and not hasattr(request.state, "user"):
+                    setattr(request.state, "user", user)
+            except Exception:
+                pass
+
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
-                    )
+                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
                     if resp is not None:
                         responses.append(resp)
-                # Per JSON-RPC: an empty response array is valid for a batch of only notifications.
                 return responses
             elif isinstance(body, Mapping):
                 resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
-                # Notification → 204 No Content
                 if resp is None:
                     return Response(status_code=204)
                 return resp
             else:
-                # Parse error / invalid request shape
                 return _err(-32600, "Invalid Request", None)
+
+    elif dep is not None:
+        # Only DB dependency
+        async def _endpoint(
+            request: Request,
+            body: Any = Body(...),
+            db: Any = Depends(dep),
+        ):
+            if isinstance(body, list):
+                responses: List[Dict[str, Any]] = []
+                for item in body:
+                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    if resp is not None:
+                        responses.append(resp)
+                return responses
+            elif isinstance(body, Mapping):
+                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+                if resp is None:
+                    return Response(status_code=204)
+                return resp
+            else:
+                return _err(-32600, "Invalid Request", None)
+
+    elif auth_dep is not None:
+        # Only auth dependency; DB will come from request.state.db
+        async def _endpoint(
+            request: Request,
+            body: Any = Body(...),
+            user: Any = Depends(auth_dep),
+        ):
+            try:
+                if user is not None and not hasattr(request.state, "user"):
+                    setattr(request.state, "user", user)
+            except Exception:
+                pass
+
+            db = getattr(request.state, "db", None)
+            if isinstance(body, list):
+                responses: List[Dict[str, Any]] = []
+                for item in body:
+                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    if resp is not None:
+                        responses.append(resp)
+                return responses
+            elif isinstance(body, Mapping):
+                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+                if resp is None:
+                    return Response(status_code=204)
+                return resp
+            else:
+                return _err(-32600, "Invalid Request", None)
+
     else:
-        # No dependency; attempt to read db from request.state.db
+        # No dependencies; attempt to read db (and user) from request.state
         async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
-                    )
+                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
                     if resp is not None:
                         responses.append(resp)
                 return responses
@@ -271,6 +388,7 @@ def build_jsonrpc_router(
         endpoint=_endpoint,
         methods=["POST"],
         name="autoapi.jsonrpc",
+        # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router
 
