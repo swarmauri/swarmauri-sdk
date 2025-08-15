@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .naming import label_hook_callable
+from ..naming import label_hook_callable
 from ..hooks import Phase
 
 
