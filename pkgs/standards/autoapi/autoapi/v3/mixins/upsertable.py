@@ -1,26 +1,41 @@
-# upsertable.py
+# autoapi/v3/mixins/upsertable.py
 from __future__ import annotations
+
 from typing import Any, Mapping, Sequence, Optional, Tuple
 from sqlalchemy import and_, inspect as sa_inspect
-from autoapi.v3.opspec import HookPhase
-from autoapi.v3.types import Session, HookProvider
+from autoapi.v3.types import Session
 
-class Upsertable(HookProvider):
+
+class Upsertable:
     """
     Hybrid upsert:
       • If __upsert_keys__ is set and fully present -> decide by those keys
       • Else if all PK parts are present            -> decide by PK
       • Else                                        -> no rewrite
     """
+
     __upsert_keys__: Sequence[str] | None = None  # optional natural key list
 
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        cls._install_upsertable_hooks()
+
     @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        model = cls.__tablename__
+    def _install_upsertable_hooks(cls) -> None:
+        hooks = {**getattr(cls, "__autoapi_hooks__", {})}
+
+        def _append(alias: str, phase: str, fn) -> None:
+            phase_map = hooks.get(alias) or {}
+            lst = list(phase_map.get(phase) or [])
+            if fn not in lst:
+                lst.append(fn)
+            phase_map[phase] = tuple(lst)
+            hooks[alias] = phase_map
+
         for op in ("create", "update", "replace"):
-            api.register_hook(Phase.PRE_TX_BEGIN, model=model, op=op)(
-                cls._make_upsert_rewrite_hook(op)
-            )
+            _append(op, "PRE_TX_BEGIN", cls._make_upsert_rewrite_hook(op))
+
+        setattr(cls, "__autoapi_hooks__", hooks)
 
     @classmethod
     def _make_upsert_rewrite_hook(cls, verb: str):
@@ -57,7 +72,10 @@ class Upsertable(HookProvider):
 
         return _rewrite
 
-def _extract_values(p: Mapping[str, Any], names: Sequence[str]) -> Optional[Tuple[Any, ...]]:
+
+def _extract_values(
+    p: Mapping[str, Any], names: Sequence[str]
+) -> Optional[Tuple[Any, ...]]:
     vals = []
     for n in names:
         v = p.get(n)
@@ -66,11 +84,15 @@ def _extract_values(p: Mapping[str, Any], names: Sequence[str]) -> Optional[Tupl
         vals.append(v)
     return tuple(vals)
 
-def _exists_by_names(model, db: Session, names: Sequence[str], vals: Tuple[Any, ...]) -> bool:
+
+def _exists_by_names(
+    model, db: Session, names: Sequence[str], vals: Tuple[Any, ...]
+) -> bool:
     q = db.query(model)
     for n, v in zip(names, vals):
         q = q.filter(getattr(model, n) == v)
     return db.query(q.exists()).scalar() is True
+
 
 def _exists_by_pk(model, db: Session, pk_cols, pk_vals: Tuple[Any, ...]) -> bool:
     if len(pk_cols) == 1:
@@ -78,6 +100,7 @@ def _exists_by_pk(model, db: Session, pk_cols, pk_vals: Tuple[Any, ...]) -> bool
         return db.get(model, pk_vals[0]) is not None
     conds = [getattr(model, c.key) == v for c, v in zip(pk_cols, pk_vals)]
     return db.query(db.query(model).filter(and_(*conds)).exists()).scalar() is True
+
 
 def _rewrite_by_existence(ctx, tab: str, verb: str, exists: bool) -> None:
     if verb == "create" and exists:

@@ -24,7 +24,7 @@ from ..types import (
     UUID,
     uuid4,
 )
-from ..cfgs import AUTH_CONTEXT_KEY, USER_ID_KEY
+from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
 
 
 def tzutcnow() -> dt.datetime:  # default/on‑update factory
@@ -155,8 +155,8 @@ class OwnerBound:
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
-        return q.filter(cls.owner_id == auto_fields.get(USER_ID_KEY))
+        auto_fields = ctx.get(CTX_AUTH_KEY, {})
+        return q.filter(cls.owner_id == auto_fields.get(CTX_USER_ID_KEY))
 
 
 class UserBound:  # membership rows
@@ -168,8 +168,8 @@ class UserBound:  # membership rows
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get(AUTH_CONTEXT_KEY, {})
-        return q.filter(cls.user_id == auto_fields.get(USER_ID_KEY))
+        auto_fields = ctx.get(CTX_AUTH_KEY, {})
+        return q.filter(cls.user_id == auto_fields.get(CTX_USER_ID_KEY))
 
 
 # ────────── lifecycle --------------------------------------------------
