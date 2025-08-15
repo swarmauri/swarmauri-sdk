@@ -28,7 +28,7 @@ except Exception:  # pragma: no cover
     Session = Any  # type: ignore
     AsyncSession = Any  # type: ignore
 
-from .errors import create_standardized_error
+from ..jsonrpc_models import create_standardized_error
 
 logger = logging.getLogger(__name__)
 
