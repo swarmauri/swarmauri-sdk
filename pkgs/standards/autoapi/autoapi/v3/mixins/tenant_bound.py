@@ -13,6 +13,7 @@ from ..runtime.errors import create_standardized_error
 from ..schema.col_info import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr
 
+
 log = logging.getLogger(__name__)
 
 
@@ -67,7 +68,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
-        pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
+        pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
         autoapi_meta: dict[str, object] = {}

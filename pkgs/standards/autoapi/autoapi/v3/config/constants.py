@@ -17,7 +17,7 @@ Nothing in this module performs I/O.
 
 from __future__ import annotations
 
-from typing import Dict, Mapping, Tuple
+from typing import Mapping, Tuple
 
 from ..opspec.types import CANON  # canonical op registry (dict-like of targets)
 
@@ -27,13 +27,17 @@ from ..opspec.types import CANON  # canonical op registry (dict-like of targets)
 # ───────────────────────────────────────────────────────────────────────────────
 
 # Source of truth: `CANON` keys (strings like "create", "read", "bulk_update", ...)
-ALL_VERBS: frozenset[str] = frozenset(str(k) for k in (CANON.keys() if hasattr(CANON, "keys") else CANON))  # type: ignore[arg-type]
+ALL_VERBS: frozenset[str] = frozenset(
+    str(k) for k in (CANON.keys() if hasattr(CANON, "keys") else CANON)
+)  # type: ignore[arg-type]
 
 # Bulk targets are those prefixed with "bulk_"
 BULK_VERBS: frozenset[str] = frozenset(v for v in ALL_VERBS if v.startswith("bulk_"))
 
 # Routable canonical (non-bulk) verbs; excludes the synthetic "custom"
-ROUTING_VERBS: frozenset[str] = frozenset(v for v in ALL_VERBS if not v.startswith("bulk_") and v != "custom")
+ROUTING_VERBS: frozenset[str] = frozenset(
+    v for v in ALL_VERBS if not v.startswith("bulk_") and v != "custom"
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -61,34 +65,95 @@ DEFAULT_HTTP_METHODS: Mapping[str, Tuple[str, ...]] = {
 #   See: v3 schema builder & v3 schema.info check(meta, attr, model)
 # ───────────────────────────────────────────────────────────────────────────────
 
-COL_LEVEL_CFGS: frozenset[str] = frozenset({
-    # legacy switches (still recognized)
-    "no_create",            # legacy: exclude column on create
-    "no_update",            # legacy: exclude column on update/replace
-    # modern flags (kept in v3)
-    "disable_on",           # iterable of verbs to disable this field on
-    "write_only",           # omit in OUT/read schemas
-    "read_only",            # omit from IN when True or when verb is in mapping
-    "default_factory",      # callable to produce default Field value
-    "examples",             # example values for OpenAPI/Pydantic
-    "hybrid",               # opt-in for @hybrid_property fields
-    "py_type",              # explicit Python type for hybrids/unknowns
-})
+COL_LEVEL_CFGS: frozenset[str] = frozenset(
+    {
+        # legacy switches (still recognized)
+        "no_create",  # legacy: exclude column on create
+        "no_update",  # legacy: exclude column on update/replace
+        # modern flags (kept in v3)
+        "disable_on",  # iterable of verbs to disable this field on
+        "write_only",  # omit in OUT/read schemas
+        "read_only",  # omit from IN when True or when verb is in mapping
+        "default_factory",  # callable to produce default Field value
+        "examples",  # example values for OpenAPI/Pydantic
+        "hybrid",  # opt-in for @hybrid_property fields
+        "py_type",  # explicit Python type for hybrids/unknowns
+    }
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Model-level configuration attributes (looked up on the SQLAlchemy class)
 # ───────────────────────────────────────────────────────────────────────────────
 
-MODEL_LEVEL_CFGS: frozenset[str] = frozenset({
-    "__autoapi_request_extras__",   # request-only virtual fields per verb
-    "__autoapi_response_extras__",  # response-only virtual fields per verb
-    "__autoapi_ops__",              # declarative OpSpec list from decorators
-    "__autoapi_verb_aliases__",     # optional verb alias map
-    "__autoapi_verb_alias_policy__",# alias policy override
-    "__autoapi_nested_paths__",     # nested path callback (optional)
-    "__resource__",                 # resource name override for REST
-})
+# Well-known attribute names injected or inspected on ORM models
+AUTOAPI_REQUEST_EXTRAS_ATTR = (
+    "__autoapi_request_extras__"  # request-only virtual fields per verb
+)
+AUTOAPI_RESPONSE_EXTRAS_ATTR = (
+    "__autoapi_response_extras__"  # response-only virtual fields per verb
+)
+AUTOAPI_OPS_ATTR = "__autoapi_ops__"  # declarative OpSpec list from decorators
+AUTOAPI_VERB_ALIASES_ATTR = "__autoapi_verb_aliases__"  # optional verb alias map
+AUTOAPI_VERB_ALIAS_POLICY_ATTR = (
+    "__autoapi_verb_alias_policy__"  # alias policy override
+)
+AUTOAPI_NESTED_PATHS_ATTR = (
+    "__autoapi_nested_paths__"  # nested path callback (optional)
+)
+AUTOAPI_API_HOOKS_ATTR = "__autoapi_api_hooks__"  # API-level hooks map
+AUTOAPI_HOOKS_ATTR = "__autoapi_hooks__"  # model-level hooks map
+AUTOAPI_IMPERATIVE_HOOKS_ATTR = (
+    "__autoapi_imperative_hooks__"  # imperative/runtime hooks
+)
+AUTOAPI_REGISTRY_LISTENER_ATTR = (
+    "__autoapi_registry_listener__"  # ops registry listener
+)
+AUTOAPI_GET_DB_ATTR = "__autoapi_get_db__"  # sync DB dependency
+AUTOAPI_GET_ASYNC_DB_ATTR = "__autoapi_get_async_db__"  # async DB dependency
+AUTOAPI_AUTH_DEP_ATTR = "__autoapi_auth_dep__"  # auth dependency
+AUTOAPI_AUTHORIZE_ATTR = "__autoapi_authorize__"  # authorization callable
+AUTOAPI_REST_DEPENDENCIES_ATTR = "__autoapi_rest_dependencies__"  # extra REST deps
+AUTOAPI_RPC_DEPENDENCIES_ATTR = "__autoapi_rpc_dependencies__"  # extra RPC deps
+AUTOAPI_OWNER_POLICY_ATTR = "__autoapi_owner_policy__"  # ownership policy override
+AUTOAPI_TENANT_POLICY_ATTR = "__autoapi_tenant_policy__"  # tenancy policy override
+AUTOAPI_ALLOW_ANON_ATTR = "__autoapi_allow_anon__"  # verbs callable without auth
+AUTOAPI_DEFAULTS_MODE_ATTR = "__autoapi_defaults_mode__"  # canonical verb wiring policy
+AUTOAPI_DEFAULTS_INCLUDE_ATTR = "__autoapi_defaults_include__"  # verbs to force include
+AUTOAPI_DEFAULTS_EXCLUDE_ATTR = "__autoapi_defaults_exclude__"  # verbs to force exclude
+
+# Aggregate of recognized model-level config attributes
+MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
+    {
+        AUTOAPI_REQUEST_EXTRAS_ATTR,
+        AUTOAPI_RESPONSE_EXTRAS_ATTR,
+        AUTOAPI_OPS_ATTR,
+        AUTOAPI_VERB_ALIASES_ATTR,
+        AUTOAPI_VERB_ALIAS_POLICY_ATTR,
+        AUTOAPI_NESTED_PATHS_ATTR,
+        AUTOAPI_API_HOOKS_ATTR,
+        AUTOAPI_HOOKS_ATTR,
+        AUTOAPI_IMPERATIVE_HOOKS_ATTR,
+        AUTOAPI_REGISTRY_LISTENER_ATTR,
+        AUTOAPI_GET_DB_ATTR,
+        AUTOAPI_GET_ASYNC_DB_ATTR,
+        AUTOAPI_AUTH_DEP_ATTR,
+        AUTOAPI_AUTHORIZE_ATTR,
+        AUTOAPI_REST_DEPENDENCIES_ATTR,
+        AUTOAPI_RPC_DEPENDENCIES_ATTR,
+        AUTOAPI_OWNER_POLICY_ATTR,
+        AUTOAPI_TENANT_POLICY_ATTR,
+        AUTOAPI_ALLOW_ANON_ATTR,
+        AUTOAPI_DEFAULTS_MODE_ATTR,
+        AUTOAPI_DEFAULTS_INCLUDE_ATTR,
+        AUTOAPI_DEFAULTS_EXCLUDE_ATTR,
+        "__resource__",  # resource name override for REST
+    }
+)
+
+# Other internal attribute names
+AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom opspec
+AUTOAPI_TX_MODELS_ATTR = "__autoapi_tx_models__"  # transactional model cache
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -102,7 +167,7 @@ CTX_DB_KEY = "db"
 CTX_PAYLOAD_KEY = "payload"
 CTX_PATH_PARAMS_KEY = "path_params"
 CTX_ENV_KEY = "env"
-CTX_RPC_ID_KEY = "rpc_id"                    # used by the JSON-RPC dispatcher
+CTX_RPC_ID_KEY = "rpc_id"  # used by the JSON-RPC dispatcher
 CTX_SKIP_PERSIST_FLAG = "__autoapi_skip_persist__"  # set by ephemeral ops
 
 # Optional auth/multitenancy keys that middlewares may populate for hooks to read
@@ -118,6 +183,30 @@ __all__ = [
     "DEFAULT_HTTP_METHODS",
     "COL_LEVEL_CFGS",
     "MODEL_LEVEL_CFGS",
+    "AUTOAPI_REQUEST_EXTRAS_ATTR",
+    "AUTOAPI_RESPONSE_EXTRAS_ATTR",
+    "AUTOAPI_OPS_ATTR",
+    "AUTOAPI_VERB_ALIASES_ATTR",
+    "AUTOAPI_VERB_ALIAS_POLICY_ATTR",
+    "AUTOAPI_NESTED_PATHS_ATTR",
+    "AUTOAPI_API_HOOKS_ATTR",
+    "AUTOAPI_HOOKS_ATTR",
+    "AUTOAPI_IMPERATIVE_HOOKS_ATTR",
+    "AUTOAPI_REGISTRY_LISTENER_ATTR",
+    "AUTOAPI_GET_DB_ATTR",
+    "AUTOAPI_GET_ASYNC_DB_ATTR",
+    "AUTOAPI_AUTH_DEP_ATTR",
+    "AUTOAPI_AUTHORIZE_ATTR",
+    "AUTOAPI_REST_DEPENDENCIES_ATTR",
+    "AUTOAPI_RPC_DEPENDENCIES_ATTR",
+    "AUTOAPI_OWNER_POLICY_ATTR",
+    "AUTOAPI_TENANT_POLICY_ATTR",
+    "AUTOAPI_ALLOW_ANON_ATTR",
+    "AUTOAPI_DEFAULTS_MODE_ATTR",
+    "AUTOAPI_DEFAULTS_INCLUDE_ATTR",
+    "AUTOAPI_DEFAULTS_EXCLUDE_ATTR",
+    "AUTOAPI_CUSTOM_OP_ATTR",
+    "AUTOAPI_TX_MODELS_ATTR",
     "CTX_REQUEST_KEY",
     "CTX_DB_KEY",
     "CTX_PAYLOAD_KEY",
