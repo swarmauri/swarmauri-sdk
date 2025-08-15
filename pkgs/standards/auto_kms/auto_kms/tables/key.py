@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from autoapi.v3.types import Column, String, SAEnum, Integer, relationship, HookProvider
+from autoapi.v3.opspec.decorators import op
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk, Timestamped
 from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
@@ -25,9 +26,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
 
         return params(ctx)
 
-    @classmethod
-    async def _h_key_create(cls, ctx):
-        """Handle key creation."""
+    # -------------------- Custom KMS operations (v3 OpSpecs) --------------------
+    # Each op validates payload (optional), runs in unified lifecycle, and returns raw dicts.
+
+    @op(alias="create", arity="collection", persist="default", returns="raw")
+    async def create_op(self, *, ctx, db, request, payload):
         from ..utils import (
             coerce_key_type_from_params,
             coerce_uses_from_params,
@@ -35,7 +38,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             asdict_desc,
         )
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.store_key(
             key_type=coerce_key_type_from_params(p),
@@ -45,14 +48,13 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             export_policy=coerce_export_policy(p.get("export_policy")),
             tags=p.get("tags"),
         )
-        ctx["__kms_result__"] = asdict_desc(desc)
+        return asdict_desc(desc)
 
-    @classmethod
-    async def _h_key_rotate(cls, ctx):
-        """Handle key rotation."""
+    @op(alias="rotate", arity="collection", persist="default", returns="raw")
+    async def rotate(self, *, ctx, db, request, payload):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.rotate(
             kid=p["kid"],
@@ -61,26 +63,24 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             tags=p.get("tags"),
             tenant=auth_tenant_from_ctx(ctx),
         )
-        ctx["__kms_result__"] = asdict_desc(desc)
+        return asdict_desc(desc)
 
-    @classmethod
-    async def _h_key_disable(cls, ctx):
-        """Handle key disabling."""
+    @op(alias="disable", arity="collection", persist="default", returns="raw")
+    async def disable(self, *, ctx, db, request, payload):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.set_state(
             kid=p["kid"], state="disabled", tenant=auth_tenant_from_ctx(ctx)
         )
-        ctx["__kms_result__"] = asdict_desc(desc)
+        return asdict_desc(desc)
 
-    @classmethod
-    async def _h_key_encrypt(cls, ctx):
-        """Handle key encryption."""
+    @op(alias="encrypt", arity="collection", persist="skip", returns="raw")
+    async def encrypt(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         key = await sd.load_key(
@@ -96,7 +96,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             aad=b64d_optional(p.get("aad_b64")),
             nonce=b64d_optional(p.get("nonce_b64")),
         )
-        ctx["__kms_result__"] = {
+        return {
             "kid": ct.kid,
             "version": ct.version,
             "alg": ct.alg,
@@ -106,12 +106,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"aad_b64": b64e(ct.aad)} if ct.aad else {}),
         }
 
-    @classmethod
-    async def _h_key_decrypt(cls, ctx):
-        """Handle key decryption."""
+    @op(alias="decrypt", arity="collection", persist="skip", returns="raw")
+    async def decrypt(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         key = await sd.load_key(
@@ -130,18 +129,13 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             aad=b64d_optional(p.get("aad_b64")),
         )
         pt = await cp.decrypt(key, ct, aad=ct.aad)
-        ctx["__kms_result__"] = {
-            "kid": key.kid,
-            "version": key.version,
-            "plaintext_b64": b64e(pt),
-        }
+        return {"kid": key.kid, "version": key.version, "plaintext_b64": b64e(pt)}
 
-    @classmethod
-    async def _h_key_wrap(cls, ctx):
-        """Handle key wrapping."""
+    @op(alias="wrap", arity="collection", persist="skip", returns="raw")
+    async def wrap(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d_optional, auth_tenant_from_ctx
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         kek = await sd.load_key(
@@ -156,7 +150,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             wrap_alg=p.get("wrap_alg"),
             nonce=b64d_optional(p.get("nonce_b64")),
         )
-        ctx["__kms_result__"] = {
+        return {
             "kek_kid": wrapped.kek_kid,
             "kek_version": wrapped.kek_version,
             "wrap_alg": wrapped.wrap_alg,
@@ -164,12 +158,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"nonce_b64": b64e(wrapped.nonce)} if wrapped.nonce else {}),
         }
 
-    @classmethod
-    async def _h_key_unwrap(cls, ctx):
-        """Handle key unwrapping."""
+    @op(alias="unwrap", arity="collection", persist="skip", returns="raw")
+    async def unwrap(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         kek = await sd.load_key(
@@ -186,18 +179,13 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             wrapped=b64d(p["wrapped_b64"]),
         )
         dek = await cp.unwrap(kek, wrapped)
-        ctx["__kms_result__"] = {
-            "kek_kid": kek.kid,
-            "kek_version": kek.version,
-            "dek_b64": b64e(dek),
-        }
+        return {"kek_kid": kek.kid, "kek_version": kek.version, "dek_b64": b64e(dek)}
 
-    @classmethod
-    async def _h_key_encrypt_for_many(cls, ctx):
-        """Handle encryption for multiple recipients."""
+    @op(alias="encrypt_for_many", arity="collection", persist="skip", returns="raw")
+    async def encrypt_for_many(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = cls._params(ctx)
+        p = self._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         t = auth_tenant_from_ctx(ctx)
@@ -219,7 +207,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             aad=b64d_optional(p.get("aad_b64")),
             nonce=b64d_optional(p.get("nonce_b64")),
         )
-        ctx["__kms_result__"] = {
+        return {
             "enc_alg": env.enc_alg,
             "nonce_b64": b64e(env.nonce),
             "ciphertext_b64": b64e(env.ct),
@@ -236,19 +224,3 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             ],
             **({"aad_b64": b64e(env.aad)} if env.aad else {}),
         }
-
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        """Register all hooks for the Key model."""
-
-        # Register all the hook methods
-        api.register_hook("PRE_HANDLER", model="Key", op="create")(cls._h_key_create)
-        api.register_hook("PRE_HANDLER", model="Key", op="rotate")(cls._h_key_rotate)
-        api.register_hook("PRE_HANDLER", model="Key", op="disable")(cls._h_key_disable)
-        api.register_hook("PRE_HANDLER", model="Key", op="encrypt")(cls._h_key_encrypt)
-        api.register_hook("PRE_HANDLER", model="Key", op="decrypt")(cls._h_key_decrypt)
-        api.register_hook("PRE_HANDLER", model="Key", op="wrap")(cls._h_key_wrap)
-        api.register_hook("PRE_HANDLER", model="Key", op="unwrap")(cls._h_key_unwrap)
-        api.register_hook("PRE_HANDLER", model="Key", op="encrypt_for_many")(
-            cls._h_key_encrypt_for_many
-        )
