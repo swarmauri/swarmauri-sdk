@@ -1,22 +1,34 @@
 # autoapi/v2/model_facets.py
 from __future__ import annotations
 from types import SimpleNamespace
-from typing import Callable, Dict, List, Optional, Type
+from typing import Callable, Dict, List, Type
 
 from .crud_builder import create_crud_operations
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
 from .op_wiring import collect_all_specs_for_table
 from ..ops.spec import OpSpec
-from ..ops.registry import get_registered_ops
 from ..types.op_config_provider import should_wire_canonical
 
 # Canonical verbs in order (arity inferred later)
-_CANON = ("create","read","update","replace","delete","list","bulk_create",
-          "bulk_update","bulk_replace","bulk_delete","clear")
+_CANON = (
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
+    "clear",
+)
+
 
 class _OpSpecRegistry:
     """Per-model registry with on_change callback that re-syncs namespaces."""
+
     def __init__(self, table: Type, on_change: Callable[[], None]) -> None:
         self.table = table
         self._specs: List[OpSpec] = []
@@ -37,7 +49,10 @@ class _OpSpecRegistry:
     def all(self) -> List[OpSpec]:
         return list(self._specs)
 
-def _canonical_specs_with_cores(model: Type) -> tuple[Dict[str, OpSpec], Dict[str, Callable], Dict[str, Callable]]:
+
+def _canonical_specs_with_cores(
+    model: Type,
+) -> tuple[Dict[str, OpSpec], Dict[str, Callable], Dict[str, Callable]]:
     """Build canonical specs + core/raw handlers once from CRUD builder."""
     pk_name = next(iter(model.__table__.primary_key.columns)).name
     crud = create_crud_operations(model, pk_name)
@@ -47,30 +62,49 @@ def _canonical_specs_with_cores(model: Type) -> tuple[Dict[str, OpSpec], Dict[st
 
     # Map canonical verbs → IN/OUT schemas and core callables
     wire = {
-        "create": (crud["schemas"]["create"], crud["schemas"]["read_out"], crud["create"]),
-        "read":   (crud["schemas"]["read_in"], crud["schemas"]["read_out"], crud["read"]),
-        "update": (crud["schemas"]["update"], crud["schemas"]["read_out"], crud["update"]),
-        "replace":(crud["schemas"]["create"], crud["schemas"]["read_out"], crud["update"]),
-        "delete": (crud["schemas"]["delete_in"], None,                    crud["delete"]),
-        "list":   (crud["schemas"]["list"],    crud["schemas"]["read_out"], crud["list"]),
-        "clear":  (None,                        None,                      crud["clear"]),
+        "create": (
+            crud["schemas"]["create"],
+            crud["schemas"]["read_out"],
+            crud["create"],
+        ),
+        "read": (crud["schemas"]["read_in"], crud["schemas"]["read_out"], crud["read"]),
+        "update": (
+            crud["schemas"]["update"],
+            crud["schemas"]["read_out"],
+            crud["update"],
+        ),
+        "replace": (
+            crud["schemas"]["create"],
+            crud["schemas"]["read_out"],
+            crud["update"],
+        ),
+        "delete": (crud["schemas"]["delete_in"], None, crud["delete"]),
+        "list": (crud["schemas"]["list"], crud["schemas"]["read_out"], crud["list"]),
+        "clear": (None, None, crud["clear"]),
         # bulk_* are built by routes_builder today; leave as pass-through unless wired by OpSpec
     }
 
     for verb in _CANON:
-        if not should_wire_canonical(model, verb): 
+        if not should_wire_canonical(model, verb):
             continue
         IN, OUT, core = wire.get(verb, (None, None, None))
         if core is None:
             continue
-        spec_map[verb] = OpSpec(alias=verb, target=verb, table=model, expose_routes=True,
-                                expose_rpc=True, expose_method=True)
+        spec_map[verb] = OpSpec(
+            alias=verb,
+            target=verb,
+            table=model,
+            expose_routes=True,
+            expose_rpc=True,
+            expose_method=True,
+        )
         raw_handlers[verb] = core
         # normalized handler via rpc adapter (pydantic in/out + overlay)
         pk = pk_name
         rpc = _wrap_rpc(core, (IN or dict), (OUT or dict), pk, model)
         handlers[verb] = rpc
     return spec_map, handlers, raw_handlers
+
 
 def init_model_facets(model: Type) -> None:
     """One-time class bootstrap; safe to call from Base.__init_subclass__."""
@@ -85,10 +119,10 @@ def init_model_facets(model: Type) -> None:
         nested_paths=getattr(model, "__autoapi_nested_paths__", None),
     )
     ns.schemas = SimpleNamespace(inp={}, out={})
-    ns.rpc = SimpleNamespace()          # CamelCase names, like API.rpc ids
-    ns.handlers = SimpleNamespace()     # normalized (pydantic in/out)
-    ns.raw_handlers = SimpleNamespace() # raw core callables
-    ns.hooks: Dict[str, list] = {}      # optional: per-verb hook buckets
+    ns.rpc = SimpleNamespace()  # CamelCase names, like API.rpc ids
+    ns.handlers = SimpleNamespace()  # normalized (pydantic in/out)
+    ns.raw_handlers = SimpleNamespace()  # raw core callables
+    ns.hooks: Dict[str, list] = {}  # optional: per-verb hook buckets
 
     # Canonical cores + handlers
     canon_specs, canon_handlers, canon_raw = _canonical_specs_with_cores(model)
@@ -96,10 +130,10 @@ def init_model_facets(model: Type) -> None:
     # Fill schemas for canon verbs
     for v, h in canon_handlers.items():
         # Recreate the IN/OUT models to expose on the class for introspection
-        if v in ("clear",): 
+        if v in ("clear",):
             continue
         if v == "read":
-            IN  = _schema(
+            IN = _schema(
                 model,
                 verb="delete",
                 include={next(iter(model.__table__.primary_key.columns)).name},
@@ -107,21 +141,31 @@ def init_model_facets(model: Type) -> None:
             )
             OUT = _schema(model, verb="read")
         elif v == "delete":
-            IN  = _schema(model, verb="delete", include={next(iter(model.__table__.primary_key.columns)).name})
+            IN = _schema(
+                model,
+                verb="delete",
+                include={next(iter(model.__table__.primary_key.columns)).name},
+            )
             OUT = None
         elif v == "list":
-            IN  = _schema(model, verb="list")
+            IN = _schema(model, verb="list")
             OUT = _schema(model, verb="read")
-        elif v in ("create","replace"):
-            IN  = _schema(model, verb="create")
+        elif v in ("create", "replace"):
+            IN = _schema(model, verb="create")
             OUT = _schema(model, verb="read")
         elif v == "update":
-            IN  = _schema(model, verb="update", exclude={next(iter(model.__table__.primary_key.columns)).name})
+            IN = _schema(
+                model,
+                verb="update",
+                exclude={next(iter(model.__table__.primary_key.columns)).name},
+            )
             OUT = _schema(model, verb="read")
         else:
             IN = OUT = None
-        if IN:  ns.schemas.inp[v]  = IN
-        if OUT: ns.schemas.out[v]  = OUT
+        if IN:
+            ns.schemas.inp[v] = IN
+        if OUT:
+            ns.schemas.out[v] = OUT
 
     # Attach canonical handlers
     for v, f in canon_handlers.items():
@@ -135,7 +179,7 @@ def init_model_facets(model: Type) -> None:
         active = dict(canon_specs)
         # Merge decorated/custom/registered specs (impl/op_wiring already knows how to collect)
         for s in collect_all_specs_for_table(model):
-            active[(s.alias if s.target=="custom" else s.alias)] = s
+            active[(s.alias if s.target == "custom" else s.alias)] = s
 
         # Expose per-OpSpec handlers/rpc if custom/alias
         for spec_key, spec in list(active.items()):
@@ -145,18 +189,21 @@ def init_model_facets(model: Type) -> None:
                 # raw: table method receives (table, *, ctx, db, request, payload)
                 async def _raw(payload, db, _h=spec.handler, _t=model):
                     return await _h(_t, ctx={}, db=db, request=None, payload=payload)
+
                 setattr(ns.raw_handlers, alias, _raw)
 
-                IN  = spec.request_model or dict
+                IN = spec.request_model or dict
                 OUT = spec.response_model or dict
-                pk  = next(iter(model.__table__.primary_key.columns)).name
+                pk = next(iter(model.__table__.primary_key.columns)).name
                 setattr(ns.handlers, alias, _wrap_rpc(_raw, IN, OUT, pk, model))
 
             # CamelCase rpc id
             camel = "".join(w.title() for w in alias.split("_"))
+
             def _rpc(payload, db, _alias=alias, _m=model):
                 # Exact same callable that API.rpc will hold
                 return getattr(_m.handlers, _alias)(payload, db)
+
             setattr(ns.rpc, camel, _rpc)
 
     ns.op_registry = _OpSpecRegistry(model, on_change=_sync_from_specs)
@@ -172,4 +219,3 @@ def init_model_facets(model: Type) -> None:
     model.columns = ns.columns
     model.table_config = ns.config
     model.__autoapi__ = ns  # keep a bag
-

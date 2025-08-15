@@ -4,7 +4,14 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Callable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from ..opspec import OpSpec
 from ..opspec.types import StepFn
@@ -17,6 +24,7 @@ _Key = Tuple[str, str]  # (alias, target)
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers: model.hooks / model.handlers alias namespaces
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
     hooks_root = getattr(model, "hooks", None)
@@ -34,6 +42,7 @@ def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
         setattr(ns, "HANDLER", [])
     return ns
 
+
 def _ensure_alias_handlers_ns(model: type, alias: str) -> SimpleNamespace:
     handlers_root = getattr(model, "handlers", None)
     if handlers_root is None:
@@ -46,6 +55,7 @@ def _ensure_alias_handlers_ns(model: type, alias: str) -> SimpleNamespace:
         setattr(handlers_root, alias, ns)
     return ns
 
+
 def _append_handler_step(model: type, alias: str, step: StepFn) -> None:
     ns = _ensure_alias_hooks_ns(model, alias)
     chain: list[StepFn] = getattr(ns, "HANDLER")
@@ -56,23 +66,29 @@ def _append_handler_step(model: type, alias: str, step: StepFn) -> None:
 # Payload extraction helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     try:
         return ctx[key]
     except Exception:
         return getattr(ctx, key, default)
 
+
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     return _ctx_get(ctx, "payload", {}) or {}
+
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
 
+
 def _ctx_request(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "request")
 
+
 def _ctx_path_params(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     return _ctx_get(ctx, "path_params", {}) or {}
+
 
 def _pk_name(model: type) -> str:
     table = getattr(model, "__table__", None)
@@ -85,6 +101,7 @@ def _pk_name(model: type) -> str:
         # For composite PKs, we fall back to "id" and expect adapters to supply ident explicitly.
         return "id"
     return getattr(cols[0], "name", "id")
+
 
 def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
     """
@@ -109,10 +126,12 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
 # Core → StepFn adapters
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _wrap_core(model: type, target: str) -> StepFn:
     """
     Turn a canonical core function into a StepFn(ctx) → Any.
     """
+
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
@@ -198,12 +217,18 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
 
         kw = {}
-        if "ctx" in wanted: kw["ctx"] = ctx
-        if "db" in wanted: kw["db"] = db
-        if "payload" in wanted: kw["payload"] = payload
-        if "request" in wanted: kw["request"] = request
-        if "model" in wanted: kw["model"] = model
-        if "op" in wanted: kw["op"] = sp
+        if "ctx" in wanted:
+            kw["ctx"] = ctx
+        if "db" in wanted:
+            kw["db"] = db
+        if "payload" in wanted:
+            kw["payload"] = payload
+        if "request" in wanted:
+            kw["request"] = request
+        if "model" in wanted:
+            kw["model"] = model
+        if "op" in wanted:
+            kw["op"] = sp
 
         rv = bound(**kw)  # type: ignore[misc]
         if inspect.isawaitable(rv):
@@ -217,16 +242,18 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
 # Builder
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _build_raw_step(model: type, sp: OpSpec) -> StepFn:
     if sp.target == "custom" and sp.handler is not None:
         return _wrap_custom(model, sp, sp.handler)  # user function
     # Canonical/default core
     return _wrap_core(model, sp.target)
 
+
 def _attach_one(model: type, sp: OpSpec) -> None:
     alias = sp.alias
     handlers_ns = _ensure_alias_handlers_ns(model, alias)
-    hooks_ns = _ensure_alias_hooks_ns(model, alias)
+    _ensure_alias_hooks_ns(model, alias)
 
     raw_step = _build_raw_step(model, sp)
 
@@ -248,14 +275,21 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         setattr(handlers_ns, "core", raw_step)
         setattr(handlers_ns, "core_raw", raw_step)
 
-    logger.debug("handlers: %s.%s → raw step attached & inserted into HANDLER", model.__name__, alias)
+    logger.debug(
+        "handlers: %s.%s → raw step attached & inserted into HANDLER",
+        model.__name__,
+        alias,
+    )
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
-def build_and_attach(model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None) -> None:
+
+def build_and_attach(
+    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+) -> None:
     """
     Build raw/core handlers for each OpSpec and insert them into the HANDLER phase chain.
     Also attaches:

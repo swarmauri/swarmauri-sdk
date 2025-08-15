@@ -42,7 +42,9 @@ def register_sqlite_attach(engine: Engine, attach_map: Mapping[str, str]) -> Non
     import re
 
     # For AsyncEngine, use its underlying sync engine
-    sync_engine: Engine = getattr(engine, "sync_engine", engine)  # AsyncEngine -> Engine
+    sync_engine: Engine = getattr(
+        engine, "sync_engine", engine
+    )  # AsyncEngine -> Engine
 
     ident_ok = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 

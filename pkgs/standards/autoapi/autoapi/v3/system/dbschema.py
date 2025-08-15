@@ -27,7 +27,14 @@ All helpers are **framework-agnostic** and rely only on SQLAlchemy.
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+)
 
 try:
     from sqlalchemy import event, text
@@ -130,10 +137,14 @@ def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> An
         - No-op for non-SQLite engines.
         - Idempotent per connection; already-attached schemas are skipped.
     """
-    if not hasattr(engine, "dialect") or getattr(engine.dialect, "name", "") != "sqlite":
+    if (
+        not hasattr(engine, "dialect")
+        or getattr(engine.dialect, "name", "") != "sqlite"
+    ):
         # Not SQLite; nothing to do.
         def _noop(*args, **kwargs):
             return None
+
         return _noop
 
     if event is None:  # pragma: no cover
@@ -158,6 +169,7 @@ def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> An
 # ───────────────────────────────────────────────────────────────────────────────
 # Schema creation helpers
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def ensure_schemas(engine: Engine, schemas: Iterable[str]) -> Tuple[str, ...]:
     """
@@ -208,10 +220,13 @@ def ensure_schemas(engine: Engine, schemas: Iterable[str]) -> Tuple[str, ...]:
                             # MySQL "CREATE SCHEMA" == "CREATE DATABASE"; leave quoting simple
                             conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS `{name}`"))
                         elif dialect in ("mssql", "sqlserver"):
-                            conn.execute(text(
-                                "IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = :n) "
-                                "EXEC('CREATE SCHEMA ' + QUOTENAME(:n))"
-                            ), {"n": name})
+                            conn.execute(
+                                text(
+                                    "IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = :n) "
+                                    "EXEC('CREATE SCHEMA ' + QUOTENAME(:n))"
+                                ),
+                                {"n": name},
+                            )
                         else:
                             # Generic attempt; many dialects accept IF NOT EXISTS today
                             conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {name}"))
@@ -228,6 +243,7 @@ def ensure_schemas(engine: Engine, schemas: Iterable[str]) -> Tuple[str, ...]:
 # ───────────────────────────────────────────────────────────────────────────────
 # Bootstrap convenience
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def bootstrap_dbschema(
     engine: Engine,

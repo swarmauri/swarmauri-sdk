@@ -19,7 +19,7 @@ Typical usage in the schema builder:
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, MutableMapping, Optional
+from typing import Any, Mapping
 
 from ..opspec.types import CANON
 
@@ -29,26 +29,31 @@ from ..opspec.types import CANON
 # ───────────────────────────────────────────────────────────────────────────────
 
 # Valid verbs are derived from OpSpec canon (kept in sync automatically)
-VALID_VERBS: frozenset[str] = frozenset(str(k) for k in (CANON.keys() if hasattr(CANON, "keys") else CANON))  # type: ignore[arg-type]
+VALID_VERBS: frozenset[str] = frozenset(
+    str(k) for k in (CANON.keys() if hasattr(CANON, "keys") else CANON)
+)  # type: ignore[arg-type]
 
 # Keys allowed inside Column.info["autoapi"]
-VALID_KEYS: frozenset[str] = frozenset({
-    # legacy (still recognized)
-    "no_create",          # (bool)   legacy toggle for create
-    "no_update",          # (bool)   legacy toggle for update/replace
-    # modern flags
-    "disable_on",         # (Iterable[str]) verbs for which the field is disabled
-    "write_only",         # (bool)   omit from OUT/read schemas
-    "read_only",          # (bool | Iterable[str] | Mapping[str,bool])
-    "default_factory",    # (callable) → Field(default_factory=…)
-    "examples",           # (Any)    → Field(..., examples=…)
-    "hybrid",             # (bool)   opt-in for @hybrid_property
-    "py_type",            # (type)   explicit Python type for hybrids/unknowns
-})
+VALID_KEYS: frozenset[str] = frozenset(
+    {
+        # legacy (still recognized)
+        "no_create",  # (bool)   legacy toggle for create
+        "no_update",  # (bool)   legacy toggle for update/replace
+        # modern flags
+        "disable_on",  # (Iterable[str]) verbs for which the field is disabled
+        "write_only",  # (bool)   omit from OUT/read schemas
+        "read_only",  # (bool | Iterable[str] | Mapping[str,bool])
+        "default_factory",  # (callable) → Field(default_factory=…)
+        "examples",  # (Any)    → Field(..., examples=…)
+        "hybrid",  # (bool)   opt-in for @hybrid_property
+        "py_type",  # (type)   explicit Python type for hybrids/unknowns
+    }
+)
 
 # Convenience: write-phase verbs (helps some validations/decisions)
 WRITE_VERBS: frozenset[str] = frozenset(
-    v for v in VALID_VERBS
+    v
+    for v in VALID_VERBS
     if v not in {"read", "list"}  # everything else mutates or may flush
 )
 
@@ -57,8 +62,10 @@ WRITE_VERBS: frozenset[str] = frozenset(
 # Validation & normalization
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _err_ctx(model: str, attr: str, msg: str) -> ValueError:
     return ValueError(f"{model}.{attr}: {msg}")
+
 
 def _as_iter(x: Any) -> list:
     if x is None:
@@ -66,6 +73,7 @@ def _as_iter(x: Any) -> list:
     if isinstance(x, (set, tuple, list)):
         return list(x)
     return [x]
+
 
 def _normalize_read_only(ro: Any, *, model: str, attr: str):
     """
@@ -85,37 +93,69 @@ def _normalize_read_only(ro: Any, *, model: str, attr: str):
         out: dict[str, bool] = {}
         for k, v in ro.items():
             if not isinstance(k, str):
-                raise _err_ctx(model, attr, f"read_only mapping keys must be str verbs, got {type(k)!r}")
+                raise _err_ctx(
+                    model,
+                    attr,
+                    f"read_only mapping keys must be str verbs, got {type(k)!r}",
+                )
             if k not in VALID_VERBS:
-                raise _err_ctx(model, attr, f"read_only has unknown verb {k!r} (valid: {sorted(VALID_VERBS)})")
+                raise _err_ctx(
+                    model,
+                    attr,
+                    f"read_only has unknown verb {k!r} (valid: {sorted(VALID_VERBS)})",
+                )
             if not isinstance(v, bool):
-                raise _err_ctx(model, attr, f"read_only[{k!r}] must be bool, got {type(v)!r}")
+                raise _err_ctx(
+                    model, attr, f"read_only[{k!r}] must be bool, got {type(v)!r}"
+                )
             out[k] = v
         return out
 
     if isinstance(ro, (set, list, tuple)):
         bad = [v for v in ro if not isinstance(v, str) or v not in VALID_VERBS]
         if bad:
-            raise _err_ctx(model, attr, f"read_only verbs invalid: {bad} (valid: {sorted(VALID_VERBS)})")
+            raise _err_ctx(
+                model,
+                attr,
+                f"read_only verbs invalid: {bad} (valid: {sorted(VALID_VERBS)})",
+            )
         return frozenset(ro)
 
-    raise _err_ctx(model, attr, f"read_only must be bool, Iterable[str], or Mapping[str,bool]; got {type(ro)!r}")
+    raise _err_ctx(
+        model,
+        attr,
+        f"read_only must be bool, Iterable[str], or Mapping[str,bool]; got {type(ro)!r}",
+    )
+
 
 def _normalize_disable_on(disable_on: Any, *, model: str, attr: str) -> frozenset[str]:
     if disable_on is None:
         return frozenset()
     if not isinstance(disable_on, (set, list, tuple)):
-        raise _err_ctx(model, attr, f"disable_on must be an iterable of verbs; got {type(disable_on)!r}")
+        raise _err_ctx(
+            model,
+            attr,
+            f"disable_on must be an iterable of verbs; got {type(disable_on)!r}",
+        )
     verbs = []
     for v in disable_on:
         if not isinstance(v, str):
-            raise _err_ctx(model, attr, f"disable_on entries must be str verbs; got {type(v)!r}")
+            raise _err_ctx(
+                model, attr, f"disable_on entries must be str verbs; got {type(v)!r}"
+            )
         if v not in VALID_VERBS:
-            raise _err_ctx(model, attr, f"disable_on has unknown verb {v!r} (valid: {sorted(VALID_VERBS)})")
+            raise _err_ctx(
+                model,
+                attr,
+                f"disable_on has unknown verb {v!r} (valid: {sorted(VALID_VERBS)})",
+            )
         verbs.append(v)
     return frozenset(verbs)
 
-def normalize(meta: Mapping[str, Any] | None, *, model: str, attr: str) -> dict[str, Any]:
+
+def normalize(
+    meta: Mapping[str, Any] | None, *, model: str, attr: str
+) -> dict[str, Any]:
     """
     Validate and normalize a meta dict. Unknown keys raise; returns a **new** dict
     with normalized shapes:
@@ -139,15 +179,21 @@ def normalize(meta: Mapping[str, Any] | None, *, model: str, attr: str) -> dict[
     # legacy toggles
     if "no_create" in meta:
         if not isinstance(meta["no_create"], bool):
-            raise _err_ctx(model, attr, f"no_create must be bool, got {type(meta['no_create'])!r}")
+            raise _err_ctx(
+                model, attr, f"no_create must be bool, got {type(meta['no_create'])!r}"
+            )
         out["no_create"] = bool(meta["no_create"])
     if "no_update" in meta:
         if not isinstance(meta["no_update"], bool):
-            raise _err_ctx(model, attr, f"no_update must be bool, got {type(meta['no_update'])!r}")
+            raise _err_ctx(
+                model, attr, f"no_update must be bool, got {type(meta['no_update'])!r}"
+            )
         out["no_update"] = bool(meta["no_update"])
 
     # modern flags
-    out["disable_on"] = _normalize_disable_on(meta.get("disable_on"), model=model, attr=attr)  # frozenset[str]
+    out["disable_on"] = _normalize_disable_on(
+        meta.get("disable_on"), model=model, attr=attr
+    )  # frozenset[str]
 
     ro = meta.get("read_only", False)
     out["read_only"] = _normalize_read_only(ro, model=model, attr=attr)
@@ -159,7 +205,9 @@ def normalize(meta: Mapping[str, Any] | None, *, model: str, attr: str) -> dict[
 
     df = meta.get("default_factory", None)
     if df is not None and not callable(df):
-        raise _err_ctx(model, attr, f"default_factory must be callable or None, got {type(df)!r}")
+        raise _err_ctx(
+            model, attr, f"default_factory must be callable or None, got {type(df)!r}"
+        )
     out["default_factory"] = df
 
     out["examples"] = meta.get("examples", None)
@@ -190,6 +238,7 @@ def check(meta: Mapping[str, Any] | None, attr: str, model: str) -> None:
 # Inclusion helpers (for schema builders / adapters)
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ro_applies(ro: Any, verb: str) -> bool:
     """
     Internal helper to evaluate the read_only directive for a given verb.
@@ -205,6 +254,7 @@ def _ro_applies(ro: Any, verb: str) -> bool:
         return bool(val)
     # Fallback (shouldn't happen after normalize)
     return False
+
 
 def should_include_in_input(meta: Mapping[str, Any] | None, *, verb: str) -> bool:
     """
@@ -228,6 +278,7 @@ def should_include_in_input(meta: Mapping[str, Any] | None, *, verb: str) -> boo
         # read_only excludes from input (except 'read' where it's an OUT schema)
         return False
     return True
+
 
 def should_include_in_output(meta: Mapping[str, Any] | None, *, verb: str) -> bool:
     """

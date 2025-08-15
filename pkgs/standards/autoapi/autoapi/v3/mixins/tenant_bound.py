@@ -8,7 +8,11 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
-from ..config.constants import CTX_AUTH_KEY, CTX_TENANT_ID_KEY
+from ..config.constants import (
+    AUTOAPI_TENANT_POLICY_ATTR,
+    CTX_AUTH_KEY,
+    CTX_TENANT_ID_KEY,
+)
 from ..runtime.errors import create_standardized_error
 from ..schema.col_info import check as _info_check
 from ..types import Column, ForeignKey, PgUUID, declared_attr

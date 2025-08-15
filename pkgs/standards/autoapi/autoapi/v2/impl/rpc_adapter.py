@@ -21,26 +21,36 @@ from sqlalchemy import inspect as _sa_inspect
 
 def _wrap_rpc(core, IN, OUT, pk_name: str, model):
     fn_name = getattr(core, "__name__", "")
-    print(f"[rpc_adapter] _wrap_rpc: core={fn_name} IN={getattr(IN,'__name__',IN)} "
-          f"OUT={OUT} pk_name={pk_name} model={getattr(model,'__name__',model)}")
+    print(
+        f"[rpc_adapter] _wrap_rpc: core={fn_name} IN={getattr(IN, '__name__', IN)} "
+        f"OUT={OUT} pk_name={pk_name} model={getattr(model, '__name__', model)}"
+    )
 
     # classify verb from core name (we generate _create/_read/_update/_delete/_list/_clear)
     lower = fn_name.lower()
     verb = (
-        "create" if "create" in lower else
-        "update" if "update" in lower else
-        "read"   if "read"   in lower else
-        "delete" if "delete" in lower else
-        "list"   if "list"   in lower else
-        "clear"  if "clear"  in lower else
-        "unknown"
+        "create"
+        if "create" in lower
+        else "update"
+        if "update" in lower
+        else "read"
+        if "read" in lower
+        else "delete"
+        if "delete" in lower
+        else "list"
+        if "list" in lower
+        else "clear"
+        if "clear" in lower
+        else "unknown"
     )
     print(f"[rpc_adapter] detected verb={verb}")
 
     # OUT typing info
     out_is_list = get_origin(OUT) is list
     out_elem = get_args(OUT)[0] if out_is_list else None
-    elem_has_validate = callable(getattr(out_elem, "model_validate", None)) if out_elem else False
+    elem_has_validate = (
+        callable(getattr(out_elem, "model_validate", None)) if out_elem else False
+    )
     out_is_single_model = callable(getattr(OUT, "model_validate", None))
 
     # discover mapped columns so we can re-overlay server-injected fields
@@ -60,7 +70,7 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
         cfg = getattr(IN, "model_config", None)
         extra = getattr(cfg, "extra", None) if cfg else None
         val = getattr(extra, "value", extra)
-        flag = (val == "forbid")
+        flag = val == "forbid"
         print(f"[rpc_adapter] _forbid_extras: {val!r} -> {flag}")
         return flag
 
@@ -114,7 +124,9 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
                 print(f"[rpc_adapter] pre-filtered for forbid: {raw_for_validate}")
             else:
                 raw_for_validate = raw_map
-                print(f"[rpc_adapter] no pre-filter (forbid inactive): {raw_for_validate}")
+                print(
+                    f"[rpc_adapter] no pre-filter (forbid inactive): {raw_for_validate}"
+                )
             try:
                 obj_in = IN.model_validate(raw_for_validate)
                 validated = obj_in.model_dump()
@@ -163,7 +175,12 @@ def _wrap_rpc(core, IN, OUT, pk_name: str, model):
             # conservative fallback: behave like old adapter but with dicts
             params = list(signature(core).parameters.values())
             print(f"[rpc_adapter] fallback dispatch, params={[p.name for p in params]}")
-            if isinstance(raw_map, dict) and (pk_name in raw_map) and params and params[0].name != pk_name:
+            if (
+                isinstance(raw_map, dict)
+                and (pk_name in raw_map)
+                and params
+                and params[0].name != pk_name
+            ):
                 if len(params) >= 3:
                     r = core(pk_val, payload, db=db)
                 else:

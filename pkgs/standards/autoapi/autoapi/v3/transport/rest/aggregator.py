@@ -23,7 +23,7 @@ Notes:
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 try:
     from fastapi import APIRouter, Depends
@@ -34,12 +34,16 @@ except Exception:  # pragma: no cover
             self.routes = []
             self.includes = []
             self.dependencies = list(dependencies or [])
+
         def add_api_route(self, path: str, endpoint, methods: Sequence[str], **opts):
             self.routes.append((path, methods, endpoint, opts))
+
         def include_router(self, router: "APIRouter", *, prefix: str = "", **opts):
             self.includes.append((router, prefix, opts))
+
     def Depends(fn):  # type: ignore
         return fn
+
 
 def _norm_prefix(p: Optional[str]) -> str:
     if not p:
@@ -48,6 +52,7 @@ def _norm_prefix(p: Optional[str]) -> str:
         p = "/" + p
     # Avoid double trailing slashes; FastAPI is lenient but keep it clean
     return p.rstrip("/")
+
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     """Accept either Depends(...) objects or plain callables."""
@@ -60,12 +65,14 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
         out.append(d if is_dep_obj else Depends(d))
     return out
 
+
 def _iter_models(api: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
     if only:
         return list(only)
     models: Mapping[str, type] = getattr(api, "models", {}) or {}
     # deterministic iteration
     return [models[k] for k in sorted(models.keys())]
+
 
 def build_rest_router(
     api: Any,
@@ -99,6 +106,7 @@ def build_rest_router(
         root.include_router(router, prefix=prefix or "")
     return root
 
+
 def mount_rest(
     api: Any,
     app: Any,
@@ -112,10 +120,13 @@ def mount_rest(
 
     Returns the created router so you can keep a reference if desired.
     """
-    router = build_rest_router(api, models=models, base_prefix=base_prefix, dependencies=dependencies)
+    router = build_rest_router(
+        api, models=models, base_prefix=base_prefix, dependencies=dependencies
+    )
     include = getattr(app, "include_router", None)
     if callable(include):
         include(router)
     return router
+
 
 __all__ = ["build_rest_router", "mount_rest"]

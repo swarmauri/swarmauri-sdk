@@ -3,7 +3,6 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .hooks import Phase
 from .naming import label_hook_callable
 from ..hooks import Phase
 
@@ -31,6 +30,7 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
         - Within each phase, hooks are listed in execution order:
           global (None) hooks, then method-specific hooks.
         """
+
         def label(fn) -> str:
             n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
             m = getattr(fn, "__module__", None)

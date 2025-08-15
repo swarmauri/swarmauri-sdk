@@ -24,7 +24,16 @@ You would usually mount the returned router at `/rpc`, e.g.:
 from __future__ import annotations
 
 import logging
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+)
 
 try:
     from fastapi import APIRouter, Request, Body, Depends, HTTPException
@@ -34,33 +43,43 @@ except Exception:  # pragma: no cover
     class APIRouter:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
-        def add_api_route(self, path: str, endpoint: Callable, methods: Sequence[str], **opts):
+
+        def add_api_route(
+            self, path: str, endpoint: Callable, methods: Sequence[str], **opts
+        ):
             self.routes.append((path, methods, endpoint, opts))
+
     class Request:  # type: ignore
         def __init__(self, scope=None):
             self.scope = scope or {}
             self.state = type("S", (), {})()
             self.query_params = {}
+
         async def json(self) -> Any:
             return {}
+
     def Body(default=None, **kw):  # type: ignore
         return default
+
     def Depends(fn):  # type: ignore
         return fn
+
     class Response:  # type: ignore
         def __init__(self, status_code: int = 200, content: Any = None):
             self.status_code = status_code
             self.body = content
+
     class HTTPException(Exception):  # type: ignore
         def __init__(self, status_code: int, detail: Any = None):
             super().__init__(detail)
             self.status_code = status_code
             self.detail = detail
 
+
 from ...runtime.errors import (
-    http_exc_to_rpc,
     ERROR_MESSAGES,
 )
+from ...v2.jsonrpc_models import _http_exc_to_rpc
 
 logger = logging.getLogger(__name__)
 
@@ -71,14 +90,21 @@ Batch = Sequence[Mapping[str, Any]]
 # Utilities
 # --------------------------------------------------------------------------- #
 
+
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
     return {"jsonrpc": "2.0", "result": result, "id": id_}
 
+
 def _err(code: int, msg: str, id_: Any, data: Any | None = None) -> Dict[str, Any]:
-    e: Dict[str, Any] = {"jsonrpc": "2.0", "error": {"code": code, "message": msg}, "id": id_}
+    e: Dict[str, Any] = {
+        "jsonrpc": "2.0",
+        "error": {"code": code, "message": msg},
+        "id": id_,
+    }
     if data is not None:
         e["error"]["data"] = data
     return e
+
 
 def _normalize_params(params: Any) -> Mapping[str, Any]:
     if params is None:
@@ -87,6 +113,7 @@ def _normalize_params(params: Any) -> Mapping[str, Any]:
         return dict(params)
     # Positional params are not supported in AutoAPI adapters
     raise HTTPException(status_code=400, detail="Invalid params: expected object")
+
 
 def _model_for(api: Any, name: str) -> Optional[type]:
     models: Dict[str, type] = getattr(api, "models", {}) or {}
@@ -99,6 +126,7 @@ def _model_for(api: Any, name: str) -> Optional[type]:
         if k.lower() == lower:
             return v
     return None
+
 
 async def _dispatch_one(
     *,
@@ -161,7 +189,7 @@ async def _dispatch_one(
         if rid is None:
             return None
         return _err(code, msg, rid, data)
-    except Exception as exc:
+    except Exception:
         logger.exception("jsonrpc dispatch failed")
         # Internal error (per JSON-RPC); do not leak details
         if rid is None:
@@ -172,6 +200,7 @@ async def _dispatch_one(
 # --------------------------------------------------------------------------- #
 # Public router factory
 # --------------------------------------------------------------------------- #
+
 
 def build_jsonrpc_router(
     api: Any,
@@ -192,12 +221,16 @@ def build_jsonrpc_router(
 
     if dep is not None:
         # Inject DB via FastAPI dependency for proper lifecycle management.
-        async def _endpoint(request: Request, body: Any = Body(...), db: Any = Depends(dep)):
+        async def _endpoint(
+            request: Request, body: Any = Body(...), db: Any = Depends(dep)
+        ):
             # Accept single or batch requests
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 # Per JSON-RPC: an empty response array is valid for a batch of only notifications.
@@ -218,7 +251,9 @@ def build_jsonrpc_router(
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
-                    resp = await _dispatch_one(api=api, request=request, db=db, obj=item)
+                    resp = await _dispatch_one(
+                        api=api, request=request, db=db, obj=item
+                    )
                     if resp is not None:
                         responses.append(resp)
                 return responses

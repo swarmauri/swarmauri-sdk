@@ -14,8 +14,14 @@ except Exception:  # pragma: no cover
         from starlette.exceptions import HTTPException  # type: ignore
         from starlette import status  # type: ignore
     except Exception:  # pragma: no cover
+
         class HTTPException(Exception):  # minimal shim
-            def __init__(self, status_code: int, detail: Any = None, headers: Optional[dict] = None) -> None:
+            def __init__(
+                self,
+                status_code: int,
+                detail: Any = None,
+                headers: Optional[dict] = None,
+            ) -> None:
                 super().__init__(detail)
                 self.status_code = status_code
                 self.detail = detail
@@ -43,7 +49,9 @@ except Exception:  # pragma: no cover
     PydanticValidationError = None  # type: ignore
 
 try:
-    from fastapi.exceptions import RequestValidationError  # emitted by FastAPI input validation
+    from fastapi.exceptions import (
+        RequestValidationError,
+    )  # emitted by FastAPI input validation
 except Exception:  # pragma: no cover
     RequestValidationError = None  # type: ignore
 
@@ -64,9 +72,12 @@ _ASYNCPG_CONSTRAINT_NAMES = {
     "ExclusionViolationError",
 }
 
+
 def _is_asyncpg_constraint_error(exc: BaseException) -> bool:
     cls = type(exc)
-    return (cls.__module__ or "").startswith("asyncpg") and (cls.__name__ in _ASYNCPG_CONSTRAINT_NAMES)
+    return (cls.__module__ or "").startswith("asyncpg") and (
+        cls.__name__ in _ASYNCPG_CONSTRAINT_NAMES
+    )
 
 
 # ───────────────────── Centralized Error Mappings ────────────────────────────
@@ -142,10 +153,12 @@ HTTP_ERROR_MESSAGES: dict[int, str] = {
 
 # ───────────────────── Formatting helpers ────────────────────────────
 
+
 def _limit(s: str, n: int = 4000) -> str:
     if len(s) <= n:
         return s
     return s[: n - 3] + "..."
+
 
 def _stringify_exc(exc: BaseException) -> str:
     detail = getattr(exc, "detail", None)
@@ -154,6 +167,7 @@ def _stringify_exc(exc: BaseException) -> str:
     cls = exc.__class__
     msg = str(exc) or repr(exc)
     return _limit(f"{cls!r}: {msg}")
+
 
 def _format_validation(err: Any) -> Any:
     # Pydantic v2/RequestValidationError both expose .errors()
@@ -168,6 +182,7 @@ def _format_validation(err: Any) -> Any:
 
 # ───────────────────── Public conversions ────────────────────────────
 
+
 def http_exc_to_rpc(exc: HTTPException) -> tuple[int, str, Any | None]:
     """
     Convert HTTPException → (rpc_code, message, data).
@@ -177,18 +192,29 @@ def http_exc_to_rpc(exc: HTTPException) -> tuple[int, str, Any | None]:
     if isinstance(detail, (dict, list)):
         return code, ERROR_MESSAGES.get(code, "Unknown error"), detail
     # if we previously attached rpc attrs, prefer those
-    msg = getattr(exc, "rpc_message", None) or (detail if isinstance(detail, str) else None)
+    msg = getattr(exc, "rpc_message", None) or (
+        detail if isinstance(detail, str) else None
+    )
     if not msg:
-        msg = ERROR_MESSAGES.get(code, HTTP_ERROR_MESSAGES.get(exc.status_code, "Unknown error"))
+        msg = ERROR_MESSAGES.get(
+            code, HTTP_ERROR_MESSAGES.get(exc.status_code, "Unknown error")
+        )
     data = getattr(exc, "rpc_data", None)
     return code, msg, data
 
-def rpc_error_to_http(rpc_code: int, message: str | None = None, data: Any | None = None) -> HTTPException:
+
+def rpc_error_to_http(
+    rpc_code: int, message: str | None = None, data: Any | None = None
+) -> HTTPException:
     """
     Convert JSON-RPC error code (and optional message/data) → HTTPException.
     """
     http_status = _RPC_TO_HTTP.get(rpc_code, 500)
-    msg = message or HTTP_ERROR_MESSAGES.get(http_status) or ERROR_MESSAGES.get(rpc_code, "Unknown error")
+    msg = (
+        message
+        or HTTP_ERROR_MESSAGES.get(http_status)
+        or ERROR_MESSAGES.get(rpc_code, "Unknown error")
+    )
     http_exc = HTTPException(status_code=http_status, detail=msg)
     # attach rpc context for symmetry
     setattr(http_exc, "rpc_code", rpc_code)
@@ -199,7 +225,10 @@ def rpc_error_to_http(rpc_code: int, message: str | None = None, data: Any | Non
 
 # ───────────────────── Exception → Standardized error ─────────────────────────
 
-def _classify_exception(exc: BaseException) -> Tuple[int, str | dict | list, Any | None]:
+
+def _classify_exception(
+    exc: BaseException,
+) -> Tuple[int, str | dict | list, Any | None]:
     """
     Return (http_status, detail_or_message, data) suitable for HTTPException and JSON-RPC mapping.
     `detail_or_message` may be a string OR a structured dict/list (validation).
@@ -209,10 +238,20 @@ def _classify_exception(exc: BaseException) -> Tuple[int, str | dict | list, Any
         return exc.status_code, exc.detail, getattr(exc, "rpc_data", None)
 
     # Validation errors → 422 with structured data
-    if (PydanticValidationError is not None) and isinstance(exc, PydanticValidationError):
-        return status.HTTP_422_UNPROCESSABLE_ENTITY, HTTP_ERROR_MESSAGES.get(422, "Validation failed"), _format_validation(exc)
+    if (PydanticValidationError is not None) and isinstance(
+        exc, PydanticValidationError
+    ):
+        return (
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            HTTP_ERROR_MESSAGES.get(422, "Validation failed"),
+            _format_validation(exc),
+        )
     if (RequestValidationError is not None) and isinstance(exc, RequestValidationError):
-        return status.HTTP_422_UNPROCESSABLE_ENTITY, HTTP_ERROR_MESSAGES.get(422, "Validation failed"), _format_validation(exc)
+        return (
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            HTTP_ERROR_MESSAGES.get(422, "Validation failed"),
+            _format_validation(exc),
+        )
 
     # Common client errors
     if isinstance(exc, (ValueError, TypeError, KeyError)):
@@ -262,10 +301,14 @@ def create_standardized_error(exc: BaseException) -> HTTPException:
     # If detail is structured, use default message; else prefer the string detail
     if isinstance(detail_or_message, (dict, list)):
         http_detail = detail_or_message
-        rpc_message = ERROR_MESSAGES.get(rpc_code, HTTP_ERROR_MESSAGES.get(http_status, "Unknown error"))
+        rpc_message = ERROR_MESSAGES.get(
+            rpc_code, HTTP_ERROR_MESSAGES.get(http_status, "Unknown error")
+        )
     else:
         http_detail = detail_or_message
-        rpc_message = detail_or_message or ERROR_MESSAGES.get(rpc_code, HTTP_ERROR_MESSAGES.get(http_status, "Unknown error"))
+        rpc_message = detail_or_message or ERROR_MESSAGES.get(
+            rpc_code, HTTP_ERROR_MESSAGES.get(http_status, "Unknown error")
+        )
 
     http_exc = HTTPException(status_code=http_status, detail=http_detail)
     setattr(http_exc, "rpc_code", rpc_code)
@@ -275,6 +318,7 @@ def create_standardized_error(exc: BaseException) -> HTTPException:
 
 
 # Convenience: build standardized error from explicit HTTP status/message (for non-exception paths)
+
 
 def create_standardized_error_from_status(
     http_status: int,
@@ -291,8 +335,12 @@ def create_standardized_error_from_status(
         rpc_code = _HTTP_TO_RPC.get(http_status, -32603)
 
     if message is None:
-        http_message = HTTP_ERROR_MESSAGES.get(http_status) or ERROR_MESSAGES.get(rpc_code, "Unknown error")
-        rpc_message = ERROR_MESSAGES.get(rpc_code) or HTTP_ERROR_MESSAGES.get(http_status, "Unknown error")
+        http_message = HTTP_ERROR_MESSAGES.get(http_status) or ERROR_MESSAGES.get(
+            rpc_code, "Unknown error"
+        )
+        rpc_message = ERROR_MESSAGES.get(rpc_code) or HTTP_ERROR_MESSAGES.get(
+            http_status, "Unknown error"
+        )
     else:
         http_message = rpc_message = message
 
@@ -304,6 +352,7 @@ def create_standardized_error_from_status(
 
 
 # Convenience: build a JSON-RPC error payload directly from an HTTPException
+
 
 def to_rpc_error_payload(exc: HTTPException) -> dict:
     """
