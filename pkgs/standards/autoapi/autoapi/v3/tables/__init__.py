@@ -2,7 +2,7 @@
 
 Usage
 -----
-    from autoapi.v2.tables import (
+    from autoapi.v3.tables import (
         Tenant,
         User,
         Group,
