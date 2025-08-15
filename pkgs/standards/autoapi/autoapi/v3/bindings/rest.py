@@ -94,7 +94,7 @@ def _resource_name(model: type) -> str:
 
 def _pk_name(model: type) -> str:
     table = getattr(model, "__table__", None)
-    if not table or not getattr(table, "primary_key", None):
+    if table is None or not getattr(table, "primary_key", None):
         return "id"
     cols = list(table.primary_key.columns)  # type: ignore[attr-defined]
     if not cols:

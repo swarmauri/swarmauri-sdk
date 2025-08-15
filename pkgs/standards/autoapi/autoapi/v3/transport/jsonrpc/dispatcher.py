@@ -79,7 +79,7 @@ except Exception:  # pragma: no cover
 from ...runtime.errors import (
     ERROR_MESSAGES,
 )
-from ...v2.jsonrpc_models import _http_exc_to_rpc
+from ....v2.jsonrpc_models import _http_exc_to_rpc
 
 logger = logging.getLogger(__name__)
 
