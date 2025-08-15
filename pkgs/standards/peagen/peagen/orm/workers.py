@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     JSON,
     Column,
     ForeignKey,
@@ -13,9 +13,9 @@ from autoapi.v2.types import (
     HookProvider,
     AllowAnonProvider,
 )
-from autoapi.v2.tables import Base
+from autoapi.v3.tables import Base
 
-from autoapi.v2.mixins import GUIDPk, Timestamped
+from autoapi.v3.mixins import GUIDPk, Timestamped
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool
@@ -301,40 +301,36 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
+        from autoapi.v3 import _schema
 
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="create")(
+        cls._SRead = _schema(cls, verb="read")
+        api.register_hook("PRE_TX_BEGIN", model="Worker", op="create")(
             cls._pre_create_policy_gate
         )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
+        api.register_hook("POST_RESPONSE", model="Worker", op="create")(
             cls._post_create_cache_pool
         )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
+        api.register_hook("POST_RESPONSE", model="Worker", op="create")(
             cls._post_create_cache_worker
         )
-        api.register_hook(Phase.POST_COMMIT, model="Worker", op="create")(
+        api.register_hook("POST_COMMIT", model="Worker", op="create")(
             cls._post_create_auto_register
         )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
+        api.register_hook("POST_RESPONSE", model="Worker", op="create")(
             cls._post_create_inject_key
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="update")(
+        api.register_hook("PRE_TX_BEGIN", model="Worker", op="update")(
             cls._pre_update_policy_gate
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="update")(
-            cls._pre_update
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="update")(
+        api.register_hook("PRE_TX_BEGIN", model="Worker", op="update")(cls._pre_update)
+        api.register_hook("POST_RESPONSE", model="Worker", op="update")(
             cls._post_update_cache_pool
         )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="update")(
+        api.register_hook("POST_RESPONSE", model="Worker", op="update")(
             cls._post_update_cache_worker
         )
-        api.register_hook(Phase.POST_HANDLER, model="Worker", op="list")(cls._post_list)
-        api.register_hook(Phase.POST_HANDLER, model="Worker", op="delete")(
-            cls._post_delete
-        )
+        api.register_hook("POST_HANDLER", model="Worker", op="list")(cls._post_list)
+        api.register_hook("POST_HANDLER", model="Worker", op="delete")(cls._post_delete)
 
 
 __all__ = ["Worker"]
