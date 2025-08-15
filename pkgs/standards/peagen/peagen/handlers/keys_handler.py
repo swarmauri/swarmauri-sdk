@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import anyio
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.core import keys_core
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import Task
