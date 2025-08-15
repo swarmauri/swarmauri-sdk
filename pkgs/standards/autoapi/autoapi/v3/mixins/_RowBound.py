@@ -3,12 +3,10 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from autoapi.v2.hooks import Phase
-from autoapi.v2.types import HookProvider
 from autoapi.v2.jsonrpc_models import HTTP_ERROR_MESSAGES, create_standardized_error
 
 
-class _RowBound(HookProvider):
+class _RowBound:
     """
     Base mix-in for row-level visibility.
 
@@ -20,21 +18,25 @@ class _RowBound(HookProvider):
     Hooks are wired only if the subclass actually provides an implementation.
     """
 
-    # ────────────────────────────────────────────────────────────────────
-    # AutoAPI bootstrap
-    # -------------------------------------------------------------------
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._install_row_visibility_hooks()
+
     @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        # Skip abstract helpers or unmapped mix-ins
+    def _install_row_visibility_hooks(cls) -> None:
         if cls.is_visible is _RowBound.is_visible:
             return
-        if not hasattr(cls, "__table__"):  # not a mapped class
+        if not hasattr(cls, "__table__"):
             return
-
+        hooks = getattr(cls, "__autoapi_hooks__", None) or {}
+        hooks = {**hooks}
         for op in ("read", "list"):
-            api.register_hook(model=cls, phase=Phase.POST_HANDLER, op=op)(
-                cls._make_row_visibility_hook()
-            )
+            phase_map = hooks.get(op) or {}
+            lst = list(phase_map.get("POST_HANDLER") or [])
+            lst.append(cls._make_row_visibility_hook())
+            phase_map["POST_HANDLER"] = tuple(lst)
+            hooks[op] = phase_map
+        setattr(cls, "__autoapi_hooks__", hooks)
 
     # ────────────────────────────────────────────────────────────────────
     # Per-request hook

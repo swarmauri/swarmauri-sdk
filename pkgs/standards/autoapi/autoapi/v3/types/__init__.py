@@ -58,7 +58,6 @@ from fastapi import (
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
-from .hook_provider import HookProvider
 from .nested_path_provider import NestedPathProvider
 from .allow_anon_provider import AllowAnonProvider
 from .request_extras_provider import (
@@ -92,7 +91,6 @@ __all__: list[str] = [
     "_SchemaVerb",
     "AuthNProvider",
     "TableConfigProvider",
-    "HookProvider",
     "NestedPathProvider",
     "AllowAnonProvider",
     "RequestExtrasProvider",

@@ -15,14 +15,6 @@ class AuthNProvider(ABC):
     async def get_principal(self, request: Request):  # -> dict[str, str]
         """Return {"sub": user_id, "tid": tenant_id, ...} or raise HTTP 401."""
 
-    # ---------- Hook registration -----------
-    @abstractmethod
-    def register_inject_hook(self, api) -> None:
-        """
-        Given an *AutoAPI* instance, register whatever hooks are required
-        (e.g. tenant_id / owner_id injection).  Must be idempotent.
-        """
-
 
 __all__ = ["AuthNProvider"]
 

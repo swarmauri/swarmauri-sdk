@@ -10,7 +10,6 @@ from fastapi import HTTPException
 from ..types import (
     Column,
     String,
-    HookProvider,
     Field,
     ResponseExtrasProvider,
 )
@@ -30,7 +29,6 @@ class ApiKey(
     Created,
     LastUsed,
     ValidityWindow,
-    HookProvider,
     ResponseExtrasProvider,
 ):
     __tablename__ = "api_keys"
@@ -105,14 +103,22 @@ class ApiKey(
         result["api_key"] = raw
         ctx["response"].result = result
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._install_hooks()
 
-        model = cls.__name__
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model, op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook(Phase.POST_RESPONSE, model=model, op="create")(
-            cls._post_response_inject
-        )
+    @classmethod
+    def _install_hooks(cls) -> None:
+        hooks = getattr(cls, "__autoapi_hooks__", None) or {}
+        hooks = {**hooks}
+        phase_map = hooks.get("create") or {}
+        pre_list = list(phase_map.get("PRE_TX_BEGIN") or [])
+        if cls._pre_create_generate not in pre_list:
+            pre_list.append(cls._pre_create_generate)
+        phase_map["PRE_TX_BEGIN"] = tuple(pre_list)
+        post_list = list(phase_map.get("POST_RESPONSE") or [])
+        if cls._post_response_inject not in post_list:
+            post_list.append(cls._post_response_inject)
+        phase_map["POST_RESPONSE"] = tuple(post_list)
+        hooks["create"] = phase_map
+        setattr(cls, "__autoapi_hooks__", hooks)

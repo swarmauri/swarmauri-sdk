@@ -4,7 +4,6 @@ from uuid import UUID
 
 from ._RowBound import _RowBound
 from ..types import Column, ForeignKey, PgUUID, declared_attr
-from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, TENANT_ID_KEY
@@ -93,32 +92,26 @@ class TenantBound(_RowBound):
         ctx_tenant_id = auto_fields.get(TENANT_ID_KEY)
         return getattr(obj, "tenant_id", None) == ctx_tenant_id
 
-    # -------------------------------------------------------------------
-    # Runtime hooks (needs api instance)
-    # -------------------------------------------------------------------
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._install_tenant_hooks()
+
     @classmethod
-    def __autoapi_register_hooks__(cls, api):
+    def _install_tenant_hooks(cls) -> None:
         pol = cls.__autoapi_tenant_policy__
 
         def _err(code: int, msg: str):
             http_exc, _, _ = create_standardized_error(code, message=msg)
             raise http_exc
 
-        # INSERT
         def _tenantbound_before_create(ctx):
             params = ctx["env"].params if ctx.get("env") else {}
             if hasattr(params, "model_dump"):
-                # IMPORTANT: if you DON'T do #2 below, keep exclude_none=False here,
-                # and rely on _is_missing() to decide.
                 params = params.model_dump()
-
             auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
-            print(f"\n🚧{auto_fields}")
             injected_tid = auto_fields.get(TENANT_ID_KEY)
-            print(f"\n🚧🚧{injected_tid}")
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
-            print(f"\n🚧🚧🚧{provided}")
             if cls.__autoapi_tenant_policy__ == TenantPolicy.STRICT_SERVER:
                 if injected_tid is None:
                     _err(400, "tenant_id is required.")
@@ -134,48 +127,48 @@ class TenantBound(_RowBound):
                     params["tenant_id"] = injected_tid
                 else:
                     params["tenant_id"] = _normalize_uuid(provided)
-
             ctx["env"].params = params
-            print(f"\n🚧 tenantbound params: {ctx['env'].params}")
 
-        # UPDATE
-        def _tenantbound_before_update(ctx, obj):
+        def _tenantbound_before_update(ctx):
             params = getattr(ctx.get("env"), "params", None)
             if not params or "tenant_id" not in params:
                 return
-
             provided = params.get("tenant_id")
             if _is_missing(provided):
-                # treat None/empty as not provided → drop and ignore
                 params.pop("tenant_id", None)
                 ctx["env"].params = params
                 return
-
             if pol != TenantPolicy.CLIENT_SET:
                 _err(400, "tenant_id is immutable.")
-
             new_val = _normalize_uuid(provided)
             auto_fields = ctx.get(INJECTED_FIELDS_KEY, {})
             injected_tid = _normalize_uuid(auto_fields.get(TENANT_ID_KEY))
-
+            obj = ctx.get("obj")
             log.info(
                 "TenantBound before_update new_val=%s obj_tid=%s injected=%s",
                 new_val,
-                getattr(obj, "tenant_id", None),
+                getattr(obj, "tenant_id", None) if obj is not None else None,
                 injected_tid,
             )
-
             if (
-                new_val != obj.tenant_id
+                obj is not None
+                and new_val != getattr(obj, "tenant_id", None)
                 and new_val != injected_tid
                 and not ctx.get("is_admin")
             ):
                 _err(403, "Cannot switch tenant context.")
 
-        # Register hooks
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="create")(
-            _tenantbound_before_create
-        )
-        api.register_hook(model=cls, phase=Phase.PRE_TX_BEGIN, op="update")(
-            _tenantbound_before_update
-        )
+        hooks = getattr(cls, "__autoapi_hooks__", None) or {}
+        hooks = {**hooks}
+
+        def _append(alias: str, fn):
+            phase_map = hooks.get(alias) or {}
+            lst = list(phase_map.get("PRE_TX_BEGIN") or [])
+            if fn not in lst:
+                lst.append(fn)
+            phase_map["PRE_TX_BEGIN"] = tuple(lst)
+            hooks[alias] = phase_map
+
+        _append("create", _tenantbound_before_create)
+        _append("update", _tenantbound_before_update)
+        setattr(cls, "__autoapi_hooks__", hooks)
