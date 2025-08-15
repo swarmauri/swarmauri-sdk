@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Type
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
 from pydantic import BaseModel, Field, create_model
 
@@ -20,8 +20,10 @@ _Key = Tuple[str, str]  # (alias, target)
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _camel(s: str) -> str:
     return "".join(p.capitalize() or "_" for p in s.split("_"))
+
 
 def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
     ns = getattr(model.schemas, alias, None)
@@ -29,6 +31,7 @@ def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
         ns = SimpleNamespace()
         setattr(model.schemas, alias, ns)
     return ns
+
 
 def _pk_info(model: type) -> Tuple[str, type | Any]:
     """
@@ -48,7 +51,10 @@ def _pk_info(model: type) -> Tuple[str, type | Any]:
     py_t = getattr(getattr(col, "type", None), "python_type", Any)
     return (getattr(col, "name", "id"), py_t or Any)
 
-def _make_bulk_rows_model(model: type, verb: str, item_schema: Type[BaseModel]) -> Type[BaseModel]:
+
+def _make_bulk_rows_model(
+    model: type, verb: str, item_schema: Type[BaseModel]
+) -> Type[BaseModel]:
     """
     Build a wrapper schema with a `rows: List[item_schema]` field.
     """
@@ -58,7 +64,10 @@ def _make_bulk_rows_model(model: type, verb: str, item_schema: Type[BaseModel]) 
         rows=(List[item_schema], Field(...)),  # type: ignore[name-defined]
     )
 
-def _make_bulk_ids_model(model: type, verb: str, pk_type: type | Any) -> Type[BaseModel]:
+
+def _make_bulk_ids_model(
+    model: type, verb: str, pk_type: type | Any
+) -> Type[BaseModel]:
     """
     Build a wrapper schema with an `ids: List[pk_type]` field.
     """
@@ -73,14 +82,18 @@ def _make_bulk_ids_model(model: type, verb: str, pk_type: type | Any) -> Type[Ba
 # Core builder
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseModel]]]:
     """
     Decide which IN/OUT/LIST schemas to attach for a given OpSpec.
     Returns a dict with keys: "in_", "out", "list".
     """
-    alias = sp.alias
     target = sp.target
-    result: Dict[str, Optional[Type[BaseModel]]] = {"in_": None, "out": None, "list": None}
+    result: Dict[str, Optional[Type[BaseModel]]] = {
+        "in_": None,
+        "out": None,
+        "list": None,
+    }
 
     # Respect explicit overrides first
     if sp.request_model is not None:
@@ -139,25 +152,33 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
     # Bulk variants
     elif target == "bulk_create":
         item_in = _build_schema(model, verb="create")
-        result["in_"] = result["in_"] or _make_bulk_rows_model(model, "bulk_create", item_in)
+        result["in_"] = result["in_"] or _make_bulk_rows_model(
+            model, "bulk_create", item_in
+        )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
 
     elif target == "bulk_update":
         item_in = _build_schema(model, verb="update")
-        result["in_"] = result["in_"] or _make_bulk_rows_model(model, "bulk_update", item_in)
+        result["in_"] = result["in_"] or _make_bulk_rows_model(
+            model, "bulk_update", item_in
+        )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
 
     elif target == "bulk_replace":
         item_in = _build_schema(model, verb="replace")
-        result["in_"] = result["in_"] or _make_bulk_rows_model(model, "bulk_replace", item_in)
+        result["in_"] = result["in_"] or _make_bulk_rows_model(
+            model, "bulk_replace", item_in
+        )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
-        result["in_"] = result["in_"] or _make_bulk_ids_model(model, "bulk_delete", pk_type)
+        result["in_"] = result["in_"] or _make_bulk_ids_model(
+            model, "bulk_delete", pk_type
+        )
         # OUT defaults to raw ({"deleted": N}); only supply model if explicitly requested
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
@@ -181,7 +202,10 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
-def build_and_attach(model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None) -> None:
+
+def build_and_attach(
+    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+) -> None:
     """
     Build request/response/list schemas per OpSpec and attach them under:
         model.schemas.<alias>.in_   -> request model (or None)

@@ -6,12 +6,9 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Iterable,
     Literal,
     Mapping,
-    MutableMapping,
     Optional,
-    Sequence,
     Tuple,
     Type,
     Union,
@@ -33,9 +30,18 @@ Arity = Literal["collection", "member"]
 # Canonical targets + "custom" for user-defined ops
 TargetOp = Literal[
     # canonical CRUD
-    "create", "read", "update", "replace", "delete", "list", "clear",
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
     # bulk
-    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
     # custom
     "custom",
 ]
@@ -118,6 +124,7 @@ HookPredicate = Callable[[Any], bool]
 # Hook & Spec dataclasses
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True, slots=True)
 class OpHook:
     """
@@ -129,6 +136,7 @@ class OpHook:
     • when: optional predicate(payload_or_ctx) → bool to include/skip dynamically
     • name/description: metadata for diagnostics / UIs
     """
+
     phase: HookPhase
     fn: StepFn
     order: int = 0
@@ -141,6 +149,7 @@ class OpHook:
 try:  # pragma: no cover
     from pydantic import BaseModel  # type: ignore
 except Exception:  # pragma: no cover
+
     class BaseModel:  # minimal stub for typing only
         pass
 
@@ -157,13 +166,14 @@ class OpSpec:
       • Registers REST & RPC if exposed. RBAC guard is applied per `rbac_guard_op`.
       • Auto-attaches START_TX/END_TX defaults unless persist="skip".
     """
+
     # Identity & exposure
-    alias: str                                  # rpc/method name; may influence REST path suffix when path_suffix set
-    target: TargetOp                            # canonical verb for semantics
-    table: Optional[type] = None                # set during collection/binding
+    alias: str  # rpc/method name; may influence REST path suffix when path_suffix set
+    target: TargetOp  # canonical verb for semantics
+    table: Optional[type] = None  # set during collection/binding
     expose_routes: bool = True
     expose_rpc: bool = True
-    expose_method: bool = True                  # publish api.core.Resource.<alias>()
+    expose_method: bool = True  # publish api.core.Resource.<alias>()
 
     # HTTP surface / behavior
     arity: Arity = "collection"
@@ -172,8 +182,10 @@ class OpSpec:
     tags: Tuple[str, ...] = field(default_factory=tuple)
 
     # Persistence & results
-    persist: PersistPolicy = "default"          # "skip" → no START_TX/END_TX, writes forbidden
-    returns: ReturnForm = "model"               # "model" → serialize via schema; "raw" → pass-through
+    persist: PersistPolicy = "default"  # "skip" → no START_TX/END_TX, writes forbidden
+    returns: ReturnForm = (
+        "model"  # "model" → serialize via schema; "raw" → pass-through
+    )
 
     # Schema overrides (otherwise builder generates them)
     request_model: Optional[Type[BaseModel]] = None
@@ -189,8 +201,8 @@ class OpSpec:
     rbac_guard_op: Optional[str] = None
 
     # Canonical core references (filled by binder for diagnostics/back-compat)
-    core: Optional[StepFn] = None               # resolved canonical implementation (if any)
-    core_raw: Optional[StepFn] = None           # same as `core`; kept to preserve old naming
+    core: Optional[StepFn] = None  # resolved canonical implementation (if any)
+    core_raw: Optional[StepFn] = None  # same as `core`; kept to preserve old naming
 
     # Extra metadata for integrators
     extra: Mapping[str, Any] = field(default_factory=dict)
@@ -201,8 +213,17 @@ class OpSpec:
 # ───────────────────────────────────────────────────────────────────────────────
 
 CANON: Tuple[TargetOp, ...] = (
-    "create", "read", "update", "replace", "delete", "list", "clear",
-    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
     "custom",
 )
 

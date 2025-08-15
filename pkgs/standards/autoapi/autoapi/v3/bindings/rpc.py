@@ -4,7 +4,16 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from pydantic import BaseModel
 
@@ -21,6 +30,7 @@ _Key = Tuple[str, str]  # (alias, target)
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ns(obj: Any, name: str) -> Any:
     ns = getattr(obj, name, None)
     if ns is None:
@@ -28,7 +38,10 @@ def _ns(obj: Any, name: str) -> Any:
         setattr(obj, name, ns)
     return ns
 
-def _get_phase_chains(model: type, alias: str) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+
+def _get_phase_chains(
+    model: type, alias: str
+) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """
     Build the mapping { phase_name: [step, ...], ... } expected by the executor.
     Missing phases become empty lists.
@@ -42,6 +55,7 @@ def _get_phase_chains(model: type, alias: str) -> Dict[str, Sequence[Callable[..
     for ph in PHASES:
         out[ph] = list(getattr(alias_ns, ph, []) or [])
     return out
+
 
 def _coerce_payload(payload: Any) -> Mapping[str, Any]:
     """
@@ -58,7 +72,10 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
         return dict(payload)
     return {}  # unexpected shapes → ignore
 
-def _validate_input(model: type, alias: str, target: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+
+def _validate_input(
+    model: type, alias: str, target: str, payload: Mapping[str, Any]
+) -> Mapping[str, Any]:
     """
     Choose the appropriate request schema (if any) and validate/normalize payload.
     • Use .schemas.<alias>.in_ when present.
@@ -81,10 +98,19 @@ def _validate_input(model: type, alias: str, target: str, payload: Mapping[str, 
             return inst.model_dump(exclude_none=True)
         except Exception as e:
             # Let the executor/runtime error mappers standardize later; pass original payload
-            logger.debug("rpc input validation failed for %s.%s: %s", model.__name__, alias, e, exc_info=True)
+            logger.debug(
+                "rpc input validation failed for %s.%s: %s",
+                model.__name__,
+                alias,
+                e,
+                exc_info=True,
+            )
     return payload
 
-def _serialize_output(model: type, alias: str, target: str, sp: OpSpec, result: Any) -> Any:
+
+def _serialize_output(
+    model: type, alias: str, target: str, sp: OpSpec, result: Any
+) -> Any:
     """
     If the op returns 'model' and we have an OUT schema, serialize result(s).
     For 'list', OUT schema represents the element shape.
@@ -100,23 +126,37 @@ def _serialize_output(model: type, alias: str, target: str, sp: OpSpec, result: 
         return result
 
     out_model = getattr(alias_ns, "out", None)
-    if not out_model or not inspect.isclass(out_model) or not issubclass(out_model, BaseModel):
+    if (
+        not out_model
+        or not inspect.isclass(out_model)
+        or not issubclass(out_model, BaseModel)
+    ):
         return result
 
     try:
         if target == "list" and isinstance(result, (list, tuple)):
-            return [out_model.model_validate(x).model_dump(exclude_none=True) for x in result]
+            return [
+                out_model.model_validate(x).model_dump(exclude_none=True)
+                for x in result
+            ]
         # Single object case
         return out_model.model_validate(result).model_dump(exclude_none=True)
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
-        logger.debug("rpc output serialization failed for %s.%s: %s", model.__name__, alias, e, exc_info=True)
+        logger.debug(
+            "rpc output serialization failed for %s.%s: %s",
+            model.__name__,
+            alias,
+            e,
+            exc_info=True,
+        )
         return result
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # RPC wrapper builder
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
     """
@@ -148,7 +188,12 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         if request is not None:
             base_ctx.setdefault("request", request)
         # helpful env metadata
-        base_ctx.setdefault("env", SimpleNamespace(method=alias, params=norm_payload, target=target, model=model))
+        base_ctx.setdefault(
+            "env",
+            SimpleNamespace(
+                method=alias, params=norm_payload, target=target, model=model
+            ),
+        )
 
         phases = _get_phase_chains(model, alias)
 
@@ -181,7 +226,10 @@ def _attach_one(model: type, sp: OpSpec) -> None:
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
-def register_and_attach(model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None) -> None:
+
+def register_and_attach(
+    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+) -> None:
     """
     Register async callables under `model.rpc.<alias>` for each OpSpec.
     If `only_keys` is provided, limit work to those (alias,target) pairs.

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import replace
 from threading import RLock
-from types import MappingProxyType
 from typing import (
     Any,
     Callable,
@@ -12,11 +11,8 @@ from typing import (
     Iterator,
     List,
     Mapping,
-    MutableMapping,
     Optional,
-    Sequence,
     Tuple,
-    Type,
 )
 import weakref
 
@@ -97,7 +93,9 @@ class OpspecRegistry:
         self._items: Dict[Tuple[str, TargetOp], OpSpec] = {}
         self._lock = RLock()
         # store weakrefs to listener callables where possible; fallback to strong refs
-        self._listeners: List[Callable[[OpspecRegistry, set[Tuple[str, TargetOp]]], None]] = []
+        self._listeners: List[
+            Callable[[OpspecRegistry, set[Tuple[str, TargetOp]]], None]
+        ] = []
         self._version: int = 0
 
     # ---------------------------- Introspection ---------------------------- #
@@ -198,7 +196,9 @@ class OpspecRegistry:
             new_keys = set(new_map.keys())
 
             removed = old_keys - new_keys
-            added_or_updated = {k for k in new_keys if self._items.get(k) is not new_map[k]}
+            added_or_updated = {
+                k for k in new_keys if self._items.get(k) is not new_map[k]
+            }
 
             changed = removed | added_or_updated
             self._items = new_map
@@ -209,7 +209,9 @@ class OpspecRegistry:
             self._notify(changed)
         return changed
 
-    def remove(self, alias: str, target: TargetOp | None = None) -> set[Tuple[str, TargetOp]]:
+    def remove(
+        self, alias: str, target: TargetOp | None = None
+    ) -> set[Tuple[str, TargetOp]]:
         """
         Remove specs by alias (optionally constrain to a specific target).
         Returns the set of removed keys.
@@ -248,7 +250,9 @@ class OpspecRegistry:
 # Per-model registry storage (weak keys so classes can be GC'd)
 # ------------------------------------------------------------------------------
 
-_REGISTRIES: "weakref.WeakKeyDictionary[type, OpspecRegistry]" = weakref.WeakKeyDictionary()
+_REGISTRIES: "weakref.WeakKeyDictionary[type, OpspecRegistry]" = (
+    weakref.WeakKeyDictionary()
+)
 _REG_LOCK = RLock()
 
 
@@ -264,6 +268,7 @@ def get_registry(table: type) -> OpspecRegistry:
 # ------------------------------------------------------------------------------
 # Back-compat helpers (v2-style imperative API)
 # ------------------------------------------------------------------------------
+
 
 def register_ops(table: type, specs: Any) -> set[Tuple[str, TargetOp]]:
     """

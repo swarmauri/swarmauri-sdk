@@ -1,7 +1,17 @@
 # autoapi/v3/core/crud.py
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 try:
     from sqlalchemy import select, delete, and_
@@ -13,6 +23,7 @@ except Exception:  # pragma: no cover
     select = delete = and_ = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
+
     class NoResultFound(LookupError):  # type: ignore
         pass
 
@@ -21,8 +32,10 @@ except Exception:  # pragma: no cover
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _is_async_db(db: Any) -> bool:
     return isinstance(db, AsyncSession) or hasattr(db, "run_sync")
+
 
 def _pk_columns(model: type) -> Tuple[Any, ...]:
     table = getattr(model, "__table__", None)
@@ -33,11 +46,15 @@ def _pk_columns(model: type) -> Tuple[Any, ...]:
         raise ValueError(f"{model.__name__} has no primary key")
     return pks
 
+
 def _single_pk_name(model: type) -> str:
     pks = _pk_columns(model)
     if len(pks) != 1:
-        raise NotImplementedError(f"{model.__name__} has composite PK; not supported by default core")
+        raise NotImplementedError(
+            f"{model.__name__} has composite PK; not supported by default core"
+        )
     return pks[0].name
+
 
 def _model_columns(model: type) -> Tuple[str, ...]:
     table = getattr(model, "__table__", None)
@@ -45,10 +62,12 @@ def _model_columns(model: type) -> Tuple[str, ...]:
         return ()
     return tuple(c.name for c in table.columns)
 
+
 def _coerce_filters(model: type, filters: Mapping[str, Any]) -> Dict[str, Any]:
     """Keep only valid column names, drop paging keys."""
     cols = set(_model_columns(model))
     return {k: v for k, v in (filters or {}).items() if k in cols}
+
 
 def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
     """
@@ -67,15 +86,18 @@ def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
         return clauses[0]
     return and_(*clauses)
 
+
 async def _maybe_get(db: Union[Session, AsyncSession], model: type, pk_value: Any):
     if _is_async_db(db):
         return await db.get(model, pk_value)  # type: ignore[attr-defined]
     return db.get(model, pk_value)  # type: ignore[attr-defined]
 
+
 async def _maybe_execute(db: Union[Session, AsyncSession], stmt: Any):
     if _is_async_db(db):
         return await db.execute(stmt)  # type: ignore[attr-defined]
     return db.execute(stmt)  # type: ignore[attr-defined]
+
 
 async def _maybe_flush(db: Union[Session, AsyncSession]) -> None:
     if _is_async_db(db):
@@ -83,7 +105,14 @@ async def _maybe_flush(db: Union[Session, AsyncSession]) -> None:
     else:
         db.flush()  # type: ignore[attr-defined]
 
-def _set_attrs(obj: Any, values: Mapping[str, Any], *, allow_missing: bool = True, skip: Sequence[str] = ()) -> None:
+
+def _set_attrs(
+    obj: Any,
+    values: Mapping[str, Any],
+    *,
+    allow_missing: bool = True,
+    skip: Sequence[str] = (),
+) -> None:
     """
     Assign attributes present in `values`. Missing keys are skipped (for update).
     When allow_missing=False (replace), non-PK columns missing from `values` are set to None.
@@ -112,7 +141,10 @@ def _set_attrs(obj: Any, values: Mapping[str, Any], *, allow_missing: bool = Tru
 # Canonical CRUD
 # ───────────────────────────────────────────────────────────────────────────────
 
-async def create(model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]) -> Any:
+
+async def create(
+    model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
     """
     Insert a single row. Returns the persisted model instance.
     Flush-only (commit happens later in END_TX).
@@ -123,6 +155,7 @@ async def create(model: type, data: Mapping[str, Any], db: Union[Session, AsyncS
     await _maybe_flush(db)
     return obj
 
+
 async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any:
     """
     Load a single row by primary key. Raises NoResultFound if not found.
@@ -132,7 +165,10 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
     return obj
 
-async def update(model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]) -> Any:
+
+async def update(
+    model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
     """
     Partial update by primary key. Missing keys are left unchanged.
     Returns the updated model instance. Flush-only.
@@ -142,7 +178,10 @@ async def update(model: type, ident: Any, data: Mapping[str, Any], db: Union[Ses
     await _maybe_flush(db)
     return obj
 
-async def replace(model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]) -> Any:
+
+async def replace(
+    model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
     """
     Replace semantics: attributes not provided are nulled (except PK).
     Returns the updated model instance. Flush-only.
@@ -152,7 +191,10 @@ async def replace(model: type, ident: Any, data: Mapping[str, Any], db: Union[Se
     await _maybe_flush(db)
     return obj
 
-async def delete(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Dict[str, int]:
+
+async def delete(
+    model: type, ident: Any, db: Union[Session, AsyncSession]
+) -> Dict[str, int]:
     """
     Delete by primary key. Returns {"deleted": 1} if removed, else raises NoResultFound.
     Flush-only.
@@ -162,6 +204,7 @@ async def delete(model: type, ident: Any, db: Union[Session, AsyncSession]) -> D
         db.delete(obj)  # type: ignore[attr-defined]
     await _maybe_flush(db)
     return {"deleted": 1}
+
 
 async def list(
     model: type,
@@ -236,7 +279,10 @@ async def clear(
 # Bulk variants
 # ───────────────────────────────────────────────────────────────────────────────
 
-async def bulk_create(model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]) -> List[Any]:
+
+async def bulk_create(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
     """
     Insert many rows. Returns the list of persisted instances.
     Flush-only.
@@ -252,14 +298,17 @@ async def bulk_create(model: type, rows: Iterable[Mapping[str, Any]], db: Union[
     await _maybe_flush(db)
     return items
 
-async def bulk_update(model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]) -> List[Any]:
+
+async def bulk_update(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
     """
     Update many rows by PK. Each row must include the PK field.
     Returns the list of updated instances. Flush-only.
     """
     pk = _single_pk_name(model)
     updated: List[Any] = []
-    for r in (rows or ()):
+    for r in rows or ():
         ident = r.get(pk)
         if ident is None:
             raise ValueError(f"bulk_update requires '{pk}' in each row")
@@ -272,14 +321,17 @@ async def bulk_update(model: type, rows: Iterable[Mapping[str, Any]], db: Union[
         await _maybe_flush(db)
     return updated
 
-async def bulk_replace(model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]) -> List[Any]:
+
+async def bulk_replace(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
     """
     Replace many rows by PK. Each row must include the PK field.
     Missing attributes are nulled (except PK). Flush-only.
     """
     pk = _single_pk_name(model)
     replaced: List[Any] = []
-    for r in (rows or ()):
+    for r in rows or ():
         ident = r.get(pk)
         if ident is None:
             raise ValueError(f"bulk_replace requires '{pk}' in each row")
@@ -291,7 +343,10 @@ async def bulk_replace(model: type, rows: Iterable[Mapping[str, Any]], db: Union
         await _maybe_flush(db)
     return replaced
 
-async def bulk_delete(model: type, idents: Iterable[Any], db: Union[Session, AsyncSession]) -> Dict[str, int]:
+
+async def bulk_delete(
+    model: type, idents: Iterable[Any], db: Union[Session, AsyncSession]
+) -> Dict[str, int]:
     """
     Delete many rows by a sequence of PK values. Returns {"deleted": N}.
     Flush-only.
