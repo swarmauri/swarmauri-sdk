@@ -37,6 +37,9 @@ class Phase(Enum):
     # Generic catch-all
     ON_ERROR = auto()
 
+    # Finally
+    FINAL = auto()
+
 
 class _Hook(Protocol):
     async def __call__(self, ctx: Dict[str, Any]) -> None: ...

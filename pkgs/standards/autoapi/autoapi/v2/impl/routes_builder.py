@@ -11,17 +11,28 @@ import functools
 import inspect
 import re
 from types import SimpleNamespace
-from typing import Annotated, Any, List, Optional, Type
+from typing import Annotated, Any, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from ..types import APIRouter, Depends, Request, Path, Body
-from ._runner import _invoke
+from ..types.op_config_provider import should_wire_canonical
+from ..naming import (
+    alias_policy,
+    canonical_name,
+    public_verb,
+    route_label,
+    snake_to_camel,
+)
+
 from ..jsonrpc_models import _RPCReq, create_standardized_error
 from ..mixins import AsyncCapable, BulkCapable, Replaceable
+
+from .op_wiring import attach_op_specs
 from .rpc_adapter import _wrap_rpc
 from .schema import _schema
+from ._runner import _invoke
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,100 +76,6 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
         return cls
 
     return base  # primitive / dict / etc.
-
-
-def _canonical(tab: str, verb: str) -> str:
-    """Return canonical RPC method name."""
-    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
-    name = f"{cls_name}.{verb}"
-    print(f"_canonical generated {name}")
-    return name
-
-
-def _resource_pascal(tab_or_cls: str) -> str:
-    return (
-        "".join(w.title() for w in tab_or_cls.split("_"))
-        if tab_or_cls.islower()
-        else tab_or_cls
-    )
-
-
-def _nested_prefix(self, model: Type) -> Optional[str]:
-    """Return the user-supplied hierarchical prefix or *None*.
-
-    • If the SQLAlchemy model defines `__autoapi_nested_paths__`
-      → call it and return the result.
-    • Else, fall back to legacy `_nested_path` string if present.
-    • Otherwise → signal ``no nested route wanted`` with ``None``.
-    """
-
-    cb = getattr(model, "__autoapi_nested_paths__", None)
-    if callable(cb):
-        return cb()
-    return getattr(model, "_nested_path", None)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Verb aliasing (RPC exposure + helper names; REST paths unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
-
-_VALID_VERBS = {
-    "create",
-    "read",
-    "update",
-    "delete",
-    "list",
-    "clear",
-    "replace",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_delete",
-}
-
-_alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
-
-
-def _get_verb_alias_map(model) -> dict[str, str]:
-    raw = getattr(model, "__autoapi_verb_aliases__", None)
-    if callable(raw):
-        raw = raw()
-    return dict(raw or {})
-
-
-def _alias_policy(model) -> str:
-    # "both" | "alias_only" | "canonical_only"
-    return getattr(model, "__autoapi_verb_alias_policy__", "both")
-
-
-def _public_verb(model, canonical: str) -> str:
-    ali = _get_verb_alias_map(model).get(canonical)
-    if not ali or ali == canonical:
-        return canonical
-    if canonical not in _VALID_VERBS:
-        raise RuntimeError(f"{model.__name__}: unsupported verb {canonical!r}")
-    if not _alias_re.match(ali):
-        raise RuntimeError(
-            f"{model.__name__}.__autoapi_verb_aliases__: bad alias {ali!r} for {canonical!r} "
-            "(must be lowercase [a-z0-9_], start with a letter)"
-        )
-    return ali
-
-
-def _route_label(resource_name: str, verb: str, model) -> str:
-    """Return '{Resource} - {verb/alias}' per policy."""
-    pol = _alias_policy(model)
-    pub = _public_verb(model, verb)
-    if pol == "alias_only" and pub != verb:
-        lab = pub
-    elif pol == "both" and pub != verb:
-        lab = f"{verb}/{pub}"
-    else:
-        lab = verb
-    return f"{_resource_pascal(resource_name)} - {lab}"
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
@@ -263,6 +180,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
         ]
 
+    # ─── table-level policy: include/exclude canonical verbs ─────────
+    spec = [t for t in spec if should_wire_canonical(model, t[0])]
+
     # ---------- nested routing ---------------------------------------
     raw_pref = self._nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_pref).rstrip("/") or None
@@ -274,7 +194,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         _allow_verbs = set(allow_cb())
     else:
         _allow_verbs = set(allow_cb or [])
-    self._allow_anon.update({_canonical(tab, v) for v in _allow_verbs})
+    self._allow_anon.update({canonical_name(tab, v) for v in _allow_verbs})
     if _allow_verbs:
         print(f"Anon allowed verbs: {_allow_verbs}")
 
@@ -297,7 +217,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
     # ---------- endpoint factory -------------------------------------
     for verb, http, path, status, In, Out, core in spec:
-        m_id_canon = _canonical(tab, verb)
+        m_id_canon = canonical_name(tab, verb)
 
         # RPC input model for adapter (distinct from REST signature)
         rpc_in = In or dict
@@ -307,7 +227,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             rpc_in = _schema(model, verb=verb, exclude={pk})
 
         # Route label (name/summary) using alias policy
-        _route_label(resource, verb, model)
+        label = route_label(
+            resource, verb, alias_policy(model), public_verb(model, verb)
+        )
 
         def _factory(
             is_nested_router, *, verb=verb, path=path, In=In, core=core, m_id=m_id_canon
@@ -534,14 +456,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
                 response_model=None if verb == "create" else Out,
                 responses=COMMON_ERRORS,
                 dependencies=deps,
-                name=_route_label(
-                    resource, verb, model
-                ),  # ← route name reflects alias policy
-                summary=_route_label(resource, verb, model),  # ← docs summary ditto
+                name=label,  # ← route name reflects alias policy
+                summary=label,  # ← docs summary ditto
             )
 
         # ─── register schemas on API namespace (for discovery / testing) ──
-        verb_camel = "".join(w.title() for w in verb.split("_"))
+        verb_camel = snake_to_camel(verb)
         for s, suffix in ((In, "In"), (Out, "Out"), (rpc_in, "RpcIn")):
             if not isinstance(s, type) or s is dict:
                 continue
@@ -561,7 +481,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         def _make_runner(bound_method: str):
             def _runner(payload, *, db=None, _method=bound_method, _api=self):
                 """
-                Helper so you can call:  api.methods.User.Create(...), api.methods.User.Register(...)
+                Helper so you can call:  api.methods.User.create(...), etc.
                 """
                 if db is None:  # auto-open sync session
                     if _api.get_db is None:
@@ -584,7 +504,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             return _runner
 
         # Register canonical
-        camel = f"{resource}{''.join(w.title() for w in verb.split('_'))}"
+        camel = f"{resource}{snake_to_camel(verb)}"
         _runner_canon = _make_runner(m_id_canon)
         self._method_ids[m_id_canon] = _runner_canon
         setattr(self.core, camel, core)
@@ -653,30 +573,104 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
 
-        # ── alias exposure per policy (RPC ids + helpers + core/core_raw) ─────
-        pol = _alias_policy(model)
-        pub = _public_verb(model, verb)
-        if pub != verb and pol in ("both", "alias_only"):
-            m_id_alias = _canonical(tab, pub)
-            # Same rpc_fn handles alias
-            self.rpc.add(m_id_alias, rpc_fn)
-
-            alias_camel = f"{resource}{''.join(w.title() for w in pub.split('_'))}"
-            _runner_alias = _make_runner(m_id_alias)
-            self._method_ids[m_id_alias] = _runner_alias
-
-            # Attach alias helpers (both global CamelCase and namespaced)
-            setattr(self.core, alias_camel, core)
-            _attach(self.core, resource, pub, core)
-
-            _attach(self.methods, resource, pub, _runner_alias)
-            setattr(self.core_raw, alias_camel, _core_raw)
-            _attach(self.core_raw, resource, pub, _core_raw)
-
-            print(f"Registered alias RPC id {m_id_alias} and helper {alias_camel}")
+    # ─── OpSpec-powered verbs (aliases + custom + skip/override) ────
+    attach_op_specs(self, flat_router, model)
+    if len(routers) > 1:
+        try:
+            attach_op_specs(self, routers[1], model)  # nested router
+        except TypeError:
+            pass
 
     # include routers
     self.router.include_router(flat_router)
     if len(routers) > 1:
         self.router.include_router(routers[1])
+
+    # ─────────────────────────────────────────────────────────────────
+    # Bind per-table namespaces onto the **class object** (not instances)
+    # Exposes: Model.schemas / Model.methods / Model.rpc / Model.core / Model.core_raw
+    # Also expose Model.router (flat/nested) and convenience aliases:
+    #   Model.handlers (→ methods) and Model.raw_handlers (→ core)
+    # ─────────────────────────────────────────────────────────────────
+    decl = model
+
+    # resolve what we already registered on the API object
+    methods_ns = getattr(self.methods, resource, SimpleNamespace())
+    core_ns = getattr(self.core, resource, SimpleNamespace())
+    core_raw_ns = getattr(self.core_raw, resource, SimpleNamespace())
+
+    # Build a schemas namespace by collecting all schema classes that start with this resource's prefix
+    schemas_ns = SimpleNamespace()
+    _pref = resource
+    for _name, _cls in getattr(self, "_schemas", {}).items():
+        if not isinstance(_cls, type) or _cls is dict:
+            continue
+        if not _name.startswith(_pref):
+            continue
+        short = _name[len(_pref) :]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
+        if short and short[0].isupper():
+            setattr(schemas_ns, short, _cls)
+
+    # Build a lightweight rpc namespace: prefer canonical_name(tab, verb) but
+    # also support alias/custom ids like "Resource.alias" registered by op_wiring.
+    rpc_ns = SimpleNamespace()
+    for _verb in dir(methods_ns):
+        if _verb.startswith("_"):
+            continue
+        candidates = (
+            canonical_name(tab, _verb),
+            f"{resource}.{_verb}",
+        )
+        _rpc_fn = None
+        for _mid in candidates:
+            try:
+                _rpc_fn = self.rpc[_mid]
+                break
+            except KeyError:
+                continue
+        if _rpc_fn is not None:
+            setattr(rpc_ns, _verb, _rpc_fn)
+
+    # Routers on the model (latest binding wins on the class; all kept per-API in bindings)
+    router_ns = SimpleNamespace(
+        flat=flat_router,
+        nested=(routers[1] if len(routers) > 1 else None),
+    )
+
+    # Publish onto the un-instantiated declarative model class
+    setattr(decl, "schemas", schemas_ns)
+    setattr(decl, "methods", methods_ns)
+    setattr(decl, "rpc", rpc_ns)
+    setattr(decl, "core", core_ns)
+    setattr(decl, "core_raw", core_raw_ns)
+    setattr(decl, "handlers", methods_ns)  # convenience alias
+    setattr(decl, "raw_handlers", core_ns)  # convenience alias
+    setattr(decl, "router", router_ns)
+    # (Optional) columns mirror for quick introspection
+    try:
+        setattr(decl, "columns", {c.key: c for c in model.__table__.columns})
+    except Exception:
+        pass
+
+    # Keep a per-AutoAPI binding registry to avoid collisions when multiple APIs bind the same model
+    _b = getattr(decl, "__autoapi__", None)
+    if _b is None:
+        _b = SimpleNamespace()
+        setattr(decl, "__autoapi__", _b)
+    if not hasattr(_b, "bindings"):
+        _b.bindings = {}
+    _b.bindings[id(self)] = dict(
+        schemas=schemas_ns,
+        methods=methods_ns,
+        rpc=rpc_ns,
+        core=core_ns,
+        core_raw=core_raw_ns,
+        router=router_ns,
+    )
+
+    print(
+        f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router"
+    )
+    # ─────────────────────────────────────────────────────────────────
+
     print(f"Routes registered for {resource}")

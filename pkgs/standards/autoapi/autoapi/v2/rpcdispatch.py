@@ -1,5 +1,5 @@
 """
-autoapi.v2.endpoints.rpcdispatcher – JSON-RPC façade for AutoAPI
+autoapi.v2.rpcdispatch  – JSON-RPC façade for AutoAPI
 """
 
 from __future__ import annotations
@@ -9,9 +9,9 @@ from typing import Any, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from ..types import APIRouter, Body, Depends, HTTPException, Request, ValidationError
-from ..impl._runner import _invoke
-from ..jsonrpc_models import (
+from .types import APIRouter, Body, Depends, HTTPException, Request, ValidationError
+from .impl._runner import _invoke
+from .jsonrpc_models import (
     _RPCReq,
     _RPCRes,
     _err,

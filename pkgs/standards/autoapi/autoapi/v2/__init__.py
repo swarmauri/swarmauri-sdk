@@ -3,7 +3,7 @@
 Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
-•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatcher, …).
+•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatch, …).
 •  Preserves the historical surface: AutoAPI._crud, …
 """
 
@@ -14,9 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-# Diagnostic and RPC endpoints
-from .endpoints.endpoints import attach_health_and_methodz
-from .endpoints.rpcdispatcher import build_rpcdispatch
+from .endpoints import attach_health_and_methodz
+from .rpcdispatch import build_rpcdispatch
 from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
@@ -24,7 +23,8 @@ from .impl import (
     _schema,
     _wrap_rpc,
 )
-from .impl.routes_builder import _attach, _nested_prefix
+from .impl.routes_builder import _attach
+from .routes import _nested_prefix  # path builder
 from .tables._base import Base as Base
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────
@@ -55,6 +55,8 @@ from .cfgs import (  # noqa: F401
     TENANT_ID_KEY,
     USER_ID_KEY,
 )
+
+from .ops import register_ops, OpSpec
 
 # ─── db schema bootstrap (dialect-aware; no flags required) ─────────
 from .bootstrap_dbschema import ensure_schemas
@@ -206,8 +208,16 @@ class AutoAPI:
         self.router.include_router(build_rpcdispatch(self))
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
+        # ``base.registry.mappers`` may occasionally contain placeholder objects
+        # (e.g., :class:`types.SimpleNamespace`) that lack the ``class_`` attribute
+        # expected on SQLAlchemy ``Mapper`` instances.  Guard against these to
+        # avoid AttributeError during application start-up.
         for m in base.registry.mappers:
-            cls = m.class_
+            if isinstance(m, SimpleNamespace):  # skip non-mapper sentinels
+                continue
+            cls = getattr(m, "class_", None)
+            if cls is None:
+                continue
             if self._include and cls not in self._include:
                 continue
             self._crud(cls)
@@ -283,4 +293,6 @@ __all__ = [
     "Phase",
     "Base",
     "get_schema",
+    "register_ops",
+    "OpSpec",
 ]

@@ -13,7 +13,6 @@ import uuid
 from typing import Any, Dict, Set, Tuple, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
-from sqlalchemy import inspect as _sa_inspect
 
 from ..info_schema import check as _info_check
 from ..types import _SchemaVerb, hybrid_property
@@ -109,18 +108,14 @@ def _schema(
     verb: _SchemaVerb = "create",
 ) -> Type[BaseModel]:
     """
-    Build (and cache) a verb-specific Pydantic schema from *orm_cls*.
-    Supports rich Column.info["autoapi"] metadata and request-only extras.
+    Build (and cache) a verb-specific Pydantic schema from *orm_cls*,
+    ignoring relationships entirely. Columns come from mapper.column_attrs
+    (ColumnProperty only). Hybrids are handled in a separate pass.
 
-    Args:
-        orm_cls: SQLAlchemy ORM class to generate schema from
-        name: Optional custom name for the generated schema
-        include: Set of field names to include (if None, include all eligible fields)
-        exclude: Set of field names to exclude
-        verb: Schema verb ("create", "read", "update", "replace", "delete", "list")
-
-    Returns:
-        Generated Pydantic model class
+    Keeps support for:
+      • Column.info["autoapi"] (read_only, write_only, disable_on, no_update, …)
+      • @hybrid_property opt-in via meta["hybrid"]
+      • __autoapi_request_extras__ / __autoapi_response_extras__
     """
     cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
     if cache_key in _SchemaCache:
@@ -130,45 +125,38 @@ def _schema(
         f"_schema generating model for {orm_cls} verb={verb} include={include} exclude={exclude}"
     )
 
-    mapper = _sa_inspect(orm_cls)
     fields: Dict[str, Tuple[type, Field]] = {}
 
-    attrs = list(mapper.attrs) + [
-        v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)
-    ]
-    for attr in attrs:
-        is_hybrid = isinstance(attr, hybrid_property)
-        is_col_attr = not is_hybrid and hasattr(attr, "columns")
-        if not is_hybrid and not is_col_attr:
+    # ── PASS 1: table-backed columns only (NO mapper; avoids relationship config)
+    table = getattr(orm_cls, "__table__", None)
+    if table is None:
+        # Abstract / unmapped — still allow extras & hybrids to populate a schema
+        table_cols = []
+    else:
+        table_cols = list(table.columns)
+
+    for col in table_cols:
+        attr_name = col.key or col.name
+
+        if include and attr_name not in include:
+            continue
+        if exclude and attr_name in exclude:
             continue
 
-        col = attr.columns[0] if is_col_attr and attr.columns else None
-        meta_src = (
-            col.info
-            if col is not None and hasattr(col, "info")
-            else getattr(attr, "info", {})
-        )
-        meta = meta_src.get("autoapi", {}) or {}
-
-        attr_name = getattr(attr, "key", getattr(attr, "__name__", None))
+        meta_src = getattr(col, "info", {}) or {}
+        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
         _info_check(meta, attr_name, orm_cls.__name__)
-        print(f"Processing attribute {attr_name}")
+        print(f"Processing column attribute {attr_name}")
 
-        # hybrids must opt-in
-        if is_hybrid and not meta.get("hybrid"):
+        # Legacy flags (kept for back-compat)
+        if verb == "create" and getattr(col.info, "get", lambda *_: None)("no_create"):
             continue
-
-        # legacy flags
-        if verb == "create" and col is not None and col.info.get("no_create"):
-            continue
-        if (
-            verb in {"update", "replace"}
-            and col is not None
-            and col.info.get("no_update")
+        if verb in {"update", "replace"} and getattr(col.info, "get", lambda *_: None)(
+            "no_update"
         ):
             continue
 
-        if verb in meta.get("disable_on", []):
+        if verb in set(meta.get("disable_on", ()) or ()):
             continue
         if meta.get("write_only") and verb == "read":
             continue
@@ -182,28 +170,28 @@ def _schema(
                 continue
         elif ro and verb != "read":
             continue
-        if is_hybrid and attr.fset is None and verb in {"create", "update", "replace"}:
-            continue
-        if include and attr_name not in include:
-            continue
-        if exclude and attr_name in exclude:
-            continue
 
-        # type / required / default
-        if col is not None:
-            try:
-                py_t = col.type.python_type
-            except Exception:
-                py_t = Any
-            is_nullable = bool(getattr(col, "nullable", True))
-            has_default = getattr(col, "default", None) is not None
-            required = not is_nullable and not has_default
-            if col.primary_key and verb in {"update", "replace"}:
-                required = True
-        else:  # hybrid
-            py_t = getattr(attr, "python_type", meta.get("py_type", Any))
-            required = False
+        # Type + requiredness
+        try:
+            py_t = col.type.python_type
+        except Exception:
+            py_t = Any
 
+        is_nullable = bool(getattr(col, "nullable", True))
+        has_default = (getattr(col, "default", None) is not None) or (
+            getattr(col, "server_default", None) is not None
+        )
+        required = not is_nullable and not has_default
+
+        # Ensure PK required on write/delete verbs that need identification
+        if getattr(col, "primary_key", False) and verb in {
+            "update",
+            "replace",
+            "delete",
+        }:
+            required = True
+
+        # Field construction
         if "default_factory" in meta:
             fld = Field(default_factory=meta["default_factory"])
             required = False
@@ -213,25 +201,57 @@ def _schema(
         if "examples" in meta:
             fld = Field(fld.default, examples=meta["examples"])
 
-        # Make nullable fields Optional for proper Pydantic validation
-        if col is not None and is_nullable and py_t is not Any:
+        if is_nullable and py_t is not Any:
             py_t = Union[py_t, None]
 
         fields[attr_name] = (py_t, fld)
         print(f"Added field {attr_name} type={py_t} required={required}")
 
-    # Merge request-only and response-only extras
+    # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
+    for attr in (
+        v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)
+    ):
+        attr_name = (
+            getattr(attr, "__name__", None) or getattr(attr, "key", None) or "<hybrid>"
+        )
+        if include and attr_name not in include:
+            continue
+        if exclude and attr_name in exclude:
+            continue
+
+        # Allow attaching meta to the hybrid itself (e.g., attr.info = {"autoapi": {...}})
+        meta_src = getattr(attr, "info", {}) or {}
+        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
+
+        # hybrids must explicitly opt-in
+        if not meta.get("hybrid"):
+            continue
+
+        # Write-phase without setter is not usable
+        if attr.fset is None and verb in {"create", "update", "replace"}:
+            continue
+
+        py_t = getattr(attr, "python_type", meta.get("py_type", Any))
+        if "default_factory" in meta:
+            fld = Field(default_factory=meta["default_factory"])
+        else:
+            fld = Field(None)
+
+        if "examples" in meta:
+            fld = Field(fld.default, examples=meta["examples"])
+
+        fields[attr_name] = (py_t, fld)
+        print(f"Added hybrid field {attr_name} type={py_t}")
+
+    # Request/response extras
+    # (read/list are OUTPUT schemas – request extras are ignored there)
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)
     _merge_response_extras(orm_cls, verb, fields, include=include, exclude=exclude)
 
     model_name = name or f"{orm_cls.__name__}{verb.capitalize()}"
     cfg = ConfigDict(from_attributes=True)
 
-    schema_cls = create_model(
-        model_name,
-        __config__=cfg,
-        **fields,
-    )
+    schema_cls = create_model(model_name, __config__=cfg, **fields)
     schema_cls.model_rebuild(force=True)
     _SchemaCache[cache_key] = schema_cls
     print(f"Created schema {model_name} with fields {list(fields)}")
