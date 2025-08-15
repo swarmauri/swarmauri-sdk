@@ -77,7 +77,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
-from ...runtime.errors import ERROR_MESSAGES, _http_exc_to_rpc
+from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
 
 logger = logging.getLogger(__name__)
 
