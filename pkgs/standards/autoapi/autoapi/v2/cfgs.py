@@ -19,6 +19,7 @@ COL_LEVEL_CFGS: set[str] = {
     "default_factory",
     "examples",
     "py_type",
+    "response_extras",
 }
 
 # Table-level configuration attributes on ORM classes

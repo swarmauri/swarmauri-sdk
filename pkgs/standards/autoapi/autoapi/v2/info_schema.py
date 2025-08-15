@@ -7,6 +7,7 @@ VALID_KEYS = {
     "examples",
     "hybrid",
     "py_type",
+    "response_extras",
 }
 VALID_VERBS = {"create", "read", "update", "replace", "list", "delete", "clear"}
 
