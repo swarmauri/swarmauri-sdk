@@ -208,7 +208,13 @@ class AutoAPI:
         self.router.include_router(build_rpcdispatch(self))
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
+        # ``base.registry.mappers`` may occasionally contain placeholder objects
+        # (e.g., :class:`types.SimpleNamespace`) that lack the ``class_`` attribute
+        # expected on SQLAlchemy ``Mapper`` instances.  Guard against these to
+        # avoid AttributeError during application start-up.
         for m in base.registry.mappers:
+            if isinstance(m, SimpleNamespace):  # skip non-mapper sentinels
+                continue
             cls = getattr(m, "class_", None)
             if cls is None:
                 continue
