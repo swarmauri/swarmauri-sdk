@@ -4,65 +4,33 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends, HTTPException
+    from fastapi import APIRouter, Request, Body, Depends
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
     class APIRouter:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
-
-        def add_api_route(
-            self, path: str, endpoint: Callable, methods: Sequence[str], **opts
-        ):
+        def add_api_route(self, path: str, endpoint: Callable, methods: Sequence[str], **opts):
             self.routes.append((path, methods, endpoint, opts))
-
     class Request:  # type: ignore
         def __init__(self, scope=None):
             self.scope = scope or {}
             self.query_params = {}
             self.state = SimpleNamespace()
-
     def Body(default=None, **kw):  # type: ignore
         return default
-
-    def Depends(fn):  # type: ignore
-        return fn
-
-    class HTTPException(Exception):  # type: ignore
-        def __init__(self, status_code: int, detail: Any = None):
-            super().__init__(detail)
-            self.status_code = status_code
-            self.detail = detail
-
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
-
 
 from pydantic import BaseModel
 
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
-from ..config.constants import (
-    AUTOAPI_AUTH_DEP_ATTR,
-    AUTOAPI_AUTHORIZE_ATTR,
-    AUTOAPI_GET_ASYNC_DB_ATTR,
-    AUTOAPI_GET_DB_ATTR,
-    AUTOAPI_REST_DEPENDENCIES_ATTR,
-)
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
 logger = logging.getLogger(__name__)
@@ -74,27 +42,20 @@ _Key = Tuple[str, str]  # (alias, target)
 # Helpers: resource names, pk, schemas, phases, IO shaping
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _snake(name: str) -> str:
     out = []
     for i, ch in enumerate(name):
-        if ch.isupper() and i and (not name[i - 1].isupper()):
+        if ch.isupper() and i and (not name[i-1].isupper()):
             out.append("_")
         out.append(ch.lower())
     return "".join(out)
 
-
 def _resource_name(model: type) -> str:
-    return (
-        getattr(model, "__resource__", None)
-        or getattr(model, "__tablename__", None)
-        or _snake(model.__name__)
-    )
-
+    return getattr(model, "__resource__", None) or getattr(model, "__tablename__", None) or _snake(model.__name__)
 
 def _pk_name(model: type) -> str:
     table = getattr(model, "__table__", None)
-    if table is None or not getattr(table, "primary_key", None):
+    if not table or not getattr(table, "primary_key", None):
         return "id"
     cols = list(table.primary_key.columns)  # type: ignore[attr-defined]
     if not cols:
@@ -103,10 +64,7 @@ def _pk_name(model: type) -> str:
         return "id"
     return getattr(cols[0], "name", "id")
 
-
-def _get_phase_chains(
-    model: type, alias: str
-) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+def _get_phase_chains(model: type, alias: str) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
     alias_ns = getattr(hooks_root, alias, None)
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
@@ -114,10 +72,7 @@ def _get_phase_chains(
         out[ph] = list(getattr(alias_ns, ph, []) or [])
     return out
 
-
-def _serialize_output(
-    model: type, alias: str, target: str, sp: OpSpec, result: Any
-) -> Any:
+def _serialize_output(model: type, alias: str, target: str, sp: OpSpec, result: Any) -> Any:
     if sp.returns != "model":
         return result
     schemas_root = getattr(model, "schemas", None)
@@ -127,32 +82,17 @@ def _serialize_output(
     if not alias_ns:
         return result
     out_model = getattr(alias_ns, "out", None)
-    if (
-        not out_model
-        or not inspect.isclass(out_model)
-        or not issubclass(out_model, BaseModel)
-    ):
+    if not out_model or not inspect.isclass(out_model) or not issubclass(out_model, BaseModel):
         return result
     try:
         if target == "list" and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
-                for x in result
-            ]
+            return [out_model.model_validate(x).model_dump(exclude_none=True) for x in result]
         return out_model.model_validate(result).model_dump(exclude_none=True)
     except Exception:
-        logger.debug(
-            "rest output serialization failed for %s.%s",
-            model.__name__,
-            alias,
-            exc_info=True,
-        )
+        logger.debug("rest output serialization failed for %s.%s", model.__name__, alias, exc_info=True)
         return result
 
-
-def _validate_body(
-    model: type, alias: str, target: str, body: Mapping[str, Any] | None
-) -> Mapping[str, Any]:
+def _validate_body(model: type, alias: str, target: str, body: Mapping[str, Any] | None) -> Mapping[str, Any]:
     body = body or {}
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
@@ -171,19 +111,11 @@ def _validate_body(
             inst = in_model.model_validate(body)  # type: ignore[arg-type]
             return inst.model_dump(exclude_none=True)
         except Exception:
-            logger.debug(
-                "rest input body validation failed for %s.%s",
-                model.__name__,
-                alias,
-                exc_info=True,
-            )
+            logger.debug("rest input body validation failed for %s.%s", model.__name__, alias, exc_info=True)
             return body
     return body
 
-
-def _validate_query(
-    model: type, alias: str, target: str, query: Mapping[str, Any]
-) -> Mapping[str, Any]:
+def _validate_query(model: type, alias: str, target: str, query: Mapping[str, Any]) -> Mapping[str, Any]:
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return dict(query)
@@ -191,84 +123,14 @@ def _validate_query(
     if not alias_ns:
         return dict(query)
     # For list/clear, prefer .list
-    in_model = getattr(
-        alias_ns,
-        "list",
-        None if target not in {"list", "clear"} else getattr(alias_ns, "list", None),
-    )
+    in_model = getattr(alias_ns, "list", None if target not in {"list", "clear"} else getattr(alias_ns, "list", None))
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
             inst = in_model.model_validate(dict(query))  # type: ignore[arg-type]
             return inst.model_dump(exclude_none=True)
         except Exception:
-            logger.debug(
-                "rest query validation failed for %s.%s",
-                model.__name__,
-                alias,
-                exc_info=True,
-            )
+            logger.debug("rest query validation failed for %s.%s", model.__name__, alias, exc_info=True)
     return dict(query)
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Security / dependency helpers
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-def _router_dependencies(model: type) -> list:
-    """
-    Collect router-level dependencies: auth dep + extra REST deps.
-    Each item may be a Depends(...) or a callable; we wrap callables with Depends.
-    """
-    deps = []
-    auth_dep = getattr(model, AUTOAPI_AUTH_DEP_ATTR, None)
-    if callable(auth_dep):
-        deps.append(Depends(auth_dep))
-    extra = getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None) or []
-    for d in extra:
-        # If it's already a Depends object, let it through; otherwise wrap callable
-        try:
-            is_dep_obj = hasattr(d, "dependency")
-        except Exception:
-            is_dep_obj = False
-        deps.append(d if is_dep_obj else Depends(d))
-    return deps
-
-
-def _db_dep(model: type):
-    """Return a FastAPI dependency that yields a DB session (async preferred), or None."""
-    return getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None) or getattr(
-        model, AUTOAPI_GET_DB_ATTR, None
-    )
-
-
-def _user_from_request(request: Request) -> Any | None:
-    return getattr(request.state, "user", None)
-
-
-def _authorize(
-    model: type,
-    request: Request,
-    alias: str,
-    payload: Mapping[str, Any],
-    user: Any | None,
-) -> None:
-    """
-    Call per-model authorize callable if present. On error/False, raise 403.
-    Signature is user-defined; common form is: fn(request, model, alias, payload, user)
-    """
-    fn = getattr(model, AUTOAPI_AUTHORIZE_ATTR, None)
-    if not fn:
-        return
-    try:
-        rv = fn(request=request, model=model, alias=alias, payload=payload, user=user)
-        # If an authorize() returns False-ish, treat as forbidden
-        if rv is False:
-            raise HTTPException(status_code=403, detail="Forbidden")
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -290,7 +152,6 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "custom": ("POST",),  # default for custom ops
 }
 
-
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return "/bulk"
@@ -298,10 +159,7 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
         return f"/{sp.alias}"
     return None
 
-
-def _path_for_spec(
-    model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk"
-) -> Tuple[str, bool]:
+def _path_for_spec(model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk") -> Tuple[str, bool]:
     """
     Return (path, is_member). We use a generic {pk} placeholder for all member ops
     and remap it to the model's real PK name inside ctx.path_params.
@@ -314,20 +172,16 @@ def _path_for_spec(
         return f"/{resource}/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
 
-
 def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     if sp.returns != "model":
         return None
-    alias_ns = getattr(
-        getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
-    )
+    alias_ns = getattr(getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None)
     out_model = getattr(alias_ns, "out", None)
     if out_model is None:
         return None
     # For list, FastAPI can accept typing.List[out_model]
     if sp.target == "list":
         from typing import List as _List
-
         try:
             return _List[out_model]  # type: ignore[index]
         except Exception:
@@ -339,80 +193,29 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
 # Endpoint factories
 # ───────────────────────────────────────────────────────────────────────────────
 
-
-def _make_collection_endpoint(
-    model: type, sp: OpSpec, *, resource: str, dbdep=None
-) -> Callable[..., Awaitable[Any]]:
+def _make_collection_endpoint(model: type, sp: OpSpec, *, resource: str) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
 
-    if dbdep is not None:
-
-        async def _endpoint(
-            request: Request,
-            db: Any = Depends(dbdep),
-            body: Mapping[str, Any] | None = Body(default=None),
-        ):
-            # Build payload from query for list/clear; otherwise from body
-            if target in {"list", "clear"}:
-                raw_query = dict(request.query_params)
-                payload = _validate_query(model, alias, target, raw_query)
-            else:
-                payload = _validate_body(model, alias, target, body)
-
-            # authorize (auth dep may have already raised; user may be on request.state)
-            _authorize(model, request, alias, payload, _user_from_request(request))
-
-            # Compose ctx
-            ctx: Dict[str, Any] = {
-                "request": request,
-                "db": db,
-                "payload": payload,
-                "path_params": {},  # no member id
-                "env": SimpleNamespace(
-                    method=alias, params=payload, target=target, model=model
-                ),
-            }
-            phases = _get_phase_chains(model, alias)
-
-            result = await _executor._invoke(
-                request=request,
-                db=db,
-                phases=phases,
-                ctx=ctx,
-            )
-            return _serialize_output(model, alias, target, sp, result)
-
-        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
-        _endpoint.__qualname__ = _endpoint.__name__
-        _endpoint.__doc__ = (
-            f"REST collection endpoint for {model.__name__}.{alias} ({target})"
-        )
-        return _endpoint
-
-    # No DB dependency configured → fall back to request.state.db
     async def _endpoint(
         request: Request,
+        db: Any,
         body: Mapping[str, Any] | None = Body(default=None),
     ):
-        db = getattr(request.state, "db", None)
-
+        # Build payload from query for list/clear; otherwise from body
         if target in {"list", "clear"}:
             raw_query = dict(request.query_params)
             payload = _validate_query(model, alias, target, raw_query)
         else:
             payload = _validate_body(model, alias, target, body)
 
-        _authorize(model, request, alias, payload, _user_from_request(request))
-
+        # Compose ctx
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {},
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
+            "path_params": {},  # no member id
+            "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
         }
         phases = _get_phase_chains(model, alias)
 
@@ -426,76 +229,30 @@ def _make_collection_endpoint(
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
-    _endpoint.__doc__ = (
-        f"REST collection endpoint for {model.__name__}.{alias} ({target})"
-    )
+    _endpoint.__doc__ = f"REST collection endpoint for {model.__name__}.{alias} ({target})"
     return _endpoint
 
 
-def _make_member_endpoint(
-    model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk", dbdep=None
-) -> Callable[..., Awaitable[Any]]:
+def _make_member_endpoint(model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk") -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
 
-    if dbdep is not None:
-
-        async def _endpoint(
-            pk: Any,  # path param captured as a generic 'pk'
-            request: Request,
-            db: Any = Depends(dbdep),
-            body: Mapping[str, Any] | None = Body(default=None),
-        ):
-            payload = _validate_body(model, alias, target, body)
-
-            _authorize(model, request, alias, payload, _user_from_request(request))
-
-            ctx: Dict[str, Any] = {
-                "request": request,
-                "db": db,
-                "payload": payload,
-                # map generic pk name to real PK column name for handler resolution
-                "path_params": {real_pk: pk, "pk": pk},
-                "env": SimpleNamespace(
-                    method=alias, params=payload, target=target, model=model
-                ),
-            }
-            phases = _get_phase_chains(model, alias)
-
-            result = await _executor._invoke(
-                request=request,
-                db=db,
-                phases=phases,
-                ctx=ctx,
-            )
-            return _serialize_output(model, alias, target, sp, result)
-
-        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
-        _endpoint.__qualname__ = _endpoint.__name__
-        _endpoint.__doc__ = (
-            f"REST member endpoint for {model.__name__}.{alias} ({target})"
-        )
-        return _endpoint
-
     async def _endpoint(
         pk: Any,  # path param captured as a generic 'pk'
         request: Request,
+        db: Any,
         body: Mapping[str, Any] | None = Body(default=None),
     ):
-        db = getattr(request.state, "db", None)
         payload = _validate_body(model, alias, target, body)
-
-        _authorize(model, request, alias, payload, _user_from_request(request))
 
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
+            # map generic pk name to real PK column name for handler resolution
             "path_params": {real_pk: pk, "pk": pk},
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
+            "env": SimpleNamespace(method=alias, params=payload, target=target, model=model),
         }
         phases = _get_phase_chains(model, alias)
 
@@ -517,21 +274,17 @@ def _make_member_endpoint(
 # Router builder
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
-    router = APIRouter(dependencies=_router_dependencies(model) or None)
+    router = APIRouter()
     pk_param = "pk"
-    dbdep = _db_dep(model)
 
     for sp in specs:
         if not sp.expose_routes:
             continue
 
         # Determine path and membership
-        path, is_member = _path_for_spec(
-            model, sp, resource=resource, pk_param=pk_param
-        )
+        path, is_member = _path_for_spec(model, sp, resource=resource, pk_param=pk_param)
 
         # HTTP methods
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
@@ -539,20 +292,12 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
         # Build endpoint
         if is_member:
-            endpoint = _make_member_endpoint(
-                model, sp, resource=resource, pk_param=pk_param, dbdep=dbdep
-            )
+            endpoint = _make_member_endpoint(model, sp, resource=resource, pk_param=pk_param)
         else:
-            endpoint = _make_collection_endpoint(
-                model, sp, resource=resource, dbdep=dbdep
-            )
+            endpoint = _make_collection_endpoint(model, sp, resource=resource)
 
         # Default status code (201 for create on collection; else 200)
-        status_code = (
-            _status.HTTP_201_CREATED
-            if sp.target == "create" and not is_member
-            else _status.HTTP_200_OK
-        )
+        status_code = _status.HTTP_201_CREATED if sp.target == "create" and not is_member else _status.HTTP_200_OK
 
         # Attach route
         router.add_api_route(
@@ -567,11 +312,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",
-            methods,
-            path,
-            model.__name__,
-            sp.alias,
-            getattr(response_model, "__name__", None) if response_model else None,
+            methods, path, model.__name__, sp.alias, getattr(response_model, "__name__", None) if response_model else None
         )
 
     return router
@@ -581,10 +322,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
-
-def build_router_and_attach(
-    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
-) -> None:
+def build_router_and_attach(model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None) -> None:
     """
     Build an APIRouter for the model and attach it to `model.rest.router`.
     For simplicity and correctness with FastAPI, we **rebuild the entire router**
@@ -594,11 +332,7 @@ def build_router_and_attach(
     rest_ns = getattr(model, "rest", None) or SimpleNamespace()
     rest_ns.router = router
     setattr(model, "rest", rest_ns)
-    logger.debug(
-        "rest: %s router attached with %d routes",
-        model.__name__,
-        len(getattr(router, "routes", []) or []),
-    )
+    logger.debug("rest: %s router attached with %d routes", model.__name__, len(getattr(router, "routes", []) or []))
 
 
 __all__ = ["build_router_and_attach"]
