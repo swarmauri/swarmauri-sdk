@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Iterable, List
+from typing import Any, ClassVar, Iterable
 import logging
 import sqlalchemy as sa
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+
+from ..types import Session, event
 
 log = logging.getLogger(__name__)
+
 
 class Bootstrappable:
     """
@@ -20,11 +22,11 @@ class Bootstrappable:
       - Listener is attached to cls.__table__ (no cross-class/global effects).
     """
 
-    DEFAULT_ROWS: ClassVar[List[dict[str, Any]]] = []
+    DEFAULT_ROWS: ClassVar[list[dict[str, Any]]] = []
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
-        sa.event.listen(
+        event.listen(
             cls.__table__, "after_create", cls._after_create_insert_default_rows
         )
 
@@ -99,6 +101,7 @@ class Bootstrappable:
         if can_upsert and dialect == "sqlite":
             # Best-effort idempotency for SQLite
             from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+
             db.execute(sqlite_insert(table).values(payloads).prefix_with("OR IGNORE"))
             return
 
