@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, String, Integer, Boolean
-
-from autoapi.v2.tables import Base, User
-from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable
-from sqlalchemy.orm import relationship
+from autoapi.v3.types import Column, String, Integer, Boolean, relationship
+from autoapi.v3.tables import Base, User
+from autoapi.v3.mixins import GUIDPk, Timestamped, Ownable
 
 
 class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
@@ -17,7 +15,7 @@ class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
     """
 
     __tablename__ = "abuse_records"
-    __table_args__= ({"schema": "peagen"},)
+    __table_args__ = ({"schema": "peagen"},)
 
     ip = Column(String, nullable=False, unique=True, index=True)
     count = Column(Integer, nullable=False, default=0)

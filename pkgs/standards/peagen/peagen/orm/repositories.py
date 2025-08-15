@@ -2,17 +2,27 @@
 from __future__ import annotations
 
 from urllib.parse import urlparse
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Mapping, Optional
 
-from autoapi.v2.tables import Base
-from autoapi.v2.types import (
-    Column, String, UniqueConstraint, relationship, HookProvider, Field,
+from autoapi.v3.tables import Base
+from autoapi.v3.types import (
+    Column,
+    String,
+    UniqueConstraint,
+    relationship,
+    HookProvider,
+    Field,
 )
-from autoapi.v2.mixins import (
-    GUIDPk, Timestamped, TenantBound, TenantPolicy, Ownable, OwnerPolicy, StatusMixin,
+from autoapi.v3.mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    TenantPolicy,
+    Ownable,
+    OwnerPolicy,
+    StatusMixin,
 )
-from autoapi.v2.hooks import Phase
-from autoapi.v2.jsonrpc_models import create_standardized_error
+from autoapi.v3.runtime.errors import create_standardized_error
 
 
 class Repository(
@@ -24,7 +34,10 @@ class Repository(
     # Only request-extra we allow: caller's GitHub PAT (write-only)
     __autoapi_request_extras__ = {
         "*": {
-            "github_pat": (str | None, Field(default=None, description="GitHub PAT (write-only)")),
+            "github_pat": (
+                str | None,
+                Field(default=None, description="GitHub PAT (write-only)"),
+            ),
         }
     }
 
@@ -36,9 +49,15 @@ class Repository(
     default_branch = Column(String, default="main")
     commit_sha = Column(String(length=40), nullable=True)
 
-    secrets = relationship("RepoSecret", back_populates="repository", cascade="all, delete-orphan")
-    deploy_keys = relationship("DeployKey", back_populates="repository", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="repository", cascade="all, delete-orphan")
+    secrets = relationship(
+        "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
+    )
+    deploy_keys = relationship(
+        "DeployKey", back_populates="repository", cascade="all, delete-orphan"
+    )
+    tasks = relationship(
+        "Task", back_populates="repository", cascade="all, delete-orphan"
+    )
 
     # ─────────────── helpers ───────────────
 
@@ -90,20 +109,28 @@ class Repository(
         gh_pat = (p.get("github_pat") or "").strip()
 
         if not slug:
-            http_exc, *_ = create_standardized_error(400, message="url must include owner/name")
+            http_exc, *_ = create_standardized_error(
+                400, message="url must include owner/name"
+            )
             raise http_exc
         if not gh_pat:
-            http_exc, *_ = create_standardized_error(400, message="github_pat is required")
+            http_exc, *_ = create_standardized_error(
+                400, message="github_pat is required"
+            )
             raise http_exc
 
         # Optional description from name
         desc = (p.get("name") or "").strip()
 
         try:
-            result = await gsc.ensure_repo_and_mirror(slug=slug, github_pat=gh_pat, description=desc)
+            result = await gsc.ensure_repo_and_mirror(
+                slug=slug, github_pat=gh_pat, description=desc
+            )
         except Exception as exc:
             # Map provisioning failure to 502 (bad upstream)
-            http_exc, *_ = create_standardized_error(502, message=f"remote provisioning failed: {exc}")
+            http_exc, *_ = create_standardized_error(
+                502, message=f"remote provisioning failed: {exc}"
+            )
             raise http_exc
         finally:
             # scrub the PAT as soon as possible
@@ -133,8 +160,12 @@ class Repository(
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
         # Run provisioning before the DB handler; attach a tiny summary after
-        api.register_hook(Phase.PRE_HANDLER,   model=cls, op="create")(cls._pre_handler_provision)
-        api.register_hook(Phase.POST_RESPONSE, model=cls, op="create")(cls._post_response_attach)
+        api.register_hook("PRE_HANDLER", model=cls, op="create")(
+            cls._pre_handler_provision
+        )
+        api.register_hook("POST_RESPONSE", model=cls, op="create")(
+            cls._post_response_attach
+        )
 
 
 __all__ = ["Repository"]

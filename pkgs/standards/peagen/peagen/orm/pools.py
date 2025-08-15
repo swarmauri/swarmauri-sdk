@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     JSON,
     Column,
     String,
@@ -8,8 +8,8 @@ from autoapi.v2.types import (
     MutableDict,
     HookProvider,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
 from peagen.defaults import DEFAULT_POOL_NAME, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 
@@ -45,10 +45,10 @@ class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider)
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
+        from autoapi.v3 import _schema
 
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model="Pool", op="create")(
+        cls._SRead = _schema(cls, verb="read")
+        api.register_hook("POST_COMMIT", model="Pool", op="create")(
             cls._post_create_register
         )
 
