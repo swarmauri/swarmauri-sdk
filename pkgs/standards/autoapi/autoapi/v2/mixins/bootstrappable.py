@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 log = logging.getLogger(__name__)
 
+
 class Bootstrappable:
     """
     Seed DEFAULT_ROWS for *this mapped class only* with zero magic.
@@ -99,6 +100,7 @@ class Bootstrappable:
         if can_upsert and dialect == "sqlite":
             # Best-effort idempotency for SQLite
             from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+
             db.execute(sqlite_insert(table).values(payloads).prefix_with("OR IGNORE"))
             return
 

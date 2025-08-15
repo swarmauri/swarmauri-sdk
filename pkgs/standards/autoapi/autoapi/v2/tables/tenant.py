@@ -2,12 +2,12 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Slugged, Timestamped
-from ..types import Column, String
 
 
 class Tenant(Base, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
-    __abstract__  = True
+    __abstract__ = True
+
 
 __all__ = ["Tenant"]
 

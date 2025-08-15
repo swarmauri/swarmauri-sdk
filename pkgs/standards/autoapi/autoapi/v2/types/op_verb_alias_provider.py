@@ -4,6 +4,7 @@ from .table_config_provider import TableConfigProvider
 
 _VERB_ALIAS_PROVIDERS: set[type] = set()
 
+
 class OpVerbAliasProvider(TableConfigProvider):
     """
     Table-level config provider to rename operation verbs for RPC exposure.
