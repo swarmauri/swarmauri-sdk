@@ -6,15 +6,6 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
-    sys.modules["autoapi.v3.v2"] = types.ModuleType("autoapi.v3.v2")
-    jsonrpc_mod = types.ModuleType("autoapi.v3.v2.jsonrpc_models")
-
-    async def _http_exc_to_rpc(*args, **kwargs):
-        pass
-
-    jsonrpc_mod._http_exc_to_rpc = _http_exc_to_rpc
-    sys.modules["autoapi.v3.v2.jsonrpc_models"] = jsonrpc_mod
-
     from autoapi.v3.autoapi import AutoAPI
     from autoapi.v3.bindings import rest as rest_binding
 
