@@ -22,7 +22,7 @@ from .bindings.api import (
 )
 from .bindings.model import rebind as _rebind, bind as _bind
 from .transport import mount_jsonrpc as _mount_jsonrpc
-from .system import attach_diagnostics as _attach_diagnostics
+from .system import mount_diagnostics as _mount_diagnostics
 from .opspec import get_registry, OpSpec
 
 # optional compat: legacy transactional decorator
@@ -182,7 +182,7 @@ class AutoAPI:
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto `self.app`."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _attach_diagnostics(
+        router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
         )
         if hasattr(self.app, "include_router") and callable(self.app.include_router):
