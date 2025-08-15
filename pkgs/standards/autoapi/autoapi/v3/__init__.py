@@ -54,7 +54,10 @@ from .autoapi import AutoAPI
 
 from .tables import Base
 
+__all__ = []
+
 __all__ += ["AutoAPI", "Base"]
+
 __all__ += [
     # OpSpec core
     "OpSpec", "get_registry", "op", "op_alias", "PHASES", "HookPhase",
