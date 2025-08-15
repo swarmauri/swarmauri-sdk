@@ -56,7 +56,9 @@ def build_rpcdispatch(api) -> APIRouter:
             except ValidationError as exc:
                 errors = exc.errors()
                 missing = [e["loc"][-1] for e in errors if e["type"] == "missing"]
-                msg = "Validation error" + (": missing parameter(s): " + ", ".join(missing) if missing else "")
+                msg = "Validation error" + (
+                    ": missing parameter(s): " + ", ".join(missing) if missing else ""
+                )
                 return _err(-32602, msg, env, data=errors)
             except Exception as exc:
                 return _err(-32000, str(exc), env)
@@ -93,7 +95,9 @@ def build_rpcdispatch(api) -> APIRouter:
             except ValidationError as exc:
                 errors = exc.errors()
                 missing = [e["loc"][-1] for e in errors if e["type"] == "missing"]
-                msg = "Validation error" + (": missing parameter(s): " + ", ".join(missing) if missing else "")
+                msg = "Validation error" + (
+                    ": missing parameter(s): " + ", ".join(missing) if missing else ""
+                )
                 return _err(-32602, msg, env, data=errors)
             except Exception as exc:
                 return _err(-32000, str(exc), env)

@@ -78,8 +78,8 @@ except Exception:  # pragma: no cover
 
 from ...runtime.errors import (
     ERROR_MESSAGES,
+    http_exc_to_rpc,
 )
-from ....v2.jsonrpc_models import _http_exc_to_rpc
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ async def _dispatch_one(
         try:
             params = _normalize_params(obj.get("params"))
         except HTTPException as exc:
-            code, msg, data = _http_exc_to_rpc(exc)
+            code, msg, data = http_exc_to_rpc(exc)
             return _err(code, msg, rid, data)
 
         # Compose a context; allow middlewares to seed request.state.ctx
@@ -184,7 +184,7 @@ async def _dispatch_one(
         return _ok(result, rid)
 
     except HTTPException as exc:
-        code, msg, data = _http_exc_to_rpc(exc)
+        code, msg, data = http_exc_to_rpc(exc)
         # Notifications still don't produce output
         if rid is None:
             return None

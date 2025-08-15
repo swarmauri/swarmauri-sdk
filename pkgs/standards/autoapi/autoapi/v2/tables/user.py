@@ -19,6 +19,7 @@ class User(
     __abstract__ = True
     username = Column(String(80), nullable=False)
 
+
 __all__ = ["User"]
 
 

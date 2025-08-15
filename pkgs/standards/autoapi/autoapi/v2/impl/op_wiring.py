@@ -20,14 +20,22 @@ from ..types.op_config_provider import OpConfigProvider
 from ..naming import snake_to_camel
 from inspect import iscoroutinefunction
 
+
 def _ensure_model_namespaces(table):
-    if not hasattr(table, "schemas"):      setattr(table, "schemas", SimpleNamespace())
-    if not hasattr(table, "methods"):      setattr(table, "methods", SimpleNamespace())
-    if not hasattr(table, "rpc"):          setattr(table, "rpc", SimpleNamespace())
-    if not hasattr(table, "core"):         setattr(table, "core", SimpleNamespace())
-    if not hasattr(table, "core_raw"):     setattr(table, "core_raw", SimpleNamespace())
-    if not hasattr(table, "hooks"):        setattr(table, "hooks", SimpleNamespace())
+    if not hasattr(table, "schemas"):
+        setattr(table, "schemas", SimpleNamespace())
+    if not hasattr(table, "methods"):
+        setattr(table, "methods", SimpleNamespace())
+    if not hasattr(table, "rpc"):
+        setattr(table, "rpc", SimpleNamespace())
+    if not hasattr(table, "core"):
+        setattr(table, "core", SimpleNamespace())
+    if not hasattr(table, "core_raw"):
+        setattr(table, "core_raw", SimpleNamespace())
+    if not hasattr(table, "hooks"):
+        setattr(table, "hooks", SimpleNamespace())
     return table  # convenience
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Small helper (avoid importing from routes_builder to prevent cycles)
@@ -229,6 +237,7 @@ def attach_op_specs(api, router, table: Type) -> None:
             if api._authorize and not api._authorize(scope, request):
                 http_exc, _, _ = create_standardized_error(403, rpc_code=-32095)
                 raise http_exc
+
         return Depends(inner)
 
     resource_name = table.__name__
@@ -250,23 +259,35 @@ def attach_op_specs(api, router, table: Type) -> None:
             if inspect.isawaitable(res):
                 return await res
             return res
+
         return _custom_core
 
     def _mk_core_raw(core_fn, target: str):
         # async wrapper that maps payload → positional args and calls canonical core
-        async def _core_raw(payload, *, db=None, _core=core_fn, _verb=target, _pk=pk_name):
+        async def _core_raw(
+            payload, *, db=None, _core=core_fn, _verb=target, _pk=pk_name
+        ):
             if _core is None:
                 raise RuntimeError("core callable is not available for this OpSpec")
             if db is None:
                 raise TypeError("table.core_raw requires db=...")
 
             def _dump(o):
-                return o.model_dump(exclude_unset=True, exclude_none=True) if hasattr(o, "model_dump") else o
+                return (
+                    o.model_dump(exclude_unset=True, exclude_none=True)
+                    if hasattr(o, "model_dump")
+                    else o
+                )
 
             def _build_args(_p):
                 if _verb in ("create", "list"):
                     return (_p,)
-                if _verb in ("bulk_create", "bulk_update", "bulk_replace", "bulk_delete"):
+                if _verb in (
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                    "bulk_delete",
+                ):
                     if isinstance(_p, list):
                         return ([_dump(x) for x in _p],)
                     return (_dump(_p),)
@@ -290,7 +311,7 @@ def attach_op_specs(api, router, table: Type) -> None:
 
     for spec in specs:
         # Compute models (used for REST + class schemas)
-        In  = _in_model(table, spec)
+        In = _in_model(table, spec)
         Out = _out_model(table, spec)
 
         alias_mid = f"{resource_name}.{spec.alias}"
@@ -317,6 +338,7 @@ def attach_op_specs(api, router, table: Type) -> None:
                     if inspect.isawaitable(res):
                         return await res
                     return res
+
                 rpc_fn = _wrap_rpc(_core, In or dict, Out, pk_name, table)
                 api.rpc.add(alias_mid, rpc_fn)
             else:
@@ -350,7 +372,9 @@ def attach_op_specs(api, router, table: Type) -> None:
                 )
 
             needs_query = spec.target == "list"
-            needs_body = (In is not None) and (spec.target not in {"read", "delete", "clear", "list"})
+            needs_body = (In is not None) and (
+                spec.target not in {"read", "delete", "clear", "list"}
+            )
 
             if needs_query:
                 params.append(
@@ -393,11 +417,17 @@ def attach_op_specs(api, router, table: Type) -> None:
                 def _dump(obj):
                     return (
                         obj.model_dump(exclude_unset=True, exclude_none=True)
-                        if hasattr(obj, "model_dump") else obj
+                        if hasattr(obj, "model_dump")
+                        else obj
                     )
 
                 # Build RPC params mirroring routes_builder
-                if spec.target in {"bulk_create","bulk_update","bulk_replace","bulk_delete"}:
+                if spec.target in {
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                    "bulk_delete",
+                }:
                     rpc_params = [_dump(x) for x in (p or [])]
                 elif spec.target in {"read", "delete"}:
                     rpc_params = {pk_name: item_id}
@@ -413,7 +443,8 @@ def attach_op_specs(api, router, table: Type) -> None:
                     # custom; member gets id alongside payload if present in path
                     rpc_params = (
                         {pk_name: item_id, **(_dump(p) if p else {})}
-                        if "{item_id}" in path else (_dump(p) if p else {})
+                        if "{item_id}" in path
+                        else (_dump(p) if p else {})
                     )
 
                 env = _RPCReq(id=None, method=alias_mid, params=rpc_params)
@@ -421,26 +452,38 @@ def attach_op_specs(api, router, table: Type) -> None:
                 ctx.update(getattr(req.state, "ctx", {}))
 
                 # Per-verb pre-hooks
-                for h in sorted([x for x in spec.hooks if x.phase.name == "PRE_TX_BEGIN"], key=lambda x: x.order):
+                for h in sorted(
+                    [x for x in spec.hooks if x.phase.name == "PRE_TX_BEGIN"],
+                    key=lambda x: x.order,
+                ):
                     if h.when is None or h.when(ctx):
                         await h.fn(table=table, ctx=ctx, db=db, request=req, payload=p)
 
                 # Execute via same _invoke engine as canonical endpoints
                 if isinstance(db, AsyncSession):
+
                     def exec_fn(_m, _p, _db=db):
                         return _db.run_sync(lambda s: api.rpc[_m](_p, s))
                 else:
+
                     def exec_fn(_m, _p, _db=db):
                         return api.rpc[_m](_p, _db)
 
                 result = await _invoke(
                     api,
-                    alias_mid if spec.expose_rpc else (canon_mid if spec.target != "custom" else alias_mid),
-                    params=rpc_params, ctx=ctx, exec_fn=exec_fn,
+                    alias_mid
+                    if spec.expose_rpc
+                    else (canon_mid if spec.target != "custom" else alias_mid),
+                    params=rpc_params,
+                    ctx=ctx,
+                    exec_fn=exec_fn,
                 )
 
                 # Per-verb post-hooks
-                for h in sorted([x for x in spec.hooks if x.phase.name == "POST_TX_END"], key=lambda x: x.order):
+                for h in sorted(
+                    [x for x in spec.hooks if x.phase.name == "POST_TX_END"],
+                    key=lambda x: x.order,
+                ):
                     if h.when is None or h.when(ctx):
                         await h.fn(table=table, ctx=ctx, db=db, request=req, payload=p)
 
@@ -451,7 +494,9 @@ def attach_op_specs(api, router, table: Type) -> None:
             wrapped.__signature__ = inspect.Signature(parameters=params)
 
             # deps (authn + rbac)
-            guard_scope = f"{resource_name}.{snake_to_camel(spec.rbac_guard_op or spec.target)}"
+            guard_scope = (
+                f"{resource_name}.{snake_to_camel(spec.rbac_guard_op or spec.target)}"
+            )
             deps = [_guard(guard_scope)]
             if guard_scope not in api._allow_anon:
                 deps.insert(0, api._authn_dep)
@@ -478,7 +523,9 @@ def attach_op_specs(api, router, table: Type) -> None:
                 """
                 if db is None:
                     if _api.get_db is None:
-                        raise TypeError("Supply a Session via db=... or configure get_db on AutoAPI()")
+                        raise TypeError(
+                            "Supply a Session via db=... or configure get_db on AutoAPI()"
+                        )
                     gen = _api.get_db()
                     db_ = next(gen)
                     try:
@@ -490,6 +537,7 @@ def attach_op_specs(api, router, table: Type) -> None:
                             pass
                 else:
                     return _api.rpc[_method](payload, db)
+
             return _runner
 
         if spec.expose_method:
@@ -499,9 +547,13 @@ def attach_op_specs(api, router, table: Type) -> None:
 
         # Also expose a convenience callable on api.core for the alias.
         if spec.target == "custom":
-            core_alias = core_for_model or (lambda payload, *, db=None: api.rpc[alias_mid](payload, db))
+            core_alias = core_for_model or (
+                lambda payload, *, db=None: api.rpc[alias_mid](payload, db)
+            )
         else:
-            core_alias = getattr(api.core, f"{resource_name}{target_camel}", None) or (lambda payload, *, db=None: api.rpc[alias_mid](payload, db))
+            core_alias = getattr(api.core, f"{resource_name}{target_camel}", None) or (
+                lambda payload, *, db=None: api.rpc[alias_mid](payload, db)
+            )
         setattr(api.core, f"{resource_name}{_alias_camel(spec.alias)}", core_alias)
         _attach_ns(api.core, resource_name, spec.alias, core_alias)
 
@@ -523,26 +575,38 @@ def attach_op_specs(api, router, table: Type) -> None:
 
         # 2) rpc on model (prefer api.rpc if present; otherwise local wrap around core)
         if alias_mid in api.rpc:
-            setattr(table.rpc, alias_camel, lambda payload, db, _mid=alias_mid, _api=api: _api.rpc[_mid](payload, db))
-            normalized_for_handlers = api.rpc[alias_mid]
+            setattr(
+                table.rpc,
+                alias_camel,
+                lambda payload, db, _mid=alias_mid, _api=api: _api.rpc[_mid](
+                    payload, db
+                ),
+            )
         else:
             # Local normalized callable not registered in api.rpc (respects IN/OUT)
-            local_rpc = _wrap_rpc(core_for_model, In or dict, Out, pk_name, table) if core_for_model else None
+            local_rpc = (
+                _wrap_rpc(core_for_model, In or dict, Out, pk_name, table)
+                if core_for_model
+                else None
+            )
             if local_rpc is None:
                 # fallback to canonical rpc if available
                 def _fallback_rpc(payload, db, _mid=canon_mid, _api=api):
                     return _api.rpc[_mid](payload, db)
+
                 setattr(table.rpc, alias_camel, _fallback_rpc)
-                normalized_for_handlers = _fallback_rpc
             else:
                 setattr(table.rpc, alias_camel, local_rpc)
-                normalized_for_handlers = local_rpc
 
         # 3) methods on model (always; use model.rpc so it works even if expose_rpc=False)
-        def _model_runner(payload, *, db=None, _tab_rpc=getattr(table.rpc, alias_camel)):
+        def _model_runner(
+            payload, *, db=None, _tab_rpc=getattr(table.rpc, alias_camel)
+        ):
             if db is None:
                 if api.get_db is None:
-                    raise TypeError("Supply a Session via db=... or configure get_db on AutoAPI()")
+                    raise TypeError(
+                        "Supply a Session via db=... or configure get_db on AutoAPI()"
+                    )
                 gen = api.get_db()
                 db_ = next(gen)
                 try:
@@ -562,10 +626,19 @@ def attach_op_specs(api, router, table: Type) -> None:
 
         # 5) core + core_raw on model
         setattr(table.core, spec.alias, core_for_model or _model_runner)
-        setattr(table.core_raw, spec.alias, _mk_core_raw(core_for_model or (lambda payload, db: api.rpc[alias_mid](payload, db)), spec.target))
+        setattr(
+            table.core_raw,
+            spec.alias,
+            _mk_core_raw(
+                core_for_model or (lambda payload, db: api.rpc[alias_mid](payload, db)),
+                spec.target,
+            ),
+        )
 
 
-def _apply_spec_to_model(api, table: type, spec: OpSpec, *, IN, OUT, pk_name: str, runner):
+def _apply_spec_to_model(
+    api, table: type, spec: OpSpec, *, IN, OUT, pk_name: str, runner
+):
     """
     Mirror one OpSpec into the model's namespaces:
       • table.schemas.{AliasCamel}In / {AliasCamel}Out
@@ -578,7 +651,7 @@ def _apply_spec_to_model(api, table: type, spec: OpSpec, *, IN, OUT, pk_name: st
     """
     resource = table.__name__
     alias_camel = snake_to_camel(spec.alias)
-    alias_mid   = f"{resource}.{spec.alias}"
+    alias_mid = f"{resource}.{spec.alias}"
 
     _ensure_model_namespaces(table)
 
@@ -603,6 +676,7 @@ def _apply_spec_to_model(api, table: type, spec: OpSpec, *, IN, OUT, pk_name: st
     # ── rpc on model (call-through to api.rpc)
     def _rpc(payload, db, _mid=alias_mid, _api=api):
         return _api.rpc[_mid](payload, db)
+
     setattr(table.rpc, alias_camel, _rpc)
 
     # ── core + core_raw on model
@@ -617,6 +691,7 @@ def _apply_spec_to_model(api, table: type, spec: OpSpec, *, IN, OUT, pk_name: st
             if iscoroutinefunction(_h) or hasattr(res, "__await__"):
                 return await res
             return res
+
         core_fn = _custom_core
     else:
         # alias of canonical
@@ -626,28 +701,38 @@ def _apply_spec_to_model(api, table: type, spec: OpSpec, *, IN, OUT, pk_name: st
     setattr(table.core, spec.alias, (core_fn or runner))
 
     # core_raw accepts (payload, *, db) and handles AsyncSession/Session uniformly
-    async def _core_raw(payload, *, db=None, _core=core_fn, _verb=spec.target, _pk=pk_name):
+    async def _core_raw(
+        payload, *, db=None, _core=core_fn, _verb=spec.target, _pk=pk_name
+    ):
         # If canonical core is missing (rare race), just use the rpc runner
         if _core is None:
-            return await runner(payload, db=db) if iscoroutinefunction(runner) else runner(payload, db=db)
+            return (
+                await runner(payload, db=db)
+                if iscoroutinefunction(runner)
+                else runner(payload, db=db)
+            )
 
         # Build args like routes_builder.core_raw for canonical verbs
         def _dump(o):
-            return o.model_dump(exclude_unset=True, exclude_none=True) if hasattr(o, "model_dump") else o
+            return (
+                o.model_dump(exclude_unset=True, exclude_none=True)
+                if hasattr(o, "model_dump")
+                else o
+            )
 
         def _build_args(_p):
             if _verb in ("create", "list"):
                 return (_p,)
-            if _verb in ("bulk_create","bulk_update","bulk_replace","bulk_delete"):
+            if _verb in ("bulk_create", "bulk_update", "bulk_replace", "bulk_delete"):
                 if isinstance(_p, list):
                     return ([_dump(x) for x in _p],)
                 return (_dump(_p),)
             if _verb == "clear":
                 return ()
-            if _verb in ("read","delete"):
+            if _verb in ("read", "delete"):
                 d = _dump(_p)
                 return (d[_pk],)
-            if _verb in ("update","replace"):
+            if _verb in ("update", "replace"):
                 d = _dump(_p)
                 body = {k: v for k, v in d.items() if k != _pk}
                 return (d[_pk], body)

@@ -13,7 +13,6 @@ import re
 from types import SimpleNamespace
 from typing import Annotated, Any, List, Optional
 
-from sqlalchemy import inspect as _sa_inspect  # ← added
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -574,7 +573,6 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
 
-
     # ─── OpSpec-powered verbs (aliases + custom + skip/override) ────
     attach_op_specs(self, flat_router, model)
     if len(routers) > 1:
@@ -597,8 +595,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     decl = model
 
     # resolve what we already registered on the API object
-    methods_ns  = getattr(self.methods,  resource, SimpleNamespace())
-    core_ns     = getattr(self.core,     resource, SimpleNamespace())
+    methods_ns = getattr(self.methods, resource, SimpleNamespace())
+    core_ns = getattr(self.core, resource, SimpleNamespace())
     core_raw_ns = getattr(self.core_raw, resource, SimpleNamespace())
 
     # Build a schemas namespace by collecting all schema classes that start with this resource's prefix
@@ -609,7 +607,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             continue
         if not _name.startswith(_pref):
             continue
-        short = _name[len(_pref):]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
+        short = _name[len(_pref) :]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
         if short and short[0].isupper():
             setattr(schemas_ns, short, _cls)
 
@@ -640,14 +638,14 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     )
 
     # Publish onto the un-instantiated declarative model class
-    setattr(decl, "schemas",       schemas_ns)
-    setattr(decl, "methods",       methods_ns)
-    setattr(decl, "rpc",           rpc_ns)
-    setattr(decl, "core",          core_ns)
-    setattr(decl, "core_raw",      core_raw_ns)
-    setattr(decl, "handlers",      methods_ns)   # convenience alias
-    setattr(decl, "raw_handlers",  core_ns)      # convenience alias
-    setattr(decl, "router",        router_ns)
+    setattr(decl, "schemas", schemas_ns)
+    setattr(decl, "methods", methods_ns)
+    setattr(decl, "rpc", rpc_ns)
+    setattr(decl, "core", core_ns)
+    setattr(decl, "core_raw", core_raw_ns)
+    setattr(decl, "handlers", methods_ns)  # convenience alias
+    setattr(decl, "raw_handlers", core_ns)  # convenience alias
+    setattr(decl, "router", router_ns)
     # (Optional) columns mirror for quick introspection
     try:
         setattr(decl, "columns", {c.key: c for c in model.__table__.columns})
@@ -670,7 +668,9 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         router=router_ns,
     )
 
-    print(f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router")
+    print(
+        f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router"
+    )
     # ─────────────────────────────────────────────────────────────────
 
     print(f"Routes registered for {resource}")
