@@ -3,7 +3,7 @@
 Public façade for the AutoAPI framework.
 
 •  Keeps only lightweight glue code.
-•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatch, …).
+•  Delegates real work to sub-modules (impl, hooks, endpoints, rpcdispatcher, …).
 •  Preserves the historical surface: AutoAPI._crud, …
 """
 
@@ -14,8 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from .endpoints import attach_health_and_methodz
-from .rpcdispatch import build_rpcdispatch
+# Diagnostic and RPC endpoints
+from .endpoints.endpoints import attach_health_and_methodz
+from .endpoints.rpcdispatcher import build_rpcdispatch
 from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
@@ -23,8 +24,7 @@ from .impl import (
     _schema,
     _wrap_rpc,
 )
-from .impl.routes_builder import _attach
-from .routes import _nested_prefix  # path builder
+from .impl.routes_builder import _attach, _nested_prefix
 from .tables._base import Base as Base
 
 # ─── local helpers  (thin sub-modules) ──────────────────────────────

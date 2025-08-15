@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from .hooks import Phase
 from .naming import label_hook_callable
+from ..hooks import Phase
 
 
 def attach_health_and_methodz(api, get_async_db=None, get_db=None):
@@ -30,6 +31,11 @@ def attach_health_and_methodz(api, get_async_db=None, get_db=None):
         - Within each phase, hooks are listed in execution order:
           global (None) hooks, then method-specific hooks.
         """
+        def label(fn) -> str:
+            n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+            m = getattr(fn, "__module__", None)
+            return f"{m}.{n}" if m else n
+
         # Methods = declared RPC methods ∪ any method that has at least one hook
         methods = set(api._method_ids.keys())
         for hooks_by_method in api._hook_registry.values():

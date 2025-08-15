@@ -28,3 +28,4 @@ pkgs/standards/peagen/peagen.zip
 /pkgs/uv.lock
 pkgs/standards/peagen/.pymon
 *.pem
+kms.db

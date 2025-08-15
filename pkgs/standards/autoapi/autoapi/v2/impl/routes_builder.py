@@ -11,7 +11,7 @@ import functools
 import inspect
 import re
 from types import SimpleNamespace
-from typing import Annotated, Any, List, Optional
+from typing import Annotated, Any, List, Optional, Type
 
 from sqlalchemy import inspect as _sa_inspect  # ← added
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,6 +77,100 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
         return cls
 
     return base  # primitive / dict / etc.
+
+
+def _canonical(tab: str, verb: str) -> str:
+    """Return canonical RPC method name."""
+    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
+    name = f"{cls_name}.{verb}"
+    print(f"_canonical generated {name}")
+    return name
+
+
+def _resource_pascal(tab_or_cls: str) -> str:
+    return (
+        "".join(w.title() for w in tab_or_cls.split("_"))
+        if tab_or_cls.islower()
+        else tab_or_cls
+    )
+
+
+def _nested_prefix(self, model: Type) -> Optional[str]:
+    """Return the user-supplied hierarchical prefix or *None*.
+
+    • If the SQLAlchemy model defines `__autoapi_nested_paths__`
+      → call it and return the result.
+    • Else, fall back to legacy `_nested_path` string if present.
+    • Otherwise → signal ``no nested route wanted`` with ``None``.
+    """
+
+    cb = getattr(model, "__autoapi_nested_paths__", None)
+    if callable(cb):
+        return cb()
+    return getattr(model, "_nested_path", None)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Verb aliasing (RPC exposure + helper names; REST paths unchanged)
+# ──────────────────────────────────────────────────────────────────────────────
+
+_VALID_VERBS = {
+    "create",
+    "read",
+    "update",
+    "delete",
+    "list",
+    "clear",
+    "replace",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
+}
+
+_alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _get_verb_alias_map(model) -> dict[str, str]:
+    raw = getattr(model, "__autoapi_verb_aliases__", None)
+    if callable(raw):
+        raw = raw()
+    return dict(raw or {})
+
+
+def _alias_policy(model) -> str:
+    # "both" | "alias_only" | "canonical_only"
+    return getattr(model, "__autoapi_verb_alias_policy__", "both")
+
+
+def _public_verb(model, canonical: str) -> str:
+    ali = _get_verb_alias_map(model).get(canonical)
+    if not ali or ali == canonical:
+        return canonical
+    if canonical not in _VALID_VERBS:
+        raise RuntimeError(f"{model.__name__}: unsupported verb {canonical!r}")
+    if not _alias_re.match(ali):
+        raise RuntimeError(
+            f"{model.__name__}.__autoapi_verb_aliases__: bad alias {ali!r} for {canonical!r} "
+            "(must be lowercase [a-z0-9_], start with a letter)"
+        )
+    return ali
+
+
+def _route_label(resource_name: str, verb: str, model) -> str:
+    """Return '{Resource} - {verb/alias}' per policy."""
+    pol = _alias_policy(model)
+    pub = _public_verb(model, verb)
+    if pol == "alias_only" and pub != verb:
+        lab = pub
+    elif pol == "both" and pub != verb:
+        lab = f"{verb}/{pub}"
+    else:
+        lab = verb
+    return f"{_resource_pascal(resource_name)} - {lab}"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method

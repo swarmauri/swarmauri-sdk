@@ -18,7 +18,6 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - Extended operations: replace (put), bulk create/delete/update
 - 6 Phase Hook Lifecycle
 - Transactionals
-- `_apply_row_filters` (deprecating)
 - _RowBound hook providers
 - phase-level hooks that can be wildcard or per-verb, per-model
 - Automated route creation: rest paths or nested rest paths, rpc dispatch, healthz, methodz, hookz

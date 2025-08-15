@@ -75,6 +75,7 @@ members = [
     "standards/autoapi_client",
     "standards/peagen",
     "standards/auto_authn",
+    "standards/auto_kms",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_secret_autogpg",    
@@ -195,8 +196,9 @@ autoapi = { workspace = true }
 autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 peagen = { workspace = true }
-swarmauri_secret_autogpg = { workspace = true }
+auto_kms = { workspace = true }
 
+swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 
