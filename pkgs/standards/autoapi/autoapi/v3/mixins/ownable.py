@@ -12,13 +12,18 @@ from sqlalchemy.orm import declared_attr
 
 from ..runtime.errors import create_standardized_error
 from ..schema.col_info import check as _info_check
-from ..config.constants import CTX_USER_ID_KEY, CTX_AUTH_KEY
+from ..config.constants import (
+    AUTOAPI_HOOKS_ATTR,
+    AUTOAPI_OWNER_POLICY_ATTR,
+    CTX_AUTH_KEY,
+    CTX_USER_ID_KEY,
+)
 
 log = logging.getLogger(__name__)
 
 
 class OwnerPolicy(str, Enum):
-    CLIENT_SET = "client"     # client may set; validated against user_id if provided
+    CLIENT_SET = "client"  # client may set; validated against user_id if provided
     DEFAULT_TO_USER = "default"  # if missing, default to user_id
     STRICT_SERVER = "strict"  # server enforces user_id; client cannot override
 
@@ -61,23 +66,39 @@ def _ctx_user_id(ctx: Mapping[str, Any]) -> Any | None:
       4) ctx["auth_context"]["user_id"] (legacy)
     """
     # 1) direct
-    u = ctx.get(CTX_USER_ID_KEY) if isinstance(ctx, dict) else getattr(ctx, CTX_USER_ID_KEY, None)
+    u = (
+        ctx.get(CTX_USER_ID_KEY)
+        if isinstance(ctx, dict)
+        else getattr(ctx, CTX_USER_ID_KEY, None)
+    )
     if u:
         return _normalize_uuid(u)
 
     # 2) auth dict
-    auth = (ctx.get(CTX_AUTH_KEY) if isinstance(ctx, dict) else getattr(ctx, CTX_AUTH_KEY, None)) or {}
+    auth = (
+        ctx.get(CTX_AUTH_KEY)
+        if isinstance(ctx, dict)
+        else getattr(ctx, CTX_AUTH_KEY, None)
+    ) or {}
     u = auth.get("user_id")
     if u:
         return _normalize_uuid(u)
 
     # 3 & 4) legacy fallbacks
-    inj = (ctx.get("injected_fields") if isinstance(ctx, dict) else getattr(ctx, "injected_fields", None)) or {}
+    inj = (
+        ctx.get("injected_fields")
+        if isinstance(ctx, dict)
+        else getattr(ctx, "injected_fields", None)
+    ) or {}
     u = inj.get("user_id")
     if u:
         return _normalize_uuid(u)
 
-    ac = (ctx.get("auth_context") if isinstance(ctx, dict) else getattr(ctx, "auth_context", None)) or {}
+    ac = (
+        ctx.get("auth_context")
+        if isinstance(ctx, dict)
+        else getattr(ctx, "auth_context", None)
+    ) or {}
     u = ac.get("user_id")
     if u:
         return _normalize_uuid(u)
@@ -105,7 +126,7 @@ class Ownable:
 
     @declared_attr
     def owner_id(cls):
-        pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
+        pol = getattr(cls, AUTOAPI_OWNER_POLICY_ATTR, OwnerPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
         autoapi_meta: dict[str, Any] = {}
@@ -144,6 +165,7 @@ class Ownable:
               ...
             }
         """
+
         def _err(status: int, msg: str):
             http_exc, _, _ = create_standardized_error(status, message=msg)
             raise http_exc
@@ -156,14 +178,21 @@ class Ownable:
             user_id = _ctx_user_id(ctx)
             provided = params.get("owner_id")
             missing = _is_missing(provided)
-            pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
+            pol = getattr(cls, AUTOAPI_OWNER_POLICY_ATTR, OwnerPolicy.CLIENT_SET)
 
-            log.debug("Ownable PRE_TX_BEGIN(create): policy=%s params=%s user_id=%s", pol, params, user_id)
+            log.debug(
+                "Ownable PRE_TX_BEGIN(create): policy=%s params=%s user_id=%s",
+                pol,
+                params,
+                user_id,
+            )
 
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
-                if not missing and _normalize_uuid(provided) != _normalize_uuid(user_id):
+                if not missing and _normalize_uuid(provided) != _normalize_uuid(
+                    user_id
+                ):
                     _err(400, "owner_id mismatch.")
                 params["owner_id"] = user_id  # always enforce server value
             elif pol == OwnerPolicy.DEFAULT_TO_USER:
@@ -189,7 +218,7 @@ class Ownable:
             if "owner_id" not in params:
                 return  # nothing to check
 
-            pol = getattr(cls, "__autoapi_owner_policy__", OwnerPolicy.CLIENT_SET)
+            pol = getattr(cls, AUTOAPI_OWNER_POLICY_ATTR, OwnerPolicy.CLIENT_SET)
             if _is_missing(params.get("owner_id")):
                 # treat None/"" as not provided → drop it
                 params.pop("owner_id", None)
@@ -206,7 +235,12 @@ class Ownable:
             user_id = _ctx_user_id(ctx)
             is_admin = bool(ctx.get("is_admin"))
 
-            log.debug("Ownable PRE_TX_BEGIN(update): new=%s user_id=%s is_admin=%s", new_val, user_id, is_admin)
+            log.debug(
+                "Ownable PRE_TX_BEGIN(update): new=%s user_id=%s is_admin=%s",
+                new_val,
+                user_id,
+                is_admin,
+            )
 
             if not is_admin and user_id is not None and new_val != user_id:
                 _err(403, "Cannot transfer ownership.")
@@ -218,7 +252,7 @@ class Ownable:
             ctx["payload"] = params
 
         # Attach (merge) into __autoapi_hooks__ without clobbering existing mappings
-        hooks = getattr(cls, "__autoapi_hooks__", None) or {}
+        hooks = getattr(cls, AUTOAPI_HOOKS_ATTR, None) or {}
         hooks = {**hooks}  # shallow copy
 
         def _append(alias: str, phase: str, fn):
@@ -226,10 +260,12 @@ class Ownable:
             lst = list(phase_map.get(phase) or [])
             if fn not in lst:
                 lst.append(fn)
-            phase_map[phase] = tuple(lst)  # tuples are safer against accidental mutation
+            phase_map[phase] = tuple(
+                lst
+            )  # tuples are safer against accidental mutation
             hooks[alias] = phase_map
 
         _append("create", "PRE_TX_BEGIN", _before_create)
         _append("update", "PRE_TX_BEGIN", _before_update)
 
-        setattr(cls, "__autoapi_hooks__", hooks)
+        setattr(cls, AUTOAPI_HOOKS_ATTR, hooks)

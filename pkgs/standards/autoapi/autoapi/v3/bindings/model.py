@@ -3,19 +3,37 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Set, Tuple, Type
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+)
 
 from ..opspec import OpSpec
 from ..opspec import resolve as resolve_opspecs
 from ..opspec import get_registry, OpspecRegistry
+from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
 
 # These modules will be implemented next in the bindings package.
 # They should expose the functions used below with the given signatures.
-from . import schemas as _schemas_binding          # build_and_attach(model, specs, only_keys=None) -> None
-from . import hooks as _hooks_binding              # normalize_and_attach(model, specs, only_keys=None) -> None
-from . import handlers as _handlers_binding        # build_and_attach(model, specs, only_keys=None) -> None
-from . import rpc as _rpc_binding                  # register_and_attach(model, specs, only_keys=None) -> None
-from . import rest as _rest_binding                # build_router_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    schemas as _schemas_binding,
+)  # build_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    hooks as _hooks_binding,
+)  # normalize_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    handlers as _handlers_binding,
+)  # build_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    rpc as _rpc_binding,
+)  # register_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    rest as _rest_binding,
+)  # build_router_and_attach(model, specs, only_keys=None) -> None
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +44,10 @@ logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
 
+
 def _key(sp: OpSpec) -> _Key:
     return (sp.alias, sp.target)
+
 
 def _ensure_model_namespaces(model: type) -> None:
     """
@@ -55,12 +75,17 @@ def _ensure_model_namespaces(model: type) -> None:
     if not hasattr(model, "columns"):
         table = getattr(model, "__table__", None)
         cols = tuple(getattr(table, "columns", ()) or ())
-        model.columns = tuple(getattr(c, "name", None) for c in cols if getattr(c, "name", None))
+        model.columns = tuple(
+            getattr(c, "name", None) for c in cols if getattr(c, "name", None)
+        )
     if not hasattr(model, "table_config"):
         table = getattr(model, "__table__", None)
         model.table_config = dict(getattr(table, "kwargs", {}) or {})
 
-def _index_specs(specs: Sequence[OpSpec]) -> Tuple[Tuple[OpSpec, ...], Dict[_Key, OpSpec], Dict[str, List[OpSpec]]]:
+
+def _index_specs(
+    specs: Sequence[OpSpec],
+) -> Tuple[Tuple[OpSpec, ...], Dict[_Key, OpSpec], Dict[str, List[OpSpec]]]:
     all_specs: Tuple[OpSpec, ...] = tuple(specs)
     by_key: Dict[_Key, OpSpec] = {}
     by_alias: Dict[str, List[OpSpec]] = {}
@@ -69,6 +94,7 @@ def _index_specs(specs: Sequence[OpSpec]) -> Tuple[Tuple[OpSpec, ...], Dict[_Key
         by_key[k] = sp
         by_alias.setdefault(sp.alias, []).append(sp)
     return all_specs, by_key, by_alias
+
 
 def _drop_old_entries(model: type, *, keys: Set[_Key] | None) -> None:
     """
@@ -120,6 +146,7 @@ def _drop_old_entries(model: type, *, keys: Set[_Key] | None) -> None:
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
     """
     Build (or refresh) all AutoAPI namespaces on the model class.
@@ -167,11 +194,15 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     # 5) Ensure we have a registry listener to refresh on changes
     _ensure_registry_listener(model)
 
-    logger.debug("autoapi.bindings.model.bind(%s): %d ops bound", model.__name__, len(all_specs))
+    logger.debug(
+        "autoapi.bindings.model.bind(%s): %d ops bound", model.__name__, len(all_specs)
+    )
     return all_specs
 
 
-def rebind(model: type, *, changed_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
+def rebind(
+    model: type, *, changed_keys: Optional[Set[_Key]] = None
+) -> Tuple[OpSpec, ...]:
     """
     Public helper to trigger a rebind for the model. If `changed_keys` is provided,
     we attempt a targeted refresh; otherwise we rebuild everything.
@@ -183,6 +214,7 @@ def rebind(model: type, *, changed_keys: Optional[Set[_Key]] = None) -> Tuple[Op
 # Registry integration
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_registry_listener(model: type) -> None:
     """
     Subscribe (once) to the per-model OpspecRegistry so future register_ops/add/remove/set
@@ -191,7 +223,7 @@ def _ensure_registry_listener(model: type) -> None:
     reg: OpspecRegistry = get_registry(model)
 
     # If we already subscribed, skip
-    if getattr(model, "__autoapi_registry_listener__", None):
+    if getattr(model, AUTOAPI_REGISTRY_LISTENER_ATTR, None):
         return
 
     def _on_registry_change(registry: OpspecRegistry, changed: Set[_Key]) -> None:
@@ -199,11 +231,16 @@ def _ensure_registry_listener(model: type) -> None:
             # Targeted rebind using changed keys
             rebind(model, changed_keys=changed)
         except Exception as e:  # pragma: no cover
-            logger.exception("autoapi: rebind failed for %s on ops %s: %s", model.__name__, changed, e)
+            logger.exception(
+                "autoapi: rebind failed for %s on ops %s: %s",
+                model.__name__,
+                changed,
+                e,
+            )
 
     reg.subscribe(_on_registry_change)
     # Keep a reference to avoid GC of the closure and to prevent double-subscribe
-    setattr(model, "__autoapi_registry_listener__", _on_registry_change)
+    setattr(model, AUTOAPI_REGISTRY_LISTENER_ATTR, _on_registry_change)
 
 
 __all__ = ["bind", "rebind"]

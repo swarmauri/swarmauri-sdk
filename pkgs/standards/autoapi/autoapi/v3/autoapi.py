@@ -24,6 +24,7 @@ from .bindings.model import rebind as _rebind, bind as _bind
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .opspec import get_registry, OpSpec
+from .config.constants import AUTOAPI_API_HOOKS_ATTR
 
 # optional compat: legacy transactional decorator
 try:
@@ -97,9 +98,9 @@ class AutoAPI:
         """
         if not hooks_map:
             return
-        existing = getattr(model, "__autoapi_api_hooks__", None)
+        existing = getattr(model, AUTOAPI_API_HOOKS_ATTR, None)
         if existing is None:
-            setattr(model, "__autoapi_api_hooks__", copy.deepcopy(hooks_map))
+            setattr(model, AUTOAPI_API_HOOKS_ATTR, copy.deepcopy(hooks_map))
             return
 
         # shallow merge (alias or phase keys); values are lists we extend
@@ -119,7 +120,7 @@ class AutoAPI:
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
                         merged[k] = v
-        setattr(model, "__autoapi_api_hooks__", merged)
+        setattr(model, AUTOAPI_API_HOOKS_ATTR, merged)
 
     # ------------------------- primary operations -------------------------
 
