@@ -32,13 +32,7 @@ app = FastAPI(
     title="AutoKMS", version="0.1.0", openapi_url="/openapi.json", docs_url="/docs"
 )
 
-api = AutoAPI(app=app, get_async_db=get_async_db)
-api.include_models([Key, KeyVersion], base_prefix="/kms")
-api.mount_jsonrpc(prefix="/kms/rpc")
-api.mount_diagnostics(prefix="/kms/system")
-
-
-@api.register_hook("PRE_TX_BEGIN")
+# API-level hooks (v3): stash shared services into ctx before any handler runs
 async def _stash_ctx(ctx):
     global SECRETS, CRYPTO
     try:
@@ -51,10 +45,13 @@ async def _stash_ctx(ctx):
     ctx["_kms_crypto"] = CRYPTO
 
 
-@api.register_hook("POST_RESPONSE")
-async def _finalize_kms_result(ctx):
-    if "__kms_result__" in ctx:
-        ctx["response"].result = ctx.pop("__kms_result__")
+# Construct AutoAPI with api-level hooks; custom ops return raw dicts so no finalize hook needed
+api = AutoAPI(
+    app=app, get_async_db=get_async_db, api_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}}
+)
+api.include_models([Key, KeyVersion], base_prefix="/kms")
+api.mount_jsonrpc(prefix="/kms/rpc")
+api.attach_diagnostics(prefix="/kms/system")
 
 
 @app.get("/healthz", include_in_schema=False)
