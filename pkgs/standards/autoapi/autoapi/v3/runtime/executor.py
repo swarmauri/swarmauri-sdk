@@ -1,4 +1,4 @@
-# autoapi/v2/impl/runtime/executor.py
+# autoapi/v3/runtime/executor.py
 from __future__ import annotations
 
 from typing import (
