@@ -60,19 +60,35 @@ __all__ += ["AutoAPI", "Base"]
 
 __all__ += [
     # OpSpec core
-    "OpSpec", "get_registry", "op", "op_alias", "PHASES", "HookPhase",
+    "OpSpec",
+    "get_registry",
+    "op",
+    "op_alias",
+    "PHASES",
+    "HookPhase",
     # Bindings
-    "bind", "rebind",
-    "build_schemas", "build_hooks", "build_handlers", "register_rpc", "build_rest",
-    "include_model", "include_models", "rpc_call",
+    "bind",
+    "rebind",
+    "build_schemas",
+    "build_hooks",
+    "build_handlers",
+    "register_rpc",
+    "build_rest",
+    "include_model",
+    "include_models",
+    "rpc_call",
     # Runtime
     "_invoke",
     # Schemas
-    "_schema", "create_list_schema",
+    "_schema",
+    "create_list_schema",
     # Transport / Diagnostics
-    "build_jsonrpc_router", "mount_diagnostics",
+    "build_jsonrpc_router",
+    "mount_diagnostics",
     # DB/infra
-    "ensure_schemas", "register_sqlite_attach", "bootstrap_dbschema",
+    "ensure_schemas",
+    "register_sqlite_attach",
+    "bootstrap_dbschema",
     # Config
     "DEFAULT_HTTP_METHODS",
 ]

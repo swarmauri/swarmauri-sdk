@@ -3,9 +3,23 @@ from __future__ import annotations
 
 import copy
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
-from .bindings.api import include_model as _include_model, include_models as _include_models, rpc_call as _rpc_call
+from .bindings.api import (
+    include_model as _include_model,
+    include_models as _include_models,
+    rpc_call as _rpc_call,
+)
 from .bindings.model import rebind as _rebind, bind as _bind
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import attach_diagnostics as _attach_diagnostics
@@ -43,7 +57,9 @@ class AutoAPI:
         get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
-        api_hooks: Mapping[str, Iterable[Callable]] | Mapping[str, Mapping[str, Iterable[Callable]]] | None = None,
+        api_hooks: Mapping[str, Iterable[Callable]]
+        | Mapping[str, Mapping[str, Iterable[Callable]]]
+        | None = None,
     ) -> None:
         # host app (FastAPI or APIRouter)
         self.app = app
@@ -107,20 +123,34 @@ class AutoAPI:
 
     # ------------------------- primary operations -------------------------
 
-    def include_model(self, model: type, *, prefix: str | None = None, mount_router: bool = True) -> Tuple[type, Any]:
+    def include_model(
+        self, model: type, *, prefix: str | None = None, mount_router: bool = True
+    ) -> Tuple[type, Any]:
         """
         Bind a model, mount its REST router, and attach all namespaces to this facade.
         """
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
-        return _include_model(self, model, app=self.app, prefix=prefix, mount_router=mount_router)
+        return _include_model(
+            self, model, app=self.app, prefix=prefix, mount_router=mount_router
+        )
 
     def include_models(
-        self, models: Sequence[type], *, base_prefix: str | None = None, mount_router: bool = True
+        self,
+        models: Sequence[type],
+        *,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
     ) -> Dict[str, Any]:
         for m in models:
             self._merge_api_hooks_into_model(m, self._api_hooks_map)
-        return _include_models(self, models, app=self.app, base_prefix=base_prefix, mount_router=mount_router)
+        return _include_models(
+            self,
+            models,
+            app=self.app,
+            base_prefix=base_prefix,
+            mount_router=mount_router,
+        )
 
     async def rpc_call(
         self,
@@ -132,19 +162,29 @@ class AutoAPI:
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        return await _rpc_call(self, model_or_name, method, payload, db=db, request=request, ctx=ctx)
+        return await _rpc_call(
+            self, model_or_name, method, payload, db=db, request=request, ctx=ctx
+        )
 
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         """Mount JSON-RPC router onto `self.app`."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
-        return _mount_jsonrpc(self, self.app, prefix=px, get_db=self.get_db, get_async_db=self.get_async_db)
+        return _mount_jsonrpc(
+            self,
+            self.app,
+            prefix=px,
+            get_db=self.get_db,
+            get_async_db=self.get_async_db,
+        )
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto `self.app`."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _attach_diagnostics(self, get_db=self.get_db, get_async_db=self.get_async_db)
+        router = _attach_diagnostics(
+            self, get_db=self.get_db, get_async_db=self.get_async_db
+        )
         if hasattr(self.app, "include_router") and callable(self.app.include_router):
             self.app.include_router(router, prefix=px)
         return router
@@ -160,7 +200,9 @@ class AutoAPI:
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
         return _bind(model)
 
-    def rebind(self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None) -> Tuple[OpSpec, ...]:
+    def rebind(
+        self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
+    ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
         return _rebind(model, changed_keys=changed_keys)
 
