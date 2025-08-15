@@ -209,7 +209,9 @@ class AutoAPI:
 
         # generate CRUD + RPC for every mapped SQLAlchemy model
         for m in base.registry.mappers:
-            cls = m.class_
+            cls = getattr(m, "class_", None)
+            if cls is None:
+                continue
             if self._include and cls not in self._include:
                 continue
             self._crud(cls)
