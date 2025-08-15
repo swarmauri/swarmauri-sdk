@@ -8,7 +8,14 @@ from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import MetaData
 
 class Base(DeclarativeBase):
-
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        try:
+            from autoapi.v3.bindings.model import bind
+            bind(cls)   # safe/idempotent; v3 binders handle rebinds later
+        except Exception:
+            pass
+            
     metadata = MetaData(
         naming_convention={
             "pk": "pk_%(table_name)s",
