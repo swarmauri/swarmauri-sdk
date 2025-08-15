@@ -1,4 +1,4 @@
-# autoapi/v2/impl/runtime/errors.py
+# autoapi/v3/runtime/errors.py
 from __future__ import annotations
 
 from typing import Any, Optional, Iterable, Tuple

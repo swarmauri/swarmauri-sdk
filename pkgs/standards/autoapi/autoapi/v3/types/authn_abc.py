@@ -1,4 +1,4 @@
-# autoapi/v2/authn_abc.py
+# autoapi/v3/types/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from fastapi import Request
