@@ -43,7 +43,7 @@ from .schema import _schema, create_list_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .transport.jsonrpc import build_jsonrpc_router
-from .system import attach_diagnostics
+from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
 from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
@@ -70,7 +70,7 @@ __all__ += [
     # Schemas
     "_schema", "create_list_schema",
     # Transport / Diagnostics
-    "build_jsonrpc_router", "attach_diagnostics",
+    "build_jsonrpc_router", "mount_diagnostics",
     # DB/infra
     "ensure_schemas", "register_sqlite_attach", "bootstrap_dbschema",
     # Config
